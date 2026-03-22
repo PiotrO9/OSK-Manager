@@ -3,7 +3,21 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
-    modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/seo', '@nuxtjs/i18n'],
+    modules: [
+        '@nuxt/eslint',
+        '@nuxt/icon',
+        '@nuxtjs/seo',
+        '@nuxtjs/i18n',
+        '@nuxt/ui',
+    ],
+    ui: {
+        colorMode: false,
+    },
+    colorMode: {
+        preference: 'light',
+        fallback: 'light',
+        classSuffix: '',
+    },
     i18n: {
         locales: [
             {

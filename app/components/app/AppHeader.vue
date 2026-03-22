@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Switch from '../ui/Switch.vue';
-
 interface NavLink {
     to: string;
     label: string;
@@ -11,12 +9,7 @@ const route = useRoute();
 const { t } = useI18n();
 const localePath = useLocalePath();
 const { isAuthenticated } = useAuthSession();
-const { isDark, toggleDarkMode } = useDarkMode();
 const { handleLogout } = useLogout();
-
-const switchAriaLabel = computed(() =>
-    isDark.value ? t('commonSwitchToLight') : t('commonSwitchToDark'),
-);
 
 const navLinks = computed<NavLink[]>(() => [
     { to: localePath('/'), label: t('navHome'), ariaLabel: t('navGoToHome') },
@@ -24,11 +17,6 @@ const navLinks = computed<NavLink[]>(() => [
         to: localePath('/design-system'),
         label: t('navDesignSystem'),
         ariaLabel: t('navGoToDesignSystem'),
-    },
-    {
-        to: localePath('/api-demo'),
-        label: t('navApiDemo'),
-        ariaLabel: t('navGoToApiDemo'),
     },
     {
         to: localePath('/protected'),
@@ -48,10 +36,6 @@ function linkClass(to: string): string {
 
 function handleGoToLogin() {
     navigateTo(localePath('/login'));
-}
-
-function handleToggleDarkMode() {
-    toggleDarkMode();
 }
 </script>
 
@@ -88,16 +72,6 @@ function handleToggleDarkMode() {
             </div>
 
             <div class="flex min-w-0 flex-wrap items-center justify-end gap-2">
-                <LanguageSwitch />
-                <Switch
-                    :checked="isDark"
-                    :aria-label="switchAriaLabel"
-                    left-icon="heroicons:sun"
-                    right-icon="heroicons:moon"
-                    left-icon-class="text-warning-500 dark:text-warning-200"
-                    right-icon-class="text-secondary-600 dark:text-secondary-300"
-                    @update:checked="handleToggleDarkMode"
-                />
                 <Action
                     v-if="isAuthenticated"
                     variant="secondary"
