@@ -1,0 +1,26 @@
+---
+description: Project documentation and starter context - always reference docs/ for project info
+alwaysApply: true
+---
+
+# Frontend Starter — Project Context
+
+This is a **starter template** for bootstrapping new Nuxt 3 projects. It is NOT a production app. Other projects are created FROM this starter.
+
+## Documentation (read these for accurate info)
+
+- **docs/GETTING_STARTED.md** — Setup, installation, first run, demo mode
+- **docs/ARCHITECTURE.md** — Structure, auth flow, middleware, config
+- **docs/COMPONENTS.md** — UI components reference (props, slots, events)
+- **docs/COMPOSABLES.md** — Composables API reference
+- **docs/CUSTOMIZATION.md** — Adapting starter to a new project
+- **docs/DEPLOYMENT.md** — Build and deployment
+
+When answering questions about this project, **always read and reference the docs/ folder** for structure, conventions, and up-to-date information. Use @docs or @docs/ARCHITECTURE.md when relevant.
+
+## Key facts
+
+- Stack: Nuxt 3, Vue 3, TypeScript, TailwindCSS
+- Components: `app/components/app/`, `app/components/ui/`
+- Composables: `app/composables/` (useAuthSession, useApi, useToast, useDarkMode, etc.)
+- Conventions: Composition API, Tailwind only, `handle` prefix for events, early returns

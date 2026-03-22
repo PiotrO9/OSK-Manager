@@ -1,0 +1,63 @@
+{
+    "name": "frontend-starter",
+    "version": "1.1.1",
+    "type": "module",
+    "private": true,
+    "description": "Starter template for Nuxt 3 projects. Use as a base to bootstrap new frontend applications.",
+    "keywords": [
+        "nuxt",
+        "vue",
+        "typescript",
+        "tailwindcss",
+        "starter",
+        "template"
+    ],
+    "author": "",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PiotrO9/nuxt-frontend-starter.git"
+    },
+    "scripts": {
+        "build": "nuxt build",
+        "dev": "nuxt dev",
+        "generate": "nuxt generate",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier . --write",
+        "format:check": "prettier . --check",
+        "preview": "nuxt preview",
+        "postinstall": "nuxt prepare",
+        "test": "vitest",
+        "test:ui": "vitest --ui",
+        "test:run": "vitest run"
+    },
+    "dependencies": {
+        "@nuxt/icon": "^2.1.1",
+        "@nuxtjs/i18n": "^10.2.3",
+        "@nuxtjs/seo": "^3.4.0",
+        "embla-carousel-autoplay": "^8.6.0",
+        "embla-carousel-vue": "^8.6.0",
+        "nuxt": "^4.2.2",
+        "vue": "^3.5.25",
+        "vue-router": "^4.6.4",
+        "zod": "^4.2.1"
+    },
+    "devDependencies": {
+        "@nuxt/eslint": "^1.12.1",
+        "@nuxt/test-utils": "^3.21.0",
+        "@tailwindcss/postcss": "^4.1.18",
+        "@tailwindcss/vite": "^4.1.18",
+        "@vue/test-utils": "^2.4.6",
+        "autoprefixer": "^10.4.23",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.4",
+        "happy-dom": "^20.0.11",
+        "jose": "^6.1.3",
+        "prettier": "^3.7.4",
+        "prettier-plugin-tailwindcss": "^0.7.2",
+        "tailwindcss": "^4.1.18",
+        "vitest": "^3.2.4"
+    }
+}
