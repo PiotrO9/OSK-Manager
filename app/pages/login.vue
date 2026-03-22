@@ -1,16 +1,12 @@
 <script setup lang="ts">
 import { z } from 'zod';
 
-const { t } = useI18n();
-const localePath = useLocalePath();
-
 usePageMeta({
-    title: () => t('loginTitle'),
-    description: () => t('loginMetaDescription'),
+    title: () => 'Logowanie',
+    description: () => 'Zaloguj się do aplikacji.',
 });
 
 const route = useRoute();
-const { addToast } = useToast();
 const { isAuthenticated, session, login } = useAuthSession();
 const { handleLogout } = useLogout();
 
@@ -29,7 +25,7 @@ const isFormValid = computed(
 function resolveRedirectTarget(): string {
     const redirectQuery = route.query.redirect;
 
-    if (!redirectQuery) return localePath('/protected');
+    if (!redirectQuery) return '/protected';
 
     if (Array.isArray(redirectQuery)) {
         const firstQuery = redirectQuery[0];
@@ -39,7 +35,7 @@ function resolveRedirectTarget(): string {
             return result.data;
         }
 
-        return localePath('/protected');
+        return '/protected';
     }
 
     const result = redirectQuerySchema.safeParse(redirectQuery);
@@ -48,14 +44,14 @@ function resolveRedirectTarget(): string {
         return result.data;
     }
 
-    return localePath('/protected');
+    return '/protected';
 }
 
 async function handleLogin() {
     if (isAuthenticated.value) {
-        addToast({
-            title: t('loginAlreadyLoggedIn'),
-            description: t('loginYouCanContinue'),
+        useToast().add({
+            title: 'Już zalogowany',
+            description: 'Możesz kontynuować.',
             variant: 'info',
         });
         navigateTo(resolveRedirectTarget());
@@ -69,22 +65,20 @@ async function handleLogin() {
 
     try {
         await login(emailTrimmed.value, passwordTrimmed.value);
-        addToast({
-            title: t('loginLoggedIn'),
-            description: t('loginWelcome', {
-                name: session.value?.userName || emailTrimmed.value,
-            }),
-            variant: 'success',
+        useToast().add({
+            title: 'Zalogowano',
+            description: `Witaj, ${session.value?.userName || emailTrimmed.value}!`,
+            variant: 'success' as ToastVariant,
         });
         navigateTo(resolveRedirectTarget());
     } catch (err) {
         const errorMessage =
-            err instanceof Error ? err.message : t('loginLoginError');
+            err instanceof Error ? err.message : 'Błąd logowania';
 
-        addToast({
-            title: t('loginLoginError'),
+        useToast().add({
+            title: 'Błąd logowania',
             description: errorMessage,
-            variant: 'error',
+            variant: 'danger' as ToastVariant,
         });
     } finally {
         isLoading.value = false;
@@ -98,7 +92,7 @@ function handleKeyDown(event: KeyboardEvent) {
 }
 
 function handleGoHome() {
-    navigateTo(localePath('/'));
+    navigateTo('/');
 }
 
 function handleLogoutClick() {
@@ -109,35 +103,32 @@ function handleLogoutClick() {
 <template>
     <div class="mx-auto w-full max-w-xl space-y-6">
         <div class="space-y-2">
-            <h1 class="text-2xl font-extrabold tracking-tight">
-                {{ t('loginHeading') }}
-            </h1>
+            <h1 class="text-2xl font-extrabold tracking-tight">Logowanie</h1>
             <p class="text-slate-700 dark:text-slate-300">
-                {{ t('loginDescription') }}
+                Zaloguj się używając adresu e-mail i hasła. Tokeny JWT są
+                przechowywane w bezpiecznych plikach cookie HTTP-only.
             </p>
         </div>
 
-        <Card :aria-label="`Card: ${t('commonSession')}`">
+        <Card :aria-label="`Card: Sesja`">
             <template #header>
                 <p
                     class="text-sm font-semibold text-slate-900 dark:text-slate-50"
                 >
-                    {{ t('commonSession') }}
+                    Sesja
                 </p>
             </template>
 
             <div class="space-y-4">
                 <p class="text-sm text-slate-600 dark:text-slate-400">
-                    {{ t('commonStatus') }}:
+                    Status:
                     <span
                         class="font-semibold text-slate-900 dark:text-slate-50"
                     >
                         {{
                             isAuthenticated
-                                ? t('commonLoggedInAs', {
-                                      name: session?.userName,
-                                  })
-                                : t('commonLoggedOut')
+                                ? `Zalogowany jako: ${session?.userName}`
+                                : 'Wylogowany'
                         }}
                     </span>
                 </p>
@@ -147,14 +138,14 @@ function handleLogoutClick() {
                         <label
                             class="block text-sm font-medium text-slate-700 dark:text-slate-300"
                             for="emailInput"
-                            >{{ t('loginEmail') }}</label
+                            >Email</label
                         >
                         <Input
                             id="emailInput"
                             v-model="email"
                             type="email"
-                            :placeholder="t('loginEmailPlaceholder')"
-                            :aria-label="t('loginEmail')"
+                            :placeholder="'np. jan@example.com'"
+                            :aria-label="'Email'"
                             :is-disabled="isLoading"
                             @keydown="handleKeyDown"
                         />
@@ -164,14 +155,14 @@ function handleLogoutClick() {
                         <label
                             class="block text-sm font-medium text-slate-700 dark:text-slate-300"
                             for="passwordInput"
-                            >{{ t('loginPassword') }}</label
+                            >Hasło</label
                         >
                         <Input
                             id="passwordInput"
                             v-model="password"
                             type="password"
-                            :placeholder="t('loginPasswordPlaceholder')"
-                            :aria-label="t('loginPassword')"
+                            :placeholder="'Wprowadź hasło'"
+                            :aria-label="'Hasło'"
                             :is-disabled="isLoading"
                             @keydown="handleKeyDown"
                         />
@@ -181,28 +172,28 @@ function handleLogoutClick() {
                 <div class="flex flex-wrap gap-2">
                     <Action
                         v-if="!isAuthenticated"
-                        :aria-label="t('navLogIn')"
+                        :aria-label="'Zaloguj się'"
                         :is-loading="isLoading"
                         :is-disabled="!isFormValid || isLoading"
                         @click="handleLogin"
                     >
-                        {{ isLoading ? t('loginLoggingIn') : t('navLogIn') }}
+                        {{ isLoading ? 'Ładowanie...' : 'Zaloguj się' }}
                     </Action>
                     <Action
                         v-else
                         variant="secondary"
-                        :aria-label="t('navLogOut')"
+                        :aria-label="'Wyloguj się'"
                         @click="handleLogoutClick"
                     >
-                        {{ t('navLogOut') }}
+                        Wyloguj się
                     </Action>
 
                     <Action
                         variant="ghost"
-                        :aria-label="t('navGoToHome')"
+                        :aria-label="'Przejdź do strony głównej'"
                         @click="handleGoHome"
                     >
-                        {{ t('commonHome') }}
+                        Strona główna
                     </Action>
                 </div>
             </div>

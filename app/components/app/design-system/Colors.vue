@@ -11,7 +11,7 @@ interface ColorGroup {
 }
 
 const { t } = useI18n();
-const { addToast } = useToast();
+const { add } = useToast();
 
 const colorGroups = computed<ColorGroup[]>(() => [
     {
@@ -145,25 +145,17 @@ async function handleCopySwatch(group: ColorGroup, swatch: ColorSwatch) {
     const isCopied = await copyTextToClipboard(swatch.className);
 
     if (!isCopied) {
-        addToast({
-            title: t('designSystemToastCopyFailed'),
-            description: t('designSystemToastCopyFailedDesc', {
-                group: group.name,
-                name: swatch.name,
-            }),
-            variant: 'error',
+        useToast().add({
+            title: 'Kopiuj kolor',
+            description: `Nie udało się skopiować koloru ${group.name} ${swatch.name}.`,
         });
 
         return;
     }
 
-    addToast({
-        title: t('designSystemToastCopied'),
-        description: t('designSystemToastCopiedDesc', {
-            name: swatch.name,
-            className: swatch.className,
-        }),
-        variant: 'success',
+    useToast().add({
+        title: 'Kolor skopiowany',
+        description: `Kolor ${group.name} ${swatch.name} został skopiowany do schowka.`,
     });
 }
 

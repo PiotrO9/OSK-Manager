@@ -6,22 +6,20 @@ interface NavLink {
 }
 
 const route = useRoute();
-const { t } = useI18n();
-const localePath = useLocalePath();
 const { isAuthenticated } = useAuthSession();
 const { handleLogout } = useLogout();
 
 const navLinks = computed<NavLink[]>(() => [
-    { to: localePath('/'), label: t('navHome'), ariaLabel: t('navGoToHome') },
+    { to: '/', label: 'Strona główna', ariaLabel: 'Przejdź do strony głównej' },
     {
-        to: localePath('/design-system'),
-        label: t('navDesignSystem'),
-        ariaLabel: t('navGoToDesignSystem'),
+        to: '/design-system',
+        label: 'Design system',
+        ariaLabel: 'Przejdź do strony Design system',
     },
     {
-        to: localePath('/protected'),
-        label: t('navProtected'),
-        ariaLabel: t('navGoToProtected'),
+        to: '/protected',
+        label: 'Chronione',
+        ariaLabel: 'Przejdź do strony Chronione',
     },
 ]);
 
@@ -35,7 +33,7 @@ function linkClass(to: string): string {
 }
 
 function handleGoToLogin() {
-    navigateTo(localePath('/login'));
+    navigateTo('/login');
 }
 </script>
 
@@ -48,15 +46,15 @@ function handleGoToLogin() {
         >
             <div class="flex items-center gap-3">
                 <NuxtLink
-                    :to="localePath('/')"
+                    :to="'/'"
                     class="text-secondary-900 hover:bg-secondary-100 focus-visible:ring-primary-400 dark:text-secondary-50 dark:hover:bg-secondary-800 dark:focus-visible:ring-offset-secondary-950 rounded-xl px-3 py-2 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                    :aria-label="t('navGoToHome')"
+                    :aria-label="'Przejdź do strony głównej'"
                 >
                     Frontend Starter
                 </NuxtLink>
                 <nav
                     class="hidden items-center gap-1 md:flex"
-                    :aria-label="t('navMainNavigation')"
+                    :aria-label="'Nawigacja główna'"
                 >
                     <NuxtLink
                         v-for="link in navLinks"
@@ -75,18 +73,18 @@ function handleGoToLogin() {
                 <Action
                     v-if="isAuthenticated"
                     variant="secondary"
-                    :aria-label="t('navLogOut')"
+                    :aria-label="'Wyloguj się'"
                     @click="handleLogout"
                 >
-                    {{ t('navLogOut') }}
+                    Wyloguj się
                 </Action>
                 <Action
                     v-else
                     variant="secondary"
-                    :aria-label="t('navGoToLogin')"
+                    :aria-label="'Przejdź do logowania'"
                     @click="handleGoToLogin"
                 >
-                    {{ t('navLogIn') }}
+                    Zaloguj się
                 </Action>
             </div>
         </div>

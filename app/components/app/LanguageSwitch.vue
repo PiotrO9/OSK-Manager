@@ -88,11 +88,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="relative" role="group" :aria-label="$t('commonSwitchLanguage')">
+    <div
+        class="relative"
+        role="group"
+        :aria-label="'Przejdź do strony głównej'"
+    >
         <button
             ref="triggerRef"
             type="button"
-            :aria-label="`${$t('commonSwitchLanguage')}: ${currentLocale?.name ?? locale}`"
+            :aria-label="`Przejdź do strony głównej: ${currentLocale?.name ?? locale}`"
             :aria-expanded="isOpen"
             aria-haspopup="listbox"
             tabindex="0"
@@ -138,7 +142,7 @@ onUnmounted(() => {
                 v-show="isOpen"
                 ref="panelRef"
                 role="listbox"
-                :aria-label="$t('commonSwitchLanguage')"
+                :aria-label="'Przejdź do strony głównej'"
                 class="border-secondary-200 dark:border-secondary-700 dark:bg-secondary-900 absolute top-full right-0 left-0 z-50 mt-2 rounded-xl border bg-white p-1.5 shadow-lg"
             >
                 <div

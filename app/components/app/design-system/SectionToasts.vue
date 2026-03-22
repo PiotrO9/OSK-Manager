@@ -1,20 +1,19 @@
 <script setup lang="ts">
-const { t } = useI18n();
 const { addToast } = useToast();
 
 function handleToast(variant: ToastVariant) {
     const title =
         variant === 'success'
-            ? t('designSystemToastSuccess')
+            ? 'Sukces'
             : variant === 'warning'
-              ? t('designSystemToastWarning')
+              ? 'Ostrzeżenie'
               : variant === 'error'
-                ? t('designSystemToastError')
-                : t('designSystemToastInfo');
+                ? 'Błąd'
+                : 'Informacja';
 
     addToast({
         title,
-        description: t('designSystemToastSample'),
+        description: 'To przykładowy komunikat.',
         variant,
     });
 }

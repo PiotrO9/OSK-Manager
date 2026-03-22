@@ -7,7 +7,6 @@ export default defineNuxtConfig({
         '@nuxt/eslint',
         '@nuxt/icon',
         '@nuxtjs/seo',
-        '@nuxtjs/i18n',
         '@nuxt/ui',
     ],
     ui: {
@@ -17,28 +16,6 @@ export default defineNuxtConfig({
         preference: 'light',
         fallback: 'light',
         classSuffix: '',
-    },
-    i18n: {
-        locales: [
-            {
-                code: 'en',
-                name: 'English',
-                file: 'en.json',
-                iso: 'en',
-                flag: '🇺🇸',
-            },
-            {
-                code: 'pl',
-                name: 'Polski',
-                file: 'pl.json',
-                iso: 'pl',
-                flag: '🇵🇱',
-            },
-        ],
-        defaultLocale: 'en',
-        strategy: 'no_prefix',
-        langDir: 'locales',
-        lazy: true,
     },
     site: {
         url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',

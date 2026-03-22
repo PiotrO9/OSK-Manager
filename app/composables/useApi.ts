@@ -36,7 +36,6 @@ export function useApi<T = unknown>(
     options: ApiRequestOptions = {},
 ): ApiResponse<T> {
     const config = useRuntimeConfig();
-    const localePath = useLocalePath();
 
     const isLoading = ref(false);
     const data = ref<T | null>(null);
@@ -145,7 +144,7 @@ export function useApi<T = unknown>(
                         return retryResponse;
                     } catch (retryErr) {
                         await logout();
-                        navigateTo(localePath('/login'));
+                        navigateTo('/login');
                         error.value = createApiError(
                             retryErr,
                             'An unexpected error occurred',
@@ -155,7 +154,7 @@ export function useApi<T = unknown>(
                     }
                 } else {
                     await logout();
-                    navigateTo(localePath('/login'));
+                    navigateTo('/login');
                     error.value = new Error('Session expired');
 
                     return null;

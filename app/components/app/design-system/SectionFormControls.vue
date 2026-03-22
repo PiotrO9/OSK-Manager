@@ -23,16 +23,16 @@ const formNotificationPref = ref<'email' | 'sms' | 'none'>('email');
 
 function createFormControlsSchema() {
     return z.object({
-        name: z.string().trim().min(1, t('formValidationNameRequired')),
+        name: z.string().trim().min(1, 'Nazwa jest wymagana'),
         email: z
             .string()
             .trim()
-            .min(1, t('formValidationEmailRequired'))
-            .email(t('formValidationEmailInvalid')),
+            .min(1, 'Email jest wymagany')
+            .email('Nieprawidłowy email'),
         topic: z.enum(['general', 'support', 'feedback']),
-        message: z.string().trim().min(1, t('formValidationMessageRequired')),
+        message: z.string().trim().min(1, 'Wiadomość jest wymagana'),
         isConsented: z.boolean().refine((value) => value === true, {
-            message: t('formValidationTermsRequired'),
+            message: 'Musisz zaakceptować warunki',
         }),
     });
 }
@@ -93,8 +93,8 @@ function handleSubmitFormControls(event?: Event) {
         setFormControlsErrorsFromZod(result);
 
         addToast({
-            title: t('designSystemToastFormInvalid'),
-            description: t('designSystemToastFormInvalidDesc'),
+            title: 'Formularz jest nieprawidłowy',
+            description: 'Proszę sprawdzić dane i spróbować ponownie.',
             variant: 'warning',
         });
 
@@ -104,11 +104,8 @@ function handleSubmitFormControls(event?: Event) {
     resetFormControlsErrors();
 
     addToast({
-        title: t('designSystemToastFormSubmitted'),
-        description: t('designSystemToastFormSubmittedDesc', {
-            name: result.data.name,
-            email: result.data.email,
-        }),
+        title: 'Formularz został wysłany',
+        description: `Dziękujemy, ${result.data.name}!`,
         variant: 'success',
     });
 }

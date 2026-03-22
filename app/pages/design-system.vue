@@ -1,9 +1,8 @@
 <script setup lang="ts">
-const { t } = useI18n();
-
 usePageMeta({
-    title: () => t('designSystemTitle'),
-    description: () => t('designSystemMetaDescription'),
+    title: () => 'Design system',
+    description: () =>
+        'A single place to preview the Tailwind palette and the UI building blocks used in this starter.',
 });
 
 const isDialogOpen = ref(false);
@@ -16,8 +15,8 @@ function handleDialogConfirm() {
     const { addToast } = useToast();
 
     addToast({
-        title: t('designSystemToastConfirmed'),
-        description: t('designSystemToastConfirmedDesc'),
+        title: 'Potwierdzenie',
+        description: 'Potwierdzono akcję.',
         variant: 'success',
     });
 }
@@ -26,8 +25,8 @@ function handleDialogCancel() {
     const { addToast } = useToast();
 
     addToast({
-        title: t('designSystemToastCancelled'),
-        description: t('designSystemToastCancelledDesc'),
+        title: 'Anulowanie',
+        description: 'Anulowano akcję.',
         variant: 'info',
     });
 }

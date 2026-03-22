@@ -1,6 +1,5 @@
 export default defineNuxtRouteMiddleware(async (to) => {
     const { isAuthenticated, checkSession } = useAuthSession();
-    const localePath = useLocalePath();
 
     if (isAuthenticated.value) return;
 
@@ -8,10 +7,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     if (hasSession) return;
 
-    const redirectTarget = to.fullPath || localePath('/');
+    const redirectTarget = to.fullPath || '/';
 
     return navigateTo({
-        path: localePath('/login'),
+        path: '/login',
         query: { redirect: redirectTarget },
     });
 });

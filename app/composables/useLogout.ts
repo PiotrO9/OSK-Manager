@@ -6,20 +6,18 @@ export interface LogoutOptions {
 export function useLogout() {
     const { session, logout } = useAuthSession();
     const { addToast } = useToast();
-    const { t } = useI18n();
-    const localePath = useLocalePath();
 
     async function handleLogout(options?: LogoutOptions) {
         const userName = session.value?.userName || 'User';
-        const redirectPath = options?.redirectTo || localePath('/login');
+        const redirectPath = options?.redirectTo || '/login';
         const shouldShowToast = options?.showToast ?? true;
 
         await logout();
 
         if (shouldShowToast) {
             addToast({
-                title: t('logoutTitle'),
-                description: t('logoutSeeYouLater', { name: userName }),
+                title: 'Wylogowano',
+                description: `Do zobaczenia, ${userName}!`,
                 variant: 'success',
             });
         }

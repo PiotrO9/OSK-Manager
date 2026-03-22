@@ -91,11 +91,8 @@ function handleNavSelect(item: NavTreeItem) {
     navActiveId.value = item.id;
 
     addToast({
-        title: t('designSystemToastNavigation'),
-        description: t('designSystemToastSelected', {
-            item: item.label,
-            id: item.id,
-        }),
+        title: 'Nawigacja',
+        description: `Wybrano: ${item.label} (${item.id})`,
         variant: 'info',
     });
 }

@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import type { BreadcrumbItem } from '~/components/ui/Breadcrumbs.vue';
 
-const { t } = useI18n();
-const localePath = useLocalePath();
-
 const breadcrumbItems = computed<BreadcrumbItem[]>(() => [
-    { label: t('navHome'), to: localePath('/') },
-    { label: t('designSystemTitle'), to: localePath('/design-system') },
-    { label: t('designSystemBreadcrumbComponents') },
+    { label: 'Strona główna', to: '/' },
+    { label: 'Design system', to: '/design-system' },
+    { label: 'Komponenty', to: '/design-system/components' },
 ]);
 </script>
 

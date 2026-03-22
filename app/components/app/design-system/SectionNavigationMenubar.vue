@@ -47,10 +47,8 @@ const navigationMenuItems: NavigationMenuItem[] = [
 
 function handleNavigationSelect(item: NavigationMenuItem) {
     addToast({
-        title: t('designSystemToastNavigation'),
-        description: t('designSystemToastNavigateTo', {
-            label: `${item.label}${item.href ? ` (${item.href})` : ''}`,
-        }),
+        title: 'Nawigacja',
+        description: `Przejdź do: ${item.label}${item.href ? ` (${item.href})` : ''}`,
         variant: 'info',
     });
 }
