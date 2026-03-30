@@ -1,12 +1,9 @@
 <template>
-    <Card aria-label="Card: Loader">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Loader
-            </p>
-        </template>
-
-        <div class="space-y-6">
+    <UiCard aria-label="Card: Loader" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Loader</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-6">
             <p class="text-sm text-slate-600 dark:text-slate-400">
                 Advanced loader with SVG animations, ideal for displaying during
                 module loading or larger sections of the application.
@@ -127,6 +124,6 @@
                     />
                 </div>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

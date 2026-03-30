@@ -1,16 +1,38 @@
 <script setup lang="ts">
 import Autoplay from 'embla-carousel-autoplay';
+
+const shadcnSliderValue = ref([42]);
 </script>
 
 <template>
-    <Card class="lg:col-span-2" aria-label="Card: Slider">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Slider
-            </p>
-        </template>
+    <UiCard class="min-w-0 lg:col-span-2" aria-label="Card: Slider">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Slider</UiCardTitle>
+            <UiCardDescription>
+                Shadcn
+                <code class="font-mono text-xs">UiSlider</code>
+                (wartość) oraz karuzele Embla poniżej.
+            </UiCardDescription>
+        </UiCardHeader>
+        <UiCardContent class="space-y-8">
+            <div class="space-y-3">
+                <p class="text-foreground text-sm font-semibold">
+                    Shadcn — jedna wartość (Reka UI)
+                </p>
+                <UiSlider
+                    v-model="shadcnSliderValue"
+                    :max="100"
+                    :step="1"
+                    class="w-full"
+                    aria-label="Suwak wartości procentowej"
+                />
+                <p class="text-muted-foreground text-xs">
+                    Wartość: {{ shadcnSliderValue[0] ?? 0 }}
+                </p>
+            </div>
 
-        <div class="space-y-8">
+            <UiSeparator />
+
             <div class="space-y-3">
                 <p
                     class="text-sm font-semibold text-slate-900 dark:text-slate-50"
@@ -258,6 +280,6 @@ import Autoplay from 'embla-carousel-autoplay';
                     </div>
                 </Slider>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

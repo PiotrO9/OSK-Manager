@@ -81,6 +81,12 @@ loginDemo('Demo User');
 
 This sets a local demo session. The `auth` middleware will treat it as authenticated for `/protected`.
 
+## Cursor: MCP shadcn (opcjonalnie)
+
+Jeśli używasz **Cursora**, możesz włączyć serwer **MCP shadcn** (shadcn-vue), żeby dodawać komponenty z rejestru z czatu. Konfiguracja w repozytorium: `.cursor/mcp.json`. Instrukcja: [MCP_SHADCN.md](MCP_SHADCN.md).
+
+**Skille shadcn w repo** (reguły kompozycji, styli, CLI — pod agentów AI): [SHADCN_SKILLS.md](SHADCN_SKILLS.md); katalog: `.agents/skills/shadcn/`.
+
 ## Next Steps
 
 - Read [Architecture](ARCHITECTURE.md) to understand the project structure

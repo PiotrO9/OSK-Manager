@@ -1,12 +1,9 @@
 <template>
-    <Card aria-label="Card: Spinner">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Spinner
-            </p>
-        </template>
-
-        <div class="space-y-6">
+    <UiCard aria-label="Card: Spinner" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Spinner</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-6">
             <div class="space-y-3">
                 <p
                     class="text-sm font-semibold text-slate-900 dark:text-slate-50"
@@ -72,6 +69,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

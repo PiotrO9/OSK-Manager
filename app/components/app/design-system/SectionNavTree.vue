@@ -99,14 +99,11 @@ function handleNavSelect(item: NavTreeItem) {
 </script>
 
 <template>
-    <Card aria-label="Card: Navigation">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Navigation (NavTree)
-            </p>
-        </template>
-
-        <div class="space-y-6">
+    <UiCard aria-label="Card: Navigation" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Navigation (NavTree)</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-6">
             <p class="text-sm text-slate-600 dark:text-slate-400">
                 Recursive, collapsible tree navigation following the
                 <a
@@ -226,6 +223,6 @@ function handleNavSelect(item: NavTreeItem) {
                     </div>
                 </div>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

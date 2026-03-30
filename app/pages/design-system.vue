@@ -2,7 +2,7 @@
 usePageMeta({
     title: () => 'Design system',
     description: () =>
-        'A single place to preview the Tailwind palette and the UI building blocks used in this starter.',
+        'Podgląd palety Tailwind, komponentów shadcn-vue oraz bloków UI startera.',
 });
 
 const isDialogOpen = ref(false);
@@ -19,6 +19,7 @@ function handleDialogConfirm() {
         description: 'Potwierdzono akcję.',
         variant: 'success',
     });
+    isDialogOpen.value = false;
 }
 
 function handleDialogCancel() {
@@ -29,6 +30,7 @@ function handleDialogCancel() {
         description: 'Anulowano akcję.',
         variant: 'info',
     });
+    isDialogOpen.value = false;
 }
 </script>
 
@@ -40,9 +42,18 @@ function handleDialogCancel() {
             >
                 Design system
             </h1>
-            <p class="max-w-3xl text-slate-700 dark:text-slate-300">
-                A single place to preview the Tailwind palette and the UI
-                building blocks used in this starter.
+            <p class="text-muted-foreground max-w-3xl">
+                Paleta Tailwind, typografia oraz komponenty
+                <strong class="text-foreground font-semibold"
+                    >shadcn-vue</strong
+                >
+                (prefiks
+                <code class="font-mono text-xs">Ui</code>
+                ) obok modułów własnych (
+                <code class="font-mono text-xs">NavTree</code>
+                ,
+                <code class="font-mono text-xs">Slider</code>
+                Embla, itd.).
             </p>
         </section>
 
@@ -69,14 +80,24 @@ function handleDialogCancel() {
             </div>
         </section>
 
-        <Dialog
-            v-model:open="isDialogOpen"
-            cancel-text="Cancel"
-            confirm-text="Confirm"
-            message="This is a demo dialog. Press Escape or click outside to close."
-            title="Confirm action"
-            @cancel="handleDialogCancel"
-            @confirm="handleDialogConfirm"
-        />
+        <UiDialog v-model:open="isDialogOpen">
+            <UiDialogContent aria-describedby="design-system-dialog-desc">
+                <UiDialogHeader>
+                    <UiDialogTitle>Potwierdź akcję</UiDialogTitle>
+                    <UiDialogDescription id="design-system-dialog-desc">
+                        To demo dialogu shadcn (Reka UI). Esc lub przycisk
+                        zamknięcia zamyka okno.
+                    </UiDialogDescription>
+                </UiDialogHeader>
+                <UiDialogFooter>
+                    <UiButton variant="outline" @click="handleDialogCancel">
+                        Anuluj
+                    </UiButton>
+                    <UiButton @click="handleDialogConfirm">
+                        Potwierdź
+                    </UiButton>
+                </UiDialogFooter>
+            </UiDialogContent>
+        </UiDialog>
     </div>
 </template>

@@ -11,41 +11,43 @@ function handleToast(variant: ToastVariant) {
 </script>
 
 <template>
-    <Card aria-label="Card: Cards">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Cards
-            </p>
-        </template>
-
-        <Card aria-label="Nested card preview">
-            <template #header>
-                <p
-                    class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                >
-                    Nested example
-                </p>
-            </template>
-            <p class="text-sm text-slate-600 dark:text-slate-400">
-                Cards are great for grouping content and actions.
-            </p>
-            <template #footer>
-                <div class="flex flex-wrap gap-2">
-                    <Action
+    <UiCard aria-label="Card: Cards (shadcn)" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Cards (shadcn)</UiCardTitle>
+            <UiCardDescription>
+                Zagnieżdżony przykład z
+                <code class="font-mono text-xs">UiCard*</code>.
+            </UiCardDescription>
+        </UiCardHeader>
+        <UiCardContent>
+            <UiCard class="border-dashed">
+                <UiCardHeader>
+                    <UiCardTitle class="text-sm">Nested example</UiCardTitle>
+                    <UiCardDescription>
+                        Karty grupują treść i akcje.
+                    </UiCardDescription>
+                </UiCardHeader>
+                <UiCardContent>
+                    <p class="text-muted-foreground text-sm">
+                        Cards are great for grouping content and actions.
+                    </p>
+                </UiCardContent>
+                <UiCardFooter class="flex flex-wrap gap-2">
+                    <UiButton
                         aria-label="Card primary action"
                         @click="handleToast('info')"
                     >
                         Action
-                    </Action>
-                    <Action
-                        aria-label="Card secondary action"
+                    </UiButton>
+                    <UiButton
                         variant="secondary"
+                        aria-label="Card secondary action"
                         @click="handleToast('success')"
                     >
                         Secondary
-                    </Action>
-                </div>
-            </template>
-        </Card>
-    </Card>
+                    </UiButton>
+                </UiCardFooter>
+            </UiCard>
+        </UiCardContent>
+    </UiCard>
 </template>

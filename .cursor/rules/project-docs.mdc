@@ -15,12 +15,19 @@ This is a **starter template** for bootstrapping new Nuxt 3 projects. It is NOT 
 - **docs/COMPOSABLES.md** — Composables API reference
 - **docs/CUSTOMIZATION.md** — Adapting starter to a new project
 - **docs/DEPLOYMENT.md** — Build and deployment
+- **docs/SHADCN.md** — Prefer adding UI from shadcn-vue (`app/components/shadcn/`, `components.json`)
+- **docs/SHADCN_SKILLS.md** — How to use the repo’s `.agents/skills/shadcn/` pack with this Vue project
+- **docs/MCP_SHADCN.md** — Cursor MCP for shadcn-vue (`.cursor/mcp.json`)
 
 When answering questions about this project, **always read and reference the docs/ folder** for structure, conventions, and up-to-date information. Use @docs or @docs/ARCHITECTURE.md when relevant.
+
+For new UI primitives, prefer **shadcn-vue** per **docs/SHADCN.md**; use the **shadcn** MCP server (see **docs/MCP_SHADCN.md**) to browse/install registry components when enabled.
+
+When adding, fixing, or composing **shadcn UI**, also follow **docs/SHADCN_SKILLS.md** and read **`.agents/skills/shadcn/SKILL.md`** (plus linked `rules/*.md` as needed). **Adapt React-oriented examples** in that skill to Vue: `shadcn-vue@latest`, `class` not `className`, `Ui*` components, `lucide-vue-next` — see SHADCN_SKILLS.md mapping table.
 
 ## Key facts
 
 - Stack: Nuxt 3, Vue 3, TypeScript, TailwindCSS
-- Components: `app/components/app/`, `app/components/ui/`
+- Components: `app/components/app/`, `app/components/ui/` (legacy), `app/components/shadcn/` (shadcn-vue, `Ui*` prefix)
 - Composables: `app/composables/` (useAuthSession, useApi, useToast, useDarkMode, etc.)
 - Conventions: Composition API, Tailwind only, `handle` prefix for events, early returns

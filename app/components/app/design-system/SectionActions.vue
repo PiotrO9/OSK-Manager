@@ -18,145 +18,104 @@ function handleToast(variant: ToastVariant) {
 </script>
 
 <template>
-    <Card aria-label="Card: Actions">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Actions
-            </p>
-        </template>
-
-        <div class="space-y-6">
+    <UiCard aria-label="Card: Actions (shadcn)" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Actions (shadcn Button)</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-6">
             <div class="space-y-3">
-                <p
-                    class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                >
-                    Primary
-                </p>
+                <p class="text-foreground text-sm font-semibold">Primary</p>
                 <div class="flex flex-wrap gap-3">
-                    <Action aria-label="Primary normal">Normal</Action>
-                    <Action aria-label="Primary loading" :is-loading="true">
-                        Submit
-                    </Action>
-                    <Action aria-label="Primary disabled" :is-disabled="true">
+                    <UiButton aria-label="Primary normal">Normal</UiButton>
+                    <UiButton aria-label="Primary loading" disabled>
+                        <span class="opacity-70">Submit</span>
+                    </UiButton>
+                    <UiButton aria-label="Primary disabled" disabled>
                         Disabled
-                    </Action>
+                    </UiButton>
                 </div>
             </div>
 
             <div class="space-y-3">
-                <p
-                    class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                >
-                    Secondary
+                <p class="text-foreground text-sm font-semibold">
+                    Secondary / outline
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <Action aria-label="Secondary normal" variant="secondary">
+                    <UiButton variant="secondary" aria-label="Secondary normal">
                         Normal
-                    </Action>
-                    <Action
-                        aria-label="Secondary loading"
-                        variant="secondary"
-                        :is-loading="true"
-                    >
-                        Save
-                    </Action>
-                    <Action
-                        aria-label="Secondary disabled"
-                        variant="secondary"
-                        :is-disabled="true"
-                    >
-                        Disabled
-                    </Action>
+                    </UiButton>
+                    <UiButton variant="outline" aria-label="Outline">
+                        Outline
+                    </UiButton>
+                    <UiButton variant="ghost" aria-label="Ghost">
+                        Ghost
+                    </UiButton>
+                    <UiButton variant="destructive" aria-label="Destructive">
+                        Destructive
+                    </UiButton>
                 </div>
             </div>
 
             <div class="space-y-3">
-                <p
-                    class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                >
-                    Circle
-                </p>
+                <p class="text-foreground text-sm font-semibold">Icon</p>
                 <div class="flex flex-wrap items-center gap-3">
-                    <Action aria-label="Circle primary" :circle="true">
+                    <UiButton size="icon" aria-label="Dodaj">
                         <Icon
                             name="heroicons:plus"
                             class="size-5"
                             aria-hidden="true"
                         />
-                    </Action>
-                    <Action
-                        aria-label="Circle secondary"
+                    </UiButton>
+                    <UiButton
+                        size="icon"
                         variant="secondary"
-                        :circle="true"
+                        aria-label="Dodaj secondary"
                     >
                         <Icon
                             name="heroicons:plus"
                             class="size-5"
                             aria-hidden="true"
                         />
-                    </Action>
-                    <Action
-                        aria-label="Circle loading"
-                        :circle="true"
-                        :is-loading="true"
+                    </UiButton>
+                    <UiButton
+                        size="icon"
+                        variant="outline"
+                        disabled
+                        aria-label="Disabled icon"
                     >
                         <Icon
                             name="heroicons:plus"
                             class="size-5"
                             aria-hidden="true"
                         />
-                    </Action>
-                    <Action
-                        aria-label="Circle disabled"
-                        :circle="true"
-                        :is-disabled="true"
-                    >
-                        <Icon
-                            name="heroicons:plus"
-                            class="size-5"
-                            aria-hidden="true"
-                        />
-                    </Action>
-                    <Action aria-label="Circle z tekstem" :circle="true">
-                        A
-                    </Action>
-                    <Action
-                        aria-label="Circle z emoji"
+                    </UiButton>
+                    <UiButton size="icon" aria-label="Litera A"> A </UiButton>
+                    <UiButton
+                        size="icon"
                         variant="secondary"
-                        :circle="true"
+                        aria-label="Emoji"
                     >
                         ❤️
-                    </Action>
+                    </UiButton>
                 </div>
             </div>
 
             <div class="space-y-3">
-                <p
-                    class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                >
-                    Different tags
+                <p class="text-foreground text-sm font-semibold">
+                    Link & sizes
                 </p>
-                <div class="flex flex-wrap gap-3">
-                    <Action aria-label="Action as button" tag="button">
-                        Button
-                    </Action>
-                    <Action
-                        aria-label="Action as link"
-                        tag="a"
-                        href="#"
-                        variant="secondary"
-                    >
-                        Link
-                    </Action>
-                    <Action
-                        aria-label="Action as div"
-                        tag="div"
-                        variant="secondary"
-                    >
-                        Div
-                    </Action>
+                <div class="flex flex-wrap items-center gap-3">
+                    <UiButton variant="link" :as-child="true">
+                        <a href="#" aria-label="Link style">Link</a>
+                    </UiButton>
+                    <UiButton size="sm" @click="handleToast('info')">
+                        Small
+                    </UiButton>
+                    <UiButton size="lg" @click="handleToast('success')">
+                        Large
+                    </UiButton>
                 </div>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

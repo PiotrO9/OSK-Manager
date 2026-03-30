@@ -20,48 +20,45 @@ function handleToast(variant: ToastVariant) {
 </script>
 
 <template>
-    <Card aria-label="Card: Toasts">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Toasts
-            </p>
-        </template>
-
-        <p class="text-sm text-slate-600 dark:text-slate-400">
-            Toasts render in the top-right via
-            <code class="font-mono text-slate-900 dark:text-slate-50"
-                >ToastStack</code
-            >.
-        </p>
-
-        <div class="mt-4 flex flex-wrap gap-2">
-            <Action
-                aria-label="Show success toast"
-                @click="handleToast('success')"
-            >
-                Success
-            </Action>
-            <Action
-                aria-label="Show info toast"
-                variant="secondary"
-                @click="handleToast('info')"
-            >
-                Info
-            </Action>
-            <Action
-                aria-label="Show warning toast"
-                variant="secondary"
-                @click="handleToast('warning')"
-            >
-                Warning
-            </Action>
-            <Action
-                aria-label="Show error toast"
-                variant="secondary"
-                @click="handleToast('error')"
-            >
-                Error
-            </Action>
-        </div>
-    </Card>
+    <UiCard aria-label="Card: Toasts" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Toasts</UiCardTitle>
+            <UiCardDescription>
+                Komunikaty w prawym górnym rogu przez
+                <code class="font-mono text-xs">ToastStack</code>
+                (własny komponent startera).
+            </UiCardDescription>
+        </UiCardHeader>
+        <UiCardContent>
+            <div class="flex flex-wrap gap-2">
+                <UiButton
+                    aria-label="Show success toast"
+                    @click="handleToast('success')"
+                >
+                    Success
+                </UiButton>
+                <UiButton
+                    variant="secondary"
+                    aria-label="Show info toast"
+                    @click="handleToast('info')"
+                >
+                    Info
+                </UiButton>
+                <UiButton
+                    variant="outline"
+                    aria-label="Show warning toast"
+                    @click="handleToast('warning')"
+                >
+                    Warning
+                </UiButton>
+                <UiButton
+                    variant="destructive"
+                    aria-label="Show error toast"
+                    @click="handleToast('error')"
+                >
+                    Error
+                </UiButton>
+            </div>
+        </UiCardContent>
+    </UiCard>
 </template>

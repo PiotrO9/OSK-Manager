@@ -55,14 +55,11 @@ function handleNavigationSelect(item: NavigationMenuItem) {
 </script>
 
 <template>
-    <Card class="lg:col-span-2" aria-label="Card: Navigation Menubar">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Navigation Menubar
-            </p>
-        </template>
-
-        <div class="space-y-4">
+    <UiCard class="min-w-0 lg:col-span-2" aria-label="Card: Navigation Menubar">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Navigation Menubar</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-4">
             <p class="text-sm text-slate-600 dark:text-slate-400">
                 Fully accessible menubar navigation following the
                 <a
@@ -153,6 +150,6 @@ function handleNavigationSelect(item: NavigationMenuItem) {
                     </div>
                 </div>
             </div>
-        </div>
-    </Card>
+        </UiCardContent>
+    </UiCard>
 </template>

@@ -9,29 +9,22 @@ function handleOpenDialog() {
 </script>
 
 <template>
-    <Card aria-label="Card: Dialog">
-        <template #header>
-            <p class="text-sm font-semibold text-slate-900 dark:text-slate-50">
-                Dialog
+    <UiCard aria-label="Card: Dialog (shadcn)" class="min-w-0">
+        <UiCardHeader>
+            <UiCardTitle class="text-base">Dialog (shadcn)</UiCardTitle>
+        </UiCardHeader>
+        <UiCardContent class="space-y-3">
+            <p class="text-muted-foreground text-sm">
+                Pełny dialog (Reka UI) jest pokazany na dole strony —
+                <code class="font-mono text-xs">UiDialog</code>
+                w
+                <code class="font-mono text-xs">design-system.vue</code>.
             </p>
-        </template>
-
-        <p class="text-sm text-slate-600 dark:text-slate-400">
-            Demo of
-            <code class="font-mono text-slate-900 dark:text-slate-50"
-                >Dialog</code
-            >
-            (native
-            <code class="font-mono text-slate-900 dark:text-slate-50"
-                >&lt;dialog&gt;</code
-            >
-            + Teleport).
-        </p>
-
-        <div class="mt-4 flex flex-wrap gap-2">
-            <Action aria-label="Open dialog" @click="handleOpenDialog">
-                Open dialog
-            </Action>
-        </div>
-    </Card>
+            <div class="flex flex-wrap gap-2">
+                <UiButton aria-label="Open dialog" @click="handleOpenDialog">
+                    Otwórz dialog
+                </UiButton>
+            </div>
+        </UiCardContent>
+    </UiCard>
 </template>

@@ -2,6 +2,8 @@
 
 All components are auto-imported. Use them without path prefix.
 
+**Nowe elementy UI:** preferuj komponenty **shadcn-vue** z `app/components/shadcn/` (prefiks `Ui*`). Zasady repo, MCP i **paczka skilli**: [SHADCN.md](SHADCN.md), [SHADCN_SKILLS.md](SHADCN_SKILLS.md), [MCP_SHADCN.md](MCP_SHADCN.md).
+
 ## App Components (`components/app/`)
 
 ### AppHeader
