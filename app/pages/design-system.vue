@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+    layout: 'app-shell',
+});
+
 usePageMeta({
     title: () => 'Design system',
     description: () =>

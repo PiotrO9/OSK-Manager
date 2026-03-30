@@ -1,6 +1,13 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/*
+ * Tailwind v4 + @tailwindcss/vite: skanowanie oparte na grafie importów często
+ * pomija .vue z auto-importu Nuxt (np. app/components/shadcn/sidebar/*).
+ * Bez tego brakuje utility (flex, fixed, w-*), więc sidebar i inset układają się w jedną kolumnę.
+ */
+@source '../../**/*.{vue,js,ts,mjs}';
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {

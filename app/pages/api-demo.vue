@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+    layout: 'app-shell',
+});
+
 const { t } = useI18n();
 
 usePageMeta({

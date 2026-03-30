@@ -1,4 +1,8 @@
 <script setup lang="ts">
+definePageMeta({
+    layout: 'app-shell',
+});
+
 usePageMeta({
     title: () => 'Chronione',
     description: () => 'Strona chroniona wymagająca uwierzytelnienia.',

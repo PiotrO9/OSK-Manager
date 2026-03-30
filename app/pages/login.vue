@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { z } from 'zod';
 
+definePageMeta({
+    layout: 'default',
+});
+
 usePageMeta({
     title: () => 'Logowanie',
     description: () => 'Zaloguj się do aplikacji.',
