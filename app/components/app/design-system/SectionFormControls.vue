@@ -2,7 +2,7 @@
 import { z } from 'zod';
 
 const { t } = useI18n();
-const { addToast } = useToast();
+const { addToast } = useAppToast();
 
 const formName = ref('');
 const formEmail = ref('');

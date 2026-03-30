@@ -4,6 +4,46 @@ const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
 
+interface PublicUser {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    phone: string | null;
+}
+
+const mockUsers: Array<{
+    email: string;
+    password: string;
+    public: PublicUser;
+}> = [
+    {
+        email: 'test@test.com',
+        password: 'test123',
+        public: {
+            id: '1',
+            email: 'test@test.com',
+            firstName: 'Test',
+            lastName: 'User',
+            role: 'STUDENT',
+            phone: null,
+        },
+    },
+    {
+        email: 'admin@admin.com',
+        password: 'admin123',
+        public: {
+            id: '2',
+            email: 'admin@admin.com',
+            firstName: 'Admin',
+            lastName: 'User',
+            role: 'ADMIN',
+            phone: null,
+        },
+    },
+];
+
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
 
@@ -14,20 +54,11 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const mockUsers = [
-        {
-            email: 'test@test.com',
-            password: 'test123',
-            id: '1',
-            userName: 'Test User',
-        },
-        {
-            email: 'admin@admin.com',
-            password: 'admin123',
-            id: '2',
-            userName: 'Admin User',
-        },
-    ];
+    const upstream = resolveUpstreamBase(event);
+
+    if (upstream) {
+        return bffUpstreamLogin(event, upstream, body);
+    }
 
     const user = mockUsers.find(
         (u) => u.email === body.email && u.password === body.password,
@@ -44,10 +75,14 @@ export default defineEventHandler(async (event) => {
     const accessTokenExpiresIn = 60 * 60;
     const refreshTokenExpiresIn = 60 * 60 * 24 * 7;
 
+    const pub = user.public;
+
     const accessToken = await new SignJWT({
-        userId: user.id,
-        userName: user.userName,
-        email: user.email,
+        userId: pub.id,
+        email: pub.email,
+        firstName: pub.firstName,
+        lastName: pub.lastName,
+        role: pub.role,
     })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt(now)
@@ -55,7 +90,7 @@ export default defineEventHandler(async (event) => {
         .sign(SECRET);
 
     const refreshToken = await new SignJWT({
-        userId: user.id,
+        userId: pub.id,
         type: 'refresh',
     })
         .setProtectedHeader({ alg: 'HS256' })
@@ -80,11 +115,9 @@ export default defineEventHandler(async (event) => {
     });
 
     return {
-        accessToken,
-        user: {
-            id: user.id,
-            userName: user.userName,
-            email: user.email,
+        success: true,
+        data: {
+            user: pub,
         },
     };
 });

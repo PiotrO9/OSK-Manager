@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { toasts, removeToast } = useToast();
+const { toasts, removeToast } = useAppToast();
 
 interface ToastA11y {
     role: 'status' | 'alert';

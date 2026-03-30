@@ -5,6 +5,12 @@ const SECRET = new TextEncoder().encode(
 );
 
 export default defineEventHandler(async (event) => {
+    const upstream = resolveUpstreamBase(event);
+
+    if (upstream) {
+        return bffUpstreamMe(event, upstream);
+    }
+
     const accessToken = getCookie(event, 'access_token');
 
     if (!accessToken) {
@@ -17,28 +23,46 @@ export default defineEventHandler(async (event) => {
     try {
         const { payload } = await jwtVerify(accessToken, SECRET);
 
-        const mockUsers: Record<string, { userName: string; email: string }> = {
-            '1': { userName: 'Test User', email: 'test@test.com' },
-            '2': { userName: 'Admin User', email: 'admin@admin.com' },
-        };
+        const userId = String(payload.userId ?? '');
+        const email = String(payload.email ?? '');
+        const firstName = String(payload.firstName ?? '');
+        const lastName = String(payload.lastName ?? '');
+        const role = String(payload.role ?? 'STUDENT');
 
-        const userId = payload.userId as string;
-        const user = mockUsers[userId] || {
-            userName: payload.userName as string,
-            email: payload.email as string,
-        };
+        if (!userId || !email) {
+            throw createError({
+                statusCode: 401,
+                message: 'Nieprawidłowy token',
+            });
+        }
 
         return {
-            accessToken,
-            user: {
-                id: userId,
-                userName: user.userName,
-                email: user.email,
+            success: true,
+            data: {
+                user: {
+                    id: userId,
+                    email,
+                    firstName,
+                    lastName,
+                    role,
+                    phone: null as string | null,
+                },
             },
         };
-    } catch {
-        deleteCookie(event, 'access_token');
-        deleteCookie(event, 'refresh_token');
+    } catch (err: unknown) {
+        deleteCookie(event, 'access_token', { path: '/' });
+        const code =
+            err && typeof err === 'object' && 'code' in err
+                ? String((err as { code: unknown }).code)
+                : '';
+
+        /*
+         * Wygasły access: zostaw refresh — klient wywoła POST /api/auth/refresh.
+         * Zły podpis itd.: czyść oba.
+         */
+        if (code !== 'ERR_JWT_EXPIRED') {
+            deleteCookie(event, 'refresh_token', { path: '/' });
+        }
 
         throw createError({
             statusCode: 401,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { addToast } = useToast();
+const { addToast } = useAppToast();
 
 function handleToast(variant: ToastVariant) {
     addToast({

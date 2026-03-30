@@ -2,7 +2,7 @@
 import type { NavTreeItem } from '~/components/ui/NavTree.vue';
 
 const { t } = useI18n();
-const { addToast } = useToast();
+const { addToast } = useAppToast();
 
 const navActiveId = ref('dashboard');
 

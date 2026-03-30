@@ -50,3 +50,10 @@ export function isTokenExpired(token: string): boolean {
 
     return payload.exp < now;
 }
+
+/** Czy string wyglada jak JWT (np. access_token z Supabase) — nie wysyłaj demo_* jako Bearer. */
+export function isLikelyJwtAccessToken(token: string): boolean {
+    if (!token || token.startsWith('demo_')) return false;
+
+    return token.split('.').length === 3;
+}

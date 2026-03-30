@@ -6,7 +6,7 @@ interface NavigationMenuItem {
 }
 
 const { t } = useI18n();
-const { addToast } = useToast();
+const { addToast } = useAppToast();
 
 const navigationMenuItems: NavigationMenuItem[] = [
     { label: 'Home', href: '/' },

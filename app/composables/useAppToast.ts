@@ -15,7 +15,7 @@ export interface AddToastInput {
     durationMs?: number;
 }
 
-export function useToast() {
+export function useAppToast() {
     const toasts = useState<ToastItem[]>('ui_toasts', () => []);
 
     function removeToast(toastId: string) {

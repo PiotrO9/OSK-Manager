@@ -12,7 +12,7 @@ function handleOpenDialog() {
 }
 
 function handleDialogConfirm() {
-    const { addToast } = useToast();
+    const { addToast } = useAppToast();
 
     addToast({
         title: 'Potwierdzenie',
@@ -22,7 +22,7 @@ function handleDialogConfirm() {
 }
 
 function handleDialogCancel() {
-    const { addToast } = useToast();
+    const { addToast } = useAppToast();
 
     addToast({
         title: 'Anulowanie',

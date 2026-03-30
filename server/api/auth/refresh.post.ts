@@ -5,6 +5,12 @@ const SECRET = new TextEncoder().encode(
 );
 
 export default defineEventHandler(async (event) => {
+    const upstream = resolveUpstreamBase(event);
+
+    if (upstream) {
+        return bffUpstreamRefresh(event, upstream);
+    }
+
     const refreshToken = getCookie(event, 'refresh_token');
 
     if (!refreshToken) {
@@ -27,20 +33,39 @@ export default defineEventHandler(async (event) => {
         const now = Math.floor(Date.now() / 1000);
         const accessTokenExpiresIn = 60 * 60;
 
-        const mockUsers: Record<string, { userName: string; email: string }> = {
-            '1': { userName: 'Test User', email: 'test@test.com' },
-            '2': { userName: 'Admin User', email: 'admin@admin.com' },
+        const userId = String(payload.userId);
+
+        const profileDefaults: Record<
+            string,
+            { email: string; firstName: string; lastName: string; role: string }
+        > = {
+            '1': {
+                email: 'test@test.com',
+                firstName: 'Test',
+                lastName: 'User',
+                role: 'STUDENT',
+            },
+            '2': {
+                email: 'admin@admin.com',
+                firstName: 'Admin',
+                lastName: 'User',
+                role: 'ADMIN',
+            },
         };
 
-        const user = mockUsers[payload.userId as string] || {
-            userName: 'User',
+        const p = profileDefaults[userId] ?? {
             email: 'user@example.com',
+            firstName: 'User',
+            lastName: '',
+            role: 'STUDENT',
         };
 
         const accessToken = await new SignJWT({
-            userId: payload.userId,
-            userName: user.userName,
-            email: user.email,
+            userId,
+            email: p.email,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            role: p.role,
         })
             .setProtectedHeader({ alg: 'HS256' })
             .setIssuedAt(now)
@@ -56,11 +81,12 @@ export default defineEventHandler(async (event) => {
         });
 
         return {
-            accessToken,
+            success: true,
+            data: {},
         };
     } catch {
-        deleteCookie(event, 'access_token');
-        deleteCookie(event, 'refresh_token');
+        deleteCookie(event, 'access_token', { path: '/' });
+        deleteCookie(event, 'refresh_token', { path: '/' });
 
         throw createError({
             statusCode: 401,

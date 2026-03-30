@@ -5,7 +5,7 @@ export interface LogoutOptions {
 
 export function useLogout() {
     const { session, logout } = useAuthSession();
-    const { addToast } = useToast();
+    const { addToast } = useAppToast();
 
     async function handleLogout(options?: LogoutOptions) {
         const userName = session.value?.userName || 'User';

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-definePageMeta({
-    middleware: ['auth'],
-});
-
 usePageMeta({
     title: () => 'Chronione',
     description: () => 'Strona chroniona wymagająca uwierzytelnienia.',
@@ -21,8 +17,8 @@ function handleGoHome() {
         <div class="space-y-2">
             <h1 class="text-2xl font-extrabold tracking-tight">Chronione</h1>
             <p class="text-slate-700 dark:text-slate-300">
-                Ta strona używa `middleware/auth`. Jeśli brakuje pliku cookie
-                sesji, zostaniesz przekierowany do `/login`.
+                Ta strona jest chroniona globalnym middleware. Bez ważnej sesji
+                nastąpi przekierowanie do logowania.
             </p>
         </div>
 
@@ -43,12 +39,20 @@ function handleGoHome() {
                         >{{ session?.userName }}</span
                     >
                 </p>
-                <p class="break-all text-slate-500 dark:text-slate-500">
-                    Token:
+                <p
+                    v-if="session?.role"
+                    class="text-slate-600 dark:text-slate-400"
+                >
+                    Rola:
                     <span
-                        class="font-mono text-slate-700 dark:text-slate-300"
-                        >{{ session?.token }}</span
+                        class="font-semibold text-slate-900 dark:text-slate-50"
+                        >{{ session.role }}</span
                     >
+                </p>
+                <p class="text-slate-500 dark:text-slate-500">
+                    Access token jest w ciasteczku
+                    <span class="font-mono">httpOnly</span> — nie jest dostępny
+                    dla JavaScriptu w przeglądarce.
                 </p>
             </div>
 

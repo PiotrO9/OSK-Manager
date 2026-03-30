@@ -3,12 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
-    modules: [
-        '@nuxt/eslint',
-        '@nuxt/icon',
-        '@nuxtjs/seo',
-        '@nuxt/ui',
-    ],
+    modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/seo', '@nuxt/ui'],
     ui: {
         colorMode: false,
     },
@@ -22,6 +17,8 @@ export default defineNuxtConfig({
         name: 'Frontend Starter',
     },
     runtimeConfig: {
+        /** URL Expressa (bez końcowego /). Env: NUXT_API_UPSTREAM. Jeśli pusty — używane jest public.apiBase. */
+        apiUpstream: process.env.NUXT_API_UPSTREAM || '',
         public: {
             apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
             siteUrl:

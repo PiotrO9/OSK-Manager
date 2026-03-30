@@ -12,44 +12,73 @@ const { handleLogout } = useLogout();
 
 const redirectQuerySchema = z.string().min(1).optional();
 
+const loginFieldsSchema = z.object({
+    email: z
+        .string()
+        .trim()
+        .min(1, 'Podaj adres e-mail')
+        .email('Nieprawidłowy format e-mail'),
+    password: z.string().min(1, 'Podaj hasło'),
+});
+
 const email = ref('');
 const password = ref('');
 const isLoading = ref(false);
 
 const emailTrimmed = computed(() => email.value.trim());
 const passwordTrimmed = computed(() => password.value.trim());
-const isFormValid = computed(
-    () => emailTrimmed.value.length > 0 && passwordTrimmed.value.length > 0,
-);
+const isFormValid = computed(() => {
+    const parsed = loginFieldsSchema.safeParse({
+        email: emailTrimmed.value,
+        password: passwordTrimmed.value,
+    });
+
+    return parsed.success;
+});
+
+function isSafeRelativeRedirectPath(path: string): boolean {
+    if (!path.startsWith('/') || path.startsWith('//')) return false;
+
+    return true;
+}
 
 function resolveRedirectTarget(): string {
+    const defaultPath = '/';
     const redirectQuery = route.query.redirect;
 
-    if (!redirectQuery) return '/protected';
+    if (!redirectQuery) return defaultPath;
 
     if (Array.isArray(redirectQuery)) {
         const firstQuery = redirectQuery[0];
         const result = redirectQuerySchema.safeParse(firstQuery);
 
-        if (result.success && result.data) {
+        if (
+            result.success &&
+            result.data &&
+            isSafeRelativeRedirectPath(result.data)
+        ) {
             return result.data;
         }
 
-        return '/protected';
+        return defaultPath;
     }
 
     const result = redirectQuerySchema.safeParse(redirectQuery);
 
-    if (result.success && result.data) {
+    if (
+        result.success &&
+        result.data &&
+        isSafeRelativeRedirectPath(result.data)
+    ) {
         return result.data;
     }
 
-    return '/protected';
+    return defaultPath;
 }
 
 async function handleLogin() {
     if (isAuthenticated.value) {
-        useToast().add({
+        useAppToast().addToast({
             title: 'Już zalogowany',
             description: 'Możesz kontynuować.',
             variant: 'info',
@@ -59,26 +88,40 @@ async function handleLogin() {
         return;
     }
 
-    if (!isFormValid.value) return;
+    const parsedFields = loginFieldsSchema.safeParse({
+        email: emailTrimmed.value,
+        password: passwordTrimmed.value,
+    });
+
+    if (!parsedFields.success) {
+        const firstIssue = parsedFields.error.issues[0];
+        useAppToast().addToast({
+            title: 'Formularz',
+            description: firstIssue?.message ?? 'Uzupełnij pola poprawnie.',
+            variant: 'error',
+        });
+
+        return;
+    }
 
     isLoading.value = true;
 
     try {
-        await login(emailTrimmed.value, passwordTrimmed.value);
-        useToast().add({
+        await login(parsedFields.data.email, parsedFields.data.password);
+        useAppToast().addToast({
             title: 'Zalogowano',
             description: `Witaj, ${session.value?.userName || emailTrimmed.value}!`,
-            variant: 'success' as ToastVariant,
+            variant: 'success',
         });
         navigateTo(resolveRedirectTarget());
     } catch (err) {
         const errorMessage =
             err instanceof Error ? err.message : 'Błąd logowania';
 
-        useToast().add({
+        useAppToast().addToast({
             title: 'Błąd logowania',
             description: errorMessage,
-            variant: 'danger' as ToastVariant,
+            variant: 'error',
         });
     } finally {
         isLoading.value = false;

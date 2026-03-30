@@ -50,7 +50,7 @@ function handleGoToLogin() {
                     class="text-secondary-900 hover:bg-secondary-100 focus-visible:ring-primary-400 dark:text-secondary-50 dark:hover:bg-secondary-800 dark:focus-visible:ring-offset-secondary-950 rounded-xl px-3 py-2 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     :aria-label="'Przejdź do strony głównej'"
                 >
-                    Frontend Starter
+                    OSK Manager
                 </NuxtLink>
                 <nav
                     class="hidden items-center gap-1 md:flex"

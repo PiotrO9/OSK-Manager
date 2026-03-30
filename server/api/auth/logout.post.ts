@@ -1,9 +1,14 @@
 export default defineEventHandler(async (event) => {
-    deleteCookie(event, 'access_token');
-    deleteCookie(event, 'refresh_token');
+    const upstream = resolveUpstreamBase(event);
+
+    if (upstream) {
+        return bffUpstreamLogout(event, upstream);
+    }
+
+    deleteCookie(event, 'access_token', { path: '/' });
+    deleteCookie(event, 'refresh_token', { path: '/' });
 
     return {
         success: true,
-        message: 'Wylogowano pomyślnie',
     };
 });
