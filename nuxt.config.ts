@@ -23,6 +23,9 @@ export default defineNuxtConfig({
             apiBase: process.env.NUXT_PUBLIC_API_BASE || '',
             siteUrl:
                 process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+            /** MVP/demo: panel logowania — przyciski auto-fill. Włącz na stagingu: NUXT_PUBLIC_DEMO_MOCK_LOGIN=true */
+            demoMockLogin:
+                process.env.NUXT_PUBLIC_DEMO_MOCK_LOGIN === 'true',
         },
     },
     components: [

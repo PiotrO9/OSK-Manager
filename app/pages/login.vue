@@ -11,8 +11,28 @@ usePageMeta({
 });
 
 const route = useRoute();
+const runtimeConfig = useRuntimeConfig();
 const { isAuthenticated, session, login } = useAuthSession();
 const { handleLogout } = useLogout();
+
+/** Tymczasowe MVP/demo: tylko uzupełnia pola; bez logowania. Widoczne w dev lub gdy public.demoMockLogin. */
+type DemoMockLoginRole = 'student' | 'instructor' | 'manager';
+
+const DEMO_MOCK_LOGIN_CREDENTIALS: Record<
+    DemoMockLoginRole,
+    { email: string; password: string }
+> = {
+    student: { email: 'student001@post.pl', password: 'student001' },
+    instructor: {
+        email: 'instructor001@post.pl',
+        password: 'instructor001',
+    },
+    manager: { email: 'manager001@post.pl', password: 'manager001' },
+};
+
+const showDemoMockLoginUi = computed(
+    () => import.meta.dev || Boolean(runtimeConfig.public.demoMockLogin),
+);
 
 const redirectQuerySchema = z.string().min(1).optional();
 
@@ -145,6 +165,12 @@ function handleGoHome() {
 function handleLogoutClick() {
     handleLogout();
 }
+
+function handleDemoMockFill(role: DemoMockLoginRole) {
+    const creds = DEMO_MOCK_LOGIN_CREDENTIALS[role];
+    email.value = creds.email;
+    password.value = creds.password;
+}
 </script>
 
 <template>
@@ -213,6 +239,52 @@ function handleLogoutClick() {
                             :is-disabled="isLoading"
                             @keydown="handleKeyDown"
                         />
+                    </div>
+
+                    <div
+                        v-if="showDemoMockLoginUi"
+                        class="rounded-xl border border-amber-200/80 bg-amber-50/80 p-3 dark:border-amber-800/60 dark:bg-amber-950/30"
+                        role="region"
+                        aria-label="Demo: szybkie uzupełnianie formularza logowania"
+                    >
+                        <p
+                            class="mb-2 text-xs font-medium text-amber-900 dark:text-amber-100/90"
+                        >
+                            Demo (MVP): wypełnia e-mail i hasło — dalej użyj
+                            „Zaloguj się”.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <Action
+                                variant="secondary"
+                                :aria-label="
+                                    'Demo: wstaw dane konta kursanta w formularz'
+                                "
+                                :is-disabled="isLoading"
+                                @click="handleDemoMockFill('student')"
+                            >
+                                Kursant
+                            </Action>
+                            <Action
+                                variant="secondary"
+                                :aria-label="
+                                    'Demo: wstaw dane konta instruktora w formularz'
+                                "
+                                :is-disabled="isLoading"
+                                @click="handleDemoMockFill('instructor')"
+                            >
+                                Instruktor
+                            </Action>
+                            <Action
+                                variant="secondary"
+                                :aria-label="
+                                    'Demo: wstaw dane konta szefa w formularz'
+                                "
+                                :is-disabled="isLoading"
+                                @click="handleDemoMockFill('manager')"
+                            >
+                                Szef
+                            </Action>
+                        </div>
                     </div>
                 </div>
 
