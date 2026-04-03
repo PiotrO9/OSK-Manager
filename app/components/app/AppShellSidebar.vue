@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import {
-    Code2,
-    LayoutDashboard,
-    LogOut,
-    Palette,
-    Shield,
-} from 'lucide-vue-next';
+import { LayoutDashboard, LogOut } from 'lucide-vue-next';
 
-type NavItem = {
+interface NavItem {
     readonly to: string;
     readonly label: string;
     readonly ariaLabel: string;
     readonly icon: Component;
     readonly tooltip: string;
-};
+}
 
 const route = useRoute();
 const { session } = useAuthSession();
@@ -28,27 +22,6 @@ function getNavItems(): NavItem[] {
             ariaLabel: 'Przejdź do pulpitu',
             icon: LayoutDashboard,
             tooltip: 'Pulpit',
-        },
-        {
-            to: '/design-system',
-            label: 'Design system',
-            ariaLabel: 'Przejdź do strony Design system',
-            icon: Palette,
-            tooltip: 'Design system',
-        },
-        {
-            to: '/protected',
-            label: 'Chronione',
-            ariaLabel: 'Przejdź do strefy chronionej',
-            icon: Shield,
-            tooltip: 'Chronione',
-        },
-        {
-            to: '/api-demo',
-            label: 'API — demo',
-            ariaLabel: 'Przejdź do demonstracji API',
-            icon: Code2,
-            tooltip: 'API — demo',
         },
     ];
 }

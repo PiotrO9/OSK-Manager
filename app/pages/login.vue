@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod';
+import { isSafeRelativeRedirectPath } from '~/utils/authReturnPath';
 
 definePageMeta({
     layout: 'default',
@@ -11,6 +12,12 @@ usePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
+const {
+    consumeReturnTo,
+    setReturnTo,
+    cookie: returnToCookie,
+} = useAuthReturnTo();
 const runtimeConfig = useRuntimeConfig();
 const { isAuthenticated, session, login } = useAuthSession();
 const { handleLogout } = useLogout();
@@ -60,14 +67,12 @@ const isFormValid = computed(() => {
     return parsed.success;
 });
 
-function isSafeRelativeRedirectPath(path: string): boolean {
-    if (!path.startsWith('/') || path.startsWith('//')) return false;
-
-    return true;
-}
-
 function resolveRedirectTarget(): string {
     const defaultPath = '/';
+    const fromCookie = consumeReturnTo();
+
+    if (fromCookie) return fromCookie;
+
     const redirectQuery = route.query.redirect;
 
     if (!redirectQuery) return defaultPath;
@@ -99,6 +104,32 @@ function resolveRedirectTarget(): string {
 
     return defaultPath;
 }
+
+/**
+ * Stare linki z ?redirect= — przeniesienie do cookie i czysty URL /login.
+ */
+onMounted(() => {
+    const redirectQuery = route.query.redirect;
+
+    if (redirectQuery === undefined) return;
+
+    if (!returnToCookie.value) {
+        const raw = Array.isArray(redirectQuery)
+            ? redirectQuery[0]
+            : redirectQuery;
+        const result = redirectQuerySchema.safeParse(raw);
+
+        if (
+            result.success &&
+            result.data &&
+            isSafeRelativeRedirectPath(result.data)
+        ) {
+            setReturnTo(result.data);
+        }
+    }
+
+    router.replace({ path: '/login' });
+});
 
 async function handleLogin() {
     if (isAuthenticated.value) {
@@ -256,9 +287,7 @@ function handleDemoMockFill(role: DemoMockLoginRole) {
                         <div class="flex flex-wrap gap-2">
                             <Action
                                 variant="secondary"
-                                :aria-label="
-                                    'Demo: wstaw dane konta kursanta w formularz'
-                                "
+                                :aria-label="'Demo: wstaw dane konta kursanta w formularz'"
                                 :is-disabled="isLoading"
                                 @click="handleDemoMockFill('student')"
                             >
@@ -266,9 +295,7 @@ function handleDemoMockFill(role: DemoMockLoginRole) {
                             </Action>
                             <Action
                                 variant="secondary"
-                                :aria-label="
-                                    'Demo: wstaw dane konta instruktora w formularz'
-                                "
+                                :aria-label="'Demo: wstaw dane konta instruktora w formularz'"
                                 :is-disabled="isLoading"
                                 @click="handleDemoMockFill('instructor')"
                             >
@@ -276,9 +303,7 @@ function handleDemoMockFill(role: DemoMockLoginRole) {
                             </Action>
                             <Action
                                 variant="secondary"
-                                :aria-label="
-                                    'Demo: wstaw dane konta szefa w formularz'
-                                "
+                                :aria-label="'Demo: wstaw dane konta szefa w formularz'"
                                 :is-disabled="isLoading"
                                 @click="handleDemoMockFill('manager')"
                             >

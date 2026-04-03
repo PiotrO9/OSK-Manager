@@ -22,9 +22,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     if (hasSession) return;
 
     const redirectTarget = to.fullPath || '/';
+    const { setReturnTo } = useAuthReturnTo();
 
-    return navigateTo({
-        path: '/login',
-        query: { redirect: redirectTarget },
-    });
+    setReturnTo(redirectTarget);
+
+    return navigateTo('/login');
 });

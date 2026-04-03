@@ -5,8 +5,6 @@ function resolveShellHeading(): string {
     const map: Record<string, string> = {
         '/': 'Pulpit',
         '/design-system': 'Design system',
-        '/protected': 'Strefa chroniona',
-        '/api-demo': 'API — demo',
     };
 
     return map[route.path] ?? 'Panel';

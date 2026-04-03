@@ -11,16 +11,6 @@ const { handleLogout } = useLogout();
 
 const navLinks = computed<NavLink[]>(() => [
     { to: '/', label: 'Strona główna', ariaLabel: 'Przejdź do strony głównej' },
-    {
-        to: '/design-system',
-        label: 'Design system',
-        ariaLabel: 'Przejdź do strony Design system',
-    },
-    {
-        to: '/protected',
-        label: 'Chronione',
-        ariaLabel: 'Przejdź do strony Chronione',
-    },
 ]);
 
 function linkClass(to: string): string {
@@ -74,7 +64,7 @@ function handleGoToLogin() {
                     v-if="isAuthenticated"
                     variant="secondary"
                     :aria-label="'Wyloguj się'"
-                    @click="handleLogout"
+                    @click="() => handleLogout()"
                 >
                     Wyloguj się
                 </Action>
