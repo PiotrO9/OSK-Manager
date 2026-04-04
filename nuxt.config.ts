@@ -44,6 +44,10 @@ export default defineNuxtConfig({
             path: '~/components/shadcn',
             pathPrefix: false,
         },
+        {
+            path: '~/components/manager',
+            pathPrefix: false,
+        },
     ],
     css: ['~/assets/css/tailwind.css'],
     imports: {

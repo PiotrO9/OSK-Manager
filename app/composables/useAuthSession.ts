@@ -21,12 +21,12 @@ interface BackendAuthUser {
     phone?: string | null;
 }
 
-type SessionUserPayload = {
+interface SessionUserPayload {
     id: string;
     userName: string;
     email: string;
     role?: string;
-};
+}
 
 function getAuthFetch() {
     return import.meta.server ? useRequestFetch() : $fetch;
@@ -34,7 +34,9 @@ function getAuthFetch() {
 
 function getFetchStatusCode(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
+
     if (!('statusCode' in error)) return undefined;
+
     const code = (error as { statusCode?: number }).statusCode;
 
     return typeof code === 'number' ? code : undefined;
@@ -42,10 +44,15 @@ function getFetchStatusCode(error: unknown): number | undefined {
 
 function getServerJsonErrorMessage(error: unknown): string | null {
     if (typeof error !== 'object' || error === null) return null;
+
     const data = (error as { data?: unknown }).data;
+
     if (!data || typeof data !== 'object') return null;
+
     const d = data as { message?: unknown; statusMessage?: unknown };
+
     if (typeof d.message === 'string') return d.message;
+
     if (typeof d.statusMessage === 'string') return d.statusMessage;
 
     return null;

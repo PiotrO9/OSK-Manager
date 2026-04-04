@@ -150,6 +150,7 @@ async function handleLogin() {
 
     if (!parsedFields.success) {
         const firstIssue = parsedFields.error.issues[0];
+
         useAppToast().addToast({
             title: 'Formularz',
             description: firstIssue?.message ?? 'Uzupełnij pola poprawnie.',
@@ -168,7 +169,16 @@ async function handleLogin() {
             description: `Witaj, ${session.value?.userName || emailTrimmed.value}!`,
             variant: 'success',
         });
-        navigateTo(resolveRedirectTarget());
+
+        const redirectTarget = resolveRedirectTarget();
+        const defaultPaths = new Set(['/', '']);
+        const managerLanding =
+            session.value?.role === 'MANAGER' &&
+            defaultPaths.has(redirectTarget)
+                ? '/manager/osk'
+                : redirectTarget;
+
+        navigateTo(managerLanding);
     } catch (err) {
         const errorMessage =
             err instanceof Error ? err.message : 'Błąd logowania';
@@ -199,6 +209,7 @@ function handleLogoutClick() {
 
 function handleDemoMockFill(role: DemoMockLoginRole) {
     const creds = DEMO_MOCK_LOGIN_CREDENTIALS[role];
+
     email.value = creds.email;
     password.value = creds.password;
 }

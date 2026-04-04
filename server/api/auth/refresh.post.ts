@@ -51,6 +51,12 @@ export default defineEventHandler(async (event) => {
                 lastName: 'User',
                 role: 'ADMIN',
             },
+            '3': {
+                email: 'manager001@post.pl',
+                firstName: 'Jan',
+                lastName: 'Kierownik',
+                role: 'MANAGER',
+            },
         };
 
         const p = profileDefaults[userId] ?? {

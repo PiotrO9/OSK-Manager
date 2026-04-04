@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { Building2, LayoutDashboard, LogOut } from 'lucide-vue-next';
 
 interface NavItem {
     readonly to: string;
@@ -14,8 +14,8 @@ const route = useRoute();
 const { session } = useAuthSession();
 const { handleLogout } = useLogout();
 
-function getNavItems(): NavItem[] {
-    return [
+const navItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
         {
             to: '/',
             label: 'Pulpit',
@@ -24,7 +24,19 @@ function getNavItems(): NavItem[] {
             tooltip: 'Pulpit',
         },
     ];
-}
+
+    if (session.value?.role === 'MANAGER') {
+        items.push({
+            to: '/manager/osk',
+            label: 'OSK',
+            ariaLabel: 'Przejdź do zarządzania szkołami jazdy',
+            icon: Building2,
+            tooltip: 'Szkoły jazdy',
+        });
+    }
+
+    return items;
+});
 
 function isNavActive(to: string): boolean {
     if (to === '/') {
@@ -83,7 +95,7 @@ function handleLogoutClick() {
                 <UiSidebarGroupContent>
                     <UiSidebarMenu>
                         <UiSidebarMenuItem
-                            v-for="item in getNavItems()"
+                            v-for="item in navItems"
                             :key="item.to"
                         >
                             <UiSidebarMenuButton
