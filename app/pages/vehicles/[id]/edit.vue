@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { Vehicle, VehicleWritePayload } from '~/types/vehicle';
+import type {
+    Vehicle,
+    VehicleDetail,
+    VehicleWritePayload,
+} from '~/types/vehicle';
 
 definePageMeta({
     layout: 'app-shell',
@@ -12,7 +16,14 @@ usePageMeta({
 });
 
 const route = useRoute();
-const { fetchList, updateVehicle, isUpdateLoading } = useVehiclesApi();
+const {
+    fetchList,
+    fetchVehicleById,
+    updateVehicle,
+    uploadVehiclePhoto,
+    isUpdateLoading,
+    isPhotoUploadLoading,
+} = useVehiclesApi();
 
 const schoolId = computed(() => {
     const raw = route.query.schoolId;
@@ -41,9 +52,40 @@ const vehicles = ref<Vehicle[]>([]);
 const isListBootloading = ref(false);
 const apiError = ref<string | null>(null);
 
+const vehicleDetail = ref<VehicleDetail | null>(null);
+const detailLoadError = ref<string | null>(null);
+const isDetailLoading = ref(false);
+const photoFileInput = ref<HTMLInputElement | null>(null);
+const photoUploadError = ref<string | null>(null);
+const pendingPhotoFile = ref<File | null>(null);
+const pendingPhotoObjectUrl = ref<string | null>(null);
+
 const initialVehicle = computed(
     () => vehicles.value.find((v) => v.id === vehicleId.value) ?? null,
 );
+
+const previewPhotoSrc = computed(() => {
+    if (pendingPhotoObjectUrl.value) {
+        return pendingPhotoObjectUrl.value;
+    }
+
+    const url = vehicleDetail.value?.photoUrl?.trim();
+
+    return url && url.length > 0 ? url : null;
+});
+
+const isSaveBusy = computed(
+    () => isUpdateLoading.value || isPhotoUploadLoading.value,
+);
+
+function revokePendingPhotoPreview() {
+    if (pendingPhotoObjectUrl.value) {
+        URL.revokeObjectURL(pendingPhotoObjectUrl.value);
+        pendingPhotoObjectUrl.value = null;
+    }
+
+    pendingPhotoFile.value = null;
+}
 
 async function loadList() {
     const sid = schoolId.value;
@@ -78,6 +120,66 @@ watch(
     { immediate: true },
 );
 
+async function loadVehicleDetail() {
+    const id = vehicleId.value;
+
+    if (!id) {
+        vehicleDetail.value = null;
+
+        return;
+    }
+
+    isDetailLoading.value = true;
+    detailLoadError.value = null;
+
+    try {
+        vehicleDetail.value = await fetchVehicleById(id);
+    } catch (err) {
+        detailLoadError.value =
+            err instanceof Error
+                ? err.message
+                : 'Nie udało się wczytać szczegółów pojazdu.';
+        vehicleDetail.value = null;
+    } finally {
+        isDetailLoading.value = false;
+    }
+}
+
+watch(
+    vehicleId,
+    () => {
+        revokePendingPhotoPreview();
+        if (photoFileInput.value) {
+            photoFileInput.value.value = '';
+        }
+
+        void loadVehicleDetail();
+    },
+    { immediate: true },
+);
+
+function handlePhotoFileInputChange() {
+    photoUploadError.value = null;
+
+    if (pendingPhotoObjectUrl.value) {
+        URL.revokeObjectURL(pendingPhotoObjectUrl.value);
+        pendingPhotoObjectUrl.value = null;
+    }
+
+    const input = photoFileInput.value;
+    const file = input?.files?.[0] ?? null;
+
+    pendingPhotoFile.value = file;
+
+    if (file) {
+        pendingPhotoObjectUrl.value = URL.createObjectURL(file);
+    }
+}
+
+onUnmounted(() => {
+    revokePendingPhotoPreview();
+});
+
 async function handleVehicleSubmit(payload: VehicleWritePayload) {
     const id = vehicleId.value;
     const sid = schoolId.value;
@@ -85,9 +187,43 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
     if (!id || !sid) return;
 
     apiError.value = null;
+    photoUploadError.value = null;
+
+    const file = pendingPhotoFile.value;
+
+    if (file && file.size > 5 * 1024 * 1024) {
+        photoUploadError.value = 'Plik jest za duży (maks. 5 MB).';
+
+        return;
+    }
 
     try {
         await updateVehicle(id, payload);
+
+        if (file) {
+            try {
+                const photoUrl = await uploadVehiclePhoto(id, file);
+
+                if (vehicleDetail.value) {
+                    vehicleDetail.value = {
+                        ...vehicleDetail.value,
+                        photoUrl,
+                    };
+                }
+
+                revokePendingPhotoPreview();
+                if (photoFileInput.value) {
+                    photoFileInput.value.value = '';
+                }
+            } catch (err) {
+                photoUploadError.value =
+                    err instanceof Error
+                        ? err.message
+                        : 'Nie udało się przesłać zdjęcia.';
+
+                return;
+            }
+        }
 
         await navigateTo({
             path: '/vehicles',
@@ -110,7 +246,8 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
             </h1>
             <p class="text-muted-foreground text-sm">
                 Zaktualizuj dane pojazdu. Wymagane są nazwa i numer
-                rejestracyjny.
+                rejestracyjny. Zdjęcie wybierz poniżej — zostanie wysłane po
+                kliknięciu „Zapisz”.
             </p>
         </div>
 
@@ -147,10 +284,83 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
             v-else
             mode="edit"
             :initial-vehicle="initialVehicle"
-            :is-saving="isUpdateLoading"
+            :is-saving="isSaveBusy"
             :api-error="apiError"
             @submit="handleVehicleSubmit"
-        />
+        >
+            <template #afterFields>
+                <section
+                    class="border-border space-y-4 rounded-2xl border p-6"
+                    aria-label="Zdjęcie pojazdu"
+                >
+                    <h2 class="text-foreground text-base font-semibold">
+                        Zdjęcie pojazdu
+                    </h2>
+
+                    <p
+                        v-if="detailLoadError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                    >
+                        {{ detailLoadError }}
+                    </p>
+
+                    <p
+                        v-if="isDetailLoading && !previewPhotoSrc"
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                    >
+                        Wczytywanie podglądu zdjęcia…
+                    </p>
+
+                    <div
+                        v-else
+                        class="bg-muted text-muted-foreground relative aspect-video max-w-md overflow-hidden rounded-xl"
+                    >
+                        <img
+                            v-if="previewPhotoSrc"
+                            :src="previewPhotoSrc"
+                            :alt="`Zdjęcie pojazdu ${initialVehicle?.name ?? ''}`"
+                            class="size-full object-cover"
+                        />
+                        <div
+                            v-else
+                            class="flex size-full items-center justify-center px-4 text-center text-sm"
+                            role="img"
+                            aria-label="Brak zdjęcia pojazdu"
+                        >
+                            Brak zdjęcia
+                        </div>
+                    </div>
+
+                    <div class="min-w-0">
+                        <label
+                            for="vehicle-photo-input"
+                            class="text-muted-foreground mb-1 block text-xs font-medium"
+                        >
+                            Nowe zdjęcie (JPEG, PNG lub WebP, max 5 MB)
+                        </label>
+                        <input
+                            id="vehicle-photo-input"
+                            ref="photoFileInput"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            class="text-foreground file:text-foreground file:bg-muted max-w-full cursor-pointer text-sm file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1.5"
+                            :disabled="isSaveBusy"
+                            @change="handlePhotoFileInputChange"
+                        />
+                    </div>
+
+                    <p
+                        v-if="photoUploadError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                    >
+                        {{ photoUploadError }}
+                    </p>
+                </section>
+            </template>
+        </VehicleForm>
 
         <NuxtLink
             v-if="schoolId !== null"

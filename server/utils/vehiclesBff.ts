@@ -47,12 +47,57 @@ export async function bffUpstreamVehiclesList(
     };
 }
 
+export async function bffUpstreamVehiclesGetById(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/vehicles/${encodeURIComponent(id)}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się pobrać pojazdu',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export interface BffVehicleWriteBody {
     schoolId: string;
     name: string;
     registrationNumber: string;
     inspectionDate: string | null;
     insuranceDate: string | null;
+    modelYear: number | null;
+    mileageKm: number | null;
 }
 
 export interface BffVehiclePatchBody {
@@ -60,6 +105,8 @@ export interface BffVehiclePatchBody {
     registrationNumber: string;
     inspectionDate: string | null;
     insuranceDate: string | null;
+    modelYear: number | null;
+    mileageKm: number | null;
 }
 
 export async function bffUpstreamVehiclesCreate(
@@ -184,4 +231,52 @@ export async function bffUpstreamVehiclesDelete(
     }
 
     return { success: true };
+}
+
+export async function bffUpstreamVehiclesUploadPhoto(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+    file: Blob,
+    filename: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const form = new FormData();
+    form.append('file', file, filename);
+
+    const res = await fetch(
+        `${upstreamBase}/vehicles/${encodeURIComponent(id)}/photo`,
+        {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+            body: form,
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się przesłać zdjęcia',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
 }

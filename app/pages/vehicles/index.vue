@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Car, LayoutList, Pencil, Shield, Trash2 } from 'lucide-vue-next';
+import { Car, Eye, LayoutList, Pencil, Shield, Trash2 } from 'lucide-vue-next';
 import { normalizeDrivingSchool } from '~/types/drivingSchool';
 import type { Vehicle } from '~/types/vehicle';
 
@@ -389,6 +389,28 @@ async function handleConfirmDeleteVehicle() {
                                     v-if="isManager && resolvedSchoolId"
                                     class="flex shrink-0 items-center gap-0.5"
                                 >
+                                    <UiButton
+                                        as-child
+                                        variant="ghost"
+                                        size="icon"
+                                        class="cursor-pointer"
+                                    >
+                                        <NuxtLink
+                                            :to="{
+                                                path: `/vehicles/${vehicle.id}`,
+                                                query: {
+                                                    schoolId: resolvedSchoolId,
+                                                },
+                                            }"
+                                            class="inline-flex size-9 items-center justify-center"
+                                            :aria-label="`Szczegóły pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                        >
+                                            <Eye
+                                                class="size-4 shrink-0"
+                                                aria-hidden="true"
+                                            />
+                                        </NuxtLink>
+                                    </UiButton>
                                     <UiButton
                                         as-child
                                         variant="ghost"

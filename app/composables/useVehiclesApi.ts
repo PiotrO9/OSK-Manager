@@ -1,8 +1,12 @@
 import type { MaybeRefOrGetter } from 'vue';
+import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
     normalizeVehicle,
+    normalizeVehicleDetail,
     normalizeVehiclesList,
     type Vehicle,
+    type VehicleDetail,
     type VehicleWritePayload,
 } from '~/types/vehicle';
 
@@ -67,6 +71,23 @@ export function useVehiclesApi() {
         isLoading: isDeleteLoading,
         error: deleteError,
     } = useApi<unknown>('DELETE', _deleteUrl);
+
+    const _detailId = ref<string | null>(null);
+    const _detailUrl = () => {
+        const id = _detailId.value;
+
+        return id
+            ? resolveBffEndpoint(`/api/vehicles/${encodeURIComponent(id)}`)
+            : '';
+    };
+
+    const {
+        execute: _execDetail,
+        isLoading: isDetailLoading,
+        error: detailError,
+    } = useApi<unknown>('GET', _detailUrl);
+
+    const isPhotoUploadLoading = ref(false);
 
     async function fetchList(schoolId: string): Promise<Vehicle[]> {
         _schoolId.value = schoolId;
@@ -174,15 +195,82 @@ export function useVehiclesApi() {
         }
     }
 
+    async function fetchVehicleById(id: string): Promise<VehicleDetail> {
+        _detailId.value = id;
+
+        try {
+            const raw = await _execDetail();
+
+            if (raw === null) {
+                throw new Error(
+                    getApiFetchErrorMessage(
+                        detailError.value,
+                        'Nie udało się pobrać pojazdu.',
+                    ),
+                );
+            }
+
+            const data = unwrapApiSuccessData<unknown>(raw);
+            const vehicle = normalizeVehicleDetail(data, 0);
+
+            if (!vehicle) {
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
+            }
+
+            return vehicle;
+        } finally {
+            _detailId.value = null;
+        }
+    }
+
+    async function uploadVehiclePhoto(id: string, file: File): Promise<string> {
+        isPhotoUploadLoading.value = true;
+
+        try {
+            const url = resolveBffEndpoint(
+                `/api/vehicles/${encodeURIComponent(id)}/photo`,
+            );
+            const body = new FormData();
+            body.append('file', file);
+
+            const raw = await $fetch<{
+                success?: boolean;
+                data?: { photoUrl?: string };
+            }>(url, {
+                method: 'POST',
+                body,
+                credentials: 'include',
+            });
+
+            const photoUrl = raw?.data?.photoUrl;
+
+            if (typeof photoUrl !== 'string' || photoUrl.trim().length === 0) {
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
+            }
+
+            return photoUrl.trim();
+        } catch (err) {
+            throw new Error(
+                getApiFetchErrorMessage(err, 'Nie udało się przesłać zdjęcia.'),
+            );
+        } finally {
+            isPhotoUploadLoading.value = false;
+        }
+    }
+
     return {
         isListLoading,
         isCreateLoading,
         isUpdateLoading,
         isDeleteLoading,
+        isDetailLoading,
+        isPhotoUploadLoading,
         deleteError,
         fetchList,
+        fetchVehicleById,
         createVehicle,
         updateVehicle,
         deleteVehicle,
+        uploadVehiclePhoto,
     };
 }

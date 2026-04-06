@@ -9,6 +9,9 @@ export interface MockVehicleRow {
     isDefault: boolean;
     inspectionDate: string | null;
     insuranceDate: string | null;
+    modelYear: number | null;
+    mileageKm: number | null;
+    photoUrl: string | null;
 }
 
 type GlobalWithStore = typeof globalThis & {
@@ -42,6 +45,9 @@ function ensureSeedForSchool(schoolId: string) {
             isDefault: true,
             inspectionDate: '2025-06-15',
             insuranceDate: '2025-12-01',
+            modelYear: 2018,
+            mileageKm: 125_000,
+            photoUrl: null,
         },
         {
             id: crypto.randomUUID(),
@@ -52,6 +58,9 @@ function ensureSeedForSchool(schoolId: string) {
             isDefault: false,
             inspectionDate: '2024-03-20',
             insuranceDate: null,
+            modelYear: null,
+            mileageKm: null,
+            photoUrl: null,
         },
     );
 }
@@ -65,6 +74,27 @@ function rowToResponse(row: MockVehicleRow): Record<string, unknown> {
         isDefault: row.isDefault,
         inspectionDate: row.inspectionDate,
         insuranceDate: row.insuranceDate,
+        modelYear: row.modelYear,
+        mileageKm: row.mileageKm,
+    };
+}
+
+/** Kształt zbliżony do odpowiedzi BE `getVehicleById` (single resource). */
+export function mockVehicleRowToDetailPayload(
+    row: MockVehicleRow,
+): Record<string, unknown> {
+    return {
+        id: row.id,
+        schoolId: row.schoolId,
+        name: row.name,
+        registrationNumber: row.registrationNumber,
+        isActive: row.status === 'ACTIVE',
+        inspectionDate: row.inspectionDate,
+        insuranceDate: row.insuranceDate,
+        photoUrl: row.photoUrl,
+        isDefault: row.isDefault,
+        modelYear: row.modelYear,
+        mileageKm: row.mileageKm,
     };
 }
 
@@ -84,6 +114,8 @@ export function mockVehiclesCreate(row: {
     registrationNumber: string;
     inspectionDate: string | null;
     insuranceDate: string | null;
+    modelYear: number | null;
+    mileageKm: number | null;
 }): MockVehicleRow {
     const store = getStore();
     const id = crypto.randomUUID();
@@ -96,6 +128,9 @@ export function mockVehiclesCreate(row: {
         isDefault: false,
         inspectionDate: row.inspectionDate,
         insuranceDate: row.insuranceDate,
+        modelYear: row.modelYear,
+        mileageKm: row.mileageKm,
+        photoUrl: null,
     };
 
     store.push(created);
@@ -126,6 +161,8 @@ export function mockVehiclesUpdate(
         registrationNumber: string;
         inspectionDate: string | null;
         insuranceDate: string | null;
+        modelYear: number | null;
+        mileageKm: number | null;
     },
 ): MockVehicleRow | null {
     const store = getStore();
@@ -137,6 +174,8 @@ export function mockVehiclesUpdate(
     row.registrationNumber = body.registrationNumber;
     row.inspectionDate = body.inspectionDate;
     row.insuranceDate = body.insuranceDate;
+    row.modelYear = body.modelYear;
+    row.mileageKm = body.mileageKm;
 
     return row;
 }
@@ -145,6 +184,20 @@ export function mockVehiclesGetById(id: string): MockVehicleRow | null {
     const store = getStore();
 
     return store.find((v) => v.id === id) ?? null;
+}
+
+export function mockVehiclesSetPhotoUrl(
+    id: string,
+    photoUrl: string,
+): MockVehicleRow | null {
+    const store = getStore();
+    const row = store.find((v) => v.id === id);
+
+    if (!row) return null;
+
+    row.photoUrl = photoUrl;
+
+    return row;
 }
 
 export function mockVehiclesDelete(id: string): boolean {

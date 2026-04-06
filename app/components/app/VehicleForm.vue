@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useSlots } from 'vue';
 import type { Vehicle, VehicleWritePayload } from '~/types/vehicle';
 
 const props = defineProps<{
@@ -12,12 +13,18 @@ const emit = defineEmits<{
     submit: [payload: VehicleWritePayload];
 }>();
 
+const slots = useSlots();
+
 const nameModel = ref('');
 const registrationNumberModel = ref('');
 const inspectionDateModel = ref('');
 const insuranceDateModel = ref('');
+const modelYearModel = ref('');
+const mileageKmModel = ref('');
 const showNameRequired = ref(false);
 const showRegistrationRequired = ref(false);
+const showModelYearInvalid = ref(false);
+const showMileageKmInvalid = ref(false);
 
 function syncFromProps() {
     if (props.mode === 'edit' && props.initialVehicle) {
@@ -27,6 +34,8 @@ function syncFromProps() {
         registrationNumberModel.value = v.registrationNumber;
         inspectionDateModel.value = v.inspectionDate ?? '';
         insuranceDateModel.value = v.insuranceDate ?? '';
+        modelYearModel.value = v.modelYear != null ? String(v.modelYear) : '';
+        mileageKmModel.value = v.mileageKm != null ? String(v.mileageKm) : '';
 
         return;
     }
@@ -35,6 +44,8 @@ function syncFromProps() {
     registrationNumberModel.value = '';
     inspectionDateModel.value = '';
     insuranceDateModel.value = '';
+    modelYearModel.value = '';
+    mileageKmModel.value = '';
 }
 
 watch(
@@ -42,6 +53,8 @@ watch(
     () => {
         showNameRequired.value = false;
         showRegistrationRequired.value = false;
+        showModelYearInvalid.value = false;
+        showMileageKmInvalid.value = false;
         syncFromProps();
     },
     { immediate: true },
@@ -53,6 +66,29 @@ function dateInputToPayload(value: string): string | null {
     return t.length > 0 ? t : null;
 }
 
+const MODEL_YEAR_MIN = 1900;
+const MODEL_YEAR_MAX = 2100;
+const MILEAGE_KM_MAX = 99_999_999;
+
+function formatPlInt(n: number): string {
+    return new Intl.NumberFormat('pl-PL').format(n);
+}
+
+/** `UiInput` + `type="number"` może zwracać liczbę zamiast stringa. */
+function numericFieldInputToTrimmedString(
+    raw: string | number | null | undefined,
+): string {
+    if (raw === null || raw === undefined) return '';
+
+    if (typeof raw === 'number') {
+        if (!Number.isFinite(raw)) return '';
+
+        return String(Math.trunc(raw));
+    }
+
+    return String(raw).trim();
+}
+
 function handleSubmit() {
     const nameOk = nameModel.value.trim().length > 0;
     const regOk = registrationNumberModel.value.trim().length > 0;
@@ -62,11 +98,47 @@ function handleSubmit() {
 
     if (!nameOk || !regOk) return;
 
+    let modelYearPayload: number | null = null;
+    const yearStr = numericFieldInputToTrimmedString(modelYearModel.value);
+
+    if (yearStr.length > 0) {
+        const y = parseInt(yearStr, 10);
+
+        if (!Number.isInteger(y) || y < MODEL_YEAR_MIN || y > MODEL_YEAR_MAX) {
+            showModelYearInvalid.value = true;
+
+            return;
+        }
+
+        modelYearPayload = y;
+    }
+
+    showModelYearInvalid.value = false;
+
+    let mileageKmPayload: number | null = null;
+    const mileageStr = numericFieldInputToTrimmedString(mileageKmModel.value);
+
+    if (mileageStr.length > 0) {
+        const m = parseInt(mileageStr, 10);
+
+        if (!Number.isInteger(m) || m < 0 || m > MILEAGE_KM_MAX) {
+            showMileageKmInvalid.value = true;
+
+            return;
+        }
+
+        mileageKmPayload = m;
+    }
+
+    showMileageKmInvalid.value = false;
+
     emit('submit', {
         name: nameModel.value.trim(),
         registrationNumber: registrationNumberModel.value.trim(),
         inspectionDate: dateInputToPayload(inspectionDateModel.value),
         insuranceDate: dateInputToPayload(insuranceDateModel.value),
+        modelYear: modelYearPayload,
+        mileageKm: mileageKmPayload,
     });
 }
 </script>
@@ -152,6 +224,72 @@ function handleSubmit() {
                 name="insuranceDate"
                 :disabled="isSaving"
             />
+        </div>
+
+        <div class="space-y-2">
+            <UiLabel for="vehicle-model-year">Rocznik (opcjonalnie)</UiLabel>
+            <UiInput
+                id="vehicle-model-year"
+                v-model="modelYearModel"
+                type="number"
+                name="modelYear"
+                inputmode="numeric"
+                autocomplete="off"
+                :min="MODEL_YEAR_MIN"
+                :max="MODEL_YEAR_MAX"
+                step="1"
+                :aria-invalid="showModelYearInvalid"
+                :aria-describedby="
+                    showModelYearInvalid
+                        ? 'vehicle-model-year-error'
+                        : undefined
+                "
+                :disabled="isSaving"
+            />
+            <p
+                v-if="showModelYearInvalid"
+                id="vehicle-model-year-error"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                Podaj rocznik z zakresu {{ MODEL_YEAR_MIN }}–{{
+                    MODEL_YEAR_MAX
+                }}
+                lub zostaw puste.
+            </p>
+        </div>
+
+        <div class="space-y-2">
+            <UiLabel for="vehicle-mileage">Przebieg (km, opcjonalnie)</UiLabel>
+            <UiInput
+                id="vehicle-mileage"
+                v-model="mileageKmModel"
+                type="number"
+                name="mileageKm"
+                inputmode="numeric"
+                autocomplete="off"
+                min="0"
+                :max="MILEAGE_KM_MAX"
+                step="1"
+                :aria-invalid="showMileageKmInvalid"
+                :aria-describedby="
+                    showMileageKmInvalid ? 'vehicle-mileage-error' : undefined
+                "
+                :disabled="isSaving"
+            />
+            <p
+                v-if="showMileageKmInvalid"
+                id="vehicle-mileage-error"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                Podaj przebieg od 0 do {{ formatPlInt(MILEAGE_KM_MAX) }} km lub
+                zostaw puste.
+            </p>
+        </div>
+
+        <div v-if="slots.afterFields" class="space-y-4 pt-1">
+            <slot name="afterFields" />
         </div>
 
         <UiButton type="submit" class="w-full sm:w-auto" :disabled="isSaving">

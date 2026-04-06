@@ -40,6 +40,8 @@ export default defineEventHandler(async (event) => {
             registrationNumber: fields.registrationNumber,
             inspectionDate: fields.inspectionDate,
             insuranceDate: fields.insuranceDate,
+            modelYear: fields.modelYear,
+            mileageKm: fields.mileageKm,
         });
     }
 
@@ -73,6 +75,8 @@ export default defineEventHandler(async (event) => {
         registrationNumber: fields.registrationNumber,
         inspectionDate: fields.inspectionDate,
         insuranceDate: fields.insuranceDate,
+        modelYear: fields.modelYear,
+        mileageKm: fields.mileageKm,
     });
 
     if (!updated) {
