@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { Building2, LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { Building2, Car, LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { useSidebar } from '../shadcn/sidebar';
 
 interface NavItem {
     readonly to: string;
@@ -13,6 +14,12 @@ interface NavItem {
 const route = useRoute();
 const { session } = useAuthSession();
 const { handleLogout } = useLogout();
+const { state, isMobile } = useSidebar();
+
+/** Tooltip + as-child wokół linku potrafi zablokować klik; pokazujemy go tylko w trybie ikon (desktop). */
+const showNavItemTooltip = computed(
+    () => state.value === 'collapsed' && !isMobile.value,
+);
 
 const navItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
@@ -22,6 +29,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do pulpitu',
             icon: LayoutDashboard,
             tooltip: 'Pulpit',
+        },
+        {
+            to: '/vehicles',
+            label: 'Pojazdy',
+            ariaLabel: 'Przejdź do listy pojazdów',
+            icon: Car,
+            tooltip: 'Pojazdy',
         },
     ];
 
@@ -100,7 +114,11 @@ function handleLogoutClick() {
                         >
                             <UiSidebarMenuButton
                                 as-child
-                                :tooltip="item.tooltip"
+                                :tooltip="
+                                    showNavItemTooltip
+                                        ? item.tooltip
+                                        : undefined
+                                "
                                 :is-active="isNavActive(item.to)"
                             >
                                 <NuxtLink
