@@ -147,6 +147,17 @@ export function mockVehiclesGetById(id: string): MockVehicleRow | null {
     return store.find((v) => v.id === id) ?? null;
 }
 
+export function mockVehiclesDelete(id: string): boolean {
+    const store = getStore();
+    const index = store.findIndex((v) => v.id === id);
+
+    if (index === -1) return false;
+
+    store.splice(index, 1);
+
+    return true;
+}
+
 export function mockVehiclesResponseFromRow(
     row: MockVehicleRow,
 ): Record<string, unknown> {

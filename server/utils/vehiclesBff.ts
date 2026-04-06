@@ -144,3 +144,44 @@ export async function bffUpstreamVehiclesUpdate(
         data: json.data,
     };
 }
+
+export async function bffUpstreamVehiclesDelete(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+): Promise<{ success: true }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(`${upstreamBase}/vehicles/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+    });
+
+    if (!res.ok) {
+        let errorMessage = 'Nie udało się usunąć pojazdu';
+
+        try {
+            const json = (await res.json()) as BackendEnvelope<unknown>;
+            if (typeof json.error === 'string') errorMessage = json.error;
+        } catch {
+            /* ignoruj błąd parsowania */
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage: errorMessage,
+        });
+    }
+
+    return { success: true };
+}

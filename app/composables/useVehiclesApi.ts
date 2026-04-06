@@ -55,6 +55,19 @@ export function useVehiclesApi() {
         body: _updateBody as MaybeRefOrGetter<unknown>,
     });
 
+    const _deleteId = ref<string | null>(null);
+    const _deleteUrl = () => {
+        const id = _deleteId.value;
+
+        return id ? resolveBffEndpoint(`/api/vehicles/${id}`) : '';
+    };
+
+    const {
+        execute: _execDelete,
+        isLoading: isDeleteLoading,
+        error: deleteError,
+    } = useApi<unknown>('DELETE', _deleteUrl);
+
     async function fetchList(schoolId: string): Promise<Vehicle[]> {
         _schoolId.value = schoolId;
 
@@ -126,12 +139,50 @@ export function useVehiclesApi() {
         }
     }
 
+    async function deleteVehicle(id: string): Promise<void> {
+        _deleteId.value = id;
+
+        try {
+            const raw = await _execDelete();
+
+            if (raw === null) {
+                const source = deleteError.value;
+                const message = getApiFetchErrorMessage(
+                    source,
+                    'Nie udało się usunąć pojazdu.',
+                );
+                const err = new Error(message) as Error & {
+                    statusCode?: number;
+                };
+
+                if (
+                    source &&
+                    typeof source === 'object' &&
+                    'statusCode' in source &&
+                    typeof (source as { statusCode: unknown }).statusCode ===
+                        'number'
+                ) {
+                    err.statusCode = (
+                        source as { statusCode: number }
+                    ).statusCode;
+                }
+
+                throw err;
+            }
+        } finally {
+            _deleteId.value = null;
+        }
+    }
+
     return {
         isListLoading,
         isCreateLoading,
         isUpdateLoading,
+        isDeleteLoading,
+        deleteError,
         fetchList,
         createVehicle,
         updateVehicle,
+        deleteVehicle,
     };
 }

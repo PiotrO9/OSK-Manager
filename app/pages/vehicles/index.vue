@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Car, LayoutList, Shield } from 'lucide-vue-next';
+import { Car, LayoutList, Pencil, Shield, Trash2 } from 'lucide-vue-next';
 import { normalizeDrivingSchool } from '~/types/drivingSchool';
 import type { Vehicle } from '~/types/vehicle';
 
@@ -14,14 +14,17 @@ usePageMeta({
 
 const route = useRoute();
 const { session } = useAuthSession();
-const { fetchList, isListLoading } = useVehiclesApi();
+const { fetchList, isListLoading, deleteVehicle, isDeleteLoading } =
+    useVehiclesApi();
 
 const isManager = computed(() => session.value?.role === 'MANAGER');
 
 const resolvedSchoolId = ref<string | null>(null);
 const contextMessage = ref<string | null>(null);
 const loadError = ref<string | null>(null);
+const deleteActionError = ref<string | null>(null);
 const vehicles = ref<Vehicle[]>([]);
+const vehiclePendingDelete = ref<Vehicle | null>(null);
 
 type PanelId = 'simple' | 'manager';
 
@@ -151,6 +154,57 @@ watch(
         void runPageLoad();
     },
 );
+
+function handleRequestDeleteVehicle(vehicle: Vehicle) {
+    deleteActionError.value = null;
+    vehiclePendingDelete.value = vehicle;
+}
+
+function handleVehicleDeleteDialogOpen(open: boolean) {
+    if (!open) {
+        vehiclePendingDelete.value = null;
+    }
+}
+
+function handleCancelDeleteVehicle() {
+    vehiclePendingDelete.value = null;
+}
+
+function readDeleteErrorStatusCode(err: unknown): number | undefined {
+    if (err === null || typeof err !== 'object') return undefined;
+
+    if (!('statusCode' in err)) return undefined;
+
+    const raw = (err as { statusCode: unknown }).statusCode;
+
+    return typeof raw === 'number' ? raw : undefined;
+}
+
+async function handleConfirmDeleteVehicle() {
+    const target = vehiclePendingDelete.value;
+    const sid = resolvedSchoolId.value;
+
+    if (!target || !sid) return;
+
+    vehiclePendingDelete.value = null;
+    deleteActionError.value = null;
+
+    try {
+        await deleteVehicle(target.id);
+        await loadVehicles();
+    } catch (err) {
+        if (readDeleteErrorStatusCode(err) === 404) {
+            await loadVehicles();
+
+            return;
+        }
+
+        deleteActionError.value =
+            err instanceof Error
+                ? err.message
+                : 'Nie udało się usunąć pojazdu.';
+    }
+}
 </script>
 
 <template>
@@ -233,6 +287,14 @@ watch(
 
             <p v-if="loadError" class="text-destructive text-sm" role="alert">
                 {{ loadError }}
+            </p>
+
+            <p
+                v-if="deleteActionError"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                {{ deleteActionError }}
             </p>
 
             <div
@@ -323,18 +385,49 @@ watch(
                                         }}
                                     </p>
                                 </div>
-                                <NuxtLink
+                                <div
                                     v-if="isManager && resolvedSchoolId"
-                                    :to="{
-                                        path: `/vehicles/${vehicle.id}/edit`,
-                                        query: {
-                                            schoolId: resolvedSchoolId,
-                                        },
-                                    }"
-                                    class="text-primary focus-visible:ring-primary shrink-0 text-sm font-medium underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                                    class="flex shrink-0 items-center gap-0.5"
                                 >
-                                    Edytuj
-                                </NuxtLink>
+                                    <UiButton
+                                        as-child
+                                        variant="ghost"
+                                        size="icon"
+                                        class="cursor-pointer"
+                                    >
+                                        <NuxtLink
+                                            :to="{
+                                                path: `/vehicles/${vehicle.id}/edit`,
+                                                query: {
+                                                    schoolId: resolvedSchoolId,
+                                                },
+                                            }"
+                                            class="inline-flex size-9 items-center justify-center"
+                                            :aria-label="`Edytuj pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                        >
+                                            <Pencil
+                                                class="size-4 shrink-0"
+                                                aria-hidden="true"
+                                            />
+                                        </NuxtLink>
+                                    </UiButton>
+                                    <UiButton
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 cursor-pointer"
+                                        :disabled="isDeleteLoading"
+                                        :aria-label="`Usuń pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                        @click="
+                                            handleRequestDeleteVehicle(vehicle)
+                                        "
+                                    >
+                                        <Trash2
+                                            class="size-4 shrink-0"
+                                            aria-hidden="true"
+                                        />
+                                    </UiButton>
+                                </div>
                             </div>
 
                             <div
@@ -366,6 +459,24 @@ watch(
                     </div>
                 </li>
             </ul>
+
+            <VehicleDeleteDialog
+                :open="vehiclePendingDelete !== null"
+                :vehicle-name="
+                    vehiclePendingDelete
+                        ? displayText(vehiclePendingDelete.name)
+                        : ''
+                "
+                :registration-number="
+                    vehiclePendingDelete
+                        ? displayText(vehiclePendingDelete.registrationNumber)
+                        : ''
+                "
+                :is-deleting="isDeleteLoading"
+                @update:open="handleVehicleDeleteDialogOpen"
+                @cancel="handleCancelDeleteVehicle"
+                @confirm="handleConfirmDeleteVehicle"
+            />
         </template>
     </div>
 </template>
