@@ -186,6 +186,39 @@ export function mockVehiclesGetById(id: string): MockVehicleRow | null {
     return store.find((v) => v.id === id) ?? null;
 }
 
+export function mockVehiclesSetDefault(id: string): boolean {
+    const store = getStore();
+    const target = store.find((v) => v.id === id);
+
+    if (!target) {
+        return false;
+    }
+
+    for (const row of store) {
+        if (row.schoolId === target.schoolId) {
+            row.isDefault = false;
+        }
+    }
+
+    target.isDefault = true;
+
+    return true;
+}
+
+/** Weryfikuje, że pojazd należy do podanej szkoły (zgodnie z kontraktem BFF). */
+export function mockVehiclesSetDefaultForSchool(
+    schoolId: string,
+    vehicleId: string,
+): boolean {
+    const row = mockVehiclesGetById(vehicleId);
+
+    if (!row || row.schoolId !== schoolId) {
+        return false;
+    }
+
+    return mockVehiclesSetDefault(vehicleId);
+}
+
 export function mockVehiclesSetPhotoUrl(
     id: string,
     photoUrl: string,

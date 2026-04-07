@@ -14,8 +14,15 @@ usePageMeta({
 
 const route = useRoute();
 const { session } = useAuthSession();
-const { fetchList, isListLoading, deleteVehicle, isDeleteLoading } =
-    useVehiclesApi();
+const { addToast } = useAppToast();
+const {
+    fetchList,
+    isListLoading,
+    deleteVehicle,
+    isDeleteLoading,
+    setVehicleAsDefault,
+    isSetDefaultLoading,
+} = useVehiclesApi();
 
 const isManager = computed(() => session.value?.role === 'MANAGER');
 
@@ -205,6 +212,26 @@ async function handleConfirmDeleteVehicle() {
                 : 'Nie udało się usunąć pojazdu.';
     }
 }
+
+async function handleSetDefaultVehicle(vehicle: Vehicle) {
+    const sid = resolvedSchoolId.value;
+
+    if (!sid) return;
+
+    try {
+        await setVehicleAsDefault(sid, vehicle.id);
+        await loadVehicles();
+    } catch (err) {
+        addToast({
+            title: 'Błąd',
+            description:
+                err instanceof Error
+                    ? err.message
+                    : 'Nie udało się ustawić domyślnego pojazdu.',
+            variant: 'error',
+        });
+    }
+}
 </script>
 
 <template>
@@ -348,136 +375,151 @@ async function handleConfirmDeleteVehicle() {
 
             <ul
                 v-else
-                class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
                 role="list"
             >
                 <li
                     v-for="vehicle in vehicles"
                     :key="vehicle.id"
                     role="listitem"
-                    class="border-border min-w-0 rounded-2xl border bg-white p-5 transition dark:bg-transparent"
+                    class="border-border flex min-w-0 flex-col rounded-2xl border bg-white p-6 transition dark:bg-transparent"
                 >
-                    <div class="flex items-start gap-3">
+                    <div class="min-w-0 space-y-3">
                         <div
-                            class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-xl"
+                            class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
                         >
-                            <Car class="size-4" aria-hidden="true" />
-                        </div>
-                        <div class="min-w-0 flex-1 space-y-2">
-                            <div
-                                class="flex min-w-0 items-start justify-between gap-2"
-                            >
-                                <div class="min-w-0">
-                                    <p
-                                        :id="`vehicle-name-${vehicle.id}`"
-                                        class="text-foreground font-semibold break-words"
-                                    >
-                                        {{ displayText(vehicle.name) }}
-                                    </p>
-                                    <p
-                                        class="text-muted-foreground mt-0.5 font-mono text-sm tracking-wide"
-                                        :aria-labelledby="`vehicle-name-${vehicle.id}`"
-                                    >
-                                        {{
-                                            displayText(
-                                                vehicle.registrationNumber,
-                                            )
-                                        }}
-                                    </p>
-                                </div>
-                                <div
-                                    v-if="isManager && resolvedSchoolId"
-                                    class="flex shrink-0 items-center gap-0.5"
+                            <div class="min-w-0 flex-1 overflow-hidden">
+                                <p
+                                    :id="`vehicle-name-${vehicle.id}`"
+                                    class="text-foreground truncate text-base font-semibold"
+                                    :title="displayText(vehicle.name)"
                                 >
-                                    <UiButton
-                                        as-child
-                                        variant="ghost"
-                                        size="icon"
-                                        class="cursor-pointer"
+                                    {{ displayText(vehicle.name) }}
+                                </p>
+                                <p
+                                    class="text-muted-foreground mt-1 truncate font-mono text-sm tracking-wide"
+                                    :aria-labelledby="`vehicle-name-${vehicle.id}`"
+                                    :title="
+                                        displayText(vehicle.registrationNumber)
+                                    "
+                                >
+                                    {{
+                                        displayText(vehicle.registrationNumber)
+                                    }}
+                                </p>
+                                <div
+                                    v-if="vehicle.isDefault"
+                                    class="mt-3 flex flex-wrap gap-2"
+                                >
+                                    <UiBadge variant="default" class="shrink-0">
+                                        Domyślny
+                                    </UiBadge>
+                                </div>
+                            </div>
+                            <div
+                                v-if="isManager && resolvedSchoolId"
+                                class="border-border bg-muted/25 divide-border inline-flex w-fit max-w-full shrink-0 divide-x overflow-hidden rounded-lg border max-sm:self-end"
+                                role="group"
+                                :aria-label="`Akcje: ${displayText(vehicle.name)}`"
+                            >
+                                <UiButton
+                                    as-child
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-10 w-10 shrink-0 cursor-pointer rounded-none"
+                                >
+                                    <NuxtLink
+                                        :to="{
+                                            path: `/vehicles/${vehicle.id}`,
+                                            query: {
+                                                schoolId: resolvedSchoolId,
+                                            },
+                                        }"
+                                        class="inline-flex size-10 items-center justify-center"
+                                        :aria-label="`Szczegóły pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
                                     >
-                                        <NuxtLink
-                                            :to="{
-                                                path: `/vehicles/${vehicle.id}`,
-                                                query: {
-                                                    schoolId: resolvedSchoolId,
-                                                },
-                                            }"
-                                            class="inline-flex size-9 items-center justify-center"
-                                            :aria-label="`Szczegóły pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
-                                        >
-                                            <Eye
-                                                class="size-4 shrink-0"
-                                                aria-hidden="true"
-                                            />
-                                        </NuxtLink>
-                                    </UiButton>
-                                    <UiButton
-                                        as-child
-                                        variant="ghost"
-                                        size="icon"
-                                        class="cursor-pointer"
-                                    >
-                                        <NuxtLink
-                                            :to="{
-                                                path: `/vehicles/${vehicle.id}/edit`,
-                                                query: {
-                                                    schoolId: resolvedSchoolId,
-                                                },
-                                            }"
-                                            class="inline-flex size-9 items-center justify-center"
-                                            :aria-label="`Edytuj pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
-                                        >
-                                            <Pencil
-                                                class="size-4 shrink-0"
-                                                aria-hidden="true"
-                                            />
-                                        </NuxtLink>
-                                    </UiButton>
-                                    <UiButton
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 cursor-pointer"
-                                        :disabled="isDeleteLoading"
-                                        :aria-label="`Usuń pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
-                                        @click="
-                                            handleRequestDeleteVehicle(vehicle)
-                                        "
-                                    >
-                                        <Trash2
+                                        <Eye
                                             class="size-4 shrink-0"
                                             aria-hidden="true"
                                         />
-                                    </UiButton>
-                                </div>
-                            </div>
-
-                            <div
-                                v-if="isManager && activePanel === 'manager'"
-                                class="flex flex-wrap items-center gap-2"
-                            >
-                                <UiBadge
-                                    v-if="vehicle.status === 'UNAVAILABLE'"
-                                    variant="destructive"
-                                    class="shrink-0"
+                                    </NuxtLink>
+                                </UiButton>
+                                <UiButton
+                                    as-child
+                                    variant="ghost"
+                                    size="icon"
+                                    class="h-10 w-10 shrink-0 cursor-pointer rounded-none"
                                 >
-                                    Niedostępny
-                                </UiBadge>
-                                <UiBadge
-                                    v-else
-                                    variant="secondary"
-                                    class="shrink-0"
+                                    <NuxtLink
+                                        :to="{
+                                            path: `/vehicles/${vehicle.id}/edit`,
+                                            query: {
+                                                schoolId: resolvedSchoolId,
+                                            },
+                                        }"
+                                        class="inline-flex size-10 items-center justify-center"
+                                        :aria-label="`Edytuj pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                    >
+                                        <Pencil
+                                            class="size-4 shrink-0"
+                                            aria-hidden="true"
+                                        />
+                                    </NuxtLink>
+                                </UiButton>
+                                <UiButton
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 h-10 w-10 shrink-0 cursor-pointer rounded-none"
+                                    :disabled="isDeleteLoading"
+                                    :aria-label="`Usuń pojazd ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                    @click="handleRequestDeleteVehicle(vehicle)"
                                 >
-                                    Aktywny
-                                </UiBadge>
-                                <span
-                                    v-if="vehicle.isDefault"
-                                    class="bg-primary/15 text-primary shrink-0 rounded-md px-2 py-0.5 text-xs font-medium"
-                                >
-                                    Domyślny
-                                </span>
+                                    <Trash2
+                                        class="size-4 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                </UiButton>
                             </div>
                         </div>
+
+                        <div
+                            v-if="isManager && activePanel === 'manager'"
+                            class="flex flex-wrap items-center gap-2 pt-0.5"
+                        >
+                            <UiBadge
+                                v-if="vehicle.status === 'UNAVAILABLE'"
+                                variant="destructive"
+                                class="shrink-0"
+                            >
+                                Niedostępny
+                            </UiBadge>
+                            <UiBadge
+                                v-else
+                                variant="secondary"
+                                class="shrink-0"
+                            >
+                                Aktywny
+                            </UiBadge>
+                        </div>
+
+                        <UiButton
+                            v-if="
+                                isManager &&
+                                resolvedSchoolId &&
+                                !vehicle.isDefault
+                            "
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            class="w-full sm:w-auto"
+                            :disabled="isSetDefaultLoading"
+                            :aria-busy="isSetDefaultLoading"
+                            :aria-label="`Ustaw jako domyślny: ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                            @click="handleSetDefaultVehicle(vehicle)"
+                        >
+                            Ustaw jako domyślny
+                        </UiButton>
                     </div>
                 </li>
             </ul>

@@ -275,3 +275,69 @@ export async function bffUpstreamDrivingSchoolsSetDefault(
         data: json?.data,
     };
 }
+
+export async function bffUpstreamDrivingSchoolsSetDefaultVehicle(
+    event: H3Event,
+    upstreamBase: string,
+    schoolId: string,
+    vehicleId: string,
+): Promise<{ success: true; data?: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/driving-schools/${encodeURIComponent(schoolId)}/default-vehicle`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify({ vehicleId }),
+        },
+    );
+
+    const text = await res.text();
+    let json: BackendEnvelope<unknown> | null = null;
+
+    if (text) {
+        try {
+            json = JSON.parse(text) as BackendEnvelope<unknown>;
+        } catch {
+            /* odpowiedź może być pusta */
+        }
+    }
+
+    if (!res.ok) {
+        const msg =
+            json && typeof json.error === 'string'
+                ? json.error
+                : 'Nie udało się ustawić domyślnego pojazdu';
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage: msg,
+        });
+    }
+
+    if (json && json.success === false) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się ustawić domyślnego pojazdu',
+        });
+    }
+
+    return {
+        success: true,
+        data: json?.data,
+    };
+}

@@ -72,6 +72,26 @@ export function useVehiclesApi() {
         error: deleteError,
     } = useApi<unknown>('DELETE', _deleteUrl);
 
+    const _setDefaultSchoolId = ref<string | null>(null);
+    const _setDefaultBody = ref<{ vehicleId: string } | null>(null);
+    const _setDefaultUrl = () => {
+        const sid = _setDefaultSchoolId.value;
+
+        return sid
+            ? resolveBffEndpoint(
+                  `/api/driving-schools/${encodeURIComponent(sid)}/default-vehicle`,
+              )
+            : '';
+    };
+
+    const {
+        execute: _execSetDefault,
+        isLoading: isSetDefaultLoading,
+        error: setDefaultError,
+    } = useApi<unknown>('PATCH', _setDefaultUrl, {
+        body: _setDefaultBody as MaybeRefOrGetter<unknown>,
+    });
+
     const _detailId = ref<string | null>(null);
     const _detailUrl = () => {
         const id = _detailId.value;
@@ -195,6 +215,47 @@ export function useVehiclesApi() {
         }
     }
 
+    async function setVehicleAsDefault(
+        schoolId: string,
+        vehicleId: string,
+    ): Promise<void> {
+        _setDefaultSchoolId.value = schoolId;
+        _setDefaultBody.value = { vehicleId };
+
+        try {
+            const raw = await _execSetDefault();
+
+            if (raw === null) {
+                throw new Error(
+                    getApiFetchErrorMessage(
+                        setDefaultError.value,
+                        'Nie udało się ustawić domyślnego pojazdu.',
+                    ),
+                );
+            }
+
+            if (typeof raw !== 'object' || raw === null) {
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
+            }
+
+            const envelope = raw as { success?: boolean; error?: string };
+
+            if (
+                envelope.success === false &&
+                typeof envelope.error === 'string'
+            ) {
+                throw new Error(envelope.error);
+            }
+
+            if (envelope.success !== true) {
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
+            }
+        } finally {
+            _setDefaultSchoolId.value = null;
+            _setDefaultBody.value = null;
+        }
+    }
+
     async function fetchVehicleById(id: string): Promise<VehicleDetail> {
         _detailId.value = id;
 
@@ -263,6 +324,7 @@ export function useVehiclesApi() {
         isCreateLoading,
         isUpdateLoading,
         isDeleteLoading,
+        isSetDefaultLoading,
         isDetailLoading,
         isPhotoUploadLoading,
         deleteError,
@@ -271,6 +333,7 @@ export function useVehiclesApi() {
         createVehicle,
         updateVehicle,
         deleteVehicle,
+        setVehicleAsDefault,
         uploadVehiclePhoto,
     };
 }
