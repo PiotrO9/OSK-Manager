@@ -7,17 +7,16 @@ Nowe elementy interfejsu oparte na **gotowych wzorcach** mają pochodzić z ekos
 ## Zasady
 
 1. **Nowe kontrolki i layouty (button, dialog, form field, tabela, itd.)**  
-   Dodawaj przez **shadcn-vue** (`CLI` lub **MCP shadcn** w Cursorze), chyba że istnieje już odpowiednik w `app/components/shadcn/` albo świadomie rozszerzasz warstwę `app/components/ui/` (legacy startera).
+   Dodawaj przez **shadcn-vue** (`CLI` lub **MCP shadcn** w Cursorze), chyba że istnieje już odpowiednik w `app/components/shadcn/`.
 
 2. **Źródło prawdy**
     - Konfiguracja projektu: [`components.json`](../components.json) w katalogu głównym.
     - Komponenty z rejestru trafiają do **`app/components/shadcn/`** (podfoldery z `index.ts`).
     - W szablonach używaj prefiksu **`Ui`** (np. `UiButton`, `UiDialog`), zgodnie z `nuxt.config.ts` → `shadcn.prefix`.
 
-3. **Nie myl katalogów**
-    - `app/components/shadcn/` — generowane przez shadcn-vue.
-    - `app/components/ui/` — starsze, płaskie komponenty startera (Action, Card, …).  
-      Przy migracji możesz stopniowo zastępować `ui/` wersjami shadcn.
+3. **Katalogi**
+    - `app/components/shadcn/` — komponenty z rejestru (prefiks `Ui*`).
+    - `app/components/app/` — komponenty domenowe i wyjątki (np. `NavTree`, `EmblaCarousel`), nie zamienniki shadcn.
 
 4. **Pomocnicze**
     - `app/lib/utils.ts` — funkcja `cn()` dla klas Tailwind.

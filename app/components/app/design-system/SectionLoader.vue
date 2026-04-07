@@ -1,7 +1,7 @@
 <template>
-    <UiCard aria-label="Card: Loader" class="min-w-0">
+    <UiCard aria-label="Card: Loader (SVG)" class="min-w-0">
         <UiCardHeader>
-            <UiCardTitle class="text-base">Loader</UiCardTitle>
+            <UiCardTitle class="text-base">Loader (SVG)</UiCardTitle>
         </UiCardHeader>
         <UiCardContent class="space-y-6">
             <p class="text-sm text-slate-600 dark:text-slate-400">
@@ -19,37 +19,37 @@
                     class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3"
                 >
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="circles" size="md" />
+                        <AppLoader variant="circles" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Circles</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="pulse" size="md" />
+                        <AppLoader variant="pulse" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Pulse</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="dots" size="md" />
+                        <AppLoader variant="dots" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Dots</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="wave" size="md" />
+                        <AppLoader variant="wave" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Wave</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="orbit" size="md" />
+                        <AppLoader variant="orbit" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Orbit</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="spinner" size="md" />
+                        <AppLoader variant="spinner" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Spinner</span
                         >
@@ -65,25 +65,25 @@
                 </p>
                 <div class="flex flex-wrap items-center gap-6">
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="circles" size="sm" />
+                        <AppLoader variant="circles" size="sm" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Small</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="circles" size="md" />
+                        <AppLoader variant="circles" size="md" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Medium</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="circles" size="lg" />
+                        <AppLoader variant="circles" size="lg" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Large</span
                         >
                     </div>
                     <div class="flex flex-col items-center gap-2">
-                        <Loader variant="circles" size="xl" />
+                        <AppLoader variant="circles" size="xl" />
                         <span class="text-xs text-slate-600 dark:text-slate-400"
                             >Extra large</span
                         >
@@ -98,12 +98,16 @@
                     Z tekstem
                 </p>
                 <div class="flex flex-col items-center gap-4">
-                    <Loader
+                    <AppLoader
                         variant="circles"
                         size="lg"
                         text="Loading data..."
                     />
-                    <Loader variant="pulse" size="md" text="Please wait..." />
+                    <AppLoader
+                        variant="pulse"
+                        size="md"
+                        text="Please wait..."
+                    />
                 </div>
             </div>
 
@@ -116,7 +120,7 @@
                 <div
                     class="relative min-h-[200px] rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <Loader
+                    <AppLoader
                         variant="orbit"
                         size="lg"
                         text="Loading module..."

@@ -196,16 +196,10 @@ export function useVehiclesApi() {
                     statusCode?: number;
                 };
 
-                if (
-                    source &&
-                    typeof source === 'object' &&
-                    'statusCode' in source &&
-                    typeof (source as { statusCode: unknown }).statusCode ===
-                        'number'
-                ) {
-                    err.statusCode = (
-                        source as { statusCode: number }
-                    ).statusCode;
+                const statusCode = getApiErrorStatusCode(source);
+
+                if (statusCode !== undefined) {
+                    err.statusCode = statusCode;
                 }
 
                 throw err;
@@ -234,22 +228,7 @@ export function useVehiclesApi() {
                 );
             }
 
-            if (typeof raw !== 'object' || raw === null) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            const envelope = raw as { success?: boolean; error?: string };
-
-            if (
-                envelope.success === false &&
-                typeof envelope.error === 'string'
-            ) {
-                throw new Error(envelope.error);
-            }
-
-            if (envelope.success !== true) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
+            assertBooleanSuccessEnvelope(raw);
         } finally {
             _setDefaultSchoolId.value = null;
             _setDefaultBody.value = null;

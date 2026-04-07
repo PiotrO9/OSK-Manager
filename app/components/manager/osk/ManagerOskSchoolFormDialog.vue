@@ -72,7 +72,7 @@ function handlePointerDownOutside(event: Event) {
             <form class="space-y-4" @submit.prevent="emit('submit')">
                 <div class="space-y-2">
                     <UiLabel for="oskFormNameInput">Nazwa</UiLabel>
-                    <Input
+                    <UiInput
                         id="oskFormNameInput"
                         :model-value="name"
                         type="text"
@@ -81,8 +81,8 @@ function handlePointerDownOutside(event: Event) {
                         "
                         autocomplete="organization"
                         aria-required="true"
-                        :aria-label="'Nazwa szkoły jazdy'"
-                        :is-disabled="isSaving"
+                        aria-label="Nazwa szkoły jazdy"
+                        :disabled="isSaving"
                         @update:model-value="emit('update:name', $event)"
                     />
                 </div>
@@ -94,15 +94,15 @@ function handlePointerDownOutside(event: Event) {
                             >(opcjonalnie)</span
                         >
                     </UiLabel>
-                    <Input
+                    <UiInput
                         id="oskFormCityInput"
                         :model-value="city"
                         type="text"
                         :placeholder="
                             mode === 'create' ? 'np. Warszawa' : undefined
                         "
-                        :aria-label="'Miasto'"
-                        :is-disabled="isSaving"
+                        aria-label="Miasto"
+                        :disabled="isSaving"
                         @update:model-value="emit('update:city', $event)"
                     />
                 </div>
@@ -114,15 +114,15 @@ function handlePointerDownOutside(event: Event) {
                             >(opcjonalnie)</span
                         >
                     </UiLabel>
-                    <Input
+                    <UiInput
                         id="oskFormAddressInput"
                         :model-value="address"
                         type="text"
                         :placeholder="
                             mode === 'create' ? 'ul. Przykładowa 1' : undefined
                         "
-                        :aria-label="'Adres'"
-                        :is-disabled="isSaving"
+                        aria-label="Adres"
+                        :disabled="isSaving"
                         @update:model-value="emit('update:address', $event)"
                     />
                 </div>

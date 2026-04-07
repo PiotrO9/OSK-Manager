@@ -1,111 +1,80 @@
 # Architecture
 
-This document describes the project structure, conventions, and how the application works.
+Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEMAP.md). **API / BFF:** [API_AND_BFF.md](API_AND_BFF.md).
 
 ## Project Structure
 
 ```
-frontend-starter/
 ├── app/
 │   ├── components/
-│   │   ├── app/              # App-specific components
-│   │   │   ├── AppHeader.vue  # Main header with nav, dark mode, auth
-│   │   │   ├── AppFooter.vue # Footer with tagline
-│   │   │   └── LanguageSwitch.vue  # i18n locale dropdown
-│   │   └── ui/               # Reusable UI components (see COMPONENTS.md)
-│   ├── composables/          # Vue composables (see COMPOSABLES.md)
+│   │   ├── app/           # UI aplikacji, ToastStack, NavTree, VehiclesListPanel, design-system/
+│   │   ├── shadcn/        # shadcn-vue (prefiks Ui*)
+│   │   └── manager/       # moduł managera OSK
+│   ├── composables/
 │   ├── layouts/
-│   │   └── default.vue       # Main layout: header, main slot, footer
-│   ├── middleware/
-│   │   └── auth.ts           # Protects routes, redirects to /login
-│   ├── pages/                # File-based routing
-│   ├── utils/                # Pure utility functions
-│   ├── app.vue               # Root: layout, ToastStack, body classes
-│   └── error.vue             # Error page
-├── assets/
-│   └── css/
-│       └── tailwind.css     # Tailwind entry
-├── i18n/
-│   └── locales/             # en.json, pl.json
-├── docs/                    # Documentation
-├── nuxt.config.ts
-├── tailwind.config.ts
-└── package.json
+│   ├── middleware/        # auth.global.ts, manager.ts
+│   ├── pages/
+│   ├── types/
+│   ├── utils/
+│   ├── app.vue
+│   └── error.vue
+├── server/
+│   ├── api/               # BFF Nitro
+│   └── utils/
+├── i18n/locales/          # pliki JSON (moduł i18n opcjonalny — patrz niżej)
+├── docs/
+└── nuxt.config.ts
 ```
 
-## Pages & Routes
+## Pages & Routes (wybrane)
 
-| Route            | File                | Purpose                                       |
-| ---------------- | ------------------- | --------------------------------------------- |
-| `/`              | `index.vue`         | Homepage, intro to starter features           |
-| `/login`         | `login.vue`         | Login form, redirect support via `?redirect=` |
-| `/protected`     | `protected.vue`     | Protected page (uses `auth` middleware)       |
-| `/design-system` | `design-system.vue` | UI component showcase                         |
-| `/api-demo`      | `api-demo.vue`      | `useApi` composable examples (GET/POST)       |
+| Route            | Plik                          | Opis            |
+| ---------------- | ----------------------------- | --------------- |
+| `/`              | `pages/index.vue`             | Pulpit          |
+| `/login`         | `pages/login.vue`             | Logowanie       |
+| `/design-system` | `pages/design-system.vue`     | Podgląd UI      |
+| `/vehicles`      | `pages/vehicles/index.vue`    | Lista pojazdów  |
+| `/manager/osk`   | `pages/manager/osk/index.vue` | Zarządzanie OSK |
 
 ## Authentication Flow
 
-1. **Session check** — `useAuthSession().checkSession()` calls `GET /api/auth/me` (or `NUXT_PUBLIC_API_BASE/auth/me`).
-2. **Login** — `login(email, password)` calls `POST /api/auth/login`, stores session from response.
-3. **Token refresh** — On 401, `useApi` calls `POST /api/auth/refresh`, retries request, or redirects to `/login`.
-4. **Logout** — `logout()` calls `POST /api/auth/logout`, clears session.
-5. **Demo mode** — `loginDemo(userName)` sets a local demo session without backend (for testing).
-
-### Expected Backend API
-
-| Endpoint        | Method | Purpose                                         |
-| --------------- | ------ | ----------------------------------------------- |
-| `/auth/login`   | POST   | `{ email, password }` → `{ accessToken, user }` |
-| `/auth/me`      | GET    | Returns `{ user, accessToken? }` (cookie-based) |
-| `/auth/refresh` | POST   | Returns `{ accessToken }`                       |
-| `/auth/logout`  | POST   | Clears session cookie                           |
+1. **Sesja** — `useAuthSession().checkSession()` woła `GET` auth/me (przez `apiBase` lub proxy).
+2. **Logowanie** — `login(email, password)` → `POST` auth/login.
+3. **Odświeżanie** — przy 401 `useApi` próbuje refresh, potem redirect na `/login`.
+4. **Wylogowanie** — `logout()` czyści sesję.
 
 ## Middleware
 
-### `auth`
+- **`auth.global.ts`** — globalna ochrona tras (sesja / redirect).
+- **`manager.ts`** — dodatkowa rola managera tam, gdzie ustawione w `definePageMeta`.
 
-- **File:** `app/middleware/auth.ts`
-- **Usage:** `definePageMeta({ middleware: ['auth'] })`
-- **Behavior:** If not authenticated, runs `checkSession()`. If no session, redirects to `/login?redirect=<currentPath>`.
+## Layouts
 
-## Layout
+- **`default`** — klasyczny header + main + footer (m.in. login).
+- **`app-shell`** — aplikacja z panelem bocznym (np. pulpity, pojazdy).
 
-- **default.vue** — `AppHeader`, `<main>` with slot, `AppFooter`.
-- **app.vue** — Wraps `NuxtLayout` + `NuxtPage`, renders `ToastStack` globally. Sets `dark` class on `<html>` for dark mode.
+## Configuration (`nuxt.config.ts`)
 
-## Configuration
-
-### nuxt.config.ts
-
-- **Modules:** `@nuxt/eslint`, `@nuxt/icon`, `@nuxtjs/seo`, `@nuxtjs/i18n`
-- **i18n:** `no_prefix`, lazy locales (en, pl), `langDir: 'locales'`
-- **Components:** Auto-import from `app/components/app` and `app/components/ui` (no prefix)
-- **Imports:** `app/composables`, `app/utils` auto-imported
-- **Runtime:** `apiBase`, `siteUrl` from env
-
-### tailwind.config.ts
-
-- **darkMode:** `'class'` (toggle via `<html class="dark">`)
-- **content:** `app/`, `components/`, `layouts/`, `pages/`, `plugins/`
+- **Modules:** `@nuxt/eslint`, `@nuxt/icon`, `@nuxtjs/seo`, `shadcn-nuxt`.
+- **Components:** `~/components/app`, `~/components/app/design-system`, `~/components/shadcn`, `~/components/manager` (bez prefiksu ścieżki).
+- **Imports:** `app/composables`, `app/utils` (auto-import).
+- **Runtime:** `apiUpstream`, `public.apiBase`, `public.siteUrl`, `public.demoMockLogin`.
 
 ## Conventions
 
-- **Composition API** — All components use `<script setup>` and Composition API
-- **Tailwind** — Styling via Tailwind classes only
-- **Event handlers** — Prefixed with `handle` (e.g. `handleClick`, `handleKeyDown`)
-- **Early returns** — Prefer early returns for readability
-- **Accessibility** — Use `tabindex`, `aria-label`, keyboard handlers on interactive elements
+- **Composition API**, **Tailwind** do stylowania.
+- **Zdarzenia:** prefiks `handle` (np. `handleClick`).
+- **Dostępność:** `aria-*`, obsługa klawiatury tam, gdzie interakcja.
 
-## Utilities
+## Utilities (wybrane)
 
-| File                | Exports                       | Purpose                                      |
-| ------------------- | ----------------------------- | -------------------------------------------- |
-| `utils/jwt.ts`      | `decodeJwt`, `isTokenExpired` | JWT parsing and expiry check                 |
-| `utils/date.ts`     | `formatDate`                  | Date formatting: `short`, `long`, `relative` |
-| `utils/keyboard.ts` | `isEnterOrSpaceKey`           | Check Enter/Space for activation             |
+| Plik                   | Eksporty                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `utils/apiEnvelope.ts` | `unwrapApiSuccessData`, `assertBooleanSuccessEnvelope`, `getApiErrorStatusCode` |
+| `utils/bffEndpoint.ts` | `resolveBffEndpoint`                                                            |
+| `utils/date.ts`        | `formatDate`                                                                    |
+| `utils/keyboard.ts`    | `isEnterOrSpaceKey`                                                             |
 
 ## i18n
 
-- **Locales:** `en`, `pl` (lazy-loaded from `i18n/locales/`)
-- **Strategy:** `no_prefix` — no `/en/` or `/pl/` in URL
-- **Usage:** `useI18n()`, `useLocalePath()` for links
+W repo są pliki w **`i18n/locales/`**, ale **`@nuxtjs/i18n` nie jest obecnie w `modules`** — `useI18n()` nie jest dostępny bez dodania modułu i konfiguracji.

@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import type { NuxtError } from '#app';
 
 const error = useError() as Ref<NuxtError | null>;
@@ -50,29 +50,34 @@ function handleTryAgain() {
                 </p>
             </div>
 
-            <Card aria-label="Card: Error actions">
-                <template #header>
-                    <p
+            <UiCard aria-label="Card: Error actions">
+                <UiCardHeader>
+                    <UiCardTitle
                         class="text-sm font-semibold text-slate-900 dark:text-slate-50"
                     >
                         What would you like to do?
-                    </p>
-                </template>
-
-                <div class="flex flex-wrap gap-2">
-                    <Action
-                        aria-label="Go back to home page"
-                        @click="handleGoHome"
-                        >Home</Action
-                    >
-                    <Action
-                        variant="secondary"
-                        aria-label="Try again"
-                        @click="handleTryAgain"
-                        >Try again</Action
-                    >
-                </div>
-            </Card>
+                    </UiCardTitle>
+                </UiCardHeader>
+                <UiCardContent>
+                    <div class="flex flex-wrap gap-2">
+                        <UiButton
+                            type="button"
+                            aria-label="Go back to home page"
+                            @click="handleGoHome"
+                        >
+                            Home
+                        </UiButton>
+                        <UiButton
+                            type="button"
+                            variant="secondary"
+                            aria-label="Try again"
+                            @click="handleTryAgain"
+                        >
+                            Try again
+                        </UiButton>
+                    </div>
+                </UiCardContent>
+            </UiCard>
         </div>
     </div>
 </template>

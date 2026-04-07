@@ -28,6 +28,6 @@ When adding, fixing, or composing **shadcn UI**, also follow **docs/SHADCN_SKILL
 ## Key facts
 
 - Stack: Nuxt 3, Vue 3, TypeScript, TailwindCSS
-- Components: `app/components/app/`, `app/components/ui/` (legacy), `app/components/shadcn/` (shadcn-vue, `Ui*` prefix)
-- Composables: `app/composables/` (useAuthSession, useApi, useToast, useDarkMode, etc.)
+- Components: `app/components/app/`, `app/components/shadcn/` (shadcn-vue, `Ui*` prefix), `app/components/manager/`
+- Composables: `app/composables/` (useAuthSession, useApi, useAppToast, useDarkMode, etc.)
 - Conventions: Composition API, Tailwind only, `handle` prefix for events, early returns

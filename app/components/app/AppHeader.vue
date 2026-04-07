@@ -60,22 +60,24 @@ function handleGoToLogin() {
             </div>
 
             <div class="flex min-w-0 flex-wrap items-center justify-end gap-2">
-                <Action
+                <UiButton
                     v-if="isAuthenticated"
+                    type="button"
                     variant="secondary"
-                    :aria-label="'Wyloguj się'"
+                    aria-label="Wyloguj się"
                     @click="() => handleLogout()"
                 >
                     Wyloguj się
-                </Action>
-                <Action
+                </UiButton>
+                <UiButton
                     v-else
+                    type="button"
                     variant="secondary"
-                    :aria-label="'Przejdź do logowania'"
+                    aria-label="Przejdź do logowania"
                     @click="handleGoToLogin"
                 >
                     Zaloguj się
-                </Action>
+                </UiButton>
             </div>
         </div>
     </header>

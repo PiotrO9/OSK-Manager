@@ -225,133 +225,139 @@ function handleDemoMockFill(role: DemoMockLoginRole) {
             </p>
         </div>
 
-        <Card :aria-label="`Card: Sesja`">
-            <template #header>
-                <p
+        <UiCard aria-label="Card: Sesja">
+            <UiCardHeader>
+                <UiCardTitle
                     class="text-sm font-semibold text-slate-900 dark:text-slate-50"
                 >
                     Sesja
-                </p>
-            </template>
-
-            <div class="space-y-4">
-                <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Status:
-                    <span
-                        class="font-semibold text-slate-900 dark:text-slate-50"
-                    >
-                        {{
-                            isAuthenticated
-                                ? `Zalogowany jako: ${session?.userName}`
-                                : 'Wylogowany'
-                        }}
-                    </span>
-                </p>
-
-                <div v-if="!isAuthenticated" class="space-y-4">
-                    <div class="space-y-2">
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                            for="emailInput"
-                            >Email</label
+                </UiCardTitle>
+            </UiCardHeader>
+            <UiCardContent>
+                <div class="space-y-4">
+                    <p class="text-sm text-slate-600 dark:text-slate-400">
+                        Status:
+                        <span
+                            class="font-semibold text-slate-900 dark:text-slate-50"
                         >
-                        <Input
-                            id="emailInput"
-                            v-model="email"
-                            type="email"
-                            :placeholder="'np. jan@example.com'"
-                            :aria-label="'Email'"
-                            :is-disabled="isLoading"
-                            @keydown="handleKeyDown"
-                        />
-                    </div>
+                            {{
+                                isAuthenticated
+                                    ? `Zalogowany jako: ${session?.userName}`
+                                    : 'Wylogowany'
+                            }}
+                        </span>
+                    </p>
 
-                    <div class="space-y-2">
-                        <label
-                            class="block text-sm font-medium text-slate-700 dark:text-slate-300"
-                            for="passwordInput"
-                            >Hasło</label
-                        >
-                        <Input
-                            id="passwordInput"
-                            v-model="password"
-                            type="password"
-                            :placeholder="'Wprowadź hasło'"
-                            :aria-label="'Hasło'"
-                            :is-disabled="isLoading"
-                            @keydown="handleKeyDown"
-                        />
-                    </div>
+                    <div v-if="!isAuthenticated" class="space-y-4">
+                        <div class="space-y-2">
+                            <label
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                                for="emailInput"
+                                >Email</label
+                            >
+                            <UiInput
+                                id="emailInput"
+                                v-model="email"
+                                type="email"
+                                placeholder="np. jan@example.com"
+                                aria-label="Email"
+                                :disabled="isLoading"
+                                @keydown="handleKeyDown"
+                            />
+                        </div>
 
-                    <div
-                        v-if="showDemoMockLoginUi"
-                        class="rounded-xl border border-amber-200/80 bg-amber-50/80 p-3 dark:border-amber-800/60 dark:bg-amber-950/30"
-                        role="region"
-                        aria-label="Demo: szybkie uzupełnianie formularza logowania"
-                    >
-                        <p
-                            class="mb-2 text-xs font-medium text-amber-900 dark:text-amber-100/90"
+                        <div class="space-y-2">
+                            <label
+                                class="block text-sm font-medium text-slate-700 dark:text-slate-300"
+                                for="passwordInput"
+                                >Hasło</label
+                            >
+                            <UiInput
+                                id="passwordInput"
+                                v-model="password"
+                                type="password"
+                                placeholder="Wprowadź hasło"
+                                aria-label="Hasło"
+                                :disabled="isLoading"
+                                @keydown="handleKeyDown"
+                            />
+                        </div>
+
+                        <div
+                            v-if="showDemoMockLoginUi"
+                            class="rounded-xl border border-amber-200/80 bg-amber-50/80 p-3 dark:border-amber-800/60 dark:bg-amber-950/30"
+                            role="region"
+                            aria-label="Demo: szybkie uzupełnianie formularza logowania"
                         >
-                            Demo (MVP): wypełnia e-mail i hasło — dalej użyj
-                            „Zaloguj się”.
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            <Action
-                                variant="secondary"
-                                :aria-label="'Demo: wstaw dane konta kursanta w formularz'"
-                                :is-disabled="isLoading"
-                                @click="handleDemoMockFill('student')"
+                            <p
+                                class="mb-2 text-xs font-medium text-amber-900 dark:text-amber-100/90"
                             >
-                                Kursant
-                            </Action>
-                            <Action
-                                variant="secondary"
-                                :aria-label="'Demo: wstaw dane konta instruktora w formularz'"
-                                :is-disabled="isLoading"
-                                @click="handleDemoMockFill('instructor')"
-                            >
-                                Instruktor
-                            </Action>
-                            <Action
-                                variant="secondary"
-                                :aria-label="'Demo: wstaw dane konta szefa w formularz'"
-                                :is-disabled="isLoading"
-                                @click="handleDemoMockFill('manager')"
-                            >
-                                Szef
-                            </Action>
+                                Demo (MVP): wypełnia e-mail i hasło — dalej użyj
+                                „Zaloguj się”.
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <UiButton
+                                    type="button"
+                                    variant="secondary"
+                                    aria-label="Demo: wstaw dane konta kursanta w formularz"
+                                    :disabled="isLoading"
+                                    @click="handleDemoMockFill('student')"
+                                >
+                                    Kursant
+                                </UiButton>
+                                <UiButton
+                                    type="button"
+                                    variant="secondary"
+                                    aria-label="Demo: wstaw dane konta instruktora w formularz"
+                                    :disabled="isLoading"
+                                    @click="handleDemoMockFill('instructor')"
+                                >
+                                    Instruktor
+                                </UiButton>
+                                <UiButton
+                                    type="button"
+                                    variant="secondary"
+                                    aria-label="Demo: wstaw dane konta szefa w formularz"
+                                    :disabled="isLoading"
+                                    @click="handleDemoMockFill('manager')"
+                                >
+                                    Szef
+                                </UiButton>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <Action
-                        v-if="!isAuthenticated"
-                        :aria-label="'Zaloguj się'"
-                        :is-loading="isLoading"
-                        :is-disabled="!isFormValid || isLoading"
-                        @click="handleLogin"
-                    >
-                        {{ isLoading ? 'Ładowanie...' : 'Zaloguj się' }}
-                    </Action>
-                    <Action
-                        v-else
-                        variant="secondary"
-                        :aria-label="'Wyloguj się'"
-                        @click="handleLogoutClick"
-                    >
-                        Wyloguj się
-                    </Action>
+                    <div class="flex flex-wrap gap-2">
+                        <UiButton
+                            v-if="!isAuthenticated"
+                            type="button"
+                            aria-label="Zaloguj się"
+                            :disabled="!isFormValid || isLoading"
+                            @click="handleLogin"
+                        >
+                            {{ isLoading ? 'Ładowanie...' : 'Zaloguj się' }}
+                        </UiButton>
+                        <UiButton
+                            v-else
+                            type="button"
+                            variant="secondary"
+                            aria-label="Wyloguj się"
+                            @click="handleLogoutClick"
+                        >
+                            Wyloguj się
+                        </UiButton>
 
-                    <Action
-                        variant="ghost"
-                        :aria-label="'Przejdź do strony głównej'"
-                        @click="handleGoHome"
-                    >
-                        Strona główna
-                    </Action>
+                        <UiButton
+                            type="button"
+                            variant="ghost"
+                            aria-label="Przejdź do strony głównej"
+                            @click="handleGoHome"
+                        >
+                            Strona główna
+                        </UiButton>
+                    </div>
                 </div>
-            </div>
-        </Card>
+            </UiCardContent>
+        </UiCard>
     </div>
 </template>

@@ -17,6 +17,13 @@ export interface UpdateDrivingSchoolBody {
     address?: string | null;
 }
 
+/** Wynik `GET /api/driving-schools/default` — rozróżnia błąd sieci vs brak konfiguracji vs błąd parsowania. */
+export type FetchDefaultDrivingSchoolOutcome =
+    | { outcome: 'ok'; school: DrivingSchool }
+    | { outcome: 'empty_response' }
+    | { outcome: 'not_configured' }
+    | { outcome: 'unreadable' };
+
 export function useDrivingSchoolsApi() {
     const baseUrl = () => resolveBffEndpoint('/api/driving-schools');
 
@@ -24,6 +31,10 @@ export function useDrivingSchoolsApi() {
         'GET',
         baseUrl,
     );
+
+    const defaultUrl = () => resolveBffEndpoint('/api/driving-schools/default');
+    const { execute: _execDefault, isLoading: isDefaultLoading } =
+        useApi<unknown>('GET', defaultUrl);
 
     const _createBody = ref<CreateDrivingSchoolBody | null>(null);
     const { execute: _execCreate, isLoading: isCreateLoading } =
@@ -65,6 +76,32 @@ export function useDrivingSchoolsApi() {
 
     const { execute: _execSetDefault, isLoading: isSetDefaultLoading } =
         useApi<unknown>('PATCH', _setDefaultUrl);
+
+    async function fetchDefaultDrivingSchool(): Promise<FetchDefaultDrivingSchoolOutcome> {
+        const raw = await _execDefault();
+
+        if (raw === null) {
+            return { outcome: 'empty_response' };
+        }
+
+        try {
+            const data = unwrapApiSuccessData<unknown>(raw);
+
+            if (data === null || data === undefined) {
+                return { outcome: 'not_configured' };
+            }
+
+            const school = normalizeDrivingSchool(data);
+
+            if (!school) {
+                return { outcome: 'not_configured' };
+            }
+
+            return { outcome: 'ok', school };
+        } catch {
+            return { outcome: 'unreadable' };
+        }
+    }
 
     async function fetchList(): Promise<DrivingSchool[]> {
         const raw = await _execList();
@@ -140,22 +177,7 @@ export function useDrivingSchoolsApi() {
                 throw new Error('Nie udało się ustawić domyślnej OSK.');
             }
 
-            if (typeof raw !== 'object' || raw === null) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            const envelope = raw as { success?: boolean; error?: string };
-
-            if (
-                envelope.success === false &&
-                typeof envelope.error === 'string'
-            ) {
-                throw new Error(envelope.error);
-            }
-
-            if (envelope.success !== true) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
+            assertBooleanSuccessEnvelope(raw);
         } finally {
             _setDefaultId.value = null;
         }
@@ -163,10 +185,12 @@ export function useDrivingSchoolsApi() {
 
     return {
         isListLoading,
+        isDefaultLoading,
         isCreateLoading,
         isDeleteLoading,
         isUpdateLoading,
         isSetDefaultLoading,
+        fetchDefaultDrivingSchool,
         fetchList,
         create,
         remove,

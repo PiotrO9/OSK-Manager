@@ -205,12 +205,13 @@ defineExpose({ emblaApi });
         </span>
 
         <template v-if="showArrows">
-            <Action
-                :circle="true"
-                :is-disabled="!canScrollPrev"
+            <UiButton
+                type="button"
                 variant="secondary"
+                size="icon"
+                :disabled="!canScrollPrev"
+                class="absolute top-1/2 left-2 z-10 size-10 -translate-y-1/2 rounded-full shadow-md"
                 aria-label="Poprzedni slajd"
-                class="absolute top-1/2 left-2 z-10 -translate-y-1/2 shadow-md"
                 @click="handlePrevClick"
             >
                 <Icon
@@ -218,14 +219,15 @@ defineExpose({ emblaApi });
                     class="size-5"
                     aria-hidden="true"
                 />
-            </Action>
+            </UiButton>
 
-            <Action
-                :circle="true"
-                :is-disabled="!canScrollNext"
+            <UiButton
+                type="button"
                 variant="secondary"
+                size="icon"
+                :disabled="!canScrollNext"
+                class="absolute top-1/2 right-2 z-10 size-10 -translate-y-1/2 rounded-full shadow-md"
                 aria-label="Następny slajd"
-                class="absolute top-1/2 right-2 z-10 -translate-y-1/2 shadow-md"
                 @click="handleNextClick"
             >
                 <Icon
@@ -233,7 +235,7 @@ defineExpose({ emblaApi });
                     class="size-5"
                     aria-hidden="true"
                 />
-            </Action>
+            </UiButton>
         </template>
 
         <div

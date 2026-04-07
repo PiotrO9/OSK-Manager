@@ -185,57 +185,56 @@ function handleKeyDownCopySwatch(
         </div>
 
         <div class="grid min-w-0 gap-4 md:grid-cols-2">
-            <Card
+            <UiCard
                 v-for="group in colorGroups"
                 :key="group.name"
                 :aria-label="`Color group: ${group.name}`"
             >
-                <template #header>
-                    <div class="flex items-center justify-between gap-3">
-                        <p
-                            class="text-sm font-semibold text-slate-900 dark:text-slate-50"
-                        >
-                            {{ group.name }}
-                        </p>
-                    </div>
-                </template>
-
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <button
-                        v-for="swatch in group.swatches"
-                        :key="swatch.name"
-                        type="button"
-                        tabindex="0"
-                        class="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/70 p-3 text-left transition hover:border-slate-300 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-800 dark:bg-slate-800/70 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-950"
-                        :aria-label="`Copy ${group.name} ${swatch.name}: ${swatch.className}`"
-                        @click="handleCopySwatch(group, swatch)"
-                        @keydown="
-                            handleKeyDownCopySwatch($event, group, swatch)
-                        "
+                <UiCardHeader>
+                    <UiCardTitle
+                        class="text-sm font-semibold text-slate-900 dark:text-slate-50"
                     >
-                        <div class="flex min-w-0 items-center gap-3">
-                            <div
-                                class="h-10 w-10 flex-none rounded-xl border border-slate-200 dark:border-slate-700"
-                                :class="swatch.previewClass"
-                                :aria-label="`Color preview ${swatch.name}`"
-                                role="img"
-                            />
-                            <div class="min-w-0">
-                                <p
-                                    class="truncate text-sm font-semibold text-slate-900 dark:text-slate-50"
-                                >
-                                    {{ swatch.name }}
-                                </p>
-                                <p
-                                    class="truncate font-mono text-xs text-slate-600 dark:text-slate-400"
-                                >
-                                    {{ swatch.className }}
-                                </p>
+                        {{ group.name }}
+                    </UiCardTitle>
+                </UiCardHeader>
+                <UiCardContent>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <button
+                            v-for="swatch in group.swatches"
+                            :key="swatch.name"
+                            type="button"
+                            tabindex="0"
+                            class="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white/70 p-3 text-left transition hover:border-slate-300 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-800 dark:bg-slate-800/70 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-950"
+                            :aria-label="`Copy ${group.name} ${swatch.name}: ${swatch.className}`"
+                            @click="handleCopySwatch(group, swatch)"
+                            @keydown="
+                                handleKeyDownCopySwatch($event, group, swatch)
+                            "
+                        >
+                            <div class="flex min-w-0 items-center gap-3">
+                                <div
+                                    class="h-10 w-10 flex-none rounded-xl border border-slate-200 dark:border-slate-700"
+                                    :class="swatch.previewClass"
+                                    :aria-label="`Color preview ${swatch.name}`"
+                                    role="img"
+                                />
+                                <div class="min-w-0">
+                                    <p
+                                        class="truncate text-sm font-semibold text-slate-900 dark:text-slate-50"
+                                    >
+                                        {{ swatch.name }}
+                                    </p>
+                                    <p
+                                        class="truncate font-mono text-xs text-slate-600 dark:text-slate-400"
+                                    >
+                                        {{ swatch.className }}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    </button>
-                </div>
-            </Card>
+                        </button>
+                    </div>
+                </UiCardContent>
+            </UiCard>
         </div>
     </section>
 </template>

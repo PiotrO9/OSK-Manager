@@ -51,9 +51,9 @@ Same as `useApi` but calls `execute()` on `onMounted`.
 
 ---
 
-## useToast
+## useAppToast
 
-Toast notifications.
+Globalne powiadomienia (stan `useState`, kontener [ToastStack](../app/components/app/ToastStack.vue) w `app.vue`).
 
 **Returns:**
 
@@ -62,6 +62,8 @@ Toast notifications.
 | `toasts`      | `Ref<ToastItem[]>`  | Current toasts        |
 | `addToast`    | `(input) => string` | Add toast, returns id |
 | `removeToast` | `(id) => void`      | Remove by id          |
+
+Typy: `ToastVariant`, `AddToastInput` w [useAppToast.ts](../app/composables/useAppToast.ts).
 
 **addToast input:**
 
@@ -163,3 +165,29 @@ handleLogout(options?: { redirectTo?: string; showToast?: boolean })
 
 - `redirectTo` — defaults to `/login`
 - `showToast` — defaults to `true` (shows "Logged out" toast)
+
+---
+
+## useDrivingSchoolsApi
+
+Operacje na szkołach jazdy (BFF `/api/driving-schools/...`). W BFF: [API_AND_BFF.md](./API_AND_BFF.md).
+
+**Returns (wybrane):**
+
+| Property / method                                         | Opis                                                                                                                 |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `fetchList`, `create`, `update`, `remove`, `setAsDefault` | CRUD + domyślna OSK                                                                                                  |
+| `fetchDefaultDrivingSchool()`                             | `GET /api/driving-schools/default` → wynik dyskryminowany: `ok` / `empty_response` / `not_configured` / `unreadable` |
+| `isDefaultLoading`, `isListLoading`, …                    | Stany ładowania                                                                                                      |
+
+---
+
+## useVehiclesApi
+
+Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`; upload zdjęcia (`$fetch` + `FormData`).
+
+---
+
+## useVehiclesListPage
+
+Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie `schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie, ustawianie domyślnego pojazdu. Widok: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).

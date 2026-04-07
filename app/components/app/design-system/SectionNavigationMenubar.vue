@@ -1,14 +1,9 @@
 <script setup lang="ts">
-interface NavigationMenuItem {
-    label: string;
-    href?: string;
-    children?: NavigationMenuItem[];
-}
+import type { DemoMenubarItem } from '~/types/demoMenubar';
 
-const { t } = useI18n();
 const { addToast } = useAppToast();
 
-const navigationMenuItems: NavigationMenuItem[] = [
+const navigationMenuItems: DemoMenubarItem[] = [
     { label: 'Home', href: '/' },
     {
         label: 'Products',
@@ -45,7 +40,7 @@ const navigationMenuItems: NavigationMenuItem[] = [
     { label: 'Contact', href: '/contact' },
 ];
 
-function handleNavigationSelect(item: NavigationMenuItem) {
+function handleNavigationSelect(item: DemoMenubarItem) {
     addToast({
         title: 'Nawigacja',
         description: `Przejdź do: ${item.label}${item.href ? ` (${item.href})` : ''}`,
@@ -75,7 +70,7 @@ function handleNavigationSelect(item: NavigationMenuItem) {
                 character search).
             </p>
 
-            <NavigationMenubar
+            <AppDemoNavigationMenubar
                 :items="navigationMenuItems"
                 aria-label="Demo navigation menubar"
                 @select="handleNavigationSelect"

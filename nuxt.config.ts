@@ -8,10 +8,7 @@ export default defineNuxtConfig({
         url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
         name: 'Frontend Starter',
     },
-    /**
-     * Osobny katalog — moduł szuka podfolderów z index.ts; mieszanie z płaskimi .vue w ui/ powoduje WARN przy prepare.
-     * Komponenty z CLI: `npx shadcn-vue@latest add button` → app/components/shadcn, w szablonie np. <UiButton>.
-     */
+    /** Komponenty z CLI: `npx shadcn-vue@latest add button` → app/components/shadcn, w szablonie np. <UiButton>. */
     shadcn: {
         prefix: 'Ui',
         componentDir: '@/components/shadcn',
@@ -34,10 +31,6 @@ export default defineNuxtConfig({
         },
         {
             path: '~/components/app/design-system',
-            pathPrefix: false,
-        },
-        {
-            path: '~/components/ui',
             pathPrefix: false,
         },
         {

@@ -5,13 +5,18 @@ const shadcnSliderValue = ref([42]);
 </script>
 
 <template>
-    <UiCard class="min-w-0 lg:col-span-2" aria-label="Card: Slider">
+    <UiCard
+        class="min-w-0 lg:col-span-2"
+        aria-label="Card: Slider i karuzela Embla"
+    >
         <UiCardHeader>
-            <UiCardTitle class="text-base">Slider</UiCardTitle>
+            <UiCardTitle class="text-base">Slider i karuzela Embla</UiCardTitle>
             <UiCardDescription>
                 Shadcn
                 <code class="font-mono text-xs">UiSlider</code>
-                (wartość) oraz karuzele Embla poniżej.
+                (wartość) oraz karuzela
+                <code class="font-mono text-xs">EmblaCarousel</code>
+                poniżej.
             </UiCardDescription>
         </UiCardHeader>
         <UiCardContent class="space-y-8">
@@ -39,7 +44,7 @@ const shadcnSliderValue = ref([42]);
                 >
                     Basic (single slide)
                 </p>
-                <Slider
+                <EmblaCarousel
                     :options="{ loop: true }"
                     :show-dots="true"
                     aria-label="Basic carousel"
@@ -54,7 +59,7 @@ const shadcnSliderValue = ref([42]);
                     >
                         Slide {{ n }}
                     </div>
-                </Slider>
+                </EmblaCarousel>
             </div>
 
             <div class="space-y-3">
@@ -63,7 +68,7 @@ const shadcnSliderValue = ref([42]);
                 >
                     Multi-slide (3 per view)
                 </p>
-                <Slider
+                <EmblaCarousel
                     :options="{
                         loop: false,
                         align: 'start',
@@ -84,7 +89,7 @@ const shadcnSliderValue = ref([42]);
                     >
                         Card {{ n }}
                     </div>
-                </Slider>
+                </EmblaCarousel>
             </div>
 
             <div class="space-y-3">
@@ -93,7 +98,7 @@ const shadcnSliderValue = ref([42]);
                 >
                     Variable widths
                 </p>
-                <Slider
+                <EmblaCarousel
                     :options="{
                         loop: true,
                         align: 'center',
@@ -149,7 +154,7 @@ const shadcnSliderValue = ref([42]);
                     >
                         {{ item.label }}
                     </div>
-                </Slider>
+                </EmblaCarousel>
             </div>
 
             <div class="space-y-3">
@@ -158,7 +163,7 @@ const shadcnSliderValue = ref([42]);
                 >
                     Testimonials (no arrows, dots only)
                 </p>
-                <Slider
+                <EmblaCarousel
                     :options="{ loop: true }"
                     :show-arrows="false"
                     :show-dots="true"
@@ -206,7 +211,7 @@ const shadcnSliderValue = ref([42]);
                             </p>
                         </div>
                     </div>
-                </Slider>
+                </EmblaCarousel>
             </div>
 
             <div class="space-y-3">
@@ -215,7 +220,7 @@ const shadcnSliderValue = ref([42]);
                 >
                     Autoplay (loop + progress bar)
                 </p>
-                <Slider
+                <EmblaCarousel
                     :options="{ loop: true }"
                     :plugins="[
                         Autoplay({
@@ -278,7 +283,7 @@ const shadcnSliderValue = ref([42]);
                             {{ slide.description }}
                         </p>
                     </div>
-                </Slider>
+                </EmblaCarousel>
             </div>
         </UiCardContent>
     </UiCard>

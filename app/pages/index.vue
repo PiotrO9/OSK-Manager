@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { Building2, MapPin, ExternalLink } from 'lucide-vue-next';
-import {
-    normalizeDrivingSchool,
-    type DrivingSchool,
-} from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/drivingSchool';
 
 definePageMeta({
     layout: 'app-shell',
@@ -15,52 +12,39 @@ usePageMeta({
 });
 
 const { session } = useAuthSession();
+const { fetchDefaultDrivingSchool, isDefaultLoading } = useDrivingSchoolsApi();
 
 const isManager = computed(() => session.value?.role === 'MANAGER');
 
 const defaultOsk = ref<DrivingSchool | null>(null);
 const defaultOskError = ref<string | null>(null);
 
-const defaultUrl = () => resolveBffEndpoint('/api/driving-schools/default');
-const { execute: fetchDefault, isLoading: isDefaultLoading } = useApi<unknown>(
-    'GET',
-    defaultUrl,
-);
-
 async function loadDefaultOsk() {
     if (!isManager.value) return;
 
     defaultOskError.value = null;
 
-    const raw = await fetchDefault();
+    const result = await fetchDefaultDrivingSchool();
 
-    if (raw === null) {
+    if (result.outcome === 'empty_response') {
         defaultOskError.value = 'Nie udało się pobrać domyślnego OSK.';
 
         return;
     }
 
-    try {
-        const data = unwrapApiSuccessData<unknown>(raw);
+    if (result.outcome === 'not_configured') {
+        await navigateTo('/manager/osk');
 
-        if (data === null || data === undefined) {
-            navigateTo('/manager/osk');
-
-            return;
-        }
-
-        const school = normalizeDrivingSchool(data);
-
-        if (!school) {
-            navigateTo('/manager/osk');
-
-            return;
-        }
-
-        defaultOsk.value = school;
-    } catch {
-        defaultOskError.value = 'Nie udało się wczytać danych OSK.';
+        return;
     }
+
+    if (result.outcome === 'unreadable') {
+        defaultOskError.value = 'Nie udało się wczytać danych OSK.';
+
+        return;
+    }
+
+    defaultOsk.value = result.school;
 }
 
 onMounted(() => {
