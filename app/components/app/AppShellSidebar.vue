@@ -63,6 +63,58 @@ function isNavActive(to: string): boolean {
 function handleLogoutClick() {
     handleLogout();
 }
+
+const displayUserLabel = computed(
+    () => session.value?.userName ?? 'Użytkownik',
+);
+
+function userInitialsFromName(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+        return 'U';
+    }
+
+    if (parts.length === 1) {
+        const w = parts[0] ?? '';
+
+        return w.slice(0, 2).toUpperCase();
+    }
+
+    const a = parts[0]?.[0] ?? '';
+    const b = parts[1]?.[0] ?? '';
+    const pair = `${a}${b}`.toUpperCase();
+
+    return pair || 'U';
+}
+
+const userInitials = computed(() =>
+    userInitialsFromName(displayUserLabel.value),
+);
+
+const avatarSrc = computed(() => {
+    const raw = session.value?.avatarUrl;
+
+    if (typeof raw !== 'string' || raw.trim() === '') {
+        return '';
+    }
+
+    return raw.trim();
+});
+
+const avatarImageFailed = ref(false);
+
+watch(avatarSrc, () => {
+    avatarImageFailed.value = false;
+});
+
+function handleAvatarImageError() {
+    avatarImageFailed.value = true;
+}
+
+const showAvatarImage = computed(
+    () => Boolean(avatarSrc.value) && !avatarImageFailed.value,
+);
 </script>
 
 <template>
@@ -149,20 +201,45 @@ function handleLogoutClick() {
             <UiSidebarMenu>
                 <UiSidebarMenuItem>
                     <div
-                        class="text-muted-foreground px-2 pb-2 text-xs group-data-[collapsible=icon]:hidden"
+                        class="text-muted-foreground flex items-center gap-2 px-2 pb-2 text-xs"
                     >
-                        <span class="sr-only">Zalogowany użytkownik:</span>
-                        <span
-                            class="text-sidebar-foreground block truncate font-medium"
-                        >
-                            {{ session?.userName ?? 'Użytkownik' }}
+                        <span class="sr-only">
+                            Zalogowany użytkownik: {{ displayUserLabel }}
                         </span>
-                        <span
-                            v-if="session?.role"
-                            class="block truncate text-[0.7rem] opacity-80"
+                        <div
+                            class="border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border"
+                            aria-hidden="true"
                         >
-                            {{ session.role }}
-                        </span>
+                            <img
+                                v-if="showAvatarImage"
+                                :src="avatarSrc"
+                                alt=""
+                                class="size-full object-cover"
+                                loading="lazy"
+                                @error="handleAvatarImageError"
+                            />
+                            <span
+                                v-else
+                                class="text-[0.65rem] font-semibold tracking-tight"
+                            >
+                                {{ userInitials }}
+                            </span>
+                        </div>
+                        <div
+                            class="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"
+                        >
+                            <span
+                                class="text-sidebar-foreground block truncate font-medium"
+                            >
+                                {{ displayUserLabel }}
+                            </span>
+                            <span
+                                v-if="session?.role"
+                                class="block truncate text-[0.7rem] opacity-80"
+                            >
+                                {{ session.role }}
+                            </span>
+                        </div>
                     </div>
                 </UiSidebarMenuItem>
                 <UiSidebarMenuItem>

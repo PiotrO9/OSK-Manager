@@ -10,16 +10,16 @@ Authentication state and actions.
 
 **Returns:**
 
-| Property             | Type                                 | Description                                                 |
-| -------------------- | ------------------------------------ | ----------------------------------------------------------- |
-| `session`            | `Ref<AuthSession \| null>`           | Current session (token, userName, userId, email, expiresAt) |
-| `isAuthenticated`    | `ComputedRef<boolean>`               | True if valid session                                       |
-| `isCheckingSession`  | `ComputedRef<boolean>`               | True while checking session                                 |
-| `login`              | `(email, password) => Promise<void>` | Login via API                                               |
-| `loginDemo`          | `(userName: string) => void`         | Demo mode (no backend)                                      |
-| `logout`             | `() => Promise<void>`                | Logout, clear session                                       |
-| `refreshAccessToken` | `() => Promise<boolean>`             | Refresh token                                               |
-| `checkSession`       | `() => Promise<boolean>`             | Check session via `/auth/me`                                |
+| Property             | Type                                 | Description                                                                                        |
+| -------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `session`            | `Ref<AuthSession \| null>`           | Profil z cookie-session BFF: `userId`, `userName`, `email`, `role`, `avatarUrl` (bez JWT w stanie) |
+| `isAuthenticated`    | `ComputedRef<boolean>`               | True if valid session                                                                              |
+| `isCheckingSession`  | `ComputedRef<boolean>`               | True while checking session                                                                        |
+| `login`              | `(email, password) => Promise<void>` | Login via API                                                                                      |
+| `loginDemo`          | `(userName: string) => void`         | Demo mode (no backend)                                                                             |
+| `logout`             | `() => Promise<void>`                | Logout, clear session                                                                              |
+| `refreshAccessToken` | `() => Promise<boolean>`             | Refresh token                                                                                      |
+| `checkSession`       | `() => Promise<boolean>`             | `GET /api/auth/me` (przy 403/404 bez retry refresh — wylogowanie stanu)                            |
 
 **API base:** `runtimeConfig.public.apiBase` or `/api`
 

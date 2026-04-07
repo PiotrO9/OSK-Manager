@@ -36,16 +36,21 @@ export default defineEventHandler(async (event) => {
             });
         }
 
+        const nameFromParts = [firstName, lastName]
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)
+            .join(' ')
+            .trim();
+
         return {
             success: true,
             data: {
                 user: {
                     id: userId,
+                    name: nameFromParts || email,
                     email,
-                    firstName,
-                    lastName,
+                    avatarUrl: null as string | null,
                     role,
-                    phone: null as string | null,
                 },
             },
         };

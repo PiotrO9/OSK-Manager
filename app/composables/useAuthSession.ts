@@ -8,24 +8,31 @@ export interface AuthSession {
     userId: string;
     email?: string;
     role?: string;
+    avatarUrl?: string | null;
 }
 
 const AUTH_PATH = '/api/auth';
 
-interface BackendAuthUser {
+/**
+ * `GET /auth/me` (whitelist) oraz ewentualny starszy kształt z `POST /auth/login` na BE.
+ */
+type BackendUserResponse = {
     id: string;
     email: string;
-    firstName: string;
-    lastName: string;
     role: string;
+    name?: string;
+    avatarUrl?: string | null;
+    firstName?: string;
+    lastName?: string;
     phone?: string | null;
-}
+};
 
 interface SessionUserPayload {
     id: string;
     userName: string;
     email: string;
     role?: string;
+    avatarUrl?: string | null;
 }
 
 function getAuthFetch() {
@@ -58,18 +65,41 @@ function getServerJsonErrorMessage(error: unknown): string | null {
     return null;
 }
 
-function mapBackendUserToPayload(user: BackendAuthUser): SessionUserPayload {
-    const display = [user.firstName, user.lastName]
-        .map((s) => String(s || '').trim())
-        .filter(Boolean)
-        .join(' ')
-        .trim();
+function normalizeBackendUserToSessionPayload(
+    user: BackendUserResponse,
+): SessionUserPayload {
+    const nameFromApi = typeof user.name === 'string' ? user.name.trim() : '';
+
+    let userName = nameFromApi;
+
+    if (!userName) {
+        const display = [user.firstName, user.lastName]
+            .map((s) => String(s || '').trim())
+            .filter(Boolean)
+            .join(' ')
+            .trim();
+
+        userName = display || user.email;
+    }
+
+    let avatarUrl: string | null | undefined;
+
+    if (Object.prototype.hasOwnProperty.call(user, 'avatarUrl')) {
+        const raw = user.avatarUrl;
+
+        if (raw === null || raw === undefined || String(raw).trim() === '') {
+            avatarUrl = null;
+        } else {
+            avatarUrl = String(raw).trim();
+        }
+    }
 
     return {
         id: user.id,
         email: user.email,
-        userName: display || user.email,
+        userName,
         role: user.role,
+        avatarUrl,
     };
 }
 
@@ -79,7 +109,14 @@ function createSessionFromUser(user: SessionUserPayload): AuthSession {
         userName: user.userName,
         email: user.email,
         role: user.role,
+        avatarUrl: user.avatarUrl,
     };
+}
+
+function sessionLoadShouldSkipRefresh(status: number | undefined): boolean {
+    if (status === undefined) return false;
+
+    return status === 403 || status === 404;
 }
 
 export function useAuthSession() {
@@ -119,10 +156,10 @@ export function useAuthSession() {
             },
         });
 
-        const meData = unwrapApiSuccessData<{ user: BackendAuthUser }>(raw);
+        const meData = unwrapApiSuccessData<{ user: BackendUserResponse }>(raw);
 
         session.value = createSessionFromUser(
-            mapBackendUserToPayload(meData.user),
+            normalizeBackendUserToSessionPayload(meData.user),
         );
 
         return true;
@@ -140,7 +177,15 @@ export function useAuthSession() {
                 await loadMeIntoSession();
 
                 return true;
-            } catch {
+            } catch (err: unknown) {
+                const status = getFetchStatusCode(err);
+
+                if (sessionLoadShouldSkipRefresh(status)) {
+                    session.value = null;
+
+                    return false;
+                }
+
                 const refreshed = await refreshAccessToken();
 
                 if (!refreshed) {
@@ -177,14 +222,16 @@ export function useAuthSession() {
                 },
             });
 
-            const body = unwrapApiSuccessData<{ user: BackendAuthUser }>(raw);
+            const body = unwrapApiSuccessData<{ user: BackendUserResponse }>(
+                raw,
+            );
 
             if (!body.user) {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
             session.value = createSessionFromUser(
-                mapBackendUserToPayload(body.user),
+                normalizeBackendUserToSessionPayload(body.user),
             );
         } catch (error: unknown) {
             const fromBody = getServerJsonErrorMessage(error);
@@ -195,8 +242,14 @@ export function useAuthSession() {
 
             const status = getFetchStatusCode(error);
 
-            if (status === 401 || status === 403) {
+            if (status === 401) {
                 throw new Error('Nieprawidłowy e-mail lub hasło');
+            }
+
+            if (status === 403) {
+                throw new Error(
+                    'Konto jest niedostępne lub wyłączone. Skontaktuj się z pomocą.',
+                );
             }
 
             if (status !== undefined && status >= 500) {
