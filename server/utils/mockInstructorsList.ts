@@ -205,3 +205,29 @@ export function mockInstructorsPatchById(
 
     return buildDetailPayload(updated);
 }
+
+/** Usuwa instruktora z mockowej listy (wszystkie szkoły). Zwraca true gdy usunięto wiersz. */
+export function mockInstructorsDeleteById(id: string): boolean {
+    const store = getStore();
+
+    for (const schoolId of Object.keys(store)) {
+        const rows = store[schoolId];
+
+        if (!rows?.length) {
+            continue;
+        }
+
+        const idx = rows.findIndex((r) => r.id === id);
+
+        if (idx !== -1) {
+            rows.splice(idx, 1);
+            const extras = getExtrasMap();
+
+            delete extras[id];
+
+            return true;
+        }
+    }
+
+    return false;
+}

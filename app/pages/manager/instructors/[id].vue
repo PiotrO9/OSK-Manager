@@ -6,6 +6,7 @@ import {
     type InstructorEditFormModel,
 } from '~/types/instructor';
 import {
+    assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
     unwrapApiSuccessData,
 } from '~/utils/apiEnvelope';
@@ -26,6 +27,8 @@ const errorMessage = ref<string | null>(null);
 const isSubmitting = ref(false);
 const submitError = ref<string | null>(null);
 const isEditDialogOpen = ref(false);
+const isDeleteDialogOpen = ref(false);
+const isDeleting = ref(false);
 
 const route = useRoute();
 const { addToast } = useAppToast();
@@ -97,6 +100,32 @@ function getInstructorSaveErrorMessage(err: unknown): string {
     }
 
     return getApiFetchErrorMessage(err, getGenericSaveErrorMessage());
+}
+
+function getInstructorDeleteErrorMessage(err: unknown): string {
+    const status = getApiErrorStatusCode(err);
+
+    if (status === 403) {
+        return 'Brak uprawnień do tej operacji.';
+    }
+
+    if (status === 404) {
+        return 'Instruktor nie istnieje lub został już usunięty.';
+    }
+
+    if (status === 401) {
+        return getApiFetchErrorMessage(err, 'Brak autoryzacji.');
+    }
+
+    if (status !== undefined && status >= 500) {
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
+    }
+
+    if (status === 400) {
+        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane.');
+    }
+
+    return getApiFetchErrorMessage(err, 'Nie udało się usunąć instruktora.');
 }
 
 async function loadInstructor(rawId: unknown) {
@@ -174,6 +203,7 @@ watch(
     async (id) => {
         submitError.value = null;
         isEditDialogOpen.value = false;
+        isDeleteDialogOpen.value = false;
         await loadInstructor(id);
     },
     { immediate: true },
@@ -320,6 +350,71 @@ async function handleSubmitEdit(): Promise<void> {
         isSubmitting.value = false;
     }
 }
+
+function handleOpenDeleteDialog(): void {
+    if (isDeleting.value || isSubmitting.value) {
+        return;
+    }
+
+    isEditDialogOpen.value = false;
+    isDeleteDialogOpen.value = true;
+}
+
+function handleDeleteDialogCancel(): void {
+    isDeleteDialogOpen.value = false;
+}
+
+function handleDeleteDialogOpenChange(open: boolean): void {
+    isDeleteDialogOpen.value = open;
+}
+
+async function runDeleteInstructor(): Promise<void> {
+    if (isDeleting.value) {
+        return;
+    }
+
+    const id = getRouteIdString(route.params.id);
+
+    if (!id) {
+        return;
+    }
+
+    isDeleting.value = true;
+
+    try {
+        const raw = await $fetch<unknown>(
+            resolveBffEndpoint(`/api/instructors/${encodeURIComponent(id)}`),
+            {
+                method: 'DELETE',
+                credentials: 'include',
+            },
+        );
+
+        assertBooleanSuccessEnvelope(raw);
+
+        addToast({
+            title: 'Instruktor został usunięty',
+            variant: 'success',
+        });
+
+        isEditDialogOpen.value = false;
+
+        await navigateTo('/manager/instructors');
+    } catch (err: unknown) {
+        addToast({
+            title: 'Nie udało się usunąć instruktora',
+            description: getInstructorDeleteErrorMessage(err),
+            variant: 'error',
+        });
+    } finally {
+        isDeleting.value = false;
+    }
+}
+
+async function handleDeleteDialogConfirm(): Promise<void> {
+    isDeleteDialogOpen.value = false;
+    await runDeleteInstructor();
+}
 </script>
 
 <template>
@@ -366,14 +461,33 @@ async function handleSubmitEdit(): Promise<void> {
                         {{ displayText(instructor.email) }}
                     </p>
                 </div>
-                <button
-                    type="button"
-                    class="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex shrink-0 rounded-md px-3 py-2 text-sm font-medium shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                    aria-label="Edytuj dane instruktora"
-                    @click="handleEnterEdit"
+                <div
+                    class="flex shrink-0 flex-wrap items-center gap-2"
+                    role="group"
+                    aria-label="Akcje szczegółów instruktora"
                 >
-                    Edytuj
-                </button>
+                    <button
+                        type="button"
+                        class="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex rounded-md px-3 py-2 text-sm font-medium shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                        aria-label="Edytuj dane instruktora"
+                        :disabled="isDeleting"
+                        @click="handleEnterEdit"
+                    >
+                        Edytuj
+                    </button>
+                    <UiButton
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        class="inline-flex items-center"
+                        :disabled="isDeleting || isSubmitting"
+                        :aria-busy="isDeleting"
+                        aria-label="Usuń konto instruktora"
+                        @click="handleOpenDeleteDialog"
+                    >
+                        Usuń
+                    </UiButton>
+                </div>
             </div>
 
             <dl
@@ -419,9 +533,19 @@ async function handleSubmitEdit(): Promise<void> {
             v-if="editForm !== null"
             v-model:open="isEditDialogOpen"
             v-model:form="editForm"
-            :is-submitting="isSubmitting"
+            :is-submitting="isSubmitting || isDeleting"
             :submit-error="submitError"
             @submit="handleSubmitEdit"
+        />
+
+        <ManagerInstructorDeleteDialog
+            :open="isDeleteDialogOpen"
+            :instructor-display-name="
+                instructor !== null ? displayText(instructor.name) : ''
+            "
+            @update:open="handleDeleteDialogOpenChange"
+            @cancel="handleDeleteDialogCancel"
+            @confirm="handleDeleteDialogConfirm"
         />
 
         <NuxtLink

@@ -1,5 +1,6 @@
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeInstructorsList,
     type InstructorListItem,

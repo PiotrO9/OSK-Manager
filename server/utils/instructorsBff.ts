@@ -134,3 +134,67 @@ export async function bffUpstreamInstructorsPatch(
         data: json.data,
     };
 }
+
+/**
+ * Soft delete instruktora — upstream zwraca 204 bez body.
+ */
+export async function bffUpstreamInstructorsDelete(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+): Promise<{ success: true }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/instructors/${encodeURIComponent(id)}`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    if (res.status === 204) {
+        return { success: true };
+    }
+
+    const text = await res.text();
+    let json: BackendEnvelope<unknown> | null = null;
+
+    if (text.trim().length > 0) {
+        try {
+            json = JSON.parse(text) as BackendEnvelope<unknown>;
+        } catch {
+            json = null;
+        }
+    }
+
+    if (!res.ok) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                json !== null && typeof json.error === 'string'
+                    ? json.error
+                    : res.status === 404
+                      ? 'Instruktor nie istnieje.'
+                      : 'Nie udało się usunąć instruktora',
+        });
+    }
+
+    if (json !== null && json.success === true) {
+        return { success: true };
+    }
+
+    throw createError({
+        statusCode: 502,
+        statusMessage: 'Nieprawidłowa odpowiedź serwera.',
+    });
+}
