@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 import {
+    BookOpen,
     Building2,
     Car,
     GraduationCap,
@@ -70,6 +71,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do zarządzania instruktorami',
             icon: GraduationCap,
             tooltip: 'Instruktorzy',
+        });
+        items.push({
+            to: '/manager/courses',
+            label: 'Kursy',
+            ariaLabel: 'Przejdź do listy kursów',
+            icon: BookOpen,
+            tooltip: 'Kursy',
         });
     }
 

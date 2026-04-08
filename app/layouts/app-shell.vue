@@ -13,6 +13,10 @@ function resolveShellHeading(): string {
         return 'Instruktorzy';
     }
 
+    if (route.path.startsWith('/manager/courses')) {
+        return 'Kursy';
+    }
+
     return map[route.path] ?? 'Panel';
 }
 
