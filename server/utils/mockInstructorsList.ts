@@ -78,6 +78,21 @@ export function mockInstructorsListPayload(schoolId: string): {
     };
 }
 
+/** Czy instruktor (identyfikator jak w liście / profilu mocka) jest przypisany do szkoły. */
+export function mockInstructorBelongsToSchool(
+    schoolId: string,
+    instructorId: string,
+): boolean {
+    const sid = schoolId.trim();
+    const iid = instructorId.trim();
+
+    if (!sid || !iid) {
+        return false;
+    }
+
+    return mockInstructorsListPayload(sid).instructors.some((r) => r.id === iid);
+}
+
 function findRowById(id: string): MockInstructorListRow | null {
     const store = getStore();
 

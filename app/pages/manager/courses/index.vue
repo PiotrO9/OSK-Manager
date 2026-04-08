@@ -157,6 +157,30 @@ function formatInstructorCell(course: CourseListItem): string {
                 </p>
 
                 <template v-else>
+                    <div
+                        v-if="activeSchoolId"
+                        class="mb-4 flex flex-wrap items-center gap-3"
+                    >
+                        <UiButton as-child :disabled="isCoursesLoading">
+                            <NuxtLink
+                                :to="{
+                                    path: '/manager/courses/new',
+                                    query: { schoolId: activeSchoolId },
+                                }"
+                                class="inline-flex items-center justify-center gap-2"
+                                :class="
+                                    isCoursesLoading
+                                        ? 'pointer-events-none opacity-50'
+                                        : ''
+                                "
+                                :aria-disabled="isCoursesLoading"
+                                aria-label="Utwórz nowy kurs w wybranej szkole"
+                            >
+                                Dodaj kurs
+                            </NuxtLink>
+                        </UiButton>
+                    </div>
+
                     <div v-if="schools.length > 1" class="mb-4 space-y-2">
                         <UiLabel for="courses-page-school"
                             >Szkoła jazdy (lista kursów)</UiLabel

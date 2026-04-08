@@ -89,3 +89,44 @@ export async function bffUpstreamCoursesGetById(
         data: json.data,
     };
 }
+
+export async function bffUpstreamCoursesCreate(
+    event: H3Event,
+    upstreamBase: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(`${upstreamBase}/courses`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify(body),
+    });
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się utworzyć kursu',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}

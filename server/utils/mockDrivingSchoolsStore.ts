@@ -1,8 +1,45 @@
+export interface MockDrivingSchoolOfferedType {
+    id: string;
+    code: string;
+    name: string;
+}
+
+/**
+ * Przykładowa oferta kategorii w mocku (jak rozwiązane refs do CourseType po stronie BE).
+ * Nowa szkoła w mocku startuje z tą listą, żeby można było tworzyć kursy lokalnie.
+ */
+export const MOCK_DEFAULT_OFFERED_COURSE_TYPES: MockDrivingSchoolOfferedType[] =
+    [
+        {
+            id: 'a1111111-1111-4111-8111-111111111111',
+            code: 'B',
+            name: 'Kategoria B',
+        },
+        {
+            id: 'a2222222-2222-4222-8222-222222222222',
+            code: 'C',
+            name: 'Kategoria C',
+        },
+        {
+            id: 'a3333333-3333-4333-8333-333333333333',
+            code: 'CE',
+            name: 'Kategoria CE',
+        },
+    ];
+
+export const MOCK_DEFAULT_ENABLED_COURSE_KINDS = [
+    'THEORY_GROUP',
+    'PRACTICAL',
+    'EXTRA',
+] as const;
+
 export interface MockDrivingSchoolRow {
     id: string;
     name: string;
     city: string | null;
     address: string | null;
+    offeredCourseTypes?: MockDrivingSchoolOfferedType[];
+    enabledCourseKinds?: (typeof MOCK_DEFAULT_ENABLED_COURSE_KINDS)[number][];
 }
 
 type GlobalWithStore = typeof globalThis & {
@@ -39,6 +76,12 @@ export function mockDrivingSchoolsList(): Array<
 
     return getStore().map((row) => ({
         ...row,
+        offeredCourseTypes: row.offeredCourseTypes ?? [
+            ...MOCK_DEFAULT_OFFERED_COURSE_TYPES,
+        ],
+        enabledCourseKinds: row.enabledCourseKinds ?? [
+            ...MOCK_DEFAULT_ENABLED_COURSE_KINDS,
+        ],
         isDefault: def !== null && row.id === def,
     }));
 }
@@ -51,17 +94,37 @@ export function mockDrivingSchoolsGetDefault(): MockDrivingSchoolRow | null {
         return null;
     }
 
-    return store.find((s) => s.id === def) ?? null;
+    const row = store.find((s) => s.id === def);
+
+    if (!row) {
+        return null;
+    }
+
+    return {
+        ...row,
+        offeredCourseTypes: row.offeredCourseTypes ?? [
+            ...MOCK_DEFAULT_OFFERED_COURSE_TYPES,
+        ],
+        enabledCourseKinds: row.enabledCourseKinds ?? [
+            ...MOCK_DEFAULT_ENABLED_COURSE_KINDS,
+        ],
+    };
 }
 
-export function mockDrivingSchoolsPush(
-    row: Omit<MockDrivingSchoolRow, 'id'>,
-): MockDrivingSchoolRow {
+export function mockDrivingSchoolsPush(row: {
+    name: string;
+    city: string | null;
+    address: string | null;
+}): MockDrivingSchoolRow {
     const store = getStore();
     const id = crypto.randomUUID();
     const created: MockDrivingSchoolRow = {
         id,
-        ...row,
+        name: row.name,
+        city: row.city,
+        address: row.address,
+        offeredCourseTypes: [...MOCK_DEFAULT_OFFERED_COURSE_TYPES],
+        enabledCourseKinds: [...MOCK_DEFAULT_ENABLED_COURSE_KINDS],
     };
 
     store.push(created);

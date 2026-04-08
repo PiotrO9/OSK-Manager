@@ -1,3 +1,5 @@
+import { mockInstructorsListPayload } from '~~/server/utils/mockInstructorsList';
+
 /** Kształt pojedynczego kursu w `data.courses` wg courses-api.md (BE). */
 export interface MockCourseListRow {
     id: string;
@@ -6,6 +8,8 @@ export interface MockCourseListRow {
     type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
     totalHours: number;
     instructor: { id: string; name: string } | null;
+    /** Tylko typ THEORY_GROUP; brak pola = domyślne 24 w szczegółach (seedy demo). */
+    capacity?: number | null;
 }
 
 type GlobalWithStore = typeof globalThis & {
@@ -67,6 +71,132 @@ function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
     return store[schoolId]!;
 }
 
+function getOrCreateSchoolCoursesBucket(schoolId: string): MockCourseListRow[] {
+    const store = getStore();
+
+    if (!store[schoolId]) {
+        store[schoolId] = [];
+    }
+
+    return store[schoolId]!;
+}
+
+function resolveMockCourseDetailCapacity(
+    row: MockCourseListRow,
+): number | null {
+    if (row.type !== 'THEORY_GROUP') {
+        return null;
+    }
+
+    if (row.capacity !== undefined) {
+        return row.capacity;
+    }
+
+    return 24;
+}
+
+function resolveInstructorRefForSchool(
+    schoolId: string,
+    instructorProfileId: string | null,
+): { id: string; name: string } | null {
+    if (!instructorProfileId) {
+        return null;
+    }
+
+    const rows = mockInstructorsListPayload(schoolId).instructors;
+    const r = rows.find((x) => x.id === instructorProfileId);
+
+    if (!r) {
+        return {
+            id: instructorProfileId,
+            name: 'Instruktor',
+        };
+    }
+
+    const parts = [r.firstName, r.lastName]
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+    const name = parts.length > 0 ? parts.join(' ') : '—';
+
+    return {
+        id: instructorProfileId,
+        name,
+    };
+}
+
+/** Odpowiedź POST `/courses` (płaski DTO) wg courses-api.md. */
+export interface MockCourseCreateResponse {
+    id: string;
+    name: string;
+    category: string;
+    kind: MockCourseListRow['type'];
+    totalHours: number;
+    capacity: number | null;
+    theoryStartDate: string | null;
+    theoryEndDate: string | null;
+    schoolId: string;
+    instructorId: string | null;
+    status: string;
+    createdAt: string;
+}
+
+export function mockCoursesPushCreate(
+    schoolId: string,
+    input: {
+        name: string;
+        category: string;
+        kind: MockCourseListRow['type'];
+        totalHours: number;
+        capacity: number | null;
+        theoryStartDate: string | null;
+        theoryEndDate: string | null;
+        instructorId: string | null;
+    },
+): MockCourseCreateResponse {
+    const id = crypto.randomUUID();
+    const instructorRef = resolveInstructorRefForSchool(
+        schoolId,
+        input.instructorId,
+    );
+
+    const listRow: MockCourseListRow = {
+        id,
+        name: input.name,
+        category: input.category,
+        type: input.kind,
+        totalHours: input.totalHours,
+        instructor: instructorRef,
+    };
+
+    if (input.kind === 'THEORY_GROUP') {
+        listRow.capacity = input.capacity;
+    }
+
+    const bucket = getOrCreateSchoolCoursesBucket(schoolId);
+
+    bucket.push(listRow);
+
+    const createdAt = new Date().toISOString();
+
+    return {
+        id,
+        name: input.name,
+        category: input.category,
+        kind: input.kind,
+        totalHours: input.totalHours,
+        capacity: input.kind === 'THEORY_GROUP' ? input.capacity : null,
+        theoryStartDate:
+            input.kind === 'THEORY_GROUP' ? input.theoryStartDate : null,
+        theoryEndDate:
+            input.kind === 'THEORY_GROUP' ? input.theoryEndDate : null,
+        schoolId,
+        instructorId: input.instructorId,
+        status: 'ACTIVE',
+        createdAt,
+    };
+}
+
 /** Kształt `data.course` jak w GET `/courses/:id` wg courses-api.md (BE). */
 export interface MockCourseDetailRow extends MockCourseListRow {
     capacity: number | null;
@@ -93,7 +223,7 @@ export function mockCoursesGetById(
 
         return {
             ...row,
-            capacity: row.type === 'THEORY_GROUP' ? 24 : null,
+            capacity: resolveMockCourseDetailCapacity(row),
         };
     }
 

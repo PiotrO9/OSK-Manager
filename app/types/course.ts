@@ -1,5 +1,18 @@
 export type CourseKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
 
+/** Body POST `/api/courses` (BFF → BE) — pola opcjonalne wg `kind`. */
+export interface CourseCreatePayload {
+    schoolId: string;
+    name: string;
+    category: string;
+    kind: CourseKind;
+    totalHours: number;
+    capacity?: number | null;
+    instructorId?: string | null;
+    theoryStartDate?: string | null;
+    theoryEndDate?: string | null;
+}
+
 export interface CourseInstructorRef {
     id: string;
     name: string;

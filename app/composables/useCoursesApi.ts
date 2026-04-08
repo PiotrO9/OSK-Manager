@@ -1,9 +1,11 @@
+import type { MaybeRefOrGetter } from 'vue';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeCourseDetailData,
     normalizeCoursesList,
+    type CourseCreatePayload,
     type CourseDetail,
     type CourseListItem,
 } from '~/types/course';
@@ -41,6 +43,17 @@ export function useCoursesApi() {
         isLoading: isDetailLoading,
         error: detailError,
     } = useApi<unknown>('GET', detailUrl);
+
+    const createUrl = () => resolveBffEndpoint('/api/courses');
+    const _createBody = ref<CourseCreatePayload | null>(null);
+
+    const {
+        execute: _execCreate,
+        isLoading: isCreateLoading,
+        error: createError,
+    } = useApi<unknown>('POST', createUrl, {
+        body: _createBody as MaybeRefOrGetter<unknown>,
+    });
 
     async function fetchList(schoolId: string): Promise<CourseListItem[]> {
         _schoolId.value = schoolId;
@@ -113,10 +126,36 @@ export function useCoursesApi() {
         return detail;
     }
 
+    async function createCourse(body: CourseCreatePayload): Promise<CourseDetail> {
+        _createBody.value = body;
+
+        const raw = await _execCreate();
+
+        if (raw === null) {
+            throw new Error(
+                getApiFetchErrorMessage(
+                    createError.value,
+                    'Nie udało się utworzyć kursu.',
+                ),
+            );
+        }
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+        const detail = normalizeCourseDetailData(data);
+
+        if (!detail) {
+            throw new Error('Nieprawidłowa odpowiedź serwera (utworzony kurs).');
+        }
+
+        return detail;
+    }
+
     return {
         isListLoading,
         isDetailLoading,
+        isCreateLoading,
         fetchList,
         fetchById,
+        createCourse,
     };
 }

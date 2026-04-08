@@ -243,8 +243,17 @@ function normalizeInstructorItem(
     }
 
     const o = item as Record<string, unknown>;
+    const profileFromApi =
+        o.instructorProfileId != null
+            ? String(o.instructorProfileId).trim()
+            : o.instructor_profile_id != null
+              ? String(o.instructor_profile_id).trim()
+              : o.profileId != null
+                ? String(o.profileId).trim()
+                : '';
+
     const idRaw = o.id != null ? String(o.id).trim() : '';
-    const id = idRaw || `instructor-row-${index}`;
+    const id = profileFromApi || idRaw || `instructor-row-${index}`;
 
     const firstName =
         o.firstName != null
