@@ -9,6 +9,10 @@ function resolveShellHeading(): string {
         '/account': 'Konto',
     };
 
+    if (route.path.startsWith('/manager/instructors')) {
+        return 'Instruktorzy';
+    }
+
     return map[route.path] ?? 'Panel';
 }
 

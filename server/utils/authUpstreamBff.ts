@@ -248,9 +248,9 @@ function upstreamProfilePatchExtractUser(json: unknown): unknown {
     return undefined;
 }
 
-function upstreamProfilePatchErrorMessage(json: unknown): string {
+function upstreamEnvelopeErrorMessage(json: unknown, fallback: string): string {
     if (!json || typeof json !== 'object') {
-        return 'Nie udało się zaktualizować profilu';
+        return fallback;
     }
 
     const o = json as {
@@ -274,7 +274,7 @@ function upstreamProfilePatchErrorMessage(json: unknown): string {
         return o.statusMessage.trim();
     }
 
-    return 'Nie udało się zaktualizować profilu';
+    return fallback;
 }
 
 /**
@@ -319,7 +319,10 @@ export async function bffUpstreamProfilePatch(
 
         throw createError({
             statusCode: res.status || 502,
-            statusMessage: upstreamProfilePatchErrorMessage(json),
+            statusMessage: upstreamEnvelopeErrorMessage(
+                json,
+                'Nie udało się zaktualizować profilu',
+            ),
         });
     }
 
@@ -405,6 +408,61 @@ export async function bffUpstreamProfileAvatarUpload(
         success: true,
         data: { photoUrl },
     };
+}
+
+/**
+ * Rejestracja użytkownika przez zalogowanego MANAGERA/ADMIN-a.
+ * Upstream: POST /auth/register (Bearer access z ciastka).
+ * Odpowiedź upstream nie ustawia ciasteczek sesji klienta — sesja wywołującego pozostaje bez zmian.
+ */
+export async function bffUpstreamRegister(
+    event: H3Event,
+    upstreamBase: string,
+    body: unknown,
+): Promise<unknown> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(`${upstreamBase}/auth/register`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify(body ?? {}),
+    });
+
+    let json: unknown;
+
+    try {
+        json = await res.json();
+    } catch {
+        json = null;
+    }
+
+    if (!res.ok) {
+        if (res.status === 401) {
+            deleteCookie(event, 'access_token', { path: '/' });
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage: upstreamEnvelopeErrorMessage(
+                json,
+                'Nie udało się utworzyć konta instruktora',
+            ),
+        });
+    }
+
+    setResponseStatus(event, res.status);
+
+    return json;
 }
 
 export async function bffUpstreamLogout(

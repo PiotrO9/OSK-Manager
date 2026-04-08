@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { Building2, Car, LayoutDashboard, LogOut, User } from 'lucide-vue-next';
+import {
+    Building2,
+    Car,
+    GraduationCap,
+    LayoutDashboard,
+    LogOut,
+    User,
+} from 'lucide-vue-next';
 import { useSidebar } from '../shadcn/sidebar';
 
 interface NavItem {
@@ -53,6 +60,16 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do zarządzania szkołami jazdy',
             icon: Building2,
             tooltip: 'Szkoły jazdy',
+        });
+    }
+
+    if (session.value?.role === 'MANAGER' || session.value?.role === 'ADMIN') {
+        items.push({
+            to: '/manager/instructors',
+            label: 'Instruktorzy',
+            ariaLabel: 'Przejdź do zarządzania instruktorami',
+            icon: GraduationCap,
+            tooltip: 'Instruktorzy',
         });
     }
 

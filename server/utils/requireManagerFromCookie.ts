@@ -22,10 +22,10 @@ export async function requireManagerFromCookie(event: H3Event): Promise<void> {
         const { payload } = await jwtVerify(accessToken, SECRET);
         const role = String(payload.role ?? '');
 
-        if (role !== 'MANAGER') {
+        if (role !== 'MANAGER' && role !== 'ADMIN') {
             throw createError({
                 statusCode: 403,
-                message: 'Ta operacja wymaga roli MANAGER',
+                message: 'Ta operacja wymaga roli MANAGER lub ADMIN',
             });
         }
 
