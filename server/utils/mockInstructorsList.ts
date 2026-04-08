@@ -90,7 +90,9 @@ export function mockInstructorBelongsToSchool(
         return false;
     }
 
-    return mockInstructorsListPayload(sid).instructors.some((r) => r.id === iid);
+    return mockInstructorsListPayload(sid).instructors.some(
+        (r) => r.id === iid,
+    );
 }
 
 function findRowById(id: string): MockInstructorListRow | null {

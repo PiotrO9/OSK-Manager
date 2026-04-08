@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { ArrowLeft, BookOpen, User } from 'lucide-vue-next';
+import type { InstructorListItem } from '~/types/instructor';
+import {
+    formatInstructorDisplayName,
+    resolveInstructorProfileIdForCourseSelection,
+} from '~/types/instructor';
 import { formatCourseKindLabel, type CourseDetail } from '~/types/course';
+import { useAppToast } from '~/composables/useAppToast';
 import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 
@@ -10,15 +16,53 @@ definePageMeta({
 });
 
 const route = useRoute();
-const { fetchById, isDetailLoading } = useCoursesApi();
+const { addToast } = useAppToast();
+const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
+    useCoursesApi();
+const { fetchList: fetchInstructorsList } = useInstructorsApi();
+
+const SELECT_FIELD_CLASS =
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-lg rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 const course = ref<CourseDetail | null>(null);
 const loadError = ref<string | null>(null);
 let fetchSeq = 0;
 
+const instructors = ref<InstructorListItem[]>([]);
+const instructorsLoadError = ref<string | null>(null);
+const isInstructorsLoading = ref(false);
+
+const selectedInstructorProfileId = ref('');
+const isInstructorSelectionTouched = ref(false);
+
+const schoolIdFromQuery = computed(() => {
+    const raw = route.query.schoolId;
+    const s = Array.isArray(raw) ? raw[0] : raw;
+
+    if (typeof s !== 'string') {
+        return '';
+    }
+
+    const t = s.trim();
+
+    return t;
+});
+
+const effectiveSchoolId = computed(() => {
+    const q = schoolIdFromQuery.value;
+
+    if (q.length > 0) {
+        return q;
+    }
+
+    const sid = course.value?.schoolId?.trim();
+
+    return sid && sid.length > 0 ? sid : '';
+});
+
 usePageMeta({
     title: () => course.value?.name?.trim() || 'Szczegóły kursu',
-    description: () => 'Podgląd danych kursu i instruktora (tylko odczyt).',
+    description: () => 'Dane kursu i przypisanie instruktora.',
 });
 
 function getRouteIdString(rawId: unknown): string {
@@ -73,6 +117,67 @@ function formatInstructorName(c: CourseDetail): string {
     return 'Brak instruktora';
 }
 
+function applySelectionFromCourse() {
+    if (!course.value) {
+        selectedInstructorProfileId.value = '';
+
+        return;
+    }
+
+    selectedInstructorProfileId.value =
+        resolveInstructorProfileIdForCourseSelection(
+            course.value.instructor,
+            instructors.value,
+        );
+}
+
+const resolvedInstructorProfileIdFromCourse = computed(() => {
+    if (!course.value) {
+        return '';
+    }
+
+    return resolveInstructorProfileIdForCourseSelection(
+        course.value.instructor,
+        instructors.value,
+    );
+});
+
+async function loadInstructors(schoolId: string) {
+    instructorsLoadError.value = null;
+    isInstructorsLoading.value = true;
+
+    try {
+        instructors.value = await fetchInstructorsList(schoolId);
+    } catch (e) {
+        instructors.value = [];
+        instructorsLoadError.value = getApiFetchErrorMessage(
+            e,
+            'Nie udało się pobrać listy instruktorów.',
+        );
+    } finally {
+        isInstructorsLoading.value = false;
+    }
+
+    if (!isInstructorSelectionTouched.value) {
+        applySelectionFromCourse();
+    }
+}
+
+watch(
+    effectiveSchoolId,
+    (sid) => {
+        if (!sid) {
+            instructors.value = [];
+            instructorsLoadError.value = null;
+
+            return;
+        }
+
+        loadInstructors(sid);
+    },
+    { immediate: true },
+);
+
 async function loadCourse(rawId: unknown) {
     loadError.value = null;
 
@@ -88,6 +193,8 @@ async function loadCourse(rawId: unknown) {
     const seq = ++fetchSeq;
 
     course.value = null;
+    isInstructorSelectionTouched.value = false;
+    selectedInstructorProfileId.value = '';
 
     try {
         const data = await fetchById(id);
@@ -97,6 +204,7 @@ async function loadCourse(rawId: unknown) {
         }
 
         course.value = data;
+        applySelectionFromCourse();
     } catch (err: unknown) {
         if (seq !== fetchSeq) {
             return;
@@ -114,6 +222,71 @@ watch(
     },
     { immediate: true },
 );
+
+function handleInstructorSelectChange() {
+    isInstructorSelectionTouched.value = true;
+}
+
+const instructorSaveBlockedReason = computed(() => {
+    if (!effectiveSchoolId.value) {
+        return 'Brak identyfikatora szkoły (dodaj ?schoolId=… w adresie lub otwórz link z listy kursów).';
+    }
+
+    return '';
+});
+
+const canSaveInstructorAssignment = computed(() => {
+    if (!course.value || instructorSaveBlockedReason.value.length > 0) {
+        return false;
+    }
+
+    if (isPatchLoading.value || isInstructorsLoading.value) {
+        return false;
+    }
+
+    const sel = selectedInstructorProfileId.value.trim();
+    const cur = resolvedInstructorProfileIdFromCourse.value.trim();
+
+    if (sel === cur) {
+        return false;
+    }
+
+    return true;
+});
+
+async function handleSaveInstructorAssignment() {
+    const id = getRouteIdString(route.params.id);
+
+    if (!id || !course.value || !canSaveInstructorAssignment.value) {
+        return;
+    }
+
+    const trimmed = selectedInstructorProfileId.value.trim();
+
+    try {
+        const updated = await patchCourse(id, {
+            instructorId: trimmed.length > 0 ? trimmed : null,
+        });
+
+        course.value = updated;
+        isInstructorSelectionTouched.value = false;
+        applySelectionFromCourse();
+
+        addToast({
+            title: 'Instruktor zaktualizowany',
+            variant: 'success',
+        });
+    } catch (err) {
+        addToast({
+            title: 'Błąd',
+            description: getApiFetchErrorMessage(
+                err,
+                'Nie udało się zapisać instruktora.',
+            ),
+            variant: 'error',
+        });
+    }
+}
 </script>
 
 <template>
@@ -138,7 +311,7 @@ watch(
                     <span>{{ course?.name?.trim() || 'Szczegóły kursu' }}</span>
                 </h1>
                 <p class="text-muted-foreground text-sm">
-                    Dane kursu i przypisanego instruktora (MVP — tylko odczyt).
+                    Dane kursu i przypisanie instruktora z listy OSK.
                 </p>
             </div>
         </div>
@@ -218,10 +391,96 @@ watch(
                             Instruktor
                         </UiCardTitle>
                     </UiCardHeader>
-                    <UiCardContent>
-                        <p class="text-foreground text-sm">
-                            {{ formatInstructorName(course) }}
+                    <UiCardContent class="space-y-4">
+                        <p class="text-muted-foreground text-xs">
+                            Zapisany w kursie:
+                            <span class="text-foreground font-medium">{{
+                                formatInstructorName(course)
+                            }}</span>
                         </p>
+
+                        <p
+                            v-if="instructorSaveBlockedReason"
+                            class="text-sm text-amber-600 dark:text-amber-500"
+                            role="status"
+                        >
+                            {{ instructorSaveBlockedReason }}
+                        </p>
+
+                        <p
+                            v-if="instructorsLoadError"
+                            class="text-destructive text-sm"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            {{ instructorsLoadError }}
+                        </p>
+
+                        <div class="space-y-2">
+                            <UiLabel for="course-detail-instructor-select"
+                                >Zmiana przypisania</UiLabel
+                            >
+                            <p
+                                v-if="isInstructorsLoading"
+                                class="text-muted-foreground text-sm"
+                                role="status"
+                            >
+                                Wczytywanie listy instruktorów…
+                            </p>
+                            <select
+                                v-else
+                                id="course-detail-instructor-select"
+                                v-model="selectedInstructorProfileId"
+                                name="instructorProfileId"
+                                :class="SELECT_FIELD_CLASS"
+                                :disabled="
+                                    !!instructorSaveBlockedReason ||
+                                    isPatchLoading
+                                "
+                                aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
+                                @change="handleInstructorSelectChange"
+                            >
+                                <option value="">— Brak instruktora —</option>
+                                <option
+                                    v-for="ins in instructors"
+                                    :key="ins.id"
+                                    :value="ins.id"
+                                >
+                                    {{ formatInstructorDisplayName(ins)
+                                    }}{{
+                                        ins.email && ins.email.length > 0
+                                            ? ` (${ins.email})`
+                                            : ''
+                                    }}
+                                </option>
+                            </select>
+                            <p
+                                v-if="
+                                    !isInstructorsLoading &&
+                                    effectiveSchoolId &&
+                                    instructors.length === 0
+                                "
+                                class="text-muted-foreground text-sm"
+                                role="status"
+                            >
+                                Brak instruktorów w tej szkole — możesz
+                                wyczyścić przypisanie lub dodać instruktorów w
+                                panelu OSK.
+                            </p>
+                        </div>
+
+                        <UiButton
+                            type="button"
+                            :disabled="!canSaveInstructorAssignment"
+                            :aria-busy="isPatchLoading"
+                            @click="handleSaveInstructorAssignment"
+                        >
+                            {{
+                                isPatchLoading
+                                    ? 'Zapisywanie…'
+                                    : 'Zapisz przypisanie'
+                            }}
+                        </UiButton>
                     </UiCardContent>
                 </UiCard>
             </div>

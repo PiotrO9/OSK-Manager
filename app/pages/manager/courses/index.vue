@@ -271,7 +271,15 @@ function formatInstructorCell(course: CourseListItem): string {
                                     >
                                         <td class="text-foreground px-4 py-3">
                                             <NuxtLink
-                                                :to="`/manager/courses/${course.id}`"
+                                                :to="{
+                                                    path: `/manager/courses/${course.id}`,
+                                                    query: activeSchoolId
+                                                        ? {
+                                                              schoolId:
+                                                                  activeSchoolId,
+                                                          }
+                                                        : undefined,
+                                                }"
                                                 class="focus-visible:ring-ring inline-flex items-center gap-2 rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
                                                 :aria-label="`Szczegóły kursu: ${course.name}`"
                                             >

@@ -1,8 +1,12 @@
+import type { CourseInstructorRef } from '~/types/course';
+
 export interface InstructorListItem {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
+    /** Konto użytkownika (GET kursu zwraca `instructor.id` jako User.id). */
+    userId?: string;
 }
 
 export interface InstructorDetail {
@@ -271,12 +275,59 @@ function normalizeInstructorItem(
 
     const email = o.email != null ? String(o.email).trim() : '';
 
+    const userIdRaw =
+        o.userId != null
+            ? String(o.userId).trim()
+            : o.user_id != null
+              ? String(o.user_id).trim()
+              : o.user && typeof o.user === 'object'
+                ? String((o.user as Record<string, unknown>).id ?? '').trim()
+                : '';
+
+    const userId = userIdRaw.length > 0 ? userIdRaw : undefined;
+
     return {
         id,
         firstName,
         lastName,
         email,
+        ...(userId !== undefined ? { userId } : {}),
     };
+}
+
+/**
+ * Wartość opcji selecta (InstructorProfile.id): dopasowanie do aktualnego
+ * instruktora z GET kursu (`instructor.id` = User.id lub heurystyka po nazwie).
+ */
+export function resolveInstructorProfileIdForCourseSelection(
+    courseInstructor: CourseInstructorRef | null | undefined,
+    instructors: InstructorListItem[],
+): string {
+    if (!courseInstructor) {
+        return '';
+    }
+
+    const uid = courseInstructor.id.trim();
+
+    if (uid.length > 0) {
+        const byUserId = instructors.find((i) => i.userId === uid);
+
+        if (byUserId) {
+            return byUserId.id;
+        }
+    }
+
+    const name = courseInstructor.name?.trim() ?? '';
+
+    if (name.length === 0) {
+        return '';
+    }
+
+    const byName = instructors.find(
+        (i) => formatInstructorDisplayName(i).trim() === name,
+    );
+
+    return byName?.id ?? '';
 }
 
 export function normalizeInstructorsList(data: unknown): InstructorListItem[] {

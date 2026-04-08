@@ -8,11 +8,13 @@ import {
     type CourseCreatePayload,
     type CourseDetail,
     type CourseListItem,
+    type CoursePatchInstructorPayload,
 } from '~/types/course';
 
 export function useCoursesApi() {
     const _schoolId = ref<string | null>(null);
     const _courseDetailId = ref<string | null>(null);
+    const _patchCourseId = ref<string | null>(null);
 
     const listUrl = () => {
         const id = _schoolId.value;
@@ -53,6 +55,24 @@ export function useCoursesApi() {
         error: createError,
     } = useApi<unknown>('POST', createUrl, {
         body: _createBody as MaybeRefOrGetter<unknown>,
+    });
+
+    const patchUrl = () => {
+        const id = _patchCourseId.value?.trim();
+
+        return id
+            ? resolveBffEndpoint(`/api/courses/${encodeURIComponent(id)}`)
+            : '';
+    };
+
+    const _patchBody = ref<CoursePatchInstructorPayload | null>(null);
+
+    const {
+        execute: _execPatch,
+        isLoading: isPatchLoading,
+        error: patchError,
+    } = useApi<unknown>('PATCH', patchUrl, {
+        body: _patchBody as MaybeRefOrGetter<unknown>,
     });
 
     async function fetchList(schoolId: string): Promise<CourseListItem[]> {
@@ -126,7 +146,9 @@ export function useCoursesApi() {
         return detail;
     }
 
-    async function createCourse(body: CourseCreatePayload): Promise<CourseDetail> {
+    async function createCourse(
+        body: CourseCreatePayload,
+    ): Promise<CourseDetail> {
         _createBody.value = body;
 
         const raw = await _execCreate();
@@ -144,7 +166,37 @@ export function useCoursesApi() {
         const detail = normalizeCourseDetailData(data);
 
         if (!detail) {
-            throw new Error('Nieprawidłowa odpowiedź serwera (utworzony kurs).');
+            throw new Error(
+                'Nieprawidłowa odpowiedź serwera (utworzony kurs).',
+            );
+        }
+
+        return detail;
+    }
+
+    async function patchCourse(
+        courseId: string,
+        body: CoursePatchInstructorPayload,
+    ): Promise<CourseDetail> {
+        _patchCourseId.value = courseId.trim();
+        _patchBody.value = body;
+
+        const raw = await _execPatch();
+
+        if (raw === null) {
+            throw new Error(
+                getApiFetchErrorMessage(
+                    patchError.value,
+                    'Nie udało się zaktualizować instruktora kursu.',
+                ),
+            );
+        }
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+        const detail = normalizeCourseDetailData(data);
+
+        if (!detail) {
+            throw new Error('Nieprawidłowa odpowiedź serwera (kurs po PATCH).');
         }
 
         return detail;
@@ -154,8 +206,10 @@ export function useCoursesApi() {
         isListLoading,
         isDetailLoading,
         isCreateLoading,
+        isPatchLoading,
         fetchList,
         fetchById,
         createCourse,
+        patchCourse,
     };
 }

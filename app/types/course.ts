@@ -30,6 +30,13 @@ export interface CourseListItem {
 /** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */
 export interface CourseDetail extends CourseListItem {
     capacity: number | null;
+    /** Gdy backend / mock zwraca (np. do `GET /instructors?schoolId`). */
+    schoolId?: string;
+}
+
+/** Body PATCH `/courses/:id` — tylko zmiana instruktora (MVP). */
+export interface CoursePatchInstructorPayload {
+    instructorId: string | null;
 }
 
 const COURSE_KIND_LABELS: Record<CourseKind, string> = {
@@ -168,6 +175,44 @@ function normalizeCourseCapacity(o: Record<string, unknown>): number | null {
     return null;
 }
 
+function readCourseSchoolId(o: Record<string, unknown>): string | undefined {
+    for (const key of ['schoolId', 'school_id'] as const) {
+        const raw = o[key];
+
+        if (raw == null) {
+            continue;
+        }
+
+        const s = String(raw).trim();
+
+        if (s.length > 0) {
+            return s;
+        }
+    }
+
+    const school = o.school;
+
+    if (school && typeof school === 'object' && school !== null) {
+        const so = school as Record<string, unknown>;
+
+        for (const key of ['id', 'schoolId', 'school_id'] as const) {
+            const raw = so[key];
+
+            if (raw == null) {
+                continue;
+            }
+
+            const s = String(raw).trim();
+
+            if (s.length > 0) {
+                return s;
+            }
+        }
+    }
+
+    return undefined;
+}
+
 function normalizeCourseDetailInner(raw: unknown): CourseDetail | null {
     const base = normalizeCourseListItem(raw);
 
@@ -176,10 +221,12 @@ function normalizeCourseDetailInner(raw: unknown): CourseDetail | null {
     }
 
     const o = raw as Record<string, unknown>;
+    const schoolId = readCourseSchoolId(o);
 
     return {
         ...base,
         capacity: normalizeCourseCapacity(o),
+        ...(schoolId !== undefined ? { schoolId } : {}),
     };
 }
 

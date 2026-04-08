@@ -1,4 +1,7 @@
-import { mockInstructorsListPayload } from '~~/server/utils/mockInstructorsList';
+import {
+    mockInstructorBelongsToSchool,
+    mockInstructorsListPayload,
+} from '~~/server/utils/mockInstructorsList';
 
 /** Kształt pojedynczego kursu w `data.courses` wg courses-api.md (BE). */
 export interface MockCourseListRow {
@@ -205,7 +208,7 @@ export interface MockCourseDetailRow extends MockCourseListRow {
 /** Szczegóły kursu z mocka (tylko istniejące ID z listy dla danego seeda). */
 export function mockCoursesGetById(
     courseId: string,
-): MockCourseDetailRow | null {
+): (MockCourseDetailRow & { schoolId: string }) | null {
     const id = courseId.trim();
 
     if (!id) {
@@ -214,7 +217,7 @@ export function mockCoursesGetById(
 
     const store = getStore();
 
-    for (const rows of Object.values(store)) {
+    for (const [schoolId, rows] of Object.entries(store)) {
         const row = rows.find((r) => r.id === id);
 
         if (!row) {
@@ -224,10 +227,63 @@ export function mockCoursesGetById(
         return {
             ...row,
             capacity: resolveMockCourseDetailCapacity(row),
+            schoolId,
         };
     }
 
     return null;
+}
+
+export type MockCoursesPatchInstructorOutcome =
+    | { outcome: 'ok'; course: MockCourseDetailRow & { schoolId: string } }
+    | { outcome: 'course_not_found' }
+    | { outcome: 'instructor_not_in_school' };
+
+/** PATCH instruktora (mock) — `instructorId` = profil lub null. */
+export function mockCoursesPatchInstructor(
+    courseId: string,
+    instructorProfileId: string | null,
+): MockCoursesPatchInstructorOutcome {
+    const id = courseId.trim();
+
+    if (!id) {
+        return { outcome: 'course_not_found' };
+    }
+
+    const store = getStore();
+
+    for (const [schoolId, rows] of Object.entries(store)) {
+        const idx = rows.findIndex((r) => r.id === id);
+
+        if (idx === -1) {
+            continue;
+        }
+
+        if (
+            instructorProfileId !== null &&
+            !mockInstructorBelongsToSchool(schoolId, instructorProfileId)
+        ) {
+            return { outcome: 'instructor_not_in_school' };
+        }
+
+        const row = rows[idx]!;
+
+        row.instructor = resolveInstructorRefForSchool(
+            schoolId,
+            instructorProfileId,
+        );
+
+        return {
+            outcome: 'ok',
+            course: {
+                ...row,
+                capacity: resolveMockCourseDetailCapacity(row),
+                schoolId,
+            },
+        };
+    }
+
+    return { outcome: 'course_not_found' };
 }
 
 /** Kształt `data` jak w odpowiedzi BE listy kursów. */
