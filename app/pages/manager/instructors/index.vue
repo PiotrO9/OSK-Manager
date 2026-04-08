@@ -3,6 +3,10 @@ import { GraduationCap } from 'lucide-vue-next';
 import type { InstructorRegisterPayload } from '~/components/manager/instructors/ManagerInstructorFormDialog.vue';
 import type { DrivingSchool } from '~/types/drivingSchool';
 import {
+    formatInstructorDisplayName,
+    type InstructorListItem,
+} from '~/types/instructor';
+import {
     getApiErrorStatusCode,
     unwrapApiSuccessData,
 } from '~/utils/apiEnvelope';
@@ -20,10 +24,14 @@ usePageMeta({
 });
 
 const route = useRoute();
-const { fetchList } = useDrivingSchoolsApi();
+const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
+const { fetchList: fetchInstructorsList } = useInstructorsApi();
 const { addToast } = useAppToast();
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta instruktora.';
+
+const SELECT_SCHOOL_CLASS =
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-md rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 function resolveInstructorRegisterError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
@@ -43,9 +51,35 @@ function resolveInstructorRegisterError(err: unknown): string {
     return getApiFetchErrorMessage(err, REGISTER_GENERIC_FALLBACK);
 }
 
+function resolveInstructorsListError(err: unknown): string {
+    const status = getApiErrorStatusCode(err);
+
+    if (status === 403) {
+        return 'Brak dostępu do listy instruktorów dla wybranej szkoły.';
+    }
+
+    if (status !== undefined && status >= 500) {
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
+    }
+
+    if (err instanceof Error && err.message.trim().length > 0) {
+        return err.message.trim();
+    }
+
+    return getApiFetchErrorMessage(
+        err,
+        'Nie udało się pobrać listy instruktorów.',
+    );
+}
+
 const schools = ref<DrivingSchool[]>([]);
 const schoolsLoadError = ref<string | null>(null);
 const isSchoolsLoading = ref(false);
+
+const activeSchoolId = ref('');
+const instructors = ref<InstructorListItem[]>([]);
+const isInstructorsLoading = ref(false);
+const instructorsLoadError = ref<string | null>(null);
 
 const formDialogOpen = ref(false);
 const isFormSaving = ref(false);
@@ -71,12 +105,22 @@ const prefillSchoolId = computed((): string | null => {
     return t;
 });
 
+function resolveInitialActiveSchoolId(): string {
+    const pre = prefillSchoolId.value;
+
+    if (pre && schools.value.some((s) => s.id === pre)) {
+        return pre;
+    }
+
+    return schools.value[0]?.id ?? '';
+}
+
 async function loadSchools() {
     schoolsLoadError.value = null;
     isSchoolsLoading.value = true;
 
     try {
-        schools.value = await fetchList();
+        schools.value = await fetchSchoolsList();
     } catch (e) {
         schoolsLoadError.value =
             e instanceof Error ? e.message : 'Nie udało się pobrać listy OSK.';
@@ -85,12 +129,44 @@ async function loadSchools() {
     }
 }
 
+async function loadInstructors() {
+    const sid = activeSchoolId.value.trim();
+
+    if (!sid) {
+        instructors.value = [];
+
+        return;
+    }
+
+    instructorsLoadError.value = null;
+    isInstructorsLoading.value = true;
+
+    try {
+        instructors.value = await fetchInstructorsList(sid);
+    } catch (err) {
+        instructors.value = [];
+        instructorsLoadError.value = resolveInstructorsListError(err);
+    } finally {
+        isInstructorsLoading.value = false;
+    }
+}
+
+async function handleActiveSchoolChange() {
+    instructorsLoadError.value = null;
+    await loadInstructors();
+}
+
 onMounted(async () => {
     await loadSchools();
+    activeSchoolId.value = resolveInitialActiveSchoolId();
 
     if (prefillSchoolId.value) {
         apiError.value = null;
         formDialogOpen.value = true;
+    }
+
+    if (activeSchoolId.value) {
+        await loadInstructors();
     }
 });
 
@@ -144,6 +220,16 @@ async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
 
         formDialogOpen.value = false;
 
+        const createdSchoolId = payload.schoolId;
+
+        if (schools.value.some((s) => s.id === createdSchoolId)) {
+            activeSchoolId.value = createdSchoolId;
+        }
+
+        if (activeSchoolId.value) {
+            await loadInstructors();
+        }
+
         await navigateTo('/manager/instructors', { replace: true });
     } catch (err) {
         const message = resolveInstructorRegisterError(err);
@@ -168,8 +254,12 @@ async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
                 Instruktorzy
             </h1>
             <p class="text-muted-foreground text-sm">
-                Dodawaj konta instruktorów przypisane do wybranej OSK. Lista
-                kont z backendu może być rozszerzona w kolejnych iteracjach.
+                Zarządzaj kontami instruktorów przypisanymi do wybranej OSK.
+                Dodawanie odbywa się po kliknięciu przycisku poniżej; stary
+                adres
+                <span class="font-mono">/manager/instructors/new</span>
+                przekierowuje tutaj i może otworzyć formularz z
+                <span class="font-mono">?schoolId=</span>.
             </p>
         </div>
 
@@ -183,17 +273,112 @@ async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
             Dodaj instruktora
         </UiButton>
 
-        <p
-            class="text-muted-foreground border-border rounded-lg border border-dashed p-6 text-sm"
-            role="status"
+        <div
+            class="border-border rounded-lg border p-4 md:p-6"
+            :aria-busy="isSchoolsLoading"
         >
-            Tutaj pojawi się lista instruktorów, gdy endpoint listy będzie
-            dostępny w API. Dodawanie odbywa się w oknie po kliknięciu przycisku
-            powyżej (stary adres
-            <span class="font-mono">/manager/instructors/new</span>
-            przekierowuje tutaj i może otworzyć formularz z
-            <span class="font-mono">?schoolId=</span>).
-        </p>
+            <p
+                v-if="isSchoolsLoading"
+                class="text-muted-foreground text-sm"
+                role="status"
+            >
+                Wczytywanie listy szkół jazdy…
+            </p>
+
+            <template v-else>
+                <p
+                    v-if="schoolsLoadError"
+                    class="text-destructive text-sm"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    {{ schoolsLoadError }}
+                </p>
+
+                <p
+                    v-else-if="schools.length === 0"
+                    class="text-muted-foreground text-sm"
+                    role="status"
+                >
+                    Nie masz jeszcze żadnej szkoły jazdy. Dodaj OSK w panelu
+                    szkół, aby wyświetlić listę instruktorów.
+                </p>
+
+                <template v-else>
+                    <div v-if="schools.length > 1" class="mb-4 space-y-2">
+                        <UiLabel for="instructors-page-school"
+                            >Szkoła jazdy (lista instruktorów)</UiLabel
+                        >
+                        <select
+                            id="instructors-page-school"
+                            v-model="activeSchoolId"
+                            :class="SELECT_SCHOOL_CLASS"
+                            :disabled="isInstructorsLoading"
+                            aria-label="Wybierz szkołę jazdy do podglądu listy instruktorów"
+                            @change="handleActiveSchoolChange"
+                        >
+                            <option
+                                v-for="s in schools"
+                                :key="s.id"
+                                :value="s.id"
+                            >
+                                {{ s.name
+                                }}{{
+                                    s.city && s.city.length > 0
+                                        ? ` (${s.city})`
+                                        : ''
+                                }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <template v-if="instructorsLoadError">
+                        <p
+                            class="text-destructive text-sm"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            {{ instructorsLoadError }}
+                        </p>
+                    </template>
+                    <template v-else-if="isInstructorsLoading">
+                        <p class="text-muted-foreground text-sm" role="status">
+                            Wczytywanie listy instruktorów…
+                        </p>
+                    </template>
+                    <template v-else-if="instructors.length > 0">
+                        <ul
+                            class="divide-border divide-y rounded-md border"
+                            role="list"
+                        >
+                            <li
+                                v-for="instructor in instructors"
+                                :key="instructor.id"
+                                class="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                            >
+                                <span
+                                    class="text-foreground text-sm font-medium"
+                                >
+                                    {{
+                                        formatInstructorDisplayName(instructor)
+                                    }}
+                                </span>
+                                <span
+                                    class="text-muted-foreground text-sm break-all"
+                                >
+                                    {{ instructor.email || '—' }}
+                                </span>
+                            </li>
+                        </ul>
+                    </template>
+                    <template v-else>
+                        <p class="text-muted-foreground text-sm" role="status">
+                            Brak instruktorów
+                        </p>
+                    </template>
+                </template>
+            </template>
+        </div>
 
         <ManagerInstructorFormDialog
             :open="formDialogOpen"
