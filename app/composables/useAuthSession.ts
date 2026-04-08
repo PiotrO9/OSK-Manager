@@ -3,6 +3,13 @@
  * W `useState` trzymane są wyłącznie dane profilu (bez JWT).
  */
 
+export type AuthProfilePatchBody = {
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    bio?: string | null;
+};
+
 export interface AuthSession {
     userName: string;
     userId: string;
@@ -206,6 +213,118 @@ export function useAuthSession() {
         return true;
     }
 
+    function buildProfilePatchPayload(
+        body: AuthProfilePatchBody,
+    ): Record<string, string | null> {
+        const out: Record<string, string | null> = {};
+
+        if (Object.prototype.hasOwnProperty.call(body, 'firstName')) {
+            out.firstName =
+                typeof body.firstName === 'string' ? body.firstName.trim() : '';
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'lastName')) {
+            out.lastName =
+                typeof body.lastName === 'string' ? body.lastName.trim() : '';
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'phone')) {
+            const p = body.phone;
+
+            if (p === null || p === undefined) {
+                out.phone = null;
+            } else {
+                const t = String(p).trim();
+
+                out.phone = t.length > 0 ? t : null;
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(body, 'bio')) {
+            const b = body.bio;
+
+            if (b === null || b === undefined) {
+                out.bio = null;
+            } else {
+                const t = String(b).trim();
+
+                out.bio = t.length > 0 ? t : null;
+            }
+        }
+
+        return out;
+    }
+
+    async function patchProfile(body: AuthProfilePatchBody): Promise<void> {
+        const payload = buildProfilePatchPayload(body);
+
+        if (Object.keys(payload).length === 0) {
+            throw new Error('Brak pól do zapisania');
+        }
+
+        async function doPatch(): Promise<void> {
+            const raw = await getAuthFetch()(`${AUTH_PATH}/profile`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: payload,
+            });
+
+            const data = unwrapApiSuccessData<{ user: BackendUserResponse }>(
+                raw,
+            );
+
+            if (!data.user) {
+                throw new Error('Nieprawidłowa odpowiedź serwera');
+            }
+
+            session.value = createSessionFromUser(
+                normalizeBackendUserToSessionPayload(data.user),
+            );
+        }
+
+        try {
+            await doPatch();
+        } catch (err: unknown) {
+            const status = getFetchStatusCode(err);
+            const fromBodyEarly = getServerJsonErrorMessage(err);
+
+            if (status === 403) {
+                throw new Error(
+                    fromBodyEarly ?? 'Brak uprawnień do tej operacji.',
+                );
+            }
+
+            if (sessionLoadShouldSkipRefresh(status)) {
+                throw new Error(fromBodyEarly ?? 'Sesja nieważna');
+            }
+
+            if (status === 401) {
+                const refreshed = await refreshAccessToken();
+
+                if (!refreshed) {
+                    session.value = null;
+
+                    throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+                }
+
+                await doPatch();
+
+                return;
+            }
+
+            if (fromBodyEarly) {
+                throw new Error(fromBodyEarly);
+            }
+
+            throw err instanceof Error
+                ? err
+                : new Error('Nie udało się zapisać profilu');
+        }
+    }
+
     async function refreshProfileFromServer(): Promise<void> {
         try {
             await loadMeIntoSession();
@@ -368,6 +487,7 @@ export function useAuthSession() {
         logout,
         refreshAccessToken,
         refreshProfileFromServer,
+        patchProfile,
         checkSession,
     };
 }

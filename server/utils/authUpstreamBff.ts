@@ -225,6 +225,119 @@ export async function bffUpstreamMe(
     };
 }
 
+type ProfilePatchPayload = Record<string, string | null | undefined>;
+
+function upstreamProfilePatchExtractUser(json: unknown): unknown {
+    if (!json || typeof json !== 'object') return undefined;
+
+    const o = json as Record<string, unknown>;
+
+    if (
+        o.success === true &&
+        o.data &&
+        typeof o.data === 'object' &&
+        'user' in o.data
+    ) {
+        return (o.data as { user?: unknown }).user;
+    }
+
+    if (o.ok === true && 'user' in o) {
+        return o.user;
+    }
+
+    return undefined;
+}
+
+function upstreamProfilePatchErrorMessage(json: unknown): string {
+    if (!json || typeof json !== 'object') {
+        return 'Nie udało się zaktualizować profilu';
+    }
+
+    const o = json as {
+        error?: unknown;
+        message?: unknown;
+        statusMessage?: unknown;
+    };
+
+    if (typeof o.error === 'string' && o.error.trim().length > 0) {
+        return o.error.trim();
+    }
+
+    if (typeof o.message === 'string' && o.message.trim().length > 0) {
+        return o.message.trim();
+    }
+
+    if (
+        typeof o.statusMessage === 'string' &&
+        o.statusMessage.trim().length > 0
+    ) {
+        return o.statusMessage.trim();
+    }
+
+    return 'Nie udało się zaktualizować profilu';
+}
+
+/**
+ * Aktualizacja profilu. Upstream: PATCH /auth/profile (Bearer access z ciastka).
+ * Odpowiedź upstream: `{ success, data: { user } }` lub `{ ok: true, user }`.
+ */
+export async function bffUpstreamProfilePatch(
+    event: H3Event,
+    upstreamBase: string,
+    body: ProfilePatchPayload,
+): Promise<{ success: true; data: { user: unknown } }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(`${upstreamBase}/auth/profile`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify(body),
+    });
+
+    let json: unknown;
+
+    try {
+        json = await res.json();
+    } catch {
+        json = null;
+    }
+
+    if (!res.ok) {
+        if (res.status === 401) {
+            deleteCookie(event, 'access_token', { path: '/' });
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage: upstreamProfilePatchErrorMessage(json),
+        });
+    }
+
+    const user = upstreamProfilePatchExtractUser(json);
+
+    if (!user || typeof user !== 'object') {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidłowa odpowiedź serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { user },
+    };
+}
+
 /**
  * Upload avatara profilu. Upstream: POST /auth/profile/avatar (multipart, pole `file`).
  * Odpowiedź: `{ success, data: { photoUrl: string } }`.
