@@ -225,6 +225,75 @@ export async function bffUpstreamMe(
     };
 }
 
+/**
+ * Upload avatara profilu. Upstream: POST /auth/profile/avatar (multipart, pole `file`).
+ * Odpowiedź: `{ success, data: { photoUrl: string } }`.
+ */
+export async function bffUpstreamProfileAvatarUpload(
+    event: H3Event,
+    upstreamBase: string,
+    file: Blob,
+    filename: string,
+): Promise<{ success: true; data: { photoUrl: string } }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const form = new FormData();
+
+    form.append('file', file, filename);
+
+    const res = await fetch(`${upstreamBase}/auth/profile/avatar`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${access}`,
+        },
+        body: form,
+    });
+
+    const json = (await res.json()) as BackendEnvelope<{
+        photoUrl?: string;
+    }>;
+
+    if (!res.ok || !json.success || !json.data) {
+        if (res.status === 401) {
+            deleteCookie(event, 'access_token', { path: '/' });
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się przesłać avatara',
+        });
+    }
+
+    const rawUrl = json.data.photoUrl;
+
+    const photoUrl =
+        typeof rawUrl === 'string' && rawUrl.trim().length > 0
+            ? rawUrl.trim()
+            : '';
+
+    if (!photoUrl) {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidłowa odpowiedź serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { photoUrl },
+    };
+}
+
 export async function bffUpstreamLogout(
     event: H3Event,
     upstreamBase: string,

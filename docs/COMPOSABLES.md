@@ -10,16 +10,17 @@ Authentication state and actions.
 
 **Returns:**
 
-| Property             | Type                                 | Description                                                                                        |
-| -------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `session`            | `Ref<AuthSession \| null>`           | Profil z cookie-session BFF: `userId`, `userName`, `email`, `role`, `avatarUrl` (bez JWT w stanie) |
-| `isAuthenticated`    | `ComputedRef<boolean>`               | True if valid session                                                                              |
-| `isCheckingSession`  | `ComputedRef<boolean>`               | True while checking session                                                                        |
-| `login`              | `(email, password) => Promise<void>` | Login via API                                                                                      |
-| `loginDemo`          | `(userName: string) => void`         | Demo mode (no backend)                                                                             |
-| `logout`             | `() => Promise<void>`                | Logout, clear session                                                                              |
-| `refreshAccessToken` | `() => Promise<boolean>`             | Refresh token                                                                                      |
-| `checkSession`       | `() => Promise<boolean>`             | `GET /api/auth/me` (przy 403/404 bez retry refresh — wylogowanie stanu)                            |
+| Property                   | Type                                 | Description                                                                                                                                                  |
+| -------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `session`                  | `Ref<AuthSession \| null>`           | Profil z BFF: `userId`, `userName`, `email`, `role`, `avatarUrl`, opcjonalnie `firstName`, `lastName`, `phone`, `bio`, `profileUpdatedAt` (bez JWT w stanie) |
+| `isAuthenticated`          | `ComputedRef<boolean>`               | True if valid session                                                                                                                                        |
+| `isCheckingSession`        | `ComputedRef<boolean>`               | True while checking session                                                                                                                                  |
+| `login`                    | `(email, password) => Promise<void>` | Login via API                                                                                                                                                |
+| `loginDemo`                | `(userName: string) => void`         | Demo mode (no backend)                                                                                                                                       |
+| `logout`                   | `() => Promise<void>`                | Logout, clear session                                                                                                                                        |
+| `refreshAccessToken`       | `() => Promise<boolean>`             | Refresh token                                                                                                                                                |
+| `checkSession`             | `() => Promise<boolean>`             | `GET /api/auth/me` (przy 403/404 bez retry refresh — wylogowanie stanu)                                                                                      |
+| `refreshProfileFromServer` | `() => Promise<void>`                | Ponownie `GET /api/auth/me` do aktualizacji `session` (np. po uploadzie avatara); przy błędzie — throw                                                       |
 
 **API base:** `runtimeConfig.public.apiBase` or `/api`
 

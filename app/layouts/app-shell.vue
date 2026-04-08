@@ -6,6 +6,7 @@ function resolveShellHeading(): string {
         '/': 'Pulpit',
         '/design-system': 'Design system',
         '/manager/osk': 'Szkoły jazdy',
+        '/account': 'Konto',
     };
 
     return map[route.path] ?? 'Panel';

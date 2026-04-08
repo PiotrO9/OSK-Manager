@@ -28,13 +28,14 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 
 ## Pages & Routes (wybrane)
 
-| Route            | Plik                          | Opis            |
-| ---------------- | ----------------------------- | --------------- |
-| `/`              | `pages/index.vue`             | Pulpit          |
-| `/login`         | `pages/login.vue`             | Logowanie       |
-| `/design-system` | `pages/design-system.vue`     | Podgląd UI      |
-| `/vehicles`      | `pages/vehicles/index.vue`    | Lista pojazdów  |
-| `/manager/osk`   | `pages/manager/osk/index.vue` | Zarządzanie OSK |
+| Route            | Plik                          | Opis               |
+| ---------------- | ----------------------------- | ------------------ |
+| `/`              | `pages/index.vue`             | Pulpit             |
+| `/login`         | `pages/login.vue`             | Logowanie          |
+| `/design-system` | `pages/design-system.vue`     | Podgląd UI         |
+| `/vehicles`      | `pages/vehicles/index.vue`    | Lista pojazdów     |
+| `/account`       | `pages/account/index.vue`     | Moje konto, avatar |
+| `/manager/osk`   | `pages/manager/osk/index.vue` | Zarządzanie OSK    |
 
 ## Authentication Flow
 

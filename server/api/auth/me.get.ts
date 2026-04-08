@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { mockUserAvatarGetUrl } from '~~/server/utils/mockUserAvatarStore';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
@@ -42,14 +43,21 @@ export default defineEventHandler(async (event) => {
             .join(' ')
             .trim();
 
+        const avatarFromMock = mockUserAvatarGetUrl(userId);
+
         return {
             success: true,
             data: {
                 user: {
                     id: userId,
                     name: nameFromParts || email,
+                    firstName: firstName || '',
+                    lastName: lastName || '',
                     email,
-                    avatarUrl: null as string | null,
+                    phone: null as string | null,
+                    bio: null as string | null,
+                    profileUpdatedAt: null as string | null,
+                    avatarUrl: avatarFromMock,
                     role,
                 },
             },

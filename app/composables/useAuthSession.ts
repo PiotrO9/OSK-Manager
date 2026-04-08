@@ -9,6 +9,11 @@ export interface AuthSession {
     email?: string;
     role?: string;
     avatarUrl?: string | null;
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    bio?: string | null;
+    profileUpdatedAt?: string | null;
 }
 
 const AUTH_PATH = '/api/auth';
@@ -25,6 +30,8 @@ type BackendUserResponse = {
     firstName?: string;
     lastName?: string;
     phone?: string | null;
+    bio?: string | null;
+    profileUpdatedAt?: string | null;
 };
 
 interface SessionUserPayload {
@@ -33,6 +40,11 @@ interface SessionUserPayload {
     email: string;
     role?: string;
     avatarUrl?: string | null;
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    bio?: string | null;
+    profileUpdatedAt?: string | null;
 }
 
 function getAuthFetch() {
@@ -94,12 +106,36 @@ function normalizeBackendUserToSessionPayload(
         }
     }
 
+    function optionalString(
+        value: string | null | undefined,
+    ): string | null | undefined {
+        if (value === undefined) return undefined;
+
+        if (value === null) return null;
+
+        const t = String(value).trim();
+
+        return t.length > 0 ? t : null;
+    }
+
     return {
         id: user.id,
         email: user.email,
         userName,
         role: user.role,
         avatarUrl,
+        firstName: optionalString(user.firstName) ?? undefined,
+        lastName: optionalString(user.lastName) ?? undefined,
+        phone:
+            user.phone === undefined ? undefined : optionalString(user.phone),
+        bio: user.bio === undefined ? undefined : optionalString(user.bio),
+        profileUpdatedAt:
+            typeof user.profileUpdatedAt === 'string' &&
+            user.profileUpdatedAt.trim().length > 0
+                ? user.profileUpdatedAt.trim()
+                : user.profileUpdatedAt === null
+                  ? null
+                  : undefined,
     };
 }
 
@@ -110,6 +146,11 @@ function createSessionFromUser(user: SessionUserPayload): AuthSession {
         email: user.email,
         role: user.role,
         avatarUrl: user.avatarUrl,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        bio: user.bio,
+        profileUpdatedAt: user.profileUpdatedAt,
     };
 }
 
@@ -163,6 +204,30 @@ export function useAuthSession() {
         );
 
         return true;
+    }
+
+    async function refreshProfileFromServer(): Promise<void> {
+        try {
+            await loadMeIntoSession();
+
+            return;
+        } catch (err: unknown) {
+            const status = getFetchStatusCode(err);
+
+            if (sessionLoadShouldSkipRefresh(status)) {
+                const msg = getServerJsonErrorMessage(err);
+
+                throw new Error(msg ?? 'Sesja nieważna');
+            }
+
+            const refreshed = await refreshAccessToken();
+
+            if (!refreshed) {
+                throw new Error('Nie udało się odświeżyć sesji');
+            }
+
+            await loadMeIntoSession();
+        }
     }
 
     async function checkSession(): Promise<boolean> {
@@ -302,6 +367,7 @@ export function useAuthSession() {
         loginDemo,
         logout,
         refreshAccessToken,
+        refreshProfileFromServer,
         checkSession,
     };
 }

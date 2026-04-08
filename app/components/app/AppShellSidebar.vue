@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { Building2, Car, LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { Building2, Car, LayoutDashboard, LogOut, User } from 'lucide-vue-next';
 import { useSidebar } from '../shadcn/sidebar';
 
 interface NavItem {
@@ -36,6 +36,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do listy pojazdów',
             icon: Car,
             tooltip: 'Pojazdy',
+        },
+        {
+            to: '/account',
+            label: 'Konto',
+            ariaLabel: 'Przejdź do mojego konta',
+            icon: User,
+            tooltip: 'Konto',
         },
     ];
 

@@ -18,6 +18,7 @@ Błędy z `$fetch` / `useApi`: [getApiFetchErrorMessage](../app/utils/apiFetchEr
 
 - Standardowe JSON: **`useApi`** + `execute()` (retry auth przy 401).
 - Upload `FormData` (np. zdjęcie pojazdu): **`$fetch`** z `credentials: 'include'` — patrz `uploadVehiclePhoto` w [useVehiclesApi.ts](../app/composables/useVehiclesApi.ts).
+- Avatar profilu: BFF **`POST /api/auth/profile/avatar`** (pole `file`) — proxy pod upstream `POST /auth/profile/avatar`, odpowiedź `data.photoUrl`; po sukcesie zwykle **`useAuthSession().refreshProfileFromServer()`** (GET `/api/auth/me`). Patrz [account/index.vue](../app/pages/account/index.vue).
 
 ## Serwer
 
