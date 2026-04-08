@@ -89,3 +89,48 @@ export async function bffUpstreamInstructorsGetById(
         data: json.data,
     };
 }
+
+export async function bffUpstreamInstructorsPatch(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/instructors/${encodeURIComponent(id)}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify(body),
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się zaktualizować instruktora',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}

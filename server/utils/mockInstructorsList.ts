@@ -5,8 +5,14 @@ export interface MockInstructorListRow {
     email: string;
 }
 
+type MockInstructorProfileExtras = {
+    qualifications: string;
+    experienceYears: number;
+};
+
 type GlobalWithStore = typeof globalThis & {
     __mockInstructorsListBySchool?: Record<string, MockInstructorListRow[]>;
+    __mockInstructorProfileExtras?: Record<string, MockInstructorProfileExtras>;
 };
 
 function getStore(): Record<string, MockInstructorListRow[]> {
@@ -17,6 +23,23 @@ function getStore(): Record<string, MockInstructorListRow[]> {
     }
 
     return g.__mockInstructorsListBySchool;
+}
+
+function getExtrasMap(): Record<string, MockInstructorProfileExtras> {
+    const g = globalThis as GlobalWithStore;
+
+    if (!g.__mockInstructorProfileExtras) {
+        g.__mockInstructorProfileExtras = {};
+    }
+
+    return g.__mockInstructorProfileExtras;
+}
+
+function getDefaultProfileExtras(): MockInstructorProfileExtras {
+    return {
+        qualifications: 'Kat. B (demo)',
+        experienceYears: 5,
+    };
 }
 
 function ensureSeedForSchool(schoolId: string): MockInstructorListRow[] {
@@ -55,47 +78,130 @@ export function mockInstructorsListPayload(schoolId: string): {
     };
 }
 
-/** Szczegóły instruktora — zgodnie z GET /instructors/:id (mock). */
-export interface MockInstructorDetailPayload {
-    id: string;
-    name: string;
-    email: string;
-    licenseNumber: string;
-    phone: string;
-    qualifications: string;
-    experience: string;
-}
-
-export function mockInstructorsGetById(
-    id: string,
-): MockInstructorDetailPayload | null {
+function findRowById(id: string): MockInstructorListRow | null {
     const store = getStore();
 
     for (const rows of Object.values(store)) {
         const row = rows.find((r) => r.id === id);
 
-        if (!row) {
-            continue;
+        if (row) {
+            return row;
         }
-
-        const parts = [row.firstName, row.lastName]
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0);
-
-        const name = parts.length > 0 ? parts.join(' ') : '—';
-
-        const suffix = row.id.replace(/-/g, '').slice(0, 6);
-
-        return {
-            id: row.id,
-            name,
-            email: row.email,
-            licenseNumber: `OSK-LIC-${suffix.toUpperCase()}`,
-            phone: `+48 600 ${suffix.slice(0, 3)} ${suffix.slice(3, 6)}`,
-            qualifications: 'Kat. B (demo)',
-            experience: '5 lat (demo)',
-        };
     }
 
     return null;
+}
+
+function mergeProfileExtras(
+    instructorId: string,
+    patch: Partial<MockInstructorProfileExtras>,
+): void {
+    const map = getExtrasMap();
+    const prev = map[instructorId] ?? getDefaultProfileExtras();
+
+    map[instructorId] = {
+        qualifications:
+            patch.qualifications !== undefined
+                ? patch.qualifications
+                : prev.qualifications,
+        experienceYears:
+            patch.experienceYears !== undefined
+                ? patch.experienceYears
+                : prev.experienceYears,
+    };
+}
+
+/** Szczegóły instruktora — kształt zbliżony do GET /instructors/:id (mock). */
+export interface MockInstructorDetailPayload {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    licenseNumber: string;
+    phone: string;
+    qualifications: string;
+    experienceYears: number;
+}
+
+function buildDetailPayload(
+    row: MockInstructorListRow,
+): MockInstructorDetailPayload {
+    const suffix = row.id.replace(/-/g, '').slice(0, 6);
+    const extras = getExtrasMap()[row.id] ?? getDefaultProfileExtras();
+
+    return {
+        id: row.id,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        email: row.email,
+        licenseNumber: `OSK-LIC-${suffix.toUpperCase()}`,
+        phone: `+48 600 ${suffix.slice(0, 3)} ${suffix.slice(3, 6)}`,
+        qualifications: extras.qualifications,
+        experienceYears: extras.experienceYears,
+    };
+}
+
+export function mockInstructorsGetById(
+    id: string,
+): MockInstructorDetailPayload | null {
+    const row = findRowById(id);
+
+    if (!row) {
+        return null;
+    }
+
+    return buildDetailPayload(row);
+}
+
+/**
+ * Częściowa aktualizacja profilu (mock). Zwraca aktualny stan jak po GET lub null gdy brak id.
+ */
+export function mockInstructorsPatchById(
+    id: string,
+    patch: Record<string, unknown>,
+): MockInstructorDetailPayload | null {
+    const row = findRowById(id);
+
+    if (!row) {
+        return null;
+    }
+
+    if (Object.keys(patch).length === 0) {
+        return buildDetailPayload(row);
+    }
+
+    if (typeof patch.firstName === 'string') {
+        row.firstName = patch.firstName.trim();
+    }
+
+    if (typeof patch.lastName === 'string') {
+        row.lastName = patch.lastName.trim();
+    }
+
+    const extraPatch: Partial<MockInstructorProfileExtras> = {};
+
+    if ('qualifications' in patch) {
+        extraPatch.qualifications =
+            patch.qualifications == null ? '' : String(patch.qualifications);
+    }
+
+    if (
+        'experienceYears' in patch &&
+        typeof patch.experienceYears === 'number' &&
+        Number.isInteger(patch.experienceYears)
+    ) {
+        extraPatch.experienceYears = patch.experienceYears;
+    }
+
+    if (Object.keys(extraPatch).length > 0) {
+        mergeProfileExtras(id, extraPatch);
+    }
+
+    const updated = findRowById(id);
+
+    if (!updated) {
+        return null;
+    }
+
+    return buildDetailPayload(updated);
 }

@@ -15,10 +15,18 @@ export interface InstructorDetail {
     experience: string;
 }
 
+/** Pola formularza edycji (bez placeholderów wyświetlania). */
+export interface InstructorEditFormModel {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    qualifications: string;
+    experienceYears: number;
+}
+
 /** Liczba lat doświadczenia z pól API (camelCase / snake_case). */
-function readNumericExperienceYears(
-    o: Record<string, unknown>,
-): number | null {
+function readNumericExperienceYears(o: Record<string, unknown>): number | null {
     for (const key of ['experienceYears', 'experience_years'] as const) {
         const v = o[key];
 
@@ -40,6 +48,62 @@ function readNumericExperienceYears(
     }
 
     return null;
+}
+
+/**
+ * Normalizacja odpowiedzi GET/PATCH pod formularz edycji (prefill).
+ * `qualifications`: null → pusty string; lata: brak w danych → 0.
+ */
+export function normalizeInstructorDetailForEdit(
+    data: unknown,
+): InstructorEditFormModel | null {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    const o = data as Record<string, unknown>;
+
+    const idRaw = o.id != null ? String(o.id).trim() : '';
+
+    if (!idRaw) {
+        return null;
+    }
+
+    const firstName =
+        o.firstName != null
+            ? String(o.firstName).trim()
+            : o.first_name != null
+              ? String(o.first_name).trim()
+              : '';
+
+    const lastName =
+        o.lastName != null
+            ? String(o.lastName).trim()
+            : o.last_name != null
+              ? String(o.last_name).trim()
+              : '';
+
+    const email = o.email != null ? String(o.email).trim() : '';
+
+    const qualifications =
+        o.qualifications == null ? '' : String(o.qualifications).trim();
+
+    let years = readNumericExperienceYears(o);
+
+    if (years == null || !Number.isFinite(years) || years < 0) {
+        years = 0;
+    }
+
+    const experienceYears = Math.min(80, Math.max(0, Math.floor(years)));
+
+    return {
+        id: idRaw,
+        firstName,
+        lastName,
+        email,
+        qualifications,
+        experienceYears,
+    };
 }
 
 /** Wyświetlanie „N rok / N lata / N lat” po polsku. */
