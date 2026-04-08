@@ -67,6 +67,39 @@ function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
     return store[schoolId]!;
 }
 
+/** Kształt `data.course` jak w GET `/courses/:id` wg courses-api.md (BE). */
+export interface MockCourseDetailRow extends MockCourseListRow {
+    capacity: number | null;
+}
+
+/** Szczegóły kursu z mocka (tylko istniejące ID z listy dla danego seeda). */
+export function mockCoursesGetById(
+    courseId: string,
+): MockCourseDetailRow | null {
+    const id = courseId.trim();
+
+    if (!id) {
+        return null;
+    }
+
+    const store = getStore();
+
+    for (const rows of Object.values(store)) {
+        const row = rows.find((r) => r.id === id);
+
+        if (!row) {
+            continue;
+        }
+
+        return {
+            ...row,
+            capacity: row.type === 'THEORY_GROUP' ? 24 : null,
+        };
+    }
+
+    return null;
+}
+
 /** Kształt `data` jak w odpowiedzi BE listy kursów. */
 export function mockCoursesListPayload(schoolId: string): {
     courses: MockCourseListRow[];

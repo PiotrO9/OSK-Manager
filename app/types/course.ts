@@ -14,6 +14,11 @@ export interface CourseListItem {
     instructor: CourseInstructorRef | null;
 }
 
+/** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */
+export interface CourseDetail extends CourseListItem {
+    capacity: number | null;
+}
+
 const COURSE_KIND_LABELS: Record<CourseKind, string> = {
     THEORY_GROUP: 'Teoria (grupa)',
     PRACTICAL: 'Praktyka',
@@ -114,6 +119,78 @@ function normalizeCourseListItem(raw: unknown): CourseListItem | null {
         totalHours,
         instructor: normalizeInstructorRef(o.instructor),
     };
+}
+
+function normalizeCourseCapacity(o: Record<string, unknown>): number | null {
+    if (!('capacity' in o)) {
+        return null;
+    }
+
+    const c = o.capacity;
+
+    if (c === null || c === undefined) {
+        return null;
+    }
+
+    if (typeof c === 'number' && Number.isFinite(c)) {
+        const n = Math.trunc(c);
+
+        if (n < 0) {
+            return null;
+        }
+
+        return n;
+    }
+
+    if (typeof c === 'string') {
+        const parsed = Number.parseInt(c.trim(), 10);
+
+        if (Number.isNaN(parsed) || parsed < 0) {
+            return null;
+        }
+
+        return parsed;
+    }
+
+    return null;
+}
+
+function normalizeCourseDetailInner(raw: unknown): CourseDetail | null {
+    const base = normalizeCourseListItem(raw);
+
+    if (!base || typeof raw !== 'object' || raw === null) {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+
+    return {
+        ...base,
+        capacity: normalizeCourseCapacity(o),
+    };
+}
+
+/**
+ * Normalizuje payload ze `unwrapApiSuccessData`: `{ course }` (BE) lub płaski obiekt kursu.
+ */
+export function normalizeCourseDetailData(data: unknown): CourseDetail | null {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    const record = data as Record<string, unknown>;
+
+    if ('course' in record) {
+        const nested = record.course;
+
+        if (nested === null || nested === undefined) {
+            return null;
+        }
+
+        return normalizeCourseDetailInner(nested);
+    }
+
+    return normalizeCourseDetailInner(data);
 }
 
 export function normalizeCoursesList(data: unknown): CourseListItem[] {

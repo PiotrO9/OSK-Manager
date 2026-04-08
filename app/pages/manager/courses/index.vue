@@ -246,15 +246,17 @@ function formatInstructorCell(course: CourseListItem): string {
                                         class="hover:bg-muted/30"
                                     >
                                         <td class="text-foreground px-4 py-3">
-                                            <span
-                                                class="inline-flex items-center gap-2"
+                                            <NuxtLink
+                                                :to="`/manager/courses/${course.id}`"
+                                                class="focus-visible:ring-ring inline-flex items-center gap-2 rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                                                :aria-label="`Szczegóły kursu: ${course.name}`"
                                             >
                                                 <BookOpen
                                                     class="text-muted-foreground size-4 shrink-0"
                                                     aria-hidden="true"
                                                 />
                                                 {{ course.name }}
-                                            </span>
+                                            </NuxtLink>
                                         </td>
                                         <td
                                             class="text-muted-foreground px-4 py-3"
