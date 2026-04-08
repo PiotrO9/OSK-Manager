@@ -18,8 +18,9 @@ This is a **starter template** for bootstrapping new Nuxt 3 projects. It is NOT 
 - **docs/SHADCN.md** — Prefer adding UI from shadcn-vue (`app/components/shadcn/`, `components.json`)
 - **docs/SHADCN_SKILLS.md** — How to use the repo’s `.agents/skills/shadcn/` pack with this Vue project
 - **docs/MCP_SHADCN.md** — Cursor MCP for shadcn-vue (`.cursor/mcp.json`)
+- **docs/MANAGER_INSTRUCTORS.md** — moduł managera: lista i szczegóły instruktora (trasy, BFF, typy)
 
-When answering questions about this project, **always read and reference the docs/ folder** for structure, conventions, and up-to-date information. Use @docs or @docs/ARCHITECTURE.md when relevant.
+When answering questions about this project, **always read and reference the docs/ folder** for structure, conventions, and up-to-date information. Use @docs or @docs/ARCHITECTURE.md when relevant. For instructor manager flows (list, detail, BFF), use **docs/MANAGER_INSTRUCTORS.md**.
 
 For new UI primitives, prefer **shadcn-vue** per **docs/SHADCN.md**; use the **shadcn** MCP server (see **docs/MCP_SHADCN.md**) to browse/install registry components when enabled.
 

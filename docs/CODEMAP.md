@@ -23,6 +23,15 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 - API klient: [useVehiclesApi.ts](../app/composables/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
 - Typy: [vehicle.ts](../app/types/vehicle.ts), [drivingSchool.ts](../app/types/drivingSchool.ts).
 
+## Instruktorzy (manager)
+
+- Dokument kontekstowy: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+- Strony: [app/pages/manager/instructors/](../app/pages/manager/instructors/) (`index.vue`, `[id].vue`, `new.vue`).
+- Formularz rejestracji: [ManagerInstructorFormDialog.vue](../app/components/manager/instructors/ManagerInstructorFormDialog.vue).
+- Klient listy: [useInstructorsApi.ts](../app/composables/useInstructorsApi.ts).
+- Typy / normalizacja szczegółu: [instructor.ts](../app/types/instructor.ts) (`InstructorDetail`, `normalizeInstructorDetail`).
+- BFF: [instructors.get.ts](../server/api/instructors.get.ts), [instructors/[id].get.ts](../server/api/instructors/[id].get.ts); mocki: [mockInstructorsList.ts](../server/utils/mockInstructorsList.ts).
+
 ## Auth
 
 - [useAuthSession.ts](../app/composables/useAuthSession.ts), [useLogout.ts](../app/composables/useLogout.ts), [auth.global.ts](../app/middleware/auth.global.ts), [manager.ts](../app/middleware/manager.ts).

@@ -356,13 +356,15 @@ async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
                                 :key="instructor.id"
                                 class="flex flex-col gap-0.5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                             >
-                                <span
-                                    class="text-foreground text-sm font-medium"
+                                <NuxtLink
+                                    :to="`/manager/instructors/${instructor.id}`"
+                                    class="text-foreground focus-visible:ring-ring rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                                    :aria-label="`Szczegóły instruktora ${formatInstructorDisplayName(instructor)}`"
                                 >
                                     {{
                                         formatInstructorDisplayName(instructor)
                                     }}
-                                </span>
+                                </NuxtLink>
                                 <span
                                     class="text-muted-foreground text-sm break-all"
                                 >
