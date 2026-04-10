@@ -21,6 +21,9 @@ const {
 const runtimeConfig = useRuntimeConfig();
 const { isAuthenticated, session, login } = useAuthSession();
 const { handleLogout } = useLogout();
+const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
+
+const DEFAULT_MANAGER_LANDING_PATHS = new Set(['/', '']);
 
 /** Tymczasowe MVP/demo: tylko uzupełnia pola; bez logowania. Widoczne w dev lub gdy public.demoMockLogin. */
 type DemoMockLoginRole = 'student' | 'instructor' | 'manager';
@@ -105,6 +108,26 @@ function resolveRedirectTarget(): string {
     return defaultPath;
 }
 
+async function resolveManagerPostLoginPath(
+    redirectTarget: string,
+): Promise<string> {
+    if (session.value?.role !== 'MANAGER') {
+        return redirectTarget;
+    }
+
+    if (!DEFAULT_MANAGER_LANDING_PATHS.has(redirectTarget)) {
+        return redirectTarget;
+    }
+
+    const result = await fetchDefaultDrivingSchool();
+
+    if (result.outcome === 'ok') {
+        return '/';
+    }
+
+    return '/manager/osk';
+}
+
 /**
  * Stare linki z ?redirect= — przeniesienie do cookie i czysty URL /login.
  */
@@ -171,14 +194,9 @@ async function handleLogin() {
         });
 
         const redirectTarget = resolveRedirectTarget();
-        const defaultPaths = new Set(['/', '']);
-        const managerLanding =
-            session.value?.role === 'MANAGER' &&
-            defaultPaths.has(redirectTarget)
-                ? '/manager/osk'
-                : redirectTarget;
+        const landing = await resolveManagerPostLoginPath(redirectTarget);
 
-        navigateTo(managerLanding);
+        navigateTo(landing);
     } catch (err) {
         const errorMessage =
             err instanceof Error ? err.message : 'Błąd logowania';

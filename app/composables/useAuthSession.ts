@@ -10,6 +10,14 @@ export type AuthProfilePatchBody = {
     bio?: string | null;
 };
 
+/** OSK z `GET /auth/me` ( uproszczony DTO ). */
+export interface AuthDrivingSchoolSummary {
+    id: string;
+    name: string;
+    city: string | null;
+    address: string | null;
+}
+
 export interface AuthSession {
     userName: string;
     userId: string;
@@ -21,6 +29,10 @@ export interface AuthSession {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    /** Aktywne OSK widoczne dla roli (z `/auth/me`). */
+    drivingSchools: AuthDrivingSchoolSummary[];
+    /** Domyślna OSK właściciela — sens dla `MANAGER`; inne role: `null`. */
+    defaultOskId: string | null;
 }
 
 const AUTH_PATH = '/api/auth';
@@ -39,6 +51,8 @@ type BackendUserResponse = {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    drivingSchools?: unknown;
+    defaultOskId?: string | null;
 };
 
 interface SessionUserPayload {
@@ -52,6 +66,8 @@ interface SessionUserPayload {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    drivingSchools: AuthDrivingSchoolSummary[];
+    defaultOskId: string | null;
 }
 
 function getAuthFetch() {
@@ -82,6 +98,53 @@ function getServerJsonErrorMessage(error: unknown): string | null {
     if (typeof d.statusMessage === 'string') return d.statusMessage;
 
     return null;
+}
+
+function normalizeDrivingSchoolsFromBackend(
+    raw: unknown,
+): AuthDrivingSchoolSummary[] {
+    if (!Array.isArray(raw)) return [];
+
+    const out: AuthDrivingSchoolSummary[] = [];
+
+    for (const item of raw) {
+        if (!item || typeof item !== 'object') continue;
+
+        const o = item as Record<string, unknown>;
+        const id = typeof o.id === 'string' ? o.id.trim() : '';
+        const name = typeof o.name === 'string' ? o.name.trim() : '';
+
+        if (!id || !name) continue;
+
+        function readOptStringNull(key: string): string | null {
+            if (!Object.prototype.hasOwnProperty.call(o, key)) return null;
+
+            const v = o[key];
+
+            if (v === null || v === undefined) return null;
+
+            const t = String(v).trim();
+
+            return t.length > 0 ? t : null;
+        }
+
+        out.push({
+            id,
+            name,
+            city: readOptStringNull('city'),
+            address: readOptStringNull('address'),
+        });
+    }
+
+    return out;
+}
+
+function normalizeDefaultPkFromBackend(raw: unknown): string | null {
+    if (raw === null || raw === undefined) return null;
+
+    const t = String(raw).trim();
+
+    return t.length > 0 ? t : null;
 }
 
 function normalizeBackendUserToSessionPayload(
@@ -143,6 +206,10 @@ function normalizeBackendUserToSessionPayload(
                 : user.profileUpdatedAt === null
                   ? null
                   : undefined,
+        drivingSchools: normalizeDrivingSchoolsFromBackend(user.drivingSchools),
+        defaultOskId: Object.prototype.hasOwnProperty.call(user, 'defaultOskId')
+            ? normalizeDefaultPkFromBackend(user.defaultOskId)
+            : null,
     };
 }
 
@@ -158,6 +225,8 @@ function createSessionFromUser(user: SessionUserPayload): AuthSession {
         phone: user.phone,
         bio: user.bio,
         profileUpdatedAt: user.profileUpdatedAt,
+        drivingSchools: user.drivingSchools,
+        defaultOskId: user.defaultOskId,
     };
 }
 
@@ -417,6 +486,12 @@ export function useAuthSession() {
             session.value = createSessionFromUser(
                 normalizeBackendUserToSessionPayload(body.user),
             );
+
+            try {
+                await loadMeIntoSession();
+            } catch {
+                /* Sesja już ustawiona z odpowiedzi loginu — pełny `/me` opcjonalny. */
+            }
         } catch (error: unknown) {
             const fromBody = getServerJsonErrorMessage(error);
 
@@ -475,6 +550,8 @@ export function useAuthSession() {
             userId: 'demo',
             userName,
             role: 'DEMO',
+            drivingSchools: [],
+            defaultOskId: null,
         };
     }
 

@@ -59,6 +59,8 @@ export default defineEventHandler(async (event) => {
                     profileUpdatedAt: null as string | null,
                     avatarUrl: avatarFromMock,
                     role,
+                    drivingSchools: [],
+                    defaultOskId: null as string | null,
                 },
             },
         };

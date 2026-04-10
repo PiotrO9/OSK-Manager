@@ -16,6 +16,16 @@ const { fetchDefaultDrivingSchool, isDefaultLoading } = useDrivingSchoolsApi();
 
 const isManager = computed(() => session.value?.role === 'MANAGER');
 
+const isInstructorOrStudent = computed(() => {
+    const r = session.value?.role?.trim().toUpperCase();
+
+    return r === 'INSTRUCTOR' || r === 'STUDENT';
+});
+
+const sessionDrivingSchools = computed(
+    () => session.value?.drivingSchools ?? [],
+);
+
 const defaultOsk = ref<DrivingSchool | null>(null);
 const defaultOskError = ref<string | null>(null);
 
@@ -62,7 +72,9 @@ onMounted(() => {
                 {{
                     isManager
                         ? 'Twój panel zarządzania szkołą jazdy.'
-                        : 'Panel aplikacji.'
+                        : isInstructorOrStudent
+                          ? 'Twój panel w szkole jazdy.'
+                          : 'Panel aplikacji.'
                 }}
             </p>
         </div>
@@ -134,6 +146,77 @@ onMounted(() => {
                     >
                         <ExternalLink class="size-4" aria-hidden="true" />
                     </NuxtLink>
+                </div>
+            </div>
+        </template>
+
+        <template v-else-if="isInstructorOrStudent">
+            <div class="space-y-4">
+                <h2
+                    class="text-foreground text-lg font-semibold tracking-tight"
+                >
+                    {{
+                        sessionDrivingSchools.length <= 1
+                            ? 'Twoja szkoła jazdy'
+                            : 'Twoje szkoły jazdy'
+                    }}
+                </h2>
+
+                <p
+                    v-if="sessionDrivingSchools.length === 0"
+                    class="text-muted-foreground max-w-2xl text-sm leading-relaxed"
+                    role="status"
+                >
+                    Nie masz jeszcze przypisanej szkoły jazdy. Gdy administrator
+                    doda Cię do szkoły, zobaczysz ją tutaj.
+                </p>
+
+                <div v-else class="space-y-4">
+                    <div
+                        v-for="school in sessionDrivingSchools"
+                        :key="school.id"
+                        class="border-border rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        :aria-label="`Szkoła jazdy: ${school.name}`"
+                    >
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl"
+                            >
+                                <Building2 class="size-5" aria-hidden="true" />
+                            </div>
+
+                            <div class="min-w-0 flex-1 space-y-1">
+                                <p
+                                    class="text-foreground truncate text-lg font-semibold"
+                                >
+                                    {{ school.name }}
+                                </p>
+
+                                <p
+                                    v-if="school.city || school.address"
+                                    class="text-muted-foreground flex items-center gap-1 text-sm"
+                                >
+                                    <MapPin
+                                        class="size-3.5 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <span v-if="school.city">{{
+                                            school.city
+                                        }}</span>
+                                        <span
+                                            v-if="school.city && school.address"
+                                        >
+                                            ·
+                                        </span>
+                                        <span v-if="school.address">{{
+                                            school.address
+                                        }}</span>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>

@@ -39,13 +39,6 @@ const navItems = computed<NavItem[]>(() => {
             tooltip: 'Pulpit',
         },
         {
-            to: '/vehicles',
-            label: 'Pojazdy',
-            ariaLabel: 'Przejdź do listy pojazdów',
-            icon: Car,
-            tooltip: 'Pojazdy',
-        },
-        {
             to: '/account',
             label: 'Konto',
             ariaLabel: 'Przejdź do mojego konta',
@@ -53,6 +46,16 @@ const navItems = computed<NavItem[]>(() => {
             tooltip: 'Konto',
         },
     ];
+
+    if (session.value?.role === 'MANAGER') {
+        items.splice(1, 0, {
+            to: '/vehicles',
+            label: 'Pojazdy',
+            ariaLabel: 'Przejdź do listy pojazdów',
+            icon: Car,
+            tooltip: 'Pojazdy',
+        });
+    }
 
     if (session.value?.role === 'MANAGER') {
         items.push({
