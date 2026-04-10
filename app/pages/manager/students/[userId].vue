@@ -72,6 +72,16 @@ function displayText(value: string): string {
     return t.length > 0 ? t : '—';
 }
 
+function displayPkkNumber(value: string | null): string {
+    if (value === null || value === undefined) {
+        return 'Brak PKK';
+    }
+
+    const t = value.trim();
+
+    return t.length > 0 ? t : 'Brak PKK';
+}
+
 function getNotFoundMessage(): string {
     return 'Nie znaleziono kursanta.';
 }
@@ -259,7 +269,7 @@ const backToListHref = computed(() => {
                                 {{ displayText(student.email) }}
                             </dd>
                         </div>
-                        <div v-if="student.pkkNumber" class="sm:col-span-2">
+                        <div class="sm:col-span-2">
                             <dt
                                 class="text-muted-foreground text-xs font-medium"
                             >
@@ -267,8 +277,13 @@ const backToListHref = computed(() => {
                             </dt>
                             <dd
                                 class="text-foreground mt-1 text-sm font-medium"
+                                :class="{
+                                    'text-muted-foreground':
+                                        !student.pkkNumber ||
+                                        student.pkkNumber.trim().length === 0,
+                                }"
                             >
-                                {{ displayText(student.pkkNumber) }}
+                                {{ displayPkkNumber(student.pkkNumber) }}
                             </dd>
                         </div>
                     </dl>
