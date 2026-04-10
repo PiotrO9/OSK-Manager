@@ -475,6 +475,20 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                     >
                         Edytuj
                     </button>
+                    <NuxtLink
+                        :to="`/manager/instructors/${instructor.id}/availability`"
+                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
+                        :class="
+                            isDeleting
+                                ? 'pointer-events-none cursor-not-allowed opacity-50'
+                                : ''
+                        "
+                        :tabindex="isDeleting ? -1 : 0"
+                        :aria-disabled="isDeleting"
+                        aria-label="Ustaw tygodniową dostępność instruktora"
+                    >
+                        Dostępność
+                    </NuxtLink>
                     <UiButton
                         type="button"
                         variant="destructive"
@@ -527,6 +541,12 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                     </dd>
                 </div>
             </dl>
+
+            <div class="border-border border-t pt-6">
+                <ManagerInstructorWeeklyAvailabilityPreview
+                    :instructor-id="instructor.id"
+                />
+            </div>
         </div>
 
         <ManagerInstructorEditDialog

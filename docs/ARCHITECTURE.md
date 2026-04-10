@@ -28,16 +28,17 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 
 ## Pages & Routes (wybrane)
 
-| Route                      | Plik                                  | Opis                                     |
-| -------------------------- | ------------------------------------- | ---------------------------------------- |
-| `/`                        | `pages/index.vue`                     | Pulpit                                   |
-| `/login`                   | `pages/login.vue`                     | Logowanie                                |
-| `/design-system`           | `pages/design-system.vue`             | Podgląd UI                               |
-| `/vehicles`                | `pages/vehicles/index.vue`            | Lista pojazdów                           |
-| `/account`                 | `pages/account/index.vue`             | Moje konto, avatar                       |
-| `/manager/osk`             | `pages/manager/osk/index.vue`         | Zarządzanie OSK                          |
-| `/manager/instructors`     | `pages/manager/instructors/index.vue` | Lista instruktorów (szkoła, rejestracja) |
-| `/manager/instructors/:id` | `pages/manager/instructors/[id].vue`  | Szczegóły instruktora (odczyt)           |
+| Route                                   | Plik                                              | Opis                                     |
+| --------------------------------------- | ------------------------------------------------- | ---------------------------------------- |
+| `/`                                     | `pages/index.vue`                                 | Pulpit                                   |
+| `/login`                                | `pages/login.vue`                                 | Logowanie                                |
+| `/design-system`                        | `pages/design-system.vue`                         | Podgląd UI                               |
+| `/vehicles`                             | `pages/vehicles/index.vue`                        | Lista pojazdów                           |
+| `/account`                              | `pages/account/index.vue`                         | Moje konto, avatar                       |
+| `/manager/osk`                          | `pages/manager/osk/index.vue`                     | Zarządzanie OSK                          |
+| `/manager/instructors`                  | `pages/manager/instructors/index.vue`             | Lista instruktorów (szkoła, rejestracja) |
+| `/manager/instructors/:id`              | `pages/manager/instructors/[id]/index.vue`        | Szczegóły instruktora (odczyt)           |
+| `/manager/instructors/:id/availability` | `pages/manager/instructors/[id]/availability.vue` | Edycja tygodniowej dostępności           |
 
 Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 

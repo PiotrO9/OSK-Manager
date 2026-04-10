@@ -39,6 +39,8 @@ Sekcje `Section*` (podstrona design-system), m.in.:
 
 Komponenty modułu OSK (formularze, siatki).
 
+- **Instruktorzy** (`manager/instructors/`): formularz rejestracji (`ManagerInstructorFormDialog`), edycja / usuwanie (`ManagerInstructorEditDialog`, `ManagerInstructorDeleteDialog`), **dostępność tygodniowa** — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) (edycja + podgląd paska na osi 6:00–22:00), [`ManagerInstructorWeeklyAvailabilityPreview`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) (podgląd na karcie szczegółów). Wspólna logika pozycji paska: [`availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts). Opis tras, BFF i MVP: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+
 ## Zasady
 
 - **Nowe UI:** wyłącznie shadcn `Ui*` o ile komponent istnieje w rejestrze.

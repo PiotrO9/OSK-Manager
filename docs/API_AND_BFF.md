@@ -34,6 +34,22 @@ Formularz w modalu ([`ManagerInstructorFormDialog.vue`](../app/components/manage
 ## Lista i szczegóły instruktora (GET)
 
 - **Lista:** `GET /api/instructors?schoolId=<uuid>` — [`server/api/instructors.get.ts`](../server/api/instructors.get.ts); z klienta lista przez [`useInstructorsApi`](../app/composables/useInstructorsApi.ts) (`resolveBffEndpoint`).
-- **Szczegóły:** `GET /api/instructors/:id` — [`server/api/instructors/[id].get.ts`](../server/api/instructors/[id].get.ts); proxy upstream w [`instructorsBff.ts`](../server/utils/instructorsBff.ts) (`bffUpstreamInstructorsGetById` → `GET {upstream}/instructors/:id`). Odpowiedź: koperta z `data` zgodna z [`InstructorDetail`](../app/types/instructor.ts) (normalizacja: `normalizeInstructorDetail`). Widok: [`app/pages/manager/instructors/[id].vue`](../app/pages/manager/instructors/[id].vue) (`unwrapApiSuccessData` + `$fetch`).
+- **Szczegóły:** `GET /api/instructors/:id` — [`server/api/instructors/[id].get.ts`](../server/api/instructors/[id].get.ts); proxy upstream w [`instructorsBff.ts`](../server/utils/instructorsBff.ts) (`bffUpstreamInstructorsGetById` → `GET {upstream}/instructors/:id`). Odpowiedź: koperta z `data` zgodna z [`InstructorDetail`](../app/types/instructor.ts) (normalizacja: `normalizeInstructorDetail`). Widok: [`app/pages/manager/instructors/[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue) (`unwrapApiSuccessData` + `$fetch`).
 
 Pełny opis tras, mocków i zachowania UI: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
+
+## Dostępność tygodniowa instruktora (BFF)
+
+Pełny opis: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md) (tabele BFF, koperty, walidacja, autoryzacja, MVP).
+
+| Operacja              | BFF (Nuxt)                                             | Handler                                                                                 |
+| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| Lista wpisów tygodnia | `GET /api/instructors/:id/availability/weekly`         | [`weekly.get.ts`](../server/api/instructors/[id]/availability/weekly.get.ts)            |
+| Upsert jednego dnia   | `PUT /api/instructors/:id/availability/weekly/:day`    | [`[day].put.ts`](../server/api/instructors/[id]/availability/weekly/[day].put.ts)       |
+| Usunięcie dnia        | `DELETE /api/instructors/:id/availability/weekly/:day` | [`[day].delete.ts`](../server/api/instructors/[id]/availability/weekly/[day].delete.ts) |
+
+**Koperta dla frontu:** `GET` / `PUT` zwracają `{ success: true, data: … }` (`data.weekly` / `data.entry`). `DELETE` z BFF zwraca **`{ success: true }` bez `data`** — upstream może używać **204 No Content**; mapowanie w [`availabilityBff.ts`](../server/utils/availabilityBff.ts).
+
+**`dayOfWeek`:** `0` = niedziela … `6` = sobota (jak `Date.getUTCDay()`). **`:id`:** profil instruktora (ten sam identyfikator co w liście instruktorów).
+
+Z klienta: [`useInstructorAvailabilityApi`](../app/composables/useInstructorAvailabilityApi.ts) lub `$fetch` + [`resolveBffEndpoint`](../app/utils/bffEndpoint.ts) + [`unwrapApiSuccessData`](../app/utils/apiEnvelope.ts) dla GET/PUT. Przy **upstreamie:** [`availabilityBff.ts`](../server/utils/availabilityBff.ts). W **mocku:** [`mockAvailabilityStore.ts`](../server/utils/mockAvailabilityStore.ts) po [`requireManagerFromCookie`](../server/utils/requireManagerFromCookie.ts).

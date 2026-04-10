@@ -192,3 +192,23 @@ Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`
 ## useVehiclesListPage
 
 Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie `schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie, ustawianie domyślnego pojazdu. Widok: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+
+---
+
+## useInstructorAvailabilityApi
+
+Tygodniowa dostępność instruktora (BFF `/api/instructors/:id/availability/weekly`). Kontekst: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+
+**Sygnatura:** `useInstructorAvailabilityApi(instructorId: MaybeRefOrGetter<string>)`
+
+**Returns:**
+
+| Property / method                        | Opis                                                                                                                                       |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `isLoading`                              | `Readonly<Ref<boolean>>` — trwa `fetchWeekly`                                                                                              |
+| `isSaving`                               | `Readonly<Ref<boolean>>` — trwa `saveDay` lub `deleteDay`                                                                                  |
+| `fetchWeekly()`                          | `Promise<WeeklyEntry[]>` — `unwrapApiSuccessData` → `data.weekly`                                                                          |
+| `saveDay(dayOfWeek, startTime, endTime)` | `Promise<WeeklyEntry>` — `PUT …/weekly/:day`, body `{ startTime, endTime }` (`HH:mm`)                                                      |
+| `deleteDay(dayOfWeek)`                   | `Promise<void>` — `DELETE …/weekly/:day`; odpowiedź BFF to `{ success: true }` bez `data` — composable nie wywołuje `unwrapApiSuccessData` |
+
+**Uwaga:** Ścieżki buduje [`resolveBffEndpoint`](../app/utils/bffEndpoint.ts); żądania z `credentials: 'include'`. Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).

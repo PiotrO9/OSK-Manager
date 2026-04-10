@@ -4,17 +4,17 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 
 ## Katalogi
 
-| Ścieżka                                                                   | Rola                                                                                   |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, lista pojazdów, design system sekcje). |
-| [app/components/app/design-system/](../app/components/app/design-system/) | Sekcje showcase (`Section*`), `EmblaCarousel`, `AppLoader`.                            |
-| [app/components/shadcn/](../app/components/shadcn/)                       | Komponenty shadcn-vue (prefiks `Ui*` w szablonie).                                     |
-| [app/components/manager/](../app/components/manager/)                     | Formularze i siatki modułu managera OSK.                                               |
-| [app/composables/](../app/composables/)                                   | Logika wielokrotnego użytku (`useApi`, `useAuthSession`, `useVehiclesApi`, …).         |
-| [app/utils/](../app/utils/)                                               | Funkcje czyste: `apiEnvelope`, `bffEndpoint`, `date`, `keyboard`.                      |
-| [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).             |
-| [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                      |
-| [server/utils/](../server/utils/)                                         | `*Bff.ts`, store mocków.                                                               |
+| Ścieżka                                                                   | Rola                                                                                                                         |
+| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, lista pojazdów, design system sekcje).                                       |
+| [app/components/app/design-system/](../app/components/app/design-system/) | Sekcje showcase (`Section*`), `EmblaCarousel`, `AppLoader`.                                                                  |
+| [app/components/shadcn/](../app/components/shadcn/)                       | Komponenty shadcn-vue (prefiks `Ui*` w szablonie).                                                                           |
+| [app/components/manager/](../app/components/manager/)                     | Formularze i siatki modułu managera OSK.                                                                                     |
+| [app/composables/](../app/composables/)                                   | Logika wielokrotnego użytku (`useApi`, `useAuthSession`, `useVehiclesApi`, …).                                               |
+| [app/utils/](../app/utils/)                                               | Funkcje czyste: `apiEnvelope`, `bffEndpoint`, `availabilityTimeline` (oś 6:00–22:00 dla UI dostępności), `date`, `keyboard`. |
+| [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).                                                   |
+| [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                                                            |
+| [server/utils/](../server/utils/)                                         | `*Bff.ts`, store mocków.                                                                                                     |
 
 ## Pojazdy i szkoły (OSK)
 
@@ -32,11 +32,14 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 ## Instruktorzy (manager)
 
 - Dokument kontekstowy: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
-- Strony: [app/pages/manager/instructors/](../app/pages/manager/instructors/) (`index.vue`, `[id].vue`, `new.vue`).
+- Strony: [app/pages/manager/instructors/](../app/pages/manager/instructors/) — `index.vue`, `new.vue`, folder **[id]/**: [`index.vue`](../app/pages/manager/instructors/[id]/index.vue) (szczegóły), [`availability.vue`](../app/pages/manager/instructors/[id]/availability.vue) (edycja tygodnia).
 - Formularz rejestracji: [ManagerInstructorFormDialog.vue](../app/components/manager/instructors/ManagerInstructorFormDialog.vue).
-- Klient listy: [useInstructorsApi.ts](../app/composables/useInstructorsApi.ts).
-- Typy / normalizacja szczegółu: [instructor.ts](../app/types/instructor.ts) (`InstructorDetail`, `normalizeInstructorDetail`).
-- BFF: [instructors.get.ts](../server/api/instructors.get.ts), [instructors/[id].get.ts](../server/api/instructors/[id].get.ts); mocki: [mockInstructorsList.ts](../server/utils/mockInstructorsList.ts).
+- Dostępność tygodniowa: [ManagerInstructorAvailabilityEditor.vue](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue), [ManagerInstructorWeeklyAvailabilityPreview.vue](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue).
+- Klient listy: [useInstructorsApi.ts](../app/composables/useInstructorsApi.ts); klient harmonogramu: [useInstructorAvailabilityApi.ts](../app/composables/useInstructorAvailabilityApi.ts).
+- Typy: [instructor.ts](../app/types/instructor.ts) (profil); [instructorAvailability.ts](../app/types/instructorAvailability.ts) (`WeeklyEntry`, kolejność dni); oś czasu UI: [availabilityTimeline.ts](../app/utils/availabilityTimeline.ts).
+- BFF instruktorzy: [instructors.get.ts](../server/api/instructors.get.ts), [instructors/[id].get.ts](../server/api/instructors/[id].get.ts), [instructors/[id].patch.ts](../server/api/instructors/[id].patch.ts), [instructors/[id].delete.ts](../server/api/instructors/[id].delete.ts).
+- BFF weekly: [weekly.get.ts](../server/api/instructors/[id]/availability/weekly.get.ts), [[day].put.ts](../server/api/instructors/[id]/availability/weekly/[day].put.ts), [[day].delete.ts](../server/api/instructors/[id]/availability/weekly/[day].delete.ts); upstream: [availabilityBff.ts](../server/utils/availabilityBff.ts); mock: [mockAvailabilityStore.ts](../server/utils/mockAvailabilityStore.ts).
+- Mocki listy/szczegółu: [mockInstructorsList.ts](../server/utils/mockInstructorsList.ts).
 
 ## Auth
 

@@ -12,9 +12,9 @@ Handler: [`server/api/students/[userId]/index.patch.ts`](../server/api/students/
 
 ### Treść żądania (JSON)
 
-| Pole     | Wymagane | Opis |
-| -------- | -------- | ---- |
-| `notes`  | tak (klucz musi wystąpić) | `string` lub `null`. Pusty string po `trim` traktowany jak `null`. Maks. **5000** znaków po normalizacji BFF; powyżej **400**. |
+| Pole    | Wymagane                  | Opis                                                                                                                           |
+| ------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `notes` | tak (klucz musi wystąpić) | `string` lub `null`. Pusty string po `trim` traktowany jak `null`. Maks. **5000** znaków po normalizacji BFF; powyżej **400**. |
 
 Brak klucza `notes` w obiekcie JSON → **400**, komunikat: pole wymagane.
 
