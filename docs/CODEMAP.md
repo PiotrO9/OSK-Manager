@@ -23,6 +23,12 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 - API klient: [useVehiclesApi.ts](../app/composables/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
 - Typy: [vehicle.ts](../app/types/vehicle.ts), [drivingSchool.ts](../app/types/drivingSchool.ts).
 
+## Kursanci (manager)
+
+- Strona: [app/pages/manager/students/index.vue](../app/pages/manager/students/index.vue) (lista z paginacją i filtrem po kursie, formularz rejestracji).
+- Klient listy: [useStudentsApi.ts](../app/composables/useStudentsApi.ts); typy: [student.ts](../app/types/student.ts).
+- BFF: [students.get.ts](../server/api/students.get.ts); mock: [mockStudentsList.ts](../server/utils/mockStudentsList.ts); upstream: [studentsBff.ts](../server/utils/studentsBff.ts).
+
 ## Instruktorzy (manager)
 
 - Dokument kontekstowy: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
