@@ -1,4 +1,7 @@
-import { mockCoursesGetById } from '~~/server/utils/mockCoursesList';
+import {
+    mockCoursesGetById,
+    mockCoursesListPayload,
+} from '~~/server/utils/mockCoursesList';
 
 /** Wiersz listy kursantów — kształt elementu `data.data[]`  wg students-api.md. */
 export interface MockStudentListRow {
@@ -240,6 +243,114 @@ function ensureSeedForSchool(schoolId: string): MockStudentListRow[] {
     return rows;
 }
 
+/** Kształt `data` w kopercie sukcesu GET /students/:userId (wg students-api.md). */
+export interface MockStudentDetailPayload {
+    id: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    pkkNumber: string | null;
+    courses: Array<{
+        id: string;
+        name: string;
+        category: string;
+        status: string;
+    }>;
+}
+
+const MOCK_PARTICIPANT_STATUSES = ['ACTIVE', 'COMPLETED', 'SUSPENDED'] as const;
+
+function hashUserIdForMockCourses(userId: string): number {
+    const s = userId.trim();
+    let h = 0;
+
+    for (let i = 0; i < s.length; i++) {
+        h = (h * 31 + s.charCodeAt(i)) | 0;
+    }
+
+    return Math.abs(h);
+}
+
+/**
+ * Szczegóły kursanta w trybie demo — 1–3 kursy z mocka OSK, status deterministyczny.
+ */
+export function mockStudentDetailPayload(
+    userId: string,
+    schoolId: string,
+): MockStudentDetailPayload | null {
+    const uid = userId.trim();
+    const sid = schoolId.trim();
+
+    if (!uid || !sid) {
+        return null;
+    }
+
+    const all = ensureSeedForSchool(sid);
+    const row = all.find((r) => r.userId === uid);
+
+    if (!row) {
+        return null;
+    }
+
+    const { courses: schoolCourses } = mockCoursesListPayload(sid);
+    const sorted = [...schoolCourses].sort((a, b) =>
+        a.id.localeCompare(b.id, 'en'),
+    );
+
+    const h = hashUserIdForMockCourses(uid);
+    const n = sorted.length;
+
+    if (n === 0) {
+        return {
+            id: row.id,
+            userId: row.userId,
+            firstName: row.firstName,
+            lastName: row.lastName,
+            email: row.email,
+            pkkNumber: row.pkkNumber,
+            courses: [],
+        };
+    }
+
+    const maxPick = Math.min(3, n);
+    const pickCount = 1 + (h % maxPick);
+    const start = h % n;
+
+    const picked: typeof sorted = [];
+    const seen = new Set<string>();
+
+    for (let i = 0; i < pickCount && picked.length < n; i++) {
+        const course = sorted[(start + i) % n]!;
+
+        if (seen.has(course.id)) {
+            continue;
+        }
+
+        seen.add(course.id);
+        picked.push(course);
+    }
+
+    const courses = picked.map((c, i) => ({
+        id: c.id,
+        name: c.name,
+        category: c.category,
+        status: MOCK_PARTICIPANT_STATUSES[
+            (h + i) % MOCK_PARTICIPANT_STATUSES.length
+        ]!,
+    }));
+
+    return {
+        id: row.id,
+        userId: row.userId,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        email: row.email,
+        pkkNumber: row.pkkNumber,
+        courses,
+    };
+}
+
 /** Kształt `data` w kopercie sukcesu GET /students (wg students-api.md). */
 export function mockStudentsListPayload(
     schoolId: string,
@@ -257,10 +368,7 @@ export function mockStudentsListPayload(
     const filtered =
         courseId !== undefined && courseId.trim().length > 0
             ? all.filter((row) =>
-                  mockStudentVisibleInCourseFilter(
-                      row.id,
-                      courseId.trim(),
-                  ),
+                  mockStudentVisibleInCourseFilter(row.id, courseId.trim()),
               )
             : all;
 

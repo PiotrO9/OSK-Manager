@@ -57,9 +57,14 @@ export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffUpstreamStudentAssignToCourse(event, upstream, studentUserId, {
-            courseId,
-        });
+        return bffUpstreamStudentAssignToCourse(
+            event,
+            upstream,
+            studentUserId,
+            {
+                courseId,
+            },
+        );
     }
 
     await requireManagerFromCookie(event);

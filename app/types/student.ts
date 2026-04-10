@@ -28,6 +28,45 @@ export interface StudentListPage {
     totalPages: number;
 }
 
+/** Kurs w szczegółach kursanta (GET /students/:userId) — status z course_participants. */
+export interface StudentCourseItem {
+    id: string;
+    name: string;
+    category: string;
+    status: string;
+}
+
+/** Szczegóły kursanta z listą kursów w OSK. */
+export interface StudentDetail {
+    id: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    pkkNumber: string | null;
+    courses: StudentCourseItem[];
+}
+
+/** Znane statusy uczestnictwa — etykiety UI; nieznany kod → „Nieznany”. */
+export const STUDENT_COURSE_STATUS_LABELS: Record<string, string> = {
+    ACTIVE: 'Aktywny',
+    COMPLETED: 'Zakończony',
+    SUSPENDED: 'Zawieszony',
+    CANCELLED: 'Anulowany',
+    WITHDRAWN: 'Wypisany',
+    UNKNOWN: 'Nieznany',
+};
+
+export function formatStudentCourseStatusLabel(status: string): string {
+    const key = status.trim().toUpperCase();
+
+    if (!key) {
+        return 'Nieznany';
+    }
+
+    return STUDENT_COURSE_STATUS_LABELS[key] ?? 'Nieznany';
+}
+
 export function formatStudentDisplayName(student: StudentListItem): string {
     const parts = [student.firstName, student.lastName]
         .map((s) => s.trim())
@@ -225,5 +264,115 @@ export function normalizeStudentListPage(
         page,
         limit,
         totalPages,
+    };
+}
+
+function normalizeStudentCourseItem(raw: unknown): StudentCourseItem | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+
+    const id = o.id != null ? String(o.id).trim() : '';
+
+    if (!id) {
+        return null;
+    }
+
+    const name =
+        o.name != null
+            ? String(o.name).trim()
+            : o.title != null
+              ? String(o.title).trim()
+              : '';
+
+    if (!name) {
+        return null;
+    }
+
+    const category =
+        o.category != null
+            ? String(o.category).trim()
+            : o.category_code != null
+              ? String(o.category_code).trim()
+              : '';
+
+    const statusRaw = o.status;
+
+    const status =
+        statusRaw != null && String(statusRaw).trim().length > 0
+            ? String(statusRaw).trim().toUpperCase()
+            : 'UNKNOWN';
+
+    return {
+        id,
+        name,
+        category,
+        status,
+    };
+}
+
+/**
+ * Normalizuje `data` z koperty po `unwrapApiSuccessData` — szczegóły kursanta
+ * wg students-api.md (GET /students/:userId).
+ */
+export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+
+    const id = o.id != null ? String(o.id).trim() : '';
+
+    if (!id) {
+        return null;
+    }
+
+    const userIdRaw = o.userId ?? o.user_id;
+    const userId =
+        userIdRaw != null && String(userIdRaw).trim().length > 0
+            ? String(userIdRaw).trim()
+            : id;
+
+    const firstName =
+        o.firstName != null
+            ? String(o.firstName).trim()
+            : o.first_name != null
+              ? String(o.first_name).trim()
+              : '';
+
+    const lastName =
+        o.lastName != null
+            ? String(o.lastName).trim()
+            : o.last_name != null
+              ? String(o.last_name).trim()
+              : '';
+
+    const email = o.email != null ? String(o.email).trim().toLowerCase() : '';
+
+    if (!firstName || !lastName || !email) {
+        return null;
+    }
+
+    const pkkNumber = readStringOrNull(o.pkkNumber ?? o.pkk_number);
+
+    const coursesRaw = o.courses;
+
+    const courses: StudentCourseItem[] = Array.isArray(coursesRaw)
+        ? coursesRaw
+              .map((row) => normalizeStudentCourseItem(row))
+              .filter((x): x is StudentCourseItem => x !== null)
+        : [];
+
+    return {
+        id,
+        userId,
+        firstName,
+        lastName,
+        email,
+        pkkNumber,
+        courses,
     };
 }

@@ -149,6 +149,27 @@ function isUuid(value: string): boolean {
     return UUID_RE.test(value.trim());
 }
 
+function readQueryTruthyFlag(raw: unknown): boolean {
+    if (raw === undefined || raw === null) {
+        return false;
+    }
+
+    const v = Array.isArray(raw) ? raw[0] : raw;
+
+    if (typeof v !== 'string') {
+        return false;
+    }
+
+    const t = v.trim().toLowerCase();
+
+    return t === '1' || t === 'true' || t === 'yes';
+}
+
+/** Otwarcie modala rejestracji z URL — nie wystarczy sam `schoolId` (np. powrót ze szczegółów). */
+const openRegisterFormFromQuery = computed((): boolean => {
+    return readQueryTruthyFlag(route.query.register);
+});
+
 const prefillSchoolId = computed((): string | null => {
     const raw = route.query.schoolId;
     const s = Array.isArray(raw) ? raw[0] : raw;
@@ -282,7 +303,7 @@ onMounted(async () => {
     await loadSchools();
     activeSchoolId.value = resolveInitialActiveSchoolId();
 
-    if (prefillSchoolId.value) {
+    if (openRegisterFormFromQuery.value) {
         apiError.value = null;
         formDialogOpen.value = true;
     }
@@ -448,9 +469,10 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
             <p class="text-muted-foreground text-sm">
                 Przeglądaj kursantów wybranej OSK z paginacją i filtrem po
                 kursie. Możesz zapisać kursanta na kurs z poziomu tabeli.
-                Dodawanie konta odbywa się przyciskiem poniżej; formularz
-                można otworzyć z parametru
-                <span class="font-mono">?schoolId=</span>.
+                Dodawanie konta odbywa się przyciskiem poniżej; formularz można
+                otworzyć z adresu z parametrami
+                <span class="font-mono">?schoolId=…&amp;register=1</span>
+                (prefill szkoły jest opcjonalny).
             </p>
         </div>
 
@@ -606,6 +628,12 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                             scope="col"
                                             class="px-4 py-3 font-medium"
                                         >
+                                            Szczegóły
+                                        </th>
+                                        <th
+                                            scope="col"
+                                            class="px-4 py-3 font-medium"
+                                        >
                                             Akcje
                                         </th>
                                     </tr>
@@ -626,6 +654,28 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                             class="text-muted-foreground px-4 py-3 break-all"
                                         >
                                             {{ student.email }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <NuxtLink
+                                                v-if="activeSchoolId"
+                                                :to="{
+                                                    path: `/manager/students/${student.userId}`,
+                                                    query: {
+                                                        schoolId:
+                                                            activeSchoolId,
+                                                    },
+                                                }"
+                                                class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                                                :aria-label="`Otwórz szczegóły kursanta ${formatStudentDisplayName(student)}`"
+                                            >
+                                                Otwórz
+                                            </NuxtLink>
+                                            <span
+                                                v-else
+                                                class="text-muted-foreground text-sm"
+                                            >
+                                                —
+                                            </span>
                                         </td>
                                         <td class="px-4 py-3">
                                             <UiButton

@@ -110,11 +110,7 @@ function handleSubmit() {
                         aria-label="Wybierz kurs do przypisania kursanta"
                     >
                         <option disabled value="">— Wybierz kurs —</option>
-                        <option
-                            v-for="c in courses"
-                            :key="c.id"
-                            :value="c.id"
-                        >
+                        <option v-for="c in courses" :key="c.id" :value="c.id">
                             {{ c.name }} ({{ c.category }})
                         </option>
                     </select>

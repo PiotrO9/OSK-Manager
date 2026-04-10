@@ -36,10 +36,8 @@ function normalizeCourseParticipant(
     const p = raw as Record<string, unknown>;
     const id = typeof p.id === 'string' ? p.id.trim() : '';
     const courseId = typeof p.courseId === 'string' ? p.courseId.trim() : '';
-    const studentId =
-        typeof p.studentId === 'string' ? p.studentId.trim() : '';
-    const createdAt =
-        typeof p.createdAt === 'string' ? p.createdAt.trim() : '';
+    const studentId = typeof p.studentId === 'string' ? p.studentId.trim() : '';
+    const createdAt = typeof p.createdAt === 'string' ? p.createdAt.trim() : '';
 
     if (!id || !courseId || !studentId || !createdAt) {
         return null;
@@ -157,7 +155,9 @@ export function useStudentsApi() {
             const participant = normalizeCourseParticipant(data);
 
             if (!participant) {
-                throw new Error('Nieprawidłowa odpowiedź serwera (zapis na kurs).');
+                throw new Error(
+                    'Nieprawidłowa odpowiedź serwera (zapis na kurs).',
+                );
             }
 
             return participant;

@@ -61,6 +61,52 @@ export async function bffUpstreamStudentsList(
     };
 }
 
+export async function bffUpstreamStudentDetail(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    schoolId: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const qs = new URLSearchParams({ schoolId: schoolId.trim() });
+
+    const res = await fetch(
+        `${upstreamBase}/students/${encodeURIComponent(userId)}?${qs.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się pobrać danych kursanta',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export async function bffUpstreamStudentAssignToCourse(
     event: H3Event,
     upstreamBase: string,
