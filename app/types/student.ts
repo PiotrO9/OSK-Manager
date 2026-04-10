@@ -1,3 +1,11 @@
+/** Rekord uczestnictwa (POST /students/:userId/courses) — pole `data.participant`. */
+export interface CourseParticipantDto {
+    id: string;
+    courseId: string;
+    studentId: string;
+    createdAt: string;
+}
+
 /** Element listy kursantów (GET /students) — zgodnie z students-api.md (BE). */
 export interface StudentListItem {
     id: string;

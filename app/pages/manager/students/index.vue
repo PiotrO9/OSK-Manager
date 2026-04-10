@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { Users } from 'lucide-vue-next';
+import { UserPlus, Users } from 'lucide-vue-next';
 import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import type { DrivingSchool } from '~/types/drivingSchool';
 import type { CourseListItem } from '~/types/course';
-import type { StudentListItem } from '~/types/student';
+import {
+    formatStudentDisplayName,
+    type StudentListItem,
+} from '~/types/student';
 import {
     getApiErrorStatusCode,
     unwrapApiSuccessData,
@@ -24,7 +27,7 @@ usePageMeta({
 const route = useRoute();
 const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
 const { fetchList: fetchCoursesList } = useCoursesApi();
-const { fetchList: fetchStudentsPage } = useStudentsApi();
+const { fetchList: fetchStudentsPage, assignToCourse } = useStudentsApi();
 const { addToast } = useAppToast();
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta kursanta.';
@@ -50,6 +53,39 @@ function resolveStudentRegisterError(err: unknown): string {
     }
 
     return getApiFetchErrorMessage(err, REGISTER_GENERIC_FALLBACK);
+}
+
+function resolveAssignToCourseError(err: unknown): string {
+    const status = getApiErrorStatusCode(err);
+
+    if (status === 409) {
+        return 'Ten kursant jest już zapisany na wybrany kurs.';
+    }
+
+    if (status === 403) {
+        return 'Brak uprawnień do przypisania w tej szkole.';
+    }
+
+    if (status === 404) {
+        return 'Nie znaleziono kursu lub kursanta.';
+    }
+
+    if (status === 400) {
+        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane żądania.');
+    }
+
+    if (status !== undefined && status >= 500) {
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
+    }
+
+    if (err instanceof Error && err.message.trim().length > 0) {
+        return err.message.trim();
+    }
+
+    return getApiFetchErrorMessage(
+        err,
+        'Nie udało się zapisać kursanta na kurs.',
+    );
 }
 
 function resolveStudentsListError(err: unknown): string {
@@ -100,6 +136,11 @@ const studentsLoadError = ref<string | null>(null);
 const formDialogOpen = ref(false);
 const isFormSaving = ref(false);
 const apiError = ref<string | null>(null);
+
+const assignDialogOpen = ref(false);
+const assignTargetStudent = ref<StudentListItem | null>(null);
+const isAssignSaving = ref(false);
+const assignApiError = ref<string | null>(null);
 
 const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -268,6 +309,76 @@ function handleFormDialogOpenChange(open: boolean) {
     }
 }
 
+const assignTargetDisplayName = computed(() => {
+    const s = assignTargetStudent.value;
+
+    if (!s) {
+        return '';
+    }
+
+    return formatStudentDisplayName(s);
+});
+
+function handleOpenAssignCourse(student: StudentListItem) {
+    assignTargetStudent.value = student;
+    assignApiError.value = null;
+    assignDialogOpen.value = true;
+
+    if (!activeSchoolId.value.trim()) {
+        return;
+    }
+
+    if (courses.value.length === 0 && !isCoursesLoading.value) {
+        void loadCoursesForFilter();
+    }
+}
+
+function handleAssignDialogOpenChange(open: boolean) {
+    assignDialogOpen.value = open;
+
+    if (!open) {
+        assignTargetStudent.value = null;
+        assignApiError.value = null;
+    }
+}
+
+async function handleAssignCourseSubmit(courseId: string) {
+    const student = assignTargetStudent.value;
+
+    if (!student || isAssignSaving.value) {
+        return;
+    }
+
+    assignApiError.value = null;
+    isAssignSaving.value = true;
+
+    try {
+        await assignToCourse({ userId: student.userId, courseId });
+
+        addToast({
+            title: 'Kursant zapisany na kurs',
+            variant: 'success',
+        });
+
+        assignDialogOpen.value = false;
+        assignTargetStudent.value = null;
+
+        await loadStudents();
+    } catch (err) {
+        const message = resolveAssignToCourseError(err);
+
+        assignApiError.value = message;
+
+        addToast({
+            title: 'Nie udało się zapisać na kurs',
+            description: message,
+            variant: 'error',
+        });
+    } finally {
+        isAssignSaving.value = false;
+    }
+}
+
 async function handleStudentSubmit(payload: StudentRegisterPayload) {
     if (isFormSaving.value) return;
 
@@ -336,8 +447,9 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
             </h1>
             <p class="text-muted-foreground text-sm">
                 Przeglądaj kursantów wybranej OSK z paginacją i filtrem po
-                kursie. Dodawanie konta odbywa się przyciskiem poniżej;
-                formularz można otworzyć z parametru
+                kursie. Możesz zapisać kursanta na kurs z poziomu tabeli.
+                Dodawanie konta odbywa się przyciskiem poniżej; formularz
+                można otworzyć z parametru
                 <span class="font-mono">?schoolId=</span>.
             </p>
         </div>
@@ -490,6 +602,12 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                         >
                                             E-mail
                                         </th>
+                                        <th
+                                            scope="col"
+                                            class="px-4 py-3 font-medium"
+                                        >
+                                            Akcje
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-border divide-y">
@@ -508,6 +626,30 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                             class="text-muted-foreground px-4 py-3 break-all"
                                         >
                                             {{ student.email }}
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <UiButton
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                class="inline-flex items-center gap-1.5"
+                                                :disabled="
+                                                    !activeSchoolId ||
+                                                    isStudentsLoading
+                                                "
+                                                :aria-label="`Przypisz ${formatStudentDisplayName(student)} do kursu`"
+                                                @click="
+                                                    handleOpenAssignCourse(
+                                                        student,
+                                                    )
+                                                "
+                                            >
+                                                <UserPlus
+                                                    class="size-3.5 shrink-0"
+                                                    aria-hidden="true"
+                                                />
+                                                Kurs
+                                            </UiButton>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -566,6 +708,18 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                 </template>
             </template>
         </div>
+
+        <ManagerStudentAssignCourseDialog
+            :open="assignDialogOpen"
+            :student-display-name="assignTargetDisplayName"
+            :courses="courses"
+            :is-courses-loading="isCoursesLoading"
+            :courses-load-error="coursesLoadError"
+            :is-saving="isAssignSaving"
+            :api-error="assignApiError"
+            @update:open="handleAssignDialogOpenChange"
+            @submit="handleAssignCourseSubmit"
+        />
 
         <ManagerStudentFormDialog
             :open="formDialogOpen"

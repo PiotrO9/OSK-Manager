@@ -1,4 +1,6 @@
-/** Wiersz listy kursantów — kształt elementu `data.data[]` wg students-api.md. */
+import { mockCoursesGetById } from '~~/server/utils/mockCoursesList';
+
+/** Wiersz listy kursantów — kształt elementu `data.data[]`  wg students-api.md. */
 export interface MockStudentListRow {
     id: string;
     userId: string;
@@ -13,6 +15,7 @@ export interface MockStudentListRow {
 
 type GlobalWithStore = typeof globalThis & {
     __mockStudentsListBySchool?: Record<string, MockStudentListRow[]>;
+    __mockCourseParticipants?: Set<string>;
 };
 
 function getStore(): Record<string, MockStudentListRow[]> {
@@ -109,6 +112,94 @@ function mockStudentAssignedToCourse(
     return Math.abs(h) % 2 === 0;
 }
 
+function getMockCourseParticipantSet(): Set<string> {
+    const g = globalThis as GlobalWithStore;
+
+    if (!g.__mockCourseParticipants) {
+        g.__mockCourseParticipants = new Set();
+    }
+
+    return g.__mockCourseParticipants;
+}
+
+function mockCourseParticipantKey(
+    studentProfileId: string,
+    courseId: string,
+): string {
+    return `${studentProfileId.trim()}:${courseId.trim()}`;
+}
+
+/** Uczestnictwo zapisane przez POST w trybie demo lub „losowe” demo (hash). */
+export function mockStudentVisibleInCourseFilter(
+    studentProfileId: string,
+    courseId: string,
+): boolean {
+    const key = mockCourseParticipantKey(studentProfileId, courseId);
+
+    if (getMockCourseParticipantSet().has(key)) {
+        return true;
+    }
+
+    return mockStudentAssignedToCourse(studentProfileId, courseId);
+}
+
+export type MockAssignStudentCourseErrorCode =
+    | 'COURSE_NOT_FOUND'
+    | 'STUDENT_NOT_IN_SCHOOL'
+    | 'DUPLICATE';
+
+/**
+ * Demo: przypisanie kursanta (userId) do kursu — spójne z filtrem listy.
+ */
+export function mockCourseParticipantAssign(params: {
+    studentUserId: string;
+    courseId: string;
+}):
+    | { ok: true; participant: MockCourseParticipantRecord }
+    | { ok: false; code: MockAssignStudentCourseErrorCode } {
+    const courseId = params.courseId.trim();
+    const studentUserId = params.studentUserId.trim();
+
+    const course = mockCoursesGetById(courseId);
+
+    if (!course) {
+        return { ok: false, code: 'COURSE_NOT_FOUND' };
+    }
+
+    const schoolId = course.schoolId;
+    const all = ensureSeedForSchool(schoolId);
+    const row = all.find((r) => r.userId === studentUserId);
+
+    if (!row) {
+        return { ok: false, code: 'STUDENT_NOT_IN_SCHOOL' };
+    }
+
+    const set = getMockCourseParticipantSet();
+    const key = mockCourseParticipantKey(row.id, courseId);
+
+    if (set.has(key)) {
+        return { ok: false, code: 'DUPLICATE' };
+    }
+
+    set.add(key);
+
+    const participant: MockCourseParticipantRecord = {
+        id: crypto.randomUUID(),
+        courseId,
+        studentId: row.id,
+        createdAt: new Date().toISOString(),
+    };
+
+    return { ok: true, participant };
+}
+
+export interface MockCourseParticipantRecord {
+    id: string;
+    courseId: string;
+    studentId: string;
+    createdAt: string;
+}
+
 function ensureSeedForSchool(schoolId: string): MockStudentListRow[] {
     const store = getStore();
 
@@ -166,7 +257,10 @@ export function mockStudentsListPayload(
     const filtered =
         courseId !== undefined && courseId.trim().length > 0
             ? all.filter((row) =>
-                  mockStudentAssignedToCourse(row.id, courseId.trim()),
+                  mockStudentVisibleInCourseFilter(
+                      row.id,
+                      courseId.trim(),
+                  ),
               )
             : all;
 
