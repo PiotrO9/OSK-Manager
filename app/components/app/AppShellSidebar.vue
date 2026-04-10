@@ -8,6 +8,7 @@ import {
     LayoutDashboard,
     LogOut,
     User,
+    Users,
 } from 'lucide-vue-next';
 import { useSidebar } from '../shadcn/sidebar';
 
@@ -74,6 +75,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do zarządzania instruktorami',
             icon: GraduationCap,
             tooltip: 'Instruktorzy',
+        });
+        items.push({
+            to: '/manager/students',
+            label: 'Kursanci',
+            ariaLabel: 'Przejdź do zarządzania kursantami',
+            icon: Users,
+            tooltip: 'Kursanci',
         });
         items.push({
             to: '/manager/courses',

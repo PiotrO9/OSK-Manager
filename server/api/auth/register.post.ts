@@ -19,12 +19,13 @@ export default defineEventHandler(async (event) => {
     }
 
     const record = body as { role?: unknown };
+    const role = record.role;
 
-    if (record.role !== 'INSTRUCTOR') {
+    if (role !== 'INSTRUCTOR' && role !== 'STUDENT') {
         throw createError({
             statusCode: 400,
             message:
-                'Ten endpoint obsługuje wyłącznie rejestrację instruktora (role: INSTRUCTOR).',
+                'Dozwolone role: INSTRUCTOR (instruktor) lub STUDENT (kursant).',
         });
     }
 

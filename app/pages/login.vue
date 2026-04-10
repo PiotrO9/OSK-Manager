@@ -237,10 +237,6 @@ function handleDemoMockFill(role: DemoMockLoginRole) {
     <div class="mx-auto w-full max-w-xl space-y-6">
         <div class="space-y-2">
             <h1 class="text-2xl font-extrabold tracking-tight">Logowanie</h1>
-            <p class="text-slate-700 dark:text-slate-300">
-                Zaloguj się używając adresu e-mail i hasła. Tokeny JWT są
-                przechowywane w bezpiecznych plikach cookie HTTP-only.
-            </p>
         </div>
 
         <UiCard aria-label="Card: Sesja">

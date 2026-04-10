@@ -13,6 +13,10 @@ function resolveShellHeading(): string {
         return 'Instruktorzy';
     }
 
+    if (route.path.startsWith('/manager/students')) {
+        return 'Kursanci';
+    }
+
     if (route.path.startsWith('/manager/courses')) {
         return 'Kursy';
     }
