@@ -187,6 +187,16 @@ const backToListHref = computed(() => {
         query: { schoolId: sid },
     };
 });
+
+function handleStudentNotesUpdate(notes: string | null) {
+    const s = student.value;
+
+    if (!s) {
+        return;
+    }
+
+    s.notes = notes;
+}
 </script>
 
 <template>
@@ -196,8 +206,7 @@ const backToListHref = computed(() => {
                 Szczegóły kursanta
             </h1>
             <p class="text-muted-foreground text-sm">
-                Dane podstawowe i przypisane kursy w wybranej szkole (tylko do
-                odczytu).
+                Dane podstawowe, notatka i przypisane kursy w wybranej szkole.
             </p>
         </div>
 
@@ -288,6 +297,13 @@ const backToListHref = computed(() => {
                         </div>
                     </dl>
                 </section>
+
+                <ManagerStudentNotes
+                    :user-id="student.userId"
+                    :school-id="readSchoolIdFromQuery()"
+                    :initial-notes="student.notes"
+                    @update:notes="handleStudentNotesUpdate"
+                />
 
                 <section aria-labelledby="student-courses-heading">
                     <h2

@@ -107,6 +107,51 @@ export async function bffUpstreamStudentDetail(
     };
 }
 
+export async function bffUpstreamUpdateStudentNotes(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    notes: string | null,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/students/${encodeURIComponent(userId)}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify({ notes }),
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się zapisać notatki kursanta',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export async function bffUpstreamStudentAssignToCourse(
     event: H3Event,
     upstreamBase: string,

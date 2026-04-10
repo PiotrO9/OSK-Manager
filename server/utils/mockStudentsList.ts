@@ -16,9 +16,12 @@ export interface MockStudentListRow {
     createdAt: string;
 }
 
+const MOCK_STUDENT_NOTES_MAX_LEN = 5000;
+
 type GlobalWithStore = typeof globalThis & {
     __mockStudentsListBySchool?: Record<string, MockStudentListRow[]>;
     __mockCourseParticipants?: Set<string>;
+    __mockStudentNotes?: Record<string, string | null>;
 };
 
 function getStore(): Record<string, MockStudentListRow[]> {
@@ -29,6 +32,86 @@ function getStore(): Record<string, MockStudentListRow[]> {
     }
 
     return g.__mockStudentsListBySchool;
+}
+
+function getMockStudentNotesStore(): Record<string, string | null> {
+    const g = globalThis as GlobalWithStore;
+
+    if (!g.__mockStudentNotes) {
+        g.__mockStudentNotes = {};
+    }
+
+    return g.__mockStudentNotes;
+}
+
+function findMockStudentRowByUserId(userId: string): MockStudentListRow | null {
+    const uid = userId.trim();
+
+    if (!uid) {
+        return null;
+    }
+
+    const store = getStore();
+
+    for (const rows of Object.values(store)) {
+        const row = rows.find((r) => r.userId === uid);
+
+        if (row) {
+            return row;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Demo: zapis notatki kursanta (PATCH /students/:userId w trybie bez upstreamu).
+ */
+export function mockUpdateStudentNotes(
+    userId: string,
+    notes: string | null,
+):
+    | { ok: true; userId: string; notes: string | null }
+    | { ok: false; code: 'NOT_FOUND' | 'NOTES_TOO_LONG' } {
+    const uid = userId.trim();
+
+    if (!uid) {
+        return { ok: false, code: 'NOT_FOUND' };
+    }
+
+    const row = findMockStudentRowByUserId(uid);
+
+    if (!row) {
+        return { ok: false, code: 'NOT_FOUND' };
+    }
+
+    let normalized: string | null;
+
+    if (notes === null || notes === undefined) {
+        normalized = null;
+    } else {
+        const s = String(notes).trim();
+
+        normalized = s.length > 0 ? s : null;
+    }
+
+    if (normalized !== null && normalized.length > MOCK_STUDENT_NOTES_MAX_LEN) {
+        return { ok: false, code: 'NOTES_TOO_LONG' };
+    }
+
+    const notesStore = getMockStudentNotesStore();
+
+    if (normalized === null) {
+        delete notesStore[uid];
+    } else {
+        notesStore[uid] = normalized;
+    }
+
+    return {
+        ok: true,
+        userId: uid,
+        notes: normalized,
+    };
 }
 
 const FIRST_NAMES = [
@@ -251,6 +334,7 @@ export interface MockStudentDetailPayload {
     lastName: string;
     email: string;
     pkkNumber: string | null;
+    notes: string | null;
     courses: Array<{
         id: string;
         name: string;
@@ -293,6 +377,14 @@ export function mockStudentDetailPayload(
         return null;
     }
 
+    const notesRaw = getMockStudentNotesStore()[uid];
+    const notes =
+        notesRaw !== undefined &&
+        notesRaw !== null &&
+        String(notesRaw).trim().length > 0
+            ? String(notesRaw)
+            : null;
+
     const { courses: schoolCourses } = mockCoursesListPayload(sid);
     const sorted = [...schoolCourses].sort((a, b) =>
         a.id.localeCompare(b.id, 'en'),
@@ -309,6 +401,7 @@ export function mockStudentDetailPayload(
             lastName: row.lastName,
             email: row.email,
             pkkNumber: row.pkkNumber,
+            notes,
             courses: [],
         };
     }
@@ -347,6 +440,7 @@ export function mockStudentDetailPayload(
         lastName: row.lastName,
         email: row.email,
         pkkNumber: row.pkkNumber,
+        notes,
         courses,
     };
 }

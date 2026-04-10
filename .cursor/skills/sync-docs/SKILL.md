@@ -1,11 +1,11 @@
 ---
 name: sync-docs
 description: >-
-  Uzupełnia pliki w context/ z git diff (working tree / staged) dla backendu OSK
-  Manager. Use when the user says sync docs, skill sync-docs, zaktualizuj docs,
-  dopisz dokumentację, udokumentuj diff, context z gita, or asks to update
-  markdown docs from uncommitted code changes. Preferuje zwięzłe edycje w
-  stylu istniejących plików context/.
+    Uzupełnia pliki w context/ z git diff (working tree / staged) dla backendu OSK
+    Manager. Use when the user says sync docs, skill sync-docs, zaktualizuj docs,
+    dopisz dokumentację, udokumentuj diff, context z gita, or asks to update
+    markdown docs from uncommitted code changes. Preferuje zwięzłe edycje w
+    stylu istniejących plików context/.
 ---
 
 # `sync-docs` — dokumentacja z diffu → `context/`
@@ -29,31 +29,31 @@ Na podstawie **rzeczywistych zmian w kodzie** (working tree i opcjonalnie stage)
 
 1. Działaj z katalogu głównego backendu (`BE`), chyba że użytkownik wskaże inaczej.
 2. Uruchom (read-only):
-   - `git status -sb`
-   - `git diff` (unstaged)
-   - `git diff --cached` (staged), jeśli użytkownik pracuje ze stage lub o to prosi
+    - `git status -sb`
+    - `git diff` (unstaged)
+    - `git diff --cached` (staged), jeśli użytkownik pracuje ze stage lub o to prosi
 3. Jeśli **brak zmian**, poinformuj użytkownika i zapytaj czy uwzględnić konkretny zakres (np. ostatni commit: `git show`).
 
 ## Krok 2 — Mapowanie: gdzie aktualizować
 
 Dla każdej ścieżki z diffu wybierz **jeden lub więcej** plików docelowych. Priorytet: najbardziej wyspecjalizowany plik domenowy.
 
-| Obszar w repo | Plik(i) w `context/` |
-|---------------|----------------------|
-| `src/routes/auth.routes.ts`, `src/controllers/auth*.ts`, middleware sesji/JWT związane z `/auth` | `auth.md` |
-| `src/routes/students.routes.ts` i powiązane kontrolery/serwisy | `students-api.md` |
-| `src/routes/instructors.routes.ts` | `instructors-api.md` |
-| `src/routes/driving-schools.routes.ts` | `driving-schools-api.md` |
-| `src/routes/vehicles.routes.ts` | `vehicles-api.md` |
-| `src/routes/courses.routes.ts`, `src/routes/course-types.routes.ts` | `courses-api.md` (lub krzyżowo, jeśli dokumentacja jest podzielona tematycznie) |
-| `prisma/schema.prisma`, `prisma/migrations/`, ograniczenia DB | `database.md`, `db-constraints.md`; przy dużych zmianach modelu rozważ dopisek o konieczności aktualizacji `database-schema.dbml` (generacja ręczna / osobny krok) |
-| Warstwa usług, logika domenowa, encje | `domain.md`, `business-rules.md` (wg sensu zmiany) |
-| `src/server.ts`, mounting routerów, globalne middleware | `backend-structure.md`, ewent. `system-overview.md` |
-| Walidacja requestów, kontrakty błędów, paginacja, konwencje odpowiedzi | `api-guidelines.md` |
-| Konwencje nazw pól, UUID, enumy w kodzie | `naming-conventions.md` |
-| Ogólne zasady backendu, walidacja reguł | `backend-rules.md` |
-| Nowe moduły / nietypowa struktura katalogów | `backend-structure.md` |
-| Zasady dla agenta AI, focus projektu (jeśli zmieniasz filozofię pracy) | `ai-instructions.md` |
+| Obszar w repo                                                                                    | Plik(i) w `context/`                                                                                                                                               |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/routes/auth.routes.ts`, `src/controllers/auth*.ts`, middleware sesji/JWT związane z `/auth` | `auth.md`                                                                                                                                                          |
+| `src/routes/students.routes.ts` i powiązane kontrolery/serwisy                                   | `students-api.md`                                                                                                                                                  |
+| `src/routes/instructors.routes.ts`                                                               | `instructors-api.md`                                                                                                                                               |
+| `src/routes/driving-schools.routes.ts`                                                           | `driving-schools-api.md`                                                                                                                                           |
+| `src/routes/vehicles.routes.ts`                                                                  | `vehicles-api.md`                                                                                                                                                  |
+| `src/routes/courses.routes.ts`, `src/routes/course-types.routes.ts`                              | `courses-api.md` (lub krzyżowo, jeśli dokumentacja jest podzielona tematycznie)                                                                                    |
+| `prisma/schema.prisma`, `prisma/migrations/`, ograniczenia DB                                    | `database.md`, `db-constraints.md`; przy dużych zmianach modelu rozważ dopisek o konieczności aktualizacji `database-schema.dbml` (generacja ręczna / osobny krok) |
+| Warstwa usług, logika domenowa, encje                                                            | `domain.md`, `business-rules.md` (wg sensu zmiany)                                                                                                                 |
+| `src/server.ts`, mounting routerów, globalne middleware                                          | `backend-structure.md`, ewent. `system-overview.md`                                                                                                                |
+| Walidacja requestów, kontrakty błędów, paginacja, konwencje odpowiedzi                           | `api-guidelines.md`                                                                                                                                                |
+| Konwencje nazw pól, UUID, enumy w kodzie                                                         | `naming-conventions.md`                                                                                                                                            |
+| Ogólne zasady backendu, walidacja reguł                                                          | `backend-rules.md`                                                                                                                                                 |
+| Nowe moduły / nietypowa struktura katalogów                                                      | `backend-structure.md`                                                                                                                                             |
+| Zasady dla agenta AI, focus projektu (jeśli zmieniasz filozofię pracy)                           | `ai-instructions.md`                                                                                                                                               |
 
 Jeśli zmiana dotyka **wielu domen**, zaktualizuj **wszystkie** dotknięte pliki; nie upychaj wszystkiego do jednego.
 
@@ -77,4 +77,4 @@ Z diffu wyciągnij informacje, które programiści muszą znaleźć w `context/`
 
 ## Wywołanie w czacie
 
-Najkrócej: **`sync docs`** albo **`skill sync-docs`**. Działają też: *zaktualizuj docs*, *docs z diffu*, *dopisz context*.
+Najkrócej: **`sync docs`** albo **`skill sync-docs`**. Działają też: _zaktualizuj docs_, _docs z diffu_, _dopisz context_.

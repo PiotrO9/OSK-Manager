@@ -46,6 +46,8 @@ export interface StudentDetail {
     lastName: string;
     email: string;
     pkkNumber: string | null;
+    /** Notatka globalna dla kursanta (student_profiles.notes). */
+    notes: string | null;
     courses: StudentCourseItem[];
 }
 
@@ -367,6 +369,7 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
     }
 
     const pkkNumber = readStringOrNull(o.pkkNumber ?? o.pkk_number);
+    const notes = readStringOrNull(o.notes);
 
     const coursesRaw = o.courses;
 
@@ -383,6 +386,7 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
         lastName,
         email,
         pkkNumber,
+        notes,
         courses,
     };
 }
