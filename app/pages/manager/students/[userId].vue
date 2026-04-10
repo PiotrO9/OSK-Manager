@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
     formatStudentCourseStatusLabel,
+    getStudentCourseStatusVariant,
     normalizeStudentDetail,
     type StudentDetail,
 } from '~/types/student';
@@ -315,8 +316,10 @@ const backToListHref = computed(() => {
                                     }}
                                 </p>
                             </div>
-                            <span
-                                class="bg-muted text-foreground inline-flex w-fit shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium"
+                            <UiBadge
+                                :variant="
+                                    getStudentCourseStatusVariant(course.status)
+                                "
                                 :aria-label="`Status w kursie: ${formatStudentCourseStatusLabel(course.status)}`"
                             >
                                 {{
@@ -324,7 +327,7 @@ const backToListHref = computed(() => {
                                         course.status,
                                     )
                                 }}
-                            </span>
+                            </UiBadge>
                         </li>
                     </ul>
                 </section>

@@ -1,3 +1,5 @@
+import type { BadgeVariants } from '~/components/shadcn/badge';
+
 /** Rekord uczestnictwa (POST /students/:userId/courses) — pole `data.participant`. */
 export interface CourseParticipantDto {
     id: string;
@@ -50,10 +52,7 @@ export interface StudentDetail {
 /** Znane statusy uczestnictwa — etykiety UI; nieznany kod → „Nieznany”. */
 export const STUDENT_COURSE_STATUS_LABELS: Record<string, string> = {
     ACTIVE: 'Aktywny',
-    COMPLETED: 'Zakończony',
-    SUSPENDED: 'Zawieszony',
-    CANCELLED: 'Anulowany',
-    WITHDRAWN: 'Wypisany',
+    FINISHED: 'Zakończony',
     UNKNOWN: 'Nieznany',
 };
 
@@ -65,6 +64,17 @@ export function formatStudentCourseStatusLabel(status: string): string {
     }
 
     return STUDENT_COURSE_STATUS_LABELS[key] ?? 'Nieznany';
+}
+
+type BadgeVariant = NonNullable<BadgeVariants['variant']>;
+
+export function getStudentCourseStatusVariant(status: string): BadgeVariant {
+    const key = status.trim().toUpperCase();
+
+    if (key === 'ACTIVE') return 'default';
+    if (key === 'FINISHED') return 'secondary';
+
+    return 'outline';
 }
 
 export function formatStudentDisplayName(student: StudentListItem): string {
