@@ -6,7 +6,7 @@ export default defineNuxtConfig({
     modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/seo', 'shadcn-nuxt'],
     site: {
         url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-        name: 'Frontend Starter',
+        name: 'OSK Manager',
     },
     /** Komponenty z CLI: `npx shadcn-vue@latest add button` → app/components/shadcn, w szablonie np. <UiButton>. */
     shadcn: {

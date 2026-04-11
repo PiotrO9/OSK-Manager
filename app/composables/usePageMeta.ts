@@ -15,8 +15,6 @@ export interface UsePageMetaOptions {
     image?: string;
 }
 
-const DEFAULT_SITE_NAME = 'Frontend Starter';
-
 /**
  * Composable wrapper na useSeoMeta + useHead z domyślnymi wartościami.
  * Ustawia title, description, og:title, og:description, og:image.
@@ -29,9 +27,7 @@ export function usePageMeta(options: UsePageMetaOptions): void {
 
     const fullTitle = computed(() => {
         const titleVal = typeof title === 'function' ? title() : toValue(title);
-        return titleVal
-            ? `${titleVal} | ${DEFAULT_SITE_NAME}`
-            : DEFAULT_SITE_NAME;
+        return titleVal ? String(titleVal) : '';
     });
 
     const descriptionVal = computed(() =>
