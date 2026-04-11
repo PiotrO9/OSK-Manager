@@ -212,3 +212,20 @@ Tygodniowa dostępność instruktora (BFF `/api/instructors/:id/availability/wee
 | `deleteDay(dayOfWeek)`                   | `Promise<void>` — `DELETE …/weekly/:day`; odpowiedź BFF to `{ success: true }` bez `data` — composable nie wywołuje `unwrapApiSuccessData` |
 
 **Uwaga:** Ścieżki buduje [`resolveBffEndpoint`](../app/utils/bffEndpoint.ts); żądania z `credentials: 'include'`. Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+
+---
+
+## useInstructorSlotsApi
+
+Sloty dostępności instruktora w zakresie dat (BFF `GET /api/instructors/:id/availability/slots`).
+
+**Sygnatura:** `useInstructorSlotsApi(instructorId: MaybeRefOrGetter<string>)`
+
+**Returns:**
+
+| Property / method              | Opis                                                                                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `isLoading`                    | `Readonly<Ref<boolean>>` — trwa `fetchSlots`                                                                 |
+| `fetchSlots(dateFrom, dateTo)` | `Promise<AvailabilitySlot[]>` — `unwrapApiSuccessData` → `data.slots`; pusta tablica gdy brak `instructorId` |
+
+Typ `AvailabilitySlot`: [instructorSlots.ts](../app/types/instructorSlots.ts). Kontekst: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).

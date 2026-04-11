@@ -489,6 +489,20 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                     >
                         Dostępność
                     </NuxtLink>
+                    <NuxtLink
+                        :to="`/manager/instructors/${instructor.id}/slots`"
+                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
+                        :class="
+                            isDeleting
+                                ? 'pointer-events-none cursor-not-allowed opacity-50'
+                                : ''
+                        "
+                        :tabindex="isDeleting ? -1 : 0"
+                        :aria-disabled="isDeleting"
+                        aria-label="Otwórz terminarz wolnych slotów instruktora"
+                    >
+                        Terminarz
+                    </NuxtLink>
                     <UiButton
                         type="button"
                         variant="destructive"

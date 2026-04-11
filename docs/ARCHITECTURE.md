@@ -39,6 +39,7 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 | `/manager/instructors`                  | `pages/manager/instructors/index.vue`             | Lista instruktorów (szkoła, rejestracja) |
 | `/manager/instructors/:id`              | `pages/manager/instructors/[id]/index.vue`        | Szczegóły instruktora (odczyt)           |
 | `/manager/instructors/:id/availability` | `pages/manager/instructors/[id]/availability.vue` | Edycja tygodniowej dostępności           |
+| `/manager/instructors/:id/slots`        | `pages/manager/instructors/[id]/slots.vue`        | Terminarz wolnych slotów (tydzień)       |
 
 Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 

@@ -39,7 +39,7 @@ Sekcje `Section*` (podstrona design-system), m.in.:
 
 Komponenty modułu OSK (formularze, siatki).
 
-- **Instruktorzy** (`manager/instructors/`): formularz rejestracji (`ManagerInstructorFormDialog`), edycja / usuwanie (`ManagerInstructorEditDialog`, `ManagerInstructorDeleteDialog`), **dostępność tygodniowa** — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) (edycja + podgląd paska na osi 6:00–22:00), [`ManagerInstructorWeeklyAvailabilityPreview`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) (podgląd na karcie szczegółów). Wspólna logika pozycji paska: [`availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts). Opis tras, BFF i MVP: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+- **Instruktorzy** (`manager/instructors/`): formularz rejestracji (`ManagerInstructorFormDialog`), edycja / usuwanie (`ManagerInstructorEditDialog`, `ManagerInstructorDeleteDialog`), **dostępność tygodniowa** — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) (edycja + podgląd paska na osi 6:00–22:00), [`ManagerInstructorWeeklyAvailabilityPreview`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) (podgląd na karcie szczegółów), **terminarz slotów** — [`ManagerInstructorWeeklyCalendar`](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue) (widok tygodniowy siatki godzin, sloty z API). Wspólna logika pozycji paska: [`availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts). Opis tras, BFF i MVP: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
 
 ## Zasady
 
