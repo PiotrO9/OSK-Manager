@@ -9,6 +9,8 @@ export interface InstructorEvent {
     startTime: string;
     endTime: string;
     vehicleId: string | null;
+    /** null / brak = bez limitu (MVP). */
+    capacity?: number | null;
     createdAt: string;
 }
 
@@ -21,4 +23,6 @@ export interface CreateInstructorEventPayload {
     endTime: string;
     /** Wymagane przy type === DRIVE */
     vehicleId?: string;
+    /** Opcjonalnie; null / pominięte = bez limitu. */
+    capacity?: number | null;
 }

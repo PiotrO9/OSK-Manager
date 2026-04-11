@@ -10,6 +10,7 @@ export async function bffUpstreamVehiclesList(
     event: H3Event,
     upstreamBase: string,
     schoolId: string,
+    timeFilter?: { startTime: string; endTime: string },
 ): Promise<{ success: true; data: unknown }> {
     const access = getCookie(event, 'access_token');
 
@@ -21,6 +22,12 @@ export async function bffUpstreamVehiclesList(
     }
 
     const qs = new URLSearchParams({ schoolId });
+
+    if (timeFilter) {
+        qs.set('startTime', timeFilter.startTime);
+        qs.set('endTime', timeFilter.endTime);
+    }
+
     const res = await fetch(`${upstreamBase}/vehicles?${qs.toString()}`, {
         method: 'GET',
         headers: {
@@ -219,6 +226,7 @@ export async function bffUpstreamVehiclesDelete(
 
         try {
             const json = (await res.json()) as BackendEnvelope<unknown>;
+
             if (typeof json.error === 'string') errorMessage = json.error;
         } catch {
             /* ignoruj błąd parsowania */
@@ -250,6 +258,7 @@ export async function bffUpstreamVehiclesUploadPhoto(
     }
 
     const form = new FormData();
+
     form.append('file', file, filename);
 
     const res = await fetch(

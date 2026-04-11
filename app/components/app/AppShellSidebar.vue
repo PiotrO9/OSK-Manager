@@ -3,6 +3,7 @@ import type { Component } from 'vue';
 import {
     BookOpen,
     Building2,
+    CalendarClock,
     CalendarDays,
     Car,
     GraduationCap,
@@ -102,6 +103,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do listy kursów',
             icon: BookOpen,
             tooltip: 'Kursy',
+        });
+        items.push({
+            to: '/manager/schedule',
+            label: 'Harmonogram',
+            ariaLabel: 'Przejdź do tygodniowego harmonogramu lekcji szkoły',
+            icon: CalendarClock,
+            tooltip: 'Harmonogram lekcji',
         });
     }
 

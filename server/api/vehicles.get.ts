@@ -4,6 +4,18 @@ function isUuid(value: string): boolean {
     );
 }
 
+function readOptionalQueryString(raw: unknown): string {
+    if (typeof raw === 'string') {
+        return raw.trim();
+    }
+
+    if (Array.isArray(raw)) {
+        return String(raw[0] ?? '').trim();
+    }
+
+    return '';
+}
+
 export default defineEventHandler(async (event) => {
     const rawQuery = getQuery(event);
     const schoolIdRaw = rawQuery.schoolId;
@@ -29,10 +41,26 @@ export default defineEventHandler(async (event) => {
         });
     }
 
+    const startTime = readOptionalQueryString(rawQuery.startTime);
+    const endTime = readOptionalQueryString(rawQuery.endTime);
+
+    if (startTime.length > 0 !== endTime.length > 0) {
+        throw createError({
+            statusCode: 400,
+            message:
+                'Parametry startTime i endTime muszą być podane razem lub wcale.',
+        });
+    }
+
+    const timeFilter =
+        startTime.length > 0 && endTime.length > 0
+            ? { startTime, endTime }
+            : undefined;
+
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffUpstreamVehiclesList(event, upstream, schoolId);
+        return bffUpstreamVehiclesList(event, upstream, schoolId, timeFilter);
     }
 
     await requireAuthenticatedFromCookie(event);

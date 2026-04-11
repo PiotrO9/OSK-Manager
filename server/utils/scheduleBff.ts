@@ -8,6 +8,7 @@ interface BackendEnvelope<T = unknown> {
 
 export interface ScheduleItemResponse {
     id: string;
+    kind?: string;
     type: string;
     status: string;
     startTime: string;
@@ -15,6 +16,9 @@ export interface ScheduleItemResponse {
     instructor?: { id: string; firstName: string; lastName: string };
     student?: { id: string; firstName: string; lastName: string };
     vehicle?: { id: string; name: string; registrationNumber: string };
+    capacity?: number | null;
+    participantCount?: number | null;
+    students?: { id: string; firstName: string; lastName: string }[];
 }
 
 export async function bffScheduleMeGet(

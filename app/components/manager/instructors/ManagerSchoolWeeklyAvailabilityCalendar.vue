@@ -11,6 +11,11 @@ import {
     type InstructorListItem,
 } from '~/types/instructor';
 import type { SchoolAvailabilitySlotsQueryFilters } from '~/types/schoolAvailabilityFilters';
+import type {
+    LessonBookingAggregatedSlot,
+    LessonBookingInstructorOption,
+    LessonBookingSlotContext,
+} from '~/types/lessonBooking';
 import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
@@ -23,6 +28,17 @@ import {
 const props = defineProps<{
     schoolId: string;
 }>();
+
+const { addToast } = useAppToast();
+
+const isSlotChoiceOpen = ref(false);
+const isBookingOpen = ref(false);
+const isTheoryCreateOpen = ref(false);
+const isStudentPickerOpen = ref(false);
+const eventForPicker = ref<{ id: string; capacity: number | null } | null>(
+    null,
+);
+const activeSlotCtx = ref<LessonBookingSlotContext | null>(null);
 
 /** Dni tygodnia API: 0=niedz. … 6=sob. (UTC). Kolejność UI: pon–nd. */
 const WEEKDAY_CHOICES: { value: number; label: string }[] = [
@@ -244,14 +260,6 @@ function slotTopPx(startTime: string): number {
     return (startMin - baseMin) * PX_PER_MINUTE;
 }
 
-/** Jedna pozycja na unikalny przedział czasu (łączy wielu instruktorów). */
-interface AggregatedTimeSlot {
-    date: string;
-    startTime: string;
-    endTime: string;
-    instructorCount: number;
-}
-
 const weekStart = ref<Date>(getMonday(new Date()));
 const slots = ref<SchoolAvailabilitySlot[]>([]);
 const errorMessage = ref<string | null>(null);
@@ -324,26 +332,59 @@ const weekRangeLabel = computed(() => {
     return `${weekStart.value.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
 });
 
-const aggregatedSlotsFlat = computed((): AggregatedTimeSlot[] => {
-    const byKey = new Map<string, AggregatedTimeSlot>();
+function buildAggregatedSlots(
+    raw: readonly SchoolAvailabilitySlot[],
+): LessonBookingAggregatedSlot[] {
+    const byKey = new Map<string, LessonBookingInstructorOption[]>();
 
-    for (const s of slots.value) {
+    for (const s of raw) {
         const key = `${s.date}|${s.startTime}|${s.endTime}`;
+        const opt: LessonBookingInstructorOption = {
+            id: s.instructorId,
+            firstName: s.instructorFirstName,
+            lastName: s.instructorLastName,
+        };
+
         const prev = byKey.get(key);
 
         if (prev) {
-            prev.instructorCount += 1;
+            if (!prev.some((x) => x.id === opt.id)) {
+                prev.push(opt);
+            }
         } else {
-            byKey.set(key, {
-                date: s.date,
-                startTime: s.startTime,
-                endTime: s.endTime,
-                instructorCount: 1,
-            });
+            byKey.set(key, [opt]);
         }
     }
 
-    return Array.from(byKey.values()).sort((a, b) => {
+    const out: LessonBookingAggregatedSlot[] = [];
+
+    for (const [key, availableInstructors] of byKey) {
+        const parts = key.split('|');
+        const date = parts[0] ?? '';
+        const startTime = parts[1] ?? '';
+        const endTime = parts[2] ?? '';
+
+        if (!date || !startTime || !endTime) {
+            continue;
+        }
+
+        availableInstructors.sort((a, b) =>
+            `${a.lastName} ${a.firstName}`.localeCompare(
+                `${b.lastName} ${b.firstName}`,
+                'pl',
+            ),
+        );
+
+        out.push({
+            date,
+            startTime,
+            endTime,
+            instructorCount: availableInstructors.length,
+            availableInstructors,
+        });
+    }
+
+    return out.sort((a, b) => {
         const byDate = a.date.localeCompare(b.date);
 
         if (byDate !== 0) {
@@ -352,10 +393,14 @@ const aggregatedSlotsFlat = computed((): AggregatedTimeSlot[] => {
 
         return a.startTime.localeCompare(b.startTime);
     });
-});
+}
+
+const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
+    buildAggregatedSlots(slots.value),
+);
 
 const aggregatedSlotsByDate = computed(() => {
-    const map = new Map<string, AggregatedTimeSlot[]>();
+    const map = new Map<string, LessonBookingAggregatedSlot[]>();
 
     for (const a of aggregatedSlotsFlat.value) {
         if (!map.has(a.date)) {
@@ -366,17 +411,72 @@ const aggregatedSlotsByDate = computed(() => {
     }
 
     for (const arr of map.values()) {
-        arr.sort((a, b) => a.startTime.localeCompare(b.startTime));
+        arr.sort((x, y) => x.startTime.localeCompare(y.startTime));
     }
 
     return map;
 });
 
-function aggregatedSlotsForDate(dateStr: string): AggregatedTimeSlot[] {
+function aggregatedSlotsForDate(
+    dateStr: string,
+): LessonBookingAggregatedSlot[] {
     return aggregatedSlotsByDate.value.get(dateStr) ?? [];
 }
 
-const uniqueSlotCount = computed(() => aggregatedSlotsFlat.value.length);
+function handleSlotClick(slot: LessonBookingAggregatedSlot): void {
+    const sid = props.schoolId.trim();
+
+    if (!sid) {
+        return;
+    }
+
+    activeSlotCtx.value = {
+        date: slot.date,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        schoolId: sid,
+        availableInstructors: slot.availableInstructors,
+    };
+    isSlotChoiceOpen.value = true;
+}
+
+function handlePickLessonFromChoice(): void {
+    isBookingOpen.value = true;
+}
+
+function handlePickTheoryFromChoice(): void {
+    isTheoryCreateOpen.value = true;
+}
+
+function handleTheoryEventCreated(payload: {
+    eventId: string;
+    capacity: number | null;
+}): void {
+    eventForPicker.value = {
+        id: payload.eventId,
+        capacity: payload.capacity,
+    };
+    isStudentPickerOpen.value = true;
+}
+
+function handleEventStudentsAssigned(): void {
+    void loadWeek();
+}
+
+watch(isStudentPickerOpen, (open) => {
+    if (!open) {
+        eventForPicker.value = null;
+    }
+});
+
+function handleBookingBooked(): void {
+    void loadWeek();
+    addToast({
+        title: 'Kalendarz odświeżony',
+        description: 'Sloty zostały ponownie wczytane.',
+        variant: 'success',
+    });
+}
 
 async function loadWeek(): Promise<void> {
     const sid = props.schoolId.trim();
@@ -825,7 +925,7 @@ function handleKeyDownWeekNav(
                     >Ładowanie…</UiBadge
                 >
                 <UiBadge v-else-if="!errorMessage" variant="outline">
-                    Okien: {{ uniqueSlotCount }}
+                    Okien: {{ aggregatedSlotsFlat.length }}
                 </UiBadge>
             </div>
 
@@ -918,26 +1018,29 @@ function handleKeyDownWeekNav(
                                     )"
                                     :key="`${slot.date}-${slot.startTime}-${slot.endTime}`"
                                 >
-                                    <div
-                                        class="bg-primary/15 border-primary text-primary absolute right-1 left-1 overflow-hidden rounded-md border px-1 py-0.5 text-xs leading-tight shadow-sm"
+                                    <button
+                                        type="button"
+                                        class="bg-primary/15 border-primary text-primary hover:bg-primary/25 focus-visible:ring-ring absolute right-1 left-1 overflow-hidden rounded-md border px-1 py-0.5 text-left text-xs leading-tight shadow-sm focus-visible:ring-2 focus-visible:outline-none"
                                         :style="{
                                             top: `${slotTopPx(slot.startTime)}px`,
                                             height: '60px',
                                         }"
-                                        :title="
-                                            slot.instructorCount > 1
-                                                ? `Dostępni instruktorzy: ${slot.instructorCount} — ${slot.startTime}–${slot.endTime}`
-                                                : `Dostępny instruktor — ${slot.startTime}–${slot.endTime}`
-                                        "
-                                        role="group"
-                                        :aria-label="
-                                            slot.instructorCount > 1
-                                                ? `Przedział ${slot.startTime} do ${slot.endTime}, dostępnych instruktorów: ${slot.instructorCount}`
-                                                : `Przedział ${slot.startTime} do ${slot.endTime}, dostępny co najmniej jeden instruktor`
-                                        "
+                                        :title="`Dostępny slot ${slot.startTime}–${slot.endTime} (${slot.instructorCount} instr.)`"
+                                        :aria-label="`Wybierz akcję w slocie ${slot.startTime}–${slot.endTime}, instruktorów: ${slot.instructorCount}`"
+                                        :disabled="isLoading"
+                                        @click="handleSlotClick(slot)"
                                     >
                                         <span class="block font-medium">
                                             Dostępny
+                                        </span>
+                                        <span
+                                            v-if="slot.instructorCount > 1"
+                                            class="text-primary/90 block truncate text-[10px]"
+                                        >
+                                            {{
+                                                slot.instructorCount
+                                            }}
+                                            instruktorów
                                         </span>
                                         <span
                                             class="text-primary/80 block truncate text-[10px]"
@@ -946,7 +1049,7 @@ function handleKeyDownWeekNav(
                                                 slot.endTime
                                             }}
                                         </span>
-                                    </div>
+                                    </button>
                                 </template>
 
                                 <div
@@ -966,5 +1069,33 @@ function handleKeyDownWeekNav(
                 </div>
             </div>
         </div>
+
+        <ManagerAvailabilitySlotChoiceDialog
+            v-model:open="isSlotChoiceOpen"
+            :slot-ctx="activeSlotCtx"
+            @pick-lesson="handlePickLessonFromChoice"
+            @pick-theory-block="handlePickTheoryFromChoice"
+        />
+
+        <ManagerTheoryEventCreateDialog
+            v-model:open="isTheoryCreateOpen"
+            :slot-ctx="activeSlotCtx"
+            @created="handleTheoryEventCreated"
+        />
+
+        <ManagerEventStudentPickerDialog
+            v-model:open="isStudentPickerOpen"
+            :event-id="eventForPicker?.id ?? ''"
+            :capacity="eventForPicker?.capacity ?? null"
+            :school-id="schoolId"
+            @assigned="handleEventStudentsAssigned"
+        />
+
+        <ManagerLessonBookingDialog
+            v-model:open="isBookingOpen"
+            :slot-ctx="activeSlotCtx"
+            :school-courses="courses"
+            @booked="handleBookingBooked"
+        />
     </div>
 </template>

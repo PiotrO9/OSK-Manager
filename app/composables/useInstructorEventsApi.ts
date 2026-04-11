@@ -14,7 +14,7 @@ export function useInstructorEventsApi() {
         isLoading.value = true;
 
         try {
-            const body: Record<string, string> = {
+            const body: Record<string, unknown> = {
                 instructorId: payload.instructorId.trim(),
                 type: payload.type,
                 startTime: payload.startTime.trim(),
@@ -23,6 +23,10 @@ export function useInstructorEventsApi() {
 
             if (payload.type === 'DRIVE' && payload.vehicleId?.trim()) {
                 body.vehicleId = payload.vehicleId.trim();
+            }
+
+            if (payload.capacity !== undefined && payload.capacity !== null) {
+                body.capacity = payload.capacity;
             }
 
             const raw = await $fetch<unknown>(

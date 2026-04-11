@@ -10,9 +10,9 @@ Handler: [`server/api/schedule/me.get.ts`](../server/api/schedule/me.get.ts). Up
 
 ### Query
 
-| Parametr   | Wymagane | Opis        |
-| ---------- | -------- | ----------- |
-| `dateFrom` | tak      | `YYYY-MM-DD` |
+| Parametr   | Wymagane | Opis                                |
+| ---------- | -------- | ----------------------------------- |
+| `dateFrom` | tak      | `YYYY-MM-DD`                        |
 | `dateTo`   | tak      | `YYYY-MM-DD`; musi być ≥ `dateFrom` |
 
 Walidacja: [`parseScheduleMeQuery`](../server/utils/scheduleQueryValidation.ts). Błędny format lub zakres → **400**.
@@ -31,12 +31,12 @@ Handler: [`server/api/schedule/index.get.ts`](../server/api/schedule/index.get.t
 
 ### Query
 
-| Parametr        | Wymagane | Opis |
-| --------------- | -------- | ---- |
-| `dateFrom`      | tak      | `YYYY-MM-DD` |
-| `dateTo`        | tak      | `YYYY-MM-DD` |
-| `instructorId`  | dokładnie jeden z parą | UUID profilu instruktora |
-| `studentId`     | dokładnie jeden z parą | UUID profilu kursanta (`StudentProfile.id`) |
+| Parametr       | Wymagane               | Opis                                        |
+| -------------- | ---------------------- | ------------------------------------------- |
+| `dateFrom`     | tak                    | `YYYY-MM-DD`                                |
+| `dateTo`       | tak                    | `YYYY-MM-DD`                                |
+| `instructorId` | dokładnie jeden z parą | UUID profilu instruktora                    |
+| `studentId`    | dokładnie jeden z parą | UUID profilu kursanta (`StudentProfile.id`) |
 
 Nie wolno podać obu ani żadnego — **400**. UUID walidowane w [`parseScheduleManagerQuery`](../server/utils/scheduleQueryValidation.ts).
 
@@ -54,13 +54,13 @@ Handler: [`server/api/events/index.post.ts`](../server/api/events/index.post.ts)
 
 ### Body (JSON)
 
-| Pole           | Wymagane | Opis |
-| -------------- | -------- | ---- |
-| `instructorId` | tak      | UUID |
-| `type`         | tak      | `DRIVE` \| `THEORY` |
-| `startTime`    | tak      | ISO 8601 |
-| `endTime`      | tak      | ISO 8601 |
-| `vehicleId`    | przy `DRIVE` | UUID pojazdu |
+| Pole           | Wymagane     | Opis                |
+| -------------- | ------------ | ------------------- |
+| `instructorId` | tak          | UUID                |
+| `type`         | tak          | `DRIVE` \| `THEORY` |
+| `startTime`    | tak          | ISO 8601            |
+| `endTime`      | tak          | ISO 8601            |
+| `vehicleId`    | przy `DRIVE` | UUID pojazdu        |
 
 ### Tryb bez upstreamu
 
@@ -68,8 +68,8 @@ Po `requireManagerFromCookie`: syntetyczna odpowiedź sukcesu z `data.event` (m.
 
 ## Composable i strony (skrót)
 
-| Zasób | Plik |
-| ----- | ---- |
-| Klient HTTP | [`app/composables/useScheduleApi.ts`](../app/composables/useScheduleApi.ts), [`useInstructorEventsApi.ts`](../app/composables/useInstructorEventsApi.ts) |
-| Moje lekcje (STUDENT/INSTRUCTOR) | [`app/pages/my-lessons.vue`](../app/pages/my-lessons.vue), middleware [`student-or-instructor.ts`](../app/middleware/student-or-instructor.ts) |
-| Panel: lekcje instruktora + blok | [`app/pages/manager/instructors/[id]/schedule.vue`](../app/pages/manager/instructors/[id]/schedule.vue) |
+| Zasób                            | Plik                                                                                                                                                     |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Klient HTTP                      | [`app/composables/useScheduleApi.ts`](../app/composables/useScheduleApi.ts), [`useInstructorEventsApi.ts`](../app/composables/useInstructorEventsApi.ts) |
+| Moje lekcje (STUDENT/INSTRUCTOR) | [`app/pages/my-lessons.vue`](../app/pages/my-lessons.vue), middleware [`student-or-instructor.ts`](../app/middleware/student-or-instructor.ts)           |
+| Panel: lekcje instruktora + blok | [`app/pages/manager/instructors/[id]/schedule.vue`](../app/pages/manager/instructors/[id]/schedule.vue)                                                  |

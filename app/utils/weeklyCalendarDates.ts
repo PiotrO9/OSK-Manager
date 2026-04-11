@@ -39,3 +39,13 @@ export function weekRangeFromMonday(monday: Date): {
         dateTo: formatDateOnly(end),
     };
 }
+
+/**
+ * Składa ISO 8601 w UTC dla slotu (backend oczekuje pełnego datetime).
+ * `time` w formacie HH:mm (np. "09:00").
+ */
+export function buildSlotIsoUTC(date: string, time: string): string {
+    const t = time.trim();
+
+    return `${date.trim()}T${t}:00.000Z`;
+}

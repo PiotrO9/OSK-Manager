@@ -21,6 +21,10 @@ function resolveShellHeading(): string {
         return 'Kursy';
     }
 
+    if (route.path.startsWith('/manager/schedule')) {
+        return 'Harmonogram lekcji';
+    }
+
     if (route.path === '/my-lessons') {
         return 'Moje lekcje';
     }

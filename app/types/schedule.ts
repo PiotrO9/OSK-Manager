@@ -16,6 +16,8 @@ export interface ScheduleVehicleRef {
 
 export interface ScheduleLessonItem {
     id: string;
+    /** `lesson` | `instructor_event` — z BE GET /schedule (opcjonalnie w odpowiedzi). */
+    kind?: string;
     type: LessonTypeCode | string;
     status: string;
     startTime: string;
@@ -23,4 +25,8 @@ export interface ScheduleLessonItem {
     instructor?: SchedulePersonRef;
     student?: SchedulePersonRef;
     vehicle?: ScheduleVehicleRef;
+    /** Tylko eventy instruktora (np. zajęcia grupowe). */
+    capacity?: number | null;
+    participantCount?: number | null;
+    students?: SchedulePersonRef[];
 }

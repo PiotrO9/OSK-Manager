@@ -1,0 +1,171 @@
+import type { CourseListItem } from '~/types/course';
+import type {
+    CreateLessonBody,
+    LessonBookingSlotContext,
+    StudentCourseWithKind,
+} from '~/types/lessonBooking';
+import type { StudentListItem } from '~/types/student';
+import type { Vehicle } from '~/types/vehicle';
+import { resolveBffEndpoint } from '~/utils/bffEndpoint';
+import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
+import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { normalizeStudentDetail } from '~/types/student';
+import { normalizeVehiclesList } from '~/types/vehicle';
+import { buildSlotIsoUTC } from '~/utils/weeklyCalendarDates';
+
+export interface LessonBookingModalData {
+    students: StudentListItem[];
+    vehicles: Vehicle[];
+}
+
+export function useLessonBookingApi() {
+    const { fetchList } = useStudentsApi();
+
+    const isLoadingModalData = ref(false);
+    const isCreating = ref(false);
+    const modalError = ref<string | null>(null);
+
+    async function fetchVehiclesForSlot(
+        schoolId: string,
+        startIso: string,
+        endIso: string,
+    ): Promise<Vehicle[]> {
+        const qs = new URLSearchParams({
+            schoolId: schoolId.trim(),
+            startTime: startIso,
+            endTime: endIso,
+        });
+
+        const raw = await $fetch<unknown>(
+            resolveBffEndpoint(`/api/vehicles?${qs.toString()}`),
+            { credentials: 'include' },
+        );
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+
+        return normalizeVehiclesList(data);
+    }
+
+    async function loadModalData(
+        ctx: LessonBookingSlotContext,
+    ): Promise<LessonBookingModalData> {
+        const sid = ctx.schoolId.trim();
+
+        if (!sid) {
+            return { students: [], vehicles: [] };
+        }
+
+        const startIso = buildSlotIsoUTC(ctx.date, ctx.startTime);
+        const endIso = buildSlotIsoUTC(ctx.date, ctx.endTime);
+
+        isLoadingModalData.value = true;
+        modalError.value = null;
+
+        try {
+            const [page, vehicles] = await Promise.all([
+                fetchList({ schoolId: sid, page: 1, limit: 100 }),
+                fetchVehiclesForSlot(sid, startIso, endIso),
+            ]);
+
+            return {
+                students: page.items,
+                vehicles,
+            };
+        } catch (err: unknown) {
+            modalError.value = getApiFetchErrorMessage(
+                err,
+                'Nie udało się wczytać danych do rezerwacji.',
+            );
+
+            throw err;
+        } finally {
+            isLoadingModalData.value = false;
+        }
+    }
+
+    async function loadStudentCoursesWithKind(
+        userId: string,
+        schoolId: string,
+        schoolCourses: readonly CourseListItem[],
+    ): Promise<StudentCourseWithKind[]> {
+        const uid = userId.trim();
+        const sid = schoolId.trim();
+
+        if (!uid || !sid) {
+            return [];
+        }
+
+        const qs = new URLSearchParams({ schoolId: sid });
+        const raw = await $fetch<unknown>(
+            resolveBffEndpoint(
+                `/api/students/${encodeURIComponent(uid)}?${qs.toString()}`,
+            ),
+            { credentials: 'include' },
+        );
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+        const detail = normalizeStudentDetail(data);
+
+        if (!detail) {
+            throw new Error('Nieprawidłowa odpowiedź serwera (kursant).');
+        }
+
+        const byId = new Map(schoolCourses.map((c) => [c.id, c]));
+
+        return detail.courses.map((c) => {
+            const meta = byId.get(c.id);
+
+            return {
+                id: c.id,
+                name: c.name,
+                category: c.category,
+                status: c.status,
+                kind: meta?.type ?? null,
+            };
+        });
+    }
+
+    async function createLesson(body: CreateLessonBody): Promise<void> {
+        isCreating.value = true;
+        modalError.value = null;
+
+        const payload: Record<string, unknown> = {
+            courseId: body.courseId.trim(),
+            studentId: body.studentId.trim(),
+            instructorId: body.instructorId.trim(),
+            startTime: body.startTime.trim(),
+            endTime: body.endTime.trim(),
+            lessonType: body.lessonType,
+        };
+
+        if (body.lessonType === 'PRACTICE' && body.vehicleId?.trim()) {
+            payload.vehicleId = body.vehicleId.trim();
+        }
+
+        try {
+            await $fetch<unknown>(resolveBffEndpoint('/api/lessons'), {
+                method: 'POST',
+                credentials: 'include',
+                body: payload,
+            });
+        } catch (err: unknown) {
+            modalError.value = getApiFetchErrorMessage(
+                err,
+                'Nie udało się utworzyć rezerwacji.',
+            );
+
+            throw err;
+        } finally {
+            isCreating.value = false;
+        }
+    }
+
+    return {
+        isLoadingModalData: readonly(isLoadingModalData),
+        isCreating: readonly(isCreating),
+        modalError: readonly(modalError),
+        loadModalData,
+        loadStudentCoursesWithKind,
+        createLesson,
+    };
+}

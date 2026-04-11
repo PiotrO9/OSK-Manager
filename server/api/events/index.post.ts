@@ -4,6 +4,42 @@ import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
 
+function parseOptionalCapacity(
+    o: Record<string, unknown>,
+): number | undefined | false {
+    const raw = o.capacity;
+
+    if (raw === undefined || raw === null) {
+        return undefined;
+    }
+
+    if (typeof raw === 'number') {
+        if (!Number.isFinite(raw) || raw < 0 || Math.floor(raw) !== raw) {
+            return false;
+        }
+
+        return raw;
+    }
+
+    if (typeof raw === 'string') {
+        const t = raw.trim();
+
+        if (t === '') {
+            return undefined;
+        }
+
+        const n = Number.parseInt(t, 10);
+
+        if (!Number.isFinite(n) || n < 0) {
+            return false;
+        }
+
+        return n;
+    }
+
+    return false;
+}
+
 function validatePostBody(raw: unknown):
     | {
           ok: true;
@@ -13,6 +49,7 @@ function validatePostBody(raw: unknown):
               startTime: string;
               endTime: string;
               vehicleId?: string;
+              capacity?: number;
           };
       }
     | { ok: false; message: string } {
@@ -63,15 +100,38 @@ function validatePostBody(raw: unknown):
         vehicleId = v;
     }
 
+    const cap = parseOptionalCapacity(o);
+
+    if (cap === false) {
+        return {
+            ok: false,
+            message:
+                'Pole capacity musi być nieujemną liczbą całkowitą lub puste.',
+        };
+    }
+
+    const body: {
+        instructorId: string;
+        type: EventTypeLiteral;
+        startTime: string;
+        endTime: string;
+        vehicleId?: string;
+        capacity?: number;
+    } = {
+        instructorId,
+        type,
+        startTime,
+        endTime,
+        vehicleId,
+    };
+
+    if (cap !== undefined) {
+        body.capacity = cap;
+    }
+
     return {
         ok: true,
-        body: {
-            instructorId,
-            type,
-            startTime,
-            endTime,
-            vehicleId,
-        },
+        body,
     };
 }
 
@@ -89,7 +149,22 @@ export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffEventsPost(event, upstream, parsed.body);
+        const upstreamBody: Record<string, unknown> = {
+            instructorId: parsed.body.instructorId,
+            type: parsed.body.type,
+            startTime: parsed.body.startTime,
+            endTime: parsed.body.endTime,
+        };
+
+        if (parsed.body.type === 'DRIVE' && parsed.body.vehicleId) {
+            upstreamBody.vehicleId = parsed.body.vehicleId;
+        }
+
+        if (parsed.body.capacity !== undefined) {
+            upstreamBody.capacity = parsed.body.capacity;
+        }
+
+        return bffEventsPost(event, upstream, upstreamBody);
     }
 
     await requireManagerFromCookie(event);
@@ -108,6 +183,10 @@ export default defineEventHandler(async (event) => {
                 vehicleId:
                     parsed.body.type === 'DRIVE'
                         ? (parsed.body.vehicleId ?? null)
+                        : null,
+                capacity:
+                    parsed.body.capacity !== undefined
+                        ? parsed.body.capacity
                         : null,
                 createdAt: now,
             },
