@@ -9,11 +9,73 @@ interface BackendEnvelope<T = unknown> {
 
 export type WeeklyEntryResponse = MockWeeklyEntry;
 
-export type SlotsEntryResponse = {
+export interface SlotsEntryResponse {
     date: string;
     startTime: string;
     endTime: string;
-};
+}
+
+export interface SchoolSlotsEntryResponse {
+    instructorId: string;
+    instructorFirstName: string;
+    instructorLastName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+}
+
+export async function bffSchoolSlotsGet(
+    event: H3Event,
+    upstreamBase: string,
+    schoolId: string,
+    queryString: string,
+): Promise<{
+    success: true;
+    data: { slots: SchoolSlotsEntryResponse[]; total?: number };
+}> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/driving-schools/${encodeURIComponent(schoolId)}/availability/slots?${queryString}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<{
+        slots: SchoolSlotsEntryResponse[];
+        total?: number;
+    }>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się pobrać slotów szkoły',
+        });
+    }
+
+    const data = json.data ?? { slots: [] };
+    const slots = Array.isArray(data.slots) ? data.slots : [];
+
+    return {
+        success: true,
+        data: {
+            slots,
+            total: typeof data.total === 'number' ? data.total : slots.length,
+        },
+    };
+}
 
 export async function bffSlotsGet(
     event: H3Event,

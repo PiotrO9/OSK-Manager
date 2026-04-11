@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { CalendarDate, type DateValue } from '@internationalized/date';
+import type { DateValue } from '@internationalized/date';
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import { useInstructorSlotsApi } from '~/composables/useInstructorSlotsApi';
 import type { AvailabilitySlot } from '~/types/instructorSlots';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import {
+    dateToCalendarDate,
+    formatDateOnly,
+    getMonday,
+    weekRangeFromMonday,
+} from '~/utils/weeklyCalendarDates';
 
 const props = defineProps<{
     instructorId: string;
@@ -14,46 +20,6 @@ const props = defineProps<{
 const BASE_HOUR = 7;
 const GRID_HEIGHT_PX = 720;
 const PX_PER_MINUTE = 1;
-
-function formatDateOnly(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-
-    return `${y}-${m}-${day}`;
-}
-
-function getMonday(d: Date): Date {
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
-}
-
-function dateToCalendarDate(d: Date): CalendarDate {
-    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
-}
-
-function weekRangeFromMonday(monday: Date): {
-    dateFrom: string;
-    dateTo: string;
-} {
-    const start = new Date(
-        monday.getFullYear(),
-        monday.getMonth(),
-        monday.getDate(),
-    );
-    const end = new Date(
-        monday.getFullYear(),
-        monday.getMonth(),
-        monday.getDate() + 6,
-    );
-
-    return {
-        dateFrom: formatDateOnly(start),
-        dateTo: formatDateOnly(end),
-    };
-}
 
 function slotTopPx(startTime: string): number {
     const parts = startTime.trim().split(':').map(Number);

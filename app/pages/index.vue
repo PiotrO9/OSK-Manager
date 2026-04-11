@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, MapPin, ExternalLink } from 'lucide-vue-next';
+import { Building2, CalendarDays, MapPin, ExternalLink } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/drivingSchool';
 
 definePageMeta({
@@ -96,58 +96,99 @@ onMounted(() => {
                 {{ defaultOskError }}
             </p>
 
-            <div
-                v-else-if="defaultOsk"
-                class="border-border rounded-2xl border bg-white p-5 dark:bg-transparent"
-                :aria-label="`Karta domyślnego OSK: ${defaultOsk.name}`"
-            >
-                <div class="flex items-start gap-4">
+            <template v-else-if="defaultOsk">
+                <div class="space-y-6">
                     <div
-                        class="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl"
+                        class="border-border rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        :aria-label="`Karta domyślnego OSK: ${defaultOsk.name}`"
                     >
-                        <Building2 class="size-5" aria-hidden="true" />
-                    </div>
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl"
+                            >
+                                <Building2 class="size-5" aria-hidden="true" />
+                            </div>
 
-                    <div class="min-w-0 flex-1 space-y-1">
-                        <p
-                            class="text-foreground truncate text-lg font-semibold"
-                        >
-                            {{ defaultOsk.name }}
-                        </p>
-
-                        <p
-                            v-if="defaultOsk.city || defaultOsk.address"
-                            class="text-muted-foreground flex items-center gap-1 text-sm"
-                        >
-                            <MapPin
-                                class="size-3.5 shrink-0"
-                                aria-hidden="true"
-                            />
-                            <span>
-                                <span v-if="defaultOsk.city">{{
-                                    defaultOsk.city
-                                }}</span>
-                                <span
-                                    v-if="defaultOsk.city && defaultOsk.address"
+                            <div class="min-w-0 flex-1 space-y-1">
+                                <p
+                                    class="text-foreground truncate text-lg font-semibold"
                                 >
-                                    ·
-                                </span>
-                                <span v-if="defaultOsk.address">{{
-                                    defaultOsk.address
-                                }}</span>
-                            </span>
-                        </p>
+                                    {{ defaultOsk.name }}
+                                </p>
+
+                                <p
+                                    v-if="defaultOsk.city || defaultOsk.address"
+                                    class="text-muted-foreground flex items-center gap-1 text-sm"
+                                >
+                                    <MapPin
+                                        class="size-3.5 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        <span v-if="defaultOsk.city">{{
+                                            defaultOsk.city
+                                        }}</span>
+                                        <span
+                                            v-if="
+                                                defaultOsk.city &&
+                                                defaultOsk.address
+                                            "
+                                        >
+                                            ·
+                                        </span>
+                                        <span v-if="defaultOsk.address">{{
+                                            defaultOsk.address
+                                        }}</span>
+                                    </span>
+                                </p>
+                            </div>
+
+                            <NuxtLink
+                                to="/manager/osk"
+                                class="text-muted-foreground hover:text-foreground focus-visible:ring-primary shrink-0 rounded-lg p-1.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                                aria-label="Przejdź do listy szkół jazdy"
+                            >
+                                <ExternalLink
+                                    class="size-4"
+                                    aria-hidden="true"
+                                />
+                            </NuxtLink>
+                        </div>
                     </div>
 
-                    <NuxtLink
-                        to="/manager/osk"
-                        class="text-muted-foreground hover:text-foreground focus-visible:ring-primary shrink-0 rounded-lg p-1.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                        aria-label="Przejdź do listy szkół jazdy"
+                    <section
+                        class="border-border space-y-3 rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        aria-labelledby="dashboard-school-availability-heading"
                     >
-                        <ExternalLink class="size-4" aria-hidden="true" />
-                    </NuxtLink>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div
+                                class="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg"
+                            >
+                                <CalendarDays
+                                    class="size-4"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <div class="min-w-0 flex-1 space-y-0.5">
+                                <h2
+                                    id="dashboard-school-availability-heading"
+                                    class="text-foreground text-lg font-semibold tracking-tight"
+                                >
+                                    Dostępność instruktorów
+                                </h2>
+                                <p class="text-muted-foreground text-sm">
+                                    Wolne sloty wszystkich instruktorów
+                                    przypisanych do szkoły (widok tygodniowy).
+                                </p>
+                            </div>
+                        </div>
+
+                        <ManagerSchoolWeeklyAvailabilityCalendar
+                            :school-id="defaultOsk.id"
+                        />
+                    </section>
                 </div>
-            </div>
+            </template>
         </template>
 
         <template v-else-if="isInstructorOrStudent">

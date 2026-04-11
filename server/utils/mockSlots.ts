@@ -1,4 +1,5 @@
 import { mockAvailabilityGetWeekly } from './mockAvailabilityStore';
+import { mockInstructorsListPayload } from './mockInstructorsList';
 
 export interface MockAvailabilitySlot {
     date: string;
@@ -140,4 +141,55 @@ export function mockGenerateSlots(
     });
 
     return slots;
+}
+
+export interface MockSchoolAvailabilitySlot extends MockAvailabilitySlot {
+    instructorId: string;
+    instructorFirstName: string;
+    instructorLastName: string;
+}
+
+/**
+ * Agreguje sloty wszystkich instruktorów przypisanych do szkoły (mock).
+ */
+export function mockGenerateSchoolSlots(
+    schoolId: string,
+    dateFrom: string,
+    dateTo: string,
+): { slots: MockSchoolAvailabilitySlot[]; total: number } {
+    const { instructors } = mockInstructorsListPayload(schoolId);
+    const slots: MockSchoolAvailabilitySlot[] = [];
+
+    for (const inst of instructors) {
+        const raw = mockGenerateSlots(inst.id, dateFrom, dateTo);
+
+        for (const s of raw) {
+            slots.push({
+                instructorId: inst.id,
+                instructorFirstName: inst.firstName,
+                instructorLastName: inst.lastName,
+                date: s.date,
+                startTime: s.startTime,
+                endTime: s.endTime,
+            });
+        }
+    }
+
+    slots.sort((a, b) => {
+        const byDate = a.date.localeCompare(b.date);
+
+        if (byDate !== 0) {
+            return byDate;
+        }
+
+        const byTime = a.startTime.localeCompare(b.startTime);
+
+        if (byTime !== 0) {
+            return byTime;
+        }
+
+        return a.instructorId.localeCompare(b.instructorId);
+    });
+
+    return { slots, total: slots.length };
 }
