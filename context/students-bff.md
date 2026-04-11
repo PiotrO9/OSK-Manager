@@ -32,3 +32,9 @@ Koperta jak w reszcie API: `{ success: true, data: … }`.
 ### UI
 
 Edycja notatki na stronie szczegółów: [`app/pages/manager/students/[userId].vue`](../app/pages/manager/students/[userId].vue), komponent [`ManagerStudentNotes.vue`](../app/components/manager/students/ManagerStudentNotes.vue).
+
+## Terminarz lekcji (podgląd biura)
+
+Na tej samej stronie szczegółów (z wczytanym kursantem) wyświetlany jest **tygodniowy** terminarz lekcji: żądanie `GET /api/schedule?studentId=<uuid>&dateFrom=&dateTo=` — **`studentId`** to **`id` profilu kursanta** z odpowiedzi szczegółów (`StudentDetail.id`), nie `userId` z ścieżki URL.
+
+Opis BFF: [schedule-events-bff.md](./schedule-events-bff.md).

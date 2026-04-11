@@ -21,6 +21,10 @@ function resolveShellHeading(): string {
         return 'Kursy';
     }
 
+    if (route.path === '/my-lessons') {
+        return 'Moje lekcje';
+    }
+
     return map[route.path] ?? 'Panel';
 }
 

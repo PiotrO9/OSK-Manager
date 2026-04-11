@@ -33,6 +33,18 @@ const isDeleting = ref(false);
 const route = useRoute();
 const { addToast } = useAppToast();
 
+/** Opcjonalnie `schoolId` z query (np. z listy OSK) — przekazywany do podstron instruktora. */
+const instructorSubpageQuery = computed((): Record<string, string> => {
+    const raw = route.query.schoolId;
+    const s = Array.isArray(raw) ? raw[0] : raw;
+
+    if (typeof s === 'string' && s.trim().length > 0) {
+        return { schoolId: s.trim() };
+    }
+
+    return {};
+});
+
 usePageMeta({
     title: () => instructor.value?.name?.trim() || 'Instruktor',
     description: () => 'Szczegóły instruktora.',
@@ -476,7 +488,10 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         Edytuj
                     </button>
                     <NuxtLink
-                        :to="`/manager/instructors/${instructor.id}/availability`"
+                        :to="{
+                            path: `/manager/instructors/${instructor.id}/availability`,
+                            query: instructorSubpageQuery,
+                        }"
                         class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
                         :class="
                             isDeleting
@@ -490,7 +505,10 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         Dostępność
                     </NuxtLink>
                     <NuxtLink
-                        :to="`/manager/instructors/${instructor.id}/slots`"
+                        :to="{
+                            path: `/manager/instructors/${instructor.id}/slots`,
+                            query: instructorSubpageQuery,
+                        }"
                         class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
                         :class="
                             isDeleting
@@ -502,6 +520,23 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         aria-label="Otwórz terminarz wolnych slotów instruktora"
                     >
                         Terminarz
+                    </NuxtLink>
+                    <NuxtLink
+                        :to="{
+                            path: `/manager/instructors/${instructor.id}/schedule`,
+                            query: instructorSubpageQuery,
+                        }"
+                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
+                        :class="
+                            isDeleting
+                                ? 'pointer-events-none cursor-not-allowed opacity-50'
+                                : ''
+                        "
+                        :tabindex="isDeleting ? -1 : 0"
+                        :aria-disabled="isDeleting"
+                        aria-label="Terminarz lekcji i bloki czasu instruktora"
+                    >
+                        Lekcje
                     </NuxtLink>
                     <UiButton
                         type="button"

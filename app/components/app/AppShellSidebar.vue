@@ -3,6 +3,7 @@ import type { Component } from 'vue';
 import {
     BookOpen,
     Building2,
+    CalendarDays,
     Car,
     GraduationCap,
     LayoutDashboard,
@@ -47,6 +48,18 @@ const navItems = computed<NavItem[]>(() => {
             tooltip: 'Konto',
         },
     ];
+
+    const role = session.value?.role?.trim().toUpperCase();
+
+    if (role === 'STUDENT' || role === 'INSTRUCTOR') {
+        items.splice(1, 0, {
+            to: '/my-lessons',
+            label: 'Moje lekcje',
+            ariaLabel: 'Przejdź do terminarza moich lekcji',
+            icon: CalendarDays,
+            tooltip: 'Moje lekcje',
+        });
+    }
 
     if (session.value?.role === 'MANAGER') {
         items.splice(1, 0, {

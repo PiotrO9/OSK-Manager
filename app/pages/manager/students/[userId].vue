@@ -11,6 +11,8 @@ import {
 } from '~/utils/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
+import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
+import type { ScheduleLessonItem } from '~/types/schedule';
 
 definePageMeta({
     layout: 'app-shell',
@@ -18,6 +20,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const { fetchScheduleForStudent } = useScheduleApi();
 
 const student = ref<StudentDetail | null>(null);
 const isLoading = ref(false);
@@ -197,6 +200,88 @@ function handleStudentNotesUpdate(notes: string | null) {
 
     s.notes = notes;
 }
+
+const scheduleWeekStart = ref<Date>(getMonday(new Date()));
+const scheduleItems = ref<ScheduleLessonItem[]>([]);
+const scheduleLoading = ref(false);
+const scheduleError = ref<string | null>(null);
+
+const studentScheduleRange = computed(() =>
+    weekRangeFromMonday(scheduleWeekStart.value),
+);
+
+let scheduleFetchSeq = 0;
+
+async function loadStudentSchedule(): Promise<void> {
+    const s = student.value;
+
+    if (!s?.id) {
+        scheduleItems.value = [];
+
+        return;
+    }
+
+    const seq = ++scheduleFetchSeq;
+
+    scheduleError.value = null;
+    scheduleLoading.value = true;
+
+    const { dateFrom, dateTo } = studentScheduleRange.value;
+
+    try {
+        const data = await fetchScheduleForStudent(s.id, dateFrom, dateTo);
+
+        if (seq !== scheduleFetchSeq) {
+            return;
+        }
+
+        scheduleItems.value = data;
+    } catch (err: unknown) {
+        if (seq !== scheduleFetchSeq) {
+            return;
+        }
+
+        scheduleItems.value = [];
+        scheduleError.value = getApiFetchErrorMessage(
+            err,
+            'Nie udało się wczytać terminarza lekcji.',
+        );
+    } finally {
+        if (seq === scheduleFetchSeq) {
+            scheduleLoading.value = false;
+        }
+    }
+}
+
+watch(
+    [() => student.value?.id, studentScheduleRange],
+    () => {
+        void loadStudentSchedule();
+    },
+    { immediate: true },
+);
+
+function handlePrevScheduleWeek(): void {
+    const d = new Date(scheduleWeekStart.value);
+
+    d.setDate(d.getDate() - 7);
+    scheduleWeekStart.value = getMonday(d);
+}
+
+function handleNextScheduleWeek(): void {
+    const d = new Date(scheduleWeekStart.value);
+
+    d.setDate(d.getDate() + 7);
+    scheduleWeekStart.value = getMonday(d);
+}
+
+function formatScheduleWeekLabel(d: Date): string {
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(d);
+}
 </script>
 
 <template>
@@ -304,6 +389,65 @@ function handleStudentNotesUpdate(notes: string | null) {
                     :initial-notes="student.notes"
                     @update:notes="handleStudentNotesUpdate"
                 />
+
+                <section
+                    aria-labelledby="student-schedule-heading"
+                    class="border-border border-t pt-8"
+                >
+                    <h2
+                        id="student-schedule-heading"
+                        class="text-foreground mb-4 text-lg font-semibold"
+                    >
+                        Terminarz lekcji
+                    </h2>
+                    <p class="text-muted-foreground mb-4 text-sm">
+                        Lekcje przypisane do kursanta w wybranym tygodniu (widok
+                        biura).
+                    </p>
+                    <div
+                        class="mb-4 flex flex-wrap items-center gap-2"
+                        role="group"
+                        aria-label="Nawigacja tygodnia terminarza"
+                    >
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            aria-label="Poprzedni tydzień"
+                            @click="handlePrevScheduleWeek"
+                        >
+                            ← Poprzedni
+                        </UiButton>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            aria-label="Następny tydzień"
+                            @click="handleNextScheduleWeek"
+                        >
+                            Następny →
+                        </UiButton>
+                        <span class="text-muted-foreground text-sm">
+                            Tydzień od
+                            {{ formatScheduleWeekLabel(scheduleWeekStart) }}
+                        </span>
+                    </div>
+                    <p
+                        v-if="scheduleLoading"
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                    >
+                        Wczytywanie lekcji…
+                    </p>
+                    <p
+                        v-else-if="scheduleError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                    >
+                        {{ scheduleError }}
+                    </p>
+                    <ManagerScheduleLessonTable v-else :items="scheduleItems" />
+                </section>
 
                 <section aria-labelledby="student-courses-heading">
                     <h2

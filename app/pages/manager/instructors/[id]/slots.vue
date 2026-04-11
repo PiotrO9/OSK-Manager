@@ -6,6 +6,17 @@ definePageMeta({
 
 const route = useRoute();
 
+function readSchoolIdFromQuery(): string {
+    const raw = route.query.schoolId;
+    const s = Array.isArray(raw) ? raw[0] : raw;
+
+    if (typeof s !== 'string') {
+        return '';
+    }
+
+    return s.trim();
+}
+
 function getInstructorId(): string {
     const raw = route.params.id;
 
@@ -21,6 +32,24 @@ function getInstructorId(): string {
 }
 
 const instructorId = computed(getInstructorId);
+
+const backToDetailHref = computed(() => {
+    const id = instructorId.value;
+    const sid = readSchoolIdFromQuery();
+
+    if (!id) {
+        return '/manager/instructors';
+    }
+
+    if (sid) {
+        return {
+            path: `/manager/instructors/${id}`,
+            query: { schoolId: sid },
+        };
+    }
+
+    return `/manager/instructors/${id}`;
+});
 
 usePageMeta({
     title: () => 'Terminarz slotów',
@@ -51,7 +80,7 @@ usePageMeta({
         </p>
 
         <NuxtLink
-            :to="`/manager/instructors/${instructorId}`"
+            :to="backToDetailHref"
             class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
             aria-label="Wróć do szczegółów instruktora"
         >
