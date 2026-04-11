@@ -55,13 +55,29 @@ function validateLessonBody(raw: unknown):
     }
 
     const ltRaw = typeof o.lessonType === 'string' ? o.lessonType.trim() : '';
-    const lessonType: LessonTypeLiteral | null =
-        ltRaw === 'THEORY' || ltRaw === 'PRACTICE' ? ltRaw : null;
 
-    if (!lessonType) {
+    if (ltRaw === 'THEORY') {
         return {
             ok: false,
-            message: 'Pole lessonType musi być THEORY lub PRACTICE.',
+            message:
+                'Rezerwacja lekcji z slotu dotyczy wyłącznie jazdy praktycznej. Lekcje teoretyczne są grupowe — zaplanuj je w widoku grupy lub wydarzenia THEORY.',
+        };
+    }
+
+    if (ltRaw !== 'PRACTICE') {
+        return {
+            ok: false,
+            message: 'Pole lessonType musi być PRACTICE.',
+        };
+    }
+
+    const vehicleId = typeof o.vehicleId === 'string' ? o.vehicleId.trim() : '';
+
+    if (!vehicleId || !isUuid(vehicleId)) {
+        return {
+            ok: false,
+            message:
+                'Dla lekcji praktycznej wymagane jest pole vehicleId (UUID).',
         };
     }
 
@@ -71,23 +87,9 @@ function validateLessonBody(raw: unknown):
         instructorId,
         startTime,
         endTime,
-        lessonType,
+        lessonType: 'PRACTICE' satisfies LessonTypeLiteral,
+        vehicleId,
     };
-
-    if (lessonType === 'PRACTICE') {
-        const vehicleId =
-            typeof o.vehicleId === 'string' ? o.vehicleId.trim() : '';
-
-        if (!vehicleId || !isUuid(vehicleId)) {
-            return {
-                ok: false,
-                message:
-                    'Dla lekcji praktycznej wymagane jest pole vehicleId (UUID).',
-            };
-        }
-
-        out.vehicleId = vehicleId;
-    }
 
     return { ok: true, body: out };
 }
@@ -127,10 +129,7 @@ export default defineEventHandler(async (event) => {
                 courseId: String(parsed.body.courseId),
                 studentId: randomUUID(),
                 instructorId: String(parsed.body.instructorId),
-                vehicleId:
-                    parsed.body.lessonType === 'PRACTICE'
-                        ? String(parsed.body.vehicleId ?? '')
-                        : null,
+                vehicleId: String(parsed.body.vehicleId ?? ''),
                 lessonType: String(parsed.body.lessonType),
                 startTime: String(parsed.body.startTime),
                 endTime: String(parsed.body.endTime),

@@ -41,7 +41,6 @@ const students = ref<StudentListItem[]>([]);
 const vehicles = ref<Vehicle[]>([]);
 const studentCourses = ref<StudentCourseWithKind[]>([]);
 
-const lessonType = ref<'THEORY' | 'PRACTICE'>('PRACTICE');
 const selectedInstructorId = ref('');
 const selectedStudentUserId = ref('');
 const selectedCourseId = ref('');
@@ -97,19 +96,14 @@ const slotWhenLabel = computed(() => {
     return `${dateStr}, ${s.startTime}–${s.endTime}`;
 });
 
+/** Rezerwacja slotu 1:1 — tylko kursy pod jazdę (teoria jest grupowa). */
 const filteredCourses = computed((): StudentCourseWithKind[] => {
-    const lt = lessonType.value;
-
     return studentCourses.value.filter((c) => {
         if (c.kind === null) {
             return true;
         }
 
-        if (lt === 'PRACTICE') {
-            return c.kind === 'PRACTICAL' || c.kind === 'EXTRA';
-        }
-
-        return c.kind === 'THEORY_GROUP';
+        return c.kind === 'PRACTICAL' || c.kind === 'EXTRA';
     });
 });
 
@@ -179,10 +173,6 @@ watch(selectedStudentUserId, async (userId) => {
     }
 });
 
-watch(lessonType, () => {
-    selectedCourseId.value = '';
-});
-
 function readFetchStatusCode(err: unknown): number | undefined {
     if (err !== null && typeof err === 'object' && 'statusCode' in err) {
         const c = (err as { statusCode: unknown }).statusCode;
@@ -212,7 +202,6 @@ async function handleSubmit(): Promise<void> {
 
     const studentUserId = selectedStudentUserId.value.trim();
     const courseId = selectedCourseId.value.trim();
-    const lt = lessonType.value;
 
     if (!studentUserId) {
         formError.value = 'Wybierz kursanta.';
@@ -236,7 +225,7 @@ async function handleSubmit(): Promise<void> {
 
     const vehicleId = selectedVehicleId.value.trim();
 
-    if (lt === 'PRACTICE' && !vehicleId) {
+    if (!vehicleId) {
         formError.value = 'Wybierz pojazd dla jazdy praktycznej.';
 
         return;
@@ -251,8 +240,8 @@ async function handleSubmit(): Promise<void> {
         instructorId,
         startTime: startIso,
         endTime: endIso,
-        lessonType: lt,
-        ...(lt === 'PRACTICE' ? { vehicleId } : {}),
+        lessonType: 'PRACTICE' as const,
+        vehicleId,
     };
 
     try {
@@ -296,9 +285,10 @@ const fieldClass =
             <UiDialogHeader>
                 <UiDialogTitle>Rezerwuj lekcję</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Utworzenie lekcji przez
+                    Utworzenie jazdy praktycznej przez
                     <span class="font-mono">POST /api/lessons</span>. Wybierz
-                    kursanta, kurs i typ lekcji.
+                    kursanta, kurs praktyczny lub dodatkowy oraz pojazd. Lekcji
+                    teoretycznych nie planuje się w tym oknie — są grupowe.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -378,41 +368,13 @@ const fieldClass =
                     </select>
                 </div>
 
-                <fieldset class="space-y-2">
-                    <legend class="text-sm font-medium">Typ lekcji</legend>
-                    <div class="flex flex-wrap gap-4">
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input
-                                v-model="lessonType"
-                                type="radio"
-                                name="lessonType"
-                                value="THEORY"
-                                class="accent-primary size-4"
-                                :disabled="isCreating"
-                            />
-                            <span>Teoria</span>
-                        </label>
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input
-                                v-model="lessonType"
-                                type="radio"
-                                name="lessonType"
-                                value="PRACTICE"
-                                class="accent-primary size-4"
-                                :disabled="isCreating"
-                            />
-                            <span>Jazda praktyczna</span>
-                        </label>
-                    </div>
-                </fieldset>
-
                 <p
-                    v-if="lessonType === 'PRACTICE'"
                     class="border-primary/30 bg-primary/5 text-primary rounded-md border px-3 py-2 text-xs"
                     role="note"
                 >
-                    Lekcja zostanie zaliczona do kursu praktycznego kursanta
-                    (wybierz kurs typu praktyka lub dodatkowy).
+                    Ta rezerwacja dotyczy wyłącznie jazdy praktycznej — lekcja
+                    zostanie zaliczona do kursu praktycznego lub dodatkowego
+                    kursanta.
                 </p>
 
                 <div class="space-y-2">
@@ -493,11 +455,12 @@ const fieldClass =
                         class="text-muted-foreground text-xs"
                         role="status"
                     >
-                        Brak kursów pasujących do wybranego typu lekcji.
+                        Brak kursów praktycznych lub dodatkowych dla tego
+                        kursanta.
                     </p>
                 </div>
 
-                <div v-if="lessonType === 'PRACTICE'" class="space-y-2">
+                <div class="space-y-2">
                     <label
                         class="text-sm leading-none font-medium"
                         for="lesson-booking-vehicle"

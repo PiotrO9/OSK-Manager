@@ -42,7 +42,11 @@ export interface StudentCourseWithKind {
     kind: CourseKind | null;
 }
 
-/** Body POST /lessons (BFF → BE). */
+/**
+ * Body POST /lessons (BFF → BE).
+ * Rezerwacja z slotu kalendarza jest zawsze dla jednego kursanta — tylko jazda praktyczna
+ * (teoria jest grupowa i nie przechodzi przez ten przepływ).
+ */
 export interface CreateLessonBody {
     courseId: string;
     /** User.id kursanta (nie StudentProfile.id). */
@@ -51,7 +55,6 @@ export interface CreateLessonBody {
     instructorId: string;
     startTime: string;
     endTime: string;
-    lessonType: LessonBookingLessonType;
-    /** Wymagane gdy lessonType === PRACTICE */
-    vehicleId?: string;
+    lessonType: 'PRACTICE';
+    vehicleId: string;
 }

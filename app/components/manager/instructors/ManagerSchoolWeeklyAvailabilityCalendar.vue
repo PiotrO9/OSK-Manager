@@ -1037,9 +1037,7 @@ function handleKeyDownWeekNav(
                                             v-if="slot.instructorCount > 1"
                                             class="text-primary/90 block truncate text-[10px]"
                                         >
-                                            {{
-                                                slot.instructorCount
-                                            }}
+                                            {{ slot.instructorCount }}
                                             instruktorów
                                         </span>
                                         <span

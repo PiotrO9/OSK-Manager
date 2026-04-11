@@ -136,11 +136,8 @@ export function useLessonBookingApi() {
             startTime: body.startTime.trim(),
             endTime: body.endTime.trim(),
             lessonType: body.lessonType,
+            vehicleId: body.vehicleId.trim(),
         };
-
-        if (body.lessonType === 'PRACTICE' && body.vehicleId?.trim()) {
-            payload.vehicleId = body.vehicleId.trim();
-        }
 
         try {
             await $fetch<unknown>(resolveBffEndpoint('/api/lessons'), {
