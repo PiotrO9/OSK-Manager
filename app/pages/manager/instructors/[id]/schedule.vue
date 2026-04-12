@@ -284,7 +284,8 @@ const backHref = computed(() => {
             <p class="text-muted-foreground text-sm">
                 Terminarz lekcji w wybranym tygodniu. Możesz dodać blok
                 DRIVE/THEORY bez kursanta (wpływa na wolne sloty). Kliknij
-                wiersz bloku czasu w tabeli, aby otworzyć edycję.
+                wiersz bloku czasu lub jazdy praktycznej w tabeli, aby otworzyć
+                edycję.
                 <span
                     v-if="!schoolId"
                     class="text-amber-700 dark:text-amber-500"

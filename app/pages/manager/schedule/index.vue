@@ -60,9 +60,9 @@ usePageMeta({
             </h1>
             <p class="text-muted-foreground text-sm">
                 Zarezerwowane lekcje wszystkich instruktorów w wybranej OSK.
-                Kliknij blok czasu instruktora (bez kursanta), aby otworzyć
-                edycję. Wolne sloty znajdziesz w kalendarzu dostępności na
-                dashboardzie.
+                Kliknij blok czasu instruktora (bez kursanta) albo jazdę
+                praktyczną z kursantem, aby otworzyć edycję. Wolne sloty
+                znajdziesz w kalendarzu dostępności na dashboardzie.
             </p>
         </div>
 

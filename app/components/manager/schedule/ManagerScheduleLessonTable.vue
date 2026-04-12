@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule';
+import {
+    buildScheduleManagerItemEditRoute,
+    isScheduleManagerItemEditable,
+} from '~/utils/scheduleManagerEditNavigation';
+import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 
 const props = withDefaults(
     defineProps<{
         items: readonly ScheduleLessonItem[];
         emptyMessage?: string;
-        /** Gdy true — klik w wiersz bloku czasu (`kind=instructor_event`) prowadzi do edycji. */
+        /** Gdy true — klik w wiersz bloku czasu lub jazdy praktycznej prowadzi do edycji. */
         eventEditEnabled?: boolean;
         /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
         schoolId?: string;
@@ -18,19 +23,7 @@ const props = withDefaults(
 );
 
 function rowIsClickable(item: ScheduleLessonItem): boolean {
-    return props.eventEditEnabled && isScheduleInstructorEvent(item);
-}
-
-function buildEventEditRoute(item: ScheduleLessonItem): {
-    path: string;
-    query?: { schoolId: string };
-} {
-    const sid = props.schoolId?.trim();
-
-    return {
-        path: `/manager/events/${encodeURIComponent(item.id)}/edit`,
-        ...(sid ? { query: { schoolId: sid } } : {}),
-    };
+    return isScheduleManagerItemEditable(props.eventEditEnabled, item);
 }
 
 function handleRowClick(item: ScheduleLessonItem): void {
@@ -38,7 +31,16 @@ function handleRowClick(item: ScheduleLessonItem): void {
         return;
     }
 
-    void navigateTo(buildEventEditRoute(item));
+    const target = buildScheduleManagerItemEditRoute(
+        item,
+        props.schoolId ?? '',
+    );
+
+    if (!target) {
+        return;
+    }
+
+    void navigateTo(target);
 }
 
 function handleRowKeydown(e: KeyboardEvent, item: ScheduleLessonItem): void {
@@ -51,7 +53,7 @@ function handleRowKeydown(e: KeyboardEvent, item: ScheduleLessonItem): void {
     }
 
     e.preventDefault();
-    void navigateTo(buildEventEditRoute(item));
+    handleRowClick(item);
 }
 
 function rowTitle(item: ScheduleLessonItem): string | undefined {
@@ -59,7 +61,15 @@ function rowTitle(item: ScheduleLessonItem): string | undefined {
         return undefined;
     }
 
-    return 'Otwórz edycję bloku czasu';
+    if (isScheduleInstructorEvent(item)) {
+        return 'Otwórz edycję bloku czasu';
+    }
+
+    if (isScheduleBookedPracticalLesson(item)) {
+        return 'Otwórz edycję jazdy praktycznej';
+    }
+
+    return undefined;
 }
 
 function formatIsoLocal(iso: string): string {
@@ -111,7 +121,7 @@ function displayVehicle(
             class="w-full min-w-[640px] border-collapse text-sm"
             :aria-label="
                 eventEditEnabled
-                    ? 'Lista lekcji i bloków czasu; kliknij wiersz bloku, aby edytować'
+                    ? 'Lista lekcji i bloków czasu; kliknij wiersz bloku lub jazdy praktycznej, aby edytować'
                     : 'Lista lekcji w wybranym zakresie dat'
             "
         >

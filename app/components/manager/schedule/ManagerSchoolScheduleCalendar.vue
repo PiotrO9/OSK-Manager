@@ -4,6 +4,11 @@ import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import {
+    buildScheduleManagerItemEditRoute,
+    isScheduleManagerItemEditable,
+} from '~/utils/scheduleManagerEditNavigation';
+import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 import {
     dateToCalendarDate,
@@ -15,7 +20,7 @@ import {
 const props = withDefaults(
     defineProps<{
         schoolId: string;
-        /** Klik w blok `instructor_event` → `/manager/events/:id/edit` */
+        /** Klik w blok czasu lub jazdę praktyczną → edycja wydarzenia / lekcji */
         eventEditEnabled?: boolean;
     }>(),
     {
@@ -440,14 +445,22 @@ function handleKeyDownWeekNav(
 }
 
 function blockIsClickable(lesson: ScheduleLessonItem): boolean {
-    return props.eventEditEnabled && isScheduleInstructorEvent(lesson);
+    return isScheduleManagerItemEditable(props.eventEditEnabled, lesson);
 }
 
 function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
     const base = ariaSummaryForLesson(lesson);
 
-    if (blockIsClickable(lesson)) {
+    if (!props.eventEditEnabled) {
+        return base;
+    }
+
+    if (isScheduleInstructorEvent(lesson)) {
         return `${base}. Naciśnij Enter lub Spację, aby edytować blok czasu.`;
+    }
+
+    if (isScheduleBookedPracticalLesson(lesson)) {
+        return `${base}. Naciśnij Enter lub Spację, aby edytować jazdę praktyczną.`;
     }
 
     return base;
@@ -461,18 +474,21 @@ function lessonBlockInteractiveClasses(lesson: ScheduleLessonItem): string {
     return 'cursor-pointer hover:brightness-[0.97] focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none dark:hover:brightness-[1.08]';
 }
 
-function handleEventBlockClick(lesson: ScheduleLessonItem): void {
+function handleScheduleBlockClick(lesson: ScheduleLessonItem): void {
     if (!blockIsClickable(lesson)) {
         return;
     }
 
-    void navigateTo({
-        path: `/manager/events/${encodeURIComponent(lesson.id)}/edit`,
-        query: { schoolId: props.schoolId.trim() },
-    });
+    const target = buildScheduleManagerItemEditRoute(lesson, props.schoolId);
+
+    if (!target) {
+        return;
+    }
+
+    void navigateTo(target);
 }
 
-function handleEventBlockKeydown(
+function handleScheduleBlockKeydown(
     e: KeyboardEvent,
     lesson: ScheduleLessonItem,
 ): void {
@@ -485,7 +501,7 @@ function handleEventBlockKeydown(
     }
 
     e.preventDefault();
-    handleEventBlockClick(lesson);
+    handleScheduleBlockClick(lesson);
 }
 </script>
 
@@ -573,7 +589,8 @@ function handleEventBlockKeydown(
                     v-if="eventEditEnabled"
                     class="text-foreground border-border border-l pl-2"
                 >
-                    Blok czasu instruktora: kliknij lub Enter, aby edytować.
+                    Blok czasu lub jazda praktyczna: kliknij lub Enter, aby
+                    edytować.
                 </span>
                 <span
                     class="border-border flex flex-wrap items-center gap-2 border-l pl-2"
@@ -716,9 +733,11 @@ function handleEventBlockKeydown(
                                                 ? 0
                                                 : undefined
                                         "
-                                        @click="handleEventBlockClick(lesson)"
+                                        @click="
+                                            handleScheduleBlockClick(lesson)
+                                        "
                                         @keydown="
-                                            handleEventBlockKeydown(
+                                            handleScheduleBlockKeydown(
                                                 $event,
                                                 lesson,
                                             )
