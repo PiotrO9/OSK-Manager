@@ -60,7 +60,9 @@ usePageMeta({
             </h1>
             <p class="text-muted-foreground text-sm">
                 Zarezerwowane lekcje wszystkich instruktorów w wybranej OSK.
-                Wolne sloty znajdziesz w kalendarzu dostępności na dashboardzie.
+                Kliknij blok czasu instruktora (bez kursanta), aby otworzyć
+                edycję. Wolne sloty znajdziesz w kalendarzu dostępności na
+                dashboardzie.
             </p>
         </div>
 
@@ -68,6 +70,10 @@ usePageMeta({
             {{ schoolIdError }}
         </p>
 
-        <ManagerSchoolScheduleCalendar v-if="schoolId" :school-id="schoolId" />
+        <ManagerSchoolScheduleCalendar
+            v-if="schoolId"
+            :school-id="schoolId"
+            event-edit-enabled
+        />
     </div>
 </template>

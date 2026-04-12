@@ -9,6 +9,8 @@ const props = defineProps<{
     /** null = brak limitu (MVP backend). */
     capacity: number | null;
     schoolId: string;
+    /** Kursanci już przypisani — ukryci na liście (tryb dopisywania). */
+    excludeStudentUserIds?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -97,10 +99,41 @@ const capacityBadgeLabel = computed((): string => {
     return `${selectedCount.value} / ${cap} miejsc zajętych`;
 });
 
+/** GET /students — limit 1–100 (BFF); przy braku limitu wydarzenia = 100. */
+const studentsFetchLimit = computed((): number => {
+    const cap = capacityNumber.value;
+
+    if (cap === null) {
+        return 100;
+    }
+
+    return Math.min(100, Math.max(1, cap));
+});
+
+const excludedUserIdSet = computed((): Set<string> => {
+    const raw = props.excludeStudentUserIds ?? [];
+    const out = new Set<string>();
+
+    for (const id of raw) {
+        const t = id.trim();
+
+        if (t) {
+            out.add(t);
+        }
+    }
+
+    return out;
+});
+
 const filteredStudents = computed((): StudentListItem[] => {
     const q = searchQuery.value.trim().toLowerCase();
+    const ex = excludedUserIdSet.value;
 
     return students.value.filter((s) => {
+        if (ex.has(s.userId.trim())) {
+            return false;
+        }
+
         if (!s.isActive) {
             return false;
         }
@@ -157,7 +190,7 @@ function handleClose(): void {
 }
 
 watch(
-    [open, () => props.schoolId],
+    [open, () => props.schoolId, () => props.capacity],
     async ([isOpen]) => {
         if (!isOpen) {
             return;
@@ -183,7 +216,7 @@ watch(
             const page = await fetchList({
                 schoolId: sid,
                 page: 1,
-                limit: 100,
+                limit: studentsFetchLimit.value,
             });
 
             if (seq !== loadSeq) {

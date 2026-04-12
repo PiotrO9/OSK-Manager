@@ -4,6 +4,7 @@ import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 import {
     dateToCalendarDate,
     formatDateOnly,
@@ -11,9 +12,16 @@ import {
     weekRangeFromMonday,
 } from '~/utils/weeklyCalendarDates';
 
-const props = defineProps<{
-    schoolId: string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        schoolId: string;
+        /** Klik w blok `instructor_event` → `/manager/events/:id/edit` */
+        eventEditEnabled?: boolean;
+    }>(),
+    {
+        eventEditEnabled: false,
+    },
+);
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
 const BASE_HOUR = 7;
@@ -430,6 +438,55 @@ function handleKeyDownWeekNav(
         handleNextWeek();
     }
 }
+
+function blockIsClickable(lesson: ScheduleLessonItem): boolean {
+    return props.eventEditEnabled && isScheduleInstructorEvent(lesson);
+}
+
+function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
+    const base = ariaSummaryForLesson(lesson);
+
+    if (blockIsClickable(lesson)) {
+        return `${base}. Naciśnij Enter lub Spację, aby edytować blok czasu.`;
+    }
+
+    return base;
+}
+
+function lessonBlockInteractiveClasses(lesson: ScheduleLessonItem): string {
+    if (!blockIsClickable(lesson)) {
+        return '';
+    }
+
+    return 'cursor-pointer hover:brightness-[0.97] focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none dark:hover:brightness-[1.08]';
+}
+
+function handleEventBlockClick(lesson: ScheduleLessonItem): void {
+    if (!blockIsClickable(lesson)) {
+        return;
+    }
+
+    void navigateTo({
+        path: `/manager/events/${encodeURIComponent(lesson.id)}/edit`,
+        query: { schoolId: props.schoolId.trim() },
+    });
+}
+
+function handleEventBlockKeydown(
+    e: KeyboardEvent,
+    lesson: ScheduleLessonItem,
+): void {
+    if (!blockIsClickable(lesson)) {
+        return;
+    }
+
+    if (e.key !== 'Enter' && e.key !== ' ') {
+        return;
+    }
+
+    e.preventDefault();
+    handleEventBlockClick(lesson);
+}
 </script>
 
 <template>
@@ -512,6 +569,12 @@ function handleKeyDownWeekNav(
                 role="status"
             >
                 <span>Oś godzin: {{ BASE_HOUR }}:00–19:00</span>
+                <span
+                    v-if="eventEditEnabled"
+                    class="text-foreground border-border border-l pl-2"
+                >
+                    Blok czasu instruktora: kliknij lub Enter, aby edytować.
+                </span>
                 <span
                     class="border-border flex flex-wrap items-center gap-2 border-l pl-2"
                     aria-hidden="true"
@@ -628,16 +691,37 @@ function handleKeyDownWeekNav(
                                 >
                                     <div
                                         class="absolute right-1 left-1 overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
-                                        :class="lessonBlockClasses(lesson.type)"
+                                        :class="[
+                                            lessonBlockClasses(lesson.type),
+                                            lessonBlockInteractiveClasses(
+                                                lesson,
+                                            ),
+                                        ]"
                                         :style="{
                                             top: `${slotTopPx(isoToHm(lesson.startTime)) + stackOffsetForLesson(lesson, day.dateStr)}px`,
                                             minHeight:
                                                 lessonBlockMinHeightPx(lesson),
                                         }"
-                                        :title="ariaSummaryForLesson(lesson)"
-                                        role="group"
+                                        :title="blockAccessibilityLabel(lesson)"
+                                        :role="
+                                            blockIsClickable(lesson)
+                                                ? 'button'
+                                                : 'group'
+                                        "
                                         :aria-label="
-                                            ariaSummaryForLesson(lesson)
+                                            blockAccessibilityLabel(lesson)
+                                        "
+                                        :tabindex="
+                                            blockIsClickable(lesson)
+                                                ? 0
+                                                : undefined
+                                        "
+                                        @click="handleEventBlockClick(lesson)"
+                                        @keydown="
+                                            handleEventBlockKeydown(
+                                                $event,
+                                                lesson,
+                                            )
                                         "
                                     >
                                         <div

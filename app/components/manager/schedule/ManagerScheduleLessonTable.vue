@@ -1,10 +1,66 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule';
+import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 
-const props = defineProps<{
-    items: readonly ScheduleLessonItem[];
-    emptyMessage?: string;
-}>();
+const props = withDefaults(
+    defineProps<{
+        items: readonly ScheduleLessonItem[];
+        emptyMessage?: string;
+        /** Gdy true — klik w wiersz bloku czasu (`kind=instructor_event`) prowadzi do edycji. */
+        eventEditEnabled?: boolean;
+        /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
+        schoolId?: string;
+    }>(),
+    {
+        eventEditEnabled: false,
+        schoolId: '',
+    },
+);
+
+function rowIsClickable(item: ScheduleLessonItem): boolean {
+    return props.eventEditEnabled && isScheduleInstructorEvent(item);
+}
+
+function buildEventEditRoute(item: ScheduleLessonItem): {
+    path: string;
+    query?: { schoolId: string };
+} {
+    const sid = props.schoolId?.trim();
+
+    return {
+        path: `/manager/events/${encodeURIComponent(item.id)}/edit`,
+        ...(sid ? { query: { schoolId: sid } } : {}),
+    };
+}
+
+function handleRowClick(item: ScheduleLessonItem): void {
+    if (!rowIsClickable(item)) {
+        return;
+    }
+
+    void navigateTo(buildEventEditRoute(item));
+}
+
+function handleRowKeydown(e: KeyboardEvent, item: ScheduleLessonItem): void {
+    if (!rowIsClickable(item)) {
+        return;
+    }
+
+    if (e.key !== 'Enter' && e.key !== ' ') {
+        return;
+    }
+
+    e.preventDefault();
+    void navigateTo(buildEventEditRoute(item));
+}
+
+function rowTitle(item: ScheduleLessonItem): string | undefined {
+    if (!rowIsClickable(item)) {
+        return undefined;
+    }
+
+    return 'Otwórz edycję bloku czasu';
+}
 
 function formatIsoLocal(iso: string): string {
     const d = new Date(iso);
@@ -53,7 +109,11 @@ function displayVehicle(
     <div class="overflow-x-auto rounded-lg border">
         <table
             class="w-full min-w-[640px] border-collapse text-sm"
-            :aria-label="'Lista lekcji w wybranym zakresie dat'"
+            :aria-label="
+                eventEditEnabled
+                    ? 'Lista lekcji i bloków czasu; kliknij wiersz bloku, aby edytować'
+                    : 'Lista lekcji w wybranym zakresie dat'
+            "
         >
             <thead>
                 <tr class="bg-muted/50 border-b text-left">
@@ -85,6 +145,16 @@ function displayVehicle(
                     v-for="item in props.items"
                     :key="item.id"
                     class="border-border border-t"
+                    :class="
+                        rowIsClickable(item)
+                            ? 'hover:bg-muted/50 focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                            : ''
+                    "
+                    :tabindex="rowIsClickable(item) ? 0 : undefined"
+                    :role="rowIsClickable(item) ? 'link' : undefined"
+                    :title="rowTitle(item)"
+                    @click="handleRowClick(item)"
+                    @keydown="handleRowKeydown($event, item)"
                 >
                     <td class="px-3 py-2 whitespace-nowrap">
                         {{ formatIsoLocal(item.startTime) }}

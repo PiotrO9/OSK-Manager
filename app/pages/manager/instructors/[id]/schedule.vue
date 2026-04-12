@@ -283,7 +283,8 @@ const backHref = computed(() => {
             </h1>
             <p class="text-muted-foreground text-sm">
                 Terminarz lekcji w wybranym tygodniu. Możesz dodać blok
-                DRIVE/THEORY bez kursanta (wpływa na wolne sloty).
+                DRIVE/THEORY bez kursanta (wpływa na wolne sloty). Kliknij
+                wiersz bloku czasu w tabeli, aby otworzyć edycję.
                 <span
                     v-if="!schoolId"
                     class="text-amber-700 dark:text-amber-500"
@@ -352,7 +353,12 @@ const backHref = computed(() => {
                 >
                     {{ scheduleError }}
                 </p>
-                <ManagerScheduleLessonTable v-else :items="items" />
+                <ManagerScheduleLessonTable
+                    v-else
+                    :items="items"
+                    event-edit-enabled
+                    :school-id="schoolId"
+                />
             </section>
 
             <section
