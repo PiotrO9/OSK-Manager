@@ -7,11 +7,130 @@ import {
     extractStudentAttendanceFromEvent,
     extractStudentUserIdsFromEventStudentsPayload,
 } from '~/utils/instructorEventStudents';
+import type { InstructorListItem } from '~/types/instructor';
 import type {
     CreateInstructorEventPayload,
     InstructorEvent,
     PatchInstructorEventPayload,
 } from '~/types/instructorEvent';
+
+/**
+ * BE często zwraca `instructor: { id }` / `vehicle: { id }` zamiast samych `instructorId` / `vehicleId`
+ * (jak GET /lessons/:id). Bez tego UI wywołuje `.trim()` na undefined.
+ */
+function readInstructorIdFromEventRaw(o: Record<string, unknown>): string {
+    const direct = o.instructorId;
+
+    if (typeof direct === 'string' && direct.trim()) {
+        return direct.trim();
+    }
+
+    const inst = o.instructor;
+
+    if (inst && typeof inst === 'object') {
+        const id = (inst as Record<string, unknown>).id;
+
+        if (typeof id === 'string' && id.trim()) {
+            return id.trim();
+        }
+    }
+
+    return '';
+}
+
+function readVehicleIdFromEventRaw(o: Record<string, unknown>): string | null {
+    if (o.vehicleId === null) {
+        return null;
+    }
+
+    if (typeof o.vehicleId === 'string') {
+        const t = o.vehicleId.trim();
+
+        return t.length > 0 ? t : null;
+    }
+
+    const veh = o.vehicle;
+
+    if (veh && typeof veh === 'object') {
+        const id = (veh as Record<string, unknown>).id;
+
+        if (typeof id === 'string' && id.trim()) {
+            return id.trim();
+        }
+    }
+
+    return null;
+}
+
+/** Jak GET /lessons/:id — pole `instructor` zagnieżdżone zamiast osobnego GET. */
+function readNestedInstructorListItem(raw: unknown): InstructorListItem | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+    const id = typeof o.id === 'string' ? o.id.trim() : '';
+
+    if (!id) {
+        return null;
+    }
+
+    const firstName =
+        typeof o.firstName === 'string'
+            ? o.firstName.trim()
+            : typeof o.first_name === 'string'
+              ? o.first_name.trim()
+              : '';
+    const lastName =
+        typeof o.lastName === 'string'
+            ? o.lastName.trim()
+            : typeof o.last_name === 'string'
+              ? o.last_name.trim()
+              : '';
+    const email =
+        typeof o.email === 'string'
+            ? o.email.trim()
+            : typeof o.Email === 'string'
+              ? o.Email.trim()
+              : '';
+
+    return { id, firstName, lastName, email };
+}
+
+function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
+    if (!raw || typeof raw !== 'object') {
+        throw new Error('Nieprawidłowa odpowiedź serwera');
+    }
+
+    const o = raw as Record<string, unknown>;
+    const base = raw as InstructorEvent;
+
+    const instructorId = readInstructorIdFromEventRaw(o);
+    const vehicleId = readVehicleIdFromEventRaw(o);
+    const startTime =
+        typeof o.startTime === 'string'
+            ? o.startTime
+            : typeof base.startTime === 'string'
+              ? base.startTime
+              : '';
+    const endTime =
+        typeof o.endTime === 'string'
+            ? o.endTime
+            : typeof base.endTime === 'string'
+              ? base.endTime
+              : '';
+
+    const eventInstructor = readNestedInstructorListItem(o.instructor);
+
+    return {
+        ...base,
+        instructorId,
+        vehicleId,
+        startTime,
+        endTime,
+        ...(eventInstructor ? { eventInstructor } : {}),
+    };
+}
 
 function buildPatchRequestBody(
     payload: PatchInstructorEventPayload,
@@ -94,7 +213,7 @@ export function useInstructorEventsApi() {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
-            return data.event;
+            return normalizeInstructorEventFromApi(data.event);
         } finally {
             isLoading.value = false;
         }
@@ -158,7 +277,7 @@ export function useInstructorEventsApi() {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
-            const rawEvent = data.event as InstructorEvent;
+            const rawEvent = normalizeInstructorEventFromApi(data.event);
             const att = extractStudentAttendanceFromEvent(rawEvent);
 
             let mergedIds = att.ids;
@@ -221,7 +340,7 @@ export function useInstructorEventsApi() {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
-            return data.event;
+            return normalizeInstructorEventFromApi(data.event);
         } finally {
             isUpdateLoading.value = false;
         }

@@ -178,22 +178,16 @@ const isFormDirty = computed((): boolean => {
 });
 
 const scheduleBackHref = computed(() => {
-    const ins =
-        formInstructorId.value.trim() || loadedLesson.value?.instructorId;
-    const sid = schoolId.value;
-
-    if (!ins) {
-        return '/manager/schedule';
-    }
+    const sid = schoolId.value.trim();
 
     if (sid) {
         return {
-            path: `/manager/instructors/${ins}/schedule`,
+            path: '/manager/schedule',
             query: { schoolId: sid },
         };
     }
 
-    return `/manager/instructors/${ins}/schedule`;
+    return '/manager/schedule';
 });
 
 async function loadVehicleDisplayFallback(

@@ -199,6 +199,74 @@ export async function bffEventStudentsGet(
     };
 }
 
+export interface EventStudentsReplaceResponse {
+    studentUserIds: string[];
+}
+
+/**
+ * PUT {upstream}/events/:eventId/students — pełna zamiana listy uczestników (THEORY).
+ */
+export async function bffEventStudentsPut(
+    event: H3Event,
+    upstreamBase: string,
+    eventId: string,
+    body: { studentIds: string[] },
+): Promise<{
+    success: true;
+    data: EventStudentsReplaceResponse;
+}> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify(body),
+        },
+    );
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<{
+        studentUserIds?: unknown;
+    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się zapisać listy kursantów wydarzenia',
+        });
+    }
+
+    const raw = json.data?.studentUserIds;
+    const out: string[] = [];
+
+    if (Array.isArray(raw)) {
+        for (const item of raw) {
+            if (typeof item === 'string' && item.trim()) {
+                out.push(item.trim());
+            }
+        }
+    }
+
+    return {
+        success: true,
+        data: {
+            studentUserIds: out,
+        },
+    };
+}
+
 export async function bffEventsPatch(
     event: H3Event,
     upstreamBase: string,
@@ -326,18 +394,17 @@ export async function bffEventStudentsPost(
     };
 }
 
-export interface EventStudentsRemoveResponse {
-    removed: number;
-}
-
-export async function bffEventStudentsDelete(
+/**
+ * DELETE {upstream}/events/:eventId/students/:studentUserId — wypisanie jednego kursanta.
+ */
+export async function bffEventStudentDeleteOne(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
-    body: { studentIds: string[] },
+    studentUserId: string,
 ): Promise<{
     success: true;
-    data: EventStudentsRemoveResponse;
+    data: EventStudentsReplaceResponse;
 }> {
     const access = getCookie(event, 'access_token');
 
@@ -346,24 +413,19 @@ export async function bffEventStudentsDelete(
     }
 
     const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students`,
+        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students/${encodeURIComponent(studentUserId)}`,
         {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
                 Authorization: `Bearer ${access}`,
             },
-            body: JSON.stringify({ studentIds: body.studentIds }),
         },
     );
 
     const text = await res.text();
-    const json =
-        parseBackendEnvelopeFromResponseText<EventStudentsRemoveResponse>(
-            res,
-            text,
-            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-        );
+    const json = parseBackendEnvelopeFromResponseText<{
+        studentUserIds?: unknown;
+    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
 
     if (!res.ok || !json.success) {
         throw createError({
@@ -371,23 +433,25 @@ export async function bffEventStudentsDelete(
             statusMessage:
                 typeof json.error === 'string'
                     ? json.error
-                    : 'Nie udało się usunąć kursantów z wydarzenia',
+                    : 'Nie udało się usunąć kursanta z wydarzenia',
         });
     }
 
-    const data = json.data;
+    const raw = json.data?.studentUserIds;
+    const out: string[] = [];
 
-    if (!data || typeof data !== 'object' || typeof data.removed !== 'number') {
-        throw createError({
-            statusCode: 502,
-            statusMessage: 'Nieprawidłowa odpowiedź serwera',
-        });
+    if (Array.isArray(raw)) {
+        for (const item of raw) {
+            if (typeof item === 'string' && item.trim()) {
+                out.push(item.trim());
+            }
+        }
     }
 
     return {
         success: true,
         data: {
-            removed: data.removed,
+            studentUserIds: out,
         },
     };
 }

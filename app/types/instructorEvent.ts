@@ -1,3 +1,5 @@
+import type { InstructorListItem } from './instructor';
+
 /** Event instruktora — POST /events (BE InstructorEventDto). */
 
 export type InstructorEventTypeCode = 'DRIVE' | 'THEORY';
@@ -12,6 +14,10 @@ export interface InstructorEvent {
     /** null / brak = bez limitu (MVP). */
     capacity?: number | null;
     createdAt: string;
+    /**
+     * Z GET /events/:id — zagnieżdżony instruktor (bez osobnego GET /instructors/:id).
+     */
+    eventInstructor?: InstructorListItem;
     /** UUID użytkowników kursantów — gdy GET /events/:id zwraca te pola. */
     studentUserIds?: string[];
     /** true, gdy odpowiedź API zawierała informację o kursantach (lista może być pusta). */

@@ -1,6 +1,7 @@
 import type {
     AssignStudentsToEventResponse,
     RemoveStudentsFromEventResponse,
+    ReplaceStudentsOnEventResponse,
 } from '~/types/event';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
@@ -11,6 +12,8 @@ export function useEventApi() {
     const assignError = ref<string | null>(null);
     const isRemoving = ref(false);
     const removeError = ref<string | null>(null);
+    const isReplacing = ref(false);
+    const replaceError = ref<string | null>(null);
 
     async function assignStudentsToEvent(
         eventId: string,
@@ -84,25 +87,38 @@ export function useEventApi() {
         removeError.value = null;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/events/${encodeURIComponent(eid)}/students`,
-                ),
-                {
-                    method: 'DELETE',
-                    credentials: 'include',
-                    body: { studentIds },
-                },
-            );
+            let last: RemoveStudentsFromEventResponse | null = null;
 
-            const data =
-                unwrapApiSuccessData<RemoveStudentsFromEventResponse>(raw);
+            for (const sid of studentIds) {
+                const uid = sid.trim();
 
-            if (typeof data.removed !== 'number') {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
+                if (!uid) {
+                    continue;
+                }
+
+                const raw = await $fetch<unknown>(
+                    resolveBffEndpoint(
+                        `/api/events/${encodeURIComponent(eid)}/students/${encodeURIComponent(uid)}`,
+                    ),
+                    {
+                        method: 'DELETE',
+                        credentials: 'include',
+                    },
+                );
+
+                last =
+                    unwrapApiSuccessData<RemoveStudentsFromEventResponse>(raw);
+
+                if (!Array.isArray(last.studentUserIds)) {
+                    throw new Error('Nieprawidłowa odpowiedź serwera.');
+                }
             }
 
-            return data;
+            if (!last) {
+                throw new Error('Brak identyfikatorów kursantów do usunięcia.');
+            }
+
+            return last;
         } catch (err: unknown) {
             removeError.value = getApiFetchErrorMessage(
                 err,
@@ -115,12 +131,60 @@ export function useEventApi() {
         }
     }
 
+    async function replaceStudentsOnEvent(
+        eventId: string,
+        studentIds: string[],
+    ): Promise<ReplaceStudentsOnEventResponse> {
+        const eid = eventId.trim();
+
+        if (!eid) {
+            throw new Error('Brak identyfikatora wydarzenia.');
+        }
+
+        isReplacing.value = true;
+        replaceError.value = null;
+
+        try {
+            const raw = await $fetch<unknown>(
+                resolveBffEndpoint(
+                    `/api/events/${encodeURIComponent(eid)}/students`,
+                ),
+                {
+                    method: 'PUT',
+                    credentials: 'include',
+                    body: { studentIds },
+                },
+            );
+
+            const data =
+                unwrapApiSuccessData<ReplaceStudentsOnEventResponse>(raw);
+
+            if (!Array.isArray(data.studentUserIds)) {
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
+            }
+
+            return data;
+        } catch (err: unknown) {
+            replaceError.value = getApiFetchErrorMessage(
+                err,
+                'Nie udało się zapisać listy kursantów.',
+            );
+
+            throw err;
+        } finally {
+            isReplacing.value = false;
+        }
+    }
+
     return {
         isAssigning: readonly(isAssigning),
         assignError: readonly(assignError),
         isRemoving: readonly(isRemoving),
         removeError: readonly(removeError),
+        isReplacing: readonly(isReplacing),
+        replaceError: readonly(replaceError),
         assignStudentsToEvent,
         removeStudentsFromEvent,
+        replaceStudentsOnEvent,
     };
 }

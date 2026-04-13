@@ -1,10 +1,9 @@
-import { bffEventStudentsDelete } from '~~/server/utils/eventsBff';
+import { bffEventStudentsPut } from '~~/server/utils/eventsBff';
 import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 
-const MIN_IDS = 1;
 const MAX_IDS = 50;
 
-function validateRemoveStudentsBody(
+function validateReplaceStudentsBody(
     raw: unknown,
 ): { ok: true; studentIds: string[] } | { ok: false; message: string } {
     if (!raw || typeof raw !== 'object') {
@@ -18,10 +17,10 @@ function validateRemoveStudentsBody(
         return { ok: false, message: 'Pole studentIds musi być tablicą UUID.' };
     }
 
-    if (idsRaw.length < MIN_IDS || idsRaw.length > MAX_IDS) {
+    if (idsRaw.length > MAX_IDS) {
         return {
             ok: false,
-            message: `Pole studentIds musi mieć od ${MIN_IDS} do ${MAX_IDS} elementów.`,
+            message: `Pole studentIds może mieć co najwyżej ${MAX_IDS} elementów.`,
         };
     }
 
@@ -78,7 +77,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const rawBody = await readBody(event);
-    const parsed = validateRemoveStudentsBody(rawBody);
+    const parsed = validateReplaceStudentsBody(rawBody);
 
     if (!parsed.ok) {
         throw createError({
@@ -90,17 +89,19 @@ export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffEventStudentsDelete(event, upstream, eventId, {
+        return bffEventStudentsPut(event, upstream, eventId, {
             studentIds: parsed.studentIds,
         });
     }
 
     await requireManagerFromCookie(event);
 
+    const sorted = [...parsed.studentIds].sort();
+
     return {
         success: true,
         data: {
-            removed: parsed.studentIds.length,
+            studentUserIds: sorted,
         },
     };
 });

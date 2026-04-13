@@ -9,9 +9,14 @@ export interface AssignStudentsToEventResponse {
     skipped: number;
 }
 
-/** Odpowiedź DELETE /events/:eventId/students. */
+/** Odpowiedź PUT /events/:eventId/students (pełna zamiana listy). */
+export interface ReplaceStudentsOnEventResponse {
+    studentUserIds: string[];
+}
+
+/** Odpowiedź DELETE /events/:eventId/students/:studentUserId. */
 export interface RemoveStudentsFromEventResponse {
-    removed: number;
+    studentUserIds: string[];
 }
 
 /** Event instruktora (np. po POST /events). */

@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import ManagerEventStudentPickerDialog from '~/components/manager/events/ManagerEventStudentPickerDialog.vue';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
     formatInstructorDisplayName,
-    normalizeInstructorDetail,
     type InstructorListItem,
 } from '~/types/instructor';
 import type {
@@ -32,7 +28,7 @@ const {
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
 const { fetchList: fetchStudentsPage } = useStudentsApi();
-const { removeStudentsFromEvent, isAssigning, isRemoving } = useEventApi();
+const { replaceStudentsOnEvent, isReplacing } = useEventApi();
 
 function getEventIdFromRoute(): string {
     const raw = route.params.id;
@@ -88,16 +84,18 @@ const instructors = ref<InstructorListItem[]>([]);
 const instructorsError = ref<string | null>(null);
 const isInstructorsLoading = ref(false);
 
-const instructorNameFallback = ref<string | null>(null);
-
 const studentsForLabels = ref<StudentListItem[]>([]);
 const studentsLabelsError = ref<string | null>(null);
 const isStudentsLabelsLoading = ref(false);
 
-const isStudentPickerOpen = ref(false);
 const theoryStudentsError = ref<string | null>(null);
 
-const isSaving = computed(() => isUpdateLoading.value);
+/** Stan zapisany na serwerze (posortowany zestaw UUID) — do porównania z draftem. */
+const theoryStudentsBaseline = ref<string[]>([]);
+/** Zaznaczenia przed zapisem formularza (checkboxy). */
+const draftTheoryStudentUserIds = ref<string[]>([]);
+
+const isSaving = computed(() => isUpdateLoading.value || isReplacing.value);
 
 let loadSeq = 0;
 
@@ -147,10 +145,10 @@ function normalizeCapacityForCompare(cap: number | null | undefined): string {
 
 function applyPrefill(ev: InstructorEvent): void {
     formType.value = ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY';
-    formStartLocal.value = isoToDatetimeLocal(ev.startTime);
-    formEndLocal.value = isoToDatetimeLocal(ev.endTime);
+    formStartLocal.value = isoToDatetimeLocal(ev.startTime ?? '');
+    formEndLocal.value = isoToDatetimeLocal(ev.endTime ?? '');
     formVehicleId.value = ev.vehicleId?.trim() ? ev.vehicleId : '';
-    formInstructorId.value = ev.instructorId.trim();
+    formInstructorId.value = (ev.instructorId ?? '').trim();
     formCapacityInput.value =
         ev.capacity !== undefined && ev.capacity !== null ? ev.capacity : '';
     formError.value = null;
@@ -197,11 +195,11 @@ const baselineSnapshot = computed((): Record<string, string> | null => {
 
     return {
         type: ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY',
-        start: isoToDatetimeLocal(ev.startTime),
-        end: isoToDatetimeLocal(ev.endTime),
+        start: isoToDatetimeLocal(ev.startTime ?? ''),
+        end: isoToDatetimeLocal(ev.endTime ?? ''),
         vehicle: (ev.vehicleId ?? '').trim(),
         capacity: normalizeCapacityForCompare(ev.capacity ?? null),
-        instructorId: ev.instructorId.trim(),
+        instructorId: (ev.instructorId ?? '').trim(),
     };
 });
 
@@ -219,7 +217,98 @@ const currentSnapshot = computed((): Record<string, string> | null => {
     };
 });
 
-const isFormDirty = computed((): boolean => {
+function sortedStudentIds(ids: string[]): string[] {
+    return [...ids]
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .sort();
+}
+
+/**
+ * Uczestnictwo w **tym** evencie jest w `studentUserIds` (GET wydarzenia / …/students),
+ * nie w polu `isActive` z GET /students (to status kursanta w OSK).
+ * Te same osoby mogą być identyfikowane jako `users.id` albo `student_profiles.id` —
+ * dopasowujemy wiersz katalogu po obu.
+ */
+function findCatalogRowForAssignedId(
+    catalog: StudentListItem[],
+    assignedId: string,
+): StudentListItem | undefined {
+    const t = assignedId.trim();
+
+    if (!t) {
+        return undefined;
+    }
+
+    return catalog.find(
+        (c) => t === c.userId.trim() || (!!c.id?.trim() && t === c.id.trim()),
+    );
+}
+
+function normalizeTheoryParticipantIdsAgainstCatalog(): void {
+    const cat = studentsForLabels.value;
+
+    if (cat.length === 0) {
+        return;
+    }
+
+    function toCanonical(raw: string): string {
+        const t = raw.trim();
+
+        if (!t) {
+            return t;
+        }
+
+        const hit = findCatalogRowForAssignedId(cat, t);
+
+        return hit ? hit.userId.trim() : t;
+    }
+
+    draftTheoryStudentUserIds.value = [
+        ...new Set(
+            draftTheoryStudentUserIds.value.map(toCanonical).filter(Boolean),
+        ),
+    ];
+
+    theoryStudentsBaseline.value = sortedStudentIds(
+        theoryStudentsBaseline.value.map(toCanonical).filter(Boolean),
+    );
+}
+
+function draftIdBelongsToStudentRow(
+    row: StudentListItem,
+    assignedId: string,
+): boolean {
+    const t = assignedId.trim();
+
+    if (!t) {
+        return false;
+    }
+
+    if (t === row.userId.trim()) {
+        return true;
+    }
+
+    const pid = row.id?.trim();
+
+    return Boolean(pid && t === pid);
+}
+
+function isTheoryRowChecked(s: StudentListItem): boolean {
+    for (const raw of draftTheoryStudentUserIds.value) {
+        if (draftIdBelongsToStudentRow(s, raw)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function getCanonicalParticipantUserIdForRow(s: StudentListItem): string {
+    return s.userId.trim() || s.id.trim();
+}
+
+const isFormFieldsDirty = computed((): boolean => {
     const a = baselineSnapshot.value;
     const b = currentSnapshot.value;
 
@@ -243,10 +332,10 @@ const instructorSelectLabel = computed((): string => {
         return formatInstructorDisplayName(fromList);
     }
 
-    const fb = instructorNameFallback.value?.trim();
+    const embedded = loadedEvent.value?.eventInstructor;
 
-    if (fb) {
-        return fb;
+    if (embedded && embedded.id === id) {
+        return formatInstructorDisplayName(embedded);
     }
 
     return id;
@@ -260,6 +349,29 @@ const assignedStudentUserIds = computed((): string[] => {
 
 const studentAttendanceKnown = computed(
     (): boolean => loadedEvent.value?.studentAttendanceKnown ?? false,
+);
+
+/** Zmiana składu grupy (checkboxy) — nie zależy od `studentAttendanceKnown` (przycisk Zapisz musi reagować na draft vs baseline). */
+const isTheoryStudentsDirty = computed((): boolean => {
+    const ev = loadedEvent.value;
+
+    if (
+        !ev ||
+        String(ev.type ?? '')
+            .trim()
+            .toUpperCase() !== 'THEORY'
+    ) {
+        return false;
+    }
+
+    return (
+        JSON.stringify(sortedStudentIds(draftTheoryStudentUserIds.value)) !==
+        JSON.stringify(theoryStudentsBaseline.value)
+    );
+});
+
+const isFormDirty = computed(
+    (): boolean => isFormFieldsDirty.value || isTheoryStudentsDirty.value,
 );
 
 const capacityForStudentPicker = computed((): number | null => {
@@ -276,14 +388,6 @@ const capacityForStudentPicker = computed((): number | null => {
     return loadedEvent.value?.capacity ?? null;
 });
 
-const excludeStudentUserIdsForPicker = computed((): string[] => {
-    if (!studentAttendanceKnown.value) {
-        return [];
-    }
-
-    return assignedStudentUserIds.value;
-});
-
 function getErrorStatusCode(err: unknown): number | undefined {
     if (typeof err !== 'object' || err === null) {
         return undefined;
@@ -296,33 +400,6 @@ function getErrorStatusCode(err: unknown): number | undefined {
     const c = (err as { statusCode: unknown }).statusCode;
 
     return typeof c === 'number' ? c : undefined;
-}
-
-async function loadInstructorNameFallback(instructorId: string): Promise<void> {
-    const id = instructorId.trim();
-
-    if (!id) {
-        instructorNameFallback.value = null;
-
-        return;
-    }
-
-    try {
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(`/api/instructors/${encodeURIComponent(id)}`),
-            {
-                method: 'GET',
-                credentials: 'include',
-            },
-        );
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const d = normalizeInstructorDetail(data);
-
-        instructorNameFallback.value = d?.name?.trim() || null;
-    } catch {
-        instructorNameFallback.value = null;
-    }
 }
 
 async function loadEvent(): Promise<void> {
@@ -351,7 +428,7 @@ async function loadEvent(): Promise<void> {
 
         loadedEvent.value = ev;
         applyPrefill(ev);
-        void loadInstructorNameFallback(ev.instructorId);
+        await syncTheoryStudentCatalogAfterEventLoad();
     } catch (err: unknown) {
         if (seq !== loadSeq) {
             return;
@@ -370,11 +447,26 @@ async function loadEvent(): Promise<void> {
     }
 }
 
-async function loadVehicles(): Promise<void> {
-    const sid = schoolId.value;
+function isLoadedEventDrive(): boolean {
+    const ev = loadedEvent.value;
 
+    if (!ev) {
+        return false;
+    }
+
+    return String(ev.type).trim().toUpperCase() === 'DRIVE';
+}
+
+/** Tylko jazda (DRIVE) — teoria nie potrzebuje listy pojazdów. */
+async function loadVehicles(): Promise<void> {
     vehiclesError.value = null;
     vehicles.value = [];
+
+    if (!isLoadedEventDrive()) {
+        return;
+    }
+
+    const sid = schoolId.value.trim();
 
     if (!sid) {
         return;
@@ -418,8 +510,22 @@ async function loadInstructors(): Promise<void> {
     }
 }
 
-/** Limit GET /students: 1–100 (BFF); bazuje na limicie miejsc wydarzenia. */
+/**
+ * Limit GET /students: 1–100 (BFF).
+ * Dla teorii — pełniejszy katalog pod checkboxy (max strony z BFF).
+ */
 function resolveStudentsListLimit(): number {
+    const ev = loadedEvent.value;
+    const isTheory =
+        ev &&
+        String(ev.type ?? '')
+            .trim()
+            .toUpperCase() === 'THEORY';
+
+    if (isTheory) {
+        return 100;
+    }
+
     const cap = capacityForStudentPicker.value;
     const assignedCount = assignedStudentUserIds.value.length;
 
@@ -453,6 +559,7 @@ async function loadStudentsForLabels(): Promise<void> {
         });
 
         studentsForLabels.value = page.items;
+        normalizeTheoryParticipantIdsAgainstCatalog();
     } catch (err: unknown) {
         studentsLabelsError.value = getApiFetchErrorMessage(
             err,
@@ -461,6 +568,32 @@ async function loadStudentsForLabels(): Promise<void> {
     } finally {
         isStudentsLabelsLoading.value = false;
     }
+}
+
+/** GET /api/students — katalog OSK (osobne od GET /api/events/…/students). */
+async function syncTheoryStudentCatalogAfterEventLoad(): Promise<void> {
+    const sid = schoolId.value.trim();
+    const ev = loadedEvent.value;
+
+    studentsLabelsError.value = null;
+
+    if (!sid || !ev) {
+        studentsForLabels.value = [];
+
+        return;
+    }
+
+    if (
+        String(ev.type ?? '')
+            .trim()
+            .toUpperCase() !== 'THEORY'
+    ) {
+        studentsForLabels.value = [];
+
+        return;
+    }
+
+    await loadStudentsForLabels();
 }
 
 watch(
@@ -474,35 +607,70 @@ watch(
 watch(
     schoolId,
     () => {
-        void loadVehicles();
         void loadInstructors();
     },
     { immediate: true },
 );
 
 watch(
-    () => [
-        schoolId.value,
-        capacityForStudentPicker.value,
-        assignedStudentUserIds.value.join('|'),
-    ],
+    [schoolId, loadedEvent],
     () => {
-        void loadStudentsForLabels();
+        void loadVehicles();
     },
     { immediate: true },
 );
 
+/** Ponowne pobranie katalogu, gdy użytkownik zmieni `?schoolId=` przy już wczytanym evencie. */
 watch(
-    () => [formInstructorId.value, instructors.value] as const,
-    () => {
-        const id = formInstructorId.value.trim();
-        const hit = instructors.value.find((i) => i.id === id);
-
-        if (hit) {
-            instructorNameFallback.value = null;
+    () => schoolId.value.trim(),
+    (sid, prevSid) => {
+        if (sid === prevSid) {
+            return;
         }
+
+        const ev = loadedEvent.value;
+
+        if (!ev) {
+            return;
+        }
+
+        if (
+            String(ev.type ?? '')
+                .trim()
+                .toUpperCase() !== 'THEORY'
+        ) {
+            return;
+        }
+
+        if (!sid) {
+            studentsForLabels.value = [];
+
+            return;
+        }
+
+        void loadStudentsForLabels();
     },
-    { deep: true },
+);
+
+watch(
+    () => loadedEvent.value,
+    (ev) => {
+        if (!ev) {
+            theoryStudentsBaseline.value = [];
+            draftTheoryStudentUserIds.value = [];
+
+            return;
+        }
+
+        const ids = ev.studentUserIds;
+        const arr = Array.isArray(ids)
+            ? ids.map((x) => String(x).trim()).filter(Boolean)
+            : [];
+
+        theoryStudentsBaseline.value = sortedStudentIds(arr);
+        draftTheoryStudentUserIds.value = [...arr];
+    },
+    { immediate: true },
 );
 
 const scheduleBackHref = computed(() => {
@@ -529,69 +697,101 @@ function handleCancel(): void {
     void navigateTo(scheduleBackHref.value);
 }
 
-function resolveStudentLabel(userId: string): string {
-    const uid = userId.trim();
+/** Kursanci z katalogu OSK + ewentualnie zapisani spoza pierwszej strony listy. */
+const theoryCheckboxStudents = computed((): StudentListItem[] => {
+    const active = studentsForLabels.value.filter((s) => s.isActive);
+    const seen = new Set<string>();
 
-    if (!uid) {
-        return '—';
+    for (const s of active) {
+        seen.add(s.userId.trim());
+
+        if (s.id?.trim()) {
+            seen.add(s.id.trim());
+        }
     }
 
-    const hit = studentsForLabels.value.find((s) => s.userId === uid);
+    const extra: StudentListItem[] = [];
 
-    if (hit) {
-        return formatStudentDisplayName(hit);
+    for (const raw of draftTheoryStudentUserIds.value) {
+        const uid = raw.trim();
+
+        if (!uid || seen.has(uid)) {
+            continue;
+        }
+
+        const hit = findCatalogRowForAssignedId(studentsForLabels.value, uid);
+
+        if (hit) {
+            continue;
+        }
+
+        seen.add(uid);
+        extra.push({
+            id: uid,
+            userId: uid,
+            firstName: '',
+            lastName: '(poza pierwszą stroną katalogu)',
+            email: '',
+            phone: null,
+            pkkNumber: null,
+            isActive: true,
+            createdAt: '',
+        });
     }
 
-    return uid;
-}
+    return [...active, ...extra];
+});
 
-async function handleRemoveStudent(userId: string): Promise<void> {
+function handleToggleTheoryStudent(s: StudentListItem, next: boolean): void {
     theoryStudentsError.value = null;
 
-    const uid = userId.trim();
-    const eid = eventId.value.trim();
+    const cap = capacityForStudentPicker.value;
 
-    if (!uid || !eid) {
+    if (
+        next &&
+        cap !== null &&
+        !isTheoryRowChecked(s) &&
+        draftTheoryStudentUserIds.value.length >= Math.trunc(cap)
+    ) {
+        theoryStudentsError.value =
+            'Osiągnięto limit miejsc — odznacz kogoś lub zwiększ limit w danych bloku.';
+
         return;
     }
 
-    try {
-        await removeStudentsFromEvent(eid, [uid]);
+    if (next) {
+        if (isTheoryRowChecked(s)) {
+            return;
+        }
 
-        addToast({
-            title: 'Kursant usunięty',
-            description: 'Przypisanie do wydarzenia zostało cofnięte.',
-            variant: 'success',
-        });
+        const canonical = getCanonicalParticipantUserIdForRow(s);
 
-        await loadEvent();
-    } catch (err: unknown) {
-        theoryStudentsError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się usunąć kursanta z wydarzenia.',
-        );
+        if (!canonical) {
+            return;
+        }
+
+        draftTheoryStudentUserIds.value = [
+            ...draftTheoryStudentUserIds.value,
+            canonical,
+        ];
+
+        return;
     }
-}
 
-function handleOpenStudentPicker(): void {
-    theoryStudentsError.value = null;
-    isStudentPickerOpen.value = true;
-}
-
-async function handleStudentsAssigned(): Promise<void> {
-    theoryStudentsError.value = null;
-
-    await loadEvent();
+    draftTheoryStudentUserIds.value = draftTheoryStudentUserIds.value.filter(
+        (id) => !draftIdBelongsToStudentRow(s, id),
+    );
 }
 
 async function handleSubmit(): Promise<void> {
     formError.value = null;
+    theoryStudentsError.value = null;
 
     if (!isFormDirty.value) {
         return;
     }
 
-    const id = eventId.value;
+    const id = eventId.value.trim();
 
     if (!id) {
         formError.value = 'Brak identyfikatora wydarzenia.';
@@ -599,62 +799,96 @@ async function handleSubmit(): Promise<void> {
         return;
     }
 
-    const startIso = localDatetimeToIso(formStartLocal.value);
-    const endIso = localDatetimeToIso(formEndLocal.value);
+    const fieldsDirty = isFormFieldsDirty.value;
+    const participantsDirty = isTheoryStudentsDirty.value;
 
-    if (!startIso || !endIso) {
-        formError.value = 'Podaj początek i koniec bloku (data i godzina).';
-
-        return;
-    }
-
-    if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
-        formError.value = 'Koniec musi być później niż początek.';
-
-        return;
-    }
-
-    const type = formType.value;
-
-    if (type === 'DRIVE') {
-        const vid = formVehicleId.value.trim();
-
-        if (!vid) {
+    if (participantsDirty) {
+        if (!studentAttendanceKnown.value) {
             formError.value =
-                'Dla jazdy wybierz pojazd (parametr ?schoolId= w adresie strony i lista pojazdów OSK).';
+                'Brak danych o zapisanych kursantach — nie można zapisać listy.';
+
+            return;
+        }
+
+        const cap = capacityForStudentPicker.value;
+
+        if (
+            cap !== null &&
+            draftTheoryStudentUserIds.value.length > Math.trunc(cap)
+        ) {
+            formError.value =
+                'Liczba zaznaczonych kursantów przekracza limit miejsc bloku.';
 
             return;
         }
     }
 
-    const ins = formInstructorId.value.trim();
-
-    if (!ins) {
-        formError.value = 'Wybierz instruktora.';
-
-        return;
-    }
-
-    const capParsed = parseCapacity(formCapacityInput.value);
-
-    if (capParsed === false) {
-        formError.value =
-            'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).';
-
-        return;
-    }
-
-    const payload: PatchInstructorEventPayload = {
-        instructorId: ins,
-        type,
-        startTime: startIso,
-        endTime: endIso,
-        vehicleId: type === 'DRIVE' ? formVehicleId.value.trim() : null,
-        capacity: capParsed,
-    };
-
     try {
-        await updateInstructorEvent(id, payload);
+        if (fieldsDirty) {
+            const startIso = localDatetimeToIso(formStartLocal.value);
+            const endIso = localDatetimeToIso(formEndLocal.value);
+
+            if (!startIso || !endIso) {
+                formError.value =
+                    'Podaj początek i koniec bloku (data i godzina).';
+
+                return;
+            }
+
+            if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
+                formError.value = 'Koniec musi być później niż początek.';
+
+                return;
+            }
+
+            const type = formType.value;
+
+            if (type === 'DRIVE') {
+                const vid = formVehicleId.value.trim();
+
+                if (!vid) {
+                    formError.value =
+                        'Dla jazdy wybierz pojazd (parametr ?schoolId= w adresie strony i lista pojazdów OSK).';
+
+                    return;
+                }
+            }
+
+            const ins = formInstructorId.value.trim();
+
+            if (!ins) {
+                formError.value = 'Wybierz instruktora.';
+
+                return;
+            }
+
+            const capParsed = parseCapacity(formCapacityInput.value);
+
+            if (capParsed === false) {
+                formError.value =
+                    'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).';
+
+                return;
+            }
+
+            const payload: PatchInstructorEventPayload = {
+                instructorId: ins,
+                type,
+                startTime: startIso,
+                endTime: endIso,
+                vehicleId: type === 'DRIVE' ? formVehicleId.value.trim() : null,
+                capacity: capParsed,
+            };
+
+            await updateInstructorEvent(id, payload);
+        }
+
+        if (participantsDirty) {
+            await replaceStudentsOnEvent(
+                id,
+                sortedStudentIds(draftTheoryStudentUserIds.value),
+            );
+        }
 
         addToast({
             title: 'Zapisano zmiany',
@@ -735,25 +969,6 @@ const selectFieldClass =
         </template>
 
         <template v-else-if="loadedEvent">
-            <div
-                class="bg-muted/40 space-y-1 rounded-lg border px-3 py-2 text-sm"
-                role="status"
-            >
-                <p>
-                    <span class="text-muted-foreground">ID wydarzenia:</span>
-                    <span class="font-mono">{{ loadedEvent.id }}</span>
-                </p>
-                <p>
-                    <span class="text-muted-foreground">Instruktor:</span>
-                    <span class="font-medium">{{ instructorSelectLabel }}</span>
-                    <span
-                        v-if="formInstructorId.trim()"
-                        class="text-muted-foreground ml-1 font-mono text-xs"
-                        >({{ formInstructorId.trim() }})</span
-                    >
-                </p>
-            </div>
-
             <section
                 class="border-border bg-card max-w-xl space-y-4 rounded-xl border p-6 shadow-sm"
                 aria-labelledby="event-edit-heading"
@@ -828,21 +1043,6 @@ const selectFieldClass =
                         </p>
                     </div>
 
-                    <div class="space-y-2">
-                        <UiLabel for="edit-event-type">Typ</UiLabel>
-                        <select
-                            id="edit-event-type"
-                            v-model="formType"
-                            disabled
-                            :class="selectFieldClass"
-                            aria-label="Typ bloku (nie można zmienić): teoria lub jazda"
-                            title="Typu zajęć nie można zmienić po utworzeniu wydarzenia"
-                        >
-                            <option value="THEORY">Teoria (THEORY)</option>
-                            <option value="DRIVE">Jazda (DRIVE)</option>
-                        </select>
-                    </div>
-
                     <div v-if="formType === 'DRIVE'" class="space-y-2">
                         <UiLabel for="edit-event-vehicle">Pojazd</UiLabel>
                         <p
@@ -907,31 +1107,6 @@ const selectFieldClass =
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <UiLabel for="edit-event-capacity">
-                            Limit miejsc (opcjonalnie)
-                        </UiLabel>
-                        <input
-                            id="edit-event-capacity"
-                            v-model="formCapacityInput"
-                            type="number"
-                            min="0"
-                            step="1"
-                            inputmode="numeric"
-                            :disabled="isSaving"
-                            :class="selectFieldClass"
-                            placeholder="Puste = bez limitu"
-                            aria-describedby="edit-event-capacity-hint"
-                        />
-                        <p
-                            id="edit-event-capacity-hint"
-                            class="text-muted-foreground text-xs"
-                        >
-                            Puste pole = brak limitu. Wpisz liczbę całkowitą ≥
-                            0.
-                        </p>
-                    </div>
-
                     <p
                         v-if="formError"
                         class="text-destructive text-sm"
@@ -971,7 +1146,9 @@ const selectFieldClass =
                     Kursanci (teoria)
                 </h2>
                 <p class="text-muted-foreground text-sm">
-                    Przypisz lub usuń kursantów z tego bloku. Wymagany jest
+                    Zaznacz aktywnych kursantów z listy OSK — zapiszesz zmiany
+                    przyciskiem „Zapisz zmiany” w sekcji „Dane bloku”. Wymagany
+                    jest
                     <code class="text-xs">?schoolId=</code>
                     w adresie strony.
                 </p>
@@ -981,25 +1158,14 @@ const selectFieldClass =
                     role="status"
                 >
                     <span class="text-foreground block font-medium">
-                        To nie jest błąd listy kursantów z sieci
+                        Brak listy zapisanych na ten blok
                     </span>
                     <span class="block">
-                        Odpowiedź
-                        <span class="font-mono text-xs">GET /api/events/…</span>
-                        nie zawiera pól z przypisaniami (np.
-                        <span class="font-mono text-xs">studentUserIds</span>
-                        ), więc nie pokazujemy „kto jest już zapisany na ten
-                        blok” ani przycisków „Usuń”.
-                    </span>
-                    <span class="block">
-                        Osobne żądanie
-                        <span class="font-mono text-xs">/api/students</span>
-                        zwraca katalog kursantów OSK do dopisywania — to
-                        <span class="text-foreground font-medium">
-                            nie jest
-                        </span>
-                        ta sama informacja co zapisani na to wydarzenie.
-                        Dopisując, duplikaty pomija serwer.
+                        Nie udało się ustalić aktualnych przypisań (np.
+                        <span class="font-mono text-xs"
+                            >GET …/events/…/students</span
+                        >
+                        ). Bez tego nie można edytować składu grupy.
                     </span>
                 </p>
                 <p
@@ -1007,7 +1173,7 @@ const selectFieldClass =
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Wczytywanie nazw kursantów…
+                    Wczytywanie kursantów…
                 </p>
                 <p
                     v-else-if="studentsLabelsError"
@@ -1019,29 +1185,32 @@ const selectFieldClass =
                 <ul
                     v-else-if="
                         studentAttendanceKnown &&
-                        assignedStudentUserIds.length > 0
+                        theoryCheckboxStudents.length > 0
                     "
                     class="space-y-2"
                     role="list"
+                    aria-label="Lista kursantów — zaznacz uczestników bloku"
                 >
                     <li
-                        v-for="uid in assignedStudentUserIds"
-                        :key="uid"
-                        class="border-input flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2"
+                        v-for="s in theoryCheckboxStudents"
+                        :key="s.userId || s.id"
+                        class="border-input flex items-start gap-3 rounded-md border px-3 py-2"
                     >
-                        <span class="min-w-0 text-sm font-medium">{{
-                            resolveStudentLabel(uid)
-                        }}</span>
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            :disabled="isRemoving"
-                            :aria-label="`Usuń kursanta ${resolveStudentLabel(uid)} z wydarzenia`"
-                            @click="handleRemoveStudent(uid)"
+                        <UiCheckbox
+                            :id="`theory-student-${s.userId || s.id}`"
+                            :checked="isTheoryRowChecked(s)"
+                            :disabled="isSaving || !schoolId"
+                            :aria-label="`Uczestnik bloku: ${formatStudentDisplayName(s)}`"
+                            @update:checked="
+                                handleToggleTheoryStudent(s, $event === true)
+                            "
+                        />
+                        <UiLabel
+                            :for="`theory-student-${s.userId || s.id}`"
+                            class="text-foreground flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
                         >
-                            {{ isRemoving ? 'Usuwanie…' : 'Usuń' }}
-                        </UiButton>
+                            {{ formatStudentDisplayName(s) }}
+                        </UiLabel>
                     </li>
                 </ul>
                 <p
@@ -1049,7 +1218,8 @@ const selectFieldClass =
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Brak przypisanych kursantów.
+                    Brak aktywnych kursantów w katalogu OSK (pierwsza strona
+                    listy).
                 </p>
                 <p
                     v-if="theoryStudentsError"
@@ -1058,26 +1228,7 @@ const selectFieldClass =
                 >
                     {{ theoryStudentsError }}
                 </p>
-                <div>
-                    <UiButton
-                        type="button"
-                        :disabled="!schoolId || isAssigning"
-                        aria-label="Otwórz wybór kursantów do dopisania"
-                        @click="handleOpenStudentPicker"
-                    >
-                        Dopisz kursantów…
-                    </UiButton>
-                </div>
             </section>
-
-            <ManagerEventStudentPickerDialog
-                v-model:open="isStudentPickerOpen"
-                :event-id="eventId"
-                :capacity="capacityForStudentPicker"
-                :school-id="schoolId"
-                :exclude-student-user-ids="excludeStudentUserIdsForPicker"
-                @assigned="handleStudentsAssigned"
-            />
         </template>
 
         <NuxtLink
