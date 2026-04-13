@@ -361,9 +361,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz instruktora —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="ins in slotCtx.availableInstructors"
                                     :key="ins.id"
@@ -405,9 +402,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz kursanta —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="s in students"
                                     :key="s.userId"
@@ -448,9 +442,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz kurs —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="c in filteredCourses"
                                     :key="c.id"
@@ -508,9 +499,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz pojazd —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="v in vehicles"
                                     :key="v.id"

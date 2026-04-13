@@ -257,9 +257,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz instruktora —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="ins in slotCtx.availableInstructors"
                                     :key="ins.id"
@@ -308,9 +305,6 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Bez powiązania z kursem —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="c in theoryCourses"
                                     :key="c.id"

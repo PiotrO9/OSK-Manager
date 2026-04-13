@@ -568,9 +568,6 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                             </UiSelectTrigger>
                             <UiSelectContent>
                                 <UiSelectGroup>
-                                    <UiSelectItem value="">
-                                        Wszystkie kursy
-                                    </UiSelectItem>
                                     <UiSelectItem
                                         v-for="c in courses"
                                         :key="c.id"

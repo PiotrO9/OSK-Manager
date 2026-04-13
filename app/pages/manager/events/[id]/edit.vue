@@ -1126,9 +1126,6 @@ async function handleSubmit(): Promise<void> {
                             </UiSelectTrigger>
                             <UiSelectContent>
                                 <UiSelectGroup>
-                                    <UiSelectItem value="">
-                                        — Wybierz pojazd —
-                                    </UiSelectItem>
                                     <UiSelectItem
                                         v-for="v in vehicles"
                                         :key="v.id"

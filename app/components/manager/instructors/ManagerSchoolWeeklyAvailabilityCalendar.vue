@@ -851,9 +851,6 @@ function handleKeyDownWeekNav(
                             </UiSelectTrigger>
                             <UiSelectContent>
                                 <UiSelectGroup>
-                                    <UiSelectItem value=""
-                                        >— dowolny —</UiSelectItem
-                                    >
                                     <UiSelectItem
                                         v-for="c in courses"
                                         :key="c.id"
@@ -882,9 +879,6 @@ function handleKeyDownWeekNav(
                             </UiSelectTrigger>
                             <UiSelectContent>
                                 <UiSelectGroup>
-                                    <UiSelectItem value=""
-                                        >— dowolny —</UiSelectItem
-                                    >
                                     <UiSelectItem value="THEORY"
                                         >Teoria</UiSelectItem
                                     >

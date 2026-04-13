@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { DrivingSchool } from '~/types/drivingSchool';
 
-export type InstructorRegisterPayload = {
+export interface InstructorRegisterPayload {
     email: string;
     password: string;
     firstName: string;
     lastName: string;
     licenseNumber: string;
     schoolId: string;
-};
+}
 
 interface Props {
     open: boolean;
@@ -232,9 +232,6 @@ function handleFormSubmit() {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value=""
-                                    >— Wybierz OSK —</UiSelectItem
-                                >
                                 <UiSelectItem
                                     v-for="s in schools"
                                     :key="s.id"

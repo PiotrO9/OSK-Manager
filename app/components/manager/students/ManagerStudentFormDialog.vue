@@ -221,9 +221,6 @@ function handleFormSubmit() {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value=""
-                                    >— Wybierz OSK —</UiSelectItem
-                                >
                                 <UiSelectItem
                                     v-for="s in schools"
                                     :key="s.id"

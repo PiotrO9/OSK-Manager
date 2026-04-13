@@ -446,9 +446,6 @@ async function handleSaveInstructorAssignment() {
                                 </UiSelectTrigger>
                                 <UiSelectContent>
                                     <UiSelectGroup>
-                                        <UiSelectItem value="">
-                                            — Brak instruktora —
-                                        </UiSelectItem>
                                         <UiSelectItem
                                             v-for="ins in instructors"
                                             :key="ins.id"

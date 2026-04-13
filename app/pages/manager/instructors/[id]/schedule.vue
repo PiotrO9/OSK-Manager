@@ -473,9 +473,6 @@ const backHref = computed(() => {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Bez powiązania z kursem —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="c in courses"
                                     :key="c.id"
@@ -525,9 +522,6 @@ const backHref = computed(() => {
                         </UiSelectTrigger>
                         <UiSelectContent>
                             <UiSelectGroup>
-                                <UiSelectItem value="">
-                                    — Wybierz pojazd —
-                                </UiSelectItem>
                                 <UiSelectItem
                                     v-for="v in vehicles"
                                     :key="v.id"
