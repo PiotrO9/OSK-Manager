@@ -38,6 +38,29 @@ function readInstructorIdFromEventRaw(o: Record<string, unknown>): string {
     return '';
 }
 
+function readCourseIdFromEventRaw(
+    o: Record<string, unknown>,
+): string | null | undefined {
+    if (!('courseId' in o) && !('course_id' in o)) {
+        return undefined;
+    }
+
+    const val =
+        'courseId' in o && o.courseId !== undefined ? o.courseId : o.course_id;
+
+    if (val === null) {
+        return null;
+    }
+
+    if (typeof val === 'string') {
+        const t = val.trim();
+
+        return t.length > 0 ? t : null;
+    }
+
+    return null;
+}
+
 function readVehicleIdFromEventRaw(o: Record<string, unknown>): string | null {
     if (o.vehicleId === null) {
         return null;
@@ -107,6 +130,7 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
 
     const instructorId = readInstructorIdFromEventRaw(o);
     const vehicleId = readVehicleIdFromEventRaw(o);
+    const courseIdResolved = readCourseIdFromEventRaw(o);
     const startTime =
         typeof o.startTime === 'string'
             ? o.startTime
@@ -129,6 +153,9 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
         startTime,
         endTime,
         ...(eventInstructor ? { eventInstructor } : {}),
+        ...(courseIdResolved !== undefined
+            ? { courseId: courseIdResolved }
+            : {}),
     };
 }
 
@@ -196,6 +223,10 @@ export function useInstructorEventsApi() {
 
             if (payload.capacity !== undefined && payload.capacity !== null) {
                 body.capacity = payload.capacity;
+            }
+
+            if (payload.type === 'THEORY' && payload.courseId?.trim()) {
+                body.courseId = payload.courseId.trim();
             }
 
             const raw = await $fetch<unknown>(
@@ -283,7 +314,13 @@ export function useInstructorEventsApi() {
             let mergedIds = att.ids;
             let known = att.source === 'present';
 
-            if (!known && isTheoryEventType(rawEvent)) {
+            /**
+             * Dla teorii zawsze pytamy o `GET /events/:id/students`. Główny GET
+             * `/events/:id` często zwraca `studentUserIds: []` (pole „obecne”),
+             * co wcześniej blokowało ten fetch — wtedy checkboxy były puste mimo
+             * realnych przypisań w podzasobie.
+             */
+            if (isTheoryEventType(rawEvent)) {
                 const fromStudentsGet =
                     await fetchAssignedStudentUserIdsFromSubresource(eid);
 

@@ -28,6 +28,7 @@ const {
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
 const { fetchList: fetchStudentsPage } = useStudentsApi();
+const { fetchById: fetchCourseById } = useCoursesApi();
 const { replaceStudentsOnEvent, isReplacing } = useEventApi();
 
 function getEventIdFromRoute(): string {
@@ -89,6 +90,9 @@ const studentsLabelsError = ref<string | null>(null);
 const isStudentsLabelsLoading = ref(false);
 
 const theoryStudentsError = ref<string | null>(null);
+
+/** Etykieta kursu przy `courseId` (teoria) — do podpowiedzi w UI. */
+const linkedCourseLabel = ref<string | null>(null);
 
 /** Stan zapisany na serwerze (posortowany zestaw UUID) — do porównania z draftem. */
 const theoryStudentsBaseline = ref<string[]>([]);
@@ -552,10 +556,20 @@ async function loadStudentsForLabels(): Promise<void> {
     isStudentsLabelsLoading.value = true;
 
     try {
+        const ev = loadedEvent.value;
+        const isTheory =
+            ev &&
+            String(ev.type ?? '')
+                .trim()
+                .toUpperCase() === 'THEORY';
+        const courseId =
+            isTheory && ev?.courseId?.trim() ? ev.courseId.trim() : undefined;
+
         const page = await fetchStudentsPage({
             schoolId: sid,
             page: 1,
             limit: resolveStudentsListLimit(),
+            ...(courseId ? { courseId } : {}),
         });
 
         studentsForLabels.value = page.items;
@@ -650,6 +664,30 @@ watch(
 
         void loadStudentsForLabels();
     },
+);
+
+watch(
+    () =>
+        [
+            loadedEvent.value?.courseId?.trim() ?? '',
+            schoolId.value.trim(),
+        ] as const,
+    async ([cid, sid]) => {
+        linkedCourseLabel.value = null;
+
+        if (!cid || !sid) {
+            return;
+        }
+
+        try {
+            const d = await fetchCourseById(cid);
+
+            linkedCourseLabel.value = d.name.trim() || null;
+        } catch {
+            linkedCourseLabel.value = null;
+        }
+    },
+    { immediate: true },
 );
 
 watch(
@@ -1172,6 +1210,15 @@ async function handleSubmit(): Promise<void> {
                     jest
                     <code class="text-xs">?schoolId=</code>
                     w adresie strony.
+                </p>
+                <p
+                    v-if="loadedEvent?.courseId?.trim()"
+                    class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
+                    role="status"
+                >
+                    <span class="text-foreground font-medium">Kurs:</span>
+                    {{ linkedCourseLabel ?? loadedEvent.courseId }}
+                    — lista dotyczy uczestników tego kursu (nie całej szkoły).
                 </p>
                 <p
                     v-if="!studentAttendanceKnown"

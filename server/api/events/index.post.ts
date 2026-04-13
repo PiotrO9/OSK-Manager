@@ -50,6 +50,7 @@ function validatePostBody(raw: unknown):
               endTime: string;
               vehicleId?: string;
               capacity?: number;
+              courseId?: string;
           };
       }
     | { ok: false; message: string } {
@@ -110,6 +111,29 @@ function validatePostBody(raw: unknown):
         };
     }
 
+    const courseRaw = typeof o.courseId === 'string' ? o.courseId.trim() : '';
+
+    if (courseRaw) {
+        if (type !== 'THEORY') {
+            return {
+                ok: false,
+                message: 'Pole courseId jest dozwolone tylko przy type THEORY.',
+            };
+        }
+
+        if (!isUuid(courseRaw)) {
+            return {
+                ok: false,
+                message: 'Pole courseId musi być poprawnym UUID.',
+            };
+        }
+    } else if (o.courseId !== undefined && o.courseId !== null) {
+        return {
+            ok: false,
+            message: 'Pole courseId musi być niepustym UUID lub pominięte.',
+        };
+    }
+
     const body: {
         instructorId: string;
         type: EventTypeLiteral;
@@ -117,6 +141,7 @@ function validatePostBody(raw: unknown):
         endTime: string;
         vehicleId?: string;
         capacity?: number;
+        courseId?: string;
     } = {
         instructorId,
         type,
@@ -127,6 +152,10 @@ function validatePostBody(raw: unknown):
 
     if (cap !== undefined) {
         body.capacity = cap;
+    }
+
+    if (type === 'THEORY' && courseRaw) {
+        body.courseId = courseRaw;
     }
 
     return {
@@ -164,6 +193,10 @@ export default defineEventHandler(async (event) => {
             upstreamBody.capacity = parsed.body.capacity;
         }
 
+        if (parsed.body.type === 'THEORY' && parsed.body.courseId) {
+            upstreamBody.courseId = parsed.body.courseId;
+        }
+
         return bffEventsPost(event, upstream, upstreamBody);
     }
 
@@ -187,6 +220,10 @@ export default defineEventHandler(async (event) => {
                 capacity:
                     parsed.body.capacity !== undefined
                         ? parsed.body.capacity
+                        : null,
+                courseId:
+                    parsed.body.type === 'THEORY' && parsed.body.courseId
+                        ? parsed.body.courseId
                         : null,
                 createdAt: now,
             },

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { CourseListItem } from '~/types/course';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import type { Vehicle } from '~/types/vehicle';
 
@@ -15,6 +16,7 @@ const { fetchScheduleForInstructor } = useScheduleApi();
 const { createInstructorEvent, isLoading: isEventSaving } =
     useInstructorEventsApi();
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
+const { fetchList: fetchCoursesList } = useCoursesApi();
 
 function getInstructorId(): string {
     const raw = route.params.id;
@@ -59,10 +61,16 @@ const vehicles = ref<Vehicle[]>([]);
 const vehiclesError = ref<string | null>(null);
 const isVehiclesLoading = ref(false);
 
+const courses = ref<CourseListItem[]>([]);
+const coursesError = ref<string | null>(null);
+const isCoursesLoading = ref(false);
+
 const eventType = ref<'THEORY' | 'DRIVE'>('THEORY');
 const eventStartLocal = ref('');
 const eventEndLocal = ref('');
 const eventVehicleId = ref('');
+/** Tylko THEORY — opcjonalne `courseId` w POST /events. */
+const eventCourseId = ref('');
 const eventFormError = ref<string | null>(null);
 
 const range = computed(() => weekRangeFromMonday(weekStart.value));
@@ -74,6 +82,7 @@ async function loadSchedule(): Promise<void> {
 
     if (!id) {
         items.value = [];
+
         return;
     }
 
@@ -133,6 +142,30 @@ async function loadVehicles(): Promise<void> {
     }
 }
 
+async function loadCourses(): Promise<void> {
+    const sid = schoolId.value;
+
+    coursesError.value = null;
+    courses.value = [];
+
+    if (!sid) {
+        return;
+    }
+
+    isCoursesLoading.value = true;
+
+    try {
+        courses.value = await fetchCoursesList(sid);
+    } catch (err: unknown) {
+        coursesError.value = getApiFetchErrorMessage(
+            err,
+            'Nie udało się pobrać listy kursów.',
+        );
+    } finally {
+        isCoursesLoading.value = false;
+    }
+}
+
 watch(
     [range, instructorId],
     () => {
@@ -145,6 +178,7 @@ watch(
     schoolId,
     () => {
         void loadVehicles();
+        void loadCourses();
     },
     { immediate: true },
 );
@@ -228,6 +262,8 @@ async function handleSubmitEvent(): Promise<void> {
     }
 
     try {
+        const cid = eventCourseId.value.trim();
+
         await createInstructorEvent({
             instructorId: id,
             type,
@@ -235,6 +271,7 @@ async function handleSubmitEvent(): Promise<void> {
             endTime: endIso,
             vehicleId:
                 type === 'DRIVE' ? eventVehicleId.value.trim() : undefined,
+            ...(type === 'THEORY' && cid ? { courseId: cid } : {}),
         });
 
         addToast({
@@ -246,6 +283,7 @@ async function handleSubmitEvent(): Promise<void> {
         eventStartLocal.value = '';
         eventEndLocal.value = '';
         eventVehicleId.value = '';
+        eventCourseId.value = '';
 
         await loadSchedule();
     } catch (err: unknown) {
@@ -399,6 +437,59 @@ const backHref = computed(() => {
                             </UiSelectGroup>
                         </UiSelectContent>
                     </UiSelect>
+                </div>
+
+                <div
+                    v-if="eventType === 'THEORY' && schoolId"
+                    class="space-y-2"
+                >
+                    <UiLabel for="event-course">Kurs (opcjonalnie)</UiLabel>
+                    <p
+                        v-if="isCoursesLoading"
+                        class="text-muted-foreground text-xs"
+                        role="status"
+                    >
+                        Wczytywanie kursów…
+                    </p>
+                    <p
+                        v-else-if="coursesError"
+                        class="text-destructive text-xs"
+                        role="alert"
+                    >
+                        {{ coursesError }}
+                    </p>
+                    <UiSelect
+                        v-model="eventCourseId"
+                        :disabled="isCoursesLoading || isEventSaving"
+                    >
+                        <UiSelectTrigger
+                            id="event-course"
+                            class="w-full"
+                            aria-label="Powiązanie bloku teorii z kursem"
+                        >
+                            <UiSelectValue
+                                placeholder="— Bez powiązania z kursem —"
+                            />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Bez powiązania z kursem —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="c in courses"
+                                    :key="c.id"
+                                    :value="c.id"
+                                >
+                                    {{ c.name }} ({{ c.category }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
+                    <p class="text-muted-foreground text-xs">
+                        Przy wyborze kursu backend może dopisać aktywnych
+                        uczestników kursu do bloku.
+                    </p>
                 </div>
 
                 <div v-if="eventType === 'DRIVE'" class="space-y-2">

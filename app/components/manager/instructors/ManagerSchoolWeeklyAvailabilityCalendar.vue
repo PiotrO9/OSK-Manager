@@ -1133,6 +1133,7 @@ function handleKeyDownWeekNav(
         <ManagerTheoryEventCreateDialog
             v-model:open="isTheoryCreateOpen"
             :slot-ctx="activeSlotCtx"
+            :school-id="schoolId"
             @created="handleTheoryEventCreated"
         />
 

@@ -1,10 +1,13 @@
 <script setup lang="ts">
+import type { CourseListItem } from '~/types/course';
 import type { LessonBookingSlotContext } from '~/types/lessonBooking';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { buildSlotIsoUTC } from '~/utils/weeklyCalendarDates';
 
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;
+    /** Do listy kursów (opcjonalny `courseId` przy POST THEORY). */
+    schoolId: string;
 }>();
 
 const emit = defineEmits<{
@@ -14,10 +17,16 @@ const emit = defineEmits<{
 const open = defineModel<boolean>('open', { required: true });
 
 const { createInstructorEvent, isLoading } = useInstructorEventsApi();
+const { fetchList: fetchCoursesList } = useCoursesApi();
 
 const DESCRIPTION_ID = 'theory-event-create-desc';
 
 const selectedInstructorId = ref('');
+const theoryCourses = ref<CourseListItem[]>([]);
+const isCoursesLoading = ref(false);
+const coursesLoadError = ref<string | null>(null);
+/** Puste = bez powiązania z kursem (POST bez courseId). */
+const selectedCourseId = ref('');
 /** `type="number"` + v-model może dać `number` lub `string`. */
 const capacityInput = ref<string | number>('');
 const formError = ref<string | null>(null);
@@ -57,10 +66,37 @@ watch(
 
         formError.value = null;
         capacityInput.value = '';
+        selectedCourseId.value = '';
         selectedInstructorId.value =
             ctx.availableInstructors.length === 1
                 ? (ctx.availableInstructors[0]?.id ?? '')
                 : '';
+    },
+    { flush: 'post' },
+);
+
+watch(
+    [open, () => props.schoolId.trim()],
+    async ([isOpen, sid]) => {
+        theoryCourses.value = [];
+        coursesLoadError.value = null;
+
+        if (!isOpen || !sid) {
+            return;
+        }
+
+        isCoursesLoading.value = true;
+
+        try {
+            theoryCourses.value = await fetchCoursesList(sid);
+        } catch (err: unknown) {
+            coursesLoadError.value = getApiFetchErrorMessage(
+                err,
+                'Nie udało się wczytać listy kursów.',
+            );
+        } finally {
+            isCoursesLoading.value = false;
+        }
     },
     { flush: 'post' },
 );
@@ -133,12 +169,15 @@ async function handleSubmit(): Promise<void> {
     const endIso = buildSlotIsoUTC(ctx.date, ctx.endTime);
 
     try {
+        const cid = selectedCourseId.value.trim();
+
         const event = await createInstructorEvent({
             instructorId,
             type: 'THEORY',
             startTime: startIso,
             endTime: endIso,
             capacity: capParsed,
+            ...(cid ? { courseId: cid } : {}),
         });
 
         const cap =
@@ -170,7 +209,8 @@ async function handleSubmit(): Promise<void> {
                 <UiDialogDescription :id="DESCRIPTION_ID">
                     Utworzenie wydarzenia
                     <span class="font-mono">POST /api/events</span> (typ THEORY)
-                    z limitem miejsc, następnie przypisanie kursantów.
+                    z limitem miejsc. Opcjonalnie powiąż z kursem — backend może
+                    dopisać uczestników ACTIVE. Następnie przypisanie kursantów.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -230,6 +270,61 @@ async function handleSubmit(): Promise<void> {
                             </UiSelectGroup>
                         </UiSelectContent>
                     </UiSelect>
+                </div>
+
+                <div v-if="schoolId.trim()" class="space-y-2">
+                    <label
+                        class="text-sm leading-none font-medium"
+                        for="theory-event-course"
+                    >
+                        Kurs (opcjonalnie)
+                    </label>
+                    <p
+                        v-if="isCoursesLoading"
+                        class="text-muted-foreground text-xs"
+                        role="status"
+                    >
+                        Wczytywanie kursów…
+                    </p>
+                    <p
+                        v-else-if="coursesLoadError"
+                        class="text-destructive text-xs"
+                        role="alert"
+                    >
+                        {{ coursesLoadError }}
+                    </p>
+                    <UiSelect
+                        v-model="selectedCourseId"
+                        :disabled="isLoading || isCoursesLoading"
+                    >
+                        <UiSelectTrigger
+                            id="theory-event-course"
+                            class="w-full"
+                            aria-label="Powiązanie bloku z kursem"
+                        >
+                            <UiSelectValue
+                                placeholder="— Bez powiązania z kursem —"
+                            />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Bez powiązania z kursem —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="c in theoryCourses"
+                                    :key="c.id"
+                                    :value="c.id"
+                                >
+                                    {{ c.name }} ({{ c.category }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
+                    <p class="text-muted-foreground text-xs">
+                        Przy wyborze kursu backend może dopisać aktywnych
+                        uczestników (wg limitu miejsc).
+                    </p>
                 </div>
 
                 <div class="space-y-2">

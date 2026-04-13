@@ -18,6 +18,8 @@ export interface InstructorEvent {
      * Z GET /events/:id — zagnieżdżony instruktor (bez osobnego GET /instructors/:id).
      */
     eventInstructor?: InstructorListItem;
+    /** Powiązany kurs (GET/POST/PATCH /events) — tylko sensowne przy THEORY. */
+    courseId?: string | null;
     /** UUID użytkowników kursantów — gdy GET /events/:id zwraca te pola. */
     studentUserIds?: string[];
     /** true, gdy odpowiedź API zawierała informację o kursantach (lista może być pusta). */
@@ -35,6 +37,11 @@ export interface CreateInstructorEventPayload {
     vehicleId?: string;
     /** Opcjonalnie; null / pominięte = bez limitu. */
     capacity?: number | null;
+    /**
+     * Tylko przy `type === 'THEORY'`: powiązanie z kursem; BE może dopisać
+     * uczestników ACTIVE wg capacity.
+     */
+    courseId?: string;
 }
 
 /** PATCH /events/:id — wszystkie pola opcjonalne (merge po stronie backendu). */
