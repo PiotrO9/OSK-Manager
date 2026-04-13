@@ -101,19 +101,27 @@ function handleSubmit() {
                 </p>
                 <template v-else-if="courses.length > 0">
                     <UiLabel for="assign-course-select">Kurs</UiLabel>
-                    <select
-                        id="assign-course-select"
-                        v-model="selectedCourseId"
-                        :disabled="isSaving"
-                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-required="true"
-                        aria-label="Wybierz kurs do przypisania kursanta"
-                    >
-                        <option disabled value="">— Wybierz kurs —</option>
-                        <option v-for="c in courses" :key="c.id" :value="c.id">
-                            {{ c.name }} ({{ c.category }})
-                        </option>
-                    </select>
+                    <UiSelect v-model="selectedCourseId" :disabled="isSaving">
+                        <UiSelectTrigger
+                            id="assign-course-select"
+                            class="w-full"
+                            aria-required="true"
+                            aria-label="Wybierz kurs do przypisania kursanta"
+                        >
+                            <UiSelectValue placeholder="— Wybierz kurs —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem
+                                    v-for="c in courses"
+                                    :key="c.id"
+                                    :value="c.id"
+                                >
+                                    {{ c.name }} ({{ c.category }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </template>
                 <p v-else class="text-muted-foreground text-sm" role="status">
                     Brak kursów w tej szkole. Utwórz kurs, aby móc przypisać

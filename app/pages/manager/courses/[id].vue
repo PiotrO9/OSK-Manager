@@ -21,9 +21,6 @@ const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
     useCoursesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
-const SELECT_FIELD_CLASS =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-lg rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-
 const course = ref<CourseDetail | null>(null);
 const loadError = ref<string | null>(null);
 let fetchSeq = 0;
@@ -427,33 +424,47 @@ async function handleSaveInstructorAssignment() {
                             >
                                 Wczytywanie listy instruktorów…
                             </p>
-                            <select
+                            <UiSelect
                                 v-else
-                                id="course-detail-instructor-select"
                                 v-model="selectedInstructorProfileId"
-                                name="instructorProfileId"
-                                :class="SELECT_FIELD_CLASS"
                                 :disabled="
                                     !!instructorSaveBlockedReason ||
                                     isPatchLoading
                                 "
-                                aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
-                                @change="handleInstructorSelectChange"
+                                @update:model-value="
+                                    handleInstructorSelectChange
+                                "
                             >
-                                <option value="">— Brak instruktora —</option>
-                                <option
-                                    v-for="ins in instructors"
-                                    :key="ins.id"
-                                    :value="ins.id"
+                                <UiSelectTrigger
+                                    id="course-detail-instructor-select"
+                                    class="w-full max-w-lg"
+                                    aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
                                 >
-                                    {{ formatInstructorDisplayName(ins)
-                                    }}{{
-                                        ins.email && ins.email.length > 0
-                                            ? ` (${ins.email})`
-                                            : ''
-                                    }}
-                                </option>
-                            </select>
+                                    <UiSelectValue
+                                        placeholder="— Brak instruktora —"
+                                    />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem value="">
+                                            — Brak instruktora —
+                                        </UiSelectItem>
+                                        <UiSelectItem
+                                            v-for="ins in instructors"
+                                            :key="ins.id"
+                                            :value="ins.id"
+                                        >
+                                            {{ formatInstructorDisplayName(ins)
+                                            }}{{
+                                                ins.email &&
+                                                ins.email.length > 0
+                                                    ? ` (${ins.email})`
+                                                    : ''
+                                            }}
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
                             <p
                                 v-if="
                                     !isInstructorsLoading &&

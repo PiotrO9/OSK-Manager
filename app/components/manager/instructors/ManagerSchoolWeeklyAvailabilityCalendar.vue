@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DateValue } from '@internationalized/date';
+import type { CalendarDate, DateValue } from '@internationalized/date';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import { useCoursesApi } from '~/composables/useCoursesApi';
@@ -19,9 +19,11 @@ import type {
 import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
-    dateToCalendarDate,
     formatDateOnly,
     getMonday,
+    WEEK_PICKER_CALENDAR_MAX,
+    WEEK_PICKER_CALENDAR_MIN,
+    weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from '~/utils/weeklyCalendarDates';
 
@@ -265,8 +267,8 @@ const slots = ref<SchoolAvailabilitySlot[]>([]);
 const errorMessage = ref<string | null>(null);
 const isCalendarOpen = ref(false);
 
-const calendarSelected = ref<DateValue>(
-    dateToCalendarDate(getMonday(new Date())),
+const calendarSelected = ref<CalendarDate[]>(
+    weekCalendarDatesFromMonday(getMonday(new Date())),
 );
 
 const { fetchSlots, isLoading } = useSchoolAvailabilitySlotsApi();
@@ -537,7 +539,7 @@ watch(
 );
 
 watch(weekStart, (w) => {
-    calendarSelected.value = dateToCalendarDate(w);
+    calendarSelected.value = weekCalendarDatesFromMonday(w);
 });
 
 function handlePrevWeek(): void {
@@ -554,12 +556,31 @@ function handleNextWeek(): void {
     weekStart.value = d;
 }
 
-function handleCalendarUpdate(value: DateValue | undefined): void {
+function handleCalendarUpdate(
+    value: DateValue | DateValue[] | undefined,
+): void {
     if (value === undefined) {
         return;
     }
 
-    weekStart.value = getMonday(toDate(value));
+    const arr = Array.isArray(value) ? value : [value];
+
+    if (arr.length === 0) {
+        return;
+    }
+
+    let anchor = arr[0]!;
+
+    for (const v of arr) {
+        if (toDate(v).getTime() > toDate(anchor).getTime()) {
+            anchor = v;
+        }
+    }
+
+    const monday = getMonday(toDate(anchor));
+
+    weekStart.value = monday;
+    calendarSelected.value = weekCalendarDatesFromMonday(monday);
     isCalendarOpen.value = false;
 }
 
@@ -631,13 +652,19 @@ function handleKeyDownWeekNav(
                         variant="outline"
                         size="sm"
                         :disabled="isLoading"
-                        aria-label="Wybierz tydzień w kalendarzu"
+                        aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
                     >
                         Wybierz tydzień
                     </UiButton>
                 </UiPopoverTrigger>
                 <UiPopoverContent class="w-auto p-0" align="end">
                     <UiCalendar
+                        multiple
+                        fixed-weeks
+                        :week-starts-on="1"
+                        :min-value="WEEK_PICKER_CALENDAR_MIN"
+                        :max-value="WEEK_PICKER_CALENDAR_MAX"
+                        :disable-days-outside-current-view="false"
                         :model-value="calendarSelected"
                         locale="pl-PL"
                         @update:model-value="handleCalendarUpdate"
@@ -812,21 +839,31 @@ function handleKeyDownWeekNav(
                         >
                             Kurs (opcjonalnie)
                         </label>
-                        <select
-                            id="school-slot-filter-course"
+                        <UiSelect
                             v-model="filterForm.courseId"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                             :disabled="isCoursesLoading"
                         >
-                            <option value="">— dowolny —</option>
-                            <option
-                                v-for="c in courses"
-                                :key="c.id"
-                                :value="c.id"
+                            <UiSelectTrigger
+                                id="school-slot-filter-course"
+                                class="w-full"
                             >
-                                {{ c.name }}
-                            </option>
-                        </select>
+                                <UiSelectValue placeholder="— dowolny —" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value=""
+                                        >— dowolny —</UiSelectItem
+                                    >
+                                    <UiSelectItem
+                                        v-for="c in courses"
+                                        :key="c.id"
+                                        :value="c.id"
+                                    >
+                                        {{ c.name }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <div class="space-y-1.5">
@@ -836,15 +873,27 @@ function handleKeyDownWeekNav(
                         >
                             Typ lekcji (API)
                         </label>
-                        <select
-                            id="school-slot-filter-lesson-type"
-                            v-model="filterForm.lessonType"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        >
-                            <option value="">— dowolny —</option>
-                            <option value="THEORY">Teoria</option>
-                            <option value="PRACTICE">Praktyka</option>
-                        </select>
+                        <UiSelect v-model="filterForm.lessonType">
+                            <UiSelectTrigger
+                                id="school-slot-filter-lesson-type"
+                                class="w-full"
+                            >
+                                <UiSelectValue placeholder="— dowolny —" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value=""
+                                        >— dowolny —</UiSelectItem
+                                    >
+                                    <UiSelectItem value="THEORY"
+                                        >Teoria</UiSelectItem
+                                    >
+                                    <UiSelectItem value="PRACTICE">
+                                        Praktyka
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <div class="space-y-1.5">
@@ -854,18 +903,24 @@ function handleKeyDownWeekNav(
                         >
                             Sortowanie
                         </label>
-                        <select
-                            id="school-slot-filter-sort"
-                            v-model="filterForm.sort"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        >
-                            <option value="startTime">
-                                Godzina rozpoczęcia
-                            </option>
-                            <option value="instructorName">
-                                Nazwisko instruktora
-                            </option>
-                        </select>
+                        <UiSelect v-model="filterForm.sort">
+                            <UiSelectTrigger
+                                id="school-slot-filter-sort"
+                                class="w-full"
+                            >
+                                <UiSelectValue placeholder="Sortowanie" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value="startTime">
+                                        Godzina rozpoczęcia
+                                    </UiSelectItem>
+                                    <UiSelectItem value="instructorName">
+                                        Nazwisko instruktora
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <div

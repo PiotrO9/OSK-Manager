@@ -153,9 +153,6 @@ function handleFormSubmit() {
         schoolId,
     });
 }
-
-const selectClass =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 </script>
 
 <template>
@@ -208,24 +205,36 @@ const selectClass =
 
                 <div class="space-y-2">
                     <UiLabel for="student-dialog-school">Szkoła jazdy</UiLabel>
-                    <select
-                        id="student-dialog-school"
-                        v-model="schoolIdModel"
-                        :class="selectClass"
-                        :disabled="isSaving"
-                        :aria-invalid="showSchoolRequired"
-                        :aria-describedby="
-                            showSchoolRequired
-                                ? 'student-dialog-school-error'
-                                : undefined
-                        "
-                        aria-label="Wybierz szkołę jazdy dla kursanta"
-                    >
-                        <option value="">— Wybierz OSK —</option>
-                        <option v-for="s in schools" :key="s.id" :value="s.id">
-                            {{ s.name }}{{ s.city ? ` (${s.city})` : '' }}
-                        </option>
-                    </select>
+                    <UiSelect v-model="schoolIdModel" :disabled="isSaving">
+                        <UiSelectTrigger
+                            id="student-dialog-school"
+                            class="w-full"
+                            :aria-invalid="showSchoolRequired"
+                            :aria-describedby="
+                                showSchoolRequired
+                                    ? 'student-dialog-school-error'
+                                    : undefined
+                            "
+                            aria-label="Wybierz szkołę jazdy dla kursanta"
+                        >
+                            <UiSelectValue placeholder="— Wybierz OSK —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value=""
+                                    >— Wybierz OSK —</UiSelectItem
+                                >
+                                <UiSelectItem
+                                    v-for="s in schools"
+                                    :key="s.id"
+                                    :value="s.id"
+                                >
+                                    {{ s.name
+                                    }}{{ s.city ? ` (${s.city})` : '' }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                     <p
                         v-if="showSchoolRequired"
                         id="student-dialog-school-error"

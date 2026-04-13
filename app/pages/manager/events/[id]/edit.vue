@@ -904,9 +904,6 @@ async function handleSubmit(): Promise<void> {
         );
     }
 }
-
-const selectFieldClass =
-    'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50';
 </script>
 
 <template>
@@ -1004,34 +1001,46 @@ const selectFieldClass =
                         >
                             {{ instructorsError }}
                         </p>
-                        <select
-                            id="edit-event-instructor"
+                        <UiSelect
                             v-model="formInstructorId"
                             :disabled="
                                 !schoolId || isInstructorsLoading || isSaving
                             "
-                            :class="selectFieldClass"
-                            aria-label="Instruktor prowadzący blok"
                         >
-                            <option
-                                v-if="
-                                    formInstructorId.trim() &&
-                                    !instructors.some(
-                                        (i) => i.id === formInstructorId.trim(),
-                                    )
-                                "
-                                :value="formInstructorId.trim()"
+                            <UiSelectTrigger
+                                id="edit-event-instructor"
+                                class="w-full"
+                                aria-label="Instruktor prowadzący blok"
                             >
-                                {{ instructorSelectLabel }}
-                            </option>
-                            <option
-                                v-for="i in instructors"
-                                :key="i.id"
-                                :value="i.id"
-                            >
-                                {{ formatInstructorDisplayName(i) }}
-                            </option>
-                        </select>
+                                <UiSelectValue
+                                    placeholder="Wybierz instruktora"
+                                />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-if="
+                                            formInstructorId.trim() &&
+                                            !instructors.some(
+                                                (inst) =>
+                                                    inst.id ===
+                                                    formInstructorId.trim(),
+                                            )
+                                        "
+                                        :value="formInstructorId.trim()"
+                                    >
+                                        {{ instructorSelectLabel }}
+                                    </UiSelectItem>
+                                    <UiSelectItem
+                                        v-for="i in instructors"
+                                        :key="i.id"
+                                        :value="i.id"
+                                    >
+                                        {{ formatInstructorDisplayName(i) }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                         <p
                             v-if="!schoolId"
                             class="text-muted-foreground text-xs"
@@ -1059,8 +1068,7 @@ const selectFieldClass =
                         >
                             {{ vehiclesError }}
                         </p>
-                        <select
-                            id="edit-event-vehicle"
+                        <UiSelect
                             v-model="formVehicleId"
                             :disabled="
                                 !schoolId ||
@@ -1068,41 +1076,54 @@ const selectFieldClass =
                                 isVehiclesLoading ||
                                 isSaving
                             "
-                            :class="selectFieldClass"
-                            aria-label="Pojazd dla bloku jazdy"
                         >
-                            <option value="">— Wybierz pojazd —</option>
-                            <option
-                                v-for="v in vehicles"
-                                :key="v.id"
-                                :value="v.id"
+                            <UiSelectTrigger
+                                id="edit-event-vehicle"
+                                class="w-full"
+                                aria-label="Pojazd dla bloku jazdy"
                             >
-                                {{ v.name }} ({{ v.registrationNumber }})
-                            </option>
-                        </select>
+                                <UiSelectValue
+                                    placeholder="— Wybierz pojazd —"
+                                />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value="">
+                                        — Wybierz pojazd —
+                                    </UiSelectItem>
+                                    <UiSelectItem
+                                        v-for="v in vehicles"
+                                        :key="v.id"
+                                        :value="v.id"
+                                    >
+                                        {{ v.name }} ({{
+                                            v.registrationNumber
+                                        }})
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
                             <UiLabel for="edit-event-start">Początek</UiLabel>
-                            <input
+                            <UiDateTimePicker
                                 id="edit-event-start"
                                 v-model="formStartLocal"
-                                type="datetime-local"
                                 :disabled="isSaving"
-                                :class="selectFieldClass"
-                                aria-required="true"
+                                placeholder="Data i godzina początku"
+                                :aria-required="true"
                             />
                         </div>
                         <div class="space-y-2">
                             <UiLabel for="edit-event-end">Koniec</UiLabel>
-                            <input
+                            <UiDateTimePicker
                                 id="edit-event-end"
                                 v-model="formEndLocal"
-                                type="datetime-local"
                                 :disabled="isSaving"
-                                :class="selectFieldClass"
-                                aria-required="true"
+                                placeholder="Data i godzina końca"
+                                :aria-required="true"
                             />
                         </div>
                     </div>

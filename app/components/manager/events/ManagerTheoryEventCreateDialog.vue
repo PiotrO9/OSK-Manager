@@ -45,7 +45,7 @@ const slotWhenLabel = computed((): string => {
     return `${dateStr}, ${s.startTime}–${s.endTime}`;
 });
 
-const fieldClass =
+const numberInputClass =
     'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 
 watch(
@@ -202,23 +202,34 @@ async function handleSubmit(): Promise<void> {
                     >
                         Instruktor
                     </label>
-                    <select
-                        id="theory-event-instructor"
+                    <UiSelect
                         v-model="selectedInstructorId"
-                        required
                         :disabled="isLoading"
-                        :class="fieldClass"
-                        aria-required="true"
                     >
-                        <option value="">— Wybierz instruktora —</option>
-                        <option
-                            v-for="ins in slotCtx.availableInstructors"
-                            :key="ins.id"
-                            :value="ins.id"
+                        <UiSelectTrigger
+                            id="theory-event-instructor"
+                            class="w-full"
+                            aria-required="true"
                         >
-                            {{ ins.firstName }} {{ ins.lastName }}
-                        </option>
-                    </select>
+                            <UiSelectValue
+                                placeholder="— Wybierz instruktora —"
+                            />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz instruktora —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="ins in slotCtx.availableInstructors"
+                                    :key="ins.id"
+                                    :value="ins.id"
+                                >
+                                    {{ ins.firstName }} {{ ins.lastName }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <div class="space-y-2">
@@ -236,7 +247,7 @@ async function handleSubmit(): Promise<void> {
                         step="1"
                         inputmode="numeric"
                         :disabled="isLoading"
-                        :class="fieldClass"
+                        :class="numberInputClass"
                         placeholder="Puste = bez limitu"
                         aria-describedby="theory-event-capacity-hint"
                     />

@@ -15,9 +15,6 @@ usePageMeta({
     description: () => 'Lista kursów w wybranej szkole jazdy.',
 });
 
-const SELECT_SCHOOL_CLASS =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-md rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-
 function resolveCoursesListError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
@@ -185,27 +182,35 @@ function formatInstructorCell(course: CourseListItem): string {
                         <UiLabel for="courses-page-school"
                             >Szkoła jazdy (lista kursów)</UiLabel
                         >
-                        <select
-                            id="courses-page-school"
+                        <UiSelect
                             v-model="activeSchoolId"
-                            :class="SELECT_SCHOOL_CLASS"
                             :disabled="isCoursesLoading"
-                            aria-label="Wybierz szkołę jazdy do podglądu listy kursów"
-                            @change="handleActiveSchoolChange"
+                            @update:model-value="handleActiveSchoolChange"
                         >
-                            <option
-                                v-for="s in schools"
-                                :key="s.id"
-                                :value="s.id"
+                            <UiSelectTrigger
+                                id="courses-page-school"
+                                class="w-full max-w-md"
+                                aria-label="Wybierz szkołę jazdy do podglądu listy kursów"
                             >
-                                {{ s.name
-                                }}{{
-                                    s.city && s.city.length > 0
-                                        ? ` (${s.city})`
-                                        : ''
-                                }}
-                            </option>
-                        </select>
+                                <UiSelectValue placeholder="Wybierz szkołę" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-for="s in schools"
+                                        :key="s.id"
+                                        :value="s.id"
+                                    >
+                                        {{ s.name
+                                        }}{{
+                                            s.city && s.city.length > 0
+                                                ? ` (${s.city})`
+                                                : ''
+                                        }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <template v-if="coursesLoadError">

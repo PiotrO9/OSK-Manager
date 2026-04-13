@@ -30,9 +30,6 @@ const { addToast } = useAppToast();
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta instruktora.';
 
-const SELECT_SCHOOL_CLASS =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-md rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-
 function resolveInstructorRegisterError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
@@ -309,27 +306,35 @@ async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
                         <UiLabel for="instructors-page-school"
                             >Szkoła jazdy (lista instruktorów)</UiLabel
                         >
-                        <select
-                            id="instructors-page-school"
+                        <UiSelect
                             v-model="activeSchoolId"
-                            :class="SELECT_SCHOOL_CLASS"
                             :disabled="isInstructorsLoading"
-                            aria-label="Wybierz szkołę jazdy do podglądu listy instruktorów"
-                            @change="handleActiveSchoolChange"
+                            @update:model-value="handleActiveSchoolChange"
                         >
-                            <option
-                                v-for="s in schools"
-                                :key="s.id"
-                                :value="s.id"
+                            <UiSelectTrigger
+                                id="instructors-page-school"
+                                class="w-full max-w-md"
+                                aria-label="Wybierz szkołę jazdy do podglądu listy instruktorów"
                             >
-                                {{ s.name
-                                }}{{
-                                    s.city && s.city.length > 0
-                                        ? ` (${s.city})`
-                                        : ''
-                                }}
-                            </option>
-                        </select>
+                                <UiSelectValue placeholder="Wybierz szkołę" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-for="s in schools"
+                                        :key="s.id"
+                                        :value="s.id"
+                                    >
+                                        {{ s.name
+                                        }}{{
+                                            s.city && s.city.length > 0
+                                                ? ` (${s.city})`
+                                                : ''
+                                        }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <template v-if="instructorsLoadError">

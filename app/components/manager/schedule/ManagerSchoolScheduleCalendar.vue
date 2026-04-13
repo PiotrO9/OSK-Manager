@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DateValue } from '@internationalized/date';
+import type { CalendarDate, DateValue } from '@internationalized/date';
 import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
@@ -11,9 +11,11 @@ import {
 import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 import {
-    dateToCalendarDate,
     formatDateOnly,
     getMonday,
+    WEEK_PICKER_CALENDAR_MAX,
+    WEEK_PICKER_CALENDAR_MIN,
+    weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from '~/utils/weeklyCalendarDates';
 
@@ -246,8 +248,8 @@ const items = ref<ScheduleLessonItem[]>([]);
 const errorMessage = ref<string | null>(null);
 const isCalendarOpen = ref(false);
 
-const calendarSelected = ref<DateValue>(
-    dateToCalendarDate(getMonday(new Date())),
+const calendarSelected = ref<CalendarDate[]>(
+    weekCalendarDatesFromMonday(getMonday(new Date())),
 );
 
 const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
@@ -401,7 +403,7 @@ watch(
 );
 
 watch(weekStart, (w) => {
-    calendarSelected.value = dateToCalendarDate(w);
+    calendarSelected.value = weekCalendarDatesFromMonday(w);
 });
 
 function handlePrevWeek(): void {
@@ -418,12 +420,31 @@ function handleNextWeek(): void {
     weekStart.value = d;
 }
 
-function handleCalendarUpdate(value: DateValue | undefined): void {
+function handleCalendarUpdate(
+    value: DateValue | DateValue[] | undefined,
+): void {
     if (value === undefined) {
         return;
     }
 
-    weekStart.value = getMonday(toDate(value));
+    const arr = Array.isArray(value) ? value : [value];
+
+    if (arr.length === 0) {
+        return;
+    }
+
+    let anchor = arr[0]!;
+
+    for (const v of arr) {
+        if (toDate(v).getTime() > toDate(anchor).getTime()) {
+            anchor = v;
+        }
+    }
+
+    const monday = getMonday(toDate(anchor));
+
+    weekStart.value = monday;
+    calendarSelected.value = weekCalendarDatesFromMonday(monday);
     isCalendarOpen.value = false;
 }
 
@@ -555,13 +576,19 @@ function handleScheduleBlockKeydown(
                         variant="outline"
                         size="sm"
                         :disabled="isLoading"
-                        aria-label="Wybierz tydzień w kalendarzu"
+                        aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
                     >
                         Wybierz tydzień
                     </UiButton>
                 </UiPopoverTrigger>
                 <UiPopoverContent class="w-auto p-0" align="end">
                     <UiCalendar
+                        multiple
+                        fixed-weeks
+                        :week-starts-on="1"
+                        :min-value="WEEK_PICKER_CALENDAR_MIN"
+                        :max-value="WEEK_PICKER_CALENDAR_MAX"
+                        :disable-days-outside-current-view="false"
                         :model-value="calendarSelected"
                         locale="pl-PL"
                         @update:model-value="handleCalendarUpdate"

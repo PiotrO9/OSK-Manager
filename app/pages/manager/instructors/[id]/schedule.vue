@@ -380,15 +380,25 @@ const backHref = computed(() => {
 
                 <div class="space-y-2">
                     <UiLabel for="event-type">Typ</UiLabel>
-                    <select
-                        id="event-type"
-                        v-model="eventType"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        aria-label="Typ bloku: teoria lub jazda"
-                    >
-                        <option value="THEORY">Teoria (THEORY)</option>
-                        <option value="DRIVE">Jazda (DRIVE)</option>
-                    </select>
+                    <UiSelect v-model="eventType">
+                        <UiSelectTrigger
+                            id="event-type"
+                            class="w-full"
+                            aria-label="Typ bloku: teoria lub jazda"
+                        >
+                            <UiSelectValue placeholder="Typ bloku" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="THEORY">
+                                    Teoria (THEORY)
+                                </UiSelectItem>
+                                <UiSelectItem value="DRIVE">
+                                    Jazda (DRIVE)
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <div v-if="eventType === 'DRIVE'" class="space-y-2">
@@ -407,43 +417,55 @@ const backHref = computed(() => {
                     >
                         {{ vehiclesError }}
                     </p>
-                    <select
-                        id="event-vehicle"
+                    <UiSelect
                         v-model="eventVehicleId"
                         :disabled="
                             !schoolId ||
                             vehicles.length === 0 ||
                             isVehiclesLoading
                         "
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
-                        aria-label="Pojazd dla bloku jazdy"
                     >
-                        <option value="">— Wybierz pojazd —</option>
-                        <option v-for="v in vehicles" :key="v.id" :value="v.id">
-                            {{ v.name }} ({{ v.registrationNumber }})
-                        </option>
-                    </select>
+                        <UiSelectTrigger
+                            id="event-vehicle"
+                            class="w-full"
+                            aria-label="Pojazd dla bloku jazdy"
+                        >
+                            <UiSelectValue placeholder="— Wybierz pojazd —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz pojazd —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="v in vehicles"
+                                    :key="v.id"
+                                    :value="v.id"
+                                >
+                                    {{ v.name }} ({{ v.registrationNumber }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <UiLabel for="event-start">Początek</UiLabel>
-                        <input
+                        <UiDateTimePicker
                             id="event-start"
                             v-model="eventStartLocal"
-                            type="datetime-local"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            aria-required="true"
+                            placeholder="Data i godzina początku"
+                            :aria-required="true"
                         />
                     </div>
                     <div class="space-y-2">
                         <UiLabel for="event-end">Koniec</UiLabel>
-                        <input
+                        <UiDateTimePicker
                             id="event-end"
                             v-model="eventEndLocal"
-                            type="datetime-local"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            aria-required="true"
+                            placeholder="Data i godzina końca"
+                            :aria-required="true"
                         />
                     </div>
                 </div>

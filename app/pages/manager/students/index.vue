@@ -32,9 +32,6 @@ const { addToast } = useAppToast();
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta kursanta.';
 
-const SELECT_CONTROL_CLASS =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-md rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-
 const PAGE_LIMIT = 20;
 
 function resolveStudentRegisterError(err: unknown): string {
@@ -522,50 +519,68 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                         <UiLabel for="students-page-school"
                             >Szkoła jazdy</UiLabel
                         >
-                        <select
-                            id="students-page-school"
+                        <UiSelect
                             v-model="activeSchoolId"
-                            :class="SELECT_CONTROL_CLASS"
                             :disabled="isStudentsLoading || isCoursesLoading"
-                            aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
-                            @change="handleActiveSchoolChange"
+                            @update:model-value="handleActiveSchoolChange"
                         >
-                            <option
-                                v-for="s in schools"
-                                :key="s.id"
-                                :value="s.id"
+                            <UiSelectTrigger
+                                id="students-page-school"
+                                class="w-full max-w-md"
+                                aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
                             >
-                                {{ s.name
-                                }}{{
-                                    s.city && s.city.length > 0
-                                        ? ` (${s.city})`
-                                        : ''
-                                }}
-                            </option>
-                        </select>
+                                <UiSelectValue placeholder="Wybierz szkołę" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-for="s in schools"
+                                        :key="s.id"
+                                        :value="s.id"
+                                    >
+                                        {{ s.name
+                                        }}{{
+                                            s.city && s.city.length > 0
+                                                ? ` (${s.city})`
+                                                : ''
+                                        }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                     </div>
 
                     <div v-if="activeSchoolId" class="mb-4 space-y-2">
                         <UiLabel for="students-page-course-filter"
                             >Filtr: kurs (opcjonalnie)</UiLabel
                         >
-                        <select
-                            id="students-page-course-filter"
+                        <UiSelect
                             v-model="activeCourseId"
-                            :class="SELECT_CONTROL_CLASS"
                             :disabled="isStudentsLoading || isCoursesLoading"
-                            aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
-                            @change="handleCourseFilterChange"
+                            @update:model-value="handleCourseFilterChange"
                         >
-                            <option value="">Wszystkie kursy</option>
-                            <option
-                                v-for="c in courses"
-                                :key="c.id"
-                                :value="c.id"
+                            <UiSelectTrigger
+                                id="students-page-course-filter"
+                                class="w-full max-w-md"
+                                aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
                             >
-                                {{ c.name }} ({{ c.category }})
-                            </option>
-                        </select>
+                                <UiSelectValue placeholder="Wszystkie kursy" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value="">
+                                        Wszystkie kursy
+                                    </UiSelectItem>
+                                    <UiSelectItem
+                                        v-for="c in courses"
+                                        :key="c.id"
+                                        :value="c.id"
+                                    >
+                                        {{ c.name }} ({{ c.category }})
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                         <p
                             v-if="isCoursesLoading"
                             class="text-muted-foreground text-sm"

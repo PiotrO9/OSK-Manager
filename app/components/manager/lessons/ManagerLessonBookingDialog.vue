@@ -269,9 +269,6 @@ async function handleSubmit(): Promise<void> {
         }
     }
 }
-
-const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 </script>
 
 <template>
@@ -349,23 +346,34 @@ const fieldClass =
                     >
                         Instruktor
                     </label>
-                    <select
-                        id="lesson-booking-instructor"
+                    <UiSelect
                         v-model="selectedInstructorId"
-                        required
                         :disabled="isCreating"
-                        :class="fieldClass"
-                        aria-required="true"
                     >
-                        <option value="">— Wybierz instruktora —</option>
-                        <option
-                            v-for="ins in slotCtx.availableInstructors"
-                            :key="ins.id"
-                            :value="ins.id"
+                        <UiSelectTrigger
+                            id="lesson-booking-instructor"
+                            class="w-full"
+                            aria-required="true"
                         >
-                            {{ ins.firstName }} {{ ins.lastName }}
-                        </option>
-                    </select>
+                            <UiSelectValue
+                                placeholder="— Wybierz instruktora —"
+                            />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz instruktora —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="ins in slotCtx.availableInstructors"
+                                    :key="ins.id"
+                                    :value="ins.id"
+                                >
+                                    {{ ins.firstName }} {{ ins.lastName }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <p
@@ -384,23 +392,32 @@ const fieldClass =
                     >
                         Kursant
                     </label>
-                    <select
-                        id="lesson-booking-student"
+                    <UiSelect
                         v-model="selectedStudentUserId"
-                        required
                         :disabled="isCreating"
-                        :class="fieldClass"
-                        aria-required="true"
                     >
-                        <option value="">— Wybierz kursanta —</option>
-                        <option
-                            v-for="s in students"
-                            :key="s.userId"
-                            :value="s.userId"
+                        <UiSelectTrigger
+                            id="lesson-booking-student"
+                            class="w-full"
+                            aria-required="true"
                         >
-                            {{ formatStudentDisplayName(s) }}
-                        </option>
-                    </select>
+                            <UiSelectValue placeholder="— Wybierz kursanta —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz kursanta —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="s in students"
+                                    :key="s.userId"
+                                    :value="s.userId"
+                                >
+                                    {{ formatStudentDisplayName(s) }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <p
@@ -418,34 +435,45 @@ const fieldClass =
                     >
                         Kurs
                     </label>
-                    <select
-                        id="lesson-booking-course"
+                    <UiSelect
                         v-model="selectedCourseId"
-                        required
                         :disabled="isCreating || filteredCourses.length === 0"
-                        :class="fieldClass"
-                        aria-required="true"
                     >
-                        <option value="">— Wybierz kurs —</option>
-                        <option
-                            v-for="c in filteredCourses"
-                            :key="c.id"
-                            :value="c.id"
-                            :disabled="c.status === 'FINISHED'"
-                            :title="
-                                c.status === 'FINISHED'
-                                    ? 'Kurs zakończony — wybierz inny lub odznacz'
-                                    : undefined
-                            "
+                        <UiSelectTrigger
+                            id="lesson-booking-course"
+                            class="w-full"
+                            aria-required="true"
                         >
-                            {{ c.name }} ({{ c.category }})
-                            <template v-if="c.kind">
-                                — {{ formatCourseKindLabel(c.kind) }}
-                            </template>
-                            —
-                            {{ formatStudentCourseStatusLabel(c.status) }}
-                        </option>
-                    </select>
+                            <UiSelectValue placeholder="— Wybierz kurs —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz kurs —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="c in filteredCourses"
+                                    :key="c.id"
+                                    :value="c.id"
+                                    :disabled="c.status === 'FINISHED'"
+                                    :title="
+                                        c.status === 'FINISHED'
+                                            ? 'Kurs zakończony — wybierz inny lub odznacz'
+                                            : undefined
+                                    "
+                                >
+                                    {{ c.name }} ({{ c.category }})
+                                    <template v-if="c.kind">
+                                        — {{ formatCourseKindLabel(c.kind) }}
+                                    </template>
+                                    —
+                                    {{
+                                        formatStudentCourseStatusLabel(c.status)
+                                    }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                     <p
                         v-if="
                             selectedStudentUserId &&
@@ -467,19 +495,32 @@ const fieldClass =
                     >
                         Pojazd (wolny w tym terminie)
                     </label>
-                    <select
-                        id="lesson-booking-vehicle"
+                    <UiSelect
                         v-model="selectedVehicleId"
-                        required
                         :disabled="isCreating || vehicles.length === 0"
-                        :class="fieldClass"
-                        aria-required="true"
                     >
-                        <option value="">— Wybierz pojazd —</option>
-                        <option v-for="v in vehicles" :key="v.id" :value="v.id">
-                            {{ v.name }} ({{ v.registrationNumber }})
-                        </option>
-                    </select>
+                        <UiSelectTrigger
+                            id="lesson-booking-vehicle"
+                            class="w-full"
+                            aria-required="true"
+                        >
+                            <UiSelectValue placeholder="— Wybierz pojazd —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz pojazd —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="v in vehicles"
+                                    :key="v.id"
+                                    :value="v.id"
+                                >
+                                    {{ v.name }} ({{ v.registrationNumber }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                     <p
                         v-if="vehicles.length === 0"
                         class="text-muted-foreground text-xs"

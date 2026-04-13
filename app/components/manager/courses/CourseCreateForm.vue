@@ -27,9 +27,6 @@ const emit = defineEmits<{
     submit: [payload: CourseCreatePayload];
 }>();
 
-const SELECT_FIELD_CLASS =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full max-w-lg rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-
 const ALL_KINDS: CourseKind[] = ['THEORY_GROUP', 'PRACTICAL', 'EXTRA'];
 
 const kindOptions = computed(() => {
@@ -311,29 +308,40 @@ function handleSubmit() {
                     ? 'Kategoria (oferta OSK)'
                     : 'Kategoria (kod, np. B)'
             }}</UiLabel>
-            <select
+            <UiSelect
                 v-if="hasOfferedCategoryList"
-                id="course-create-category"
                 v-model="categoryModel"
-                name="category"
-                :class="SELECT_FIELD_CLASS"
                 :disabled="isSaving || isFormBlocked"
-                :aria-invalid="showCategoryRequired"
-                :aria-describedby="
-                    showCategoryRequired
-                        ? 'course-create-category-error'
-                        : undefined
-                "
             >
-                <option
-                    v-for="t in offeredCourseTypes"
-                    :key="t.id"
-                    :value="t.code"
+                <UiSelectTrigger
+                    id="course-create-category"
+                    class="w-full max-w-lg"
+                    :aria-invalid="showCategoryRequired"
+                    :aria-describedby="
+                        showCategoryRequired
+                            ? 'course-create-category-error'
+                            : undefined
+                    "
                 >
-                    {{ t.code
-                    }}{{ t.name && t.name !== t.code ? ` — ${t.name}` : '' }}
-                </option>
-            </select>
+                    <UiSelectValue placeholder="Wybierz kategorię" />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                    <UiSelectGroup>
+                        <UiSelectItem
+                            v-for="t in offeredCourseTypes"
+                            :key="t.id"
+                            :value="t.code"
+                        >
+                            {{ t.code
+                            }}{{
+                                t.name && t.name !== t.code
+                                    ? ` — ${t.name}`
+                                    : ''
+                            }}
+                        </UiSelectItem>
+                    </UiSelectGroup>
+                </UiSelectContent>
+            </UiSelect>
             <UiInput
                 v-else
                 id="course-create-category"
@@ -366,21 +374,31 @@ function handleSubmit() {
 
         <div class="space-y-2">
             <UiLabel for="course-create-kind">Rodzaj kursu</UiLabel>
-            <select
-                id="course-create-kind"
-                v-model="kindModel"
-                name="kind"
-                :class="SELECT_FIELD_CLASS"
-                :disabled="isSaving || isFormBlocked"
-                :aria-invalid="showKindRequired"
-                :aria-describedby="
-                    showKindRequired ? 'course-create-kind-error' : undefined
-                "
-            >
-                <option v-for="k in kindOptions" :key="k" :value="k">
-                    {{ formatCourseKindLabel(k) }}
-                </option>
-            </select>
+            <UiSelect v-model="kindModel" :disabled="isSaving || isFormBlocked">
+                <UiSelectTrigger
+                    id="course-create-kind"
+                    class="w-full max-w-lg"
+                    :aria-invalid="showKindRequired"
+                    :aria-describedby="
+                        showKindRequired
+                            ? 'course-create-kind-error'
+                            : undefined
+                    "
+                >
+                    <UiSelectValue placeholder="Rodzaj kursu" />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                    <UiSelectGroup>
+                        <UiSelectItem
+                            v-for="k in kindOptions"
+                            :key="k"
+                            :value="k"
+                        >
+                            {{ formatCourseKindLabel(k) }}
+                        </UiSelectItem>
+                    </UiSelectGroup>
+                </UiSelectContent>
+            </UiSelect>
             <p
                 v-if="showKindRequired"
                 id="course-create-kind-error"
@@ -425,12 +443,11 @@ function handleSubmit() {
                 <UiLabel for="course-create-theory-start"
                     >Data rozpoczęcia teorii</UiLabel
                 >
-                <UiInput
+                <UiDatePicker
                     id="course-create-theory-start"
                     v-model="theoryStartModel"
-                    type="date"
-                    name="theoryStartDate"
                     :disabled="isSaving || isFormBlocked"
+                    placeholder="Wybierz datę rozpoczęcia"
                     :aria-invalid="
                         showTheoryStartRequired || showTheoryRangeInvalid
                     "
@@ -446,12 +463,11 @@ function handleSubmit() {
                 <UiLabel for="course-create-theory-end"
                     >Data zakończenia teorii</UiLabel
                 >
-                <UiInput
+                <UiDatePicker
                     id="course-create-theory-end"
                     v-model="theoryEndModel"
-                    type="date"
-                    name="theoryEndDate"
                     :disabled="isSaving || isFormBlocked"
+                    placeholder="Wybierz datę zakończenia"
                     :aria-invalid="
                         showTheoryEndRequired || showTheoryRangeInvalid
                     "
@@ -527,29 +543,38 @@ function handleSubmit() {
             >
                 Wczytywanie listy instruktorów…
             </p>
-            <select
+            <UiSelect
                 v-else
-                id="course-create-instructor"
                 v-model="instructorIdModel"
-                name="instructorId"
-                :class="SELECT_FIELD_CLASS"
                 :disabled="isSaving || isFormBlocked"
-                aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
             >
-                <option value="">— Brak instruktora —</option>
-                <option
-                    v-for="ins in instructors"
-                    :key="ins.id"
-                    :value="ins.id"
+                <UiSelectTrigger
+                    id="course-create-instructor"
+                    class="w-full max-w-lg"
+                    aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
                 >
-                    {{ formatInstructorDisplayName(ins)
-                    }}{{
-                        ins.email && ins.email.length > 0
-                            ? ` (${ins.email})`
-                            : ''
-                    }}
-                </option>
-            </select>
+                    <UiSelectValue placeholder="— Brak instruktora —" />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                    <UiSelectGroup>
+                        <UiSelectItem value=""
+                            >— Brak instruktora —</UiSelectItem
+                        >
+                        <UiSelectItem
+                            v-for="ins in instructors"
+                            :key="ins.id"
+                            :value="ins.id"
+                        >
+                            {{ formatInstructorDisplayName(ins)
+                            }}{{
+                                ins.email && ins.email.length > 0
+                                    ? ` (${ins.email})`
+                                    : ''
+                            }}
+                        </UiSelectItem>
+                    </UiSelectGroup>
+                </UiSelectContent>
+            </UiSelect>
             <p
                 v-if="!isInstructorsLoading && instructors.length === 0"
                 class="text-muted-foreground text-sm"

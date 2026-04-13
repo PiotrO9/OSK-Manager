@@ -206,23 +206,23 @@ function handleSubmit() {
 
         <div class="space-y-2">
             <UiLabel for="vehicle-inspection">Data przeglądu</UiLabel>
-            <UiInput
+            <UiDatePicker
                 id="vehicle-inspection"
                 v-model="inspectionDateModel"
-                type="date"
-                name="inspectionDate"
                 :disabled="isSaving"
+                placeholder="Data przeglądu (opcjonalnie)"
+                clearable
             />
         </div>
 
         <div class="space-y-2">
             <UiLabel for="vehicle-insurance">Data ubezpieczenia</UiLabel>
-            <UiInput
+            <UiDatePicker
                 id="vehicle-insurance"
                 v-model="insuranceDateModel"
-                type="date"
-                name="insuranceDate"
                 :disabled="isSaving"
+                placeholder="Data ubezpieczenia (opcjonalnie)"
+                clearable
             />
         </div>
 

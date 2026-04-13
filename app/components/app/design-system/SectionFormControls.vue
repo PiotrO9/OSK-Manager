@@ -398,16 +398,28 @@ function handleSubmitFormControls(event?: Event) {
 
                     <div class="space-y-2">
                         <UiLabel for="formTopicSelect">Topic (select)</UiLabel>
-                        <select
-                            id="formTopicSelect"
-                            v-model="formTopic"
-                            class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Select topic"
-                        >
-                            <option value="general">General question</option>
-                            <option value="support">Support</option>
-                            <option value="feedback">Feedback</option>
-                        </select>
+                        <UiSelect v-model="formTopic">
+                            <UiSelectTrigger
+                                id="formTopicSelect"
+                                class="w-full"
+                                aria-label="Select topic"
+                            >
+                                <UiSelectValue placeholder="Topic" />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem value="general">
+                                        General question
+                                    </UiSelectItem>
+                                    <UiSelectItem value="support">
+                                        Support
+                                    </UiSelectItem>
+                                    <UiSelectItem value="feedback">
+                                        Feedback
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
                         <p
                             v-if="formControlsErrors.topic"
                             class="text-destructive text-xs"

@@ -737,22 +737,20 @@ async function handleSubmit(): Promise<void> {
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="space-y-2">
                         <UiLabel for="lesson-start">Początek</UiLabel>
-                        <input
+                        <UiDateTimePicker
                             id="lesson-start"
                             v-model="formStartLocal"
-                            type="datetime-local"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            aria-required="true"
+                            placeholder="Data i godzina początku"
+                            :aria-required="true"
                         />
                     </div>
                     <div class="space-y-2">
                         <UiLabel for="lesson-end">Koniec</UiLabel>
-                        <input
+                        <UiDateTimePicker
                             id="lesson-end"
                             v-model="formEndLocal"
-                            type="datetime-local"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            aria-required="true"
+                            placeholder="Data i godzina końca"
+                            :aria-required="true"
                         />
                     </div>
                 </div>
@@ -773,22 +771,34 @@ async function handleSubmit(): Promise<void> {
                     >
                         {{ instructorsError }}
                     </p>
-                    <select
-                        id="lesson-instructor"
+                    <UiSelect
                         v-model="formInstructorId"
                         :disabled="instructorsForSelect.length === 0"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
-                        :aria-label="`Instruktor: ${instructorSelectLabel}`"
                     >
-                        <option value="">— Wybierz instruktora —</option>
-                        <option
-                            v-for="ins in instructorsForSelect"
-                            :key="ins.id"
-                            :value="ins.id"
+                        <UiSelectTrigger
+                            id="lesson-instructor"
+                            class="w-full"
+                            :aria-label="`Instruktor: ${instructorSelectLabel}`"
                         >
-                            {{ formatInstructorDisplayName(ins) }}
-                        </option>
-                    </select>
+                            <UiSelectValue
+                                placeholder="— Wybierz instruktora —"
+                            />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz instruktora —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="ins in instructorsForSelect"
+                                    :key="ins.id"
+                                    :value="ins.id"
+                                >
+                                    {{ formatInstructorDisplayName(ins) }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <div class="space-y-2">
@@ -807,22 +817,32 @@ async function handleSubmit(): Promise<void> {
                     >
                         {{ vehiclesError }}
                     </p>
-                    <select
-                        id="lesson-vehicle"
+                    <UiSelect
                         v-model="formVehicleId"
                         :disabled="vehiclesForSelect.length === 0"
-                        class="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:opacity-50"
-                        aria-label="Pojazd dla jazdy praktycznej"
                     >
-                        <option value="">— Wybierz pojazd —</option>
-                        <option
-                            v-for="v in vehiclesForSelect"
-                            :key="v.id"
-                            :value="v.id"
+                        <UiSelectTrigger
+                            id="lesson-vehicle"
+                            class="w-full"
+                            aria-label="Pojazd dla jazdy praktycznej"
                         >
-                            {{ v.name }} ({{ v.registrationNumber }})
-                        </option>
-                    </select>
+                            <UiSelectValue placeholder="— Wybierz pojazd —" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem value="">
+                                    — Wybierz pojazd —
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="v in vehiclesForSelect"
+                                    :key="v.id"
+                                    :value="v.id"
+                                >
+                                    {{ v.name }} ({{ v.registrationNumber }})
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
                 </div>
 
                 <p
