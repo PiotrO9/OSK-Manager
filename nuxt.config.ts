@@ -44,7 +44,7 @@ export default defineNuxtConfig({
     ],
     css: ['~/assets/css/tailwind.css'],
     imports: {
-        dirs: ['app/composables', 'app/utils'],
+        dirs: ['app/composables', 'app/composables/**', 'app/utils'],
     },
     vite: {
         plugins: [tailwindcss()],
