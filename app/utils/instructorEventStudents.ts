@@ -18,7 +18,8 @@ function pushUuid(ids: string[], raw: unknown): void {
 }
 
 /**
- * Wyciąga UUID kursantów z odpowiedzi GET /events/:id (różne warianty nazw pól z BE).
+ * Wyciąga UUID kont kursantów (`users.id`) z odpowiedzi GET /events/:id.
+ * Obecny BE podaje tablicę `students` (pełne obiekty jak GET /lessons/:id) oraz/lub płaskie listy ID.
  * `source: present` — gdy w obiekcie były pola dotyczące kursantów (nawet pusta lista).
  */
 export function extractStudentAttendanceFromEvent(ev: unknown): {

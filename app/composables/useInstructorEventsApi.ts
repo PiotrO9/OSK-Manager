@@ -12,8 +12,11 @@ import type { InstructorListItem } from '~/types/instructor';
 import type {
     CreateInstructorEventPayload,
     InstructorEvent,
+    InstructorEventStudent,
     PatchInstructorEventPayload,
+    TheoryEventEligibleStudentsData,
 } from '~/types/instructorEvent';
+import { normalizeTheoryEventEligibleStudents } from '~/utils/theoryEventEligibleStudents';
 
 /**
  * BE często zwraca `instructor: { id }` / `vehicle: { id }` zamiast samych `instructorId` / `vehicleId`
@@ -117,8 +120,105 @@ function readNestedInstructorListItem(raw: unknown): InstructorListItem | null {
             : typeof o.Email === 'string'
               ? o.Email.trim()
               : '';
+    let phone: string | null | undefined;
 
-    return { id, firstName, lastName, email };
+    if (o.phone === null) {
+        phone = null;
+    } else if (typeof o.phone === 'string') {
+        const p = o.phone.trim();
+
+        phone = p.length > 0 ? p : null;
+    }
+
+    return {
+        id,
+        firstName,
+        lastName,
+        email,
+        ...(phone !== undefined ? { phone } : {}),
+    };
+}
+
+/** GET /events/:id — `students` jak przy GET /lessons/:id (StudentProfile + kontakt). */
+function readNestedEventStudents(
+    raw: unknown,
+): InstructorEventStudent[] | undefined {
+    if (!Array.isArray(raw)) {
+        return undefined;
+    }
+
+    const out: InstructorEventStudent[] = [];
+
+    for (const item of raw) {
+        if (!item || typeof item !== 'object') {
+            continue;
+        }
+
+        const o = item as Record<string, unknown>;
+        const id =
+            typeof o.id === 'string'
+                ? o.id.trim()
+                : o.student_id != null
+                  ? String(o.student_id).trim()
+                  : '';
+
+        if (!id) {
+            continue;
+        }
+
+        const userIdRaw =
+            o.userId ?? o.user_id ?? o.studentUserId ?? o.student_user_id;
+        const userId =
+            typeof userIdRaw === 'string'
+                ? userIdRaw.trim()
+                : userIdRaw != null
+                  ? String(userIdRaw).trim()
+                  : '';
+
+        if (!userId) {
+            continue;
+        }
+
+        const firstName =
+            typeof o.firstName === 'string'
+                ? o.firstName.trim()
+                : typeof o.first_name === 'string'
+                  ? o.first_name.trim()
+                  : '';
+        const lastName =
+            typeof o.lastName === 'string'
+                ? o.lastName.trim()
+                : typeof o.last_name === 'string'
+                  ? o.last_name.trim()
+                  : '';
+        const email =
+            typeof o.email === 'string'
+                ? o.email.trim()
+                : typeof o.Email === 'string'
+                  ? o.Email.trim()
+                  : '';
+
+        let phone: string | null = null;
+
+        if (o.phone === null) {
+            phone = null;
+        } else if (typeof o.phone === 'string') {
+            const p = o.phone.trim();
+
+            phone = p.length > 0 ? p : null;
+        }
+
+        out.push({
+            id,
+            userId,
+            firstName,
+            lastName,
+            email,
+            phone,
+        });
+    }
+
+    return out;
 }
 
 function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
@@ -146,6 +246,8 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
               : '';
 
     const eventInstructor = readNestedInstructorListItem(o.instructor);
+    const eventStudents =
+        'students' in o ? readNestedEventStudents(o.students) : undefined;
 
     return {
         ...base,
@@ -157,6 +259,7 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
         ...(courseIdResolved !== undefined
             ? { courseId: courseIdResolved }
             : {}),
+        ...(eventStudents !== undefined ? { students: eventStudents } : {}),
     };
 }
 
@@ -320,15 +423,16 @@ export function useInstructorEventsApi() {
             let known = att.source === 'present';
 
             /**
-             * Dla teorii zawsze pytamy o `GET /events/:id/students`. Główny GET
-             * `/events/:id` często zwraca `studentUserIds: []` (pole „obecne”),
-             * co wcześniej blokowało ten fetch — wtedy checkboxy były puste mimo
-             * realnych przypisań w podzasobie.
-             * `skipTheoryStudentsSubresource` — np. widok edycji bez listy kursantów.
+             * Gdy GET `/events/:id` nie zawiera pól o kursantach (`source === 'unknown'`),
+             * dla teorii dociągamy `GET /events/:id/students` (users.id).
+             * Obecny BE zwraca zawsze `students` (pełne obiekty) — wtedy `extractStudentAttendanceFromEvent`
+             * ustala listę userId bez drugiego żądania.
+             * `skipTheoryStudentsSubresource` — np. widok bez listy kursantów.
              */
             if (
                 isTheoryEventType(rawEvent) &&
-                !options?.skipTheoryStudentsSubresource
+                !options?.skipTheoryStudentsSubresource &&
+                att.source === 'unknown'
             ) {
                 const fromStudentsGet =
                     await fetchAssignedStudentUserIdsFromSubresource(eid);
@@ -392,6 +496,37 @@ export function useInstructorEventsApi() {
         }
     }
 
+    async function fetchTheoryEventEligibleStudents(
+        eventId: string,
+    ): Promise<TheoryEventEligibleStudentsData> {
+        const eid = eventId.trim();
+
+        if (!eid) {
+            throw new Error('Brak identyfikatora wydarzenia.');
+        }
+
+        const raw = await $fetch<unknown>(
+            resolveBffEndpoint(
+                `/api/events/${encodeURIComponent(eid)}/eligible-students`,
+            ),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        );
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+        const normalized = normalizeTheoryEventEligibleStudents(data);
+
+        if (!normalized) {
+            throw new Error(
+                'Nieprawidłowa odpowiedź serwera (eligible-students).',
+            );
+        }
+
+        return normalized;
+    }
+
     async function deleteInstructorEvent(id: string): Promise<void> {
         const eid = id.trim();
 
@@ -429,6 +564,7 @@ export function useInstructorEventsApi() {
         isDeleteLoading: readonly(isDeleteLoading),
         createInstructorEvent,
         fetchEventById,
+        fetchTheoryEventEligibleStudents,
         updateInstructorEvent,
         deleteInstructorEvent,
     };

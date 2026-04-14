@@ -7,6 +7,8 @@ export interface InstructorListItem {
     email: string;
     /** Konto użytkownika (GET kursu zwraca `instructor.id` jako User.id). */
     userId?: string;
+    /** GET /events/:id, GET /lessons/:id — gdy BE zwraca kontakt. */
+    phone?: string | null;
 }
 
 export interface InstructorDetail {

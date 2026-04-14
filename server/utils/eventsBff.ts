@@ -283,6 +283,53 @@ export async function bffEventStudentsGet(
     };
 }
 
+/**
+ * GET {upstream}/events/:eventId/eligible-students — kursanci kursu + flagi (THEORY + courseId).
+ */
+export async function bffEventEligibleStudentsGet(
+    event: H3Event,
+    upstreamBase: string,
+    eventId: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/events/${encodeURIComponent(eventId)}/eligible-students`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<unknown>(
+        res,
+        text,
+        'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
+    );
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się pobrać listy kwalifikacji kursantów',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export interface EventStudentsReplaceResponse {
     studentUserIds: string[];
 }

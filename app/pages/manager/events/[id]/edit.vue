@@ -7,9 +7,12 @@ import {
 import type {
     InstructorEvent,
     PatchInstructorEventPayload,
+    TheoryEventEligibleStudentRow,
+    TheoryEventEligibleStudentsData,
 } from '~/types/instructorEvent';
 import type { StudentListItem } from '~/types/student';
 import { formatStudentDisplayName } from '~/types/student';
+import { theoryEligibleRowToStudentListItem } from '~/utils/theoryEventEligibleStudents';
 import type { Vehicle } from '~/types/vehicle';
 
 definePageMeta({
@@ -17,13 +20,11 @@ definePageMeta({
     middleware: ['manager'],
 });
 
-/** Tymczasowo: bez edycji kursantów i bez requestów GET …/students, GET /students. */
-const TEMP_DISABLE_THEORY_STUDENT_EDIT = true;
-
 const route = useRoute();
 const { addToast } = useAppToast();
 const {
     fetchEventById,
+    fetchTheoryEventEligibleStudents,
     updateInstructorEvent,
     deleteInstructorEvent,
     isFetchLoading,
@@ -32,7 +33,6 @@ const {
 } = useInstructorEventsApi();
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
-const { fetchList: fetchStudentsPage } = useStudentsApi();
 const { fetchById: fetchCourseById } = useCoursesApi();
 const { replaceStudentsOnEvent, isReplacing } = useEventApi();
 
@@ -90,11 +90,12 @@ const instructors = ref<InstructorListItem[]>([]);
 const instructorsError = ref<string | null>(null);
 const isInstructorsLoading = ref(false);
 
-const studentsForLabels = ref<StudentListItem[]>([]);
-const studentsLabelsError = ref<string | null>(null);
-const isStudentsLabelsLoading = ref(false);
-
 const theoryStudentsError = ref<string | null>(null);
+const theoryEligibleData = ref<TheoryEventEligibleStudentsData | null>(null);
+const theoryEligibleError = ref<string | null>(null);
+const isTheoryEligibleLoading = ref(false);
+/** Event THEORY bez `courseId` — brak endpointu eligible-students. */
+const theoryEligibleNoCourse = ref(false);
 
 /** Etykieta kursu przy `courseId` (teoria) — do podpowiedzi w UI. */
 const linkedCourseLabel = ref<string | null>(null);
@@ -233,57 +234,6 @@ function sortedStudentIds(ids: string[]): string[] {
         .sort();
 }
 
-/**
- * Uczestnictwo w **tym** evencie jest w `studentUserIds` (GET wydarzenia / …/students),
- * nie w polu `isActive` z GET /students (to status kursanta w OSK).
- * Te same osoby mogą być identyfikowane jako `users.id` albo `student_profiles.id` —
- * dopasowujemy wiersz katalogu po obu.
- */
-function findCatalogRowForAssignedId(
-    catalog: StudentListItem[],
-    assignedId: string,
-): StudentListItem | undefined {
-    const t = assignedId.trim();
-
-    if (!t) {
-        return undefined;
-    }
-
-    return catalog.find(
-        (c) => t === c.userId.trim() || (!!c.id?.trim() && t === c.id.trim()),
-    );
-}
-
-function normalizeTheoryParticipantIdsAgainstCatalog(): void {
-    const cat = studentsForLabels.value;
-
-    if (cat.length === 0) {
-        return;
-    }
-
-    function toCanonical(raw: string): string {
-        const t = raw.trim();
-
-        if (!t) {
-            return t;
-        }
-
-        const hit = findCatalogRowForAssignedId(cat, t);
-
-        return hit ? hit.userId.trim() : t;
-    }
-
-    draftTheoryStudentUserIds.value = [
-        ...new Set(
-            draftTheoryStudentUserIds.value.map(toCanonical).filter(Boolean),
-        ),
-    ];
-
-    theoryStudentsBaseline.value = sortedStudentIds(
-        theoryStudentsBaseline.value.map(toCanonical).filter(Boolean),
-    );
-}
-
 function draftIdBelongsToStudentRow(
     row: StudentListItem,
     assignedId: string,
@@ -350,10 +300,23 @@ const instructorSelectLabel = computed((): string => {
     return id;
 });
 
-const assignedStudentUserIds = computed((): string[] => {
-    const ids = loadedEvent.value?.studentUserIds;
+const theoryCapacitySummary = computed((): string | null => {
+    const d = theoryEligibleData.value;
 
-    return Array.isArray(ids) ? [...ids] : [];
+    if (!d) {
+        return null;
+    }
+
+    const { limit, used, remaining } = d.capacity;
+
+    if (limit === null) {
+        return `Miejsca na evencie: ${used} (bez limitu)`;
+    }
+
+    const rem =
+        remaining === null ? '—' : String(Math.max(0, Math.trunc(remaining)));
+
+    return `Miejsca: ${used} / ${limit} (wolnych: ${rem})`;
 });
 
 const studentAttendanceKnown = computed(
@@ -362,10 +325,6 @@ const studentAttendanceKnown = computed(
 
 /** Zmiana składu grupy (checkboxy) — nie zależy od `studentAttendanceKnown` (przycisk Zapisz musi reagować na draft vs baseline). */
 const isTheoryStudentsDirty = computed((): boolean => {
-    if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
-        return false;
-    }
-
     const ev = loadedEvent.value;
 
     if (
@@ -433,9 +392,7 @@ async function loadEvent(): Promise<void> {
     loadedEvent.value = null;
 
     try {
-        const ev = await fetchEventById(id, {
-            skipTheoryStudentsSubresource: TEMP_DISABLE_THEORY_STUDENT_EDIT,
-        });
+        const ev = await fetchEventById(id);
 
         if (seq !== loadSeq) {
             return;
@@ -443,7 +400,6 @@ async function loadEvent(): Promise<void> {
 
         loadedEvent.value = ev;
         applyPrefill(ev);
-        await syncTheoryStudentCatalogAfterEventLoad();
     } catch (err: unknown) {
         if (seq !== loadSeq) {
             return;
@@ -525,106 +481,43 @@ async function loadInstructors(): Promise<void> {
     }
 }
 
-/**
- * Limit GET /students: 1–100 (BFF).
- * Dla teorii — pełniejszy katalog pod checkboxy (max strony z BFF).
- */
-function resolveStudentsListLimit(): number {
+async function loadTheoryEligibleStudents(): Promise<void> {
+    theoryEligibleError.value = null;
+    theoryEligibleData.value = null;
+    theoryEligibleNoCourse.value = false;
+
+    const id = eventId.value.trim();
     const ev = loadedEvent.value;
-    const isTheory =
-        ev &&
-        String(ev.type ?? '')
-            .trim()
-            .toUpperCase() === 'THEORY';
-
-    if (isTheory) {
-        return 100;
-    }
-
-    const cap = capacityForStudentPicker.value;
-    const assignedCount = assignedStudentUserIds.value.length;
-
-    if (cap === null || cap === undefined) {
-        return Math.min(100, Math.max(assignedCount, 1));
-    }
-
-    const capFloored = Math.max(0, Math.trunc(cap));
-    const fromCapacity = Math.max(1, capFloored);
-
-    return Math.min(100, Math.max(fromCapacity, assignedCount));
-}
-
-async function loadStudentsForLabels(): Promise<void> {
-    const sid = schoolId.value;
-
-    studentsLabelsError.value = null;
-    studentsForLabels.value = [];
-
-    if (!sid) {
-        return;
-    }
-
-    isStudentsLabelsLoading.value = true;
-
-    try {
-        const ev = loadedEvent.value;
-        const isTheory =
-            ev &&
-            String(ev.type ?? '')
-                .trim()
-                .toUpperCase() === 'THEORY';
-        const courseId =
-            isTheory && ev?.courseId?.trim() ? ev.courseId.trim() : undefined;
-
-        const page = await fetchStudentsPage({
-            schoolId: sid,
-            page: 1,
-            limit: resolveStudentsListLimit(),
-            ...(courseId ? { courseId } : {}),
-        });
-
-        studentsForLabels.value = page.items;
-        normalizeTheoryParticipantIdsAgainstCatalog();
-    } catch (err: unknown) {
-        studentsLabelsError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się wczytać kursantów (etykiety).',
-        );
-    } finally {
-        isStudentsLabelsLoading.value = false;
-    }
-}
-
-/** GET /api/students — katalog OSK (osobne od GET /api/events/…/students). */
-async function syncTheoryStudentCatalogAfterEventLoad(): Promise<void> {
-    if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
-        studentsForLabels.value = [];
-
-        return;
-    }
-
-    const sid = schoolId.value.trim();
-    const ev = loadedEvent.value;
-
-    studentsLabelsError.value = null;
-
-    if (!sid || !ev) {
-        studentsForLabels.value = [];
-
-        return;
-    }
 
     if (
+        !id ||
+        !ev ||
         String(ev.type ?? '')
             .trim()
             .toUpperCase() !== 'THEORY'
     ) {
-        studentsForLabels.value = [];
+        return;
+    }
+
+    if (!ev.courseId?.trim()) {
+        theoryEligibleNoCourse.value = true;
 
         return;
     }
 
-    await loadStudentsForLabels();
+    isTheoryEligibleLoading.value = true;
+
+    try {
+        theoryEligibleData.value = await fetchTheoryEventEligibleStudents(id);
+    } catch (err: unknown) {
+        theoryEligibleData.value = null;
+        theoryEligibleError.value = getApiFetchErrorMessage(
+            err,
+            'Nie udało się wczytać listy kwalifikacji kursantów (kurs).',
+        );
+    } finally {
+        isTheoryEligibleLoading.value = false;
+    }
 }
 
 watch(
@@ -651,42 +544,6 @@ watch(
     { immediate: true },
 );
 
-/** Ponowne pobranie katalogu, gdy użytkownik zmieni `?schoolId=` przy już wczytanym evencie. */
-watch(
-    () => schoolId.value.trim(),
-    (sid, prevSid) => {
-        if (sid === prevSid) {
-            return;
-        }
-
-        const ev = loadedEvent.value;
-
-        if (!ev) {
-            return;
-        }
-
-        if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
-            return;
-        }
-
-        if (
-            String(ev.type ?? '')
-                .trim()
-                .toUpperCase() !== 'THEORY'
-        ) {
-            return;
-        }
-
-        if (!sid) {
-            studentsForLabels.value = [];
-
-            return;
-        }
-
-        void loadStudentsForLabels();
-    },
-);
-
 watch(
     () =>
         [
@@ -695,10 +552,6 @@ watch(
         ] as const,
     async ([cid, sid]) => {
         linkedCourseLabel.value = null;
-
-        if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
-            return;
-        }
 
         if (!cid || !sid) {
             return;
@@ -711,6 +564,21 @@ watch(
         } catch {
             linkedCourseLabel.value = null;
         }
+    },
+    { immediate: true },
+);
+
+watch(
+    () =>
+        [
+            loadedEvent.value?.id ?? '',
+            String(loadedEvent.value?.type ?? '')
+                .trim()
+                .toUpperCase(),
+            loadedEvent.value?.courseId?.trim() ?? '',
+        ] as const,
+    () => {
+        void loadTheoryEligibleStudents();
     },
     { immediate: true },
 );
@@ -760,50 +628,11 @@ function handleCancel(): void {
     void navigateTo(scheduleBackHref.value);
 }
 
-/** Kursanci z katalogu OSK + ewentualnie zapisani spoza pierwszej strony listy. */
-const theoryCheckboxStudents = computed((): StudentListItem[] => {
-    const active = studentsForLabels.value.filter((s) => s.isActive);
-    const seen = new Set<string>();
-
-    for (const s of active) {
-        seen.add(s.userId.trim());
-
-        if (s.id?.trim()) {
-            seen.add(s.id.trim());
-        }
-    }
-
-    const extra: StudentListItem[] = [];
-
-    for (const raw of draftTheoryStudentUserIds.value) {
-        const uid = raw.trim();
-
-        if (!uid || seen.has(uid)) {
-            continue;
-        }
-
-        const hit = findCatalogRowForAssignedId(studentsForLabels.value, uid);
-
-        if (hit) {
-            continue;
-        }
-
-        seen.add(uid);
-        extra.push({
-            id: uid,
-            userId: uid,
-            firstName: '',
-            lastName: '(poza pierwszą stroną katalogu)',
-            email: '',
-            phone: null,
-            pkkNumber: null,
-            isActive: true,
-            createdAt: '',
-        });
-    }
-
-    return [...active, ...extra];
-});
+function isTheoryEligibleRowInteractive(
+    row: TheoryEventEligibleStudentRow,
+): boolean {
+    return row.isAssignedToEvent || row.canAssign;
+}
 
 function handleToggleTheoryStudent(s: StudentListItem, next: boolean): void {
     theoryStudentsError.value = null;
@@ -1294,25 +1123,31 @@ async function handleDeleteDialogConfirm(): Promise<void> {
             </section>
 
             <section
-                v-if="
-                    formType === 'THEORY' && !TEMP_DISABLE_THEORY_STUDENT_EDIT
-                "
-                class="border-border bg-card max-w-xl space-y-4 rounded-xl border p-6 shadow-sm"
+                v-if="formType === 'THEORY'"
+                class="border-border bg-card max-w-xl space-y-6 rounded-xl border p-6 shadow-sm"
                 aria-labelledby="event-theory-students-heading"
             >
-                <h2
-                    id="event-theory-students-heading"
-                    class="text-foreground text-lg font-semibold"
-                >
-                    Kursanci (teoria)
-                </h2>
-                <p class="text-muted-foreground text-sm">
-                    Zaznacz aktywnych kursantów z listy OSK — zapiszesz zmiany
-                    przyciskiem „Zapisz zmiany” w sekcji „Dane bloku”. Wymagany
-                    jest
-                    <code class="text-xs">?schoolId=</code>
-                    w adresie strony.
-                </p>
+                <div>
+                    <h2
+                        id="event-theory-students-heading"
+                        class="text-foreground text-lg font-semibold"
+                    >
+                        Kursanci (teoria)
+                    </h2>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Lista pochodzi z
+                        <code class="text-xs"
+                            >GET /api/events/:id/eligible-students</code
+                        >
+                        (wszyscy kursanci kursu). Zaznaczenie oznacza zapis na
+                        tym wydarzeniu — stan początkowy jest zgodny z
+                        <code class="text-xs">GET /api/events/:id</code>
+                        . Zapisz zmiany w sekcji „Dane bloku”. Wymagany jest
+                        <code class="text-xs">?schoolId=</code>
+                        w adresie strony.
+                    </p>
+                </div>
+
                 <p
                     v-if="loadedEvent?.courseId?.trim()"
                     class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
@@ -1320,8 +1155,16 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                 >
                     <span class="text-foreground font-medium">Kurs:</span>
                     {{ linkedCourseLabel ?? loadedEvent.courseId }}
-                    — lista dotyczy uczestników tego kursu (nie całej szkoły).
                 </p>
+
+                <p
+                    v-if="theoryCapacitySummary"
+                    class="text-muted-foreground text-sm"
+                    role="status"
+                >
+                    {{ theoryCapacitySummary }}
+                </p>
+
                 <p
                     v-if="!studentAttendanceKnown"
                     class="text-muted-foreground border-border space-y-2 rounded-md border border-dashed px-3 py-2 text-sm"
@@ -1338,59 +1181,118 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         ). Bez tego nie można edytować składu grupy.
                     </span>
                 </p>
-                <p
-                    v-else-if="isStudentsLabelsLoading"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Wczytywanie kursantów…
-                </p>
-                <p
-                    v-else-if="studentsLabelsError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ studentsLabelsError }}
-                </p>
-                <ul
-                    v-else-if="
-                        studentAttendanceKnown &&
-                        theoryCheckboxStudents.length > 0
-                    "
-                    class="space-y-2"
-                    role="list"
-                    aria-label="Lista kursantów — zaznacz uczestników bloku"
-                >
-                    <li
-                        v-for="s in theoryCheckboxStudents"
-                        :key="s.userId || s.id"
-                        class="border-input flex items-start gap-3 rounded-md border px-3 py-2"
+
+                <div v-else class="space-y-3">
+                    <p
+                        v-if="theoryEligibleNoCourse"
+                        class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
+                        role="status"
                     >
-                        <UiCheckbox
-                            :id="`theory-student-${s.userId || s.id}`"
-                            :checked="isTheoryRowChecked(s)"
-                            :disabled="isSaving || !schoolId"
-                            :aria-label="`Uczestnik bloku: ${formatStudentDisplayName(s)}`"
-                            @update:checked="
-                                handleToggleTheoryStudent(s, $event === true)
-                            "
-                        />
-                        <UiLabel
-                            :for="`theory-student-${s.userId || s.id}`"
-                            class="text-foreground flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                        Ten blok nie ma przypisanego kursu (
+                        <code class="text-xs">courseId</code>
+                        ) — lista kursantów jest niedostępna.
+                    </p>
+                    <p
+                        v-else-if="isTheoryEligibleLoading"
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                    >
+                        Wczytywanie listy kursantów…
+                    </p>
+                    <p
+                        v-else-if="theoryEligibleError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                    >
+                        {{ theoryEligibleError }}
+                    </p>
+                    <ul
+                        v-else-if="
+                            theoryEligibleData &&
+                            theoryEligibleData.students.length > 0
+                        "
+                        class="space-y-2"
+                        role="list"
+                        aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
+                    >
+                        <li
+                            v-for="row in theoryEligibleData.students"
+                            :key="row.userId"
+                            class="border-input flex flex-col gap-2 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
                         >
-                            {{ formatStudentDisplayName(s) }}
-                        </UiLabel>
-                    </li>
-                </ul>
-                <p
-                    v-else-if="studentAttendanceKnown"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Brak aktywnych kursantów w katalogu OSK (pierwsza strona
-                    listy).
-                </p>
+                            <div class="flex min-w-0 flex-1 items-start gap-3">
+                                <UiCheckbox
+                                    :id="`theory-student-${row.userId}`"
+                                    :model-value="
+                                        isTheoryRowChecked(
+                                            theoryEligibleRowToStudentListItem(
+                                                row,
+                                            ),
+                                        )
+                                    "
+                                    :disabled="
+                                        isSaving ||
+                                        !schoolId ||
+                                        !isTheoryEligibleRowInteractive(row)
+                                    "
+                                    :aria-label="`Zapis na wydarzenie: ${formatStudentDisplayName(theoryEligibleRowToStudentListItem(row))}`"
+                                    @update:model-value="
+                                        handleToggleTheoryStudent(
+                                            theoryEligibleRowToStudentListItem(
+                                                row,
+                                            ),
+                                            $event === true,
+                                        )
+                                    "
+                                />
+                                <UiLabel
+                                    :for="`theory-student-${row.userId}`"
+                                    class="text-foreground min-w-0 flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                                >
+                                    {{
+                                        formatStudentDisplayName(
+                                            theoryEligibleRowToStudentListItem(
+                                                row,
+                                            ),
+                                        )
+                                    }}
+                                    <span
+                                        v-if="row.email?.trim()"
+                                        class="text-muted-foreground block text-xs font-normal"
+                                    >
+                                        {{ row.email.trim() }}
+                                    </span>
+                                </UiLabel>
+                            </div>
+                            <div
+                                class="flex shrink-0 flex-wrap gap-1 sm:justify-end"
+                            >
+                                <UiBadge
+                                    v-if="row.hasScheduleConflict"
+                                    variant="destructive"
+                                >
+                                    Kolizja grafiku
+                                </UiBadge>
+                                <UiBadge
+                                    v-if="
+                                        !row.canAssign && !row.isAssignedToEvent
+                                    "
+                                    variant="secondary"
+                                >
+                                    Niedostępny
+                                </UiBadge>
+                            </div>
+                        </li>
+                    </ul>
+                    <p
+                        v-else
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                    >
+                        Brak kursantów na kursie lub lista nie została wczytana.
+                    </p>
+                </div>
+
                 <p
                     v-if="theoryStudentsError"
                     class="text-destructive text-sm"
