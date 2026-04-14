@@ -276,7 +276,7 @@ async function handleSubmit(): Promise<void> {
     }
 
     if (selectedStudentUserIds.value.length === 0) {
-        submitError.value = 'Wybierz co najmniej jednego kursanta.';
+        open.value = false;
 
         return;
     }
@@ -323,7 +323,21 @@ const isSubmitDisabled = computed((): boolean => {
         return true;
     }
 
-    return selectedStudentUserIds.value.length === 0;
+    return false;
+});
+
+const primarySubmitLabel = computed((): string => {
+    if (isAssigning.value) {
+        return 'Zapisywanie…';
+    }
+
+    const n = selectedCount.value;
+
+    if (n === 0) {
+        return 'Kontynuuj bez kursantów';
+    }
+
+    return `Zapisz (${n}) kursantów`;
 });
 </script>
 
@@ -338,9 +352,10 @@ const isSubmitDisabled = computed((): boolean => {
             <UiDialogHeader>
                 <UiDialogTitle>Przypisz kursantów do wydarzenia</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Wybierz kursantów (aktywnych w OSK). Liczba wybranych nie
-                    może przekroczyć limitu miejsc — backend i tak waliduje
-                    konflikty i pojemność.
+                    Możesz przypisać kursantów (aktywnych w OSK) albo pominąć
+                    wybór — wydarzenie zostanie utworzone bez uczestników.
+                    Liczba wybranych nie może przekroczyć limitu miejsc —
+                    backend waliduje konflikty i pojemność.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -492,11 +507,7 @@ const isSubmitDisabled = computed((): boolean => {
                     :disabled="isSubmitDisabled"
                     @click="handleSubmit"
                 >
-                    {{
-                        isAssigning
-                            ? 'Zapisywanie…'
-                            : `Zapisz (${selectedCount}) kursantów`
-                    }}
+                    {{ primarySubmitLabel }}
                 </UiButton>
             </UiDialogFooter>
         </UiDialogContent>

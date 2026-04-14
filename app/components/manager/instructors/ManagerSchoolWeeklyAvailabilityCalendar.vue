@@ -461,13 +461,10 @@ function handleTheoryEventCreated(payload: {
     isStudentPickerOpen.value = true;
 }
 
-function handleEventStudentsAssigned(): void {
-    void loadWeek();
-}
-
 watch(isStudentPickerOpen, (open) => {
     if (!open) {
         eventForPicker.value = null;
+        void loadWeek();
     }
 });
 
@@ -1136,7 +1133,6 @@ function handleKeyDownWeekNav(
             :event-id="eventForPicker?.id ?? ''"
             :capacity="eventForPicker?.capacity ?? null"
             :school-id="schoolId"
-            @assigned="handleEventStudentsAssigned"
         />
 
         <ManagerLessonBookingDialog
