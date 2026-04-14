@@ -286,7 +286,10 @@ export function useInstructorEventsApi() {
         }
     }
 
-    async function fetchEventById(id: string): Promise<InstructorEvent> {
+    async function fetchEventById(
+        id: string,
+        options?: { skipTheoryStudentsSubresource?: boolean },
+    ): Promise<InstructorEvent> {
         const eid = id.trim();
 
         if (!eid) {
@@ -321,8 +324,12 @@ export function useInstructorEventsApi() {
              * `/events/:id` często zwraca `studentUserIds: []` (pole „obecne”),
              * co wcześniej blokowało ten fetch — wtedy checkboxy były puste mimo
              * realnych przypisań w podzasobie.
+             * `skipTheoryStudentsSubresource` — np. widok edycji bez listy kursantów.
              */
-            if (isTheoryEventType(rawEvent)) {
+            if (
+                isTheoryEventType(rawEvent) &&
+                !options?.skipTheoryStudentsSubresource
+            ) {
                 const fromStudentsGet =
                     await fetchAssignedStudentUserIdsFromSubresource(eid);
 

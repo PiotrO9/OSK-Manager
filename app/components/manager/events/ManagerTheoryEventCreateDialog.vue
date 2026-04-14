@@ -209,8 +209,10 @@ async function handleSubmit(): Promise<void> {
                 <UiDialogDescription :id="DESCRIPTION_ID">
                     Utworzenie wydarzenia
                     <span class="font-mono">POST /api/events</span> (typ THEORY)
-                    z limitem miejsc. Opcjonalnie powiąż z kursem — backend może
-                    dopisać uczestników ACTIVE. Następnie przypisanie kursantów.
+                    z limitem miejsc. Opcjonalnie powiąż z kursem (kontekst
+                    bloku). Kursantów na blok nie zapisuje się automatycznie z
+                    kursu — skład grupy ustawisz osobno po utworzeniu (edycja
+                    bloku / endpoint uczestników).
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -316,8 +318,9 @@ async function handleSubmit(): Promise<void> {
                         </UiSelectContent>
                     </UiSelect>
                     <p class="text-muted-foreground text-xs">
-                        Przy wyborze kursu backend może dopisać aktywnych
-                        uczestników (wg limitu miejsc).
+                        Powiązanie z kursem nie dodaje kursantów na ten blok —
+                        lista uczestników zaczyna się pusta; przypisania robisz
+                        osobno (zgodnie z limitem miejsc).
                     </p>
                 </div>
 
@@ -367,11 +370,7 @@ async function handleSubmit(): Promise<void> {
                         Anuluj
                     </UiButton>
                     <UiButton type="submit" :disabled="isLoading">
-                        {{
-                            isLoading
-                                ? 'Tworzenie…'
-                                : 'Utwórz blok i przypisz kursantów'
-                        }}
+                        {{ isLoading ? 'Tworzenie…' : 'Utwórz blok' }}
                     </UiButton>
                 </UiDialogFooter>
             </form>

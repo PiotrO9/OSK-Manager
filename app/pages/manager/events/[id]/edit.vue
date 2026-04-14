@@ -17,6 +17,9 @@ definePageMeta({
     middleware: ['manager'],
 });
 
+/** Tymczasowo: bez edycji kursantów i bez requestów GET …/students, GET /students. */
+const TEMP_DISABLE_THEORY_STUDENT_EDIT = true;
+
 const route = useRoute();
 const { addToast } = useAppToast();
 const {
@@ -359,6 +362,10 @@ const studentAttendanceKnown = computed(
 
 /** Zmiana składu grupy (checkboxy) — nie zależy od `studentAttendanceKnown` (przycisk Zapisz musi reagować na draft vs baseline). */
 const isTheoryStudentsDirty = computed((): boolean => {
+    if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
+        return false;
+    }
+
     const ev = loadedEvent.value;
 
     if (
@@ -426,7 +433,9 @@ async function loadEvent(): Promise<void> {
     loadedEvent.value = null;
 
     try {
-        const ev = await fetchEventById(id);
+        const ev = await fetchEventById(id, {
+            skipTheoryStudentsSubresource: TEMP_DISABLE_THEORY_STUDENT_EDIT,
+        });
 
         if (seq !== loadSeq) {
             return;
@@ -588,6 +597,12 @@ async function loadStudentsForLabels(): Promise<void> {
 
 /** GET /api/students — katalog OSK (osobne od GET /api/events/…/students). */
 async function syncTheoryStudentCatalogAfterEventLoad(): Promise<void> {
+    if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
+        studentsForLabels.value = [];
+
+        return;
+    }
+
     const sid = schoolId.value.trim();
     const ev = loadedEvent.value;
 
@@ -650,6 +665,10 @@ watch(
             return;
         }
 
+        if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
+            return;
+        }
+
         if (
             String(ev.type ?? '')
                 .trim()
@@ -676,6 +695,10 @@ watch(
         ] as const,
     async ([cid, sid]) => {
         linkedCourseLabel.value = null;
+
+        if (TEMP_DISABLE_THEORY_STUDENT_EDIT) {
+            return;
+        }
 
         if (!cid || !sid) {
             return;
@@ -1247,7 +1270,9 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         </UiButton>
                         <UiButton
                             type="submit"
-                            :disabled="isSaving || isDeleteLoading || !isFormDirty"
+                            :disabled="
+                                isSaving || isDeleteLoading || !isFormDirty
+                            "
                         >
                             {{ isSaving ? 'Zapisywanie…' : 'Zapisz zmiany' }}
                         </UiButton>
@@ -1269,7 +1294,9 @@ async function handleDeleteDialogConfirm(): Promise<void> {
             </section>
 
             <section
-                v-if="formType === 'THEORY'"
+                v-if="
+                    formType === 'THEORY' && !TEMP_DISABLE_THEORY_STUDENT_EDIT
+                "
                 class="border-border bg-card max-w-xl space-y-4 rounded-xl border p-6 shadow-sm"
                 aria-labelledby="event-theory-students-heading"
             >

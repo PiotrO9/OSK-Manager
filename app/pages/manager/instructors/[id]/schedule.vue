@@ -558,8 +558,9 @@ const backHref = computed(() => {
                         </UiSelectContent>
                     </UiSelect>
                     <p class="text-muted-foreground text-xs">
-                        Przy wyborze kursu backend może dopisać aktywnych
-                        uczestników kursu do bloku.
+                        Powiązanie z kursem nie dodaje kursantów na ten blok —
+                        lista uczestników zaczyna się pusta; przypisania robisz
+                        osobno (zgodnie z limitem miejsc).
                     </p>
                 </div>
 
