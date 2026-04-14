@@ -153,6 +153,89 @@ export async function bffEventsGet(
 }
 
 /**
+ * DELETE {upstream}/events/:eventId — soft delete (np. is_active=false).
+ * Upstream może zwrócić 204 z pustym ciałem lub JSON `{ success: true }`.
+ */
+export async function bffEventsDelete(
+    event: H3Event,
+    upstreamBase: string,
+    eventId: string,
+): Promise<{ success: true }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/events/${encodeURIComponent(eventId)}`,
+        {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const text = await res.text();
+    const trimmed = text.trim();
+
+    if (res.ok) {
+        if (res.status === 204 || trimmed === '') {
+            return { success: true };
+        }
+
+        const json = parseBackendEnvelopeFromResponseText<unknown>(
+            res,
+            text,
+            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
+        );
+
+        if (json.success) {
+            return { success: true };
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się usunąć wydarzenia',
+        });
+    }
+
+    try {
+        const json = parseBackendEnvelopeFromResponseText<unknown>(
+            res,
+            text,
+            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
+        );
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się usunąć wydarzenia',
+        });
+    } catch (err: unknown) {
+        if (
+            err &&
+            typeof err === 'object' &&
+            'statusCode' in err &&
+            typeof (err as { statusCode?: unknown }).statusCode === 'number'
+        ) {
+            throw err;
+        }
+
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage: 'Nie udało się usunąć wydarzenia',
+        });
+    }
+}
+
+/**
  * GET {upstream}/events/:eventId/students — lista kursantów przypisanych (np. teoria).
  * Kształt `data` przekazywany dalej (normalizacja po stronie klienta).
  */

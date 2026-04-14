@@ -13,8 +13,12 @@ definePageMeta({
 const route = useRoute();
 const { addToast } = useAppToast();
 const { fetchScheduleForInstructor } = useScheduleApi();
-const { createInstructorEvent, isLoading: isEventSaving } =
-    useInstructorEventsApi();
+const {
+    createInstructorEvent,
+    deleteInstructorEvent,
+    isLoading: isEventSaving,
+    isDeleteLoading: isEventDeleteLoading,
+} = useInstructorEventsApi();
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
 const { fetchList: fetchCoursesList } = useCoursesApi();
 
@@ -73,7 +77,33 @@ const eventVehicleId = ref('');
 const eventCourseId = ref('');
 const eventFormError = ref<string | null>(null);
 
+const deleteDialogOpen = ref(false);
+const pendingDeleteItem = ref<ScheduleLessonItem | null>(null);
+
 const range = computed(() => weekRangeFromMonday(weekStart.value));
+
+const pendingDeleteTimeLabel = computed(() => {
+    const item = pendingDeleteItem.value;
+
+    if (!item) {
+        return '';
+    }
+
+    return `${formatScheduleRangeLabel(item.startTime)} — ${formatScheduleRangeLabel(item.endTime)}`;
+});
+
+function formatScheduleRangeLabel(iso: string): string {
+    const d = new Date(iso);
+
+    if (Number.isNaN(d.getTime())) {
+        return iso;
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+    }).format(d);
+}
 
 let scheduleSeq = 0;
 
@@ -294,6 +324,48 @@ async function handleSubmitEvent(): Promise<void> {
     }
 }
 
+function handleRequestDelete(item: ScheduleLessonItem): void {
+    pendingDeleteItem.value = item;
+    deleteDialogOpen.value = true;
+}
+
+function handleDeleteDialogCancel(): void {
+    deleteDialogOpen.value = false;
+    pendingDeleteItem.value = null;
+}
+
+async function handleDeleteDialogConfirm(): Promise<void> {
+    const item = pendingDeleteItem.value;
+
+    if (!item) {
+        return;
+    }
+
+    const removedId = item.id;
+
+    try {
+        await deleteInstructorEvent(removedId);
+
+        addToast({
+            title: 'Usunięto blok czasu',
+            description: 'Blok został usunięty z harmonogramu.',
+            variant: 'success',
+        });
+
+        items.value = items.value.filter((i) => i.id !== removedId);
+        handleDeleteDialogCancel();
+    } catch (err: unknown) {
+        addToast({
+            title: 'Nie udało się usunąć bloku',
+            description: getApiFetchErrorMessage(
+                err,
+                'Spróbuj ponownie lub odśwież stronę.',
+            ),
+            variant: 'error',
+        });
+    }
+}
+
 const backHref = computed(() => {
     const id = instructorId.value;
     const sid = schoolId.value;
@@ -396,7 +468,9 @@ const backHref = computed(() => {
                     v-else
                     :items="items"
                     event-edit-enabled
+                    event-delete-enabled
                     :school-id="schoolId"
+                    @request-delete="handleRequestDelete"
                 />
             </section>
 
@@ -573,6 +647,14 @@ const backHref = computed(() => {
                 </UiButton>
             </section>
         </template>
+
+        <ManagerInstructorEventDeleteDialog
+            v-model:open="deleteDialogOpen"
+            :time-range-label="pendingDeleteTimeLabel"
+            :is-deleting="isEventDeleteLoading"
+            @cancel="handleDeleteDialogCancel"
+            @confirm="handleDeleteDialogConfirm"
+        />
 
         <NuxtLink
             :to="backHref"

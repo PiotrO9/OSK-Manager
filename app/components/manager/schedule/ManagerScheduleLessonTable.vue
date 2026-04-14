@@ -13,14 +13,21 @@ const props = withDefaults(
         emptyMessage?: string;
         /** Gdy true — klik w wiersz bloku czasu lub jazdy praktycznej prowadzi do edycji. */
         eventEditEnabled?: boolean;
+        /** Gdy true — kolumna z przyciskiem „Usuń” dla bloków `instructor_event`. */
+        eventDeleteEnabled?: boolean;
         /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
         schoolId?: string;
     }>(),
     {
         eventEditEnabled: false,
+        eventDeleteEnabled: false,
         schoolId: '',
     },
 );
+
+const emit = defineEmits<{
+    'request-delete': [item: ScheduleLessonItem];
+}>();
 
 function rowIsClickable(item: ScheduleLessonItem): boolean {
     return isScheduleManagerItemEditable(props.eventEditEnabled, item);
@@ -54,6 +61,10 @@ function handleRowKeydown(e: KeyboardEvent, item: ScheduleLessonItem): void {
 
     e.preventDefault();
     handleRowClick(item);
+}
+
+function handleRequestDeleteClick(item: ScheduleLessonItem): void {
+    emit('request-delete', item);
 }
 
 function rowTitle(item: ScheduleLessonItem): string | undefined {
@@ -118,7 +129,7 @@ function displayVehicle(
 <template>
     <div class="overflow-x-auto rounded-lg border">
         <table
-            class="w-full min-w-[640px] border-collapse text-sm"
+            class="w-full min-w-[720px] border-collapse text-sm"
             :aria-label="
                 eventEditEnabled
                     ? 'Lista lekcji i bloków czasu; kliknij wiersz bloku lub jazdy praktycznej, aby edytować'
@@ -136,12 +147,19 @@ function displayVehicle(
                     </th>
                     <th scope="col" class="px-3 py-2 font-medium">Kursant</th>
                     <th scope="col" class="px-3 py-2 font-medium">Pojazd</th>
+                    <th
+                        v-if="props.eventDeleteEnabled"
+                        scope="col"
+                        class="px-3 py-2 font-medium"
+                    >
+                        Akcje
+                    </th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-if="props.items.length === 0">
                     <td
-                        colspan="7"
+                        :colspan="props.eventDeleteEnabled ? 8 : 7"
                         class="text-muted-foreground px-3 py-6 text-center"
                         role="status"
                     >
@@ -182,6 +200,24 @@ function displayVehicle(
                     </td>
                     <td class="px-3 py-2">
                         {{ displayVehicle(item.vehicle) }}
+                    </td>
+                    <td
+                        v-if="props.eventDeleteEnabled"
+                        class="px-3 py-2 whitespace-nowrap"
+                        @click.stop
+                    >
+                        <UiButton
+                            v-if="isScheduleInstructorEvent(item)"
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            class="shrink-0"
+                            :aria-label="`Usuń blok czasu ${formatIsoLocal(item.startTime)} — ${formatIsoLocal(item.endTime)}`"
+                            @click="handleRequestDeleteClick(item)"
+                        >
+                            Usuń
+                        </UiButton>
+                        <span v-else class="text-muted-foreground">—</span>
                     </td>
                 </tr>
             </tbody>

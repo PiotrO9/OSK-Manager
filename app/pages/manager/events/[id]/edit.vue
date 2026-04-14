@@ -22,8 +22,10 @@ const { addToast } = useAppToast();
 const {
     fetchEventById,
     updateInstructorEvent,
+    deleteInstructorEvent,
     isFetchLoading,
     isUpdateLoading,
+    isDeleteLoading,
 } = useInstructorEventsApi();
 const { fetchList: fetchVehiclesList } = useVehiclesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
@@ -942,6 +944,69 @@ async function handleSubmit(): Promise<void> {
         );
     }
 }
+
+const deleteDialogOpen = ref(false);
+
+const deleteDialogTimeLabel = computed(() => {
+    const a = formStartLocal.value.trim();
+    const b = formEndLocal.value.trim();
+
+    if (!a || !b) {
+        return '';
+    }
+
+    const da = new Date(a);
+    const db = new Date(b);
+
+    if (Number.isNaN(da.getTime()) || Number.isNaN(db.getTime())) {
+        return '';
+    }
+
+    const fmt = new Intl.DateTimeFormat('pl-PL', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+    });
+
+    return `${fmt.format(da)} — ${fmt.format(db)}`;
+});
+
+function handleOpenDeleteDialog(): void {
+    deleteDialogOpen.value = true;
+}
+
+function handleDeleteDialogCancel(): void {
+    deleteDialogOpen.value = false;
+}
+
+async function handleDeleteDialogConfirm(): Promise<void> {
+    const id = eventId.value.trim();
+
+    if (!id) {
+        return;
+    }
+
+    try {
+        await deleteInstructorEvent(id);
+
+        addToast({
+            title: 'Usunięto blok czasu',
+            description: 'Blok został usunięty z harmonogramu.',
+            variant: 'success',
+        });
+
+        deleteDialogOpen.value = false;
+        await navigateTo(scheduleBackHref.value);
+    } catch (err: unknown) {
+        addToast({
+            title: 'Nie udało się usunąć wydarzenia',
+            description: getApiFetchErrorMessage(
+                err,
+                'Spróbuj ponownie lub wróć do terminarza.',
+            ),
+            variant: 'error',
+        });
+    }
+}
 </script>
 
 <template>
@@ -1175,19 +1240,32 @@ async function handleSubmit(): Promise<void> {
                         <UiButton
                             type="button"
                             variant="outline"
-                            :disabled="isSaving"
+                            :disabled="isSaving || isDeleteLoading"
                             @click="handleCancel"
                         >
                             Anuluj
                         </UiButton>
                         <UiButton
                             type="submit"
-                            :disabled="isSaving || !isFormDirty"
+                            :disabled="isSaving || isDeleteLoading || !isFormDirty"
                         >
                             {{ isSaving ? 'Zapisywanie…' : 'Zapisz zmiany' }}
                         </UiButton>
                     </div>
                 </form>
+
+                <div class="border-border max-w-xl border-t pt-4">
+                    <UiButton
+                        type="button"
+                        variant="destructive"
+                        :disabled="isSaving || isDeleteLoading"
+                        :aria-busy="isDeleteLoading"
+                        aria-label="Usuń to wydarzenie z harmonogramu"
+                        @click="handleOpenDeleteDialog"
+                    >
+                        Usuń wydarzenie
+                    </UiButton>
+                </div>
             </section>
 
             <section
@@ -1294,6 +1372,14 @@ async function handleSubmit(): Promise<void> {
                     {{ theoryStudentsError }}
                 </p>
             </section>
+
+            <ManagerInstructorEventDeleteDialog
+                v-model:open="deleteDialogOpen"
+                :time-range-label="deleteDialogTimeLabel"
+                :is-deleting="isDeleteLoading"
+                @cancel="handleDeleteDialogCancel"
+                @confirm="handleDeleteDialogConfirm"
+            />
         </template>
 
         <NuxtLink

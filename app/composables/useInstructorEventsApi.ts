@@ -1,5 +1,6 @@
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
+    assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
     unwrapApiSuccessData,
 } from '~/utils/apiEnvelope';
@@ -203,6 +204,7 @@ export function useInstructorEventsApi() {
     const isLoading = ref(false);
     const isFetchLoading = ref(false);
     const isUpdateLoading = ref(false);
+    const isDeleteLoading = ref(false);
 
     async function createInstructorEvent(
         payload: CreateInstructorEventPayload,
@@ -383,12 +385,44 @@ export function useInstructorEventsApi() {
         }
     }
 
+    async function deleteInstructorEvent(id: string): Promise<void> {
+        const eid = id.trim();
+
+        if (!eid) {
+            throw new Error('Brak identyfikatora wydarzenia.');
+        }
+
+        isDeleteLoading.value = true;
+
+        try {
+            const raw = await $fetch<unknown>(
+                resolveBffEndpoint(`/api/events/${encodeURIComponent(eid)}`),
+                {
+                    method: 'DELETE',
+                    credentials: 'include',
+                },
+            );
+
+            assertBooleanSuccessEnvelope(raw);
+        } catch (err: unknown) {
+            if (getApiErrorStatusCode(err) === 404) {
+                return;
+            }
+
+            throw err;
+        } finally {
+            isDeleteLoading.value = false;
+        }
+    }
+
     return {
         isLoading: readonly(isLoading),
         isFetchLoading: readonly(isFetchLoading),
         isUpdateLoading: readonly(isUpdateLoading),
+        isDeleteLoading: readonly(isDeleteLoading),
         createInstructorEvent,
         fetchEventById,
         updateInstructorEvent,
+        deleteInstructorEvent,
     };
 }
