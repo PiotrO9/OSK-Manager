@@ -1,12 +1,6 @@
 <script setup lang="ts">
 import type { CalendarDate, DateValue } from '@internationalized/date';
-import {
-    BookOpen,
-    Car,
-    ChevronLeft,
-    ChevronRight,
-    Trash2,
-} from 'lucide-vue-next';
+import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
@@ -30,18 +24,11 @@ const props = withDefaults(
         schoolId: string;
         /** Klik w blok czasu lub jazdę praktyczną → edycja wydarzenia / lekcji */
         eventEditEnabled?: boolean;
-        /** Mini przycisk usuwania na bloku `instructor_event` (bez wchodzenia w edycję). */
-        eventDeleteEnabled?: boolean;
     }>(),
     {
         eventEditEnabled: false,
-        eventDeleteEnabled: false,
     },
 );
-
-const emit = defineEmits<{
-    'request-delete': [item: ScheduleLessonItem];
-}>();
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
 const BASE_HOUR = 7;
@@ -538,14 +525,6 @@ function handleScheduleBlockKeydown(
     handleScheduleBlockClick(lesson);
 }
 
-function handleRequestDeleteClick(lesson: ScheduleLessonItem): void {
-    emit('request-delete', lesson);
-}
-
-function showDeleteOnBlock(lesson: ScheduleLessonItem): boolean {
-    return props.eventDeleteEnabled && isScheduleInstructorEvent(lesson);
-}
-
 defineExpose({
     reloadWeek: loadWeek,
 });
@@ -643,12 +622,6 @@ defineExpose({
                 >
                     Blok czasu lub jazda praktyczna: kliknij lub Enter, aby
                     edytować.
-                </span>
-                <span
-                    v-if="eventDeleteEnabled"
-                    class="text-foreground border-border border-l pl-2"
-                >
-                    Blok czasu: ikona kosza — szybkie usunięcie.
                 </span>
                 <span
                     class="border-border flex flex-wrap items-center gap-2 border-l pl-2"
@@ -771,9 +744,6 @@ defineExpose({
                                             lessonBlockInteractiveClasses(
                                                 lesson,
                                             ),
-                                            showDeleteOnBlock(lesson)
-                                                ? 'pr-7'
-                                                : '',
                                         ]"
                                         :style="{
                                             top: `${slotTopPx(isoToHm(lesson.startTime)) + stackOffsetForLesson(lesson, day.dateStr)}px`,
@@ -804,22 +774,6 @@ defineExpose({
                                             )
                                         "
                                     >
-                                        <UiButton
-                                            v-if="showDeleteOnBlock(lesson)"
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            class="text-destructive hover:text-destructive hover:bg-destructive/10 absolute top-0.5 right-0.5 z-2 size-7 shrink-0 p-0"
-                                            :aria-label="`Usuń blok czasu ${isoToHm(lesson.startTime)}–${isoToHm(lesson.endTime)}`"
-                                            @click.stop="
-                                                handleRequestDeleteClick(lesson)
-                                            "
-                                        >
-                                            <Trash2
-                                                class="size-3.5"
-                                                aria-hidden="true"
-                                            />
-                                        </UiButton>
                                         <div
                                             v-if="
                                                 isTheoryLessonType(lesson.type)
