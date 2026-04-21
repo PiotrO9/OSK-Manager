@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3';
+import { getQuery, type H3Event } from 'h3';
 
 interface BackendEnvelope<T = unknown> {
     success: boolean;
@@ -101,6 +101,21 @@ export async function bffEventsPost(
     };
 }
 
+function shouldForwardIncludeSlots(event: H3Event): boolean {
+    const q = getQuery(event);
+    const raw = q.includeSlots;
+
+    if (raw === true || raw === 'true' || raw === '1') {
+        return true;
+    }
+
+    if (Array.isArray(raw)) {
+        return raw.some((v) => v === 'true' || v === '1');
+    }
+
+    return false;
+}
+
 export async function bffEventsGet(
     event: H3Event,
     upstreamBase: string,
@@ -112,15 +127,17 @@ export async function bffEventsGet(
         throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
     }
 
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}`,
-        {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
+    const path = `${upstreamBase}/events/${encodeURIComponent(eventId)}`;
+    const url = shouldForwardIncludeSlots(event)
+        ? `${path}?includeSlots=true`
+        : path;
+
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${access}`,
         },
-    );
+    });
 
     const text = await res.text();
     const json = parseBackendEnvelopeFromResponseText<{

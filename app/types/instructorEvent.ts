@@ -4,6 +4,12 @@ import type { InstructorListItem } from './instructor';
 
 export type InstructorEventTypeCode = 'DRIVE' | 'THEORY';
 
+/** Wolne okno czasu (GET /events/:id?includeSlots=true — `freeWindows`, ISO UTC). */
+export interface FreeWindow {
+    startTime: string;
+    endTime: string;
+}
+
 /**
  * Kursant w `data.event.students` z GET /events/:id — jak przy GET /lessons/:id
  * (wg events-schedule-api.md, dane z event_participants).
@@ -44,6 +50,8 @@ export interface InstructorEvent {
      * kolejność jak w GET /events/:id/students (wg event_participants.created_at).
      */
     students?: InstructorEventStudent[];
+    /** GET /events/:id?includeSlots=true — wolne okna instruktora na dzień eventu (UTC). */
+    freeWindows?: FreeWindow[];
 }
 
 export interface CreateInstructorEventPayload {

@@ -2,7 +2,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
     buildDatetimeLocal,
@@ -29,6 +29,16 @@ const props = withDefaults(
         minDate?: string;
         /** Maksymalna data (`YYYY-MM-DD`) dla kalendarza. */
         maxDate?: string;
+        /**
+         * Dozwolone godziny (0–23). Puste lub brak — pełny zakres.
+         * Np. przy edycji eventu z `freeWindows`.
+         */
+        hourOptions?: number[];
+        /**
+         * Dozwolone minuty (0–59). Puste lub brak — pełny zakres.
+         * Np. przy edycji eventu z `freeWindows`.
+         */
+        minuteOptions?: number[];
         clearable?: boolean;
         /** Przycisk ustawiający dzisiejszą datę (bez zmiany godziny). */
         showTodayButton?: boolean;
@@ -47,15 +57,38 @@ const emit = defineEmits<{
     'update:modelValue': [value: string];
 }>();
 
+const DEFAULT_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) => i);
+
+const DEFAULT_MINUTE_OPTIONS: number[] = Array.from(
+    { length: 60 },
+    (_, i) => i,
+);
+
 const isOpen = ref(false);
 
 const calendarSelected = ref<CalendarDate | undefined>(undefined);
 const hour = ref(9);
 const minute = ref(0);
 
-const hourOptions = computed(() => Array.from({ length: 24 }, (_, i) => i));
+const effectiveHourOptions = computed(() => {
+    const h = props.hourOptions;
 
-const minuteOptions = computed(() => Array.from({ length: 60 }, (_, i) => i));
+    if (h === undefined || h.length === 0) {
+        return DEFAULT_HOUR_OPTIONS;
+    }
+
+    return [...new Set(h)].sort((a, b) => a - b);
+});
+
+const effectiveMinuteOptions = computed(() => {
+    const m = props.minuteOptions;
+
+    if (m === undefined || m.length === 0) {
+        return DEFAULT_MINUTE_OPTIONS;
+    }
+
+    return [...new Set(m)].sort((a, b) => a - b);
+});
 
 function ensureCalendarDate(): CalendarDate {
     if (calendarSelected.value) {
@@ -75,6 +108,19 @@ function emitFromParts(): void {
     emit('update:modelValue', buildDatetimeLocal(d, hour.value, minute.value));
 }
 
+function clampSelectionToEffectiveOptions(): void {
+    const hours = effectiveHourOptions.value;
+    const mins = effectiveMinuteOptions.value;
+
+    if (!hours.includes(hour.value)) {
+        hour.value = hours[0] ?? 0;
+    }
+
+    if (!mins.includes(minute.value)) {
+        minute.value = mins[0] ?? 0;
+    }
+}
+
 function syncFromModel(): void {
     const p = parseDatetimeLocalParts(props.modelValue);
 
@@ -82,6 +128,12 @@ function syncFromModel(): void {
         calendarSelected.value = p.date;
         hour.value = p.hour;
         minute.value = p.minute;
+        clampSelectionToEffectiveOptions();
+        const next = buildDatetimeLocal(p.date, hour.value, minute.value);
+
+        if (next !== props.modelValue.trim()) {
+            emit('update:modelValue', next);
+        }
 
         return;
     }
@@ -97,6 +149,48 @@ watch(
         syncFromModel();
     },
     { immediate: true },
+);
+
+watch(
+    () => {
+        const h = props.hourOptions;
+        const m = props.minuteOptions;
+
+        return {
+            hKey:
+                h === undefined || h.length === 0
+                    ? ''
+                    : [...new Set(h)].sort((a, b) => a - b).join(','),
+            mKey:
+                m === undefined || m.length === 0
+                    ? ''
+                    : [...new Set(m)].sort((a, b) => a - b).join(','),
+        };
+    },
+    () => {
+        void nextTick(() => {
+            if (!parseDatetimeLocalParts(props.modelValue)) {
+                return;
+            }
+
+            const prev = buildDatetimeLocal(
+                ensureCalendarDate(),
+                hour.value,
+                minute.value,
+            );
+
+            clampSelectionToEffectiveOptions();
+            const next = buildDatetimeLocal(
+                ensureCalendarDate(),
+                hour.value,
+                minute.value,
+            );
+
+            if (prev !== next) {
+                emit('update:modelValue', next);
+            }
+        });
+    },
 );
 
 const displayLabel = computed(() => formatDatetimeLocalPl(props.modelValue));
@@ -127,6 +221,15 @@ function handleHourChange(event: Event): void {
 
     hour.value = h;
     emitFromParts();
+
+    void nextTick(() => {
+        const mins = effectiveMinuteOptions.value;
+
+        if (!mins.includes(minute.value)) {
+            minute.value = mins[0] ?? 0;
+            emitFromParts();
+        }
+    });
 }
 
 function handleMinuteChange(event: Event): void {
@@ -174,7 +277,32 @@ watch(isOpen, (open) => {
         calendarSelected.value = today(getLocalTimeZone());
         hour.value = 9;
         minute.value = 0;
+
+        return;
     }
+
+    void nextTick(() => {
+        if (!parseDatetimeLocalParts(props.modelValue)) {
+            return;
+        }
+
+        const prev = buildDatetimeLocal(
+            ensureCalendarDate(),
+            hour.value,
+            minute.value,
+        );
+
+        clampSelectionToEffectiveOptions();
+        const next = buildDatetimeLocal(
+            ensureCalendarDate(),
+            hour.value,
+            minute.value,
+        );
+
+        if (prev !== next) {
+            emit('update:modelValue', next);
+        }
+    });
 });
 </script>
 
@@ -239,7 +367,7 @@ watch(isOpen, (open) => {
                                 @change="handleHourChange"
                             >
                                 <option
-                                    v-for="h in hourOptions"
+                                    v-for="h in effectiveHourOptions"
                                     :key="h"
                                     :value="h"
                                 >
@@ -263,7 +391,7 @@ watch(isOpen, (open) => {
                                 @change="handleMinuteChange"
                             >
                                 <option
-                                    v-for="m in minuteOptions"
+                                    v-for="m in effectiveMinuteOptions"
                                     :key="m"
                                     :value="m"
                                 >

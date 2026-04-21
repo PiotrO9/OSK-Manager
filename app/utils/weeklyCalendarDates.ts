@@ -66,6 +66,32 @@ export function dateValueToIsoDateString(value: DateValue): string {
 
 const DATETIME_LOCAL_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
 
+/**
+ * ISO 8601 z API (UTC lub ze strefą) → string jak `datetime-local` w **lokalnej** strefie przeglądarki.
+ * Nie wycinaj ręcznie `slice(0, 16)` z `...Z` — to myli godzinę UTC z lokalną.
+ */
+export function isoInstantToDatetimeLocalString(iso: string): string {
+    const t = iso.trim();
+
+    if (t.length === 0) {
+        return '';
+    }
+
+    const d = new Date(t);
+
+    if (Number.isNaN(d.getTime())) {
+        return '';
+    }
+
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+
+    return `${y}-${mo}-${day}T${hh}:${mm}`;
+}
+
 /** Parsuje wartość jak `input[type=datetime-local]` — lokalna ściana czasu, bez strefy. */
 export function parseDatetimeLocalParts(value: string): {
     date: CalendarDate;
@@ -82,8 +108,8 @@ export function parseDatetimeLocalParts(value: string): {
     const y = Number(m[1]);
     const mo = Number(m[2]);
     const d = Number(m[3]);
-    let hour = Number(m[4]);
-    let minute = Number(m[5]);
+    const hour = Number(m[4]);
+    const minute = Number(m[5]);
 
     if (
         !Number.isFinite(y) ||

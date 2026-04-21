@@ -11,6 +11,7 @@ import {
 import type { InstructorListItem } from '~/types/instructor';
 import type {
     CreateInstructorEventPayload,
+    FreeWindow,
     InstructorEvent,
     InstructorEventStudent,
     PatchInstructorEventPayload,
@@ -221,6 +222,44 @@ function readNestedEventStudents(
     return out;
 }
 
+function readFreeWindowsFromRaw(
+    o: Record<string, unknown>,
+): FreeWindow[] | undefined {
+    const raw = o.freeWindows;
+
+    if (!Array.isArray(raw)) {
+        return undefined;
+    }
+
+    const out: FreeWindow[] = [];
+
+    for (const item of raw) {
+        if (!item || typeof item !== 'object') {
+            continue;
+        }
+
+        const w = item as Record<string, unknown>;
+        const startTime =
+            typeof w.startTime === 'string'
+                ? w.startTime.trim()
+                : typeof w.start_time === 'string'
+                  ? w.start_time.trim()
+                  : '';
+        const endTime =
+            typeof w.endTime === 'string'
+                ? w.endTime.trim()
+                : typeof w.end_time === 'string'
+                  ? w.end_time.trim()
+                  : '';
+
+        if (startTime && endTime) {
+            out.push({ startTime, endTime });
+        }
+    }
+
+    return out;
+}
+
 function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
     if (!raw || typeof raw !== 'object') {
         throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -248,6 +287,7 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
     const eventInstructor = readNestedInstructorListItem(o.instructor);
     const eventStudents =
         'students' in o ? readNestedEventStudents(o.students) : undefined;
+    const freeWindowsResolved = readFreeWindowsFromRaw(o);
 
     return {
         ...base,
@@ -260,6 +300,9 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
             ? { courseId: courseIdResolved }
             : {}),
         ...(eventStudents !== undefined ? { students: eventStudents } : {}),
+        ...(freeWindowsResolved !== undefined
+            ? { freeWindows: freeWindowsResolved }
+            : {}),
     };
 }
 
@@ -391,7 +434,10 @@ export function useInstructorEventsApi() {
 
     async function fetchEventById(
         id: string,
-        options?: { skipTheoryStudentsSubresource?: boolean },
+        options?: {
+            skipTheoryStudentsSubresource?: boolean;
+            includeSlots?: boolean;
+        },
     ): Promise<InstructorEvent> {
         const eid = id.trim();
 
@@ -402,8 +448,12 @@ export function useInstructorEventsApi() {
         isFetchLoading.value = true;
 
         try {
+            const query =
+                options?.includeSlots === true ? '?includeSlots=true' : '';
             const raw = await $fetch<unknown>(
-                resolveBffEndpoint(`/api/events/${encodeURIComponent(eid)}`),
+                resolveBffEndpoint(
+                    `/api/events/${encodeURIComponent(eid)}${query}`,
+                ),
                 {
                     method: 'GET',
                     credentials: 'include',
@@ -498,6 +548,7 @@ export function useInstructorEventsApi() {
 
     async function fetchTheoryEventEligibleStudents(
         eventId: string,
+        opts?: { startTime?: string; endTime?: string },
     ): Promise<TheoryEventEligibleStudentsData> {
         const eid = eventId.trim();
 
@@ -505,9 +556,16 @@ export function useInstructorEventsApi() {
             throw new Error('Brak identyfikatora wydarzenia.');
         }
 
+        const start = opts?.startTime?.trim();
+        const end = opts?.endTime?.trim();
+        const query =
+            start && end
+                ? `?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`
+                : '';
+
         const raw = await $fetch<unknown>(
             resolveBffEndpoint(
-                `/api/events/${encodeURIComponent(eid)}/eligible-students`,
+                `/api/events/${encodeURIComponent(eid)}/eligible-students${query}`,
             ),
             {
                 method: 'GET',

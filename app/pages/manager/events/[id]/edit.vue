@@ -5,6 +5,7 @@ import {
     type InstructorListItem,
 } from '~/types/instructor';
 import type {
+    FreeWindow,
     InstructorEvent,
     PatchInstructorEventPayload,
     TheoryEventEligibleStudentRow,
@@ -13,6 +14,24 @@ import type {
 import type { StudentListItem } from '~/types/student';
 import { formatStudentDisplayName } from '~/types/student';
 import { theoryEligibleRowToStudentListItem } from '~/utils/theoryEventEligibleStudents';
+import {
+    isSlotWithinFreeWindows,
+    slotsToFreeWindows,
+} from '~/utils/freeWindows';
+import {
+    getAllowedHoursForDate,
+    getAllowedHoursForEnd,
+    getAllowedMinutesForDateHour,
+    getAllowedMinutesForEndHour,
+    getLocalDateBoundsForCalendar,
+    suggestDefaultEndLocal,
+} from '~/utils/eventEditFreeWindowsPicker';
+import {
+    buildDatetimeLocal,
+    isoDateStringToCalendarDate,
+    isoInstantToDatetimeLocalString,
+    parseDatetimeLocalParts,
+} from '~/utils/weeklyCalendarDates';
 import type { Vehicle } from '~/types/vehicle';
 
 definePageMeta({
@@ -76,8 +95,21 @@ const notFound = ref(false);
 const formType = ref<'THEORY' | 'DRIVE'>('THEORY');
 const formStartLocal = ref('');
 const formEndLocal = ref('');
+/** Rozdzielone pola UI — synchronizowane z `formStartLocal` / `formEndLocal`. */
+const formStartDate = ref('');
+const formStartHour = ref(9);
+const formStartMinute = ref(0);
+const formEndDate = ref('');
+const formEndHour = ref(9);
+const formEndMinute = ref(0);
+
+const FULL_HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
+
+const FULL_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
 const formVehicleId = ref('');
 const formInstructorId = ref('');
+const { fetchSlots: fetchInstructorSlots, isLoading: isSlotsLoading } =
+    useInstructorSlotsApi(formInstructorId);
 /** `type="number"` + v-model może dać `number` lub `string`. */
 const formCapacityInput = ref<string | number>('');
 const formError = ref<string | null>(null);
@@ -105,24 +137,22 @@ const theoryStudentsBaseline = ref<string[]>([]);
 /** Zaznaczenia przed zapisem formularza (checkboxy). */
 const draftTheoryStudentUserIds = ref<string[]>([]);
 
+/** Wolne okna czasu instruktora (GET includeSlots lub przeliczone z GET …/availability/slots). */
+const freeWindows = ref<FreeWindow[]>([]);
+/** true gdy `freeWindows` jest pustą tablicą — brak dostępności w danym dniu. */
+const freeWindowsUnavailable = ref(false);
+/** Po `loadEvent` — pomiń jeden refresh slotów (unikaj podwójnego GET). */
+let skipSlotsRefreshAfterLoad = false;
+
 const isSaving = computed(() => isUpdateLoading.value || isReplacing.value);
 
 let loadSeq = 0;
 
+let eligibleDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let eligibleSeq = 0;
+
 function isoToDatetimeLocal(iso: string): string {
-    const t = iso.trim();
-
-    if (t.length >= 16) {
-        return t.slice(0, 16);
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return '';
-    }
-
-    return d.toISOString().slice(0, 16);
+    return isoInstantToDatetimeLocalString(iso);
 }
 
 function localDatetimeToIso(local: string): string | null {
@@ -140,6 +170,257 @@ function localDatetimeToIso(local: string): string | null {
 
     return d.toISOString();
 }
+
+const ISO_DATE_LOCAL_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidLocalDateString(s: string): boolean {
+    return ISO_DATE_LOCAL_RE.test(s.trim());
+}
+
+function hydrateStartSplitFromLocal(): void {
+    const v = formStartLocal.value.trim();
+    const p = parseDatetimeLocalParts(v);
+
+    if (!p) {
+        formStartDate.value = '';
+        formStartHour.value = 9;
+        formStartMinute.value = 0;
+
+        return;
+    }
+
+    formStartDate.value = `${p.date.year}-${String(p.date.month).padStart(2, '0')}-${String(p.date.day).padStart(2, '0')}`;
+    formStartHour.value = p.hour;
+    formStartMinute.value = p.minute;
+}
+
+function hydrateEndSplitFromLocal(): void {
+    const v = formEndLocal.value.trim();
+    const p = parseDatetimeLocalParts(v);
+
+    if (!p) {
+        formEndDate.value = '';
+        formEndHour.value = 9;
+        formEndMinute.value = 0;
+
+        return;
+    }
+
+    formEndDate.value = `${p.date.year}-${String(p.date.month).padStart(2, '0')}-${String(p.date.day).padStart(2, '0')}`;
+    formEndHour.value = p.hour;
+    formEndMinute.value = p.minute;
+}
+
+function clampStartTimeParts(): void {
+    const d = formStartDate.value.trim();
+
+    if (!isValidLocalDateString(d)) {
+        return;
+    }
+
+    const constraintsActive =
+        freeWindows.value.length > 0 && !freeWindowsUnavailable.value;
+
+    if (!constraintsActive) {
+        return;
+    }
+
+    const hAllowed = getAllowedHoursForDate(freeWindows.value, d);
+
+    if (hAllowed && hAllowed.length > 0) {
+        let h = formStartHour.value;
+
+        if (!hAllowed.includes(h)) {
+            h = hAllowed[0] ?? h;
+            formStartHour.value = h;
+        }
+    }
+
+    const mAllowed = getAllowedMinutesForDateHour(
+        freeWindows.value,
+        d,
+        formStartHour.value,
+    );
+
+    if (mAllowed && mAllowed.length > 0) {
+        let mi = formStartMinute.value;
+
+        if (!mAllowed.includes(mi)) {
+            mi = mAllowed[0] ?? mi;
+            formStartMinute.value = mi;
+        }
+    }
+}
+
+function clampEndTimeParts(): void {
+    const d = formEndDate.value.trim();
+
+    if (!isValidLocalDateString(d)) {
+        return;
+    }
+
+    const constraintsActive =
+        freeWindows.value.length > 0 && !freeWindowsUnavailable.value;
+
+    if (!constraintsActive) {
+        return;
+    }
+
+    const hAllowed = getAllowedHoursForEnd(
+        freeWindows.value,
+        formStartLocal.value.trim(),
+        d,
+    );
+
+    if (hAllowed && hAllowed.length > 0) {
+        let h = formEndHour.value;
+
+        if (!hAllowed.includes(h)) {
+            h = hAllowed[0] ?? h;
+            formEndHour.value = h;
+        }
+    }
+
+    const mAllowed = getAllowedMinutesForEndHour(
+        freeWindows.value,
+        formStartLocal.value.trim(),
+        d,
+        formEndHour.value,
+    );
+
+    if (mAllowed && mAllowed.length > 0) {
+        let mi = formEndMinute.value;
+
+        if (!mAllowed.includes(mi)) {
+            mi = mAllowed[0] ?? mi;
+            formEndMinute.value = mi;
+        }
+    }
+}
+
+function commitStartLocal(): void {
+    const d = formStartDate.value.trim();
+
+    if (!isValidLocalDateString(d)) {
+        formStartLocal.value = '';
+
+        return;
+    }
+
+    clampStartTimeParts();
+    const cd = isoDateStringToCalendarDate(d);
+
+    if (!cd) {
+        formStartLocal.value = '';
+
+        return;
+    }
+
+    formStartLocal.value = buildDatetimeLocal(
+        cd,
+        formStartHour.value,
+        formStartMinute.value,
+    );
+}
+
+function commitEndLocal(): void {
+    const d = formEndDate.value.trim();
+
+    if (!isValidLocalDateString(d)) {
+        formEndLocal.value = '';
+
+        return;
+    }
+
+    clampEndTimeParts();
+    const cd = isoDateStringToCalendarDate(d);
+
+    if (!cd) {
+        formEndLocal.value = '';
+
+        return;
+    }
+
+    formEndLocal.value = buildDatetimeLocal(
+        cd,
+        formEndHour.value,
+        formEndMinute.value,
+    );
+}
+
+function handleStartDateChange(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+
+    formStartDate.value = raw.trim();
+    clampStartTimeParts();
+    commitStartLocal();
+}
+
+function handleStartHourChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement).value;
+    const h = Number.parseInt(raw, 10);
+
+    if (!Number.isFinite(h) || h < 0 || h > 23) {
+        return;
+    }
+
+    formStartHour.value = h;
+    clampStartTimeParts();
+    commitStartLocal();
+}
+
+function handleStartMinuteChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement).value;
+    const m = Number.parseInt(raw, 10);
+
+    if (!Number.isFinite(m) || m < 0 || m > 59) {
+        return;
+    }
+
+    formStartMinute.value = m;
+    commitStartLocal();
+}
+
+function handleEndDateChange(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+
+    formEndDate.value = raw.trim();
+    clampEndTimeParts();
+    commitEndLocal();
+}
+
+function handleEndHourChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement).value;
+    const h = Number.parseInt(raw, 10);
+
+    if (!Number.isFinite(h) || h < 0 || h > 23) {
+        return;
+    }
+
+    formEndHour.value = h;
+    clampEndTimeParts();
+    commitEndLocal();
+}
+
+function handleEndMinuteChange(event: Event): void {
+    const raw = (event.target as HTMLSelectElement).value;
+    const m = Number.parseInt(raw, 10);
+
+    if (!Number.isFinite(m) || m < 0 || m > 59) {
+        return;
+    }
+
+    formEndMinute.value = m;
+    commitEndLocal();
+}
+
+watch(formStartLocal, () => {
+    hydrateStartSplitFromLocal();
+});
+
+watch(formEndLocal, () => {
+    hydrateEndSplitFromLocal();
+});
 
 function normalizeCapacityForCompare(cap: number | null | undefined): string {
     if (cap === null || cap === undefined) {
@@ -374,6 +655,62 @@ function getErrorStatusCode(err: unknown): number | undefined {
     return typeof c === 'number' ? c : undefined;
 }
 
+function isPatchParticipantConflict(err: unknown): boolean {
+    if (getErrorStatusCode(err) !== 409) {
+        return false;
+    }
+
+    const msg = getApiFetchErrorMessage(err, '').toLowerCase();
+
+    return msg.includes('participant schedules');
+}
+
+/** Czy zmieniono początek, koniec lub instruktora względem baseline (walidacja wolnych okien). */
+function needsTimeOrInstructorSlotValidation(): boolean {
+    const a = baselineSnapshot.value;
+    const b = currentSnapshot.value;
+
+    if (!a || !b) {
+        return false;
+    }
+
+    return (
+        a.start !== b.start ||
+        a.end !== b.end ||
+        a.instructorId !== b.instructorId
+    );
+}
+
+function syncFreeWindowsFromEvent(ev: InstructorEvent): void {
+    const fw = ev.freeWindows;
+
+    if (!Array.isArray(fw)) {
+        return;
+    }
+
+    freeWindows.value = fw;
+    freeWindowsUnavailable.value = fw.length === 0;
+}
+
+async function refreshFreeWindowsFromSlots(date: string): Promise<void> {
+    const instId = formInstructorId.value.trim();
+    const d = date.trim();
+
+    if (!instId || !d) {
+        return;
+    }
+
+    try {
+        const slots = await fetchInstructorSlots(d, d);
+        const windows = slotsToFreeWindows(slots, d);
+
+        freeWindows.value = windows;
+        freeWindowsUnavailable.value = windows.length === 0;
+    } catch {
+        /* zachowaj poprzednie okna przy błędzie sieci */
+    }
+}
+
 async function loadEvent(): Promise<void> {
     const id = eventId.value;
 
@@ -392,14 +729,16 @@ async function loadEvent(): Promise<void> {
     loadedEvent.value = null;
 
     try {
-        const ev = await fetchEventById(id);
+        const ev = await fetchEventById(id, { includeSlots: true });
 
         if (seq !== loadSeq) {
             return;
         }
 
         loadedEvent.value = ev;
+        skipSlotsRefreshAfterLoad = true;
         applyPrefill(ev);
+        syncFreeWindowsFromEvent(ev);
     } catch (err: unknown) {
         if (seq !== loadSeq) {
             return;
@@ -584,12 +923,31 @@ watch(
 );
 
 watch(
-    () => loadedEvent.value,
-    (ev) => {
+    () => {
+        const ev = loadedEvent.value;
+
         if (!ev) {
+            return null;
+        }
+
+        const ids = ev.studentUserIds;
+        const arr = Array.isArray(ids)
+            ? ids.map((x) => String(x).trim()).filter(Boolean)
+            : [];
+
+        return [ev.id, sortedStudentIds(arr).join(',')] as const;
+    },
+    (key) => {
+        if (!key) {
             theoryStudentsBaseline.value = [];
             draftTheoryStudentUserIds.value = [];
 
+            return;
+        }
+
+        const ev = loadedEvent.value;
+
+        if (!ev) {
             return;
         }
 
@@ -603,6 +961,253 @@ watch(
     },
     { immediate: true },
 );
+
+const currentFormDate = computed(() => {
+    const d = formStartDate.value.trim();
+
+    if (isValidLocalDateString(d)) {
+        return d;
+    }
+
+    return formStartLocal.value.trim().slice(0, 10);
+});
+
+const pickerConstraintsActive = computed(
+    () => freeWindows.value.length > 0 && !freeWindowsUnavailable.value,
+);
+
+const pickerCalendarBounds = computed(() => {
+    if (!pickerConstraintsActive.value) {
+        return null;
+    }
+
+    return getLocalDateBoundsForCalendar(freeWindows.value);
+});
+
+const pickerMinDate = computed(() => pickerCalendarBounds.value?.minDate);
+
+const pickerMaxDate = computed(() => pickerCalendarBounds.value?.maxDate);
+
+const startDateStr = computed(() => {
+    const d = formStartDate.value.trim();
+
+    if (isValidLocalDateString(d)) {
+        return d;
+    }
+
+    return formStartLocal.value.trim().slice(0, 10);
+});
+
+const endDateStr = computed(() => {
+    const d = formEndDate.value.trim();
+
+    if (isValidLocalDateString(d)) {
+        return d;
+    }
+
+    return formEndLocal.value.trim().slice(0, 10);
+});
+
+const startHourOptions = computed(() => {
+    if (!pickerConstraintsActive.value) {
+        return undefined;
+    }
+
+    const d = startDateStr.value;
+
+    if (!isValidLocalDateString(d)) {
+        return undefined;
+    }
+
+    return getAllowedHoursForDate(freeWindows.value, d) ?? undefined;
+});
+
+const startMinuteOptions = computed(() => {
+    if (!pickerConstraintsActive.value) {
+        return undefined;
+    }
+
+    const d = startDateStr.value;
+
+    if (!isValidLocalDateString(d)) {
+        return undefined;
+    }
+
+    return (
+        getAllowedMinutesForDateHour(
+            freeWindows.value,
+            d,
+            formStartHour.value,
+        ) ?? undefined
+    );
+});
+
+const endHourOptions = computed(() => {
+    if (!pickerConstraintsActive.value) {
+        return undefined;
+    }
+
+    const d = endDateStr.value;
+
+    if (!isValidLocalDateString(d)) {
+        return undefined;
+    }
+
+    return (
+        getAllowedHoursForEnd(
+            freeWindows.value,
+            formStartLocal.value.trim(),
+            d,
+        ) ?? undefined
+    );
+});
+
+const endMinuteOptions = computed(() => {
+    if (!pickerConstraintsActive.value) {
+        return undefined;
+    }
+
+    const d = endDateStr.value;
+
+    if (!isValidLocalDateString(d)) {
+        return undefined;
+    }
+
+    return (
+        getAllowedMinutesForEndHour(
+            freeWindows.value,
+            formStartLocal.value.trim(),
+            d,
+            formEndHour.value,
+        ) ?? undefined
+    );
+});
+
+const startHourOptionsResolved = computed(
+    () => startHourOptions.value ?? FULL_HOUR_OPTIONS,
+);
+
+const startMinuteOptionsResolved = computed(
+    () => startMinuteOptions.value ?? FULL_MINUTE_OPTIONS,
+);
+
+const endHourOptionsResolved = computed(
+    () => endHourOptions.value ?? FULL_HOUR_OPTIONS,
+);
+
+const endMinuteOptionsResolved = computed(
+    () => endMinuteOptions.value ?? FULL_MINUTE_OPTIONS,
+);
+
+watch(
+    [currentFormDate, formInstructorId],
+    ([newDate, newInst], [oldDate, oldInst]) => {
+        if (skipSlotsRefreshAfterLoad) {
+            skipSlotsRefreshAfterLoad = false;
+
+            return;
+        }
+
+        if (newDate === oldDate && newInst === oldInst) {
+            return;
+        }
+
+        const d = newDate?.trim();
+        const ins = (newInst ?? '').trim();
+
+        if (!d || !ins) {
+            return;
+        }
+
+        void refreshFreeWindowsFromSlots(d);
+    },
+);
+
+watch([formStartLocal, formEndLocal], () => {
+    const ev = loadedEvent.value;
+    const id = eventId.value.trim();
+
+    if (
+        !id ||
+        !ev?.courseId?.trim() ||
+        String(ev.type ?? '')
+            .trim()
+            .toUpperCase() !== 'THEORY'
+    ) {
+        return;
+    }
+
+    const startIso = localDatetimeToIso(formStartLocal.value);
+    const endIso = localDatetimeToIso(formEndLocal.value);
+
+    if (!startIso || !endIso) {
+        return;
+    }
+
+    if (eligibleDebounceTimer) {
+        clearTimeout(eligibleDebounceTimer);
+    }
+
+    eligibleDebounceTimer = setTimeout(async () => {
+        const seq = ++eligibleSeq;
+
+        try {
+            const data = await fetchTheoryEventEligibleStudents(id, {
+                startTime: startIso,
+                endTime: endIso,
+            });
+
+            if (seq !== eligibleSeq) {
+                return;
+            }
+
+            theoryEligibleData.value = data;
+            theoryEligibleError.value = null;
+        } catch (err: unknown) {
+            if (seq !== eligibleSeq) {
+                return;
+            }
+
+            theoryEligibleError.value = getApiFetchErrorMessage(
+                err,
+                'Nie udało się odświeżyć listy kursantów.',
+            );
+        }
+    }, 400);
+});
+
+watch([formStartLocal, formEndLocal], () => {
+    const startIso = localDatetimeToIso(formStartLocal.value);
+    const endIso = localDatetimeToIso(formEndLocal.value);
+
+    if (!startIso || !endIso) {
+        return;
+    }
+
+    const startT = new Date(startIso).getTime();
+    const endT = new Date(endIso).getTime();
+
+    if (endT <= startT) {
+        const suggested = suggestDefaultEndLocal(
+            pickerConstraintsActive.value ? freeWindows.value : [],
+            formStartLocal.value.trim(),
+        );
+
+        if (suggested) {
+            formEndLocal.value = suggested;
+
+            return;
+        }
+
+        formEndLocal.value = formStartLocal.value;
+    }
+});
+
+onBeforeUnmount(() => {
+    if (eligibleDebounceTimer) {
+        clearTimeout(eligibleDebounceTimer);
+    }
+});
 
 const scheduleBackHref = computed(() => {
     const ins =
@@ -715,86 +1320,197 @@ async function handleSubmit(): Promise<void> {
         }
     }
 
-    try {
-        if (fieldsDirty) {
-            const startIso = localDatetimeToIso(formStartLocal.value);
-            const endIso = localDatetimeToIso(formEndLocal.value);
+    const shouldRefreshSlotsAfterPatch = needsTimeOrInstructorSlotValidation();
 
-            if (!startIso || !endIso) {
+    if (fieldsDirty) {
+        const startIso = localDatetimeToIso(formStartLocal.value);
+        const endIso = localDatetimeToIso(formEndLocal.value);
+
+        if (!startIso || !endIso) {
+            formError.value = 'Podaj początek i koniec bloku (data i godzina).';
+
+            return;
+        }
+
+        if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
+            formError.value = 'Koniec musi być później niż początek.';
+
+            return;
+        }
+
+        if (shouldRefreshSlotsAfterPatch) {
+            const dStart = new Date(startIso);
+            const dEnd = new Date(endIso);
+
+            if (
+                freeWindowsUnavailable.value ||
+                !isSlotWithinFreeWindows(freeWindows.value, dStart, dEnd)
+            ) {
+                formError.value = freeWindowsUnavailable.value
+                    ? 'Instruktor nie ma dostępności w tym dniu — zmień datę lub instruktora.'
+                    : 'Wybrany przedział czasu nie mieści się w wolnym oknie grafiku instruktora.';
+
+                return;
+            }
+        }
+
+        const type = formType.value;
+
+        if (type === 'DRIVE') {
+            const vid = formVehicleId.value.trim();
+
+            if (!vid) {
                 formError.value =
-                    'Podaj początek i koniec bloku (data i godzina).';
+                    'Dla jazdy wybierz pojazd (parametr ?schoolId= w adresie strony i lista pojazdów OSK).';
 
                 return;
             }
+        }
 
-            if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
-                formError.value = 'Koniec musi być później niż początek.';
+        const ins = formInstructorId.value.trim();
 
-                return;
+        if (!ins) {
+            formError.value = 'Wybierz instruktora.';
+
+            return;
+        }
+
+        const capParsed = parseCapacity(formCapacityInput.value);
+
+        if (capParsed === false) {
+            formError.value =
+                'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).';
+
+            return;
+        }
+
+        const payload: PatchInstructorEventPayload = {
+            instructorId: ins,
+            type,
+            startTime: startIso,
+            endTime: endIso,
+            vehicleId: type === 'DRIVE' ? formVehicleId.value.trim() : null,
+            capacity: capParsed,
+        };
+
+        try {
+            const updated = await updateInstructorEvent(id, payload);
+            const prev = loadedEvent.value;
+
+            if (prev) {
+                loadedEvent.value = {
+                    ...prev,
+                    ...updated,
+                    studentUserIds: prev.studentUserIds,
+                    studentAttendanceKnown: prev.studentAttendanceKnown,
+                    students: prev.students,
+                };
             }
 
-            const type = formType.value;
+            if (shouldRefreshSlotsAfterPatch) {
+                const dateStr = formStartLocal.value.trim().slice(0, 10);
 
-            if (type === 'DRIVE') {
-                const vid = formVehicleId.value.trim();
+                if (dateStr) {
+                    await refreshFreeWindowsFromSlots(dateStr);
+                }
+            }
+        } catch (err: unknown) {
+            const msg = getApiFetchErrorMessage(
+                err,
+                'Nie udało się zapisać zmian.',
+            );
 
-                if (!vid) {
-                    formError.value =
-                        'Dla jazdy wybierz pojazd (parametr ?schoolId= w adresie strony i lista pojazdów OSK).';
+            if (
+                getErrorStatusCode(err) === 409 &&
+                !isPatchParticipantConflict(err)
+            ) {
+                const dateStr = formStartLocal.value.trim().slice(0, 10);
 
-                    return;
+                if (dateStr) {
+                    await refreshFreeWindowsFromSlots(dateStr);
                 }
             }
 
-            const ins = formInstructorId.value.trim();
+            formError.value = msg;
 
-            if (!ins) {
-                formError.value = 'Wybierz instruktora.';
-
-                return;
-            }
-
-            const capParsed = parseCapacity(formCapacityInput.value);
-
-            if (capParsed === false) {
-                formError.value =
-                    'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).';
-
-                return;
-            }
-
-            const payload: PatchInstructorEventPayload = {
-                instructorId: ins,
-                type,
-                startTime: startIso,
-                endTime: endIso,
-                vehicleId: type === 'DRIVE' ? formVehicleId.value.trim() : null,
-                capacity: capParsed,
-            };
-
-            await updateInstructorEvent(id, payload);
+            return;
         }
+    }
 
-        if (participantsDirty) {
+    if (participantsDirty) {
+        try {
             await replaceStudentsOnEvent(
                 id,
                 sortedStudentIds(draftTheoryStudentUserIds.value),
             );
+        } catch (err: unknown) {
+            const msg = getApiFetchErrorMessage(
+                err,
+                'Nie udało się zapisać listy kursantów.',
+            );
+
+            if (getErrorStatusCode(err) === 409) {
+                try {
+                    const evReload = await fetchEventById(id, {
+                        includeSlots: true,
+                    });
+
+                    loadedEvent.value = evReload;
+                    applyPrefill(evReload);
+                    syncFreeWindowsFromEvent(evReload);
+
+                    const ids = evReload.studentUserIds;
+                    const arr = Array.isArray(ids)
+                        ? ids.map((x) => String(x).trim()).filter(Boolean)
+                        : [];
+
+                    theoryStudentsBaseline.value = sortedStudentIds(arr);
+                    draftTheoryStudentUserIds.value = [...arr];
+
+                    const startIso = localDatetimeToIso(formStartLocal.value);
+                    const endIso = localDatetimeToIso(formEndLocal.value);
+
+                    if (
+                        evReload.courseId?.trim() &&
+                        startIso &&
+                        endIso &&
+                        String(evReload.type ?? '')
+                            .trim()
+                            .toUpperCase() === 'THEORY'
+                    ) {
+                        theoryEligibleData.value =
+                            await fetchTheoryEventEligibleStudents(id, {
+                                startTime: startIso,
+                                endTime: endIso,
+                            });
+                        theoryEligibleError.value = null;
+                    } else {
+                        await loadTheoryEligibleStudents();
+                    }
+                } catch {
+                    /* komunikat poniżej */
+                }
+
+                formError.value = shouldRefreshSlotsAfterPatch
+                    ? 'Zmiany bloku zapisane, ale lista uczestników wymaga korekty — zdejmij lub zmień kursantów z kolizją grafiku i zapisz ponownie.'
+                    : msg;
+
+                return;
+            }
+
+            formError.value = msg;
+
+            return;
         }
-
-        addToast({
-            title: 'Zapisano zmiany',
-            description: 'Wydarzenie zostało zaktualizowane.',
-            variant: 'success',
-        });
-
-        await navigateTo(scheduleBackHref.value);
-    } catch (err: unknown) {
-        formError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się zapisać zmian.',
-        );
     }
+
+    addToast({
+        title: 'Zapisano zmiany',
+        description: 'Wydarzenie zostało zaktualizowane.',
+        variant: 'success',
+    });
+
+    await navigateTo(scheduleBackHref.value);
 }
 
 const deleteDialogOpen = ref(false);
@@ -1059,26 +1775,174 @@ async function handleDeleteDialogConfirm(): Promise<void> {
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
-                            <UiLabel for="edit-event-start">Początek</UiLabel>
-                            <UiDateTimePicker
-                                id="edit-event-start"
-                                v-model="formStartLocal"
-                                :disabled="isSaving"
-                                placeholder="Data i godzina początku"
-                                :aria-required="true"
-                            />
+                            <UiLabel for="edit-event-start-date"
+                                >Początek</UiLabel
+                            >
+                            <div class="space-y-2">
+                                <div class="space-y-1">
+                                    <label
+                                        class="text-muted-foreground text-xs font-medium"
+                                        for="edit-event-start-date"
+                                    >
+                                        Data
+                                    </label>
+                                    <input
+                                        id="edit-event-start-date"
+                                        type="date"
+                                        :value="formStartDate"
+                                        :disabled="isSaving"
+                                        :min="pickerMinDate ?? undefined"
+                                        :max="pickerMaxDate ?? undefined"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                        aria-label="Data początku"
+                                        aria-required="true"
+                                        @change="handleStartDateChange"
+                                    />
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-muted-foreground text-xs font-medium"
+                                            for="edit-event-start-hour"
+                                        >
+                                            Godz.
+                                        </label>
+                                        <select
+                                            id="edit-event-start-hour"
+                                            :value="formStartHour"
+                                            :disabled="isSaving"
+                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label="Godzina początku"
+                                            @change="handleStartHourChange"
+                                        >
+                                            <option
+                                                v-for="h in startHourOptionsResolved"
+                                                :key="`sh-${h}`"
+                                                :value="h"
+                                            >
+                                                {{ String(h).padStart(2, '0') }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-muted-foreground text-xs font-medium"
+                                            for="edit-event-start-minute"
+                                        >
+                                            Min.
+                                        </label>
+                                        <select
+                                            id="edit-event-start-minute"
+                                            :value="formStartMinute"
+                                            :disabled="isSaving"
+                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label="Minuta początku"
+                                            @change="handleStartMinuteChange"
+                                        >
+                                            <option
+                                                v-for="m in startMinuteOptionsResolved"
+                                                :key="`sm-${m}`"
+                                                :value="m"
+                                            >
+                                                {{ String(m).padStart(2, '0') }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="space-y-2">
-                            <UiLabel for="edit-event-end">Koniec</UiLabel>
-                            <UiDateTimePicker
-                                id="edit-event-end"
-                                v-model="formEndLocal"
-                                :disabled="isSaving"
-                                placeholder="Data i godzina końca"
-                                :aria-required="true"
-                            />
+                            <UiLabel for="edit-event-end-date">Koniec</UiLabel>
+                            <div class="space-y-2">
+                                <div class="space-y-1">
+                                    <label
+                                        class="text-muted-foreground text-xs font-medium"
+                                        for="edit-event-end-date"
+                                    >
+                                        Data
+                                    </label>
+                                    <input
+                                        id="edit-event-end-date"
+                                        type="date"
+                                        :value="formEndDate"
+                                        :disabled="isSaving"
+                                        :min="pickerMinDate ?? undefined"
+                                        :max="pickerMaxDate ?? undefined"
+                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                        aria-label="Data końca"
+                                        aria-required="true"
+                                        @change="handleEndDateChange"
+                                    />
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-muted-foreground text-xs font-medium"
+                                            for="edit-event-end-hour"
+                                        >
+                                            Godz.
+                                        </label>
+                                        <select
+                                            id="edit-event-end-hour"
+                                            :value="formEndHour"
+                                            :disabled="isSaving"
+                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label="Godzina końca"
+                                            @change="handleEndHourChange"
+                                        >
+                                            <option
+                                                v-for="h in endHourOptionsResolved"
+                                                :key="`eh-${h}`"
+                                                :value="h"
+                                            >
+                                                {{ String(h).padStart(2, '0') }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-muted-foreground text-xs font-medium"
+                                            for="edit-event-end-minute"
+                                        >
+                                            Min.
+                                        </label>
+                                        <select
+                                            id="edit-event-end-minute"
+                                            :value="formEndMinute"
+                                            :disabled="isSaving"
+                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label="Minuta końca"
+                                            @change="handleEndMinuteChange"
+                                        >
+                                            <option
+                                                v-for="m in endMinuteOptionsResolved"
+                                                :key="`em-${m}`"
+                                                :value="m"
+                                            >
+                                                {{ String(m).padStart(2, '0') }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <p
+                        v-if="isSlotsLoading"
+                        class="text-muted-foreground text-xs"
+                        role="status"
+                    >
+                        Aktualizacja dostępnych okien grafiku…
+                    </p>
+                    <p
+                        v-if="freeWindowsUnavailable"
+                        class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
+                        role="alert"
+                    >
+                        Instruktor nie ma dostępności w tym dniu — zmień datę
+                        lub instruktora, aby wybrać godziny bloku.
+                    </p>
 
                     <p
                         v-if="formError"
@@ -1163,6 +2027,15 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                     role="status"
                 >
                     {{ theoryCapacitySummary }}
+                </p>
+
+                <p
+                    v-if="parseCapacity(formCapacityInput) === 0"
+                    class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
+                    role="status"
+                >
+                    Limit miejsc wynosi 0 — żaden kursant nie może zostać
+                    przypisany do tego bloku.
                 </p>
 
                 <p

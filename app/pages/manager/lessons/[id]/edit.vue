@@ -16,6 +16,7 @@ import {
     type StudentDetail,
 } from '~/types/student';
 import type { Vehicle } from '~/types/vehicle';
+import { isoInstantToDatetimeLocalString } from '~/utils/weeklyCalendarDates';
 
 definePageMeta({
     layout: 'app-shell',
@@ -103,19 +104,7 @@ const isSaving = computed(() => isUpdateLoading.value);
 let loadSeq = 0;
 
 function isoToDatetimeLocal(iso: string): string {
-    const t = iso.trim();
-
-    if (t.length >= 16) {
-        return t.slice(0, 16);
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return '';
-    }
-
-    return d.toISOString().slice(0, 16);
+    return isoInstantToDatetimeLocalString(iso);
 }
 
 function localDatetimeToIso(local: string): string | null {
