@@ -107,6 +107,55 @@ export async function bffUpstreamStudentDetail(
     };
 }
 
+/**
+ * GET {upstream}/students/:userId/events — wydarzenia przypisane do kursanta.
+ * Opcjonalny query (np. dateFrom, dateTo) przekazywany bez zmian, jeśli backend wspiera.
+ */
+export async function bffUpstreamStudentEvents(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    queryString?: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostępu',
+        });
+    }
+
+    const qs = queryString?.trim() ?? '';
+    const path = `${upstreamBase}/students/${encodeURIComponent(userId)}/events`;
+    const url = qs.length > 0 ? `${path}?${qs}` : path;
+
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+    });
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się pobrać wydarzeń kursanta',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export async function bffUpstreamUpdateStudentNotes(
     event: H3Event,
     upstreamBase: string,

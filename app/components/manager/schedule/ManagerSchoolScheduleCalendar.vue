@@ -24,11 +24,40 @@ const props = withDefaults(
         schoolId: string;
         /** Klik w blok czasu lub jazdę praktyczną → edycja wydarzenia / lekcji */
         eventEditEnabled?: boolean;
+        /**
+         * Tryb osadzenia: dane i loading z rodzica (np. /my-lessons), bez GET harmonogramu szkoły.
+         */
+        parentSchedule?: boolean;
+        parentItems?: ScheduleLessonItem[];
+        parentLoading?: boolean;
+        parentError?: string | null;
+        /** Synchronizacja tygodnia z rodzicem (`v-model:week-start`). */
+        weekStart?: Date;
+        /** Etykieta licznika w pasku (np. „Wydarzeń” / „Lekcji”). */
+        scheduleCountBadgeLabel?: string;
+        /** Komunikat w pustym dniu siatki. */
+        emptyDayMessage?: string;
+        /**
+         * Dla jazdy praktycznej: pierwsza linia karty — kursant (domyślnie) lub instruktor (np. widok kursanta).
+         */
+        practicePrimaryLine?: 'student' | 'instructor';
     }>(),
     {
         eventEditEnabled: false,
+        parentSchedule: false,
+        parentItems: () => [],
+        parentLoading: false,
+        parentError: null,
+        weekStart: undefined,
+        scheduleCountBadgeLabel: 'Lekcji',
+        emptyDayMessage: 'Brak lekcji',
+        practicePrimaryLine: 'student',
     },
 );
+
+const emit = defineEmits<{
+    'update:weekStart': [value: Date];
+}>();
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
 const BASE_HOUR = 7;
@@ -177,6 +206,14 @@ function displayPrimaryLine(item: ScheduleLessonItem): string {
         return displayTheoryPrimaryLine(item);
     }
 
+    if (props.practicePrimaryLine === 'instructor') {
+        const ins = displayInstructorName(item);
+
+        if (ins.length > 0) {
+            return ins;
+        }
+    }
+
     return displayStudent(item);
 }
 
@@ -243,8 +280,8 @@ function ariaSummaryForLesson(item: ScheduleLessonItem): string {
     return parts.join(', ');
 }
 
-const weekStart = ref<Date>(getMonday(new Date()));
-const items = ref<ScheduleLessonItem[]>([]);
+const localWeekStart = ref<Date>(getMonday(new Date()));
+const internalItems = ref<ScheduleLessonItem[]>([]);
 const errorMessage = ref<string | null>(null);
 const isCalendarOpen = ref(false);
 
@@ -255,6 +292,26 @@ const calendarSelected = ref<CalendarDate[]>(
 const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
 
 let fetchSeq = 0;
+
+const activeWeekStart = computed(() => {
+    if (props.parentSchedule && props.weekStart) {
+        return getMonday(props.weekStart);
+    }
+
+    return localWeekStart.value;
+});
+
+const displayItems = computed((): ScheduleLessonItem[] =>
+    props.parentSchedule ? props.parentItems : internalItems.value,
+);
+
+const displayLoading = computed(() =>
+    props.parentSchedule ? props.parentLoading : isLoading.value,
+);
+
+const displayError = computed(() =>
+    props.parentSchedule ? props.parentError : errorMessage.value,
+);
 
 const hourLabels = computed(() =>
     Array.from({ length: 12 }, (_, i) => BASE_HOUR + i),
@@ -269,9 +326,9 @@ const weekDays = computed(() => {
     }[] = [];
 
     const start = new Date(
-        weekStart.value.getFullYear(),
-        weekStart.value.getMonth(),
-        weekStart.value.getDate(),
+        activeWeekStart.value.getFullYear(),
+        activeWeekStart.value.getMonth(),
+        activeWeekStart.value.getDate(),
     );
 
     const todayStr = formatDateOnly(new Date());
@@ -300,11 +357,8 @@ const weekDays = computed(() => {
 });
 
 const weekRangeLabel = computed(() => {
-    const end = new Date(
-        weekStart.value.getFullYear(),
-        weekStart.value.getMonth(),
-        weekStart.value.getDate() + 6,
-    );
+    const ws = activeWeekStart.value;
+    const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
 
     const opts: Intl.DateTimeFormatOptions = {
         day: 'numeric',
@@ -312,13 +366,13 @@ const weekRangeLabel = computed(() => {
         year: 'numeric',
     };
 
-    return `${weekStart.value.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
+    return `${ws.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
 });
 
 const itemsByDate = computed(() => {
     const map = new Map<string, ScheduleLessonItem[]>();
 
-    for (const it of items.value) {
+    for (const it of displayItems.value) {
         const ds = isoToDateStr(it.startTime);
 
         if (!ds) {
@@ -358,10 +412,14 @@ function stackOffsetForLesson(
 }
 
 async function loadWeek(): Promise<void> {
+    if (props.parentSchedule) {
+        return;
+    }
+
     const sid = props.schoolId.trim();
 
     if (!sid) {
-        items.value = [];
+        internalItems.value = [];
         errorMessage.value = null;
 
         return;
@@ -371,7 +429,7 @@ async function loadWeek(): Promise<void> {
 
     errorMessage.value = null;
 
-    const { dateFrom, dateTo } = weekRangeFromMonday(weekStart.value);
+    const { dateFrom, dateTo } = weekRangeFromMonday(localWeekStart.value);
 
     try {
         const data = await fetchSchoolSchedule(sid, dateFrom, dateTo);
@@ -380,13 +438,13 @@ async function loadWeek(): Promise<void> {
             return;
         }
 
-        items.value = data;
+        internalItems.value = data;
     } catch (err: unknown) {
         if (seq !== fetchSeq) {
             return;
         }
 
-        items.value = [];
+        internalItems.value = [];
         errorMessage.value = getApiFetchErrorMessage(
             err,
             'Nie udało się pobrać harmonogramu lekcji.',
@@ -395,29 +453,47 @@ async function loadWeek(): Promise<void> {
 }
 
 watch(
-    [weekStart, () => props.schoolId],
+    [localWeekStart, () => props.schoolId],
     () => {
-        void loadWeek();
+        if (!props.parentSchedule) {
+            void loadWeek();
+        }
     },
     { immediate: true },
 );
 
-watch(weekStart, (w) => {
-    calendarSelected.value = weekCalendarDatesFromMonday(w);
-});
+watch(
+    activeWeekStart,
+    (w) => {
+        calendarSelected.value = weekCalendarDatesFromMonday(w);
+    },
+    { immediate: true },
+);
+
+function commitWeekMonday(monday: Date): void {
+    const m = getMonday(monday);
+
+    if (props.parentSchedule) {
+        emit('update:weekStart', m);
+
+        return;
+    }
+
+    localWeekStart.value = m;
+}
 
 function handlePrevWeek(): void {
-    const d = new Date(weekStart.value);
+    const d = new Date(activeWeekStart.value);
 
     d.setDate(d.getDate() - 7);
-    weekStart.value = d;
+    commitWeekMonday(d);
 }
 
 function handleNextWeek(): void {
-    const d = new Date(weekStart.value);
+    const d = new Date(activeWeekStart.value);
 
     d.setDate(d.getDate() + 7);
-    weekStart.value = d;
+    commitWeekMonday(d);
 }
 
 function handleCalendarUpdate(
@@ -443,8 +519,7 @@ function handleCalendarUpdate(
 
     const monday = getMonday(toDate(anchor));
 
-    weekStart.value = monday;
-    calendarSelected.value = weekCalendarDatesFromMonday(monday);
+    commitWeekMonday(monday);
     isCalendarOpen.value = false;
 }
 
@@ -544,7 +619,7 @@ defineExpose({
                     size="sm"
                     class="inline-flex items-center gap-1"
                     aria-label="Poprzedni tydzień"
-                    :disabled="isLoading"
+                    :disabled="displayLoading"
                     @click="handlePrevWeek"
                     @keydown="handleKeyDownWeekNav($event, 'prev')"
                 >
@@ -557,7 +632,7 @@ defineExpose({
                     size="sm"
                     class="inline-flex items-center gap-1"
                     aria-label="Następny tydzień"
-                    :disabled="isLoading"
+                    :disabled="displayLoading"
                     @click="handleNextWeek"
                     @keydown="handleKeyDownWeekNav($event, 'next')"
                 >
@@ -579,7 +654,7 @@ defineExpose({
                         type="button"
                         variant="outline"
                         size="sm"
-                        :disabled="isLoading"
+                        :disabled="displayLoading"
                         aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
                     >
                         Wybierz tydzień
@@ -602,12 +677,12 @@ defineExpose({
         </div>
 
         <p
-            v-if="errorMessage"
+            v-if="displayError"
             class="text-destructive text-sm"
             role="alert"
             aria-live="polite"
         >
-            {{ errorMessage }}
+            {{ displayError }}
         </p>
 
         <div class="border-border relative overflow-x-auto rounded-xl border">
@@ -640,17 +715,17 @@ defineExpose({
                         <span>teoria</span>
                     </span>
                 </span>
-                <UiBadge v-if="isLoading" variant="secondary"
+                <UiBadge v-if="displayLoading" variant="secondary"
                     >Ładowanie…</UiBadge
                 >
-                <UiBadge v-else-if="!errorMessage" variant="outline">
-                    Lekcji: {{ items.length }}
+                <UiBadge v-else-if="!displayError" variant="outline">
+                    {{ scheduleCountBadgeLabel }}: {{ displayItems.length }}
                 </UiBadge>
             </div>
 
             <div class="relative min-w-[720px]">
                 <div
-                    v-if="isLoading"
+                    v-if="displayLoading"
                     class="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
                     role="status"
                     aria-live="polite"
@@ -875,12 +950,12 @@ defineExpose({
                                     v-if="
                                         lessonsForDate(day.dateStr).length ===
                                             0 &&
-                                        !isLoading &&
-                                        !errorMessage
+                                        !displayLoading &&
+                                        !displayError
                                     "
                                     class="text-muted-foreground absolute inset-0 flex items-center justify-center p-2 text-center text-xs"
                                 >
-                                    Brak lekcji
+                                    {{ emptyDayMessage }}
                                 </div>
                             </div>
                         </div>
