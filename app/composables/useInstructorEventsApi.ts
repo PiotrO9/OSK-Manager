@@ -66,6 +66,24 @@ function readCourseIdFromEventRaw(
     return null;
 }
 
+function readEventStatusFromRaw(
+    o: Record<string, unknown>,
+): string | undefined {
+    if (!('status' in o)) {
+        return undefined;
+    }
+
+    const s = o.status;
+
+    if (typeof s !== 'string') {
+        return undefined;
+    }
+
+    const t = s.trim();
+
+    return t.length > 0 ? t : undefined;
+}
+
 function readVehicleIdFromEventRaw(o: Record<string, unknown>): string | null {
     if (o.vehicleId === null) {
         return null;
@@ -288,6 +306,7 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
     const eventStudents =
         'students' in o ? readNestedEventStudents(o.students) : undefined;
     const freeWindowsResolved = readFreeWindowsFromRaw(o);
+    const statusResolved = readEventStatusFromRaw(o);
 
     return {
         ...base,
@@ -295,6 +314,7 @@ function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
         vehicleId,
         startTime,
         endTime,
+        ...(statusResolved !== undefined ? { status: statusResolved } : {}),
         ...(eventInstructor ? { eventInstructor } : {}),
         ...(courseIdResolved !== undefined
             ? { courseId: courseIdResolved }
@@ -333,6 +353,10 @@ function buildPatchRequestBody(
 
     if (payload.capacity !== undefined) {
         body.capacity = payload.capacity;
+    }
+
+    if (payload.status !== undefined) {
+        body.status = payload.status;
     }
 
     return body;

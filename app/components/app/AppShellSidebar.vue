@@ -3,6 +3,7 @@ import type { Component } from 'vue';
 import {
     BookOpen,
     Building2,
+    CalendarCheck,
     CalendarClock,
     CalendarDays,
     Car,
@@ -62,6 +63,16 @@ const navItems = computed<NavItem[]>(() => {
         });
     }
 
+    if (role === 'INSTRUCTOR') {
+        items.splice(2, 0, {
+            to: '/events',
+            label: 'Moje wydarzenia',
+            ariaLabel: 'Przejdź do dziennego widoku moich wydarzeń',
+            icon: CalendarCheck,
+            tooltip: 'Moje wydarzenia',
+        });
+    }
+
     if (session.value?.role === 'MANAGER') {
         items.splice(1, 0, {
             to: '/vehicles',
@@ -103,6 +114,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do listy kursów',
             icon: BookOpen,
             tooltip: 'Kursy',
+        });
+        items.push({
+            to: '/events',
+            label: 'Wydarzenia',
+            ariaLabel: 'Przejdź do dziennego widoku wydarzeń instruktorów',
+            icon: CalendarCheck,
+            tooltip: 'Wydarzenia',
         });
         items.push({
             to: '/manager/schedule',

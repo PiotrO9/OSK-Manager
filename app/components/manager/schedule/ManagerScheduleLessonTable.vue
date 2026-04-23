@@ -6,6 +6,11 @@ import {
 } from '~/utils/scheduleManagerEditNavigation';
 import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
+import {
+    instructorEventStatusBadgeVariant,
+    labelForInstructorEventStatusRaw,
+    normalizeInstructorEventStatus,
+} from '~/utils/instructorEventStatusDisplay';
 
 const props = withDefaults(
     defineProps<{
@@ -15,18 +20,22 @@ const props = withDefaults(
         eventEditEnabled?: boolean;
         /** Gdy true — kolumna z przyciskiem „Usuń” dla bloków `instructor_event`. */
         eventDeleteEnabled?: boolean;
+        /** Gdy true — select statusu (PATCH) dla wierszy `instructor_event` (uprawnienia managera). */
+        eventStatusChangeEnabled?: boolean;
         /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
         schoolId?: string;
     }>(),
     {
         eventEditEnabled: false,
         eventDeleteEnabled: false,
+        eventStatusChangeEnabled: false,
         schoolId: '',
     },
 );
 
 const emit = defineEmits<{
     'request-delete': [item: ScheduleLessonItem];
+    'status-changed': [payload: { id: string; status: string }];
 }>();
 
 function rowIsClickable(item: ScheduleLessonItem): boolean {
@@ -191,7 +200,30 @@ function displayVehicle(
                         {{ formatIsoLocal(item.endTime) }}
                     </td>
                     <td class="px-3 py-2">{{ item.type }}</td>
-                    <td class="px-3 py-2">{{ item.status }}</td>
+                    <td class="px-3 py-2 align-top" @click.stop>
+                        <ManagerEventStatusSelect
+                            v-if="
+                                isScheduleInstructorEvent(item) &&
+                                props.eventStatusChangeEnabled
+                            "
+                            :event-id="item.id"
+                            :status="item.status"
+                            compact
+                            @status-changed="(p) => emit('status-changed', p)"
+                        />
+                        <UiBadge
+                            v-else-if="isScheduleInstructorEvent(item)"
+                            :variant="
+                                instructorEventStatusBadgeVariant(
+                                    normalizeInstructorEventStatus(item.status),
+                                )
+                            "
+                            class="shrink-0 text-xs font-normal"
+                        >
+                            {{ labelForInstructorEventStatusRaw(item.status) }}
+                        </UiBadge>
+                        <span v-else>{{ item.status }}</span>
+                    </td>
                     <td class="px-3 py-2">
                         {{ displayPerson(item.instructor) }}
                     </td>

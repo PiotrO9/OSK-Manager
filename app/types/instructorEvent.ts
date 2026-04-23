@@ -4,6 +4,9 @@ import type { InstructorListItem } from './instructor';
 
 export type InstructorEventTypeCode = 'DRIVE' | 'THEORY';
 
+/** Status eventu instruktora — GET/PATCH /events/:id. */
+export type EventStatusCode = 'PLANNED' | 'DONE' | 'NO_SHOW' | 'CANCELLED';
+
 /** Wolne okno czasu (GET /events/:id?includeSlots=true — `freeWindows`, ISO UTC). */
 export interface FreeWindow {
     startTime: string;
@@ -34,6 +37,8 @@ export interface InstructorEvent {
     vehicleId: string | null;
     /** null / brak = bez limitu (MVP). */
     capacity?: number | null;
+    /** Stan wydarzenia (GET/PATCH). */
+    status?: EventStatusCode | string;
     createdAt: string;
     /**
      * Z GET /events/:id — zagnieżdżony instruktor (bez osobnego GET /instructors/:id).
@@ -110,4 +115,5 @@ export interface PatchInstructorEventPayload {
     endTime?: string;
     vehicleId?: string | null;
     capacity?: number | null;
+    status?: EventStatusCode;
 }

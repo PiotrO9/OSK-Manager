@@ -1575,6 +1575,16 @@ async function handleDeleteDialogConfirm(): Promise<void> {
         });
     }
 }
+
+function handleEventStatusPatched(status: string): void {
+    const ev = loadedEvent.value;
+
+    if (!ev) {
+        return;
+    }
+
+    loadedEvent.value = { ...ev, status };
+}
 </script>
 
 <template>
@@ -1647,6 +1657,17 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                 >
                     Dane bloku
                 </h2>
+
+                <div v-if="loadedEvent" class="space-y-2">
+                    <p class="text-muted-foreground text-xs">
+                        Status wydarzenia
+                    </p>
+                    <ManagerEventStatusSelect
+                        :event-id="loadedEvent.id"
+                        :status="loadedEvent.status"
+                        @update:status="handleEventStatusPatched"
+                    />
+                </div>
 
                 <form
                     class="space-y-4"

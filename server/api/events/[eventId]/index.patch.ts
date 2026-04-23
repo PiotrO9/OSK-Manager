@@ -153,6 +153,21 @@ function validatePatchBody(
         }
     }
 
+    if ('status' in o) {
+        const sRaw = typeof o.status === 'string' ? o.status.trim() : '';
+        const allowed = new Set(['PLANNED', 'DONE', 'NO_SHOW', 'CANCELLED']);
+
+        if (!sRaw || !allowed.has(sRaw)) {
+            return {
+                ok: false,
+                message:
+                    'Pole status musi być PLANNED, DONE, NO_SHOW lub CANCELLED.',
+            };
+        }
+
+        body.status = sRaw;
+    }
+
     return { ok: true, body };
 }
 
@@ -208,6 +223,8 @@ export default defineEventHandler(async (event) => {
                 : '00000000-0000-4000-8000-000000000002';
     }
 
+    const defaultStatus: 'PLANNED' = 'PLANNED';
+
     return {
         success: true,
         data: {
@@ -224,6 +241,7 @@ export default defineEventHandler(async (event) => {
                     b.capacity !== undefined
                         ? (b.capacity as number | null)
                         : null,
+                status: (b.status as string | undefined) ?? defaultStatus,
                 createdAt: now,
             },
         },

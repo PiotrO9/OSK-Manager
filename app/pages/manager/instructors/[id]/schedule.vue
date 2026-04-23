@@ -227,6 +227,27 @@ function handleNextWeek(): void {
     weekStart.value = getMonday(d);
 }
 
+function handleInstructorEventStatusChanged(payload: {
+    id: string;
+    status: string;
+}): void {
+    const idx = items.value.findIndex((x) => x.id === payload.id);
+
+    if (idx < 0) {
+        return;
+    }
+
+    const row = items.value[idx];
+
+    if (!row) {
+        return;
+    }
+
+    const copy = items.value.slice();
+    copy[idx] = { ...row, status: payload.status };
+    items.value = copy;
+}
+
 function formatWeekLabel(d: Date): string {
     return new Intl.DateTimeFormat('pl-PL', {
         day: 'numeric',
@@ -469,8 +490,10 @@ const backHref = computed(() => {
                     :items="items"
                     event-edit-enabled
                     event-delete-enabled
+                    event-status-change-enabled
                     :school-id="schoolId"
                     @request-delete="handleRequestDelete"
+                    @status-changed="handleInstructorEventStatusChanged"
                 />
             </section>
 

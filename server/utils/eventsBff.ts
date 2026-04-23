@@ -48,6 +48,7 @@ export interface InstructorEventResponse {
     vehicleId: string | null;
     capacity?: number | null;
     courseId?: string | null;
+    status?: string;
     createdAt: string;
 }
 

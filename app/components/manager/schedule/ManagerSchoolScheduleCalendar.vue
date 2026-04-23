@@ -11,6 +11,11 @@ import {
 import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 import {
+    instructorEventStatusBadgeVariant,
+    labelForInstructorEventStatusRaw,
+    normalizeInstructorEventStatus,
+} from '~/utils/instructorEventStatusDisplay';
+import {
     formatDateOnly,
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
@@ -248,6 +253,19 @@ function lessonBlockMinHeightPx(lesson: ScheduleLessonItem): string {
 
 function ariaSummaryForLesson(item: ScheduleLessonItem): string {
     const time = `${isoToHm(item.startTime)}–${isoToHm(item.endTime)}`;
+
+    if (isScheduleInstructorEvent(item)) {
+        const statusLabel = labelForInstructorEventStatusRaw(item.status);
+        const primary = displayPrimaryLine(item);
+        const sub = displayInstructorSubtitle(item);
+        const parts = ['Blok czasu', `status ${statusLabel}`, time, primary];
+
+        if (sub) {
+            parts.push(sub);
+        }
+
+        return parts.join(', ');
+    }
 
     if (isTheoryLessonType(item.type)) {
         const primary = displayTheoryPrimaryLine(item);
@@ -898,6 +916,31 @@ defineExpose({
                                             "
                                         >
                                             {{ displayPrimaryLine(lesson) }}
+                                        </span>
+                                        <span
+                                            v-if="
+                                                isScheduleInstructorEvent(
+                                                    lesson,
+                                                )
+                                            "
+                                            class="mt-0.5 block"
+                                        >
+                                            <UiBadge
+                                                :variant="
+                                                    instructorEventStatusBadgeVariant(
+                                                        normalizeInstructorEventStatus(
+                                                            lesson.status,
+                                                        ),
+                                                    )
+                                                "
+                                                class="px-1 py-0 text-[9px] font-medium"
+                                            >
+                                                {{
+                                                    labelForInstructorEventStatusRaw(
+                                                        lesson.status,
+                                                    )
+                                                }}
+                                            </UiBadge>
                                         </span>
                                         <span
                                             v-if="
