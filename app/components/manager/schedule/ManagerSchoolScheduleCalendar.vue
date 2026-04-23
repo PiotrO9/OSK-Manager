@@ -68,6 +68,10 @@ const emit = defineEmits<{
 const BASE_HOUR = 7;
 const GRID_HEIGHT_PX = 720;
 const PX_PER_MINUTE = 1;
+/** Odstęp przed granicą następnego bloku w siatce (chroni przed „double border” i nachodzeniem). */
+const SLOT_END_GUTTER_PX = 1;
+/** Odstęp między kafelkami, gdy w jednym przedziale startu jest kilka lekcji. */
+const SAME_START_TILE_GAP_PX = 2;
 
 function isoToHm(iso: string): string {
     const d = new Date(iso);
@@ -232,23 +236,15 @@ function displayInstructorSubtitle(item: ScheduleLessonItem): string {
     return '';
 }
 
-function lessonBlockMinHeightPx(lesson: ScheduleLessonItem): string {
-    if (isTheoryLessonType(lesson.type)) {
-        return '58px';
+function lessonDurationMinutes(lesson: ScheduleLessonItem): number {
+    const start = new Date(lesson.startTime).getTime();
+    const end = new Date(lesson.endTime).getTime();
+
+    if (Number.isNaN(start) || Number.isNaN(end) || end <= start) {
+        return 60;
     }
 
-    const hasVehicle = Boolean(displayVehicle(lesson));
-    const hasInstructor = Boolean(displayInstructorSubtitle(lesson));
-
-    if (hasVehicle && hasInstructor) {
-        return '66px';
-    }
-
-    if (hasVehicle || hasInstructor) {
-        return '58px';
-    }
-
-    return '52px';
+    return Math.max(1, Math.round((end - start) / 60000));
 }
 
 function ariaSummaryForLesson(item: ScheduleLessonItem): string {
@@ -415,18 +411,82 @@ function lessonsForDate(dateStr: string): ScheduleLessonItem[] {
     return itemsByDate.value.get(dateStr) ?? [];
 }
 
-function stackOffsetForLesson(
+function sameStartSorted(
     item: ScheduleLessonItem,
     dateStr: string,
-): number {
+): ScheduleLessonItem[] {
     const list = lessonsForDate(dateStr);
     const hm = isoToHm(item.startTime);
     const same = list.filter((x) => isoToHm(x.startTime) === hm);
 
     same.sort((a, b) => a.id.localeCompare(b.id));
-    const idx = same.findIndex((x) => x.id === item.id);
 
-    return Math.max(0, idx) * 14;
+    return same;
+}
+
+/**
+ * Czas w minutach: najdłuższa lekcja w grupie tych samych startów (wspólny pasek pionowy).
+ */
+function sameStartGroupDurationMinutes(
+    lesson: ScheduleLessonItem,
+    dateStr: string,
+): number {
+    const same = sameStartSorted(lesson, dateStr);
+    let maxMin = 1;
+
+    for (const s of same) {
+        maxMin = Math.max(maxMin, lessonDurationMinutes(s));
+    }
+
+    return maxMin;
+}
+
+function sameStartSlotInnerPx(
+    lesson: ScheduleLessonItem,
+    dateStr: string,
+): number {
+    return Math.max(
+        0,
+        sameStartGroupDurationMinutes(lesson, dateStr) * PX_PER_MINUTE -
+            SLOT_END_GUTTER_PX,
+    );
+}
+
+function sameStartTileHeightPx(
+    lesson: ScheduleLessonItem,
+    dateStr: string,
+): number {
+    const same = sameStartSorted(lesson, dateStr);
+    const inner = sameStartSlotInnerPx(lesson, dateStr);
+    const n = Math.max(1, same.length);
+
+    if (n === 1) {
+        return Math.max(1, inner);
+    }
+
+    return Math.max(1, (inner - (n - 1) * SAME_START_TILE_GAP_PX) / n);
+}
+
+function lessonBlockTopPx(lesson: ScheduleLessonItem, dateStr: string): number {
+    const same = sameStartSorted(lesson, dateStr);
+    const h = sameStartTileHeightPx(lesson, dateStr);
+    const idx = same.findIndex((x) => x.id === lesson.id);
+
+    if (idx < 0) {
+        return slotTopPx(isoToHm(lesson.startTime));
+    }
+
+    return (
+        slotTopPx(isoToHm(lesson.startTime)) +
+        idx * (h + SAME_START_TILE_GAP_PX)
+    );
+}
+
+function lessonBlockHeightPx(
+    lesson: ScheduleLessonItem,
+    dateStr: string,
+): number {
+    return sameStartTileHeightPx(lesson, dateStr);
 }
 
 async function loadWeek(): Promise<void> {
@@ -831,7 +891,7 @@ defineExpose({
                                     :key="lesson.id"
                                 >
                                     <div
-                                        class="absolute right-1 left-1 overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
+                                        class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
                                         :class="[
                                             lessonBlockClasses(lesson.type),
                                             lessonBlockInteractiveClasses(
@@ -839,9 +899,8 @@ defineExpose({
                                             ),
                                         ]"
                                         :style="{
-                                            top: `${slotTopPx(isoToHm(lesson.startTime)) + stackOffsetForLesson(lesson, day.dateStr)}px`,
-                                            minHeight:
-                                                lessonBlockMinHeightPx(lesson),
+                                            top: `${lessonBlockTopPx(lesson, day.dateStr)}px`,
+                                            height: `${lessonBlockHeightPx(lesson, day.dateStr)}px`,
                                         }"
                                         :title="blockAccessibilityLabel(lesson)"
                                         :role="
