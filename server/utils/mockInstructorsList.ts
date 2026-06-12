@@ -1,3 +1,9 @@
+import { createError } from 'h3';
+import {
+    MOCK_DEFAULT_OFFERED_COURSE_TYPES,
+    type MockDrivingSchoolOfferedType,
+} from './mockDrivingSchoolsStore';
+
 export interface MockInstructorListRow {
     id: string;
     firstName: string;
@@ -5,18 +11,19 @@ export interface MockInstructorListRow {
     email: string;
 }
 
-type MockInstructorProfileExtras = {
+interface MockInstructorProfileExtras {
     qualifications: string;
+    qualifiedCourseTypeIds: string[];
     experienceYears: number;
-};
+}
 
-type GlobalWithStore = typeof globalThis & {
+interface GlobalWithStore {
     __mockInstructorsListBySchool?: Record<string, MockInstructorListRow[]>;
     __mockInstructorProfileExtras?: Record<string, MockInstructorProfileExtras>;
-};
+}
 
 function getStore(): Record<string, MockInstructorListRow[]> {
-    const g = globalThis as GlobalWithStore;
+    const g = globalThis as typeof globalThis & GlobalWithStore;
 
     if (!g.__mockInstructorsListBySchool) {
         g.__mockInstructorsListBySchool = {};
@@ -26,7 +33,7 @@ function getStore(): Record<string, MockInstructorListRow[]> {
 }
 
 function getExtrasMap(): Record<string, MockInstructorProfileExtras> {
-    const g = globalThis as GlobalWithStore;
+    const g = globalThis as typeof globalThis & GlobalWithStore;
 
     if (!g.__mockInstructorProfileExtras) {
         g.__mockInstructorProfileExtras = {};
@@ -35,11 +42,40 @@ function getExtrasMap(): Record<string, MockInstructorProfileExtras> {
     return g.__mockInstructorProfileExtras;
 }
 
+function removeProfileExtras(instructorId: string): void {
+    const g = globalThis as typeof globalThis & GlobalWithStore;
+    const { [instructorId]: _removed, ...rest } = getExtrasMap();
+
+    g.__mockInstructorProfileExtras = rest;
+}
+
 function getDefaultProfileExtras(): MockInstructorProfileExtras {
     return {
         qualifications: 'Kat. B (demo)',
+        qualifiedCourseTypeIds: [],
         experienceYears: 5,
     };
+}
+
+function resolveMockQualifiedCourseTypes(
+    ids: string[],
+): MockDrivingSchoolOfferedType[] {
+    const out: MockDrivingSchoolOfferedType[] = [];
+
+    for (const id of ids) {
+        const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find((t) => t.id === id);
+
+        if (!hit) {
+            throw createError({
+                statusCode: 400,
+                message: 'Invalid qualifiedCourseTypeIds',
+            });
+        }
+
+        out.push(hit);
+    }
+
+    return out.sort((a, b) => a.code.localeCompare(b.code, 'pl'));
 }
 
 function ensureSeedForSchool(schoolId: string): MockInstructorListRow[] {
@@ -121,6 +157,10 @@ function mergeProfileExtras(
             patch.qualifications !== undefined
                 ? patch.qualifications
                 : prev.qualifications,
+        qualifiedCourseTypeIds:
+            patch.qualifiedCourseTypeIds !== undefined
+                ? patch.qualifiedCourseTypeIds
+                : prev.qualifiedCourseTypeIds,
         experienceYears:
             patch.experienceYears !== undefined
                 ? patch.experienceYears
@@ -137,6 +177,7 @@ export interface MockInstructorDetailPayload {
     licenseNumber: string;
     phone: string;
     qualifications: string;
+    qualifiedCourseTypes: MockDrivingSchoolOfferedType[];
     experienceYears: number;
 }
 
@@ -154,6 +195,9 @@ function buildDetailPayload(
         licenseNumber: `OSK-LIC-${suffix.toUpperCase()}`,
         phone: `+48 600 ${suffix.slice(0, 3)} ${suffix.slice(3, 6)}`,
         qualifications: extras.qualifications,
+        qualifiedCourseTypes: resolveMockQualifiedCourseTypes(
+            extras.qualifiedCourseTypeIds,
+        ),
         experienceYears: extras.experienceYears,
     };
 }
@@ -202,6 +246,17 @@ export function mockInstructorsPatchById(
             patch.qualifications == null ? '' : String(patch.qualifications);
     }
 
+    if ('qualifiedCourseTypeIds' in patch) {
+        const ids = Array.isArray(patch.qualifiedCourseTypeIds)
+            ? patch.qualifiedCourseTypeIds
+                  .map((item) => (typeof item === 'string' ? item.trim() : ''))
+                  .filter((item) => item.length > 0)
+            : [];
+
+        resolveMockQualifiedCourseTypes(ids);
+        extraPatch.qualifiedCourseTypeIds = ids;
+    }
+
     if (
         'experienceYears' in patch &&
         typeof patch.experienceYears === 'number' &&
@@ -238,9 +293,7 @@ export function mockInstructorsDeleteById(id: string): boolean {
 
         if (idx !== -1) {
             rows.splice(idx, 1);
-            const extras = getExtrasMap();
-
-            delete extras[id];
+            removeProfileExtras(id);
 
             return true;
         }

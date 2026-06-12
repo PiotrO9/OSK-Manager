@@ -1,4 +1,9 @@
 import type { CourseInstructorRef } from '~/types/course';
+import {
+    normalizeCourseTypesList,
+    sortCourseTypeOptions,
+    type CourseTypeOption,
+} from '~/types/courseType';
 
 export interface InstructorListItem {
     id: string;
@@ -18,6 +23,7 @@ export interface InstructorDetail {
     licenseNumber: string;
     phone: string;
     qualifications: string;
+    qualifiedCourseTypes: CourseTypeOption[];
     experience: string;
 }
 
@@ -28,6 +34,7 @@ export interface InstructorEditFormModel {
     lastName: string;
     email: string;
     qualifications: string;
+    qualifiedCourseTypeIds: string[];
     experienceYears: number;
 }
 
@@ -93,6 +100,9 @@ export function normalizeInstructorDetailForEdit(
 
     const qualifications =
         o.qualifications == null ? '' : String(o.qualifications).trim();
+    const qualifiedCourseTypes = normalizeCourseTypesList(
+        o.qualifiedCourseTypes,
+    );
 
     let years = readNumericExperienceYears(o);
 
@@ -108,6 +118,7 @@ export function normalizeInstructorDetailForEdit(
         lastName,
         email,
         qualifications,
+        qualifiedCourseTypeIds: qualifiedCourseTypes.map((item) => item.id),
         experienceYears,
     };
 }
@@ -201,6 +212,9 @@ export function normalizeInstructorDetail(
             : o.qualifications_list != null
               ? String(o.qualifications_list).trim()
               : '';
+    const qualifiedCourseTypes = sortCourseTypeOptions(
+        normalizeCourseTypesList(o.qualifiedCourseTypes),
+    );
 
     let experience =
         o.experience != null
@@ -224,6 +238,7 @@ export function normalizeInstructorDetail(
         licenseNumber: licenseNumber || '—',
         phone: phone || '—',
         qualifications: qualifications || '—',
+        qualifiedCourseTypes,
         experience: experience || '—',
     };
 }

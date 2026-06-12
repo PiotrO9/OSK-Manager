@@ -1,20 +1,28 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
+import {
+    formatCourseTypeOptionLabel,
+    type CourseTypeOption,
+} from '~/types/courseType';
 import type { InstructorEditFormModel } from '~/types/instructor';
 
-const open = defineModel<boolean>('open', { required: true });
-const form = defineModel<InstructorEditFormModel | null>('form', {
-    required: true,
-});
-
-defineProps<{
+const props = defineProps<{
     isSubmitting: boolean;
     submitError: string | null;
+    courseTypes: CourseTypeOption[];
+    selectedQualifiedCourseTypes: CourseTypeOption[];
+    isCourseTypesLoading: boolean;
+    courseTypesError: string | null;
 }>();
 
 const emit = defineEmits<{
     submit: [];
 }>();
+
+const open = defineModel<boolean>('open', { required: true });
+const form = defineModel<InstructorEditFormModel | null>('form', {
+    required: true,
+});
 
 const DESCRIPTION_ID = 'instructor-edit-dialog-desc';
 
@@ -44,6 +52,70 @@ function handleExperienceYearsInput(event: Event): void {
     const n = Number.parseInt(t, 10);
 
     f.experienceYears = Number.isNaN(n) ? 0 : n;
+}
+
+function normalizeCourseTypeIds(ids: string[]): string[] {
+    const out: string[] = [];
+
+    for (const raw of ids) {
+        const id = raw.trim();
+
+        if (id && !out.includes(id)) {
+            out.push(id);
+        }
+    }
+
+    return out;
+}
+
+const courseTypeRows = computed(() => {
+    const rows = props.courseTypes.map((item) => ({
+        item,
+        isUnavailable: false,
+    }));
+    const knownIds = new Set(rows.map((row) => row.item.id));
+
+    for (const item of props.selectedQualifiedCourseTypes) {
+        if (!knownIds.has(item.id)) {
+            rows.push({ item, isUnavailable: true });
+        }
+    }
+
+    return rows;
+});
+
+const isCourseTypesSelectionBlocked = computed(
+    () =>
+        props.isSubmitting ||
+        props.isCourseTypesLoading ||
+        props.courseTypesError !== null,
+);
+
+function isCourseTypeSelected(id: string): boolean {
+    return form.value?.qualifiedCourseTypeIds.includes(id) ?? false;
+}
+
+function handleCourseTypeCheckedChange(
+    id: string,
+    checked: boolean | 'indeterminate',
+): void {
+    const f = form.value;
+
+    if (!f) {
+        return;
+    }
+
+    const current = normalizeCourseTypeIds(f.qualifiedCourseTypeIds);
+
+    if (checked === true) {
+        f.qualifiedCourseTypeIds = current.includes(id)
+            ? current
+            : [...current, id];
+
+        return;
+    }
+
+    f.qualifiedCourseTypeIds = current.filter((item) => item !== id);
 }
 
 const fieldClass =
@@ -192,6 +264,79 @@ const fieldClass =
                         class="border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full resize-y rounded-md border px-3 py-2 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                     />
                 </div>
+
+                <fieldset class="flex flex-col gap-3">
+                    <legend class="text-sm leading-none font-medium">
+                        Kategorie uprawnień
+                    </legend>
+
+                    <p
+                        v-if="isCourseTypesLoading"
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        Wczytywanie katalogu kategorii…
+                    </p>
+                    <p
+                        v-else-if="courseTypesError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                        aria-live="polite"
+                    >
+                        {{ courseTypesError }}
+                    </p>
+                    <p
+                        v-else-if="courseTypeRows.length === 0"
+                        class="text-muted-foreground text-sm"
+                        role="status"
+                    >
+                        Brak kategorii do wyboru.
+                    </p>
+
+                    <div
+                        v-if="courseTypeRows.length > 0"
+                        class="border-border flex max-h-56 flex-col gap-2 overflow-y-auto rounded-md border p-3"
+                    >
+                        <label
+                            v-for="row in courseTypeRows"
+                            :key="row.item.id"
+                            class="flex items-start gap-3 rounded-md px-2 py-1.5"
+                            :class="
+                                row.isUnavailable
+                                    ? 'text-muted-foreground'
+                                    : 'text-foreground'
+                            "
+                        >
+                            <UiCheckbox
+                                :model-value="isCourseTypeSelected(row.item.id)"
+                                :disabled="
+                                    row.isUnavailable ||
+                                    isCourseTypesSelectionBlocked
+                                "
+                                :aria-label="`Kategoria uprawnień ${formatCourseTypeOptionLabel(row.item)}`"
+                                @update:model-value="
+                                    handleCourseTypeCheckedChange(
+                                        row.item.id,
+                                        $event,
+                                    )
+                                "
+                            />
+                            <span class="flex min-w-0 flex-col gap-1">
+                                <span class="text-sm font-medium">
+                                    {{ formatCourseTypeOptionLabel(row.item) }}
+                                </span>
+                                <span
+                                    v-if="row.isUnavailable"
+                                    class="text-muted-foreground text-xs"
+                                >
+                                    Przypisana kategoria spoza aktualnego
+                                    katalogu.
+                                </span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
 
                 <p
                     v-if="submitError"

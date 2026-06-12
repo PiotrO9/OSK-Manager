@@ -7,6 +7,7 @@ const ALLOWED_PATCH_KEYS = [
     'lastName',
     'experienceYears',
     'qualifications',
+    'qualifiedCourseTypeIds',
 ] as const;
 
 function stripInstructorPatchBody(raw: unknown): Record<string, unknown> {
@@ -34,6 +35,38 @@ function stripInstructorPatchBody(raw: unknown): Record<string, unknown> {
 
         if (key === 'qualifications') {
             out[key] = o[key] == null ? '' : String(o[key]);
+
+            continue;
+        }
+
+        if (key === 'qualifiedCourseTypeIds') {
+            const v = o[key];
+
+            if (!Array.isArray(v)) {
+                throw createError({
+                    statusCode: 400,
+                    message: 'Invalid qualifiedCourseTypeIds',
+                });
+            }
+
+            const ids: string[] = [];
+
+            for (const item of v) {
+                const id = typeof item === 'string' ? item.trim() : '';
+
+                if (!id || !isUuid(id)) {
+                    throw createError({
+                        statusCode: 400,
+                        message: 'Invalid qualifiedCourseTypeIds',
+                    });
+                }
+
+                if (!ids.includes(id)) {
+                    ids.push(id);
+                }
+            }
+
+            out[key] = ids;
 
             continue;
         }

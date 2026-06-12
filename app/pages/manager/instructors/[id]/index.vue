@@ -6,6 +6,10 @@ import {
     type InstructorEditFormModel,
 } from '~/types/instructor';
 import {
+    formatCourseTypeOptionLabel,
+    type CourseTypeOption,
+} from '~/types/courseType';
+import {
     assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
     unwrapApiSuccessData,
@@ -22,6 +26,8 @@ definePageMeta({
 const instructor = ref<InstructorDetail | null>(null);
 const editForm = ref<InstructorEditFormModel | null>(null);
 const editBaseline = ref<InstructorEditFormModel | null>(null);
+const courseTypes = ref<CourseTypeOption[]>([]);
+const courseTypesError = ref<string | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
 const isSubmitting = ref(false);
@@ -32,6 +38,8 @@ const isDeleting = ref(false);
 
 const route = useRoute();
 const { addToast } = useAppToast();
+const { fetchList: fetchCourseTypesList, isListLoading: isCourseTypesLoading } =
+    useCourseTypesApi();
 
 /** Opcjonalnie `schoolId` z query (np. z listy OSK) — przekazywany do podstron instruktora. */
 const instructorSubpageQuery = computed((): Record<string, string> => {
@@ -80,6 +88,10 @@ function getGenericLoadErrorMessage(): string {
 
 function getGenericSaveErrorMessage(): string {
     return 'Nie udało się zapisać zmian.';
+}
+
+function getGenericCourseTypesErrorMessage(): string {
+    return 'Nie udało się pobrać katalogu kategorii uprawnień.';
 }
 
 /** Komunikat błędu zapisu z uwzględnieniem kodu HTTP (404/403/400/5xx). */
@@ -210,13 +222,27 @@ async function loadInstructor(rawId: unknown) {
     }
 }
 
+async function loadCourseTypes(): Promise<void> {
+    courseTypesError.value = null;
+
+    try {
+        courseTypes.value = await fetchCourseTypesList();
+    } catch (err: unknown) {
+        courseTypes.value = [];
+        courseTypesError.value = getApiFetchErrorMessage(
+            err,
+            getGenericCourseTypesErrorMessage(),
+        );
+    }
+}
+
 watch(
     () => route.params.id,
     async (id) => {
         submitError.value = null;
         isEditDialogOpen.value = false;
         isDeleteDialogOpen.value = false;
-        await loadInstructor(id);
+        await Promise.all([loadInstructor(id), loadCourseTypes()]);
     },
     { immediate: true },
 );
@@ -243,6 +269,31 @@ function handleEnterEdit(): void {
     isEditDialogOpen.value = true;
 }
 
+function normalizeCourseTypeIds(ids: string[]): string[] {
+    const out: string[] = [];
+
+    for (const raw of ids) {
+        const id = raw.trim();
+
+        if (id && !out.includes(id)) {
+            out.push(id);
+        }
+    }
+
+    return out.sort((a, b) => a.localeCompare(b));
+}
+
+function areSameCourseTypeIds(left: string[], right: string[]): boolean {
+    const a = normalizeCourseTypeIds(left);
+    const b = normalizeCourseTypeIds(right);
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    return a.every((id, index) => id === b[index]);
+}
+
 function buildDirtyPatch(): Record<string, unknown> | null {
     const form = editForm.value;
     const base = editBaseline.value;
@@ -263,6 +314,17 @@ function buildDirtyPatch(): Record<string, unknown> | null {
 
     if (form.qualifications !== base.qualifications) {
         patch.qualifications = form.qualifications;
+    }
+
+    if (
+        !areSameCourseTypeIds(
+            form.qualifiedCourseTypeIds,
+            base.qualifiedCourseTypeIds,
+        )
+    ) {
+        patch.qualifiedCourseTypeIds = normalizeCourseTypeIds(
+            form.qualifiedCourseTypeIds,
+        );
     }
 
     if (form.experienceYears !== base.experienceYears) {
@@ -583,6 +645,27 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                 </div>
                 <div>
                     <dt class="text-muted-foreground text-xs font-medium">
+                        Kategorie uprawnień
+                    </dt>
+                    <dd
+                        v-if="instructor.qualifiedCourseTypes.length > 0"
+                        class="mt-1 flex flex-wrap gap-2"
+                    >
+                        <UiBadge
+                            v-for="courseType in instructor.qualifiedCourseTypes"
+                            :key="courseType.id"
+                            variant="secondary"
+                            class="w-fit"
+                        >
+                            {{ formatCourseTypeOptionLabel(courseType) }}
+                        </UiBadge>
+                    </dd>
+                    <dd v-else class="text-foreground mt-1 text-sm font-medium">
+                        —
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-muted-foreground text-xs font-medium">
                         Doświadczenie
                     </dt>
                     <dd class="text-foreground mt-1 text-sm font-medium">
@@ -604,6 +687,12 @@ async function handleDeleteDialogConfirm(): Promise<void> {
             v-model:form="editForm"
             :is-submitting="isSubmitting || isDeleting"
             :submit-error="submitError"
+            :course-types="courseTypes"
+            :selected-qualified-course-types="
+                instructor !== null ? instructor.qualifiedCourseTypes : []
+            "
+            :is-course-types-loading="isCourseTypesLoading"
+            :course-types-error="courseTypesError"
             @submit="handleSubmitEdit"
         />
 
