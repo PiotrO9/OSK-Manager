@@ -1,6 +1,9 @@
 import { bffUpstreamCoursesCreate } from '~~/server/utils/coursesBff';
 import { mockInstructorBelongsToSchool } from '~~/server/utils/mockInstructorsList';
-import { mockCoursesPushCreate } from '~~/server/utils/mockCoursesList';
+import {
+    mockCoursesPushCreate,
+    mockInstructorQualifiedForCategory,
+} from '~~/server/utils/mockCoursesList';
 import {
     courseCreateBodyToUpstreamRecord,
     parseCourseCreateBody,
@@ -38,6 +41,15 @@ export default defineEventHandler(async (event) => {
                 statusCode: 400,
                 message:
                     'Wybrany instruktor nie jest przypisany do tej szkoły jazdy.',
+            });
+        }
+
+        if (
+            !mockInstructorQualifiedForCategory(schoolId, iid, bffBody.category)
+        ) {
+            throw createError({
+                statusCode: 400,
+                message: 'Instructor is not qualified for this course category',
             });
         }
     }

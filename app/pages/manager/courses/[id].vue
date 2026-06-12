@@ -3,6 +3,7 @@ import { ArrowLeft, BookOpen, User } from 'lucide-vue-next';
 import type { InstructorListItem } from '~/types/instructor';
 import {
     formatInstructorDisplayName,
+    instructorHasCourseCategoryQualification,
     resolveInstructorProfileIdForCourseSelection,
 } from '~/types/instructor';
 import { formatCourseKindLabel, type CourseDetail } from '~/types/course';
@@ -31,6 +32,19 @@ const isInstructorsLoading = ref(false);
 
 const selectedInstructorProfileId = ref('');
 const isInstructorSelectionTouched = ref(false);
+
+const qualifiedInstructors = computed((): InstructorListItem[] => {
+    const categoryCode =
+        course.value?.courseType?.code?.trim() || course.value?.category || '';
+
+    if (!categoryCode.trim()) {
+        return [];
+    }
+
+    return instructors.value.filter((instructor) =>
+        instructorHasCourseCategoryQualification(instructor, categoryCode),
+    );
+});
 
 const schoolIdFromQuery = computed(() => {
     const raw = route.query.schoolId;
@@ -124,7 +138,7 @@ function applySelectionFromCourse() {
     selectedInstructorProfileId.value =
         resolveInstructorProfileIdForCourseSelection(
             course.value.instructor,
-            instructors.value,
+            qualifiedInstructors.value,
         );
 }
 
@@ -135,7 +149,7 @@ const resolvedInstructorProfileIdFromCourse = computed(() => {
 
     return resolveInstructorProfileIdForCourseSelection(
         course.value.instructor,
-        instructors.value,
+        qualifiedInstructors.value,
     );
 });
 
@@ -447,7 +461,7 @@ async function handleSaveInstructorAssignment() {
                                 <UiSelectContent>
                                     <UiSelectGroup>
                                         <UiSelectItem
-                                            v-for="ins in instructors"
+                                            v-for="ins in qualifiedInstructors"
                                             :key="ins.id"
                                             :value="ins.id"
                                         >
@@ -474,6 +488,18 @@ async function handleSaveInstructorAssignment() {
                                 Brak instruktorów w tej szkole — możesz
                                 wyczyścić przypisanie lub dodać instruktorów w
                                 panelu OSK.
+                            </p>
+                            <p
+                                v-else-if="
+                                    !isInstructorsLoading &&
+                                    effectiveSchoolId &&
+                                    qualifiedInstructors.length === 0
+                                "
+                                class="text-muted-foreground text-sm"
+                                role="status"
+                            >
+                                Brak instruktorow z uprawnieniem do kategorii
+                                tego kursu.
                             </p>
                         </div>
 

@@ -4,7 +4,9 @@ export interface CourseTypeOption {
     name: string;
 }
 
-function normalizeCourseTypeOption(item: unknown): CourseTypeOption | null {
+export function normalizeCourseTypeOption(
+    item: unknown,
+): CourseTypeOption | null {
     if (!item || typeof item !== 'object') {
         return null;
     }

@@ -1,4 +1,6 @@
 import type { MockSchoolAvailabilitySlot } from './mockSlots';
+import { mockCoursesGetById } from './mockCoursesList';
+import { mockInstructorsListPayload } from './mockInstructorsList';
 
 function minutesFromHHmm(value: string): number {
     const parts = value.trim().split(':').map(Number);
@@ -119,6 +121,46 @@ export function applyMockSchoolSlotFilters(
         const allow = new Set(instructorIds);
 
         out = out.filter((s) => allow.has(s.instructorId));
+    }
+
+    const courseId =
+        typeof query.courseId === 'string' ? query.courseId.trim() : '';
+
+    if (courseId) {
+        const course = mockCoursesGetById(courseId);
+
+        if (course) {
+            const qualified = new Set(
+                Object.values(
+                    out.reduce<Record<string, string>>((acc, slot) => {
+                        acc[slot.instructorId] = slot.instructorId;
+
+                        return acc;
+                    }, {}),
+                ).filter((id) => {
+                    const schoolInstructors = mockInstructorsListPayload(
+                        course.schoolId,
+                    ).instructors;
+                    const instructor = schoolInstructors.find(
+                        (item) => item.id === id,
+                    );
+
+                    return (
+                        instructor?.qualifiedCourseTypes?.some(
+                            (courseType) => courseType.code === course.category,
+                        ) ?? false
+                    );
+                }),
+            );
+
+            out = out.filter((slot) => qualified.has(slot.instructorId));
+
+            if (course.instructor?.id) {
+                out = out.filter(
+                    (slot) => slot.instructorId === course.instructor?.id,
+                );
+            }
+        }
     }
 
     const timeFromRaw =

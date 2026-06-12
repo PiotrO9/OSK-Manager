@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { CourseListItem } from '~/types/course';
 import type { LessonBookingSlotContext } from '~/types/lessonBooking';
+import {
+    instructorHasCourseCategoryQualification,
+    type InstructorListItem,
+} from '~/types/instructor';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { buildSlotIsoUTC } from '~/utils/weeklyCalendarDates';
 
@@ -18,11 +22,13 @@ const open = defineModel<boolean>('open', { required: true });
 
 const { createInstructorEvent, isLoading } = useInstructorEventsApi();
 const { fetchList: fetchCoursesList } = useCoursesApi();
+const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
 const DESCRIPTION_ID = 'theory-event-create-desc';
 
 const selectedInstructorId = ref('');
 const theoryCourses = ref<CourseListItem[]>([]);
+const schoolInstructors = ref<InstructorListItem[]>([]);
 const isCoursesLoading = ref(false);
 const coursesLoadError = ref<string | null>(null);
 /** Puste = bez powiązania z kursem (POST bez courseId). */
@@ -30,6 +36,46 @@ const selectedCourseId = ref('');
 /** `type="number"` + v-model może dać `number` lub `string`. */
 const capacityInput = ref<string | number>('');
 const formError = ref<string | null>(null);
+
+const selectedCourse = computed((): CourseListItem | null => {
+    const courseId = selectedCourseId.value.trim();
+
+    if (!courseId) {
+        return null;
+    }
+
+    return theoryCourses.value.find((course) => course.id === courseId) ?? null;
+});
+
+const filteredAvailableInstructors = computed(() => {
+    const ctx = props.slotCtx;
+
+    if (!ctx) {
+        return [];
+    }
+
+    const course = selectedCourse.value;
+
+    if (!course) {
+        return ctx.availableInstructors;
+    }
+
+    const categoryCode = course.courseType?.code?.trim() || course.category;
+    const qualifiedIds = new Set(
+        schoolInstructors.value
+            .filter((instructor) =>
+                instructorHasCourseCategoryQualification(
+                    instructor,
+                    categoryCode,
+                ),
+            )
+            .map((instructor) => instructor.id),
+    );
+
+    return ctx.availableInstructors.filter((instructor) =>
+        qualifiedIds.has(instructor.id),
+    );
+});
 
 const slotWhenLabel = computed((): string => {
     const s = props.slotCtx;
@@ -79,6 +125,7 @@ watch(
     [open, () => props.schoolId.trim()],
     async ([isOpen, sid]) => {
         theoryCourses.value = [];
+        schoolInstructors.value = [];
         coursesLoadError.value = null;
 
         if (!isOpen || !sid) {
@@ -88,7 +135,13 @@ watch(
         isCoursesLoading.value = true;
 
         try {
-            theoryCourses.value = await fetchCoursesList(sid);
+            const [courses, instructors] = await Promise.all([
+                fetchCoursesList(sid),
+                fetchInstructorsList(sid).catch(() => []),
+            ]);
+
+            theoryCourses.value = courses;
+            schoolInstructors.value = instructors;
         } catch (err: unknown) {
             coursesLoadError.value = getApiFetchErrorMessage(
                 err,
@@ -100,6 +153,20 @@ watch(
     },
     { flush: 'post' },
 );
+
+watch([selectedCourse, filteredAvailableInstructors], ([course, items]) => {
+    if (!course) {
+        return;
+    }
+
+    const selected = selectedInstructorId.value.trim();
+
+    if (selected && items.some((item) => item.id === selected)) {
+        return;
+    }
+
+    selectedInstructorId.value = items.length === 1 ? items[0]!.id : '';
+});
 
 function parseCapacity(raw: unknown): number | null | false {
     if (raw === null || raw === undefined) {
@@ -235,7 +302,7 @@ async function handleSubmit(): Promise<void> {
                 @submit.prevent="handleSubmit"
             >
                 <div
-                    v-if="slotCtx.availableInstructors.length > 1"
+                    v-if="filteredAvailableInstructors.length > 1"
                     class="space-y-2"
                 >
                     <label
@@ -260,7 +327,7 @@ async function handleSubmit(): Promise<void> {
                         <UiSelectContent>
                             <UiSelectGroup>
                                 <UiSelectItem
-                                    v-for="ins in slotCtx.availableInstructors"
+                                    v-for="ins in filteredAvailableInstructors"
                                     :key="ins.id"
                                     :value="ins.id"
                                 >

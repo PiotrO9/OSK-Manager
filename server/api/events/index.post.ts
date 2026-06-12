@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { bffEventsPost } from '~~/server/utils/eventsBff';
+import {
+    mockCoursesGetById,
+    mockInstructorQualifiedForCategory,
+} from '~~/server/utils/mockCoursesList';
 import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
@@ -201,6 +205,24 @@ export default defineEventHandler(async (event) => {
     }
 
     await requireManagerFromCookie(event);
+
+    if (parsed.body.type === 'THEORY' && parsed.body.courseId) {
+        const course = mockCoursesGetById(parsed.body.courseId);
+
+        if (
+            course &&
+            !mockInstructorQualifiedForCategory(
+                course.schoolId,
+                parsed.body.instructorId,
+                course.category,
+            )
+        ) {
+            throw createError({
+                statusCode: 400,
+                message: 'Instructor is not qualified for this course category',
+            });
+        }
+    }
 
     const now = new Date().toISOString();
 

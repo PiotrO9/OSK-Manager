@@ -1,3 +1,8 @@
+import {
+    normalizeCourseTypeOption,
+    type CourseTypeOption,
+} from '~/types/courseType';
+
 export type CourseKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
 
 /** Body POST `/api/courses` (BFF → BE) — pola opcjonalne wg `kind`. */
@@ -22,6 +27,7 @@ export interface CourseListItem {
     id: string;
     name: string;
     category: string;
+    courseType: CourseTypeOption | null;
     type: CourseKind;
     totalHours: number;
     instructor: CourseInstructorRef | null;
@@ -135,6 +141,7 @@ function normalizeCourseListItem(raw: unknown): CourseListItem | null {
         id,
         name,
         category,
+        courseType: normalizeCourseTypeOption(o.courseType),
         type: typeRaw,
         totalHours,
         instructor: normalizeInstructorRef(o.instructor),

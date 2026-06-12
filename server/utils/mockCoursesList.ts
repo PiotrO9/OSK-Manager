@@ -2,12 +2,17 @@ import {
     mockInstructorBelongsToSchool,
     mockInstructorsListPayload,
 } from '~~/server/utils/mockInstructorsList';
+import {
+    MOCK_DEFAULT_OFFERED_COURSE_TYPES,
+    type MockDrivingSchoolOfferedType,
+} from './mockDrivingSchoolsStore';
 
 /** Kształt pojedynczego kursu w `data.courses` wg courses-api.md (BE). */
 export interface MockCourseListRow {
     id: string;
     name: string;
     category: string;
+    courseType?: MockDrivingSchoolOfferedType;
     type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
     totalHours: number;
     instructor: { id: string; name: string } | null;
@@ -98,6 +103,15 @@ function resolveMockCourseDetailCapacity(
     return 24;
 }
 
+function resolveMockCourseTypeByCategory(
+    category: string,
+): MockDrivingSchoolOfferedType {
+    const code = category.trim();
+    const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find((t) => t.code === code);
+
+    return hit ?? { id: code || crypto.randomUUID(), code, name: code };
+}
+
 function resolveInstructorRefForSchool(
     schoolId: string,
     instructorProfileId: string | null,
@@ -128,11 +142,34 @@ function resolveInstructorRefForSchool(
     };
 }
 
+export function mockInstructorQualifiedForCategory(
+    schoolId: string,
+    instructorProfileId: string,
+    category: string,
+): boolean {
+    const row = mockInstructorsListPayload(schoolId).instructors.find(
+        (item) => item.id === instructorProfileId,
+    );
+
+    if (!row) {
+        return false;
+    }
+
+    const code = category.trim();
+
+    return (
+        row.qualifiedCourseTypes?.some(
+            (courseType) => courseType.code === code,
+        ) ?? false
+    );
+}
+
 /** Odpowiedź POST `/courses` (płaski DTO) wg courses-api.md. */
 export interface MockCourseCreateResponse {
     id: string;
     name: string;
     category: string;
+    courseType: MockDrivingSchoolOfferedType;
     kind: MockCourseListRow['type'];
     totalHours: number;
     capacity: number | null;
@@ -167,6 +204,7 @@ export function mockCoursesPushCreate(
         id,
         name: input.name,
         category: input.category,
+        courseType: resolveMockCourseTypeByCategory(input.category),
         type: input.kind,
         totalHours: input.totalHours,
         instructor: instructorRef,
@@ -186,6 +224,7 @@ export function mockCoursesPushCreate(
         id,
         name: input.name,
         category: input.category,
+        courseType: resolveMockCourseTypeByCategory(input.category),
         kind: input.kind,
         totalHours: input.totalHours,
         capacity: input.kind === 'THEORY_GROUP' ? input.capacity : null,
@@ -226,6 +265,8 @@ export function mockCoursesGetById(
 
         return {
             ...row,
+            courseType:
+                row.courseType ?? resolveMockCourseTypeByCategory(row.category),
             capacity: resolveMockCourseDetailCapacity(row),
             schoolId,
         };
@@ -237,7 +278,8 @@ export function mockCoursesGetById(
 export type MockCoursesPatchInstructorOutcome =
     | { outcome: 'ok'; course: MockCourseDetailRow & { schoolId: string } }
     | { outcome: 'course_not_found' }
-    | { outcome: 'instructor_not_in_school' };
+    | { outcome: 'instructor_not_in_school' }
+    | { outcome: 'instructor_not_qualified' };
 
 /** PATCH instruktora (mock) — `instructorId` = profil lub null. */
 export function mockCoursesPatchInstructor(
@@ -268,6 +310,17 @@ export function mockCoursesPatchInstructor(
 
         const row = rows[idx]!;
 
+        if (
+            instructorProfileId !== null &&
+            !mockInstructorQualifiedForCategory(
+                schoolId,
+                instructorProfileId,
+                row.category,
+            )
+        ) {
+            return { outcome: 'instructor_not_qualified' };
+        }
+
         row.instructor = resolveInstructorRefForSchool(
             schoolId,
             instructorProfileId,
@@ -291,6 +344,10 @@ export function mockCoursesListPayload(schoolId: string): {
     courses: MockCourseListRow[];
 } {
     return {
-        courses: ensureSeedForSchool(schoolId),
+        courses: ensureSeedForSchool(schoolId).map((row) => ({
+            ...row,
+            courseType:
+                row.courseType ?? resolveMockCourseTypeByCategory(row.category),
+        })),
     };
 }

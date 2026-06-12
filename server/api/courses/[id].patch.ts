@@ -79,6 +79,13 @@ export default defineEventHandler(async (event) => {
         });
     }
 
+    if (patchResult.outcome === 'instructor_not_qualified') {
+        throw createError({
+            statusCode: 400,
+            message: 'Instructor is not qualified for this course category',
+        });
+    }
+
     return {
         success: true,
         data: { course: patchResult.course },

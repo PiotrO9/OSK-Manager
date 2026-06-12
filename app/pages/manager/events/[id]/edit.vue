@@ -2,8 +2,10 @@
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
     formatInstructorDisplayName,
+    instructorHasCourseCategoryQualification,
     type InstructorListItem,
 } from '~/types/instructor';
+import type { CourseDetail } from '~/types/course';
 import type {
     FreeWindow,
     InstructorEvent,
@@ -131,6 +133,25 @@ const theoryEligibleNoCourse = ref(false);
 
 /** Etykieta kursu przy `courseId` (teoria) — do podpowiedzi w UI. */
 const linkedCourseLabel = ref<string | null>(null);
+const linkedCourse = ref<CourseDetail | null>(null);
+
+const qualifiedInstructorsForEvent = computed((): InstructorListItem[] => {
+    if (formType.value !== 'THEORY' || !loadedEvent.value?.courseId?.trim()) {
+        return instructors.value;
+    }
+
+    const course = linkedCourse.value;
+
+    if (!course) {
+        return [];
+    }
+
+    const categoryCode = course.courseType?.code?.trim() || course.category;
+
+    return instructors.value.filter((instructor) =>
+        instructorHasCourseCategoryQualification(instructor, categoryCode),
+    );
+});
 
 /** Stan zapisany na serwerze (posortowany zestaw UUID) — do porównania z draftem. */
 const theoryStudentsBaseline = ref<string[]>([]);
@@ -891,6 +912,7 @@ watch(
         ] as const,
     async ([cid, sid]) => {
         linkedCourseLabel.value = null;
+        linkedCourse.value = null;
 
         if (!cid || !sid) {
             return;
@@ -900,8 +922,10 @@ watch(
             const d = await fetchCourseById(cid);
 
             linkedCourseLabel.value = d.name.trim() || null;
+            linkedCourse.value = d;
         } catch {
             linkedCourseLabel.value = null;
+            linkedCourse.value = null;
         }
     },
     { immediate: true },
@@ -1713,7 +1737,7 @@ function handleEventStatusPatched(status: string): void {
                                     <UiSelectItem
                                         v-if="
                                             formInstructorId.trim() &&
-                                            !instructors.some(
+                                            !qualifiedInstructorsForEvent.some(
                                                 (inst) =>
                                                     inst.id ===
                                                     formInstructorId.trim(),
@@ -1724,7 +1748,7 @@ function handleEventStatusPatched(status: string): void {
                                         {{ instructorSelectLabel }}
                                     </UiSelectItem>
                                     <UiSelectItem
-                                        v-for="i in instructors"
+                                        v-for="i in qualifiedInstructorsForEvent"
                                         :key="i.id"
                                         :value="i.id"
                                     >

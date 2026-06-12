@@ -6,7 +6,10 @@ import {
     type CourseCreatePayload,
     type CourseKind,
 } from '~/types/course';
-import { formatInstructorDisplayName } from '~/types/instructor';
+import {
+    formatInstructorDisplayName,
+    instructorHasCourseCategoryQualification,
+} from '~/types/instructor';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '~/components/shadcn/button';
 
@@ -71,6 +74,30 @@ const capacityModel = ref('');
 const theoryStartModel = ref('');
 const theoryEndModel = ref('');
 const instructorIdModel = ref('');
+
+const qualifiedInstructors = computed((): InstructorListItem[] => {
+    const categoryCode = categoryModel.value.trim();
+
+    if (!categoryCode) {
+        return [];
+    }
+
+    return props.instructors.filter((instructor) =>
+        instructorHasCourseCategoryQualification(instructor, categoryCode),
+    );
+});
+
+watch(qualifiedInstructors, (items) => {
+    const selected = instructorIdModel.value.trim();
+
+    if (!selected) {
+        return;
+    }
+
+    if (!items.some((item) => item.id === selected)) {
+        instructorIdModel.value = '';
+    }
+});
 
 watch(
     () => props.offeredCourseTypes,
@@ -558,7 +585,7 @@ function handleSubmit() {
                 <UiSelectContent>
                     <UiSelectGroup>
                         <UiSelectItem
-                            v-for="ins in instructors"
+                            v-for="ins in qualifiedInstructors"
                             :key="ins.id"
                             :value="ins.id"
                         >
@@ -579,6 +606,16 @@ function handleSubmit() {
             >
                 Brak instruktorów przypisanych do tej szkoły — możesz utworzyć
                 kurs bez instruktora.
+            </p>
+            <p
+                v-else-if="
+                    !isInstructorsLoading && qualifiedInstructors.length === 0
+                "
+                class="text-muted-foreground text-sm"
+                role="status"
+            >
+                Brak instruktorow z uprawnieniem do wybranej kategorii - mozesz
+                utworzyc kurs bez instruktora.
             </p>
         </div>
 

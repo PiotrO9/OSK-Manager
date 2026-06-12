@@ -10,6 +10,7 @@ export interface InstructorListItem {
     firstName: string;
     lastName: string;
     email: string;
+    qualifiedCourseTypes?: CourseTypeOption[];
     /** Konto użytkownika (GET kursu zwraca `instructor.id` jako User.id). */
     userId?: string;
     /** GET /events/:id, GET /lessons/:id — gdy BE zwraca kontakt. */
@@ -308,8 +309,24 @@ function normalizeInstructorItem(
         firstName,
         lastName,
         email,
+        qualifiedCourseTypes: normalizeCourseTypesList(o.qualifiedCourseTypes),
         ...(userId !== undefined ? { userId } : {}),
     };
+}
+
+export function instructorHasCourseCategoryQualification(
+    instructor: InstructorListItem,
+    categoryCode: string,
+): boolean {
+    const code = categoryCode.trim();
+
+    if (!code) {
+        return false;
+    }
+
+    return (instructor.qualifiedCourseTypes ?? []).some(
+        (courseType) => courseType.code.trim() === code,
+    );
 }
 
 /**

@@ -9,6 +9,7 @@ export interface MockInstructorListRow {
     firstName: string;
     lastName: string;
     email: string;
+    qualifiedCourseTypes?: MockDrivingSchoolOfferedType[];
 }
 
 interface MockInstructorProfileExtras {
@@ -52,7 +53,7 @@ function removeProfileExtras(instructorId: string): void {
 function getDefaultProfileExtras(): MockInstructorProfileExtras {
     return {
         qualifications: 'Kat. B (demo)',
-        qualifiedCourseTypeIds: [],
+        qualifiedCourseTypeIds: [MOCK_DEFAULT_OFFERED_COURSE_TYPES[0]!.id],
         experienceYears: 5,
     };
 }
@@ -110,7 +111,16 @@ export function mockInstructorsListPayload(schoolId: string): {
     instructors: MockInstructorListRow[];
 } {
     return {
-        instructors: ensureSeedForSchool(schoolId),
+        instructors: ensureSeedForSchool(schoolId).map((row) => {
+            const extras = getExtrasMap()[row.id] ?? getDefaultProfileExtras();
+
+            return {
+                ...row,
+                qualifiedCourseTypes: resolveMockQualifiedCourseTypes(
+                    extras.qualifiedCourseTypeIds,
+                ),
+            };
+        }),
     };
 }
 

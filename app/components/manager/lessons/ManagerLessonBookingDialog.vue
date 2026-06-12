@@ -9,6 +9,10 @@ import type { StudentListItem } from '~/types/student';
 import type { Vehicle } from '~/types/vehicle';
 import { formatCourseKindLabel } from '~/types/course';
 import {
+    instructorHasCourseCategoryQualification,
+    type InstructorListItem,
+} from '~/types/instructor';
+import {
     formatStudentCourseStatusLabel,
     formatStudentDisplayName,
 } from '~/types/student';
@@ -36,10 +40,12 @@ const {
     isCreating,
     modalError: loadModalError,
 } = useLessonBookingApi();
+const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
 const students = ref<StudentListItem[]>([]);
 const vehicles = ref<Vehicle[]>([]);
 const studentCourses = ref<StudentCourseWithKind[]>([]);
+const schoolInstructors = ref<InstructorListItem[]>([]);
 
 const selectedInstructorId = ref('');
 const selectedStudentUserId = ref('');
@@ -59,7 +65,9 @@ const resolvedInstructor = computed(
             return null;
         }
 
-        return ctx.availableInstructors.find((i) => i.id === id) ?? null;
+        return (
+            filteredAvailableInstructors.value.find((i) => i.id === id) ?? null
+        );
     },
 );
 
@@ -107,6 +115,49 @@ const filteredCourses = computed((): StudentCourseWithKind[] => {
     });
 });
 
+const selectedCourse = computed((): StudentCourseWithKind | null => {
+    const courseId = selectedCourseId.value.trim();
+
+    if (!courseId) {
+        return null;
+    }
+
+    return (
+        filteredCourses.value.find((course) => course.id === courseId) ?? null
+    );
+});
+
+const filteredAvailableInstructors = computed(
+    (): LessonBookingInstructorOption[] => {
+        const ctx = props.slotCtx;
+
+        if (!ctx) {
+            return [];
+        }
+
+        const course = selectedCourse.value;
+
+        if (!course) {
+            return ctx.availableInstructors;
+        }
+
+        const qualifiedIds = new Set(
+            schoolInstructors.value
+                .filter((instructor) =>
+                    instructorHasCourseCategoryQualification(
+                        instructor,
+                        course.category,
+                    ),
+                )
+                .map((instructor) => instructor.id),
+        );
+
+        return ctx.availableInstructors.filter((instructor) =>
+            qualifiedIds.has(instructor.id),
+        );
+    },
+);
+
 let loadSeq = 0;
 
 watch(
@@ -121,6 +172,7 @@ watch(
         students.value = [];
         vehicles.value = [];
         studentCourses.value = [];
+        schoolInstructors.value = [];
         selectedInstructorId.value =
             ctx.availableInstructors.length === 1
                 ? (ctx.availableInstructors[0]?.id ?? '')
@@ -132,7 +184,10 @@ watch(
         loadCoursesError.value = null;
 
         try {
-            const data = await loadModalData(ctx);
+            const [data, instructorRows] = await Promise.all([
+                loadModalData(ctx),
+                fetchInstructorsList(ctx.schoolId).catch(() => []),
+            ]);
 
             if (seq !== loadSeq) {
                 return;
@@ -140,12 +195,27 @@ watch(
 
             students.value = data.students;
             vehicles.value = data.vehicles;
+            schoolInstructors.value = instructorRows;
         } catch {
             /* komunikat w isLoadingModalData / błąd ogólny */
         }
     },
     { flush: 'post' },
 );
+
+watch([selectedCourse, filteredAvailableInstructors], ([course, items]) => {
+    if (!course) {
+        return;
+    }
+
+    const selected = selectedInstructorId.value.trim();
+
+    if (selected && items.some((item) => item.id === selected)) {
+        return;
+    }
+
+    selectedInstructorId.value = items.length === 1 ? items[0]!.id : '';
+});
 
 watch(selectedStudentUserId, async (userId) => {
     selectedCourseId.value = '';
@@ -294,7 +364,7 @@ async function handleSubmit(): Promise<void> {
                 class="bg-muted/40 space-y-1 rounded-lg border px-3 py-2 text-sm"
                 role="status"
             >
-                <p v-if="slotCtx.availableInstructors.length === 1">
+                <p v-if="filteredAvailableInstructors.length === 1">
                     <span class="text-muted-foreground">Instruktor:</span>
                     {{ instructorLabel }}
                 </p>
@@ -302,7 +372,7 @@ async function handleSubmit(): Promise<void> {
                     <span class="text-muted-foreground"
                         >Dostępnych instruktorów w tym oknie:</span
                     >
-                    {{ slotCtx.availableInstructors.length }}
+                    {{ filteredAvailableInstructors.length }}
                 </p>
                 <p>
                     <span class="text-muted-foreground">Termin:</span>
@@ -337,7 +407,7 @@ async function handleSubmit(): Promise<void> {
                 @submit.prevent="handleSubmit"
             >
                 <div
-                    v-if="slotCtx.availableInstructors.length > 1"
+                    v-if="filteredAvailableInstructors.length > 1"
                     class="space-y-2"
                 >
                     <label
@@ -362,7 +432,7 @@ async function handleSubmit(): Promise<void> {
                         <UiSelectContent>
                             <UiSelectGroup>
                                 <UiSelectItem
-                                    v-for="ins in slotCtx.availableInstructors"
+                                    v-for="ins in filteredAvailableInstructors"
                                     :key="ins.id"
                                     :value="ins.id"
                                 >
