@@ -44,7 +44,7 @@ function parseStatus(raw: unknown): VehicleStatus {
 }
 
 function parseStatusFromRecord(o: Record<string, unknown>): VehicleStatus {
-    const explicit = o.status ?? o.vehicleStatus;
+    const explicit = o.status ?? o.vehicleStatus ?? o.availabilityStatus;
 
     if (
         explicit !== undefined &&

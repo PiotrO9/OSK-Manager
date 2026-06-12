@@ -219,6 +219,19 @@ export function mockVehiclesSetDefaultForSchool(
     return mockVehiclesSetDefault(vehicleId);
 }
 
+export function mockVehiclesUpdateStatus(
+    id: string,
+    status: MockVehicleStatus,
+): MockVehicleRow | null {
+    const row = mockVehiclesGetById(id);
+
+    if (!row) return null;
+
+    row.status = status;
+
+    return row;
+}
+
 export function mockVehiclesSetPhotoUrl(
     id: string,
     photoUrl: string,

@@ -116,6 +116,10 @@ export interface BffVehiclePatchBody {
     mileageKm: number | null;
 }
 
+export interface BffVehicleStatusBody {
+    status: 'ACTIVE' | 'UNAVAILABLE';
+}
+
 export async function bffUpstreamVehiclesCreate(
     event: H3Event,
     upstreamBase: string,
@@ -190,6 +194,51 @@ export async function bffUpstreamVehiclesUpdate(
                 typeof json.error === 'string'
                     ? json.error
                     : 'Nie udało się zaktualizować pojazdu',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
+export async function bffUpstreamVehiclesUpdateStatus(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+    body: BffVehicleStatusBody,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostÄ™pu',
+        });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/vehicles/${encodeURIComponent(id)}/status`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify(body),
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu',
         });
     }
 

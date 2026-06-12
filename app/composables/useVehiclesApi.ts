@@ -7,6 +7,7 @@ import {
     normalizeVehiclesList,
     type Vehicle,
     type VehicleDetail,
+    type VehicleStatus,
     type VehicleWritePayload,
 } from '~/types/vehicle';
 
@@ -57,6 +58,26 @@ export function useVehiclesApi() {
         error: updateError,
     } = useApi<unknown>('PATCH', _updateUrl, {
         body: _updateBody as MaybeRefOrGetter<unknown>,
+    });
+
+    const _statusUpdateId = ref<string | null>(null);
+    const _statusUpdateBody = ref<{ status: VehicleStatus } | null>(null);
+    const _statusUpdateUrl = () => {
+        const id = _statusUpdateId.value;
+
+        return id
+            ? resolveBffEndpoint(
+                  `/api/vehicles/${encodeURIComponent(id)}/status`,
+              )
+            : '';
+    };
+
+    const {
+        execute: _execStatusUpdate,
+        isLoading: isStatusUpdateLoading,
+        error: statusUpdateError,
+    } = useApi<unknown>('PATCH', _statusUpdateUrl, {
+        body: _statusUpdateBody as MaybeRefOrGetter<unknown>,
     });
 
     const _deleteId = ref<string | null>(null);
@@ -180,6 +201,39 @@ export function useVehiclesApi() {
         }
     }
 
+    async function updateVehicleStatus(
+        id: string,
+        status: VehicleStatus,
+    ): Promise<Vehicle> {
+        _statusUpdateId.value = id;
+        _statusUpdateBody.value = { status };
+
+        try {
+            const raw = await _execStatusUpdate();
+
+            if (raw === null) {
+                throw new Error(
+                    getApiFetchErrorMessage(
+                        statusUpdateError.value,
+                        'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu.',
+                    ),
+                );
+            }
+
+            const data = unwrapApiSuccessData<unknown>(raw);
+            const vehicle = normalizeVehicle(data, 0);
+
+            if (!vehicle) {
+                throw new Error('NieprawidĹ‚owa odpowiedĹş serwera.');
+            }
+
+            return vehicle;
+        } finally {
+            _statusUpdateId.value = null;
+            _statusUpdateBody.value = null;
+        }
+    }
+
     async function deleteVehicle(id: string): Promise<void> {
         _deleteId.value = id;
 
@@ -271,6 +325,7 @@ export function useVehiclesApi() {
                 `/api/vehicles/${encodeURIComponent(id)}/photo`,
             );
             const body = new FormData();
+
             body.append('file', file);
 
             const raw = await $fetch<{
@@ -302,6 +357,7 @@ export function useVehiclesApi() {
         isListLoading,
         isCreateLoading,
         isUpdateLoading,
+        isStatusUpdateLoading,
         isDeleteLoading,
         isSetDefaultLoading,
         isDetailLoading,
@@ -311,6 +367,7 @@ export function useVehiclesApi() {
         fetchVehicleById,
         createVehicle,
         updateVehicle,
+        updateVehicleStatus,
         deleteVehicle,
         setVehicleAsDefault,
         uploadVehiclePhoto,

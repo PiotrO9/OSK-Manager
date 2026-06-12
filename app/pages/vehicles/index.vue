@@ -16,6 +16,7 @@ const {
     deleteActionError,
     vehicles,
     vehiclePendingDelete,
+    statusUpdatingVehicleId,
     activePanel,
     isListLoading,
     isDeleteLoading,
@@ -27,6 +28,7 @@ const {
     handleCancelDeleteVehicle,
     handleConfirmDeleteVehicle,
     handleSetDefaultVehicle,
+    handleVehicleStatusChange,
 } = useVehiclesListPage();
 </script>
 
@@ -61,6 +63,7 @@ const {
             :is-delete-loading="isDeleteLoading"
             :is-set-default-loading="isSetDefaultLoading"
             :vehicle-pending-delete="vehiclePendingDelete"
+            :status-updating-vehicle-id="statusUpdatingVehicleId"
             @tab-select="handleTabSelect"
             @tab-keydown="handleTabKeydown"
             @request-delete="handleRequestDeleteVehicle"
@@ -68,6 +71,7 @@ const {
             @cancel-delete="handleCancelDeleteVehicle"
             @confirm-delete="handleConfirmDeleteVehicle"
             @set-default="handleSetDefaultVehicle"
+            @status-change="handleVehicleStatusChange"
         />
     </div>
 </template>

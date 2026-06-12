@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Car, Eye, LayoutList, Pencil, Shield, Trash2 } from 'lucide-vue-next';
-import type { Vehicle } from '~/types/vehicle';
+import type { Vehicle, VehicleStatus } from '~/types/vehicle';
 import type { VehiclesListPanelId } from '~/composables/useVehiclesListPage';
 
 defineProps<{
@@ -14,6 +14,7 @@ defineProps<{
     isDeleteLoading: boolean;
     isSetDefaultLoading: boolean;
     vehiclePendingDelete: Vehicle | null;
+    statusUpdatingVehicleId: string | null;
 }>();
 
 const emit = defineEmits<{
@@ -24,12 +25,21 @@ const emit = defineEmits<{
     cancelDelete: [];
     confirmDelete: [];
     setDefault: [vehicle: Vehicle];
+    statusChange: [vehicle: Vehicle, status: VehicleStatus];
 }>();
 
 function displayText(value: string): string {
     const t = value.trim();
 
     return t.length > 0 ? t : '—';
+}
+
+function checkedToVehicleStatus(checked: unknown): VehicleStatus {
+    return checked === true ? 'ACTIVE' : 'UNAVAILABLE';
+}
+
+function isVehicleAvailable(vehicle: Vehicle): boolean {
+    return vehicle.status !== 'UNAVAILABLE';
 }
 </script>
 
@@ -259,18 +269,63 @@ function displayText(value: string): string {
 
                     <div
                         v-if="isManager && activePanel === 'manager'"
-                        class="flex flex-wrap items-center gap-2 pt-0.5"
+                        class="flex flex-wrap items-center justify-between gap-3 pt-0.5"
                     >
-                        <UiBadge
-                            v-if="vehicle.status === 'UNAVAILABLE'"
-                            variant="destructive"
-                            class="shrink-0"
+                        <div class="flex flex-wrap items-center gap-2">
+                            <UiBadge
+                                v-if="!isVehicleAvailable(vehicle)"
+                                variant="destructive"
+                                class="shrink-0"
+                            >
+                                Niedostępny
+                            </UiBadge>
+                            <UiBadge
+                                v-else
+                                variant="secondary"
+                                class="shrink-0"
+                            >
+                                Aktywny
+                            </UiBadge>
+                            <span
+                                v-if="statusUpdatingVehicleId === vehicle.id"
+                                class="text-muted-foreground text-xs"
+                                role="status"
+                            >
+                                Zapisywanie...
+                            </span>
+                        </div>
+
+                        <label
+                            class="text-foreground bg-muted/40 border-border inline-flex items-center gap-3 rounded-lg border px-3 py-2 text-xs font-medium"
+                            :for="`vehicle-status-${vehicle.id}`"
                         >
-                            Niedostępny
-                        </UiBadge>
-                        <UiBadge v-else variant="secondary" class="shrink-0">
-                            Aktywny
-                        </UiBadge>
+                            <span>
+                                {{
+                                    isVehicleAvailable(vehicle)
+                                        ? 'Aktywny'
+                                        : 'Niedostępny'
+                                }}
+                            </span>
+                            <UiSwitch
+                                :id="`vehicle-status-${vehicle.id}`"
+                                class="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300"
+                                :model-value="isVehicleAvailable(vehicle)"
+                                :disabled="
+                                    statusUpdatingVehicleId === vehicle.id
+                                "
+                                :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                :aria-busy="
+                                    statusUpdatingVehicleId === vehicle.id
+                                "
+                                @update:model-value="
+                                    emit(
+                                        'statusChange',
+                                        vehicle,
+                                        checkedToVehicleStatus($event),
+                                    )
+                                "
+                            />
+                        </label>
                     </div>
 
                     <UiButton

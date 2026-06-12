@@ -1,4 +1,4 @@
-import type { Vehicle } from '~/types/vehicle';
+import type { Vehicle, VehicleStatus } from '~/types/vehicle';
 
 export type VehiclesListPanelId = 'simple' | 'manager';
 
@@ -13,6 +13,7 @@ export function useVehiclesListPage() {
         isDeleteLoading,
         setVehicleAsDefault,
         isSetDefaultLoading,
+        updateVehicleStatus,
     } = useVehiclesApi();
     const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
 
@@ -24,6 +25,7 @@ export function useVehiclesListPage() {
     const deleteActionError = ref<string | null>(null);
     const vehicles = ref<Vehicle[]>([]);
     const vehiclePendingDelete = ref<Vehicle | null>(null);
+    const statusUpdatingVehicleId = ref<string | null>(null);
 
     const activePanel = ref<VehiclesListPanelId>('simple');
 
@@ -198,6 +200,45 @@ export function useVehiclesListPage() {
         }
     }
 
+    async function handleVehicleStatusChange(
+        vehicle: Vehicle,
+        status: VehicleStatus,
+    ) {
+        if (vehicle.status === status) return;
+
+        if (statusUpdatingVehicleId.value !== null) return;
+
+        statusUpdatingVehicleId.value = vehicle.id;
+
+        try {
+            const updated = await updateVehicleStatus(vehicle.id, status);
+            const index = vehicles.value.findIndex((v) => v.id === vehicle.id);
+
+            if (index === -1) {
+                await loadVehicles();
+
+                return;
+            }
+
+            vehicles.value = vehicles.value.map((item, i) =>
+                i === index ? { ...item, ...updated } : item,
+            );
+        } catch (err) {
+            addToast({
+                title: 'Zmiana statusu',
+                description:
+                    err instanceof Error
+                        ? err.message
+                        : 'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu.',
+                variant: 'error',
+            });
+        } finally {
+            if (statusUpdatingVehicleId.value === vehicle.id) {
+                statusUpdatingVehicleId.value = null;
+            }
+        }
+    }
+
     return {
         isManager,
         resolvedSchoolId,
@@ -206,6 +247,7 @@ export function useVehiclesListPage() {
         deleteActionError,
         vehicles,
         vehiclePendingDelete,
+        statusUpdatingVehicleId,
         activePanel,
         isListLoading,
         isDeleteLoading,
@@ -217,5 +259,6 @@ export function useVehiclesListPage() {
         handleCancelDeleteVehicle,
         handleConfirmDeleteVehicle,
         handleSetDefaultVehicle,
+        handleVehicleStatusChange,
     };
 }
