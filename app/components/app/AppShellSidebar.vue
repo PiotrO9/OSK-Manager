@@ -63,6 +63,16 @@ const navItems = computed<NavItem[]>(() => {
         });
     }
 
+    if (role === 'STUDENT') {
+        items.splice(2, 0, {
+            to: '/my-courses',
+            label: 'Moje kursy',
+            ariaLabel: 'Przejdź do listy moich kursów',
+            icon: BookOpen,
+            tooltip: 'Moje kursy',
+        });
+    }
+
     if (role === 'INSTRUCTOR') {
         items.splice(2, 0, {
             to: '/events',

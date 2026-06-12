@@ -4,6 +4,7 @@ import {
 } from '~/types/courseType';
 
 export type CourseKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+export type CourseParticipantStatus = 'ACTIVE' | 'FINISHED';
 
 /** Body POST `/api/courses` (BFF → BE) — pola opcjonalne wg `kind`. */
 export interface CourseCreatePayload {
@@ -33,6 +34,12 @@ export interface CourseListItem {
     instructor: CourseInstructorRef | null;
 }
 
+export interface CurrentUserCourseItem {
+    id: string;
+    name: string;
+    status: CourseParticipantStatus;
+}
+
 /** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */
 export interface CourseDetail extends CourseListItem {
     capacity: number | null;
@@ -55,10 +62,30 @@ export function formatCourseKindLabel(kind: CourseKind): string {
     return COURSE_KIND_LABELS[kind] ?? kind;
 }
 
+const COURSE_PARTICIPANT_STATUS_LABELS: Record<
+    CourseParticipantStatus,
+    string
+> = {
+    ACTIVE: 'Aktywny',
+    FINISHED: 'Ukończony',
+};
+
+export function formatCourseParticipantStatusLabel(
+    status: CourseParticipantStatus,
+): string {
+    return COURSE_PARTICIPANT_STATUS_LABELS[status] ?? status;
+}
+
 function isCourseKind(value: string): value is CourseKind {
     return (
         value === 'THEORY_GROUP' || value === 'PRACTICAL' || value === 'EXTRA'
     );
+}
+
+function isCourseParticipantStatus(
+    value: string,
+): value is CourseParticipantStatus {
+    return value === 'ACTIVE' || value === 'FINISHED';
 }
 
 function normalizeInstructorRef(raw: unknown): CourseInstructorRef | null {
@@ -145,6 +172,29 @@ function normalizeCourseListItem(raw: unknown): CourseListItem | null {
         type: typeRaw,
         totalHours,
         instructor: normalizeInstructorRef(o.instructor),
+    };
+}
+
+function normalizeCurrentUserCourseItem(
+    raw: unknown,
+): CurrentUserCourseItem | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+    const id = o.id != null ? String(o.id).trim() : '';
+    const name = o.name != null ? String(o.name).trim() : '';
+    const statusRaw = o.status != null ? String(o.status).trim() : '';
+
+    if (!id || !name || !isCourseParticipantStatus(statusRaw)) {
+        return null;
+    }
+
+    return {
+        id,
+        name,
+        status: statusRaw,
     };
 }
 
@@ -278,6 +328,30 @@ export function normalizeCoursesList(data: unknown): CourseListItem[] {
 
         if (Array.isArray(nested)) {
             return normalizeCoursesList(nested);
+        }
+    }
+
+    return [];
+}
+
+export function normalizeMyCoursesList(data: unknown): CurrentUserCourseItem[] {
+    if (Array.isArray(data)) {
+        return data
+            .map((item) => normalizeCurrentUserCourseItem(item))
+            .filter((x): x is CurrentUserCourseItem => x !== null);
+    }
+
+    if (!data || typeof data !== 'object') {
+        return [];
+    }
+
+    const record = data as Record<string, unknown>;
+
+    for (const key of ['courses', 'items', 'data'] as const) {
+        const nested = record[key];
+
+        if (Array.isArray(nested)) {
+            return normalizeMyCoursesList(nested);
         }
     }
 

@@ -5,9 +5,11 @@ import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeCourseDetailData,
     normalizeCoursesList,
+    normalizeMyCoursesList,
     type CourseCreatePayload,
     type CourseDetail,
     type CourseListItem,
+    type CurrentUserCourseItem,
     type CoursePatchInstructorPayload,
 } from '~/types/course';
 
@@ -15,6 +17,14 @@ export function useCoursesApi() {
     const _schoolId = ref<string | null>(null);
     const _courseDetailId = ref<string | null>(null);
     const _patchCourseId = ref<string | null>(null);
+
+    const myCoursesUrl = () => resolveBffEndpoint('/api/me/courses');
+
+    const {
+        execute: _execMyCourses,
+        isLoading: isMyCoursesLoading,
+        error: myCoursesError,
+    } = useApi<unknown>('GET', myCoursesUrl);
 
     const listUrl = () => {
         const id = _schoolId.value;
@@ -106,6 +116,23 @@ export function useCoursesApi() {
         const data = unwrapApiSuccessData<unknown>(raw);
 
         return normalizeCoursesList(data);
+    }
+
+    async function fetchMyCourses(): Promise<CurrentUserCourseItem[]> {
+        const raw = await _execMyCourses();
+
+        if (raw === null) {
+            throw new Error(
+                getApiFetchErrorMessage(
+                    myCoursesError.value,
+                    'Nie udało się pobrać listy kursów.',
+                ),
+            );
+        }
+
+        const data = unwrapApiSuccessData<unknown>(raw);
+
+        return normalizeMyCoursesList(data);
     }
 
     async function fetchById(courseId: string): Promise<CourseDetail> {
@@ -204,9 +231,11 @@ export function useCoursesApi() {
 
     return {
         isListLoading,
+        isMyCoursesLoading,
         isDetailLoading,
         isCreateLoading,
         isPatchLoading,
+        fetchMyCourses,
         fetchList,
         fetchById,
         createCourse,
