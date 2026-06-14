@@ -38,6 +38,7 @@ export interface CurrentUserCourseItem {
     id: string;
     name: string;
     status: CourseParticipantStatus;
+    progress: number;
 }
 
 /** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */
@@ -86,6 +87,22 @@ function isCourseParticipantStatus(
     value: string,
 ): value is CourseParticipantStatus {
     return value === 'ACTIVE' || value === 'FINISHED';
+}
+
+export function normalizeCourseProgress(raw: unknown): number {
+    let progress = 0;
+
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        progress = raw;
+    } else if (typeof raw === 'string') {
+        const parsed = Number.parseFloat(raw.trim());
+
+        if (Number.isFinite(parsed)) {
+            progress = parsed;
+        }
+    }
+
+    return Math.max(0, Math.min(100, Math.round(progress)));
 }
 
 function normalizeInstructorRef(raw: unknown): CourseInstructorRef | null {
@@ -195,6 +212,7 @@ function normalizeCurrentUserCourseItem(
         id,
         name,
         status: statusRaw,
+        progress: normalizeCourseProgress(o.progress),
     };
 }
 

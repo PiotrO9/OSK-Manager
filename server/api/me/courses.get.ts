@@ -6,7 +6,12 @@ const SECRET = new TextEncoder().encode(
 );
 
 function mockMyCoursesPayload(role: string): {
-    courses: Array<{ id: string; name: string; status: 'ACTIVE' | 'FINISHED' }>;
+    courses: Array<{
+        id: string;
+        name: string;
+        status: 'ACTIVE' | 'FINISHED';
+        progress: number;
+    }>;
 } {
     if (role.trim().toUpperCase() !== 'STUDENT') {
         return { courses: [] };
@@ -18,11 +23,13 @@ function mockMyCoursesPayload(role: string): {
                 id: '11111111-1111-4111-8111-111111111111',
                 name: 'Kurs podstawowy kategorii B',
                 status: 'ACTIVE',
+                progress: 42,
             },
             {
                 id: '22222222-2222-4222-8222-222222222222',
                 name: 'Teoria - kategoria B',
                 status: 'FINISHED',
+                progress: 0,
             },
         ],
     };

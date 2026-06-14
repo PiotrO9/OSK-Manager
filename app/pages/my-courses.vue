@@ -47,6 +47,10 @@ function statusVariant(
 ): 'default' | 'secondary' {
     return status === 'ACTIVE' ? 'default' : 'secondary';
 }
+
+function progressLabel(course: CurrentUserCourseItem): string {
+    return `${course.progress}%`;
+}
 </script>
 
 <template>
@@ -85,25 +89,60 @@ function statusVariant(
                 <article
                     v-for="course in courses"
                     :key="course.id"
-                    class="border-border flex flex-col gap-3 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between"
+                    class="border-border flex flex-col gap-4 rounded-md border p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                    <div class="flex min-w-0 items-start gap-3">
+                    <div class="flex min-w-0 flex-1 items-start gap-3">
                         <span
                             class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
                             aria-hidden="true"
                         >
                             <BookOpen class="size-4" />
                         </span>
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1 space-y-3">
                             <h2
                                 class="text-foreground truncate text-sm font-medium"
                             >
                                 {{ course.name }}
                             </h2>
+
+                            <div class="space-y-1.5">
+                                <div
+                                    class="flex items-center justify-between gap-3"
+                                >
+                                    <span
+                                        class="text-muted-foreground text-xs font-medium"
+                                    >
+                                        Postęp kursu
+                                    </span>
+                                    <span
+                                        class="text-foreground text-xs font-semibold tabular-nums"
+                                    >
+                                        {{ progressLabel(course) }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="bg-muted h-2 w-full overflow-hidden rounded-full"
+                                    role="progressbar"
+                                    :aria-valuenow="course.progress"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    :aria-label="`Postęp kursu ${course.name}`"
+                                >
+                                    <div
+                                        class="bg-primary h-full rounded-full"
+                                        :style="{
+                                            width: progressLabel(course),
+                                        }"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <UiBadge :variant="statusVariant(course.status)">
+                    <UiBadge
+                        :variant="statusVariant(course.status)"
+                        class="w-fit shrink-0"
+                    >
                         {{ formatCourseParticipantStatusLabel(course.status) }}
                     </UiBadge>
                 </article>
