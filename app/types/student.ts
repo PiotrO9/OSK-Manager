@@ -74,6 +74,7 @@ export function getStudentCourseStatusVariant(status: string): BadgeVariant {
     const key = status.trim().toUpperCase();
 
     if (key === 'ACTIVE') return 'default';
+
     if (key === 'FINISHED') return 'secondary';
 
     return 'outline';
@@ -388,5 +389,59 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
         pkkNumber,
         notes,
         courses,
+    };
+}
+
+export interface StudentProcessStatusStep {
+    name: string;
+    completed: boolean;
+    description: string;
+}
+
+export interface StudentProcessStatus {
+    steps: StudentProcessStatusStep[];
+}
+
+function normalizeStudentProcessStatusStep(
+    raw: unknown,
+): StudentProcessStatusStep | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+    const name = o.name != null ? String(o.name).trim() : '';
+
+    if (!name) {
+        return null;
+    }
+
+    const description =
+        o.description != null ? String(o.description).trim() : '';
+
+    return {
+        name,
+        completed: parseBooleanLike(o.completed, false),
+        description,
+    };
+}
+
+export function normalizeStudentProcessStatus(
+    raw: unknown,
+): StudentProcessStatus | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+
+    if (!Array.isArray(o.steps)) {
+        return null;
+    }
+
+    return {
+        steps: o.steps
+            .map((row) => normalizeStudentProcessStatusStep(row))
+            .filter((x): x is StudentProcessStatusStep => x !== null),
     };
 }

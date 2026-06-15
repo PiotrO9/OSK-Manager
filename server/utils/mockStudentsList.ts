@@ -102,7 +102,7 @@ export function mockUpdateStudentNotes(
     const notesStore = getMockStudentNotesStore();
 
     if (normalized === null) {
-        delete notesStore[uid];
+        Reflect.deleteProperty(notesStore, uid);
     } else {
         notesStore[uid] = normalized;
     }
@@ -343,6 +343,14 @@ export interface MockStudentDetailPayload {
     }>;
 }
 
+export interface MockStudentProcessStatusPayload {
+    steps: Array<{
+        name: string;
+        completed: boolean;
+        description: string;
+    }>;
+}
+
 const MOCK_PARTICIPANT_STATUSES = ['ACTIVE', 'COMPLETED', 'SUSPENDED'] as const;
 
 function hashUserIdForMockCourses(userId: string): number {
@@ -477,5 +485,49 @@ export function mockStudentsListPayload(
         total,
         page: safePage,
         limit: safeLimit,
+    };
+}
+
+export function mockStudentProcessStatusPayload(
+    userId: string,
+    schoolId: string,
+): MockStudentProcessStatusPayload | null {
+    const detail = mockStudentDetailPayload(userId, schoolId);
+
+    if (!detail) {
+        return null;
+    }
+
+    const hasPkk =
+        detail.pkkNumber !== null && detail.pkkNumber.trim().length > 0;
+    const hasCourses = detail.courses.length > 0;
+
+    return {
+        steps: [
+            {
+                name: 'Dane kursanta',
+                completed:
+                    detail.firstName.trim().length > 0 &&
+                    detail.lastName.trim().length > 0 &&
+                    detail.email.trim().length > 0,
+                description:
+                    'Uzupełnij podstawowe dane kursanta i upewnij się, że konto jest aktywne.',
+            },
+            {
+                name: 'Numer PKK',
+                completed: hasPkk,
+                description: 'Dodaj numer PKK kursanta.',
+            },
+            {
+                name: 'Przypisanie do kursu',
+                completed: hasCourses,
+                description: 'Przypisz kursanta do kursu w tej OSK.',
+            },
+            {
+                name: 'Zaplanowanie jazd',
+                completed: hasCourses && hasPkk,
+                description: 'Zaplanuj co najmniej jedną nieanulowaną jazdę.',
+            },
+        ],
     };
 }

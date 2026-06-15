@@ -4,6 +4,7 @@ import {
     getStudentCourseStatusVariant,
     normalizeStudentDetail,
     type StudentDetail,
+    type StudentProcessStatus,
 } from '~/types/student';
 import {
     getApiErrorStatusCode,
@@ -21,10 +22,15 @@ definePageMeta({
 
 const route = useRoute();
 const { fetchScheduleForStudent } = useScheduleApi();
+const { fetchProcessStatus } = useStudentsApi();
 
 const student = ref<StudentDetail | null>(null);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
+const processStatus = ref<StudentProcessStatus | null>(null);
+const processStatusLoading = ref(false);
+const processStatusError = ref<string | null>(null);
+const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
 
 usePageMeta({
     title: () => {
@@ -178,6 +184,58 @@ watch(
     { immediate: true },
 );
 
+let processStatusFetchSeq = 0;
+
+async function loadStudentProcessStatus(rawUserId: unknown): Promise<void> {
+    const userId = getRouteUserIdString(rawUserId);
+    const schoolId = readSchoolIdFromQuery();
+
+    processStatus.value = null;
+    processStatusError.value = null;
+
+    if (!userId || !schoolId) {
+        processStatusLoading.value = false;
+
+        return;
+    }
+
+    const seq = ++processStatusFetchSeq;
+
+    processStatusLoading.value = true;
+
+    try {
+        const status = await fetchProcessStatus({ userId, schoolId });
+
+        if (seq !== processStatusFetchSeq) {
+            return;
+        }
+
+        processStatus.value = status;
+    } catch (err: unknown) {
+        if (seq !== processStatusFetchSeq) {
+            return;
+        }
+
+        processStatus.value = null;
+        processStatusError.value = getApiFetchErrorMessage(
+            err,
+            'Nie udało się wczytać statusu procesu kursanta.',
+        );
+    } finally {
+        if (seq === processStatusFetchSeq) {
+            processStatusLoading.value = false;
+        }
+    }
+}
+
+watch(
+    () => [route.params.userId, route.query.schoolId] as const,
+    ([userId]) => {
+        void loadStudentProcessStatus(userId);
+    },
+    { immediate: true },
+);
+
 const backToListHref = computed(() => {
     const sid = readSchoolIdFromQuery();
 
@@ -315,84 +373,96 @@ function formatScheduleWeekLabel(d: Date): string {
 
         <template v-else-if="student !== null">
             <div
-                class="border-border bg-card max-w-2xl min-w-0 space-y-8 rounded-2xl border p-6 shadow-sm"
+                class="grid w-full max-w-7xl gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,1.1fr)]"
             >
-                <section aria-labelledby="student-basic-heading">
-                    <h2
-                        id="student-basic-heading"
-                        class="text-foreground mb-4 text-lg font-semibold"
-                    >
-                        Dane podstawowe
-                    </h2>
-                    <dl
-                        class="border-border grid gap-4 border-t pt-4 sm:grid-cols-2"
-                    >
-                        <div>
-                            <dt
-                                class="text-muted-foreground text-xs font-medium"
-                            >
-                                Imię
-                            </dt>
-                            <dd
-                                class="text-foreground mt-1 text-sm font-medium"
-                            >
-                                {{ displayText(student.firstName) }}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt
-                                class="text-muted-foreground text-xs font-medium"
-                            >
-                                Nazwisko
-                            </dt>
-                            <dd
-                                class="text-foreground mt-1 text-sm font-medium"
-                            >
-                                {{ displayText(student.lastName) }}
-                            </dd>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <dt
-                                class="text-muted-foreground text-xs font-medium"
-                            >
-                                E-mail
-                            </dt>
-                            <dd
-                                class="text-foreground mt-1 text-sm font-medium break-all"
-                            >
-                                {{ displayText(student.email) }}
-                            </dd>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <dt
-                                class="text-muted-foreground text-xs font-medium"
-                            >
-                                Numer PKK
-                            </dt>
-                            <dd
-                                class="text-foreground mt-1 text-sm font-medium"
-                                :class="{
-                                    'text-muted-foreground':
-                                        !student.pkkNumber ||
-                                        student.pkkNumber.trim().length === 0,
-                                }"
-                            >
-                                {{ displayPkkNumber(student.pkkNumber) }}
-                            </dd>
-                        </div>
-                    </dl>
-                </section>
+                <div
+                    class="border-border bg-card min-w-0 space-y-8 rounded-xl border p-6 shadow-sm"
+                >
+                    <section aria-labelledby="student-basic-heading">
+                        <h2
+                            id="student-basic-heading"
+                            class="text-foreground mb-4 text-lg font-semibold"
+                        >
+                            Dane podstawowe
+                        </h2>
+                        <dl
+                            class="border-border grid gap-4 border-t pt-4 sm:grid-cols-2"
+                        >
+                            <div>
+                                <dt
+                                    class="text-muted-foreground text-xs font-medium"
+                                >
+                                    Imię
+                                </dt>
+                                <dd
+                                    class="text-foreground mt-1 text-sm font-medium"
+                                >
+                                    {{ displayText(student.firstName) }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt
+                                    class="text-muted-foreground text-xs font-medium"
+                                >
+                                    Nazwisko
+                                </dt>
+                                <dd
+                                    class="text-foreground mt-1 text-sm font-medium"
+                                >
+                                    {{ displayText(student.lastName) }}
+                                </dd>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <dt
+                                    class="text-muted-foreground text-xs font-medium"
+                                >
+                                    E-mail
+                                </dt>
+                                <dd
+                                    class="text-foreground mt-1 text-sm font-medium break-all"
+                                >
+                                    {{ displayText(student.email) }}
+                                </dd>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <dt
+                                    class="text-muted-foreground text-xs font-medium"
+                                >
+                                    Numer PKK
+                                </dt>
+                                <dd
+                                    class="text-foreground mt-1 text-sm font-medium"
+                                    :class="{
+                                        'text-muted-foreground':
+                                            !student.pkkNumber ||
+                                            student.pkkNumber.trim().length ===
+                                                0,
+                                    }"
+                                >
+                                    {{ displayPkkNumber(student.pkkNumber) }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </section>
 
-                <ManagerStudentNotes
-                    :user-id="student.userId"
-                    :school-id="readSchoolIdFromQuery()"
-                    :initial-notes="student.notes"
-                    @update:notes="handleStudentNotesUpdate"
+                    <ManagerStudentNotes
+                        :user-id="student.userId"
+                        :school-id="readSchoolIdFromQuery()"
+                        :initial-notes="student.notes"
+                        @update:notes="handleStudentNotesUpdate"
+                    />
+                </div>
+
+                <ManagerStudentProcessStatus
+                    class="min-w-0 self-start"
+                    :steps="processStatusSteps"
+                    :is-loading="processStatusLoading"
+                    :error="processStatusError"
                 />
 
                 <section
                     aria-labelledby="student-schedule-heading"
-                    class="border-border border-t pt-8"
+                    class="border-border bg-card min-w-0 rounded-xl border p-6 shadow-sm xl:col-span-2"
                 >
                     <h2
                         id="student-schedule-heading"
@@ -449,7 +519,10 @@ function formatScheduleWeekLabel(d: Date): string {
                     <ManagerScheduleLessonTable v-else :items="scheduleItems" />
                 </section>
 
-                <section aria-labelledby="student-courses-heading">
+                <section
+                    aria-labelledby="student-courses-heading"
+                    class="border-border bg-card min-w-0 rounded-xl border p-6 shadow-sm xl:col-span-2"
+                >
                     <h2
                         id="student-courses-heading"
                         class="text-foreground mb-4 text-lg font-semibold"

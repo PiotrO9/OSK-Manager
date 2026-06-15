@@ -3,8 +3,10 @@ import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeStudentListPage,
+    normalizeStudentProcessStatus,
     type CourseParticipantDto,
     type StudentListPage,
+    type StudentProcessStatus,
 } from '~/types/student';
 
 export interface StudentsListQuery {
@@ -17,6 +19,11 @@ export interface StudentsListQuery {
 export interface AssignStudentToCourseParams {
     userId: string;
     courseId: string;
+}
+
+export interface StudentProcessStatusParams {
+    userId: string;
+    schoolId: string;
 }
 
 function normalizeCourseParticipant(
@@ -184,9 +191,62 @@ export function useStudentsApi() {
         }
     }
 
+    async function fetchProcessStatus(
+        params: StudentProcessStatusParams,
+    ): Promise<StudentProcessStatus> {
+        const userId = params.userId.trim();
+        const schoolId = params.schoolId.trim();
+
+        if (!userId || !schoolId) {
+            throw new Error('Brak identyfikatora kursanta lub szkoły.');
+        }
+
+        try {
+            const qs = new URLSearchParams({ schoolId });
+            const raw = await $fetch<unknown>(
+                resolveBffEndpoint(
+                    `/api/students/${encodeURIComponent(userId)}/process-status?${qs.toString()}`,
+                ),
+                { method: 'GET', credentials: 'include' },
+            );
+
+            const data = unwrapApiSuccessData<unknown>(raw);
+            const status = normalizeStudentProcessStatus(data);
+
+            if (!status) {
+                throw new Error(
+                    'Nieprawidłowa odpowiedź serwera (status procesu kursanta).',
+                );
+            }
+
+            return status;
+        } catch (err) {
+            const message = getApiFetchErrorMessage(
+                err,
+                'Nie udało się pobrać statusu procesu kursanta.',
+            );
+            const out = new Error(message) as Error & { statusCode?: number };
+
+            if (
+                err !== null &&
+                typeof err === 'object' &&
+                'statusCode' in err
+            ) {
+                const code = (err as { statusCode: unknown }).statusCode;
+
+                if (typeof code === 'number') {
+                    out.statusCode = code;
+                }
+            }
+
+            throw out;
+        }
+    }
+
     return {
         isListLoading,
         fetchList,
         assignToCourse,
+        fetchProcessStatus,
     };
 }

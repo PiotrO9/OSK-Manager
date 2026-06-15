@@ -156,6 +156,52 @@ export async function bffUpstreamStudentEvents(
     };
 }
 
+export async function bffUpstreamStudentProcessStatus(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    schoolId: string,
+): Promise<{ success: true; data: unknown }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({
+            statusCode: 401,
+            message: 'Brak tokena dostÄ™pu',
+        });
+    }
+
+    const qs = new URLSearchParams({ schoolId: schoolId.trim() });
+
+    const res = await fetch(
+        `${upstreamBase}/students/${encodeURIComponent(userId)}/process-status?${qs.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const json = (await res.json()) as BackendEnvelope<unknown>;
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udaĹ‚o siÄ™ pobraÄ‡ statusu procesu kursanta',
+        });
+    }
+
+    return {
+        success: true,
+        data: json.data,
+    };
+}
+
 export async function bffUpstreamUpdateStudentNotes(
     event: H3Event,
     upstreamBase: string,
