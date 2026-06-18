@@ -286,3 +286,62 @@ export async function bffLessonRatingPost(
         data: { rating },
     };
 }
+
+export async function bffLessonRatingGet(
+    event: H3Event,
+    upstreamBase: string,
+    lessonId: string,
+): Promise<{
+    success: true;
+    data: { rating: LessonRatingResponse | null };
+}> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostÄ™pu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/lessons/${encodeURIComponent(lessonId)}/rating`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<{
+        rating: LessonRatingResponse | null;
+    }>(
+        res,
+        text,
+        'NieprawidĹ‚owa odpowiedĹş serwera (niepoprawny JSON).',
+        'Nie znaleziono endpointu GET /lessons/:lessonId/rating na serwerze.',
+    );
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udaĹ‚o siÄ™ pobraÄ‡ opinii',
+        });
+    }
+
+    const rating = json.data?.rating ?? null;
+
+    if (rating !== null && typeof rating !== 'object') {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'NieprawidĹ‚owa odpowiedĹş serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { rating },
+    };
+}

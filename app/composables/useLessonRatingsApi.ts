@@ -8,6 +8,30 @@ export interface CreateLessonRatingInput {
 }
 
 export function useLessonRatingsApi() {
+    async function fetchLessonRating(
+        lessonId: string,
+    ): Promise<ScheduleLessonRating | null> {
+        const id = lessonId.trim();
+
+        if (!id) {
+            throw new Error('Brak identyfikatora lekcji.');
+        }
+
+        const raw = await $fetch<unknown>(
+            resolveBffEndpoint(`/api/lessons/${encodeURIComponent(id)}/rating`),
+            {
+                method: 'GET',
+                credentials: 'include',
+            },
+        );
+
+        const data = unwrapApiSuccessData<{
+            rating: ScheduleLessonRating | null;
+        }>(raw);
+
+        return data.rating ?? null;
+    }
+
     async function createLessonRating(
         lessonId: string,
         body: CreateLessonRatingInput,
@@ -36,5 +60,6 @@ export function useLessonRatingsApi() {
 
     return {
         createLessonRating,
+        fetchLessonRating,
     };
 }

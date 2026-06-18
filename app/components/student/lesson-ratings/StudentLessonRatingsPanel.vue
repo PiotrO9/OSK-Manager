@@ -7,6 +7,7 @@ import type {
 const props = defineProps<{
     items: readonly ScheduleLessonItem[];
     selectedLessonId: string | null;
+    isRefreshing?: boolean;
     isSubmitting?: boolean;
     errorMessage?: string | null;
 }>();
@@ -165,6 +166,13 @@ function handleSubmit(payload: { rating: number; comment: string | null }) {
                         </h3>
                         <p class="text-muted-foreground text-sm">
                             {{ formatIsoLocal(selectedLesson.startTime) }}
+                        </p>
+                        <p
+                            v-if="isRefreshing"
+                            class="text-muted-foreground text-xs"
+                            role="status"
+                        >
+                            OdĹ›wieĹĽanie opinii...
                         </p>
                     </div>
 

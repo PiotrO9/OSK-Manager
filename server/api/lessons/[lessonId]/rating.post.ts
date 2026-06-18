@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { bffLessonRatingPost } from '~~/server/utils/lessonsBff';
 import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
-import { requireStudentOrInstructorFromCookie } from '~~/server/utils/requireStudentOrInstructorFromCookie';
+import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
 
 function validateRatingBody(raw: unknown):
     | {
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
         return result;
     }
 
-    await requireStudentOrInstructorFromCookie(event);
+    await requireStudentFromCookie(event);
 
     setResponseStatus(event, 201);
 

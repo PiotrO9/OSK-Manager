@@ -15,7 +15,7 @@ usePageMeta({
 
 const { session } = useAuthSession();
 const { fetchMySchedule } = useScheduleApi();
-const { createLessonRating } = useLessonRatingsApi();
+const { createLessonRating, fetchLessonRating } = useLessonRatingsApi();
 const { addToast } = useAppToast();
 
 const weekStart = ref<Date>(getMonday(new Date()));
@@ -23,6 +23,7 @@ const items = ref<ScheduleLessonItem[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
 const selectedRatingLessonId = ref<string | null>(null);
+const isRatingRefreshing = ref(false);
 const isRatingSubmitting = ref(false);
 const ratingErrorMessage = ref<string | null>(null);
 
@@ -35,6 +36,7 @@ const isStudent = computed(
 const scheduleView = ref<'calendar' | 'list'>('calendar');
 
 let loadSeq = 0;
+let ratingFetchSeq = 0;
 
 async function loadWeek(): Promise<void> {
     const seq = ++loadSeq;
@@ -100,9 +102,54 @@ function handleNextWeek(): void {
     weekStart.value = getMonday(d);
 }
 
-function handleRatingLessonSelected(lesson: ScheduleLessonItem): void {
+function isCompletedPracticeLesson(lesson: ScheduleLessonItem): boolean {
+    return (
+        lesson.kind === 'lesson' &&
+        lesson.type.trim().toUpperCase() === 'PRACTICE' &&
+        lesson.status.trim().toUpperCase() === 'COMPLETED'
+    );
+}
+
+async function handleRatingLessonSelected(
+    lesson: ScheduleLessonItem,
+): Promise<void> {
     selectedRatingLessonId.value = lesson.id;
     ratingErrorMessage.value = null;
+
+    const seq = ++ratingFetchSeq;
+
+    if (!isStudent.value || !isCompletedPracticeLesson(lesson)) {
+        isRatingRefreshing.value = false;
+
+        return;
+    }
+
+    isRatingRefreshing.value = true;
+
+    try {
+        const rating = await fetchLessonRating(lesson.id);
+
+        if (seq !== ratingFetchSeq) {
+            return;
+        }
+
+        items.value = items.value.map((item) =>
+            item.id === lesson.id ? { ...item, rating } : item,
+        );
+    } catch (err: unknown) {
+        if (seq !== ratingFetchSeq) {
+            return;
+        }
+
+        ratingErrorMessage.value = getApiFetchErrorMessage(
+            err,
+            'Nie udaĹ‚o siÄ™ odĹ›wieĹĽyÄ‡ opinii.',
+        );
+    } finally {
+        if (seq === ratingFetchSeq) {
+            isRatingRefreshing.value = false;
+        }
+    }
 }
 
 async function handleRatingSubmit(payload: {
@@ -241,6 +288,7 @@ function formatWeekLabel(d: Date): string {
             v-if="isStudent"
             :items="items"
             :selected-lesson-id="selectedRatingLessonId"
+            :is-refreshing="isRatingRefreshing"
             :is-submitting="isRatingSubmitting"
             :error-message="ratingErrorMessage"
             @select="handleRatingLessonSelected"
