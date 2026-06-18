@@ -46,6 +46,7 @@ const props = withDefaults(
          * Dla jazdy praktycznej: pierwsza linia karty — kursant (domyślnie) lub instruktor (np. widok kursanta).
          */
         practicePrimaryLine?: 'student' | 'instructor';
+        studentRatingSelectionEnabled?: boolean;
     }>(),
     {
         eventEditEnabled: false,
@@ -57,11 +58,13 @@ const props = withDefaults(
         scheduleCountBadgeLabel: 'Lekcji',
         emptyDayMessage: 'Brak lekcji',
         practicePrimaryLine: 'student',
+        studentRatingSelectionEnabled: false,
     },
 );
 
 const emit = defineEmits<{
     'update:weekStart': [value: Date];
+    'lesson-selected': [lesson: ScheduleLessonItem];
 }>();
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
@@ -619,11 +622,27 @@ function handleKeyDownWeekNav(
 }
 
 function blockIsClickable(lesson: ScheduleLessonItem): boolean {
-    return isScheduleManagerItemEditable(props.eventEditEnabled, lesson);
+    return (
+        isScheduleManagerItemEditable(props.eventEditEnabled, lesson) ||
+        isStudentRatingSelectableLesson(lesson)
+    );
+}
+
+function isStudentRatingSelectableLesson(lesson: ScheduleLessonItem): boolean {
+    return (
+        props.studentRatingSelectionEnabled &&
+        lesson.kind === 'lesson' &&
+        lesson.type.trim().toUpperCase() === 'PRACTICE' &&
+        lesson.status.trim().toUpperCase() === 'COMPLETED'
+    );
 }
 
 function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
     const base = ariaSummaryForLesson(lesson);
+
+    if (isStudentRatingSelectableLesson(lesson)) {
+        return `${base}. Naciśnij Enter lub Spację, aby otworzyć opinię.`;
+    }
 
     if (!props.eventEditEnabled) {
         return base;
@@ -650,6 +669,12 @@ function lessonBlockInteractiveClasses(lesson: ScheduleLessonItem): string {
 
 function handleScheduleBlockClick(lesson: ScheduleLessonItem): void {
     if (!blockIsClickable(lesson)) {
+        return;
+    }
+
+    if (isStudentRatingSelectableLesson(lesson)) {
+        emit('lesson-selected', lesson);
+
         return;
     }
 

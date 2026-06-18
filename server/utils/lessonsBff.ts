@@ -55,6 +55,15 @@ export interface LessonCreateResponse {
 
 export type LessonDetailResponse = LessonCreateResponse;
 
+export interface LessonRatingResponse {
+    id: string;
+    lessonId: string;
+    instructorId: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+}
+
 export async function bffLessonsPost(
     event: H3Event,
     upstreamBase: string,
@@ -216,5 +225,64 @@ export async function bffLessonsPatch(
     return {
         success: true,
         data: { lesson },
+    };
+}
+
+export async function bffLessonRatingPost(
+    event: H3Event,
+    upstreamBase: string,
+    lessonId: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: { rating: LessonRatingResponse } }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/lessons/${encodeURIComponent(lessonId)}/rating`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${access}`,
+            },
+            body: JSON.stringify(body),
+        },
+    );
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<{
+        rating: LessonRatingResponse;
+    }>(
+        res,
+        text,
+        'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
+        'Nie znaleziono endpointu POST /lessons/:lessonId/rating na serwerze.',
+    );
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udało się dodać opinii',
+        });
+    }
+
+    const rating = json.data?.rating;
+
+    if (!rating || typeof rating !== 'object') {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidłowa odpowiedź serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { rating },
     };
 }

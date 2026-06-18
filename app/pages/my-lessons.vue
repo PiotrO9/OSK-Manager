@@ -15,12 +15,16 @@ usePageMeta({
 
 const { session } = useAuthSession();
 const { fetchMySchedule } = useScheduleApi();
-const { fetchStudentEvents } = useStudentEventsApi();
+const { createLessonRating } = useLessonRatingsApi();
+const { addToast } = useAppToast();
 
 const weekStart = ref<Date>(getMonday(new Date()));
 const items = ref<ScheduleLessonItem[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
+const selectedRatingLessonId = ref<string | null>(null);
+const isRatingSubmitting = ref(false);
+const ratingErrorMessage = ref<string | null>(null);
 
 const range = computed(() => weekRangeFromMonday(weekStart.value));
 
@@ -41,26 +45,7 @@ async function loadWeek(): Promise<void> {
     const { dateFrom, dateTo } = range.value;
 
     try {
-        let data: ScheduleLessonItem[];
-
-        if (isStudent.value) {
-            const uid = session.value?.userId?.trim() ?? '';
-
-            if (!uid) {
-                if (seq !== loadSeq) {
-                    return;
-                }
-
-                items.value = [];
-                errorMessage.value = 'Brak identyfikatora użytkownika.';
-
-                return;
-            }
-
-            data = await fetchStudentEvents(uid, { dateFrom, dateTo });
-        } else {
-            data = await fetchMySchedule(dateFrom, dateTo);
-        }
+        const data = await fetchMySchedule(dateFrom, dateTo);
 
         if (seq !== loadSeq) {
             return;
@@ -76,7 +61,7 @@ async function loadWeek(): Promise<void> {
         errorMessage.value = getApiFetchErrorMessage(
             err,
             isStudent.value
-                ? 'Nie udało się wczytać wydarzeń.'
+                ? 'Nie udało się wczytać terminarza.'
                 : 'Nie udało się wczytać lekcji.',
         );
     } finally {
@@ -115,6 +100,55 @@ function handleNextWeek(): void {
     weekStart.value = getMonday(d);
 }
 
+function handleRatingLessonSelected(lesson: ScheduleLessonItem): void {
+    selectedRatingLessonId.value = lesson.id;
+    ratingErrorMessage.value = null;
+}
+
+async function handleRatingSubmit(payload: {
+    lesson: ScheduleLessonItem;
+    rating: number;
+    comment: string | null;
+}): Promise<void> {
+    if (isRatingSubmitting.value) {
+        return;
+    }
+
+    isRatingSubmitting.value = true;
+    ratingErrorMessage.value = null;
+
+    try {
+        const rating = await createLessonRating(payload.lesson.id, {
+            rating: payload.rating,
+            comment: payload.comment,
+        });
+
+        items.value = items.value.map((item) =>
+            item.id === payload.lesson.id ? { ...item, rating } : item,
+        );
+        selectedRatingLessonId.value = payload.lesson.id;
+
+        addToast({
+            title: 'Opinia została dodana',
+            variant: 'success',
+        });
+    } catch (err: unknown) {
+        const message = getApiFetchErrorMessage(
+            err,
+            'Nie udało się dodać opinii.',
+        );
+
+        ratingErrorMessage.value = message;
+        addToast({
+            title: 'Nie udało się dodać opinii',
+            description: message,
+            variant: 'error',
+        });
+    } finally {
+        isRatingSubmitting.value = false;
+    }
+}
+
 function formatWeekLabel(d: Date): string {
     return new Intl.DateTimeFormat('pl-PL', {
         day: 'numeric',
@@ -125,17 +159,17 @@ function formatWeekLabel(d: Date): string {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
+    <div class="flex flex-col gap-6">
+        <div class="flex flex-col gap-1">
             <h1 class="text-foreground text-2xl font-semibold tracking-tight">
                 Moje lekcje
             </h1>
             <p class="text-muted-foreground text-sm">
                 <template v-if="isStudent">
-                    Twoje wydarzenia w wybranym tygodniu.
+                    Twoje lekcje i wydarzenia w wybranym tygodniu.
                 </template>
                 <template v-else>
-                    Zaplanowane lekcje w wybranym tygodniu (wg ustawień konta).
+                    Zaplanowane lekcje w wybranym tygodniu.
                 </template>
             </p>
         </div>
@@ -184,7 +218,7 @@ function formatWeekLabel(d: Date): string {
                 aria-label="Poprzedni tydzień"
                 @click="handlePrevWeek"
             >
-                ← Poprzedni
+                Poprzedni
             </UiButton>
             <UiButton
                 type="button"
@@ -193,7 +227,7 @@ function formatWeekLabel(d: Date): string {
                 aria-label="Następny tydzień"
                 @click="handleNextWeek"
             >
-                Następny →
+                Następny
             </UiButton>
             <span
                 class="text-muted-foreground text-sm"
@@ -202,6 +236,16 @@ function formatWeekLabel(d: Date): string {
                 Tydzień od {{ formatWeekLabel(weekStart) }}
             </span>
         </div>
+
+        <StudentLessonRatingsPanel
+            v-if="isStudent"
+            :items="items"
+            :selected-lesson-id="selectedRatingLessonId"
+            :is-submitting="isRatingSubmitting"
+            :error-message="ratingErrorMessage"
+            @select="handleRatingLessonSelected"
+            @submit="handleRatingSubmit"
+        />
 
         <div
             v-if="scheduleView === 'calendar'"
@@ -216,9 +260,11 @@ function formatWeekLabel(d: Date): string {
                 :parent-items="items"
                 :parent-loading="isLoading"
                 :parent-error="errorMessage"
-                :schedule-count-badge-label="isStudent ? 'Wydarzeń' : 'Lekcji'"
-                :empty-day-message="isStudent ? 'Brak wydarzeń' : 'Brak lekcji'"
+                :student-rating-selection-enabled="isStudent"
+                :schedule-count-badge-label="isStudent ? 'Pozycji' : 'Lekcji'"
+                :empty-day-message="isStudent ? 'Brak pozycji' : 'Brak lekcji'"
                 :practice-primary-line="isStudent ? 'instructor' : 'student'"
+                @lesson-selected="handleRatingLessonSelected"
             />
         </div>
 
@@ -233,7 +279,7 @@ function formatWeekLabel(d: Date): string {
                 class="text-muted-foreground text-sm"
                 role="status"
             >
-                Wczytywanie…
+                Wczytywanie...
             </p>
             <p
                 v-else-if="errorMessage"
@@ -246,7 +292,7 @@ function formatWeekLabel(d: Date): string {
                 v-else
                 :items="items"
                 :empty-message="
-                    isStudent ? 'Brak wydarzeń w tym tygodniu.' : undefined
+                    isStudent ? 'Brak pozycji w tym tygodniu.' : undefined
                 "
             />
         </div>

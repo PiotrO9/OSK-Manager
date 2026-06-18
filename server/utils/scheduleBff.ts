@@ -16,6 +16,12 @@ export interface ScheduleItemResponse {
     instructor?: { id: string; firstName: string; lastName: string };
     student?: { id: string; firstName: string; lastName: string };
     vehicle?: { id: string; name: string; registrationNumber: string };
+    rating?: {
+        id: string;
+        rating: number;
+        comment: string | null;
+        createdAt: string;
+    } | null;
     capacity?: number | null;
     participantCount?: number | null;
     students?: { id: string; firstName: string; lastName: string }[];

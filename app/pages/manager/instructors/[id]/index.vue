@@ -9,6 +9,7 @@ import {
     formatCourseTypeOptionLabel,
     type CourseTypeOption,
 } from '~/types/courseType';
+import type { LessonRatingsSummary } from '~/types/lessonRating';
 import {
     assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
@@ -35,11 +36,17 @@ const submitError = ref<string | null>(null);
 const isEditDialogOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isDeleting = ref(false);
+const ratingSummary = ref<LessonRatingsSummary>({
+    averageRating: null,
+    totalCount: 0,
+});
+const isRatingSummaryLoading = ref(false);
 
 const route = useRoute();
 const { addToast } = useAppToast();
 const { fetchList: fetchCourseTypesList, isListLoading: isCourseTypesLoading } =
     useCourseTypesApi();
+const { fetchInstructorRatings } = useLessonRatingsListApi();
 
 /** Opcjonalnie `schoolId` z query (np. z listy OSK) — przekazywany do podstron instruktora. */
 const instructorSubpageQuery = computed((): Record<string, string> => {
@@ -72,11 +79,33 @@ function getRouteIdString(rawId: unknown): string {
     return '';
 }
 
+function getRouteQueryString(raw: unknown): string {
+    if (typeof raw === 'string') {
+        return raw.trim();
+    }
+
+    if (Array.isArray(raw)) {
+        return String(raw[0] ?? '').trim();
+    }
+
+    return '';
+}
+
 function displayText(value: string): string {
     const t = value.trim();
 
     return t.length > 0 ? t : '—';
 }
+
+const ratingAverageLabel = computed(() => {
+    const average = ratingSummary.value.averageRating;
+
+    if (average === null) {
+        return '—';
+    }
+
+    return average.toFixed(2);
+});
 
 function getNotFoundMessage(): string {
     return 'Nie znaleziono instruktora.';
@@ -236,13 +265,44 @@ async function loadCourseTypes(): Promise<void> {
     }
 }
 
+async function loadRatingSummary(rawId: unknown): Promise<void> {
+    const id = getRouteIdString(rawId);
+    const schoolId = getRouteQueryString(route.query.schoolId);
+
+    ratingSummary.value = { averageRating: null, totalCount: 0 };
+
+    if (!id || !schoolId) {
+        return;
+    }
+
+    isRatingSummaryLoading.value = true;
+
+    try {
+        const payload = await fetchInstructorRatings(id, {
+            schoolId,
+            period: 'all',
+            limit: 1,
+        });
+
+        ratingSummary.value = payload.summary;
+    } catch {
+        ratingSummary.value = { averageRating: null, totalCount: 0 };
+    } finally {
+        isRatingSummaryLoading.value = false;
+    }
+}
+
 watch(
     () => route.params.id,
     async (id) => {
         submitError.value = null;
         isEditDialogOpen.value = false;
         isDeleteDialogOpen.value = false;
-        await Promise.all([loadInstructor(id), loadCourseTypes()]);
+        await Promise.all([
+            loadInstructor(id),
+            loadCourseTypes(),
+            loadRatingSummary(id),
+        ]);
     },
     { immediate: true },
 );
@@ -672,7 +732,41 @@ async function handleDeleteDialogConfirm(): Promise<void> {
                         {{ displayText(instructor.experience) }}
                     </dd>
                 </div>
+                <div>
+                    <dt class="text-muted-foreground text-xs font-medium">
+                        Srednia ocen
+                    </dt>
+                    <dd class="text-foreground mt-1 text-sm font-medium">
+                        <span v-if="isRatingSummaryLoading">
+                            Wczytywanie...
+                        </span>
+                        <span v-else>{{ ratingAverageLabel }}</span>
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-muted-foreground text-xs font-medium">
+                        Liczba opinii
+                    </dt>
+                    <dd class="text-foreground mt-1 text-sm font-medium">
+                        {{ ratingSummary.totalCount }}
+                    </dd>
+                </div>
             </dl>
+
+            <NuxtLink
+                v-if="instructorSubpageQuery.schoolId"
+                :to="{
+                    path: '/manager/reviews',
+                    query: {
+                        schoolId: instructorSubpageQuery.schoolId,
+                        instructorId: instructor.id,
+                    },
+                }"
+                class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                aria-label="Pokaz opinie tego instruktora"
+            >
+                Pokaz opinie instruktora
+            </NuxtLink>
 
             <div class="border-border border-t pt-6">
                 <ManagerInstructorWeeklyAvailabilityPreview

@@ -10,6 +10,7 @@ import {
     GraduationCap,
     LayoutDashboard,
     LogOut,
+    MessageSquareText,
     User,
     Users,
 } from 'lucide-vue-next';
@@ -75,6 +76,13 @@ const navItems = computed<NavItem[]>(() => {
 
     if (role === 'INSTRUCTOR') {
         items.splice(2, 0, {
+            to: '/my-reviews',
+            label: 'Moje opinie',
+            ariaLabel: 'Przejdz do opinii o moich lekcjach',
+            icon: MessageSquareText,
+            tooltip: 'Moje opinie',
+        });
+        items.splice(3, 0, {
             to: '/events',
             label: 'Moje wydarzenia',
             ariaLabel: 'Przejdź do dziennego widoku moich wydarzeń',
@@ -131,6 +139,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdź do dziennego widoku wydarzeń instruktorów',
             icon: CalendarCheck,
             tooltip: 'Wydarzenia',
+        });
+        items.push({
+            to: '/manager/reviews',
+            label: 'Opinie',
+            ariaLabel: 'Przejdz do listy opinii o lekcjach',
+            icon: MessageSquareText,
+            tooltip: 'Opinie',
         });
         items.push({
             to: '/manager/schedule',
