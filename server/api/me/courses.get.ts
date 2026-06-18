@@ -8,8 +8,11 @@ const SECRET = new TextEncoder().encode(
 function mockMyCoursesPayload(role: string): {
     courses: Array<{
         id: string;
+        schoolId: string;
         name: string;
         status: 'ACTIVE' | 'FINISHED';
+        type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+        totalHours: number;
         progress: number;
     }>;
 } {
@@ -21,14 +24,20 @@ function mockMyCoursesPayload(role: string): {
         courses: [
             {
                 id: '11111111-1111-4111-8111-111111111111',
+                schoolId: '33333333-3333-4333-8333-333333333333',
                 name: 'Kurs podstawowy kategorii B',
                 status: 'ACTIVE',
+                type: 'PRACTICAL',
+                totalHours: 30,
                 progress: 42,
             },
             {
                 id: '22222222-2222-4222-8222-222222222222',
+                schoolId: '33333333-3333-4333-8333-333333333333',
                 name: 'Teoria - kategoria B',
                 status: 'FINISHED',
+                type: 'THEORY_GROUP',
+                totalHours: 30,
                 progress: 0,
             },
         ],

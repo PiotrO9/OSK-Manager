@@ -6,6 +6,7 @@ import {
     CalendarCheck,
     CalendarClock,
     CalendarDays,
+    CalendarPlus,
     Car,
     GraduationCap,
     LayoutDashboard,
@@ -66,6 +67,13 @@ const navItems = computed<NavItem[]>(() => {
 
     if (role === 'STUDENT') {
         items.splice(2, 0, {
+            to: '/book-lesson',
+            label: 'Rezerwuj jazde',
+            ariaLabel: 'Przejdz do rezerwacji jazdy',
+            icon: CalendarPlus,
+            tooltip: 'Rezerwuj jazde',
+        });
+        items.splice(3, 0, {
             to: '/my-courses',
             label: 'Moje kursy',
             ariaLabel: 'Przejdź do listy moich kursów',

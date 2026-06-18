@@ -36,8 +36,11 @@ export interface CourseListItem {
 
 export interface CurrentUserCourseItem {
     id: string;
+    schoolId: string;
     name: string;
     status: CourseParticipantStatus;
+    type: CourseKind;
+    totalHours: number;
     progress: number;
 }
 
@@ -201,17 +204,55 @@ function normalizeCurrentUserCourseItem(
 
     const o = raw as Record<string, unknown>;
     const id = o.id != null ? String(o.id).trim() : '';
+    const schoolId =
+        o.schoolId != null
+            ? String(o.schoolId).trim()
+            : o.school_id != null
+              ? String(o.school_id).trim()
+              : '';
     const name = o.name != null ? String(o.name).trim() : '';
     const statusRaw = o.status != null ? String(o.status).trim() : '';
+    const typeRaw =
+        o.type != null
+            ? String(o.type).trim()
+            : o.kind != null
+              ? String(o.kind).trim()
+              : '';
 
-    if (!id || !name || !isCourseParticipantStatus(statusRaw)) {
+    if (
+        !id ||
+        !schoolId ||
+        !name ||
+        !isCourseParticipantStatus(statusRaw) ||
+        !isCourseKind(typeRaw)
+    ) {
+        return null;
+    }
+
+    const totalHoursRaw = o.totalHours ?? o.total_hours;
+    let totalHours: number;
+
+    if (typeof totalHoursRaw === 'number' && Number.isFinite(totalHoursRaw)) {
+        totalHours = Math.trunc(totalHoursRaw);
+    } else if (typeof totalHoursRaw === 'string') {
+        const parsed = Number.parseInt(totalHoursRaw.trim(), 10);
+
+        if (Number.isNaN(parsed)) {
+            return null;
+        }
+
+        totalHours = parsed;
+    } else {
         return null;
     }
 
     return {
         id,
+        schoolId,
         name,
         status: statusRaw,
+        type: typeRaw,
+        totalHours,
         progress: normalizeCourseProgress(o.progress),
     };
 }

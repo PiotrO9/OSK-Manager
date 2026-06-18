@@ -113,6 +113,61 @@ export async function bffLessonsPost(
     };
 }
 
+export async function bffOwnLessonPost(
+    event: H3Event,
+    upstreamBase: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: { lesson: LessonCreateResponse } }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostepu' });
+    }
+
+    const res = await fetch(`${upstreamBase}/lessons/me`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${access}`,
+        },
+        body: JSON.stringify(body),
+    });
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<{
+        lesson: LessonCreateResponse;
+    }>(
+        res,
+        text,
+        'Nieprawidlowa odpowiedz serwera (niepoprawny JSON).',
+        'Nie znaleziono endpointu POST /lessons/me na serwerze.',
+    );
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udalo sie zarezerwowac jazdy',
+        });
+    }
+
+    const lesson = json.data?.lesson;
+
+    if (!lesson || typeof lesson !== 'object') {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidlowa odpowiedz serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { lesson },
+    };
+}
+
 export async function bffLessonsGet(
     event: H3Event,
     upstreamBase: string,

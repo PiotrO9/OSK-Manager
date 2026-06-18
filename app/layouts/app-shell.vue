@@ -33,6 +33,10 @@ function resolveShellHeading(): string {
         return 'Moje kursy';
     }
 
+    if (route.path === '/book-lesson') {
+        return 'Rezerwuj jazde';
+    }
+
     return map[route.path] ?? 'Panel';
 }
 

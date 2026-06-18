@@ -58,3 +58,24 @@ export interface CreateLessonBody {
     lessonType: 'PRACTICE';
     vehicleId: string;
 }
+
+export interface CreateOwnLessonBody {
+    courseId: string;
+    /** InstructorProfile.id */
+    instructorId: string;
+    startTime: string;
+    endTime: string;
+}
+
+export interface LessonCreateResult {
+    id: string;
+    courseId: string;
+    studentId: string;
+    instructorId: string;
+    vehicleId: string | null;
+    lessonType: string;
+    startTime: string;
+    endTime: string;
+    status: string;
+    createdAt: string;
+}
