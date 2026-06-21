@@ -41,6 +41,10 @@ export default defineNuxtConfig({
             path: '~/components/manager',
             pathPrefix: false,
         },
+        {
+            path: '~/components/student',
+            pathPrefix: false,
+        },
     ],
     css: ['~/assets/css/tailwind.css'],
     imports: {
