@@ -51,6 +51,13 @@ const navItems = computed<NavItem[]>(() => {
             icon: User,
             tooltip: 'Konto',
         },
+        {
+            to: '/my-courses',
+            label: 'Moje kursy',
+            ariaLabel: 'Przejdź do listy moich kursów',
+            icon: BookOpen,
+            tooltip: 'Moje kursy',
+        },
     ];
 
     const role = session.value?.role?.trim().toUpperCase();
@@ -72,13 +79,6 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdz do rezerwacji jazdy',
             icon: CalendarPlus,
             tooltip: 'Rezerwuj jazde',
-        });
-        items.splice(3, 0, {
-            to: '/my-courses',
-            label: 'Moje kursy',
-            ariaLabel: 'Przejdź do listy moich kursów',
-            icon: BookOpen,
-            tooltip: 'Moje kursy',
         });
     }
 
