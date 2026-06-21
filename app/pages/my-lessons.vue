@@ -16,6 +16,7 @@ usePageMeta({
 const { session } = useAuthSession();
 const { fetchMySchedule } = useScheduleApi();
 const { createLessonRating, fetchLessonRating } = useLessonRatingsApi();
+const { cancelOwnLesson, isCancelling } = useStudentLessonCancellationApi();
 const { addToast } = useAppToast();
 
 const weekStart = ref<Date>(getMonday(new Date()));
@@ -26,6 +27,7 @@ const selectedRatingLessonId = ref<string | null>(null);
 const isRatingRefreshing = ref(false);
 const isRatingSubmitting = ref(false);
 const ratingErrorMessage = ref<string | null>(null);
+const pendingCancelLesson = ref<ScheduleLessonItem | null>(null);
 
 const range = computed(() => weekRangeFromMonday(weekStart.value));
 
@@ -34,6 +36,22 @@ const isStudent = computed(
 );
 
 const scheduleView = ref<'calendar' | 'list'>('calendar');
+const cancellingLessonId = computed(() =>
+    isCancelling.value ? (pendingCancelLesson.value?.id ?? null) : null,
+);
+const isCancelDialogOpen = computed({
+    get: () => pendingCancelLesson.value !== null,
+    set: (open: boolean) => {
+        if (!open && !isCancelling.value) {
+            pendingCancelLesson.value = null;
+        }
+    },
+});
+const pendingCancelLessonLabel = computed(() =>
+    pendingCancelLesson.value
+        ? formatLessonTimeRange(pendingCancelLesson.value)
+        : '',
+);
 
 let loadSeq = 0;
 let ratingFetchSeq = 0;
@@ -107,6 +125,14 @@ function isCompletedPracticeLesson(lesson: ScheduleLessonItem): boolean {
         lesson.kind === 'lesson' &&
         lesson.type.trim().toUpperCase() === 'PRACTICE' &&
         lesson.status.trim().toUpperCase() === 'COMPLETED'
+    );
+}
+
+function isScheduledPracticeLesson(lesson: ScheduleLessonItem): boolean {
+    return (
+        lesson.kind === 'lesson' &&
+        lesson.type.trim().toUpperCase() === 'PRACTICE' &&
+        lesson.status.trim().toUpperCase() === 'SCHEDULED'
     );
 }
 
@@ -196,12 +222,72 @@ async function handleRatingSubmit(payload: {
     }
 }
 
+function handleCancelLessonRequested(lesson: ScheduleLessonItem): void {
+    if (!isStudent.value || !isScheduledPracticeLesson(lesson)) {
+        return;
+    }
+
+    pendingCancelLesson.value = lesson;
+}
+
+function handleCancelDialogOpenChange(open: boolean): void {
+    isCancelDialogOpen.value = open;
+}
+
+async function handleConfirmCancelLesson(): Promise<void> {
+    const lesson = pendingCancelLesson.value;
+
+    if (!lesson || isCancelling.value) {
+        return;
+    }
+
+    try {
+        await cancelOwnLesson(lesson.id);
+        pendingCancelLesson.value = null;
+
+        addToast({
+            title: 'Rezerwacja zostala anulowana',
+            variant: 'success',
+        });
+
+        await loadWeek();
+    } catch (err: unknown) {
+        const message = getApiFetchErrorMessage(
+            err,
+            'Nie udalo sie anulowac rezerwacji.',
+        );
+
+        addToast({
+            title: 'Nie udalo sie anulowac rezerwacji',
+            description: message,
+            variant: 'error',
+        });
+    }
+}
+
 function formatWeekLabel(d: Date): string {
     return new Intl.DateTimeFormat('pl-PL', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
     }).format(d);
+}
+
+function formatIsoLocal(iso: string): string {
+    const d = new Date(iso);
+
+    if (Number.isNaN(d.getTime())) {
+        return iso;
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+    }).format(d);
+}
+
+function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
+    return `${formatIsoLocal(lesson.startTime)} - ${formatIsoLocal(lesson.endTime)}`;
 }
 </script>
 
@@ -339,10 +425,59 @@ function formatWeekLabel(d: Date): string {
             <ManagerScheduleLessonTable
                 v-else
                 :items="items"
+                :student-lesson-cancel-enabled="isStudent"
+                :cancelling-lesson-id="cancellingLessonId"
                 :empty-message="
                     isStudent ? 'Brak pozycji w tym tygodniu.' : undefined
                 "
+                @request-cancel-lesson="handleCancelLessonRequested"
             />
         </div>
+
+        <UiDialog
+            :open="isCancelDialogOpen"
+            @update:open="handleCancelDialogOpenChange"
+        >
+            <UiDialogContent
+                :show-close-button="false"
+                aria-describedby="student-cancel-lesson-description"
+            >
+                <UiDialogHeader>
+                    <UiDialogTitle>Anulowac rezerwacje?</UiDialogTitle>
+                    <UiDialogDescription id="student-cancel-lesson-description">
+                        Ta jazda zostanie oznaczona jako anulowana i zniknie z
+                        Twojego aktywnego harmonogramu.
+                        <span
+                            v-if="pendingCancelLessonLabel"
+                            class="text-foreground mt-2 block font-medium"
+                        >
+                            {{ pendingCancelLessonLabel }}
+                        </span>
+                    </UiDialogDescription>
+                </UiDialogHeader>
+
+                <UiDialogFooter>
+                    <UiButton
+                        type="button"
+                        variant="outline"
+                        :disabled="isCancelling"
+                        @click="pendingCancelLesson = null"
+                    >
+                        Nie
+                    </UiButton>
+                    <UiButton
+                        type="button"
+                        variant="destructive"
+                        :disabled="isCancelling"
+                        :aria-busy="isCancelling"
+                        @click="handleConfirmCancelLesson"
+                    >
+                        {{
+                            isCancelling ? 'Anulowanie...' : 'Anuluj rezerwacje'
+                        }}
+                    </UiButton>
+                </UiDialogFooter>
+            </UiDialogContent>
+        </UiDialog>
     </div>
 </template>

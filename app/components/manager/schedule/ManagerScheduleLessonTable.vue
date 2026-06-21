@@ -22,21 +22,31 @@ const props = withDefaults(
         eventDeleteEnabled?: boolean;
         /** Gdy true — select statusu (PATCH) dla wierszy `instructor_event` (uprawnienia managera). */
         eventStatusChangeEnabled?: boolean;
+        studentLessonCancelEnabled?: boolean;
+        cancellingLessonId?: string | null;
         /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
         schoolId?: string;
     }>(),
     {
+        emptyMessage: undefined,
         eventEditEnabled: false,
         eventDeleteEnabled: false,
         eventStatusChangeEnabled: false,
+        studentLessonCancelEnabled: false,
+        cancellingLessonId: null,
         schoolId: '',
     },
 );
 
 const emit = defineEmits<{
     'request-delete': [item: ScheduleLessonItem];
+    'request-cancel-lesson': [item: ScheduleLessonItem];
     'status-changed': [payload: { id: string; status: string }];
 }>();
+
+const hasActionsColumn = computed(
+    () => props.eventDeleteEnabled || props.studentLessonCancelEnabled,
+);
 
 function rowIsClickable(item: ScheduleLessonItem): boolean {
     return isScheduleManagerItemEditable(props.eventEditEnabled, item);
@@ -74,6 +84,19 @@ function handleRowKeydown(e: KeyboardEvent, item: ScheduleLessonItem): void {
 
 function handleRequestDeleteClick(item: ScheduleLessonItem): void {
     emit('request-delete', item);
+}
+
+function handleRequestCancelLessonClick(item: ScheduleLessonItem): void {
+    emit('request-cancel-lesson', item);
+}
+
+function isStudentCancellableLesson(item: ScheduleLessonItem): boolean {
+    return (
+        props.studentLessonCancelEnabled &&
+        item.kind === 'lesson' &&
+        item.type.trim().toUpperCase() === 'PRACTICE' &&
+        item.status.trim().toUpperCase() === 'SCHEDULED'
+    );
 }
 
 function rowTitle(item: ScheduleLessonItem): string | undefined {
@@ -157,7 +180,7 @@ function displayVehicle(
                     <th scope="col" class="px-3 py-2 font-medium">Kursant</th>
                     <th scope="col" class="px-3 py-2 font-medium">Pojazd</th>
                     <th
-                        v-if="props.eventDeleteEnabled"
+                        v-if="hasActionsColumn"
                         scope="col"
                         class="px-3 py-2 font-medium"
                     >
@@ -168,7 +191,7 @@ function displayVehicle(
             <tbody>
                 <tr v-if="props.items.length === 0">
                     <td
-                        :colspan="props.eventDeleteEnabled ? 8 : 7"
+                        :colspan="hasActionsColumn ? 8 : 7"
                         class="text-muted-foreground px-3 py-6 text-center"
                         role="status"
                     >
@@ -234,7 +257,7 @@ function displayVehicle(
                         {{ displayVehicle(item.vehicle) }}
                     </td>
                     <td
-                        v-if="props.eventDeleteEnabled"
+                        v-if="hasActionsColumn"
                         class="px-3 py-2 whitespace-nowrap"
                         @click.stop
                     >
@@ -248,6 +271,23 @@ function displayVehicle(
                             @click="handleRequestDeleteClick(item)"
                         >
                             Usuń
+                        </UiButton>
+                        <UiButton
+                            v-else-if="isStudentCancellableLesson(item)"
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            class="shrink-0"
+                            :disabled="props.cancellingLessonId === item.id"
+                            :aria-busy="props.cancellingLessonId === item.id"
+                            :aria-label="`Anuluj rezerwacje ${formatIsoLocal(item.startTime)} - ${formatIsoLocal(item.endTime)}`"
+                            @click="handleRequestCancelLessonClick(item)"
+                        >
+                            {{
+                                props.cancellingLessonId === item.id
+                                    ? 'Anulowanie...'
+                                    : 'Anuluj'
+                            }}
                         </UiButton>
                         <span v-else class="text-muted-foreground">—</span>
                     </td>

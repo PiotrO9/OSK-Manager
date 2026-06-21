@@ -168,6 +168,62 @@ export async function bffOwnLessonPost(
     };
 }
 
+export async function bffOwnLessonCancel(
+    event: H3Event,
+    upstreamBase: string,
+    lessonId: string,
+): Promise<{ success: true; data: { lesson: LessonCreateResponse } }> {
+    const access = getCookie(event, 'access_token');
+
+    if (!access) {
+        throw createError({ statusCode: 401, message: 'Brak tokena dostepu' });
+    }
+
+    const res = await fetch(
+        `${upstreamBase}/lessons/${encodeURIComponent(lessonId)}/cancel`,
+        {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${access}`,
+            },
+        },
+    );
+
+    const text = await res.text();
+    const json = parseBackendEnvelopeFromResponseText<{
+        lesson: LessonCreateResponse;
+    }>(
+        res,
+        text,
+        'Nieprawidlowa odpowiedz serwera (niepoprawny JSON).',
+        'Nie znaleziono endpointu PATCH /lessons/:lessonId/cancel na serwerze.',
+    );
+
+    if (!res.ok || !json.success) {
+        throw createError({
+            statusCode: res.status || 502,
+            statusMessage:
+                typeof json.error === 'string'
+                    ? json.error
+                    : 'Nie udalo sie anulowac rezerwacji',
+        });
+    }
+
+    const lesson = json.data?.lesson;
+
+    if (!lesson || typeof lesson !== 'object') {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidlowa odpowiedz serwera',
+        });
+    }
+
+    return {
+        success: true,
+        data: { lesson },
+    };
+}
+
 export async function bffLessonsGet(
     event: H3Event,
     upstreamBase: string,
