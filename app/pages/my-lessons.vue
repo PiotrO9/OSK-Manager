@@ -408,30 +408,39 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
             role="tabpanel"
             aria-labelledby="my-schedule-list-tab"
         >
-            <p
-                v-if="isLoading"
-                class="text-muted-foreground text-sm"
-                role="status"
-            >
-                Wczytywanie...
-            </p>
-            <p
-                v-else-if="errorMessage"
-                class="text-destructive text-sm"
-                role="alert"
-            >
-                {{ errorMessage }}
-            </p>
-            <ManagerScheduleLessonTable
-                v-else
+            <StudentScheduleGroupedList
+                v-if="isStudent"
                 :items="items"
-                :student-lesson-cancel-enabled="isStudent"
+                :is-loading="isLoading"
+                :error-message="errorMessage"
+                :student-lesson-cancel-enabled="true"
                 :cancelling-lesson-id="cancellingLessonId"
-                :empty-message="
-                    isStudent ? 'Brak pozycji w tym tygodniu.' : undefined
-                "
                 @request-cancel-lesson="handleCancelLessonRequested"
             />
+
+            <template v-else>
+                <p
+                    v-if="isLoading"
+                    class="text-muted-foreground text-sm"
+                    role="status"
+                >
+                    Wczytywanie...
+                </p>
+                <p
+                    v-else-if="errorMessage"
+                    class="text-destructive text-sm"
+                    role="alert"
+                >
+                    {{ errorMessage }}
+                </p>
+                <ManagerScheduleLessonTable
+                    v-else
+                    :items="items"
+                    :student-lesson-cancel-enabled="isStudent"
+                    :cancelling-lesson-id="cancellingLessonId"
+                    @request-cancel-lesson="handleCancelLessonRequested"
+                />
+            </template>
         </div>
 
         <UiDialog

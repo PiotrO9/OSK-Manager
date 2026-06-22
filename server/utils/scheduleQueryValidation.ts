@@ -58,11 +58,13 @@ export function parseScheduleManagerQuery(query: Record<string, unknown>): {
     dateTo: string;
     instructorId?: string;
     studentId?: string;
+    schoolId?: string;
 } {
     const base = parseScheduleMeQuery(query);
 
     const instructorRaw = query.instructorId;
     const studentRaw = query.studentId;
+    const schoolRaw = query.schoolId;
 
     const instructorId =
         typeof instructorRaw === 'string' && instructorRaw.trim().length > 0
@@ -71,6 +73,10 @@ export function parseScheduleManagerQuery(query: Record<string, unknown>): {
     const studentId =
         typeof studentRaw === 'string' && studentRaw.trim().length > 0
             ? studentRaw.trim()
+            : undefined;
+    const schoolId =
+        typeof schoolRaw === 'string' && schoolRaw.trim().length > 0
+            ? schoolRaw.trim()
             : undefined;
 
     const hasI = instructorId !== undefined;
@@ -102,5 +108,20 @@ export function parseScheduleManagerQuery(query: Record<string, unknown>): {
         return { ...base, instructorId };
     }
 
-    return { ...base, studentId: studentId! };
+    if (schoolId !== undefined && !isUuid(schoolId)) {
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidlowy identyfikator schoolId.',
+        });
+    }
+
+    if (schoolId === undefined) {
+        throw createError({
+            statusCode: 400,
+            message:
+                'Parametr schoolId jest wymagany przy pobieraniu terminarza kursanta.',
+        });
+    }
+
+    return { ...base, studentId: studentId!, schoolId };
 }

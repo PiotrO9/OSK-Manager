@@ -14,7 +14,7 @@ function buildScheduleMeUrl(dateFrom: string, dateTo: string): string {
 function buildScheduleManagerUrl(
     dateFrom: string,
     dateTo: string,
-    target: { instructorId: string } | { studentId: string },
+    target: { instructorId: string } | { studentId: string; schoolId: string },
 ): string {
     const params = new URLSearchParams({
         dateFrom: dateFrom.trim(),
@@ -25,6 +25,7 @@ function buildScheduleManagerUrl(
         params.set('instructorId', target.instructorId.trim());
     } else {
         params.set('studentId', target.studentId.trim());
+        params.set('schoolId', target.schoolId.trim());
     }
 
     return resolveBffEndpoint(`/api/schedule?${params.toString()}`);
@@ -78,17 +79,19 @@ export function useScheduleApi() {
         studentId: string,
         dateFrom: string,
         dateTo: string,
+        schoolId: string,
     ): Promise<ScheduleLessonItem[]> {
         const id = studentId.trim();
         const from = dateFrom.trim();
         const to = dateTo.trim();
+        const sid = schoolId.trim();
 
-        if (!id || !from || !to) {
+        if (!id || !from || !to || !sid) {
             return [];
         }
 
         const raw = await $fetch<unknown>(
-            buildScheduleManagerUrl(from, to, { studentId: id }),
+            buildScheduleManagerUrl(from, to, { studentId: id, schoolId: sid }),
             { credentials: 'include' },
         );
 

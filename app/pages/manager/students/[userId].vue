@@ -272,8 +272,9 @@ let scheduleFetchSeq = 0;
 
 async function loadStudentSchedule(): Promise<void> {
     const s = student.value;
+    const schoolId = readSchoolIdFromQuery();
 
-    if (!s?.id) {
+    if (!s?.id || !schoolId) {
         scheduleItems.value = [];
 
         return;
@@ -287,7 +288,12 @@ async function loadStudentSchedule(): Promise<void> {
     const { dateFrom, dateTo } = studentScheduleRange.value;
 
     try {
-        const data = await fetchScheduleForStudent(s.id, dateFrom, dateTo);
+        const data = await fetchScheduleForStudent(
+            s.id,
+            dateFrom,
+            dateTo,
+            schoolId,
+        );
 
         if (seq !== scheduleFetchSeq) {
             return;
@@ -312,7 +318,7 @@ async function loadStudentSchedule(): Promise<void> {
 }
 
 watch(
-    [() => student.value?.id, studentScheduleRange],
+    [() => student.value?.id, () => route.query.schoolId, studentScheduleRange],
     () => {
         void loadStudentSchedule();
     },

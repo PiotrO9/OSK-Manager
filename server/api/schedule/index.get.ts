@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
         params.set('instructorId', q.instructorId);
     } else {
         params.set('studentId', q.studentId!);
+        params.set('schoolId', q.schoolId!);
     }
 
     const upstream = resolveUpstreamBase(event);

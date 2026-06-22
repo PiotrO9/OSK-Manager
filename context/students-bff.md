@@ -35,6 +35,6 @@ Edycja notatki na stronie szczegółów: [`app/pages/manager/students/[userId].v
 
 ## Terminarz lekcji (podgląd biura)
 
-Na tej samej stronie szczegółów (z wczytanym kursantem) wyświetlany jest **tygodniowy** terminarz lekcji: żądanie `GET /api/schedule?studentId=<uuid>&dateFrom=&dateTo=` — **`studentId`** to **`id` profilu kursanta** z odpowiedzi szczegółów (`StudentDetail.id`), nie `userId` z ścieżki URL.
+Na tej samej stronie szczegółów (z wczytanym kursantem) wyświetlany jest **tygodniowy** terminarz lekcji: żądanie `GET /api/schedule?studentId=<uuid>&schoolId=<uuid>&dateFrom=&dateTo=` — **`studentId`** to **`id` profilu kursanta** z odpowiedzi szczegółów (`StudentDetail.id`), nie `userId` z ścieżki URL; **`schoolId`** pochodzi z query strony szczegółów.
 
 Opis BFF: [schedule-events-bff.md](./schedule-events-bff.md).
