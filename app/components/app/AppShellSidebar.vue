@@ -8,6 +8,7 @@ import {
     CalendarDays,
     CalendarPlus,
     Car,
+    CreditCard,
     GraduationCap,
     LayoutDashboard,
     LogOut,
@@ -79,6 +80,13 @@ const navItems = computed<NavItem[]>(() => {
             ariaLabel: 'Przejdz do rezerwacji jazdy',
             icon: CalendarPlus,
             tooltip: 'Rezerwuj jazde',
+        });
+        items.splice(4, 0, {
+            to: '/my-payments',
+            label: 'Moje opłaty',
+            ariaLabel: 'Przejdź do listy moich opłat',
+            icon: CreditCard,
+            tooltip: 'Moje opłaty',
         });
     }
 

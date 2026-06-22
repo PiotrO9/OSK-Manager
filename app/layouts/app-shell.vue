@@ -33,6 +33,10 @@ function resolveShellHeading(): string {
         return 'Moje kursy';
     }
 
+    if (route.path === '/my-payments') {
+        return 'Moje opłaty';
+    }
+
     if (route.path === '/book-lesson') {
         return 'Rezerwuj jazde';
     }

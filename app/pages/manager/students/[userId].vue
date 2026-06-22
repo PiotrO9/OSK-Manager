@@ -14,6 +14,7 @@ import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
 import type { ScheduleLessonItem } from '~/types/schedule';
+import type { StudentPaymentItem } from '~/types/payment';
 
 definePageMeta({
     layout: 'app-shell',
@@ -23,6 +24,7 @@ definePageMeta({
 const route = useRoute();
 const { fetchScheduleForStudent } = useScheduleApi();
 const { fetchProcessStatus } = useStudentsApi();
+const { fetchStudentPayments } = usePaymentsApi();
 
 const student = ref<StudentDetail | null>(null);
 const isLoading = ref(false);
@@ -31,6 +33,9 @@ const processStatus = ref<StudentProcessStatus | null>(null);
 const processStatusLoading = ref(false);
 const processStatusError = ref<string | null>(null);
 const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
+const payments = ref<StudentPaymentItem[]>([]);
+const paymentsLoading = ref(false);
+const paymentsError = ref<string | null>(null);
 
 usePageMeta({
     title: () => {
@@ -232,6 +237,58 @@ watch(
     () => [route.params.userId, route.query.schoolId] as const,
     ([userId]) => {
         void loadStudentProcessStatus(userId);
+    },
+    { immediate: true },
+);
+
+let paymentsFetchSeq = 0;
+
+async function loadStudentPayments(rawUserId: unknown): Promise<void> {
+    const userId = getRouteUserIdString(rawUserId);
+    const schoolId = readSchoolIdFromQuery();
+
+    payments.value = [];
+    paymentsError.value = null;
+
+    if (!userId || !schoolId) {
+        paymentsLoading.value = false;
+
+        return;
+    }
+
+    const seq = ++paymentsFetchSeq;
+
+    paymentsLoading.value = true;
+
+    try {
+        const data = await fetchStudentPayments(userId, schoolId);
+
+        if (seq !== paymentsFetchSeq) {
+            return;
+        }
+
+        payments.value = data;
+    } catch (err: unknown) {
+        if (seq !== paymentsFetchSeq) {
+            return;
+        }
+
+        payments.value = [];
+        paymentsError.value = getApiFetchErrorMessage(
+            err,
+            'Nie udało się wczytać opłat kursanta.',
+        );
+    } finally {
+        if (seq === paymentsFetchSeq) {
+            paymentsLoading.value = false;
+        }
+    }
+}
+
+watch(
+    () => [route.params.userId, route.query.schoolId] as const,
+    ([userId]) => {
+        void loadStudentPayments(userId);
     },
     { immediate: true },
 );
@@ -523,6 +580,26 @@ function formatScheduleWeekLabel(d: Date): string {
                         {{ scheduleError }}
                     </p>
                     <ManagerScheduleLessonTable v-else :items="scheduleItems" />
+                </section>
+
+                <section
+                    aria-labelledby="student-payments-heading"
+                    class="border-border bg-card min-w-0 rounded-xl border p-6 shadow-sm xl:col-span-2"
+                >
+                    <h2
+                        id="student-payments-heading"
+                        class="text-foreground mb-4 text-lg font-semibold"
+                    >
+                        Opłaty
+                    </h2>
+                    <p class="text-muted-foreground mb-4 text-sm">
+                        Historia opłat kursanta w wybranej szkole.
+                    </p>
+                    <StudentPaymentsList
+                        :payments="payments"
+                        :is-loading="paymentsLoading"
+                        :error="paymentsError"
+                    />
                 </section>
 
                 <section
