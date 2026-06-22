@@ -29,6 +29,7 @@ export interface AuthSession {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    pkkNumber?: string | null;
     /** Aktywne OSK widoczne dla roli (z `/auth/me`). */
     drivingSchools: AuthDrivingSchoolSummary[];
     /** Domyślna OSK właściciela — sens dla `MANAGER`; inne role: `null`. */
@@ -51,6 +52,7 @@ type BackendUserResponse = {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    pkkNumber?: string | null;
     drivingSchools?: unknown;
     defaultOskId?: string | null;
 };
@@ -66,6 +68,7 @@ interface SessionUserPayload {
     phone?: string | null;
     bio?: string | null;
     profileUpdatedAt?: string | null;
+    pkkNumber?: string | null;
     drivingSchools: AuthDrivingSchoolSummary[];
     defaultOskId: string | null;
 }
@@ -206,6 +209,9 @@ function normalizeBackendUserToSessionPayload(
                 : user.profileUpdatedAt === null
                   ? null
                   : undefined,
+        pkkNumber: Object.prototype.hasOwnProperty.call(user, 'pkkNumber')
+            ? optionalString(user.pkkNumber)
+            : undefined,
         drivingSchools: normalizeDrivingSchoolsFromBackend(user.drivingSchools),
         defaultOskId: Object.prototype.hasOwnProperty.call(user, 'defaultOskId')
             ? normalizeDefaultPkFromBackend(user.defaultOskId)
@@ -225,6 +231,7 @@ function createSessionFromUser(user: SessionUserPayload): AuthSession {
         phone: user.phone,
         bio: user.bio,
         profileUpdatedAt: user.profileUpdatedAt,
+        pkkNumber: user.pkkNumber,
         drivingSchools: user.drivingSchools,
         defaultOskId: user.defaultOskId,
     };

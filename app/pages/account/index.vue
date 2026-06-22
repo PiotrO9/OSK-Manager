@@ -206,6 +206,24 @@ const sessionRoleBadge = computed(() =>
     getRoleBadgePresentation(session.value?.role),
 );
 
+const isStudentSession = computed(
+    () => session.value?.role?.trim().toUpperCase() === 'STUDENT',
+);
+
+function hasPkkNumber(value: string | null | undefined): boolean {
+    return typeof value === 'string' && value.trim().length > 0;
+}
+
+const accountPkkNumber = computed(() => {
+    const raw = session.value?.pkkNumber;
+
+    return hasPkkNumber(raw) ? raw.trim() : 'Brak przypisanego PKK';
+});
+
+const isAccountPkkMissing = computed(
+    () => !hasPkkNumber(session.value?.pkkNumber),
+);
+
 function userInitialsFromName(name: string): string {
     const parts = name.trim().split(/\s+/).filter(Boolean);
 
@@ -556,6 +574,19 @@ async function handleProfileContactSubmit() {
                             >
                                 {{ sessionRoleBadge.label }}
                             </UiBadge>
+                        </dd>
+                    </div>
+                    <div v-if="isStudentSession">
+                        <dt class="text-muted-foreground font-medium">
+                            Numer PKK
+                        </dt>
+                        <dd
+                            class="text-foreground mt-0.5 font-medium"
+                            :class="{
+                                'text-muted-foreground': isAccountPkkMissing,
+                            }"
+                        >
+                            {{ accountPkkNumber }}
                         </dd>
                     </div>
                     <div

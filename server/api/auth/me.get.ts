@@ -57,6 +57,10 @@ export default defineEventHandler(async (event) => {
                     phone: null as string | null,
                     bio: null as string | null,
                     profileUpdatedAt: null as string | null,
+                    pkkNumber:
+                        role.trim().toUpperCase() === 'STUDENT'
+                            ? (null as string | null)
+                            : undefined,
                     avatarUrl: avatarFromMock,
                     role,
                     drivingSchools: [],
