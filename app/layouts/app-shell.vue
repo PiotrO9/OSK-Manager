@@ -42,6 +42,10 @@ function resolveShellHeading(): string {
         return 'Moje opłaty';
     }
 
+    if (route.path === '/my-reviews') {
+        return 'Moje opinie';
+    }
+
     if (route.path === '/book-lesson') {
         return 'Rezerwuj jazde';
     }

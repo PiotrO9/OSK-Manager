@@ -8,11 +8,13 @@ const props = withDefaults(
     defineProps<{
         ratings: LessonRatingListItem[];
         showStudent?: boolean;
+        showInstructorMeta?: boolean;
         isLoading?: boolean;
         emptyLabel?: string;
     }>(),
     {
         showStudent: true,
+        showInstructorMeta: true,
         isLoading: false,
         emptyLabel: 'Brak opinii',
     },
@@ -33,6 +35,30 @@ function formatDateTime(value: string): string {
 
 function ratingLabel(value: number): string {
     return value.toFixed(1);
+}
+
+function lessonMetaLabel(rating: LessonRatingListItem): string {
+    const parts: string[] = [];
+
+    if (props.showStudent) {
+        const studentName = formatLessonRatingPersonName(rating.student);
+
+        if (studentName !== '-') {
+            parts.push(studentName);
+        }
+    }
+
+    if (props.showInstructorMeta) {
+        const instructorName = formatLessonRatingPersonName(rating.instructor);
+
+        if (instructorName !== '-') {
+            parts.push(instructorName);
+        }
+    }
+
+    parts.push(formatDateTime(rating.lesson.startTime));
+
+    return parts.join(' - ');
 }
 </script>
 
@@ -68,13 +94,7 @@ function ratingLabel(value: number): string {
                         <span v-else>Brak komentarza do tej jazdy.</span>
                     </p>
                     <p class="text-muted-foreground text-xs">
-                        <span v-if="props.showStudent">
-                            {{ formatLessonRatingPersonName(rating.student) }}
-                            -
-                        </span>
-                        {{ formatLessonRatingPersonName(rating.instructor) }}
-                        -
-                        {{ formatDateTime(rating.lesson.startTime) }}
+                        {{ lessonMetaLabel(rating) }}
                     </p>
                 </div>
 
