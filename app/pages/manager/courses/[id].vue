@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { ArrowLeft, BookOpen, User } from 'lucide-vue-next';
+import {
+    ArrowLeft,
+    BookOpen,
+    CheckCircle2,
+    GraduationCap,
+    ListChecks,
+    Plus,
+    Settings2,
+    User,
+} from 'lucide-vue-next';
 import type { InstructorListItem } from '~/types/instructor';
 import {
     formatInstructorDisplayName,
@@ -16,6 +25,8 @@ definePageMeta({
     middleware: ['manager'],
 });
 
+const NO_INSTRUCTOR_VALUE = '__no_instructor__';
+
 const route = useRoute();
 const { addToast } = useAppToast();
 const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
@@ -23,15 +34,15 @@ const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
 const course = ref<CourseDetail | null>(null);
-const loadError = ref<string | null>(null);
+const loadError = shallowRef<string | null>(null);
 let fetchSeq = 0;
 
 const instructors = ref<InstructorListItem[]>([]);
-const instructorsLoadError = ref<string | null>(null);
-const isInstructorsLoading = ref(false);
+const instructorsLoadError = shallowRef<string | null>(null);
+const isInstructorsLoading = shallowRef(false);
 
-const selectedInstructorProfileId = ref('');
-const isInstructorSelectionTouched = ref(false);
+const selectedInstructorProfileId = shallowRef(NO_INSTRUCTOR_VALUE);
+const isInstructorSelectionTouched = shallowRef(false);
 
 const qualifiedInstructors = computed((): InstructorListItem[] => {
     const categoryCode =
@@ -54,9 +65,7 @@ const schoolIdFromQuery = computed(() => {
         return '';
     }
 
-    const t = s.trim();
-
-    return t;
+    return s.trim();
 });
 
 const effectiveSchoolId = computed(() => {
@@ -71,8 +80,129 @@ const effectiveSchoolId = computed(() => {
     return sid && sid.length > 0 ? sid : '';
 });
 
+const backToCoursesHref = computed(() => {
+    if (!effectiveSchoolId.value) {
+        return '/manager/courses';
+    }
+
+    return {
+        path: '/manager/courses',
+        query: { schoolId: effectiveSchoolId.value },
+    };
+});
+
+const createCourseTarget = computed(() => ({
+    path: '/manager/courses/new',
+    query: effectiveSchoolId.value ? { schoolId: effectiveSchoolId.value } : {},
+}));
+
+const courseTitle = computed(
+    () => course.value?.name?.trim() || 'Szczegoly kursu',
+);
+
+const courseCategoryLabel = computed(() => {
+    const category = course.value?.courseType?.label?.trim();
+
+    if (category) {
+        return category;
+    }
+
+    return course.value?.category?.trim() || '--';
+});
+
+const courseSubtitle = computed(() => {
+    if (!course.value) {
+        return 'Parametry kursu, kursanci, godziny i ustawienia.';
+    }
+
+    return `Kategoria ${courseCategoryLabel.value} - aktywny kurs`;
+});
+
+const courseInitials = computed(() => {
+    const source = course.value?.name?.trim() || course.value?.category || 'K';
+    const initials = source
+        .split(/\s+/)
+        .filter((part) => part.length > 0)
+        .slice(0, 2)
+        .map((part) => part.charAt(0))
+        .join('');
+
+    return initials.length > 0 ? initials.toUpperCase() : 'K';
+});
+
+const resolvedInstructorProfileIdFromCourse = computed(() => {
+    if (!course.value) {
+        return '';
+    }
+
+    return resolveInstructorProfileIdForCourseSelection(
+        course.value.instructor,
+        qualifiedInstructors.value,
+    );
+});
+
+const selectedInstructorPatchValue = computed(() => {
+    const value = selectedInstructorProfileId.value.trim();
+
+    return value === NO_INSTRUCTOR_VALUE ? '' : value;
+});
+
+const overviewItems = computed(() => {
+    if (!course.value) {
+        return [];
+    }
+
+    return [
+        {
+            label: 'Godziny kursu',
+            description: `${course.value.totalHours} h lacznie`,
+            badge: `${course.value.totalHours} h`,
+            tone: 'info' as const,
+        },
+        {
+            label: 'Typ kursu',
+            description: 'Rodzaj zajec i organizacji kursu.',
+            badge: formatCourseKindLabel(course.value.type),
+            tone: 'neutral' as const,
+        },
+        {
+            label: 'Limit miejsc',
+            description: 'Maksymalna liczba uczestnikow.',
+            badge: formatCapacityText(course.value.capacity),
+            tone:
+                course.value.capacity === null
+                    ? ('neutral' as const)
+                    : ('success' as const),
+        },
+    ];
+});
+
+const relatedItems = computed(() => {
+    if (!course.value) {
+        return [];
+    }
+
+    return [
+        {
+            label: 'Instruktor',
+            description: 'Przypisanie edytowane w panelu obok.',
+            badge: formatInstructorName(course.value),
+        },
+        {
+            label: 'Kategoria',
+            description: 'Zachowana w konfiguracji kursu.',
+            badge: courseCategoryLabel.value,
+        },
+        {
+            label: 'OSK',
+            description: 'Kontekst pobrany z linku lub danych kursu.',
+            badge: effectiveSchoolId.value ? 'Powiazane' : 'Brak ID',
+        },
+    ];
+});
+
 usePageMeta({
-    title: () => course.value?.name?.trim() || 'Szczegóły kursu',
+    title: () => courseTitle.value,
     description: () => 'Dane kursu i przypisanie instruktora.',
 });
 
@@ -92,7 +222,7 @@ function resolveCourseDetailError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
     if (status === 403) {
-        return 'Brak dostępu do szczegółów tego kursu.';
+        return 'Brak dostepu do szczegolow tego kursu.';
     }
 
     if (status === 404) {
@@ -100,14 +230,14 @@ function resolveCourseDetailError(err: unknown): string {
     }
 
     if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
+        return 'Serwer jest chwilowo niedostepny. Sprobuj ponownie.';
     }
 
     if (err instanceof Error && err.message.trim().length > 0) {
         return err.message.trim();
     }
 
-    return getApiFetchErrorMessage(err, 'Nie udało się wczytać danych kursu.');
+    return getApiFetchErrorMessage(err, 'Nie udalo sie wczytac danych kursu.');
 }
 
 function formatCapacityText(capacity: number | null): string {
@@ -130,28 +260,19 @@ function formatInstructorName(c: CourseDetail): string {
 
 function applySelectionFromCourse() {
     if (!course.value) {
-        selectedInstructorProfileId.value = '';
+        selectedInstructorProfileId.value = NO_INSTRUCTOR_VALUE;
 
         return;
     }
 
-    selectedInstructorProfileId.value =
-        resolveInstructorProfileIdForCourseSelection(
-            course.value.instructor,
-            qualifiedInstructors.value,
-        );
-}
-
-const resolvedInstructorProfileIdFromCourse = computed(() => {
-    if (!course.value) {
-        return '';
-    }
-
-    return resolveInstructorProfileIdForCourseSelection(
+    const resolved = resolveInstructorProfileIdForCourseSelection(
         course.value.instructor,
         qualifiedInstructors.value,
     );
-});
+
+    selectedInstructorProfileId.value =
+        resolved.length > 0 ? resolved : NO_INSTRUCTOR_VALUE;
+}
 
 async function loadInstructors(schoolId: string) {
     instructorsLoadError.value = null;
@@ -163,7 +284,7 @@ async function loadInstructors(schoolId: string) {
         instructors.value = [];
         instructorsLoadError.value = getApiFetchErrorMessage(
             e,
-            'Nie udało się pobrać listy instruktorów.',
+            'Nie udalo sie pobrac listy instruktorow.',
         );
     } finally {
         isInstructorsLoading.value = false;
@@ -184,7 +305,7 @@ watch(
             return;
         }
 
-        loadInstructors(sid);
+        void loadInstructors(sid);
     },
     { immediate: true },
 );
@@ -205,7 +326,7 @@ async function loadCourse(rawId: unknown) {
 
     course.value = null;
     isInstructorSelectionTouched.value = false;
-    selectedInstructorProfileId.value = '';
+    selectedInstructorProfileId.value = NO_INSTRUCTOR_VALUE;
 
     try {
         const data = await fetchById(id);
@@ -240,7 +361,7 @@ function handleInstructorSelectChange() {
 
 const instructorSaveBlockedReason = computed(() => {
     if (!effectiveSchoolId.value) {
-        return 'Brak identyfikatora szkoły (dodaj ?schoolId=… w adresie lub otwórz link z listy kursów).';
+        return 'Brak identyfikatora szkoly. Otworz szczegoly z listy kursow albo dodaj parametr schoolId w adresie.';
     }
 
     return '';
@@ -255,7 +376,7 @@ const canSaveInstructorAssignment = computed(() => {
         return false;
     }
 
-    const sel = selectedInstructorProfileId.value.trim();
+    const sel = selectedInstructorPatchValue.value;
     const cur = resolvedInstructorProfileIdFromCourse.value.trim();
 
     if (sel === cur) {
@@ -272,7 +393,7 @@ async function handleSaveInstructorAssignment() {
         return;
     }
 
-    const trimmed = selectedInstructorProfileId.value.trim();
+    const trimmed = selectedInstructorPatchValue.value;
 
     try {
         const updated = await patchCourse(id, {
@@ -289,10 +410,10 @@ async function handleSaveInstructorAssignment() {
         });
     } catch (err) {
         addToast({
-            title: 'Błąd',
+            title: 'Blad',
             description: getApiFetchErrorMessage(
                 err,
-                'Nie udało się zapisać instruktora.',
+                'Nie udalo sie zapisac instruktora.',
             ),
             variant: 'error',
         });
@@ -301,142 +422,256 @@ async function handleSaveInstructorAssignment() {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div>
-            <NuxtLink
-                to="/manager/courses"
-                class="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-2 text-sm"
-                aria-label="Wróć do listy kursów"
-            >
-                <ArrowLeft class="size-4 shrink-0" aria-hidden="true" />
-                Lista kursów
-            </NuxtLink>
-            <div class="space-y-1">
-                <h1
-                    class="text-foreground flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight"
+    <div class="space-y-5">
+        <PageHeader :title="courseTitle" :description="courseSubtitle">
+            <template #actions>
+                <UiButton
+                    as-child
+                    variant="outline"
+                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
                 >
-                    <BookOpen
-                        class="text-muted-foreground size-7 shrink-0"
-                        aria-hidden="true"
-                    />
-                    <span>{{ course?.name?.trim() || 'Szczegóły kursu' }}</span>
-                </h1>
-                <p class="text-muted-foreground text-sm">
-                    Dane kursu i przypisanie instruktora z listy OSK.
-                </p>
-            </div>
-        </div>
+                    <NuxtLink
+                        :to="backToCoursesHref"
+                        aria-label="Wroc do listy kursow"
+                    >
+                        <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
+                        Lista kursow
+                    </NuxtLink>
+                </UiButton>
+                <UiButton
+                    as-child
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                >
+                    <NuxtLink
+                        :to="createCourseTarget"
+                        aria-label="Dodaj nowy kurs"
+                    >
+                        <Plus class="mr-2 size-4" aria-hidden="true" />
+                        Dodaj kurs
+                    </NuxtLink>
+                </UiButton>
+            </template>
+        </PageHeader>
 
-        <p
+        <LoadingState
             v-if="isDetailLoading"
-            class="text-muted-foreground text-sm"
-            role="status"
-        >
-            Wczytywanie danych kursu…
-        </p>
+            title="Wczytywanie kursu"
+            description="Pobieram parametry kursu i aktualne przypisanie instruktora."
+        />
 
-        <p
+        <ErrorState
             v-else-if="loadError"
-            class="text-destructive text-sm"
-            role="alert"
-            aria-live="polite"
-        >
-            {{ loadError }}
-        </p>
+            title="Nie udalo sie wczytac kursu"
+            :description="loadError"
+            @retry="loadCourse(route.params.id)"
+        />
 
         <template v-else-if="course">
-            <div class="grid gap-6 md:grid-cols-1 lg:max-w-2xl">
-                <UiCard aria-label="Dane kursu">
-                    <UiCardHeader>
-                        <UiCardTitle class="text-base">Dane kursu</UiCardTitle>
-                    </UiCardHeader>
-                    <UiCardContent>
-                        <dl class="grid gap-3 text-sm">
-                            <div class="grid gap-0.5">
-                                <dt class="text-muted-foreground">Nazwa</dt>
-                                <dd class="text-foreground font-medium">
+            <div class="grid gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
+                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+                    <UiCardContent class="space-y-5 p-5">
+                        <div class="flex items-start gap-4 xl:flex-col">
+                            <div
+                                class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-xl font-extrabold text-sky-700"
+                                aria-hidden="true"
+                            >
+                                {{ courseInitials }}
+                            </div>
+                            <div class="min-w-0">
+                                <h2
+                                    class="text-foreground truncate text-xl font-extrabold"
+                                >
                                     {{ course.name }}
-                                </dd>
+                                </h2>
+                                <p class="text-muted-foreground mt-1 text-sm">
+                                    {{ courseSubtitle }}
+                                </p>
                             </div>
-                            <div class="grid gap-0.5">
-                                <dt class="text-muted-foreground">Kategoria</dt>
-                                <dd class="text-foreground">
-                                    {{ course.category }}
-                                </dd>
-                            </div>
-                            <div class="grid gap-0.5">
-                                <dt class="text-muted-foreground">Typ</dt>
-                                <dd>
-                                    <UiBadge variant="secondary" class="w-fit">
-                                        {{ formatCourseKindLabel(course.type) }}
-                                    </UiBadge>
-                                </dd>
-                            </div>
-                            <div class="grid gap-0.5">
-                                <dt class="text-muted-foreground">
-                                    Liczba godzin
+                        </div>
+
+                        <dl class="divide-border divide-y">
+                            <div
+                                class="flex items-center justify-between gap-4 py-3"
+                            >
+                                <dt
+                                    class="text-muted-foreground flex items-center gap-2 text-sm"
+                                >
+                                    <CheckCircle2
+                                        class="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Status
                                 </dt>
-                                <dd class="text-foreground tabular-nums">
-                                    {{ course.totalHours }}
+                                <dd class="text-right text-sm font-bold">
+                                    Aktywny
                                 </dd>
                             </div>
-                            <div class="grid gap-0.5">
-                                <dt class="text-muted-foreground">
-                                    Limit miejsc
+                            <div
+                                class="flex items-center justify-between gap-4 py-3"
+                            >
+                                <dt
+                                    class="text-muted-foreground flex items-center gap-2 text-sm"
+                                >
+                                    <BookOpen
+                                        class="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Kategoria
                                 </dt>
-                                <dd class="text-foreground">
-                                    {{ formatCapacityText(course.capacity) }}
+                                <dd
+                                    class="max-w-[170px] truncate text-right text-sm font-bold"
+                                >
+                                    {{ courseCategoryLabel }}
+                                </dd>
+                            </div>
+                            <div
+                                class="flex items-center justify-between gap-4 py-3"
+                            >
+                                <dt
+                                    class="text-muted-foreground flex items-center gap-2 text-sm"
+                                >
+                                    <Settings2
+                                        class="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Typ
+                                </dt>
+                                <dd class="text-right text-sm font-bold">
+                                    {{ formatCourseKindLabel(course.type) }}
+                                </dd>
+                            </div>
+                            <div
+                                class="flex items-center justify-between gap-4 py-3"
+                            >
+                                <dt
+                                    class="text-muted-foreground flex items-center gap-2 text-sm"
+                                >
+                                    <GraduationCap
+                                        class="size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Instruktor
+                                </dt>
+                                <dd
+                                    class="max-w-[170px] truncate text-right text-sm font-bold"
+                                >
+                                    {{ formatInstructorName(course) }}
                                 </dd>
                             </div>
                         </dl>
                     </UiCardContent>
                 </UiCard>
 
-                <UiCard aria-label="Instruktor">
-                    <UiCardHeader>
-                        <UiCardTitle class="flex items-center gap-2 text-base">
+                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+                    <UiCardHeader class="border-border border-b p-5">
+                        <div
+                            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="space-y-1">
+                                <UiCardTitle class="text-xl font-extrabold">
+                                    Przeglad
+                                </UiCardTitle>
+                                <UiCardDescription>
+                                    Najwazniejsze dane i akcje dla tego widoku.
+                                </UiCardDescription>
+                            </div>
+                            <StatusBadge label="Aktualne" tone="info" subtle />
+                        </div>
+                    </UiCardHeader>
+                    <UiCardContent class="grid gap-3 p-4">
+                        <div
+                            v-for="item in overviewItems"
+                            :key="item.label"
+                            class="border-border flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0">
+                                <p class="font-extrabold">{{ item.label }}</p>
+                                <p class="text-muted-foreground mt-1 text-sm">
+                                    {{ item.description }}
+                                </p>
+                            </div>
+                            <StatusBadge
+                                :label="item.badge"
+                                :tone="item.tone"
+                                subtle
+                            />
+                        </div>
+                    </UiCardContent>
+                </UiCard>
+            </div>
+
+            <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+                    <UiCardHeader class="border-border border-b p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-1">
+                                <UiCardTitle class="text-xl font-extrabold">
+                                    Przypisanie instruktora
+                                </UiCardTitle>
+                                <UiCardDescription>
+                                    Aktualizuj prowadzacego z listy instruktorow
+                                    tej OSK.
+                                </UiCardDescription>
+                            </div>
                             <User
-                                class="text-muted-foreground size-4"
+                                class="text-muted-foreground size-5 shrink-0"
                                 aria-hidden="true"
                             />
-                            Instruktor
-                        </UiCardTitle>
+                        </div>
                     </UiCardHeader>
-                    <UiCardContent class="space-y-4">
-                        <p class="text-muted-foreground text-xs">
-                            Zapisany w kursie:
-                            <span class="text-foreground font-medium">{{
-                                formatInstructorName(course)
-                            }}</span>
-                        </p>
+                    <UiCardContent class="space-y-5 p-5">
+                        <div class="border-border rounded-2xl border p-4">
+                            <div
+                                class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+                            >
+                                <div class="min-w-0">
+                                    <p class="font-extrabold">
+                                        Zapisany w kursie
+                                    </p>
+                                    <p
+                                        class="text-muted-foreground mt-1 text-sm"
+                                    >
+                                        To przypisanie jest uzywane przy
+                                        organizacji zajec.
+                                    </p>
+                                </div>
+                                <StatusBadge
+                                    :label="formatInstructorName(course)"
+                                    :tone="
+                                        course.instructor
+                                            ? 'success'
+                                            : 'neutral'
+                                    "
+                                    subtle
+                                />
+                            </div>
+                        </div>
 
                         <p
                             v-if="instructorSaveBlockedReason"
-                            class="text-sm text-amber-600 dark:text-amber-500"
+                            class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700"
                             role="status"
                         >
                             {{ instructorSaveBlockedReason }}
                         </p>
 
-                        <p
+                        <ErrorState
                             v-if="instructorsLoadError"
-                            class="text-destructive text-sm"
-                            role="alert"
-                            aria-live="polite"
-                        >
-                            {{ instructorsLoadError }}
-                        </p>
+                            title="Nie udalo sie wczytac instruktorow"
+                            :description="instructorsLoadError"
+                            @retry="loadInstructors(effectiveSchoolId)"
+                        />
 
                         <div class="space-y-2">
-                            <UiLabel for="course-detail-instructor-select"
-                                >Zmiana przypisania</UiLabel
-                            >
+                            <UiLabel for="course-detail-instructor-select">
+                                Zmiana przypisania
+                            </UiLabel>
                             <p
                                 v-if="isInstructorsLoading"
                                 class="text-muted-foreground text-sm"
                                 role="status"
                             >
-                                Wczytywanie listy instruktorów…
+                                Wczytywanie listy instruktorow...
                             </p>
                             <UiSelect
                                 v-else
@@ -451,15 +686,20 @@ async function handleSaveInstructorAssignment() {
                             >
                                 <UiSelectTrigger
                                     id="course-detail-instructor-select"
-                                    class="w-full max-w-lg"
+                                    class="h-11 w-full rounded-xl"
                                     aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
                                 >
                                     <UiSelectValue
-                                        placeholder="— Brak instruktora —"
+                                        placeholder="Brak instruktora"
                                     />
                                 </UiSelectTrigger>
                                 <UiSelectContent>
                                     <UiSelectGroup>
+                                        <UiSelectItem
+                                            :value="NO_INSTRUCTOR_VALUE"
+                                        >
+                                            Brak instruktora
+                                        </UiSelectItem>
                                         <UiSelectItem
                                             v-for="ins in qualifiedInstructors"
                                             :key="ins.id"
@@ -485,9 +725,9 @@ async function handleSaveInstructorAssignment() {
                                 class="text-muted-foreground text-sm"
                                 role="status"
                             >
-                                Brak instruktorów w tej szkole — możesz
-                                wyczyścić przypisanie lub dodać instruktorów w
-                                panelu OSK.
+                                Brak instruktorow w tej szkole. Mozesz wyczyscic
+                                przypisanie albo dodac instruktorow w panelu
+                                OSK.
                             </p>
                             <p
                                 v-else-if="
@@ -505,16 +745,52 @@ async function handleSaveInstructorAssignment() {
 
                         <UiButton
                             type="button"
+                            class="h-10 rounded-xl px-4 font-semibold"
                             :disabled="!canSaveInstructorAssignment"
                             :aria-busy="isPatchLoading"
                             @click="handleSaveInstructorAssignment"
                         >
                             {{
                                 isPatchLoading
-                                    ? 'Zapisywanie…'
+                                    ? 'Zapisywanie...'
                                     : 'Zapisz przypisanie'
                             }}
                         </UiButton>
+                    </UiCardContent>
+                </UiCard>
+
+                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+                    <UiCardHeader class="border-border border-b p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="space-y-1">
+                                <UiCardTitle class="text-xl font-extrabold">
+                                    Powiazane dane
+                                </UiCardTitle>
+                                <UiCardDescription>
+                                    Elementy, ktorych nie mozna zgubic po
+                                    redesignie.
+                                </UiCardDescription>
+                            </div>
+                            <ListChecks
+                                class="text-muted-foreground size-5 shrink-0"
+                                aria-hidden="true"
+                            />
+                        </div>
+                    </UiCardHeader>
+                    <UiCardContent class="grid gap-3 p-4">
+                        <div
+                            v-for="item in relatedItems"
+                            :key="item.label"
+                            class="border-border flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-start sm:justify-between"
+                        >
+                            <div class="min-w-0">
+                                <p class="font-extrabold">{{ item.label }}</p>
+                                <p class="text-muted-foreground mt-1 text-sm">
+                                    {{ item.description }}
+                                </p>
+                            </div>
+                            <StatusBadge :label="item.badge" subtle />
+                        </div>
                     </UiCardContent>
                 </UiCard>
             </div>
