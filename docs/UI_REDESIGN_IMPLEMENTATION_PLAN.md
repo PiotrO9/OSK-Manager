@@ -6,6 +6,7 @@ Ten dokument opisuje sposob prowadzenia redesignu UI w OSK Managerze. Jest instr
 - `docs/UI_COMPONENT_PATTERNS.md`
 - `docs/UI_REDESIGN_VIEW_BACKLOG.md`
 - `docs/UI_REDESIGN_VIEW_SPECS.md`
+- `docs/UI_REDESIGN_IMPLEMENTATION_TODO.md`
 
 ## Cel
 
@@ -16,8 +17,24 @@ Kazde zadanie redesignu powinno konczyc sie widokiem, ktory:
 - zachowuje obecna funkcjonalnosc;
 - zachowuje wszystkie dane, akcje i stany;
 - uzywa wspolnych wzorcow komponentow tam, gdzie to ma sens;
-- jest spojny ze stylem referencji School management Students/Teachers;
+- jest spojny z zaakceptowanymi mockupami PNG w `docs/ui-redesign-mockups/`;
 - jest gotowy do dalszego rozszerzania bez lokalnego, jednorazowego stylowania.
+
+## Mockupy PNG jako wzorzec UI
+
+Mockupy w `docs/ui-redesign-mockups/` sa wzorcem kompozycji, gestosci, spacingu, hierarchii i stylu wizualnego. Nie sa kontraktem funkcjonalnym ani zrodlem prawdy o danych produktu.
+
+Zrodlem prawdy podczas implementacji pozostaje aktualny kod widoku, jego komponenty, composables, API/BFF, typy i dokumentacja w `UI_REDESIGN_VIEW_SPECS.md`.
+
+Zasady korzystania z mockupow:
+
+- przed edycja widoku otworz odpowiadajacy mu mockup desktop i mobile;
+- przenies styl, uklad, rytm, proporcje i sposob grupowania informacji;
+- nie dodawaj danych, pol, akcji, statystyk, filtrow ani sekcji tylko dlatego, ze sa widoczne na mockupie;
+- jezeli mockup pokazuje element, ktorego nie ma w aktualnym widoku albo API, nie mockuj go w aplikacji;
+- jezeli widok ma dane lub akcje, ktorych nie ma na mockupie, zachowaj je i dopasuj do stylu;
+- kazda roznice typu "mockup pokazuje X, ale aplikacja nie ma X" dopisz w `UI_REDESIGN_IMPLEMENTATION_TODO.md` w kolumnie `Braki / decyzje`;
+- jezeli brakuje danych do pelnego odwzorowania mockupu, zostaw widok bez tej sekcji i opisz brak w raporcie po wdrozeniu.
 
 ## Kolejnosc pracy
 
@@ -33,6 +50,8 @@ Przed edycja kodu:
 6. Wypisz stany: loading, empty, error, disabled, success, confirm/delete.
 7. Sprawdz w backlogu, jakie wzorce komponentow sa przypisane do widoku.
 8. Sprawdz w `UI_REDESIGN_VIEW_SPECS.md`, czego nie wolno zgubic w danym widoku.
+9. Otworz mockupy PNG z `docs/ui-redesign-mockups/` wskazane w `UI_REDESIGN_IMPLEMENTATION_TODO.md`.
+10. Porownaj mockup z aktualnym kodem i wypisz braki, ktorych nie wolno mockowac.
 
 Nie zaczynaj od przepisywania template. Najpierw zrozum, co widok robi.
 
@@ -69,6 +88,8 @@ Podczas zmiany UI:
 - nie zmieniaj flow biznesowego;
 - nie usuwaj akcji ani stanow;
 - nie przenos logiki do komponentu UI, jesli jest specyficzna dla widoku.
+- nie dodawaj fikcyjnych danych, licznikow, statusow ani sekcji, ktorych nie wspiera aktualny widok;
+- nie tworz tymczasowych mockow w komponencie tylko po to, aby dopasowac ekran do PNG.
 
 Dozwolone sa zmiany:
 
@@ -88,9 +109,11 @@ Po zmianie widoku:
 1. Sprawdz, czy zachowano wszystkie dane i akcje.
 2. Sprawdz loading, empty, error i disabled state, jesli widok je ma.
 3. Sprawdz desktop i mobile.
-4. Uruchom `npm run lint`.
-5. Przy wiekszych zmianach uruchom `npm run build`.
-6. Jesli zmiana dotyczy istniejacych testow albo logiki pomocniczej, uruchom `npm run test`.
+4. Sprawdz, czy widok nie zawiera danych wymyslonych na podstawie mockupu.
+5. Zaktualizuj status i ewentualne braki w `UI_REDESIGN_IMPLEMENTATION_TODO.md`.
+6. Uruchom `npm run lint`.
+7. Przy wiekszych zmianach uruchom `npm run build`.
+8. Jesli zmiana dotyczy istniejacych testow albo logiki pomocniczej, uruchom `npm run test`.
 
 Dla zmian czysto dokumentacyjnych wystarczy sprawdzic linki, spojnosc dokumentow i pokrycie listy widokow.
 
@@ -174,6 +197,8 @@ Po wdrozeniu redesignu widoku raport powinien zawierac:
 - dodane lub uzyte komponenty globalne;
 - zastosowane wzorce;
 - zachowane akcje i stany;
+- wykorzystane mockupy PNG;
+- braki wzgledem mockupu, ktorych nie zaimplementowano, bo nie istnieja jeszcze w danych/API/widoku;
 - uruchomione komendy weryfikacyjne;
 - ograniczenia albo ryzyka.
 
@@ -199,6 +224,8 @@ Przerob widok [SCIEZKA] zgodnie z:
 Nie zmieniaj logiki biznesowej, routingu, middleware, kontraktow API/BFF ani flow uzytkownika.
 Najpierw przeanalizuj widok i powiazane komponenty.
 Sprawdz specyfikacje widoku i sekcje "Do not lose".
+Sprawdz odpowiadajace mockupy w docs/ui-redesign-mockups/ i traktuj je jako wzorzec UI, nie jako zrodlo nowych danych.
+Nie dodawaj fikcyjnych danych, akcji ani statystyk z mockupu. Jezeli czegos nie ma w aktualnym widoku/API, dopisz to jako brak w docs/UI_REDESIGN_IMPLEMENTATION_TODO.md i nie renderuj tego na stronie.
 Jesli potrzebny jest komponent globalny z foundation, dodaj go w pierwszej kolejnosci.
 Zachowaj wszystkie dane, akcje i stany widoku.
 Po zmianie uruchom sensowna weryfikacje i podaj raport wedlug dokumentacji.

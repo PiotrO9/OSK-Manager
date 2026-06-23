@@ -24,6 +24,8 @@ Referencje domenowe i produktowe:
 
 Te linki nie sa instrukcja kopiowania layoutu 1:1. Sa odniesieniem dla poziomu minimalizmu, gestosci informacji, sposobu prezentacji danych i ogolnego charakteru panelu administracyjnego.
 
+Zaakceptowane mockupy robocze dla widokow znajduja sie w `docs/ui-redesign-mockups/`. Sa najblizszym wzorcem kompozycji, spacingu, gestosci i stylu dla implementacji, ale nie sa zrodlem prawdy o funkcjach ani danych.
+
 Interfejs powinien byc:
 
 - jasny, minimalistyczny i profesjonalny;
@@ -67,6 +69,8 @@ Przed edycja konkretnego widoku:
 4. Popraw UI bez zmiany funkcjonalnosci.
 5. Sprawdz, czy podobny wzorzec istnieje juz w innych widokach.
 6. Jesli wzorzec bedzie uzywany wielokrotnie, wydziel komponent globalny.
+7. Otworz odpowiadajacy mockup desktop i mobile z `docs/ui-redesign-mockups/`.
+8. Porownaj mockup z aktualnym kodem widoku i oznacz elementy, ktorych nie ma w danych/API.
 
 Podczas redesignu:
 
@@ -77,6 +81,8 @@ Podczas redesignu:
 - unikaj ekranow zlozonych z samych duzych kart statystyk;
 - preferuj tabele, listy, osie czasu, kalendarze i panele szczegolow tam, gdzie pomagaja w pracy;
 - zachowuj spojnosc miedzy widokami.
+- nie dodawaj do aplikacji fikcyjnych danych, licznikow, filtrow, akcji ani sekcji tylko dlatego, ze sa na mockupie;
+- jezeli mockup pokazuje brakujacy element, zapisz go jako brak/decyzje w `UI_REDESIGN_IMPLEMENTATION_TODO.md` i nie renderuj go na stronie.
 
 ## Workflow redesignu widoku
 
@@ -88,9 +94,11 @@ Przy kazdym widoku wykonaj:
 4. Wypisz wszystkie stany widoku: loading, empty, error, disabled, success.
 5. Sprawdz, czy istniejacy komponent globalny pasuje do ukladu.
 6. Jesli wzorzec bedzie powtarzalny, zaproponuj albo wydziel komponent reuzywalny.
-7. Przebuduj tylko UI, bez zmiany logiki biznesowej.
-8. Zweryfikuj desktop i mobile.
-9. Upewnij sie, ze zadna akcja, informacja ani stan widoku nie zniknely.
+7. Porownaj widok z mockupem PNG i oddziel styl do wdrozenia od brakujacych danych/funkcji.
+8. Przebuduj tylko UI, bez zmiany logiki biznesowej.
+9. Zweryfikuj desktop i mobile.
+10. Upewnij sie, ze zadna akcja, informacja ani stan widoku nie zniknely.
+11. Zapisz w trackerze braki, ktorych nie wolno bylo mockowac.
 
 Ten workflow jest wazniejszy niz szybkie "upiekszenie" ekranu. Redesign ma poprawic uzywalnosc dzialajacego modulu.
 
@@ -101,6 +109,8 @@ Widok po redesignie jest poprawny, jezeli:
 - zachowuje wszystkie istniejace akcje;
 - zachowuje wszystkie dane widoczne przed redesignem;
 - zachowuje obsluge wszystkich istniejacych stanow;
+- nie zawiera danych ani akcji wymyslonych na podstawie mockupu;
+- ma odnotowane braki, jezeli mockup pokazuje cos, czego aktualny widok/API jeszcze nie wspiera;
 - ma czytelna hierarchie informacji;
 - korzysta z globalnych komponentow tam, gdzie to mozliwe;
 - ma spojny spacing, typografie, akcje i statusy;
@@ -169,6 +179,8 @@ Unikaj:
 
 - przebudowywania funkcjonalnosci pod pretekstem redesignu;
 - wymyslania nowego flow bez potrzeby;
+- implementowania fikcyjnych danych z mockupu;
+- mockowania brakujacych API, statystyk, statusow albo sekcji w docelowym widoku;
 - duzych pustych kafelkow;
 - przesadnego card-based layoutu;
 - dashboardow opartych tylko na stat cards;

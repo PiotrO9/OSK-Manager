@@ -6,6 +6,10 @@ Dokument sluzy do planowania kolejnosci prac. Nie jest lista zmian funkcjonalnyc
 
 Szczegolowa lista kontrolna dla kazdego widoku jest w `UI_REDESIGN_VIEW_SPECS.md`.
 
+Tracker wdrozenia z linkami do zaakceptowanych mockupow PNG jest w `UI_REDESIGN_IMPLEMENTATION_TODO.md`.
+
+Mockupy w `docs/ui-redesign-mockups/` sa wzorcem UI. Nie sa zrodlem prawdy o danych, akcjach ani funkcjach. Jezeli mockup pokazuje element, ktorego aktualny widok/API nie ma, wpisz brak w trackerze i nie mockuj go w aplikacji.
+
 ## Legenda
 
 Role:
@@ -152,9 +156,16 @@ Przerob app/pages/manager/students/index.vue zgodnie z:
 - docs/UI_REDESIGN_GUIDELINES.md
 - docs/UI_COMPONENT_PATTERNS.md
 - docs/UI_REDESIGN_IMPLEMENTATION_PLAN.md
+- docs/UI_REDESIGN_IMPLEMENTATION_TODO.md
 - docs/UI_REDESIGN_VIEW_BACKLOG.md
+- docs/UI_REDESIGN_VIEW_SPECS.md
 
 Nie zmieniaj logiki biznesowej, routingu, middleware, kontraktow API/BFF ani flow uzytkownika.
+Uzyj mockupow:
+- docs/ui-redesign-mockups/07-manager-students-list-desktop.png
+- docs/ui-redesign-mockups/07-manager-students-list-mobile.png
+
+Mockupy traktuja jako wzorzec wygladu. Nie dodawaj fikcyjnych danych ani akcji, ktorych nie ma w aktualnym widoku.
 Najpierw dodaj lub wykorzystaj foundation: PageHeader, FilterBar, DataTableShell, StatusBadge, ActionGroup, EmptyState.
 Zachowaj dodawanie kursanta, przypisanie do kursu, filtrowanie po OSK/kursie, paginacje oraz stany loading/empty/error.
 ```

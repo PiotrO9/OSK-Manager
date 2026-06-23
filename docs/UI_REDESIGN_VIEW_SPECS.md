@@ -8,6 +8,8 @@ Uzywaj razem z:
 - `docs/UI_COMPONENT_PATTERNS.md`
 - `docs/UI_REDESIGN_IMPLEMENTATION_PLAN.md`
 - `docs/UI_REDESIGN_VIEW_BACKLOG.md`
+- `docs/UI_REDESIGN_IMPLEMENTATION_TODO.md`
+- `docs/ui-redesign-mockups/`
 
 ## Status legend
 
@@ -27,6 +29,9 @@ Przy kazdym widoku sprawdz:
 - [ ] Uzyto globalnych komponentow, jezeli wzorzec jest powtarzalny.
 - [ ] Widok ma sensowny wariant desktop i mobile.
 - [ ] Nie zmieniono routingu, middleware, kontraktow API/BFF ani walidacji.
+- [ ] Sprawdzono odpowiadajace mockupy PNG desktop/mobile z `docs/ui-redesign-mockups/`.
+- [ ] Nie dodano fikcyjnych danych ani akcji tylko dlatego, ze sa widoczne na mockupie.
+- [ ] Braki wzgledem mockupu zapisano w `UI_REDESIGN_IMPLEMENTATION_TODO.md`.
 
 ## Foundation TODO
 
