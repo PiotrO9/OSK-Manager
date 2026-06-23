@@ -675,6 +675,16 @@ After redesign should contain:
 - `StatusBadge` for event statuses;
 - `ActionGroup` for event actions.
 
+Manager schedule grid:
+
+- base implementation exists: manager can switch between `Harmonogram` and `Lista`;
+- grid columns represent instructors from the instructors list API, with event fallbacks grouped by `event.instructor`;
+- rows represent hourly bands for the selected day;
+- event cards stay based on real schedule data only;
+- current implementation does not add mocked events, conflicts, free windows or new create actions;
+- mobile uses the compact list view instead of forcing a wide multi-column grid;
+- future enhancement: exact minute-based positioning, conflict indicators, free-window hints and grouped mobile sections per instructor.
+
 Do not lose:
 
 - date navigation;

@@ -7,6 +7,7 @@ function resolveShellHeading(): string {
         '/design-system': 'Design system',
         '/manager/osk': 'Szkoły jazdy',
         '/account': 'Konto',
+        '/events': 'Wydarzenia',
     };
 
     if (route.path.startsWith('/manager/instructors')) {
