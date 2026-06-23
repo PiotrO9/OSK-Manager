@@ -23,7 +23,7 @@ const isSavingRow = ref<Record<number, boolean>>({});
 const rowError = ref<Record<number, string | null>>({});
 
 const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 min-w-0 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
+    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 min-w-0 rounded-lg border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 
 function setRowSaving(dayOfWeek: number, value: boolean): void {
     isSavingRow.value = { ...isSavingRow.value, [dayOfWeek]: value };
@@ -55,6 +55,38 @@ const rowsWithDraftBars = computed(() =>
         draftBar: getDraftTimelineBar(row),
     })),
 );
+
+function getAvailabilityLabel(row: WeeklyDayFormRow): string {
+    if (!row.enabled) {
+        return 'Brak dostępności';
+    }
+
+    return `${row.startTime}-${row.endTime}`;
+}
+
+function getStatusLabel(row: WeeklyDayFormRow): string {
+    if (!row.enabled) {
+        return 'wyłączony';
+    }
+
+    if (row.endTime <= '15:00') {
+        return 'krócej';
+    }
+
+    return 'aktywny';
+}
+
+function getStatusClass(row: WeeklyDayFormRow): string {
+    if (!row.enabled) {
+        return 'bg-slate-100 text-slate-500 ring-slate-200';
+    }
+
+    if (row.endTime <= '15:00') {
+        return 'bg-amber-50 text-amber-700 ring-amber-100';
+    }
+
+    return 'bg-emerald-50 text-emerald-700 ring-emerald-100';
+}
 
 function validateRow(row: WeeklyDayFormRow): string | null {
     if (!row.enabled) {
@@ -112,7 +144,7 @@ async function handleToggleDay(row: WeeklyDayFormRow): Promise<void> {
 
                 addToast({
                     title: 'Dzień wyłączony',
-                    description: `${row.label} — brak dostępności.`,
+                    description: `${row.label} - brak dostępności.`,
                     variant: 'success',
                 });
             } catch (err: unknown) {
@@ -162,7 +194,7 @@ async function handleSaveRow(row: WeeklyDayFormRow): Promise<void> {
 
         addToast({
             title: 'Zapisano',
-            description: `${row.label}: ${row.startTime}–${row.endTime}`,
+            description: `${row.label}: ${row.startTime}-${row.endTime}`,
             variant: 'success',
         });
     } catch (err: unknown) {
@@ -179,14 +211,14 @@ onMounted(loadData);
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-4 p-4 md:p-5">
         <p
             v-if="isLoading"
             class="text-muted-foreground text-sm"
             role="status"
             aria-live="polite"
         >
-            Wczytywanie dostępności…
+            Wczytywanie dostępności...
         </p>
 
         <p
@@ -200,170 +232,146 @@ onMounted(loadData);
 
         <template v-else>
             <div
-                class="border-border bg-card overflow-hidden rounded-xl border shadow-sm"
+                class="space-y-2.5"
                 role="list"
                 aria-label="Tygodniowa dostępność instruktora"
             >
-                <div class="bg-muted/30 border-border border-b px-4 py-3">
-                    <p class="text-muted-foreground text-xs font-medium">
-                        Oś czasu (podgląd 6:00–22:00) — zmiana godzin odświeża
-                        pasek natychmiast.
-                    </p>
-                    <div
-                        class="text-muted-foreground mt-2 flex justify-between text-[10px] font-medium tracking-wide uppercase sm:text-xs"
-                        aria-hidden="true"
-                    >
-                        <span>6:00</span>
-                        <span>14:00</span>
-                        <span>22:00</span>
-                    </div>
-                </div>
-
-                <div
-                    v-for="(item, index) in rowsWithDraftBars"
+                <article
+                    v-for="item in rowsWithDraftBars"
                     :key="item.row.dayOfWeek"
+                    class="border-border/80 bg-background rounded-xl border p-3 shadow-xs"
                     role="listitem"
-                    :class="[
-                        'px-4 py-4',
-                        index !== rowsWithDraftBars.length - 1
-                            ? 'border-border border-b'
-                            : '',
-                    ]"
                 >
                     <div
-                        class="flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-5"
+                        class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                     >
-                        <div
-                            class="flex w-full shrink-0 items-center gap-3 lg:w-44"
-                        >
-                            <UiSwitch
-                                :id="`availability-toggle-${item.row.dayOfWeek}`"
-                                :checked="item.row.enabled"
-                                :disabled="isRowSaving(item.row.dayOfWeek)"
-                                :aria-label="`Włącz dostępność: ${item.row.label}`"
-                                @update:checked="handleToggleDay(item.row)"
-                            />
-                            <label
-                                :for="`availability-toggle-${item.row.dayOfWeek}`"
-                                class="cursor-pointer text-sm font-medium select-none"
-                                :class="
-                                    item.row.enabled
-                                        ? 'text-foreground'
-                                        : 'text-muted-foreground'
-                                "
-                            >
-                                {{ item.row.label }}
-                            </label>
-                        </div>
-
-                        <div class="min-w-0 flex-1 space-y-3">
-                            <div
-                                class="bg-muted/70 border-border/60 relative h-8 w-full overflow-hidden rounded-md border"
-                                aria-hidden="true"
-                            >
-                                <div
-                                    v-if="item.draftBar"
-                                    class="bg-primary/85 absolute top-1 bottom-1 rounded shadow-sm transition-[left,width] duration-150 ease-out"
-                                    :style="{
-                                        left: item.draftBar.leftPct + '%',
-                                        width: item.draftBar.widthPct + '%',
-                                    }"
-                                />
-                                <div
-                                    v-else-if="!item.row.enabled"
-                                    class="bg-muted/45 absolute inset-0"
-                                />
-                                <div
-                                    v-else
-                                    class="text-muted-foreground/60 absolute inset-0 flex items-center justify-center text-[10px] font-medium sm:text-xs"
-                                >
-                                    Ustaw prawidłowe godziny
-                                </div>
-                            </div>
-
-                            <div
-                                class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <label
-                                        :for="`availability-start-${item.row.dayOfWeek}`"
-                                        class="text-muted-foreground w-6 shrink-0 text-xs"
-                                    >
-                                        od
-                                    </label>
-                                    <input
-                                        :id="`availability-start-${item.row.dayOfWeek}`"
-                                        v-model="item.row.startTime"
-                                        type="time"
-                                        :disabled="
-                                            !item.row.enabled ||
-                                            isRowSaving(item.row.dayOfWeek)
-                                        "
-                                        :aria-label="`Godzina rozpoczęcia — ${item.row.label}`"
-                                        :class="[fieldClass, 'w-32']"
-                                    />
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                    <label
-                                        :for="`availability-end-${item.row.dayOfWeek}`"
-                                        class="text-muted-foreground w-6 shrink-0 text-xs"
-                                    >
-                                        do
-                                    </label>
-                                    <input
-                                        :id="`availability-end-${item.row.dayOfWeek}`"
-                                        v-model="item.row.endTime"
-                                        type="time"
-                                        :disabled="
-                                            !item.row.enabled ||
-                                            isRowSaving(item.row.dayOfWeek)
-                                        "
-                                        :aria-label="`Godzina zakończenia — ${item.row.label}`"
-                                        :class="[fieldClass, 'w-32']"
-                                    />
-                                </div>
-
-                                <button
-                                    v-if="item.row.enabled"
-                                    type="button"
-                                    class="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex h-9 items-center rounded-md px-3 text-sm font-medium shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                        <div class="min-w-0 space-y-1">
+                            <div class="flex items-center gap-2">
+                                <UiSwitch
+                                    :id="`availability-toggle-${item.row.dayOfWeek}`"
+                                    :checked="item.row.enabled"
                                     :disabled="isRowSaving(item.row.dayOfWeek)"
-                                    :aria-busy="isRowSaving(item.row.dayOfWeek)"
-                                    :aria-label="`Zapisz dostępność: ${item.row.label}`"
-                                    @click="handleSaveRow(item.row)"
+                                    :aria-label="`Włącz dostępność: ${item.row.label}`"
+                                    @update:checked="handleToggleDay(item.row)"
+                                />
+                                <label
+                                    :for="`availability-toggle-${item.row.dayOfWeek}`"
+                                    class="text-foreground cursor-pointer text-sm font-bold select-none"
                                 >
-                                    {{
-                                        isRowSaving(item.row.dayOfWeek)
-                                            ? 'Zapisywanie…'
-                                            : 'Zapisz'
-                                    }}
-                                </button>
-
-                                <span
-                                    v-else
-                                    class="text-muted-foreground text-xs italic"
-                                >
-                                    Brak dostępności
-                                </span>
+                                    {{ item.row.label }}
+                                </label>
                             </div>
-
                             <p
-                                v-if="getRowError(item.row.dayOfWeek)"
-                                class="text-destructive text-xs"
-                                role="alert"
-                                aria-live="polite"
+                                class="text-muted-foreground pl-11 text-xs tabular-nums"
                             >
-                                {{ getRowError(item.row.dayOfWeek) }}
+                                {{ getAvailabilityLabel(item.row) }}
                             </p>
                         </div>
+
+                        <span
+                            class="inline-flex h-7 w-fit items-center rounded-full px-3 text-xs font-bold ring-1"
+                            :class="getStatusClass(item.row)"
+                        >
+                            {{ getStatusLabel(item.row) }}
+                        </span>
                     </div>
-                </div>
+
+                    <div class="mt-3 space-y-3">
+                        <div
+                            class="bg-muted/50 border-border/60 relative h-2.5 w-full overflow-hidden rounded-full border"
+                            aria-hidden="true"
+                        >
+                            <div
+                                v-if="item.draftBar"
+                                class="bg-primary absolute top-0.5 bottom-0.5 rounded-full transition-[left,width] duration-150 ease-out"
+                                :style="{
+                                    left: item.draftBar.leftPct + '%',
+                                    width: item.draftBar.widthPct + '%',
+                                }"
+                            />
+                        </div>
+
+                        <div
+                            class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+                        >
+                            <label class="min-w-0 space-y-1">
+                                <span
+                                    class="text-muted-foreground text-[11px] font-medium"
+                                >
+                                    Od
+                                </span>
+                                <input
+                                    :id="`availability-start-${item.row.dayOfWeek}`"
+                                    v-model="item.row.startTime"
+                                    type="time"
+                                    :disabled="
+                                        !item.row.enabled ||
+                                        isRowSaving(item.row.dayOfWeek)
+                                    "
+                                    :aria-label="`Godzina rozpoczęcia - ${item.row.label}`"
+                                    :class="[fieldClass, 'w-full']"
+                                />
+                            </label>
+
+                            <label class="min-w-0 space-y-1">
+                                <span
+                                    class="text-muted-foreground text-[11px] font-medium"
+                                >
+                                    Do
+                                </span>
+                                <input
+                                    :id="`availability-end-${item.row.dayOfWeek}`"
+                                    v-model="item.row.endTime"
+                                    type="time"
+                                    :disabled="
+                                        !item.row.enabled ||
+                                        isRowSaving(item.row.dayOfWeek)
+                                    "
+                                    :aria-label="`Godzina zakończenia - ${item.row.label}`"
+                                    :class="[fieldClass, 'w-full']"
+                                />
+                            </label>
+
+                            <UiButton
+                                v-if="item.row.enabled"
+                                type="button"
+                                size="sm"
+                                class="self-end rounded-lg"
+                                :disabled="isRowSaving(item.row.dayOfWeek)"
+                                :aria-busy="isRowSaving(item.row.dayOfWeek)"
+                                :aria-label="`Zapisz dostępność: ${item.row.label}`"
+                                @click="handleSaveRow(item.row)"
+                            >
+                                {{
+                                    isRowSaving(item.row.dayOfWeek)
+                                        ? 'Zapisywanie...'
+                                        : 'Zapisz'
+                                }}
+                            </UiButton>
+
+                            <span
+                                v-else
+                                class="text-muted-foreground self-end pb-2 text-xs italic"
+                            >
+                                Wyłączone
+                            </span>
+                        </div>
+
+                        <p
+                            v-if="getRowError(item.row.dayOfWeek)"
+                            class="text-destructive text-xs"
+                            role="alert"
+                            aria-live="polite"
+                        >
+                            {{ getRowError(item.row.dayOfWeek) }}
+                        </p>
+                    </div>
+                </article>
             </div>
 
             <p class="text-muted-foreground text-xs">
-                Zmiany są zapisywane osobno dla każdego dnia po kliknięciu
-                „Zapisz".
+                Zmiany zapisują się osobno dla każdego dnia po kliknięciu
+                "Zapisz".
             </p>
         </template>
     </div>
