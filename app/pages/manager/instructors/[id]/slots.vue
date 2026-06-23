@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowLeft, Plus } from 'lucide-vue-next';
+
 definePageMeta({
     layout: 'app-shell',
     middleware: ['manager'],
@@ -51,24 +53,67 @@ const backToDetailHref = computed(() => {
     return `/manager/instructors/${id}`;
 });
 
+const scheduleHref = computed(() => {
+    const id = instructorId.value;
+    const sid = readSchoolIdFromQuery();
+
+    if (!id) {
+        return '/manager/instructors';
+    }
+
+    if (sid) {
+        return {
+            path: `/manager/instructors/${id}/schedule`,
+            query: { schoolId: sid },
+        };
+    }
+
+    return `/manager/instructors/${id}/schedule`;
+});
+
 usePageMeta({
-    title: () => 'Terminarz slotów',
+    title: () => 'Sloty instruktora',
     description: () =>
-        'Tygodniowy widok dostępnych slotów czasowych instruktora.',
+        'Tygodniowy widok dostepnych slotow czasowych instruktora.',
 });
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Terminarz — wolne sloty
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Widok tygodniowy dostępnych slotów (60 min). Nawiguj między
-                tygodniami lub wybierz datę w kalendarzu.
-            </p>
-        </div>
+    <div class="space-y-5">
+        <PageHeader
+            title="Wolne sloty instruktora"
+            description="Kalendarz dostepnych okien do rezerwacji jazd."
+            eyebrow="Sloty instruktora"
+        >
+            <template #actions>
+                <UiButton
+                    as-child
+                    variant="outline"
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                >
+                    <NuxtLink
+                        :to="backToDetailHref"
+                        aria-label="Wroc do szczegolow instruktora"
+                    >
+                        <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
+                        Szczegoly
+                    </NuxtLink>
+                </UiButton>
+
+                <UiButton
+                    as-child
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                >
+                    <NuxtLink
+                        :to="scheduleHref"
+                        aria-label="Przejdz do dodawania jazdy lub bloku czasu"
+                    >
+                        <Plus class="mr-2 size-4" aria-hidden="true" />
+                        Dodaj jazde
+                    </NuxtLink>
+                </UiButton>
+            </template>
+        </PageHeader>
 
         <ManagerInstructorWeeklyCalendar
             v-if="instructorId"
@@ -76,15 +121,7 @@ usePageMeta({
         />
 
         <p v-else class="text-destructive text-sm" role="alert">
-            Nieprawidłowy identyfikator instruktora.
+            Nieprawidlowy identyfikator instruktora.
         </p>
-
-        <NuxtLink
-            :to="backToDetailHref"
-            class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-            aria-label="Wróć do szczegółów instruktora"
-        >
-            Wróć do szczegółów instruktora
-        </NuxtLink>
     </div>
 </template>
