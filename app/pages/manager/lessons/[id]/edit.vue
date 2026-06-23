@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, CalendarDays, Save } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
     getApiErrorStatusCode,
@@ -15,6 +16,7 @@ import {
     normalizeStudentDetail,
     type StudentDetail,
 } from '~/types/student';
+import type { HeaderMetaItem, StatusTone } from '~/components/app/ui/types';
 import type { Vehicle } from '~/types/vehicle';
 import { isoInstantToDatetimeLocalString } from '~/utils/weeklyCalendarDates';
 
@@ -30,6 +32,8 @@ const { fetchLesson, updateLesson, isFetchLoading, isUpdateLoading } =
     useManagerLessonsApi();
 const { fetchList: fetchVehiclesList, fetchVehicleById } = useVehiclesApi();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
+
+const FORM_ID = 'manager-lesson-edit-form';
 
 function getLessonIdFromRoute(): string {
     const raw = route.params.id;
@@ -177,6 +181,91 @@ const scheduleBackHref = computed(() => {
     }
 
     return '/manager/schedule';
+});
+
+const lessonStatusLabelMap: Record<string, string> = {
+    SCHEDULED: 'Zaplanowana',
+    COMPLETED: 'Zakonczona',
+    CANCELLED: 'Anulowana',
+    CANCELED: 'Anulowana',
+};
+
+const lessonStatusToneMap: Record<string, StatusTone> = {
+    SCHEDULED: 'info',
+    COMPLETED: 'success',
+    CANCELLED: 'danger',
+    CANCELED: 'danger',
+};
+
+const lessonStatusLabel = computed((): string => {
+    const status = loadedLesson.value?.status.trim() ?? '';
+
+    if (!status) {
+        return '-';
+    }
+
+    return lessonStatusLabelMap[status] ?? status;
+});
+
+const lessonStatusTone = computed(
+    (): StatusTone =>
+        lessonStatusToneMap[loadedLesson.value?.status.trim() ?? ''] ??
+        'neutral',
+);
+
+function formatDateRangeLabel(startIso?: string, endIso?: string): string {
+    const start = startIso ? new Date(startIso) : null;
+    const end = endIso ? new Date(endIso) : null;
+
+    if (
+        !start ||
+        !end ||
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+    ) {
+        return 'Termin lekcji';
+    }
+
+    const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: 'long',
+    });
+    const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+
+    return `${dateFormatter.format(start)}, ${timeFormatter.format(start)}-${timeFormatter.format(end)}`;
+}
+
+const lessonDateLabel = computed(() =>
+    formatDateRangeLabel(
+        loadedLesson.value?.startTime,
+        loadedLesson.value?.endTime,
+    ),
+);
+
+const lessonHeaderMeta = computed<HeaderMetaItem[]>(() => {
+    const lesson = loadedLesson.value;
+
+    if (!lesson) {
+        return [];
+    }
+
+    return [
+        {
+            label: 'Kursant',
+            value:
+                studentDisplayName.value ??
+                `${lesson.studentId.slice(0, 8)}...`,
+            tone: 'neutral',
+        },
+        {
+            label: 'Status',
+            value: lessonStatusLabel.value,
+            tone: lessonStatusTone.value,
+        },
+    ];
 });
 
 async function loadVehicleDisplayFallback(
@@ -668,209 +757,250 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-    <div class="space-y-8">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Edycja jazdy praktycznej
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Zmień termin, pojazd lub instruktora. Kursant i kurs są
-                przypisane do rezerwacji — nie można ich tu zmienić.
-            </p>
-        </div>
-
-        <p
-            v-if="isFetchLoading && !loadedLesson"
-            class="text-muted-foreground text-sm"
-            role="status"
+    <div class="space-y-6">
+        <PageHeader
+            title="Edytuj jazde"
+            description="Zmien instruktora, pojazd i termin lekcji bez naruszania przypisanego kursanta."
+            eyebrow="Edycja lekcji"
+            :meta="lessonHeaderMeta"
         >
-            Wczytywanie lekcji…
-        </p>
+            <template #actions>
+                <UiButton
+                    variant="outline"
+                    type="button"
+                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    disabled
+                    aria-label="Termin lekcji"
+                >
+                    <CalendarDays class="size-4" aria-hidden="true" />
+                    {{ lessonDateLabel }}
+                </UiButton>
+                <UiButton
+                    type="submit"
+                    :form="FORM_ID"
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    :disabled="!isFormDirty || isSaving || !loadedLesson"
+                >
+                    <Save class="size-4" aria-hidden="true" />
+                    {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
+                </UiButton>
+            </template>
+        </PageHeader>
 
-        <p v-else-if="notFound" class="text-destructive text-sm" role="alert">
-            Nie znaleziono lekcji lub brak połączenia z API (tryb demo).
-        </p>
+        <LoadingState
+            v-if="isFetchLoading && !loadedLesson"
+            title="Wczytywanie lekcji"
+            description="Pobieramy dane potrzebne do edycji jazdy."
+        />
 
-        <p v-else-if="loadError" class="text-destructive text-sm" role="alert">
-            {{ loadError }}
-        </p>
+        <EmptyState
+            v-else-if="notFound"
+            title="Nie znaleziono lekcji"
+            description="Lekcja nie istnieje albo nie jest dostepna w aktualnym kontekscie."
+        >
+            <template #action>
+                <UiButton as-child variant="outline">
+                    <NuxtLink :to="scheduleBackHref"
+                        >Wroc do harmonogramu</NuxtLink
+                    >
+                </UiButton>
+            </template>
+        </EmptyState>
+
+        <ErrorState
+            v-else-if="loadError"
+            title="Nie udalo sie wczytac lekcji"
+            :description="loadError"
+            @retry="loadLesson"
+        />
 
         <template v-else-if="loadedLesson">
-            <div
-                class="border-border bg-card max-w-xl space-y-6 rounded-xl border p-6 shadow-sm"
+            <FormSection
+                title="Edytuj jazde"
+                description="Formularz podzielony na logiczne sekcje, z zachowaniem aktualnej walidacji i flow."
             >
-                <dl class="grid gap-2 text-sm">
-                    <div
-                        class="grid gap-1 sm:grid-cols-[8rem_1fr] sm:items-baseline"
-                    >
-                        <dt class="text-muted-foreground font-medium">
-                            Kursant
-                        </dt>
-                        <dd class="text-foreground font-medium">
-                            {{
+                <form
+                    :id="FORM_ID"
+                    class="grid gap-4 lg:grid-cols-2"
+                    @submit.prevent="handleSubmit"
+                >
+                    <div class="space-y-2">
+                        <UiLabel for="lesson-student">Kursant</UiLabel>
+                        <UiInput
+                            id="lesson-student"
+                            :model-value="
                                 studentDisplayName ??
-                                loadedLesson.studentId.slice(0, 8) + '…'
-                            }}
-                        </dd>
-                    </div>
-                    <div
-                        class="grid gap-1 sm:grid-cols-[8rem_1fr] sm:items-baseline"
-                    >
-                        <dt class="text-muted-foreground font-medium">
-                            Status
-                        </dt>
-                        <dd>{{ loadedLesson.status }}</dd>
-                    </div>
-                </dl>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-2">
-                        <UiLabel for="lesson-start">Początek</UiLabel>
-                        <UiDateTimePicker
-                            id="lesson-start"
-                            v-model="formStartLocal"
-                            placeholder="Data i godzina początku"
-                            :aria-required="true"
+                                `${loadedLesson.studentId.slice(0, 8)}...`
+                            "
+                            disabled
                         />
                     </div>
-                    <div class="space-y-2">
-                        <UiLabel for="lesson-end">Koniec</UiLabel>
-                        <UiDateTimePicker
-                            id="lesson-end"
-                            v-model="formEndLocal"
-                            placeholder="Data i godzina końca"
-                            :aria-required="true"
-                        />
-                    </div>
-                </div>
 
-                <div class="space-y-2">
-                    <UiLabel for="lesson-instructor">Instruktor</UiLabel>
-                    <p
-                        v-if="isInstructorsLoading"
-                        class="text-muted-foreground text-xs"
-                        role="status"
-                    >
-                        Wczytywanie instruktorów…
-                    </p>
-                    <p
-                        v-else-if="instructorsError"
-                        class="text-destructive text-xs"
-                        role="alert"
-                    >
-                        {{ instructorsError }}
-                    </p>
-                    <UiSelect
-                        v-model="formInstructorId"
-                        :disabled="instructorsForSelect.length === 0"
-                    >
-                        <UiSelectTrigger
-                            id="lesson-instructor"
-                            class="w-full"
-                            :aria-label="`Instruktor: ${instructorSelectLabel}`"
-                        >
-                            <UiSelectValue
-                                placeholder="— Wybierz instruktora —"
+                    <div class="space-y-2">
+                        <UiLabel for="lesson-status">Status</UiLabel>
+                        <div class="flex min-h-9 items-center">
+                            <StatusBadge
+                                :label="lessonStatusLabel"
+                                :tone="lessonStatusTone"
                             />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="ins in instructorsForSelect"
-                                    :key="ins.id"
-                                    :value="ins.id"
-                                >
-                                    {{ formatInstructorDisplayName(ins) }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                </div>
+                        </div>
+                    </div>
 
-                <div class="space-y-2">
-                    <UiLabel for="lesson-vehicle">Pojazd</UiLabel>
+                    <div class="space-y-2">
+                        <UiLabel for="lesson-instructor">Instruktor</UiLabel>
+                        <p
+                            v-if="isInstructorsLoading"
+                            class="text-muted-foreground text-xs"
+                            role="status"
+                        >
+                            Wczytywanie instruktorow...
+                        </p>
+                        <p
+                            v-else-if="instructorsError"
+                            class="text-destructive text-xs"
+                            role="alert"
+                        >
+                            {{ instructorsError }}
+                        </p>
+                        <UiSelect
+                            v-model="formInstructorId"
+                            :disabled="instructorsForSelect.length === 0"
+                        >
+                            <UiSelectTrigger
+                                id="lesson-instructor"
+                                class="bg-background h-10 w-full rounded-xl"
+                                :aria-label="`Instruktor: ${instructorSelectLabel}`"
+                            >
+                                <UiSelectValue
+                                    placeholder="- Wybierz instruktora -"
+                                />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-for="ins in instructorsForSelect"
+                                        :key="ins.id"
+                                        :value="ins.id"
+                                    >
+                                        {{ formatInstructorDisplayName(ins) }}
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
+                    </div>
+
+                    <div class="space-y-2">
+                        <UiLabel for="lesson-vehicle">Pojazd</UiLabel>
+                        <p
+                            v-if="isVehiclesLoading"
+                            class="text-muted-foreground text-xs"
+                            role="status"
+                        >
+                            Wczytywanie pojazdow...
+                        </p>
+                        <p
+                            v-else-if="vehiclesError"
+                            class="text-destructive text-xs"
+                            role="alert"
+                        >
+                            {{ vehiclesError }}
+                        </p>
+                        <UiSelect
+                            v-model="formVehicleId"
+                            :disabled="vehiclesForSelect.length === 0"
+                        >
+                            <UiSelectTrigger
+                                id="lesson-vehicle"
+                                class="bg-background h-10 w-full rounded-xl"
+                                aria-label="Pojazd dla jazdy praktycznej"
+                            >
+                                <UiSelectValue
+                                    placeholder="- Wybierz pojazd -"
+                                />
+                            </UiSelectTrigger>
+                            <UiSelectContent>
+                                <UiSelectGroup>
+                                    <UiSelectItem
+                                        v-for="v in vehiclesForSelect"
+                                        :key="v.id"
+                                        :value="v.id"
+                                    >
+                                        {{ v.name }} ({{
+                                            v.registrationNumber
+                                        }})
+                                    </UiSelectItem>
+                                </UiSelectGroup>
+                            </UiSelectContent>
+                        </UiSelect>
+                    </div>
+
+                    <fieldset class="space-y-3 lg:col-span-2">
+                        <legend class="text-foreground text-sm font-semibold">
+                            Termin
+                        </legend>
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                                <UiLabel for="lesson-start">Poczatek</UiLabel>
+                                <UiDateTimePicker
+                                    id="lesson-start"
+                                    v-model="formStartLocal"
+                                    placeholder="Data i godzina poczatku"
+                                    :aria-required="true"
+                                    trigger-class="h-10 rounded-xl bg-background"
+                                />
+                            </div>
+                            <div class="space-y-2">
+                                <UiLabel for="lesson-end">Koniec</UiLabel>
+                                <UiDateTimePicker
+                                    id="lesson-end"
+                                    v-model="formEndLocal"
+                                    placeholder="Data i godzina konca"
+                                    :aria-required="true"
+                                    trigger-class="h-10 rounded-xl bg-background"
+                                />
+                            </div>
+                        </div>
+                    </fieldset>
+
                     <p
-                        v-if="isVehiclesLoading"
-                        class="text-muted-foreground text-xs"
+                        v-if="!schoolId"
+                        class="text-warning-800 bg-warning-50 border-warning-200 rounded-xl border px-3 py-2 text-sm lg:col-span-2"
                         role="status"
                     >
-                        Wczytywanie pojazdów…
+                        Dodaj <code class="text-xs">?schoolId=</code> w adresie,
+                        aby wybrac pojazd i instruktora z list OSK.
                     </p>
+
                     <p
-                        v-else-if="vehiclesError"
-                        class="text-destructive text-xs"
+                        v-if="formError"
+                        class="text-destructive text-sm lg:col-span-2"
                         role="alert"
                     >
-                        {{ vehiclesError }}
+                        {{ formError }}
                     </p>
-                    <UiSelect
-                        v-model="formVehicleId"
-                        :disabled="vehiclesForSelect.length === 0"
-                    >
-                        <UiSelectTrigger
-                            id="lesson-vehicle"
-                            class="w-full"
-                            aria-label="Pojazd dla jazdy praktycznej"
+                </form>
+
+                <template #footer>
+                    <ActionGroup label="Akcje formularza" align="end">
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            @click="handleCancel"
                         >
-                            <UiSelectValue placeholder="— Wybierz pojazd —" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="v in vehiclesForSelect"
-                                    :key="v.id"
-                                    :value="v.id"
-                                >
-                                    {{ v.name }} ({{ v.registrationNumber }})
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                </div>
-
-                <p
-                    v-if="!schoolId"
-                    class="text-xs text-amber-700 dark:text-amber-500"
-                    role="status"
-                >
-                    Dodaj
-                    <code class="text-xs">?schoolId=</code>
-                    w adresie, aby wybrać pojazd i instruktora z list OSK.
-                </p>
-
-                <p
-                    v-if="formError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ formError }}
-                </p>
-
-                <div class="flex flex-wrap gap-2">
-                    <UiButton
-                        type="button"
-                        :disabled="!isFormDirty || isSaving"
-                        :aria-busy="isSaving"
-                        @click="handleSubmit"
-                    >
-                        {{ isSaving ? 'Zapisywanie…' : 'Zapisz zmiany' }}
-                    </UiButton>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        @click="handleCancel"
-                    >
-                        Anuluj
-                    </UiButton>
-                </div>
-            </div>
+                            <ArrowLeft class="size-4" aria-hidden="true" />
+                            Anuluj
+                        </UiButton>
+                        <UiButton
+                            type="submit"
+                            :form="FORM_ID"
+                            :disabled="!isFormDirty || isSaving"
+                            :aria-busy="isSaving"
+                        >
+                            {{ isSaving ? 'Zapisywanie...' : 'Zapisz' }}
+                        </UiButton>
+                    </ActionGroup>
+                </template>
+            </FormSection>
         </template>
-
-        <NuxtLink
-            :to="scheduleBackHref"
-            class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-        >
-            Wróć do terminarza
-        </NuxtLink>
     </div>
 </template>
