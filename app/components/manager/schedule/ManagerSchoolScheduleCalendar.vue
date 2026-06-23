@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CalendarDate, DateValue } from '@internationalized/date';
+import type { DateValue } from '@internationalized/date';
 import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
@@ -129,14 +129,14 @@ function lessonBlockClasses(type: string): string {
     const t = type.trim().toUpperCase();
 
     if (t === 'PRACTICE') {
-        return 'bg-emerald-500/15 border-emerald-600/90 text-emerald-950 shadow-emerald-900/10 dark:border-emerald-500/70 dark:text-emerald-50';
+        return 'border-sky-400 bg-sky-50 text-sky-950 shadow-sky-900/10 dark:border-sky-500/70 dark:bg-sky-950/50 dark:text-sky-50';
     }
 
     if (t === 'THEORY') {
-        return 'bg-violet-500/15 border-violet-600/90 text-violet-950 shadow-violet-900/10 dark:border-violet-400/60 dark:text-violet-50';
+        return 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-indigo-900/10 dark:border-indigo-400/60 dark:bg-indigo-950/50 dark:text-indigo-50';
     }
 
-    return 'bg-amber-500/15 border-amber-700 text-amber-950 dark:text-amber-100';
+    return 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/70 dark:bg-amber-950/50 dark:text-amber-100';
 }
 
 function displayStudent(item: ScheduleLessonItem): string {
@@ -302,8 +302,12 @@ const internalItems = ref<ScheduleLessonItem[]>([]);
 const errorMessage = ref<string | null>(null);
 const isCalendarOpen = ref(false);
 
-const calendarSelected = ref<CalendarDate[]>(
+const calendarSelected = ref<DateValue[]>(
     weekCalendarDatesFromMonday(getMonday(new Date())),
+);
+
+const calendarSelectedModel = computed<DateValue[]>(
+    () => calendarSelected.value as unknown as DateValue[],
 );
 
 const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
@@ -386,6 +390,24 @@ const weekRangeLabel = computed(() => {
     return `${ws.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
 });
 
+const compactWeekRangeLabel = computed(() => {
+    const ws = activeWeekStart.value;
+    const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
+    const startDay = ws.toLocaleDateString('pl-PL', { day: 'numeric' });
+    const endDay = end.toLocaleDateString('pl-PL', { day: 'numeric' });
+    const startMonth = ws.toLocaleDateString('pl-PL', { month: 'long' });
+    const endMonth = end.toLocaleDateString('pl-PL', { month: 'long' });
+
+    if (
+        ws.getMonth() === end.getMonth() &&
+        ws.getFullYear() === end.getFullYear()
+    ) {
+        return `${startDay}-${endDay} ${endMonth}`;
+    }
+
+    return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
+});
+
 const itemsByDate = computed(() => {
     const map = new Map<string, ScheduleLessonItem[]>();
 
@@ -413,6 +435,47 @@ const itemsByDate = computed(() => {
 function lessonsForDate(dateStr: string): ScheduleLessonItem[] {
     return itemsByDate.value.get(dateStr) ?? [];
 }
+
+const scheduleInstructorCount = computed(() => {
+    const ids = new Set<string>();
+    const names = new Set<string>();
+
+    for (const item of displayItems.value) {
+        const instructor = item.instructor;
+
+        if (!instructor) {
+            continue;
+        }
+
+        if (instructor.id.trim()) {
+            ids.add(instructor.id);
+            continue;
+        }
+
+        const name = `${instructor.firstName} ${instructor.lastName}`.trim();
+
+        if (name) {
+            names.add(name);
+        }
+    }
+
+    return ids.size + names.size;
+});
+
+const earliestStartLabel = computed(() => {
+    const times = displayItems.value
+        .map((item) => new Date(item.startTime))
+        .filter((date) => !Number.isNaN(date.getTime()))
+        .sort((a, b) => a.getTime() - b.getTime());
+
+    if (times.length === 0) {
+        return '--:--';
+    }
+
+    return `${String(times[0]!.getHours()).padStart(2, '0')}:${String(
+        times[0]!.getMinutes(),
+    ).padStart(2, '0')}`;
+});
 
 function sameStartSorted(
     item: ScheduleLessonItem,
@@ -709,386 +772,442 @@ defineExpose({
 </script>
 
 <template>
-    <div class="space-y-4">
-        <div
-            class="flex flex-wrap items-center justify-between gap-3"
-            role="toolbar"
-            aria-label="Nawigacja tygodnia harmonogramu lekcji"
-        >
-            <div class="flex flex-wrap items-center gap-2">
-                <UiButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="inline-flex items-center gap-1"
-                    aria-label="Poprzedni tydzień"
-                    :disabled="displayLoading"
-                    @click="handlePrevWeek"
-                    @keydown="handleKeyDownWeekNav($event, 'prev')"
-                >
-                    <ChevronLeft class="size-4" aria-hidden="true" />
-                    Poprzedni
-                </UiButton>
-                <UiButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="inline-flex items-center gap-1"
-                    aria-label="Następny tydzień"
-                    :disabled="displayLoading"
-                    @click="handleNextWeek"
-                    @keydown="handleKeyDownWeekNav($event, 'next')"
-                >
-                    Następny
-                    <ChevronRight class="size-4" aria-hidden="true" />
-                </UiButton>
-            </div>
-
-            <p
-                class="text-foreground min-w-0 flex-1 text-center text-sm font-medium"
-                aria-live="polite"
+    <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+        <UiCardContent class="space-y-4 p-4">
+            <div
+                class="flex flex-wrap items-center justify-between gap-3"
+                role="toolbar"
+                aria-label="Nawigacja tygodnia harmonogramu lekcji"
             >
-                {{ weekRangeLabel }}
-            </p>
-
-            <UiPopover v-model:open="isCalendarOpen">
-                <UiPopoverTrigger>
+                <div class="flex flex-wrap items-center gap-2">
                     <UiButton
                         type="button"
                         variant="outline"
                         size="sm"
+                        class="h-10 rounded-xl px-4 font-semibold"
+                        aria-label="Poprzedni tydzień"
                         :disabled="displayLoading"
-                        aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
+                        @click="handlePrevWeek"
+                        @keydown="handleKeyDownWeekNav($event, 'prev')"
                     >
-                        Wybierz tydzień
+                        <ChevronLeft class="size-4" aria-hidden="true" />
+                        Poprzedni
                     </UiButton>
-                </UiPopoverTrigger>
-                <UiPopoverContent class="w-auto p-0" align="end">
-                    <UiCalendar
-                        multiple
-                        fixed-weeks
-                        :week-starts-on="1"
-                        :min-value="WEEK_PICKER_CALENDAR_MIN"
-                        :max-value="WEEK_PICKER_CALENDAR_MAX"
-                        :disable-days-outside-current-view="false"
-                        :model-value="calendarSelected"
-                        locale="pl-PL"
-                        @update:model-value="handleCalendarUpdate"
-                    />
-                </UiPopoverContent>
-            </UiPopover>
-        </div>
+                    <UiButton
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        class="h-10 rounded-xl px-4 font-semibold"
+                        aria-label="Następny tydzień"
+                        :disabled="displayLoading"
+                        @click="handleNextWeek"
+                        @keydown="handleKeyDownWeekNav($event, 'next')"
+                    >
+                        Następny
+                        <ChevronRight class="size-4" aria-hidden="true" />
+                    </UiButton>
+                </div>
 
-        <p
-            v-if="displayError"
-            class="text-destructive text-sm"
-            role="alert"
-            aria-live="polite"
-        >
-            {{ displayError }}
-        </p>
+                <p
+                    class="text-foreground min-w-0 flex-1 text-center text-sm font-medium"
+                    aria-live="polite"
+                >
+                    {{ compactWeekRangeLabel }}
+                </p>
 
-        <div class="border-border relative overflow-x-auto rounded-xl border">
-            <div
-                class="bg-muted/30 text-muted-foreground border-border flex min-w-[720px] flex-wrap items-center gap-2 border-b px-3 py-2 text-xs"
-                role="status"
+                <UiPopover v-model:open="isCalendarOpen">
+                    <UiPopoverTrigger>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            :disabled="displayLoading"
+                            aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
+                        >
+                            Wybierz tydzień
+                        </UiButton>
+                    </UiPopoverTrigger>
+                    <UiPopoverContent class="w-auto p-0" align="end">
+                        <UiCalendar
+                            multiple
+                            fixed-weeks
+                            :week-starts-on="1"
+                            :min-value="WEEK_PICKER_CALENDAR_MIN"
+                            :max-value="WEEK_PICKER_CALENDAR_MAX"
+                            :disable-days-outside-current-view="false"
+                            :model-value="calendarSelectedModel"
+                            locale="pl-PL"
+                            @update:model-value="handleCalendarUpdate"
+                        />
+                    </UiPopoverContent>
+                </UiPopover>
+            </div>
+
+            <p
+                v-if="displayError"
+                class="text-destructive text-sm"
+                role="alert"
+                aria-live="polite"
             >
-                <span>Oś godzin: {{ BASE_HOUR }}:00–19:00</span>
-                <span
-                    v-if="eventEditEnabled"
-                    class="text-foreground border-border border-l pl-2"
+                {{ displayError }}
+            </p>
+
+            <FilterBar
+                title="Filtry zapytania API"
+                :result-label="displayLoading ? 'Ladowanie...' : ''"
+                :is-loading="displayLoading"
+                class="rounded-2xl"
+            >
+                <UiBadge
+                    variant="outline"
+                    class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
                 >
-                    Blok czasu lub jazda praktyczna: kliknij lub Enter, aby
-                    edytować.
+                    Wszyscy instruktorzy
+                </UiBadge>
+                <UiBadge variant="secondary" class="rounded-full">
+                    {{ BASE_HOUR }}:00-19:00
+                </UiBadge>
+                <UiBadge variant="secondary" class="rounded-full">
+                    Sortuj: godzina
+                </UiBadge>
+
+                <template #actions>
+                    <UiBadge variant="outline" class="rounded-full">
+                        {{ scheduleCountBadgeLabel }}: {{ displayItems.length }}
+                    </UiBadge>
+                </template>
+            </FilterBar>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-muted-foreground text-sm font-semibold">
+                    Os godzin: {{ BASE_HOUR }}:00-19:00
                 </span>
-                <span
-                    class="border-border flex flex-wrap items-center gap-2 border-l pl-2"
-                    aria-hidden="true"
+                <UiBadge
+                    variant="outline"
+                    class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
                 >
-                    <span class="inline-flex items-center gap-1">
-                        <span
-                            class="inline-block size-2.5 shrink-0 rounded-sm border border-emerald-600/80 bg-emerald-500/30"
-                        />
-                        <span>jazda</span>
-                    </span>
-                    <span class="inline-flex items-center gap-1">
-                        <span
-                            class="inline-block size-2.5 shrink-0 rounded-sm border border-violet-600/80 bg-violet-500/30"
-                        />
-                        <span>teoria</span>
-                    </span>
-                </span>
-                <UiBadge v-if="displayLoading" variant="secondary"
-                    >Ładowanie…</UiBadge
-                >
-                <UiBadge v-else-if="!displayError" variant="outline">
-                    {{ scheduleCountBadgeLabel }}: {{ displayItems.length }}
+                    Instruktorzy: {{ scheduleInstructorCount }}
+                </UiBadge>
+                <UiBadge variant="outline" class="rounded-full">
+                    Najwczesniej: {{ earliestStartLabel }}
                 </UiBadge>
             </div>
 
-            <div class="relative min-w-[720px]">
-                <div
-                    v-if="displayLoading"
-                    class="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
-                    role="status"
-                    aria-live="polite"
-                >
-                    <div class="flex w-full max-w-md flex-col gap-2 p-4">
-                        <UiSkeleton class="h-8 w-full" />
-                        <UiSkeleton class="h-32 w-full" />
-                        <UiSkeleton class="h-32 w-full" />
-                    </div>
-                </div>
-
-                <div
-                    class="flex"
-                    role="grid"
-                    :aria-label="`Harmonogram lekcji, ${weekRangeLabel}`"
-                >
-                    <div
-                        class="border-border flex w-12 shrink-0 flex-col border-r"
+            <div
+                class="border-border relative overflow-x-auto rounded-2xl border"
+            >
+                <div class="sr-only" role="status">
+                    <span>Oś godzin: {{ BASE_HOUR }}:00–19:00</span>
+                    <span
+                        v-if="eventEditEnabled"
+                        class="text-foreground border-border border-l pl-2"
+                    >
+                        Blok czasu lub jazda praktyczna: kliknij lub Enter, aby
+                        edytować.
+                    </span>
+                    <span
+                        class="border-border flex flex-wrap items-center gap-2 border-l pl-2"
                         aria-hidden="true"
                     >
-                        <div
-                            class="border-border flex h-12 shrink-0 items-end border-b pr-2"
-                        />
-                        <div
-                            class="flex flex-col"
-                            :style="{ height: `${GRID_HEIGHT_PX}px` }"
-                        >
-                            <div
-                                v-for="h in hourLabels"
-                                :key="h"
-                                class="text-muted-foreground flex h-[60px] items-start justify-end pr-2 text-xs"
-                            >
-                                {{ String(h).padStart(2, '0') }}:00
-                            </div>
+                        <span class="inline-flex items-center gap-1">
+                            <span
+                                class="inline-block size-2.5 shrink-0 rounded-sm border border-emerald-600/80 bg-emerald-500/30"
+                            />
+                            <span>jazda</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1">
+                            <span
+                                class="inline-block size-2.5 shrink-0 rounded-sm border border-violet-600/80 bg-violet-500/30"
+                            />
+                            <span>teoria</span>
+                        </span>
+                    </span>
+                    <UiBadge v-if="displayLoading" variant="secondary"
+                        >Ładowanie…</UiBadge
+                    >
+                    <UiBadge v-else-if="!displayError" variant="outline">
+                        {{ scheduleCountBadgeLabel }}: {{ displayItems.length }}
+                    </UiBadge>
+                </div>
+
+                <div class="relative min-w-[720px]">
+                    <div
+                        v-if="displayLoading"
+                        class="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <div class="flex w-full max-w-md flex-col gap-2 p-4">
+                            <UiSkeleton class="h-8 w-full" />
+                            <UiSkeleton class="h-32 w-full" />
+                            <UiSkeleton class="h-32 w-full" />
                         </div>
                     </div>
 
-                    <div class="grid min-w-0 flex-1 grid-cols-7">
+                    <div
+                        class="flex"
+                        role="grid"
+                        :aria-label="`Harmonogram lekcji, ${weekRangeLabel}`"
+                    >
                         <div
-                            v-for="day in weekDays"
-                            :key="day.dateStr"
-                            class="border-border flex min-w-0 flex-col border-r last:border-r-0"
+                            class="border-border flex w-12 shrink-0 flex-col border-r"
+                            aria-hidden="true"
                         >
                             <div
-                                class="border-border flex h-12 shrink-0 flex-col items-center justify-center border-b px-1 text-center"
-                                :class="
-                                    day.isToday
-                                        ? 'bg-primary/10 font-semibold'
-                                        : ''
-                                "
-                            >
-                                <span
-                                    class="text-foreground text-xs font-medium capitalize"
-                                >
-                                    {{ day.header }}
-                                </span>
-                                <UiBadge
-                                    v-if="day.isToday"
-                                    variant="secondary"
-                                    class="mt-1"
-                                >
-                                    dziś
-                                </UiBadge>
-                            </div>
-
+                                class="border-border flex h-12 shrink-0 items-end border-b pr-2"
+                            />
                             <div
-                                class="border-border relative border-b"
+                                class="flex flex-col"
                                 :style="{ height: `${GRID_HEIGHT_PX}px` }"
                             >
                                 <div
-                                    class="pointer-events-none absolute inset-0 flex flex-col"
-                                    aria-hidden="true"
+                                    v-for="h in hourLabels"
+                                    :key="h"
+                                    class="text-muted-foreground flex h-[60px] items-start justify-end pr-2 text-xs"
                                 >
-                                    <div
-                                        v-for="n in 12"
-                                        :key="n"
-                                        class="border-border/50 h-[60px] border-b border-dashed"
-                                    />
+                                    {{ String(h).padStart(2, '0') }}:00
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid min-w-0 flex-1 grid-cols-7">
+                            <div
+                                v-for="day in weekDays"
+                                :key="day.dateStr"
+                                class="border-border flex min-w-0 flex-col border-r last:border-r-0"
+                            >
+                                <div
+                                    class="border-border flex h-12 shrink-0 flex-col items-center justify-center border-b px-1 text-center"
+                                    :class="
+                                        day.isToday
+                                            ? 'bg-primary/10 font-semibold'
+                                            : ''
+                                    "
+                                >
+                                    <span
+                                        class="text-foreground text-xs font-medium capitalize"
+                                    >
+                                        {{ day.header }}
+                                    </span>
+                                    <UiBadge
+                                        v-if="day.isToday"
+                                        variant="secondary"
+                                        class="mt-1"
+                                    >
+                                        dziś
+                                    </UiBadge>
                                 </div>
 
-                                <template
-                                    v-for="lesson in lessonsForDate(
-                                        day.dateStr,
-                                    )"
-                                    :key="lesson.id"
+                                <div
+                                    class="border-border relative border-b"
+                                    :style="{ height: `${GRID_HEIGHT_PX}px` }"
                                 >
                                     <div
-                                        class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
-                                        :class="[
-                                            lessonBlockClasses(lesson.type),
-                                            lessonBlockInteractiveClasses(
-                                                lesson,
-                                            ),
-                                        ]"
-                                        :style="{
-                                            top: `${lessonBlockTopPx(lesson, day.dateStr)}px`,
-                                            height: `${lessonBlockHeightPx(lesson, day.dateStr)}px`,
-                                        }"
-                                        :title="blockAccessibilityLabel(lesson)"
-                                        :role="
-                                            blockIsClickable(lesson)
-                                                ? 'button'
-                                                : 'group'
-                                        "
-                                        :aria-label="
-                                            blockAccessibilityLabel(lesson)
-                                        "
-                                        :tabindex="
-                                            blockIsClickable(lesson)
-                                                ? 0
-                                                : undefined
-                                        "
-                                        @click="
-                                            handleScheduleBlockClick(lesson)
-                                        "
-                                        @keydown="
-                                            handleScheduleBlockKeydown(
-                                                $event,
-                                                lesson,
-                                            )
-                                        "
+                                        class="pointer-events-none absolute inset-0 flex flex-col"
+                                        aria-hidden="true"
                                     >
                                         <div
-                                            v-if="
-                                                isTheoryLessonType(lesson.type)
+                                            v-for="n in 12"
+                                            :key="n"
+                                            class="border-border/50 h-[60px] border-b border-dashed"
+                                        />
+                                    </div>
+
+                                    <template
+                                        v-for="lesson in lessonsForDate(
+                                            day.dateStr,
+                                        )"
+                                        :key="lesson.id"
+                                    >
+                                        <div
+                                            class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
+                                            :class="[
+                                                lessonBlockClasses(lesson.type),
+                                                lessonBlockInteractiveClasses(
+                                                    lesson,
+                                                ),
+                                            ]"
+                                            :style="{
+                                                top: `${lessonBlockTopPx(lesson, day.dateStr)}px`,
+                                                height: `${lessonBlockHeightPx(lesson, day.dateStr)}px`,
+                                            }"
+                                            :title="
+                                                blockAccessibilityLabel(lesson)
                                             "
-                                            class="mb-0.5 flex items-center gap-1"
-                                        >
-                                            <BookOpen
-                                                class="size-3 shrink-0 text-violet-700 dark:text-violet-200"
-                                                aria-hidden="true"
-                                            />
-                                            <UiBadge
-                                                variant="secondary"
-                                                class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[9px] font-semibold tracking-wide text-violet-950 uppercase dark:text-violet-50"
-                                            >
-                                                Teoria
-                                            </UiBadge>
-                                            <span
-                                                class="ml-auto shrink-0 font-medium tabular-nums"
-                                            >
-                                                {{
-                                                    isoToHm(lesson.startTime)
-                                                }}–{{ isoToHm(lesson.endTime) }}
-                                            </span>
-                                        </div>
-                                        <span
-                                            v-else
-                                            class="mb-0.5 flex items-center gap-1"
-                                        >
-                                            <Car
-                                                class="size-3 shrink-0 text-emerald-800 dark:text-emerald-200"
-                                                aria-hidden="true"
-                                            />
-                                            <span
-                                                class="font-medium tabular-nums"
-                                            >
-                                                {{
-                                                    isoToHm(lesson.startTime)
-                                                }}–{{ isoToHm(lesson.endTime) }}
-                                            </span>
-                                        </span>
-                                        <span
-                                            class="block truncate text-[10px] font-medium"
-                                            :class="
-                                                isTheoryLessonType(lesson.type)
-                                                    ? 'text-violet-950/95 dark:text-violet-50/95'
-                                                    : ''
+                                            :role="
+                                                blockIsClickable(lesson)
+                                                    ? 'button'
+                                                    : 'group'
                                             "
-                                        >
-                                            {{ displayPrimaryLine(lesson) }}
-                                        </span>
-                                        <span
-                                            v-if="
-                                                isScheduleInstructorEvent(
+                                            :aria-label="
+                                                blockAccessibilityLabel(lesson)
+                                            "
+                                            :tabindex="
+                                                blockIsClickable(lesson)
+                                                    ? 0
+                                                    : undefined
+                                            "
+                                            @click="
+                                                handleScheduleBlockClick(lesson)
+                                            "
+                                            @keydown="
+                                                handleScheduleBlockKeydown(
+                                                    $event,
                                                     lesson,
                                                 )
                                             "
-                                            class="mt-0.5 block"
                                         >
-                                            <UiBadge
-                                                :variant="
-                                                    instructorEventStatusBadgeVariant(
-                                                        normalizeInstructorEventStatus(
-                                                            lesson.status,
-                                                        ),
+                                            <div
+                                                v-if="
+                                                    isTheoryLessonType(
+                                                        lesson.type,
                                                     )
                                                 "
-                                                class="px-1 py-0 text-[9px] font-medium"
+                                                class="mb-0.5 flex items-center gap-1"
+                                            >
+                                                <BookOpen
+                                                    class="size-3 shrink-0 text-violet-700 dark:text-violet-200"
+                                                    aria-hidden="true"
+                                                />
+                                                <UiBadge
+                                                    variant="secondary"
+                                                    class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[9px] font-semibold tracking-wide text-violet-950 uppercase dark:text-violet-50"
+                                                >
+                                                    Teoria
+                                                </UiBadge>
+                                                <span
+                                                    class="ml-auto shrink-0 font-medium tabular-nums"
+                                                >
+                                                    {{
+                                                        isoToHm(
+                                                            lesson.startTime,
+                                                        )
+                                                    }}–{{
+                                                        isoToHm(lesson.endTime)
+                                                    }}
+                                                </span>
+                                            </div>
+                                            <span
+                                                v-else
+                                                class="mb-0.5 flex items-center gap-1"
+                                            >
+                                                <Car
+                                                    class="size-3 shrink-0 text-emerald-800 dark:text-emerald-200"
+                                                    aria-hidden="true"
+                                                />
+                                                <span
+                                                    class="font-medium tabular-nums"
+                                                >
+                                                    {{
+                                                        isoToHm(
+                                                            lesson.startTime,
+                                                        )
+                                                    }}–{{
+                                                        isoToHm(lesson.endTime)
+                                                    }}
+                                                </span>
+                                            </span>
+                                            <span
+                                                class="block truncate text-[10px] font-medium"
+                                                :class="
+                                                    isTheoryLessonType(
+                                                        lesson.type,
+                                                    )
+                                                        ? 'text-violet-950/95 dark:text-violet-50/95'
+                                                        : ''
+                                                "
+                                            >
+                                                {{ displayPrimaryLine(lesson) }}
+                                            </span>
+                                            <span
+                                                v-if="
+                                                    isScheduleInstructorEvent(
+                                                        lesson,
+                                                    )
+                                                "
+                                                class="mt-0.5 block"
+                                            >
+                                                <UiBadge
+                                                    :variant="
+                                                        instructorEventStatusBadgeVariant(
+                                                            normalizeInstructorEventStatus(
+                                                                lesson.status,
+                                                            ),
+                                                        )
+                                                    "
+                                                    class="px-1 py-0 text-[9px] font-medium"
+                                                >
+                                                    {{
+                                                        labelForInstructorEventStatusRaw(
+                                                            lesson.status,
+                                                        )
+                                                    }}
+                                                </UiBadge>
+                                            </span>
+                                            <span
+                                                v-if="
+                                                    isTheoryLessonType(
+                                                        lesson.type,
+                                                    ) &&
+                                                    displayInstructorSubtitle(
+                                                        lesson,
+                                                    )
+                                                "
+                                                class="block truncate text-[10px] leading-snug text-violet-900/85 dark:text-violet-100/85"
                                             >
                                                 {{
-                                                    labelForInstructorEventStatusRaw(
-                                                        lesson.status,
+                                                    displayInstructorSubtitle(
+                                                        lesson,
                                                     )
                                                 }}
-                                            </UiBadge>
-                                        </span>
-                                        <span
-                                            v-if="
-                                                isTheoryLessonType(
-                                                    lesson.type,
-                                                ) &&
-                                                displayInstructorSubtitle(
-                                                    lesson,
-                                                )
-                                            "
-                                            class="block truncate text-[10px] leading-snug text-violet-900/85 dark:text-violet-100/85"
-                                        >
-                                            {{
-                                                displayInstructorSubtitle(
-                                                    lesson,
-                                                )
-                                            }}
-                                        </span>
-                                        <span
-                                            v-if="
-                                                !isTheoryLessonType(
-                                                    lesson.type,
-                                                ) && displayVehicle(lesson)
-                                            "
-                                            class="block truncate text-[10px] opacity-85"
-                                        >
-                                            {{ displayVehicle(lesson) }}
-                                        </span>
-                                        <span
-                                            v-if="
-                                                !isTheoryLessonType(
-                                                    lesson.type,
-                                                ) &&
-                                                displayInstructorSubtitle(
-                                                    lesson,
-                                                )
-                                            "
-                                            class="block truncate text-[10px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
-                                        >
-                                            {{
-                                                displayInstructorSubtitle(
-                                                    lesson,
-                                                )
-                                            }}
-                                        </span>
-                                    </div>
-                                </template>
+                                            </span>
+                                            <span
+                                                v-if="
+                                                    !isTheoryLessonType(
+                                                        lesson.type,
+                                                    ) && displayVehicle(lesson)
+                                                "
+                                                class="block truncate text-[10px] opacity-85"
+                                            >
+                                                {{ displayVehicle(lesson) }}
+                                            </span>
+                                            <span
+                                                v-if="
+                                                    !isTheoryLessonType(
+                                                        lesson.type,
+                                                    ) &&
+                                                    displayInstructorSubtitle(
+                                                        lesson,
+                                                    )
+                                                "
+                                                class="block truncate text-[10px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
+                                            >
+                                                {{
+                                                    displayInstructorSubtitle(
+                                                        lesson,
+                                                    )
+                                                }}
+                                            </span>
+                                        </div>
+                                    </template>
 
-                                <div
-                                    v-if="
-                                        lessonsForDate(day.dateStr).length ===
-                                            0 &&
-                                        !displayLoading &&
-                                        !displayError
-                                    "
-                                    class="text-muted-foreground absolute inset-0 flex items-center justify-center p-2 text-center text-xs"
-                                >
-                                    {{ emptyDayMessage }}
+                                    <div
+                                        v-if="
+                                            lessonsForDate(day.dateStr)
+                                                .length === 0 &&
+                                            !displayLoading &&
+                                            !displayError
+                                        "
+                                        class="text-muted-foreground absolute inset-0 flex items-center justify-center p-2 text-center text-xs"
+                                    >
+                                        {{ emptyDayMessage }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </UiCardContent>
+    </UiCard>
 </template>
