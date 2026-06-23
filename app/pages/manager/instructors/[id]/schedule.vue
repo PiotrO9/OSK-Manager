@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import {
+    ArrowLeft,
+    ArrowRight,
+    CalendarDays,
+    Clock,
+    Layers3,
+    Plus,
+    Route,
+} from 'lucide-vue-next';
 import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import type { CourseListItem } from '~/types/course';
@@ -51,9 +60,8 @@ const instructorId = computed(getInstructorId);
 const schoolId = computed(readSchoolIdFromQuery);
 
 usePageMeta({
-    title: () => 'Lekcje i bloki',
-    description: () =>
-        'Terminarz lekcji instruktora oraz dodawanie bloków DRIVE/THEORY.',
+    title: () => 'Terminarz instruktora',
+    description: () => 'Tygodniowy harmonogram jazd, teorii i blokad.',
 });
 
 const weekStart = ref<Date>(getMonday(new Date()));
@@ -73,7 +81,6 @@ const eventType = ref<'THEORY' | 'DRIVE'>('THEORY');
 const eventStartLocal = ref('');
 const eventEndLocal = ref('');
 const eventVehicleId = ref('');
-/** Tylko THEORY — opcjonalne `courseId` w POST /events. */
 const eventCourseId = ref('');
 const eventFormError = ref<string | null>(null);
 
@@ -81,6 +88,38 @@ const deleteDialogOpen = ref(false);
 const pendingDeleteItem = ref<ScheduleLessonItem | null>(null);
 
 const range = computed(() => weekRangeFromMonday(weekStart.value));
+const scheduleItemsCount = computed(() => items.value.length);
+const lessonItemsCount = computed(
+    () => items.value.filter((item) => item.kind !== 'instructor_event').length,
+);
+const blockItemsCount = computed(
+    () => items.value.filter((item) => item.kind === 'instructor_event').length,
+);
+const scheduleWeekLabel = computed(() =>
+    formatWeekRangeCompact(weekStart.value),
+);
+const scheduleResultLabel = computed(() => {
+    if (isScheduleLoading.value) {
+        return 'Wczytywanie';
+    }
+
+    return `${scheduleItemsCount.value} wpisow`;
+});
+const nextScheduledItemLabel = computed(() => {
+    const item = items.value
+        .slice()
+        .sort(
+            (a, b) =>
+                new Date(a.startTime).getTime() -
+                new Date(b.startTime).getTime(),
+        )[0];
+
+    if (!item) {
+        return 'Brak';
+    }
+
+    return formatScheduleRangeLabel(item.startTime);
+});
 
 const pendingDeleteTimeLabel = computed(() => {
     const item = pendingDeleteItem.value;
@@ -89,7 +128,7 @@ const pendingDeleteTimeLabel = computed(() => {
         return '';
     }
 
-    return `${formatScheduleRangeLabel(item.startTime)} — ${formatScheduleRangeLabel(item.endTime)}`;
+    return `${formatScheduleRangeLabel(item.startTime)} - ${formatScheduleRangeLabel(item.endTime)}`;
 });
 
 function formatScheduleRangeLabel(iso: string): string {
@@ -103,6 +142,28 @@ function formatScheduleRangeLabel(iso: string): string {
         dateStyle: 'short',
         timeStyle: 'short',
     }).format(d);
+}
+
+function formatWeekRangeCompact(monday: Date): string {
+    const start = new Date(
+        monday.getFullYear(),
+        monday.getMonth(),
+        monday.getDate(),
+    );
+    const end = new Date(
+        monday.getFullYear(),
+        monday.getMonth(),
+        monday.getDate() + 6,
+    );
+    const startDay = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+    }).format(start);
+    const endLabel = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+    }).format(end);
+
+    return `${startDay}-${endLabel}`;
 }
 
 let scheduleSeq = 0;
@@ -139,7 +200,7 @@ async function loadSchedule(): Promise<void> {
         items.value = [];
         scheduleError.value = getApiFetchErrorMessage(
             err,
-            'Nie udało się wczytać terminarza lekcji.',
+            'Nie udalo sie wczytac terminarza lekcji.',
         );
     } finally {
         if (seq === scheduleSeq) {
@@ -165,7 +226,7 @@ async function loadVehicles(): Promise<void> {
     } catch (err: unknown) {
         vehiclesError.value = getApiFetchErrorMessage(
             err,
-            'Nie udało się pobrać listy pojazdów.',
+            'Nie udalo sie pobrac listy pojazdow.',
         );
     } finally {
         isVehiclesLoading.value = false;
@@ -189,7 +250,7 @@ async function loadCourses(): Promise<void> {
     } catch (err: unknown) {
         coursesError.value = getApiFetchErrorMessage(
             err,
-            'Nie udało się pobrać listy kursów.',
+            'Nie udalo sie pobrac listy kursow.',
         );
     } finally {
         isCoursesLoading.value = false;
@@ -257,6 +318,12 @@ function formatWeekLabel(d: Date): string {
     }).format(d);
 }
 
+function handleFocusEventForm(): void {
+    const target = document.getElementById('event-block-heading');
+
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function localDatetimeToIso(local: string): string | null {
     const t = local.trim();
 
@@ -288,14 +355,13 @@ async function handleSubmitEvent(): Promise<void> {
     const endIso = localDatetimeToIso(eventEndLocal.value);
 
     if (!startIso || !endIso) {
-        eventFormError.value =
-            'Podaj początek i koniec bloku (data i godzina).';
+        eventFormError.value = 'Podaj poczatek i koniec bloku.';
 
         return;
     }
 
     if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
-        eventFormError.value = 'Koniec musi być później niż początek.';
+        eventFormError.value = 'Koniec musi byc pozniej niz poczatek.';
 
         return;
     }
@@ -307,7 +373,7 @@ async function handleSubmitEvent(): Promise<void> {
 
         if (!vid) {
             eventFormError.value =
-                'Dla jazdy wybierz pojazd (wymagany parametr schoolId w adresie strony i lista pojazdów OSK).';
+                'Dla jazdy wybierz pojazd. Wymagany jest schoolId w adresie strony.';
 
             return;
         }
@@ -328,7 +394,7 @@ async function handleSubmitEvent(): Promise<void> {
 
         addToast({
             title: 'Zapisano blok czasu',
-            description: 'Blok został dodany do grafiku.',
+            description: 'Blok zostal dodany do grafiku.',
             variant: 'success',
         });
 
@@ -341,7 +407,7 @@ async function handleSubmitEvent(): Promise<void> {
     } catch (err: unknown) {
         eventFormError.value = getApiFetchErrorMessage(
             err,
-            'Nie udało się utworzyć bloku.',
+            'Nie udalo sie utworzyc bloku.',
         );
     }
 }
@@ -369,8 +435,8 @@ async function handleDeleteDialogConfirm(): Promise<void> {
         await deleteInstructorEvent(removedId);
 
         addToast({
-            title: 'Usunięto blok czasu',
-            description: 'Blok został usunięty z harmonogramu.',
+            title: 'Usunieto blok czasu',
+            description: 'Blok zostal usuniety z harmonogramu.',
             variant: 'success',
         });
 
@@ -378,10 +444,10 @@ async function handleDeleteDialogConfirm(): Promise<void> {
         handleDeleteDialogCancel();
     } catch (err: unknown) {
         addToast({
-            title: 'Nie udało się usunąć bloku',
+            title: 'Nie udalo sie usunac bloku',
             description: getApiFetchErrorMessage(
                 err,
-                'Spróbuj ponownie lub odśwież stronę.',
+                'Sprobuj ponownie lub odswiez strone.',
             ),
             variant: 'error',
         });
@@ -408,269 +474,443 @@ const backHref = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-8">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Lekcje i bloki czasu
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Terminarz lekcji w wybranym tygodniu. Możesz dodać blok
-                DRIVE/THEORY bez kursanta (wpływa na wolne sloty). Kliknij
-                wiersz bloku czasu lub jazdy praktycznej w tabeli, aby otworzyć
-                edycję.
-                <span
-                    v-if="!schoolId"
-                    class="text-amber-700 dark:text-amber-500"
-                >
-                    Dodaj
-                    <code class="text-xs">?schoolId=</code>
-                    w adresie, aby wybrać pojazd przy bloku jazdy.
-                </span>
-            </p>
-        </div>
-
-        <template v-if="!instructorId">
-            <p class="text-destructive text-sm" role="alert">
-                Nieprawidłowy identyfikator instruktora.
-            </p>
-        </template>
-
-        <template v-else>
-            <section class="space-y-3" aria-labelledby="schedule-week-heading">
-                <h2
-                    id="schedule-week-heading"
-                    class="text-foreground text-lg font-semibold"
-                >
-                    Zaplanowane lekcje
-                </h2>
-
-                <div
-                    class="flex flex-wrap items-center gap-2"
-                    role="group"
-                    aria-label="Nawigacja tygodnia"
-                >
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        aria-label="Poprzedni tydzień"
-                        @click="handlePrevWeek"
-                    >
-                        ← Poprzedni
-                    </UiButton>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        aria-label="Następny tydzień"
-                        @click="handleNextWeek"
-                    >
-                        Następny →
-                    </UiButton>
-                    <span class="text-muted-foreground text-sm">
-                        Tydzień od {{ formatWeekLabel(weekStart) }}
-                    </span>
-                </div>
-
-                <p
-                    v-if="isScheduleLoading"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Wczytywanie lekcji…
-                </p>
-                <p
-                    v-else-if="scheduleError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ scheduleError }}
-                </p>
-                <ManagerScheduleLessonTable
-                    v-else
-                    :items="items"
-                    event-edit-enabled
-                    event-delete-enabled
-                    event-status-change-enabled
-                    :school-id="schoolId"
-                    @request-delete="handleRequestDelete"
-                    @status-changed="handleInstructorEventStatusChanged"
-                />
-            </section>
-
-            <section
-                class="border-border bg-card max-w-xl space-y-4 rounded-xl border p-6 shadow-sm"
-                aria-labelledby="event-block-heading"
-            >
-                <h2
-                    id="event-block-heading"
-                    class="text-foreground text-lg font-semibold"
-                >
-                    Dodaj blok czasu (bez kursanta)
-                </h2>
-                <p class="text-muted-foreground text-xs">
-                    Blok musi mieścić się w dostępności instruktora i nie
-                    kolidować z lekcjami ani innymi blokami (walidacja po
-                    stronie serwera).
-                </p>
-
-                <div class="space-y-2">
-                    <UiLabel for="event-type">Typ</UiLabel>
-                    <UiSelect v-model="eventType">
-                        <UiSelectTrigger
-                            id="event-type"
-                            class="w-full"
-                            aria-label="Typ bloku: teoria lub jazda"
-                        >
-                            <UiSelectValue placeholder="Typ bloku" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem value="THEORY">
-                                    Teoria (THEORY)
-                                </UiSelectItem>
-                                <UiSelectItem value="DRIVE">
-                                    Jazda (DRIVE)
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                </div>
-
-                <div
-                    v-if="eventType === 'THEORY' && schoolId"
-                    class="space-y-2"
-                >
-                    <UiLabel for="event-course">Kurs (opcjonalnie)</UiLabel>
-                    <p
-                        v-if="isCoursesLoading"
-                        class="text-muted-foreground text-xs"
-                        role="status"
-                    >
-                        Wczytywanie kursów…
-                    </p>
-                    <p
-                        v-else-if="coursesError"
-                        class="text-destructive text-xs"
-                        role="alert"
-                    >
-                        {{ coursesError }}
-                    </p>
-                    <UiSelect
-                        v-model="eventCourseId"
-                        :disabled="isCoursesLoading || isEventSaving"
-                    >
-                        <UiSelectTrigger
-                            id="event-course"
-                            class="w-full"
-                            aria-label="Powiązanie bloku teorii z kursem"
-                        >
-                            <UiSelectValue
-                                placeholder="— Bez powiązania z kursem —"
-                            />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="c in courses"
-                                    :key="c.id"
-                                    :value="c.id"
-                                >
-                                    {{ c.name }} ({{ c.category }})
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                    <p class="text-muted-foreground text-xs">
-                        Powiązanie z kursem nie dodaje kursantów na ten blok —
-                        lista uczestników zaczyna się pusta; przypisania robisz
-                        osobno (zgodnie z limitem miejsc).
-                    </p>
-                </div>
-
-                <div v-if="eventType === 'DRIVE'" class="space-y-2">
-                    <UiLabel for="event-vehicle">Pojazd</UiLabel>
-                    <p
-                        v-if="isVehiclesLoading"
-                        class="text-muted-foreground text-xs"
-                        role="status"
-                    >
-                        Wczytywanie pojazdów…
-                    </p>
-                    <p
-                        v-else-if="vehiclesError"
-                        class="text-destructive text-xs"
-                        role="alert"
-                    >
-                        {{ vehiclesError }}
-                    </p>
-                    <UiSelect
-                        v-model="eventVehicleId"
-                        :disabled="
-                            !schoolId ||
-                            vehicles.length === 0 ||
-                            isVehiclesLoading
-                        "
-                    >
-                        <UiSelectTrigger
-                            id="event-vehicle"
-                            class="w-full"
-                            aria-label="Pojazd dla bloku jazdy"
-                        >
-                            <UiSelectValue placeholder="— Wybierz pojazd —" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="v in vehicles"
-                                    :key="v.id"
-                                    :value="v.id"
-                                >
-                                    {{ v.name }} ({{ v.registrationNumber }})
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="space-y-2">
-                        <UiLabel for="event-start">Początek</UiLabel>
-                        <UiDateTimePicker
-                            id="event-start"
-                            v-model="eventStartLocal"
-                            placeholder="Data i godzina początku"
-                            :aria-required="true"
-                        />
-                    </div>
-                    <div class="space-y-2">
-                        <UiLabel for="event-end">Koniec</UiLabel>
-                        <UiDateTimePicker
-                            id="event-end"
-                            v-model="eventEndLocal"
-                            placeholder="Data i godzina końca"
-                            :aria-required="true"
-                        />
-                    </div>
-                </div>
-
-                <p
-                    v-if="eventFormError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ eventFormError }}
-                </p>
-
+    <div class="space-y-6">
+        <PageHeader
+            title="Terminarz instruktora"
+            description="Tygodniowy harmonogram jazd, teorii i blokad."
+        >
+            <template #actions>
                 <UiButton
                     type="button"
-                    :disabled="isEventSaving"
-                    aria-busy="isEventSaving"
-                    @click="handleSubmitEvent"
+                    variant="outline"
+                    class="gap-2"
+                    aria-label="Aktualny zakres tygodnia"
                 >
-                    {{ isEventSaving ? 'Zapisywanie…' : 'Dodaj blok' }}
+                    <CalendarDays class="size-4" aria-hidden="true" />
+                    {{ scheduleWeekLabel }}
                 </UiButton>
+                <UiButton
+                    type="button"
+                    class="shadow-primary-500/20 gap-2 shadow-lg"
+                    @click="handleFocusEventForm"
+                >
+                    <Plus class="size-4" aria-hidden="true" />
+                    Dodaj blok
+                </UiButton>
+            </template>
+        </PageHeader>
+
+        <ErrorState
+            v-if="!instructorId"
+            title="Nieprawidlowy instruktor"
+            description="W adresie brakuje poprawnego identyfikatora instruktora."
+        >
+            <template #action>
+                <UiButton as-child variant="outline" size="sm">
+                    <NuxtLink to="/manager/instructors">
+                        Wroc do instruktorow
+                    </NuxtLink>
+                </UiButton>
+            </template>
+        </ErrorState>
+
+        <template v-else>
+            <section
+                class="border-border bg-card overflow-hidden rounded-xl border shadow-xs"
+                aria-label="Kontekst terminarza instruktora"
+            >
+                <div
+                    class="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between"
+                >
+                    <div class="flex min-w-0 gap-3">
+                        <div
+                            class="bg-primary-50 text-primary-600 flex size-11 shrink-0 items-center justify-center rounded-xl"
+                            aria-hidden="true"
+                        >
+                            <Route class="size-5" />
+                        </div>
+                        <div class="min-w-0">
+                            <h2 class="text-foreground text-lg font-semibold">
+                                Harmonogram operacyjny
+                            </h2>
+                            <p
+                                class="text-muted-foreground mt-1 text-sm leading-relaxed"
+                            >
+                                Kliknij wiersz bloku lub jazdy praktycznej, aby
+                                otworzyc edycje. Bloki bez kursanta zmieniaja
+                                wolne sloty instruktora.
+                            </p>
+                            <p
+                                v-if="!schoolId"
+                                class="text-warning-800 mt-2 text-xs font-medium"
+                            >
+                                Dodaj <code>?schoolId=</code> w adresie, aby
+                                wybrac pojazd dla bloku jazdy.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="grid overflow-hidden rounded-xl border sm:grid-cols-4"
+                    >
+                        <div class="border-border px-4 py-3 sm:border-r">
+                            <p class="text-muted-foreground text-xs">Wpisy</p>
+                            <p class="text-foreground mt-1 text-xl font-bold">
+                                {{ scheduleItemsCount }}
+                            </p>
+                        </div>
+                        <div class="border-border px-4 py-3 sm:border-r">
+                            <p class="text-muted-foreground text-xs">Lekcje</p>
+                            <p class="text-foreground mt-1 text-xl font-bold">
+                                {{ lessonItemsCount }}
+                            </p>
+                        </div>
+                        <div class="border-border px-4 py-3 sm:border-r">
+                            <p class="text-muted-foreground text-xs">Bloki</p>
+                            <p class="text-foreground mt-1 text-xl font-bold">
+                                {{ blockItemsCount }}
+                            </p>
+                        </div>
+                        <div class="px-4 py-3">
+                            <p class="text-muted-foreground text-xs">
+                                Najblizszy wpis
+                            </p>
+                            <p
+                                class="text-foreground mt-1 text-sm font-bold whitespace-nowrap"
+                            >
+                                {{ nextScheduledItemLabel }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </section>
+
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+                <section
+                    class="border-border bg-card overflow-hidden rounded-xl border shadow-xs"
+                    aria-labelledby="schedule-week-heading"
+                >
+                    <div
+                        class="border-border flex flex-col gap-4 border-b p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between"
+                    >
+                        <div class="flex min-w-0 gap-3">
+                            <div
+                                class="bg-primary-50 text-primary-600 flex size-10 shrink-0 items-center justify-center rounded-xl"
+                                aria-hidden="true"
+                            >
+                                <CalendarDays class="size-5" />
+                            </div>
+                            <div class="min-w-0">
+                                <h2
+                                    id="schedule-week-heading"
+                                    class="text-foreground text-lg font-semibold"
+                                >
+                                    Terminarz
+                                </h2>
+                                <p
+                                    class="text-muted-foreground mt-1 text-sm leading-relaxed"
+                                >
+                                    Tydzien od {{ formatWeekLabel(weekStart) }}.
+                                </p>
+                            </div>
+                        </div>
+
+                        <ActionGroup
+                            label="Nawigacja tygodnia"
+                            align="end"
+                            density="compact"
+                        >
+                            <UiButton
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                class="gap-2"
+                                aria-label="Poprzedni tydzien"
+                                @click="handlePrevWeek"
+                            >
+                                <ArrowLeft class="size-4" aria-hidden="true" />
+                                Poprzedni
+                            </UiButton>
+                            <UiButton
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                class="gap-2"
+                                aria-label="Nastepny tydzien"
+                                @click="handleNextWeek"
+                            >
+                                Nastepny
+                                <ArrowRight class="size-4" aria-hidden="true" />
+                            </UiButton>
+                        </ActionGroup>
+                    </div>
+
+                    <div class="space-y-4 p-4 sm:p-5">
+                        <FilterBar
+                            title="Filtry zapytania API"
+                            :result-label="scheduleResultLabel"
+                            :is-loading="isScheduleLoading"
+                        >
+                            <StatusBadge
+                                label="Instruktor"
+                                tone="info"
+                                subtle
+                            />
+                            <StatusBadge
+                                :label="scheduleWeekLabel"
+                                tone="neutral"
+                                subtle
+                            />
+                            <StatusBadge
+                                label="Sortuj: godzina"
+                                tone="neutral"
+                                subtle
+                            />
+                            <template #actions>
+                                <UiButton
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="loadSchedule"
+                                >
+                                    Odswiez
+                                </UiButton>
+                            </template>
+                        </FilterBar>
+
+                        <LoadingState
+                            v-if="isScheduleLoading"
+                            title="Wczytywanie terminarza"
+                            description="Pobieram lekcje i bloki z wybranego tygodnia."
+                        />
+                        <ErrorState
+                            v-else-if="scheduleError"
+                            title="Nie udalo sie wczytac terminarza"
+                            :description="scheduleError"
+                            @retry="loadSchedule"
+                        />
+                        <ManagerScheduleLessonTable
+                            v-else
+                            :items="items"
+                            event-edit-enabled
+                            event-delete-enabled
+                            event-status-change-enabled
+                            :school-id="schoolId"
+                            @request-delete="handleRequestDelete"
+                            @status-changed="handleInstructorEventStatusChanged"
+                        />
+                    </div>
+                </section>
+
+                <FormSection
+                    title="Dodaj blok czasu"
+                    description="Blok bez kursanta rezerwuje czas instruktora dla teorii albo jazdy."
+                >
+                    <div id="event-block-heading" class="space-y-4">
+                        <div class="space-y-2">
+                            <UiLabel for="event-type">Typ</UiLabel>
+                            <UiSelect v-model="eventType">
+                                <UiSelectTrigger
+                                    id="event-type"
+                                    class="w-full"
+                                    aria-label="Typ bloku: teoria lub jazda"
+                                >
+                                    <UiSelectValue placeholder="Typ bloku" />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem value="THEORY">
+                                            Teoria
+                                        </UiSelectItem>
+                                        <UiSelectItem value="DRIVE">
+                                            Jazda
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
+                        </div>
+
+                        <div
+                            v-if="eventType === 'THEORY' && schoolId"
+                            class="space-y-2"
+                        >
+                            <UiLabel for="event-course">
+                                Kurs opcjonalnie
+                            </UiLabel>
+                            <p
+                                v-if="isCoursesLoading"
+                                class="text-muted-foreground text-xs"
+                                role="status"
+                            >
+                                Wczytywanie kursow...
+                            </p>
+                            <p
+                                v-else-if="coursesError"
+                                class="text-destructive text-xs"
+                                role="alert"
+                            >
+                                {{ coursesError }}
+                            </p>
+                            <UiSelect
+                                v-model="eventCourseId"
+                                :disabled="isCoursesLoading || isEventSaving"
+                            >
+                                <UiSelectTrigger
+                                    id="event-course"
+                                    class="w-full"
+                                    aria-label="Powiazanie bloku teorii z kursem"
+                                >
+                                    <UiSelectValue
+                                        placeholder="Bez powiazania z kursem"
+                                    />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem
+                                            v-for="c in courses"
+                                            :key="c.id"
+                                            :value="c.id"
+                                        >
+                                            {{ c.name }} ({{ c.category }})
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
+                            <p class="text-muted-foreground text-xs">
+                                Powiazanie z kursem nie dodaje kursantow na ten
+                                blok.
+                            </p>
+                        </div>
+
+                        <div v-if="eventType === 'DRIVE'" class="space-y-2">
+                            <UiLabel for="event-vehicle">Pojazd</UiLabel>
+                            <p
+                                v-if="isVehiclesLoading"
+                                class="text-muted-foreground text-xs"
+                                role="status"
+                            >
+                                Wczytywanie pojazdow...
+                            </p>
+                            <p
+                                v-else-if="vehiclesError"
+                                class="text-destructive text-xs"
+                                role="alert"
+                            >
+                                {{ vehiclesError }}
+                            </p>
+                            <UiSelect
+                                v-model="eventVehicleId"
+                                :disabled="
+                                    !schoolId ||
+                                    vehicles.length === 0 ||
+                                    isVehiclesLoading
+                                "
+                            >
+                                <UiSelectTrigger
+                                    id="event-vehicle"
+                                    class="w-full"
+                                    aria-label="Pojazd dla bloku jazdy"
+                                >
+                                    <UiSelectValue
+                                        placeholder="Wybierz pojazd"
+                                    />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem
+                                            v-for="v in vehicles"
+                                            :key="v.id"
+                                            :value="v.id"
+                                        >
+                                            {{ v.name }} ({{
+                                                v.registrationNumber
+                                            }})
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
+                        </div>
+
+                        <div class="space-y-2">
+                            <UiLabel for="event-start">Poczatek</UiLabel>
+                            <UiDateTimePicker
+                                id="event-start"
+                                v-model="eventStartLocal"
+                                placeholder="Data i godzina poczatku"
+                                :aria-required="true"
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <UiLabel for="event-end">Koniec</UiLabel>
+                            <UiDateTimePicker
+                                id="event-end"
+                                v-model="eventEndLocal"
+                                placeholder="Data i godzina konca"
+                                :aria-required="true"
+                            />
+                        </div>
+
+                        <p
+                            v-if="eventFormError"
+                            class="text-destructive text-sm"
+                            role="alert"
+                        >
+                            {{ eventFormError }}
+                        </p>
+
+                        <div
+                            class="border-border bg-muted/30 grid gap-3 rounded-xl border p-3 text-xs sm:grid-cols-3 xl:grid-cols-1"
+                        >
+                            <div class="flex items-center gap-2">
+                                <Clock
+                                    class="text-primary size-4 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                Walidacja czasu po stronie serwera
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Layers3
+                                    class="text-primary size-4 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                Brak kursanta w nowym bloku
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <CalendarDays
+                                    class="text-primary size-4 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                Po zapisie odswiezam tydzien
+                            </div>
+                        </div>
+                    </div>
+
+                    <template #footer>
+                        <ActionGroup label="Akcje bloku czasu" align="end">
+                            <UiButton as-child variant="outline" type="button">
+                                <NuxtLink :to="backHref">
+                                    Szczegoly instruktora
+                                </NuxtLink>
+                            </UiButton>
+                            <UiButton
+                                type="button"
+                                :disabled="isEventSaving"
+                                :aria-busy="isEventSaving"
+                                class="gap-2"
+                                @click="handleSubmitEvent"
+                            >
+                                <Plus class="size-4" aria-hidden="true" />
+                                {{
+                                    isEventSaving
+                                        ? 'Zapisywanie...'
+                                        : 'Dodaj blok'
+                                }}
+                            </UiButton>
+                        </ActionGroup>
+                    </template>
+                </FormSection>
+            </div>
         </template>
 
         <ManagerInstructorEventDeleteDialog
@@ -680,13 +920,5 @@ const backHref = computed(() => {
             @cancel="handleDeleteDialogCancel"
             @confirm="handleDeleteDialogConfirm"
         />
-
-        <NuxtLink
-            :to="backHref"
-            class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-            aria-label="Wróć do szczegółów instruktora"
-        >
-            Wróć do szczegółów instruktora
-        </NuxtLink>
     </div>
 </template>

@@ -156,12 +156,50 @@ function displayVehicle(
 
     return name || reg || '—';
 }
+
+function labelForLessonType(rawType: string): string {
+    const normalized = rawType.trim().toUpperCase();
+
+    if (normalized === 'PRACTICE') {
+        return 'Jazda praktyczna';
+    }
+
+    if (normalized === 'THEORY') {
+        return 'Teoria';
+    }
+
+    return rawType.trim() || '—';
+}
+
+function labelForLessonStatus(rawStatus: string): string {
+    const normalized = rawStatus.trim().toUpperCase();
+
+    if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
+        return 'Zaplanowana';
+    }
+
+    if (normalized === 'COMPLETED' || normalized === 'FINISHED') {
+        return 'Zrealizowana';
+    }
+
+    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
+        return 'Anulowana';
+    }
+
+    if (normalized === 'NO_SHOW') {
+        return 'Nie stawil sie';
+    }
+
+    return rawStatus.trim() || '—';
+}
 </script>
 
 <template>
-    <div class="overflow-x-auto rounded-lg border">
+    <div
+        class="border-border bg-background overflow-x-auto rounded-xl border shadow-xs"
+    >
         <table
-            class="w-full min-w-[720px] border-collapse text-sm"
+            class="w-full min-w-[760px] border-collapse text-sm"
             :aria-label="
                 eventEditEnabled
                     ? 'Lista lekcji i bloków czasu; kliknij wiersz bloku lub jazdy praktycznej, aby edytować'
@@ -169,20 +207,24 @@ function displayVehicle(
             "
         >
             <thead>
-                <tr class="bg-muted/50 border-b text-left">
-                    <th scope="col" class="px-3 py-2 font-medium">Początek</th>
-                    <th scope="col" class="px-3 py-2 font-medium">Koniec</th>
-                    <th scope="col" class="px-3 py-2 font-medium">Typ</th>
-                    <th scope="col" class="px-3 py-2 font-medium">Status</th>
-                    <th scope="col" class="px-3 py-2 font-medium">
+                <tr
+                    class="bg-muted/40 text-muted-foreground border-b text-left text-xs"
+                >
+                    <th scope="col" class="px-4 py-3 font-semibold">
+                        Początek
+                    </th>
+                    <th scope="col" class="px-4 py-3 font-semibold">Koniec</th>
+                    <th scope="col" class="px-4 py-3 font-semibold">Typ</th>
+                    <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+                    <th scope="col" class="px-4 py-3 font-semibold">
                         Instruktor
                     </th>
-                    <th scope="col" class="px-3 py-2 font-medium">Kursant</th>
-                    <th scope="col" class="px-3 py-2 font-medium">Pojazd</th>
+                    <th scope="col" class="px-4 py-3 font-semibold">Kursant</th>
+                    <th scope="col" class="px-4 py-3 font-semibold">Pojazd</th>
                     <th
                         v-if="hasActionsColumn"
                         scope="col"
-                        class="px-3 py-2 font-medium"
+                        class="px-4 py-3 font-semibold"
                     >
                         Akcje
                     </th>
@@ -192,7 +234,7 @@ function displayVehicle(
                 <tr v-if="props.items.length === 0">
                     <td
                         :colspan="hasActionsColumn ? 8 : 7"
-                        class="text-muted-foreground px-3 py-6 text-center"
+                        class="text-muted-foreground px-4 py-10 text-center"
                         role="status"
                     >
                         {{
@@ -204,10 +246,10 @@ function displayVehicle(
                 <tr
                     v-for="item in props.items"
                     :key="item.id"
-                    class="border-border border-t"
+                    class="border-border border-t transition-colors"
                     :class="
                         rowIsClickable(item)
-                            ? 'hover:bg-muted/50 focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+                            ? 'hover:bg-primary-50/50 focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
                             : ''
                     "
                     :tabindex="rowIsClickable(item) ? 0 : undefined"
@@ -216,14 +258,16 @@ function displayVehicle(
                     @click="handleRowClick(item)"
                     @keydown="handleRowKeydown($event, item)"
                 >
-                    <td class="px-3 py-2 whitespace-nowrap">
+                    <td class="px-4 py-3 whitespace-nowrap">
                         {{ formatIsoLocal(item.startTime) }}
                     </td>
-                    <td class="px-3 py-2 whitespace-nowrap">
+                    <td class="px-4 py-3 whitespace-nowrap">
                         {{ formatIsoLocal(item.endTime) }}
                     </td>
-                    <td class="px-3 py-2">{{ item.type }}</td>
-                    <td class="px-3 py-2 align-top" @click.stop>
+                    <td class="px-4 py-3">
+                        {{ labelForLessonType(item.type) }}
+                    </td>
+                    <td class="px-4 py-3 align-top" @click.stop>
                         <ManagerEventStatusSelect
                             v-if="
                                 isScheduleInstructorEvent(item) &&
@@ -245,20 +289,22 @@ function displayVehicle(
                         >
                             {{ labelForInstructorEventStatusRaw(item.status) }}
                         </UiBadge>
-                        <span v-else>{{ item.status }}</span>
+                        <span v-else>{{
+                            labelForLessonStatus(item.status)
+                        }}</span>
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-4 py-3">
                         {{ displayPerson(item.instructor) }}
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-4 py-3">
                         {{ displayPerson(item.student) }}
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-4 py-3">
                         {{ displayVehicle(item.vehicle) }}
                     </td>
                     <td
                         v-if="hasActionsColumn"
-                        class="px-3 py-2 whitespace-nowrap"
+                        class="px-4 py-3 whitespace-nowrap"
                         @click.stop
                     >
                         <UiButton
