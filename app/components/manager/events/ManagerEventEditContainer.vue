@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CalendarDays, Plus } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
     formatInstructorDisplayName,
@@ -1557,6 +1558,45 @@ const deleteDialogTimeLabel = computed(() => {
     return `${fmt.format(da)} — ${fmt.format(db)}`;
 });
 
+const headerDateRangeLabel = computed(() => {
+    const a = formStartLocal.value.trim();
+    const b = formEndLocal.value.trim();
+
+    if (!a || !b) {
+        return 'Termin';
+    }
+
+    const start = new Date(a);
+    const end = new Date(b);
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        return 'Termin';
+    }
+
+    const sameDay = start.toDateString() === end.toDateString();
+    const sameMonth =
+        start.getFullYear() === end.getFullYear() &&
+        start.getMonth() === end.getMonth();
+    const dayFormatter = new Intl.DateTimeFormat('pl-PL', { day: '2-digit' });
+    const monthFormatter = new Intl.DateTimeFormat('pl-PL', {
+        month: 'long',
+    });
+    const compactFormatter = new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: 'short',
+    });
+
+    if (sameDay) {
+        return `${dayFormatter.format(start)} ${monthFormatter.format(start)}`;
+    }
+
+    if (sameMonth) {
+        return `${dayFormatter.format(start)}-${dayFormatter.format(end)} ${monthFormatter.format(end)}`;
+    }
+
+    return `${compactFormatter.format(start)} - ${compactFormatter.format(end)}`;
+});
+
 function handleOpenDeleteDialog(): void {
     deleteDialogOpen.value = true;
 }
@@ -1607,77 +1647,106 @@ function handleEventStatusPatched(status: string): void {
 </script>
 
 <template>
-    <div class="space-y-8">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Edycja wydarzenia
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Zmień czas trwania, pojazd (jazda), instruktora lub limit miejsc
-                (typ bloku jest ustalony). Walidacja kolizji po stronie serwera.
-                <span
-                    v-if="!schoolId"
-                    class="text-amber-700 dark:text-amber-500"
+    <div class="space-y-5">
+        <PageHeader
+            title="Edytuj wydarzenie"
+            description="Zmień termin, instruktora, kursantów i status wydarzenia."
+        >
+            <template #actions>
+                <UiButton
+                    type="button"
+                    variant="outline"
+                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    aria-label="Aktualny termin wydarzenia"
                 >
-                    Dodaj
-                    <code class="text-xs">?schoolId=</code>
-                    w adresie, aby wybrać pojazd przy jazdzie, zmienić
-                    instruktora i zarządzać kursantami (teoria).
-                </span>
-            </p>
-        </div>
+                    <CalendarDays class="mr-2 size-4" aria-hidden="true" />
+                    {{ headerDateRangeLabel }}
+                </UiButton>
+                <UiButton
+                    type="submit"
+                    form="event-edit-form"
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    :disabled="
+                        !loadedEvent ||
+                        isSaving ||
+                        isDeleteLoading ||
+                        !isFormDirty
+                    "
+                >
+                    <Plus class="mr-2 size-4" aria-hidden="true" />
+                    {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
+                </UiButton>
+            </template>
+        </PageHeader>
 
-        <template v-if="!eventId">
-            <p class="text-destructive text-sm" role="alert">
-                Nieprawidłowy identyfikator wydarzenia.
-            </p>
-        </template>
+        <p
+            v-if="!schoolId"
+            class="border-border rounded-xl border border-dashed bg-amber-50/60 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/20 dark:text-amber-300"
+            role="status"
+        >
+            Dodaj <code class="text-xs">?schoolId=</code> w adresie, aby wybrać
+            pojazd przy jazdzie, zmienić instruktora i zarządzać kursantami w
+            teorii.
+        </p>
 
-        <template v-else-if="isFetchLoading && !loadedEvent && !notFound">
-            <p class="text-muted-foreground text-sm" role="status">
-                Wczytywanie wydarzenia…
-            </p>
-        </template>
+        <ErrorState
+            v-if="!eventId"
+            title="Nieprawidłowy identyfikator wydarzenia"
+            description="Adres strony nie zawiera poprawnego ID wydarzenia."
+        >
+            <template #action>
+                <UiButton as-child variant="outline" class="bg-background">
+                    <NuxtLink to="/manager/instructors">
+                        Wróć do listy instruktorów
+                    </NuxtLink>
+                </UiButton>
+            </template>
+        </ErrorState>
+
+        <LoadingState
+            v-else-if="isFetchLoading && !loadedEvent && !notFound"
+            title="Wczytywanie wydarzenia"
+            description="Pobieramy dane bloku, instruktora i dostępne okna grafiku."
+        />
 
         <template v-else-if="notFound">
-            <p class="text-destructive text-sm" role="alert">
-                Wydarzenie nie zostało znalezione (404).
-            </p>
-            <NuxtLink
-                to="/manager/instructors"
-                class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+            <ErrorState
+                title="Wydarzenie nie zostało znalezione"
+                description="Serwer zwrócił 404 dla tego bloku czasu."
             >
-                Wróć do listy instruktorów
-            </NuxtLink>
+                <template #action>
+                    <UiButton as-child variant="outline" class="bg-background">
+                        <NuxtLink to="/manager/instructors">
+                            Wróć do listy instruktorów
+                        </NuxtLink>
+                    </UiButton>
+                </template>
+            </ErrorState>
         </template>
 
         <template v-else-if="loadError">
-            <p class="text-destructive text-sm" role="alert">
-                {{ loadError }}
-            </p>
-            <UiButton
-                type="button"
-                variant="outline"
-                class="mt-2"
-                @click="loadEvent"
-            >
-                Spróbuj ponownie
-            </UiButton>
+            <ErrorState
+                title="Nie udało się wczytać wydarzenia"
+                :description="loadError"
+                @retry="loadEvent"
+            />
         </template>
 
         <template v-else-if="loadedEvent">
-            <section
-                class="border-border bg-card max-w-xl space-y-4 rounded-xl border p-6 shadow-sm"
-                aria-labelledby="event-edit-heading"
+            <FormSection
+                title="Edytuj wydarzenie"
+                description="Formularz podzielony na logiczne sekcje, bez zmiany walidacji i flow."
             >
-                <h2
-                    id="event-edit-heading"
-                    class="text-foreground text-lg font-semibold"
-                >
-                    Dane bloku
-                </h2>
+                <div class="mb-4 flex justify-end">
+                    <UiBadge
+                        variant="outline"
+                        class="rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
+                    >
+                        FormSection
+                    </UiBadge>
+                </div>
 
-                <div v-if="loadedEvent" class="space-y-2">
+                <div v-if="loadedEvent" class="mb-5 max-w-sm space-y-2">
                     <p class="text-muted-foreground text-xs">
                         Status wydarzenia
                     </p>
@@ -1689,131 +1758,136 @@ function handleEventStatusPatched(status: string): void {
                 </div>
 
                 <form
-                    class="space-y-4"
+                    id="event-edit-form"
+                    class="space-y-5"
                     aria-label="Formularz edycji wydarzenia"
                     :aria-busy="isSaving"
                     @submit.prevent="handleSubmit"
                 >
-                    <div class="space-y-2">
-                        <UiLabel for="edit-event-instructor">
-                            Instruktor
-                        </UiLabel>
-                        <p
-                            v-if="isInstructorsLoading"
-                            class="text-muted-foreground text-xs"
-                            role="status"
-                        >
-                            Wczytywanie instruktorów…
-                        </p>
-                        <p
-                            v-else-if="instructorsError"
-                            class="text-destructive text-xs"
-                            role="alert"
-                        >
-                            {{ instructorsError }}
-                        </p>
-                        <UiSelect
-                            v-model="formInstructorId"
-                            :disabled="
-                                !schoolId || isInstructorsLoading || isSaving
-                            "
-                        >
-                            <UiSelectTrigger
-                                id="edit-event-instructor"
-                                class="w-full"
-                                aria-label="Instruktor prowadzący blok"
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <div class="space-y-2">
+                            <UiLabel for="edit-event-instructor">
+                                Instruktor
+                            </UiLabel>
+                            <p
+                                v-if="isInstructorsLoading"
+                                class="text-muted-foreground text-xs"
+                                role="status"
                             >
-                                <UiSelectValue
-                                    placeholder="Wybierz instruktora"
-                                />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem
-                                        v-if="
-                                            formInstructorId.trim() &&
-                                            !qualifiedInstructorsForEvent.some(
-                                                (inst) =>
-                                                    inst.id ===
-                                                    formInstructorId.trim(),
-                                            )
-                                        "
-                                        :value="formInstructorId.trim()"
-                                    >
-                                        {{ instructorSelectLabel }}
-                                    </UiSelectItem>
-                                    <UiSelectItem
-                                        v-for="i in qualifiedInstructorsForEvent"
-                                        :key="i.id"
-                                        :value="i.id"
-                                    >
-                                        {{ formatInstructorDisplayName(i) }}
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                        <p
-                            v-if="!schoolId"
-                            class="text-muted-foreground text-xs"
-                            role="status"
-                        >
-                            Dodaj
-                            <code class="text-xs">?schoolId=</code>
-                            w adresie, aby zmienić instruktora z listy OSK.
-                        </p>
+                                Wczytywanie instruktorów…
+                            </p>
+                            <p
+                                v-else-if="instructorsError"
+                                class="text-destructive text-xs"
+                                role="alert"
+                            >
+                                {{ instructorsError }}
+                            </p>
+                            <UiSelect
+                                v-model="formInstructorId"
+                                :disabled="
+                                    !schoolId ||
+                                    isInstructorsLoading ||
+                                    isSaving
+                                "
+                            >
+                                <UiSelectTrigger
+                                    id="edit-event-instructor"
+                                    class="w-full"
+                                    aria-label="Instruktor prowadzący blok"
+                                >
+                                    <UiSelectValue
+                                        placeholder="Wybierz instruktora"
+                                    />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem
+                                            v-if="
+                                                formInstructorId.trim() &&
+                                                !qualifiedInstructorsForEvent.some(
+                                                    (inst) =>
+                                                        inst.id ===
+                                                        formInstructorId.trim(),
+                                                )
+                                            "
+                                            :value="formInstructorId.trim()"
+                                        >
+                                            {{ instructorSelectLabel }}
+                                        </UiSelectItem>
+                                        <UiSelectItem
+                                            v-for="i in qualifiedInstructorsForEvent"
+                                            :key="i.id"
+                                            :value="i.id"
+                                        >
+                                            {{ formatInstructorDisplayName(i) }}
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
+                            <p
+                                v-if="!schoolId"
+                                class="text-muted-foreground text-xs"
+                                role="status"
+                            >
+                                Dodaj
+                                <code class="text-xs">?schoolId=</code>
+                                w adresie, aby zmienić instruktora z listy OSK.
+                            </p>
+                        </div>
+
+                        <div v-if="formType === 'DRIVE'" class="space-y-2">
+                            <UiLabel for="edit-event-vehicle">Pojazd</UiLabel>
+                            <p
+                                v-if="isVehiclesLoading"
+                                class="text-muted-foreground text-xs"
+                                role="status"
+                            >
+                                Wczytywanie pojazdów…
+                            </p>
+                            <p
+                                v-else-if="vehiclesError"
+                                class="text-destructive text-xs"
+                                role="alert"
+                            >
+                                {{ vehiclesError }}
+                            </p>
+                            <UiSelect
+                                v-model="formVehicleId"
+                                :disabled="
+                                    !schoolId ||
+                                    vehicles.length === 0 ||
+                                    isVehiclesLoading ||
+                                    isSaving
+                                "
+                            >
+                                <UiSelectTrigger
+                                    id="edit-event-vehicle"
+                                    class="w-full"
+                                    aria-label="Pojazd dla bloku jazdy"
+                                >
+                                    <UiSelectValue
+                                        placeholder="— Wybierz pojazd —"
+                                    />
+                                </UiSelectTrigger>
+                                <UiSelectContent>
+                                    <UiSelectGroup>
+                                        <UiSelectItem
+                                            v-for="v in vehicles"
+                                            :key="v.id"
+                                            :value="v.id"
+                                        >
+                                            {{ v.name }} ({{
+                                                v.registrationNumber
+                                            }})
+                                        </UiSelectItem>
+                                    </UiSelectGroup>
+                                </UiSelectContent>
+                            </UiSelect>
+                        </div>
                     </div>
 
-                    <div v-if="formType === 'DRIVE'" class="space-y-2">
-                        <UiLabel for="edit-event-vehicle">Pojazd</UiLabel>
-                        <p
-                            v-if="isVehiclesLoading"
-                            class="text-muted-foreground text-xs"
-                            role="status"
-                        >
-                            Wczytywanie pojazdów…
-                        </p>
-                        <p
-                            v-else-if="vehiclesError"
-                            class="text-destructive text-xs"
-                            role="alert"
-                        >
-                            {{ vehiclesError }}
-                        </p>
-                        <UiSelect
-                            v-model="formVehicleId"
-                            :disabled="
-                                !schoolId ||
-                                vehicles.length === 0 ||
-                                isVehiclesLoading ||
-                                isSaving
-                            "
-                        >
-                            <UiSelectTrigger
-                                id="edit-event-vehicle"
-                                class="w-full"
-                                aria-label="Pojazd dla bloku jazdy"
-                            >
-                                <UiSelectValue
-                                    placeholder="— Wybierz pojazd —"
-                                />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem
-                                        v-for="v in vehicles"
-                                        :key="v.id"
-                                        :value="v.id"
-                                    >
-                                        {{ v.name }} ({{
-                                            v.registrationNumber
-                                        }})
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                    </div>
-
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-4 lg:grid-cols-2">
                         <div class="space-y-2">
                             <UiLabel for="edit-event-start-date"
                                 >Początek</UiLabel
@@ -1992,10 +2066,11 @@ function handleEventStatusPatched(status: string): void {
                         {{ formError }}
                     </p>
 
-                    <div class="flex flex-wrap gap-2">
+                    <ActionGroup label="Akcje formularza" align="end">
                         <UiButton
                             type="button"
                             variant="outline"
+                            class="rounded-xl"
                             :disabled="isSaving || isDeleteLoading"
                             @click="handleCancel"
                         >
@@ -2003,217 +2078,212 @@ function handleEventStatusPatched(status: string): void {
                         </UiButton>
                         <UiButton
                             type="submit"
+                            class="rounded-xl"
                             :disabled="
                                 isSaving || isDeleteLoading || !isFormDirty
                             "
                         >
-                            {{ isSaving ? 'Zapisywanie…' : 'Zapisz zmiany' }}
+                            {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
                         </UiButton>
-                    </div>
+                    </ActionGroup>
                 </form>
 
-                <div class="border-border max-w-xl border-t pt-4">
-                    <UiButton
-                        type="button"
-                        variant="destructive"
-                        :disabled="isSaving || isDeleteLoading"
-                        :aria-busy="isDeleteLoading"
-                        aria-label="Usuń to wydarzenie z harmonogramu"
-                        @click="handleOpenDeleteDialog"
+                <template #footer>
+                    <div
+                        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
                     >
-                        Usuń wydarzenie
-                    </UiButton>
-                </div>
-            </section>
+                        <p class="text-muted-foreground text-sm">
+                            Usunięcie wydarzenia wymaga dodatkowego
+                            potwierdzenia.
+                        </p>
+                        <UiButton
+                            type="button"
+                            variant="destructive"
+                            class="w-full rounded-xl sm:w-auto"
+                            :disabled="isSaving || isDeleteLoading"
+                            :aria-busy="isDeleteLoading"
+                            aria-label="Usuń to wydarzenie z harmonogramu"
+                            @click="handleOpenDeleteDialog"
+                        >
+                            Usuń wydarzenie
+                        </UiButton>
+                    </div>
+                </template>
+            </FormSection>
 
-            <section
+            <FormSection
                 v-if="formType === 'THEORY'"
-                class="border-border bg-card max-w-xl space-y-6 rounded-xl border p-6 shadow-sm"
-                aria-labelledby="event-theory-students-heading"
+                title="Kursanci (teoria)"
+                description="Zarządzaj realną listą kursantów z kursu, z zachowaniem limitów i kolizji grafiku."
             >
-                <div>
-                    <h2
-                        id="event-theory-students-heading"
-                        class="text-foreground text-lg font-semibold"
-                    >
-                        Kursanci (teoria)
-                    </h2>
-                    <p class="text-muted-foreground mt-1 text-sm">
-                        Lista pochodzi z
-                        <code class="text-xs"
-                            >GET /api/events/:id/eligible-students</code
-                        >
-                        (wszyscy kursanci kursu). Zaznaczenie oznacza zapis na
-                        tym wydarzeniu — stan początkowy jest zgodny z
-                        <code class="text-xs">GET /api/events/:id</code>
-                        . Zapisz zmiany w sekcji „Dane bloku”. Wymagany jest
-                        <code class="text-xs">?schoolId=</code>
-                        w adresie strony.
-                    </p>
-                </div>
-
-                <p
-                    v-if="loadedEvent?.courseId?.trim()"
-                    class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
-                    role="status"
-                >
-                    <span class="text-foreground font-medium">Kurs:</span>
-                    {{ linkedCourseLabel ?? loadedEvent.courseId }}
-                </p>
-
-                <p
-                    v-if="theoryCapacitySummary"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    {{ theoryCapacitySummary }}
-                </p>
-
-                <p
-                    v-if="parseCapacity(formCapacityInput) === 0"
-                    class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
-                    role="status"
-                >
-                    Limit miejsc wynosi 0 — żaden kursant nie może zostać
-                    przypisany do tego bloku.
-                </p>
-
-                <p
-                    v-if="!studentAttendanceKnown"
-                    class="text-muted-foreground border-border space-y-2 rounded-md border border-dashed px-3 py-2 text-sm"
-                    role="status"
-                >
-                    <span class="text-foreground block font-medium">
-                        Brak listy zapisanych na ten blok
-                    </span>
-                    <span class="block">
-                        Nie udało się ustalić aktualnych przypisań (np.
-                        <span class="font-mono text-xs"
-                            >GET …/events/…/students</span
-                        >
-                        ). Bez tego nie można edytować składu grupy.
-                    </span>
-                </p>
-
-                <div v-else class="space-y-3">
+                <div class="space-y-6">
                     <p
-                        v-if="theoryEligibleNoCourse"
+                        v-if="loadedEvent?.courseId?.trim()"
                         class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
                         role="status"
                     >
-                        Ten blok nie ma przypisanego kursu (
-                        <code class="text-xs">courseId</code>
-                        ) — lista kursantów jest niedostępna.
+                        <span class="text-foreground font-medium">Kurs:</span>
+                        {{ linkedCourseLabel ?? loadedEvent.courseId }}
                     </p>
+
                     <p
-                        v-else-if="isTheoryEligibleLoading"
+                        v-if="theoryCapacitySummary"
                         class="text-muted-foreground text-sm"
                         role="status"
                     >
-                        Wczytywanie listy kursantów…
+                        {{ theoryCapacitySummary }}
                     </p>
+
                     <p
-                        v-else-if="theoryEligibleError"
+                        v-if="parseCapacity(formCapacityInput) === 0"
+                        class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
+                        role="status"
+                    >
+                        Limit miejsc wynosi 0 — żaden kursant nie może zostać
+                        przypisany do tego bloku.
+                    </p>
+
+                    <p
+                        v-if="!studentAttendanceKnown"
+                        class="text-muted-foreground border-border space-y-2 rounded-md border border-dashed px-3 py-2 text-sm"
+                        role="status"
+                    >
+                        <span class="text-foreground block font-medium">
+                            Brak listy zapisanych na ten blok
+                        </span>
+                        <span class="block">
+                            Nie udało się ustalić aktualnych przypisań (np.
+                            <span class="font-mono text-xs"
+                                >GET …/events/…/students</span
+                            >
+                            ). Bez tego nie można edytować składu grupy.
+                        </span>
+                    </p>
+
+                    <div v-else class="space-y-3">
+                        <p
+                            v-if="theoryEligibleNoCourse"
+                            class="text-muted-foreground border-border rounded-md border border-dashed px-3 py-2 text-sm"
+                            role="status"
+                        >
+                            Ten blok nie ma przypisanego kursu (
+                            <code class="text-xs">courseId</code>
+                            ) — lista kursantów jest niedostępna.
+                        </p>
+                        <p
+                            v-else-if="isTheoryEligibleLoading"
+                            class="text-muted-foreground text-sm"
+                            role="status"
+                        >
+                            Wczytywanie listy kursantów…
+                        </p>
+                        <p
+                            v-else-if="theoryEligibleError"
+                            class="text-destructive text-sm"
+                            role="alert"
+                        >
+                            {{ theoryEligibleError }}
+                        </p>
+                        <ul
+                            v-else-if="
+                                theoryEligibleData &&
+                                theoryEligibleData.students.length > 0
+                            "
+                            class="space-y-2"
+                            role="list"
+                            aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
+                        >
+                            <li
+                                v-for="row in theoryEligibleData.students"
+                                :key="row.userId"
+                                class="border-input flex flex-col gap-2 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                                <div
+                                    class="flex min-w-0 flex-1 items-start gap-3"
+                                >
+                                    <UiCheckbox
+                                        :id="`theory-student-${row.userId}`"
+                                        :model-value="
+                                            isTheoryRowChecked(
+                                                theoryEligibleRowToStudentListItem(
+                                                    row,
+                                                ),
+                                            )
+                                        "
+                                        :disabled="
+                                            isSaving ||
+                                            !schoolId ||
+                                            !isTheoryEligibleRowInteractive(row)
+                                        "
+                                        :aria-label="`Zapis na wydarzenie: ${formatStudentDisplayName(theoryEligibleRowToStudentListItem(row))}`"
+                                        @update:model-value="
+                                            handleToggleTheoryStudent(
+                                                theoryEligibleRowToStudentListItem(
+                                                    row,
+                                                ),
+                                                $event === true,
+                                            )
+                                        "
+                                    />
+                                    <UiLabel
+                                        :for="`theory-student-${row.userId}`"
+                                        class="text-foreground min-w-0 flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                                    >
+                                        {{
+                                            formatStudentDisplayName(
+                                                theoryEligibleRowToStudentListItem(
+                                                    row,
+                                                ),
+                                            )
+                                        }}
+                                        <span
+                                            v-if="row.email?.trim()"
+                                            class="text-muted-foreground block text-xs font-normal"
+                                        >
+                                            {{ row.email.trim() }}
+                                        </span>
+                                    </UiLabel>
+                                </div>
+                                <div
+                                    class="flex shrink-0 flex-wrap gap-1 sm:justify-end"
+                                >
+                                    <UiBadge
+                                        v-if="row.hasScheduleConflict"
+                                        variant="destructive"
+                                    >
+                                        Kolizja grafiku
+                                    </UiBadge>
+                                    <UiBadge
+                                        v-if="
+                                            !row.canAssign &&
+                                            !row.isAssignedToEvent
+                                        "
+                                        variant="secondary"
+                                    >
+                                        Niedostępny
+                                    </UiBadge>
+                                </div>
+                            </li>
+                        </ul>
+                        <p
+                            v-else
+                            class="text-muted-foreground text-sm"
+                            role="status"
+                        >
+                            Brak kursantów na kursie lub lista nie została
+                            wczytana.
+                        </p>
+                    </div>
+
+                    <p
+                        v-if="theoryStudentsError"
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        {{ theoryEligibleError }}
-                    </p>
-                    <ul
-                        v-else-if="
-                            theoryEligibleData &&
-                            theoryEligibleData.students.length > 0
-                        "
-                        class="space-y-2"
-                        role="list"
-                        aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
-                    >
-                        <li
-                            v-for="row in theoryEligibleData.students"
-                            :key="row.userId"
-                            class="border-input flex flex-col gap-2 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                            <div class="flex min-w-0 flex-1 items-start gap-3">
-                                <UiCheckbox
-                                    :id="`theory-student-${row.userId}`"
-                                    :model-value="
-                                        isTheoryRowChecked(
-                                            theoryEligibleRowToStudentListItem(
-                                                row,
-                                            ),
-                                        )
-                                    "
-                                    :disabled="
-                                        isSaving ||
-                                        !schoolId ||
-                                        !isTheoryEligibleRowInteractive(row)
-                                    "
-                                    :aria-label="`Zapis na wydarzenie: ${formatStudentDisplayName(theoryEligibleRowToStudentListItem(row))}`"
-                                    @update:model-value="
-                                        handleToggleTheoryStudent(
-                                            theoryEligibleRowToStudentListItem(
-                                                row,
-                                            ),
-                                            $event === true,
-                                        )
-                                    "
-                                />
-                                <UiLabel
-                                    :for="`theory-student-${row.userId}`"
-                                    class="text-foreground min-w-0 flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
-                                >
-                                    {{
-                                        formatStudentDisplayName(
-                                            theoryEligibleRowToStudentListItem(
-                                                row,
-                                            ),
-                                        )
-                                    }}
-                                    <span
-                                        v-if="row.email?.trim()"
-                                        class="text-muted-foreground block text-xs font-normal"
-                                    >
-                                        {{ row.email.trim() }}
-                                    </span>
-                                </UiLabel>
-                            </div>
-                            <div
-                                class="flex shrink-0 flex-wrap gap-1 sm:justify-end"
-                            >
-                                <UiBadge
-                                    v-if="row.hasScheduleConflict"
-                                    variant="destructive"
-                                >
-                                    Kolizja grafiku
-                                </UiBadge>
-                                <UiBadge
-                                    v-if="
-                                        !row.canAssign && !row.isAssignedToEvent
-                                    "
-                                    variant="secondary"
-                                >
-                                    Niedostępny
-                                </UiBadge>
-                            </div>
-                        </li>
-                    </ul>
-                    <p
-                        v-else
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Brak kursantów na kursie lub lista nie została wczytana.
+                        {{ theoryStudentsError }}
                     </p>
                 </div>
-
-                <p
-                    v-if="theoryStudentsError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ theoryStudentsError }}
-                </p>
-            </section>
+            </FormSection>
 
             <ManagerInstructorEventDeleteDialog
                 v-model:open="deleteDialogOpen"
