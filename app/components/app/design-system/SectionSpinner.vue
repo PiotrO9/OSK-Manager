@@ -6,7 +6,9 @@ type SpinnerVariant = 'primary' | 'secondary' | 'white';
 
 function sizeClass(size: SpinnerSize): string {
     if (size === 'sm') return 'size-4';
+
     if (size === 'md') return 'size-6';
+
     if (size === 'lg') return 'size-8';
 
     return 'size-12';
@@ -14,6 +16,7 @@ function sizeClass(size: SpinnerSize): string {
 
 function variantClass(variant: SpinnerVariant): string {
     if (variant === 'primary') return 'text-primary';
+
     if (variant === 'secondary') return 'text-muted-foreground';
 
     return 'text-white';

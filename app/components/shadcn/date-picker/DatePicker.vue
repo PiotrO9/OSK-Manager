@@ -31,10 +31,15 @@ const props = withDefaults(
         triggerClass?: string;
     }>(),
     {
+        id: undefined,
         placeholder: 'Wybierz datę',
         locale: 'pl-PL',
         ariaInvalid: false,
+        ariaDescribedby: undefined,
+        min: undefined,
+        max: undefined,
         clearable: false,
+        triggerClass: undefined,
     },
 );
 

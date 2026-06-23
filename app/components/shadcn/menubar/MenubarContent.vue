@@ -12,6 +12,7 @@ defineOptions({
 const props = withDefaults(
     defineProps<MenubarContentProps & { class?: HTMLAttributes['class'] }>(),
     {
+        class: undefined,
         align: 'start',
         alignOffset: -4,
         sideOffset: 8,

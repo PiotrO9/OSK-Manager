@@ -4,10 +4,10 @@ export const AVAILABILITY_TIMELINE_TRACK_END_MIN = 22 * 60;
 const TRACK_RANGE_MIN =
     AVAILABILITY_TIMELINE_TRACK_END_MIN - AVAILABILITY_TIMELINE_TRACK_START_MIN;
 
-export type AvailabilityTimelineBar = {
+export interface AvailabilityTimelineBar {
     leftPct: number;
     widthPct: number;
-};
+}
 
 export function parseHhMmToMinutes(value: string): number | null {
     const trimmed = value.trim();

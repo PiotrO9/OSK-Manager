@@ -15,7 +15,6 @@ import {
     normalizeInstructorEventStatus,
 } from '~/utils/instructorEventStatusDisplay';
 import {
-    dateToCalendarDate,
     formatDateOnly,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
@@ -84,7 +83,7 @@ const filteredEvents = computed(() =>
 );
 
 const selectedDateLabel = computed(() => {
-    const d = new Date(selectedDate.value + 'T00:00:00');
+    const d = new Date(`${selectedDate.value}T00:00:00`);
 
     if (Number.isNaN(d.getTime())) {
         return selectedDate.value;
@@ -175,14 +174,14 @@ onMounted(() => {
 });
 
 function handlePrevDay(): void {
-    const d = new Date(selectedDate.value + 'T00:00:00');
+    const d = new Date(`${selectedDate.value}T00:00:00`);
 
     d.setDate(d.getDate() - 1);
     selectedDate.value = formatDateOnly(d);
 }
 
 function handleNextDay(): void {
-    const d = new Date(selectedDate.value + 'T00:00:00');
+    const d = new Date(`${selectedDate.value}T00:00:00`);
 
     d.setDate(d.getDate() + 1);
     selectedDate.value = formatDateOnly(d);
@@ -221,6 +220,7 @@ function handleStatusChanged(payload: { id: string; status: string }): void {
     }
 
     const copy = events.value.slice();
+
     copy[idx] = { ...row, status: payload.status };
     events.value = copy;
 }

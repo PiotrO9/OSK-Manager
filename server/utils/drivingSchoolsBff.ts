@@ -156,6 +156,7 @@ export async function bffUpstreamDrivingSchoolsDelete(
 
         try {
             const json = (await res.json()) as BackendEnvelope<unknown>;
+
             if (typeof json.error === 'string') errorMessage = json.error;
         } catch {
             /* ignoruj błąd parsowania */

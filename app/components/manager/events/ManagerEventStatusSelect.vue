@@ -60,6 +60,7 @@ async function handleStatusUpdate(value: unknown): Promise<void> {
     }
 
     const myId = ++lastRequestId;
+
     localStatus.value = nextStatus;
     isSaving.value = true;
 
@@ -73,6 +74,7 @@ async function handleStatusUpdate(value: unknown): Promise<void> {
         }
 
         const resolved = normalizeInstructorEventStatus(updated.status);
+
         localStatus.value = resolved;
         emit('update:status', resolved);
         emit('status-changed', { id: eid, status: resolved });

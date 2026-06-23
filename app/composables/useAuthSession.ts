@@ -3,12 +3,12 @@
  * W `useState` trzymane są wyłącznie dane profilu (bez JWT).
  */
 
-export type AuthProfilePatchBody = {
+export interface AuthProfilePatchBody {
     firstName?: string;
     lastName?: string;
     phone?: string | null;
     bio?: string | null;
-};
+}
 
 /** OSK z `GET /auth/me` ( uproszczony DTO ). */
 export interface AuthDrivingSchoolSummary {
@@ -41,7 +41,7 @@ const AUTH_PATH = '/api/auth';
 /**
  * `GET /auth/me` (whitelist) oraz ewentualny starszy kształt z `POST /auth/login` na BE.
  */
-type BackendUserResponse = {
+interface BackendUserResponse {
     id: string;
     email: string;
     role: string;
@@ -55,7 +55,7 @@ type BackendUserResponse = {
     pkkNumber?: string | null;
     drivingSchools?: unknown;
     defaultOskId?: string | null;
-};
+}
 
 interface SessionUserPayload {
     id: string;

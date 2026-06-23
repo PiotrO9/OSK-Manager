@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { DrivingSchool } from '~/types/drivingSchool';
 
-export type StudentRegisterPayload = {
+export interface StudentRegisterPayload {
     email: string;
     password: string;
     firstName: string;
     lastName: string;
     schoolId: string;
-};
+}
 
 interface Props {
     open: boolean;

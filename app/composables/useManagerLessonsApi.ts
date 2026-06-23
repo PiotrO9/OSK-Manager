@@ -128,6 +128,7 @@ function normalizeManagerLesson(raw: unknown): ManagerLessonDetail | null {
     if (!instructorId) {
         instructorId = readIdFromNestedObject(o.instructor);
     }
+
     const lessonType =
         typeof o.lessonType === 'string'
             ? o.lessonType.trim()

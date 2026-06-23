@@ -10,6 +10,7 @@ function isValidTime(value: unknown): value is string {
 
 function parseDayParam(raw: string | undefined): number | null {
     if (!raw) return null;
+
     const n = parseInt(raw, 10);
 
     if (Number.isNaN(n) || n < 0 || n > 6) return null;

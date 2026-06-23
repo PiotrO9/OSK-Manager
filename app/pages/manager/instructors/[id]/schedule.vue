@@ -244,6 +244,7 @@ function handleInstructorEventStatusChanged(payload: {
     }
 
     const copy = items.value.slice();
+
     copy[idx] = { ...row, status: payload.status };
     items.value = copy;
 }

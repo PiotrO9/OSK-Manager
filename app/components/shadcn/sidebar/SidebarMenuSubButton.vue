@@ -15,6 +15,8 @@ const props = withDefaults(
     {
         as: 'a',
         size: 'md',
+        isActive: undefined,
+        class: undefined,
     },
 );
 </script>

@@ -1,18 +1,18 @@
-export type WeeklyEntry = {
+export interface WeeklyEntry {
     id: string;
     dayOfWeek: number;
     startTime: string;
     endTime: string;
-};
+}
 
-export type WeeklyDayFormRow = {
+export interface WeeklyDayFormRow {
     dayOfWeek: number;
     label: string;
     enabled: boolean;
     startTime: string;
     endTime: string;
     entryId: string | null;
-};
+}
 
 /** Kolejność wyświetlania: poniedziałek → niedziela */
 export const WEEK_DAYS_ORDER: number[] = [1, 2, 3, 4, 5, 6, 0];

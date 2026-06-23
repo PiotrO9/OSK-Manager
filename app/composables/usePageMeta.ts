@@ -27,6 +27,7 @@ export function usePageMeta(options: UsePageMetaOptions): void {
 
     const fullTitle = computed(() => {
         const titleVal = typeof title === 'function' ? title() : toValue(title);
+
         return titleVal ? String(titleVal) : '';
     });
 

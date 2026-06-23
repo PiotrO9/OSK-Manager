@@ -17,6 +17,8 @@ const props = withDefaults(defineProps<SidebarMenuButtonProps>(), {
     as: 'button',
     variant: 'default',
     size: 'default',
+    isActive: undefined,
+    class: undefined,
 });
 </script>
 

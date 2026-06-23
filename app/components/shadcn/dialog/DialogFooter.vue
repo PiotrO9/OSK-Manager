@@ -10,6 +10,7 @@ const props = withDefaults(
         showCloseButton?: boolean;
     }>(),
     {
+        class: undefined,
         showCloseButton: false,
     },
 );

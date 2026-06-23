@@ -45,11 +45,18 @@ const props = withDefaults(
         triggerClass?: string;
     }>(),
     {
+        id: undefined,
         placeholder: 'Wybierz datę i godzinę',
         ariaInvalid: false,
+        ariaDescribedby: undefined,
         ariaRequired: false,
+        minDate: undefined,
+        maxDate: undefined,
+        hourOptions: undefined,
+        minuteOptions: undefined,
         clearable: false,
         showTodayButton: true,
+        triggerClass: undefined,
     },
 );
 

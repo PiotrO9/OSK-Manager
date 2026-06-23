@@ -149,6 +149,7 @@ watch(
     vehicleId,
     () => {
         revokePendingPhotoPreview();
+
         if (photoFileInput.value) {
             photoFileInput.value.value = '';
         }
@@ -212,6 +213,7 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
                 }
 
                 revokePendingPhotoPreview();
+
                 if (photoFileInput.value) {
                     photoFileInput.value.value = '';
                 }

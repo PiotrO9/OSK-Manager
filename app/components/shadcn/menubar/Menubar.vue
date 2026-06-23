@@ -17,7 +17,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 <template>
     <MenubarRoot
-        v-slot="slotProps"
+        #default="slotProps"
         data-slot="menubar"
         v-bind="forwarded"
         :class="

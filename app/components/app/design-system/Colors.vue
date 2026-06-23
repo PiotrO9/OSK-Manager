@@ -10,7 +10,6 @@ interface ColorGroup {
     swatches: ColorSwatch[];
 }
 
-const { t } = useI18n();
 const { addToast } = useAppToast();
 
 const colorGroups = computed<ColorGroup[]>(() => [

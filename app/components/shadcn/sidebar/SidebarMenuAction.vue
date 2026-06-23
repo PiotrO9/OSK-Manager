@@ -13,6 +13,8 @@ const props = withDefaults(
     >(),
     {
         as: 'button',
+        showOnHover: undefined,
+        class: undefined,
     },
 );
 </script>

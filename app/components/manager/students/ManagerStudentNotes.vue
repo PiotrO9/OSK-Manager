@@ -3,6 +3,12 @@ import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+    'update:notes': [value: string | null];
+}>();
+
 const NOTES_MAX_LEN = 5000;
 
 interface Props {
@@ -10,12 +16,6 @@ interface Props {
     schoolId: string;
     initialNotes: string | null;
 }
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<{
-    'update:notes': [value: string | null];
-}>();
 
 const { addToast } = useAppToast();
 

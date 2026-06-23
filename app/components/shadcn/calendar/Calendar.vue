@@ -36,7 +36,9 @@ const props = withDefaults(
     >(),
     {
         modelValue: undefined,
+        class: undefined,
         layout: undefined,
+        yearRange: undefined,
     },
 );
 const emits = defineEmits<CalendarRootEmits>();
@@ -84,7 +86,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-    <DefineMonthTemplate v-slot="{ date }">
+    <DefineMonthTemplate #default="{ date }">
         <div class="**:data-[slot=native-select-icon]:right-1">
             <div class="relative">
                 <div
@@ -118,7 +120,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
         </div>
     </DefineMonthTemplate>
 
-    <DefineYearTemplate v-slot="{ date }">
+    <DefineYearTemplate #default="{ date }">
         <div class="**:data-[slot=native-select-icon]:right-1">
             <div class="relative">
                 <div
@@ -153,7 +155,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     </DefineYearTemplate>
 
     <CalendarRoot
-        v-slot="{ grid, weekDays, date }"
+        #default="{ grid, weekDays, date }"
         v-bind="forwarded"
         v-model:placeholder="placeholder"
         data-slot="calendar"

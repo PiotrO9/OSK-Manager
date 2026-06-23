@@ -18,7 +18,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 <template>
     <CheckboxRoot
-        v-slot="slotProps"
+        #default="slotProps"
         data-slot="checkbox"
         v-bind="forwarded"
         :class="

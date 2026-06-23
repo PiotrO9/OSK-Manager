@@ -23,7 +23,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 <template>
     <SliderRoot
-        v-slot="{ modelValue }"
+        #default="{ modelValue }"
         data-slot="slider"
         :class="
             cn(

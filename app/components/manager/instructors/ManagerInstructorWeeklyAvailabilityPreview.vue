@@ -36,13 +36,13 @@ function getRowAriaLabel(
     return `${long}: dostępny od ${entry.startTime} do ${entry.endTime}`;
 }
 
-type PreviewRow = {
+interface PreviewRow {
     dayOfWeek: number;
     shortLabel: string;
     longLabel: string;
     entry: WeeklyEntry | undefined;
     bar: AvailabilityTimelineBar | null;
-};
+}
 
 const previewRows = computed((): PreviewRow[] => {
     const map = entriesByDay.value;

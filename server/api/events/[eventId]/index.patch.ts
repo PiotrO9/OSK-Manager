@@ -223,7 +223,7 @@ export default defineEventHandler(async (event) => {
                 : '00000000-0000-4000-8000-000000000002';
     }
 
-    const defaultStatus: 'PLANNED' = 'PLANNED';
+    const defaultStatus = 'PLANNED' as const;
 
     return {
         success: true,
