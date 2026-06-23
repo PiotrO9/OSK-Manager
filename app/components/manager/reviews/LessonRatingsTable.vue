@@ -32,86 +32,69 @@ function formatDateTime(value: string): string {
 }
 
 function ratingLabel(value: number): string {
-    return `${value}/5`;
+    return value.toFixed(1);
 }
 </script>
 
 <template>
-    <div class="border-border overflow-x-auto rounded-lg border">
-        <table class="w-full min-w-[760px] text-left text-sm">
-            <thead class="bg-muted/50 text-muted-foreground border-b">
-                <tr>
-                    <th scope="col" class="px-4 py-3 font-medium">Ocena</th>
-                    <th scope="col" class="px-4 py-3 font-medium">Komentarz</th>
-                    <th scope="col" class="px-4 py-3 font-medium">
-                        Instruktor
-                    </th>
-                    <th
-                        v-if="props.showStudent"
-                        scope="col"
-                        class="px-4 py-3 font-medium"
-                    >
-                        Kursant
-                    </th>
-                    <th scope="col" class="px-4 py-3 font-medium">
-                        Data lekcji
-                    </th>
-                    <th scope="col" class="px-4 py-3 font-medium">
-                        Data opinii
-                    </th>
-                </tr>
-            </thead>
-            <tbody
-                v-if="props.ratings.length > 0"
-                class="divide-border divide-y"
+    <section
+        class="border-border bg-card min-w-0 overflow-hidden rounded-xl border shadow-xs"
+        aria-labelledby="lesson-ratings-list-title"
+        :aria-busy="props.isLoading"
+    >
+        <div class="border-border border-b px-4 py-4 md:px-5">
+            <h2
+                id="lesson-ratings-list-title"
+                class="text-foreground text-lg font-bold tracking-tight"
             >
-                <tr
-                    v-for="rating in props.ratings"
-                    :key="rating.id"
-                    class="hover:bg-muted/30"
-                >
-                    <td class="px-4 py-3">
-                        <UiBadge variant="secondary" class="tabular-nums">
-                            {{ ratingLabel(rating.rating) }}
-                        </UiBadge>
-                    </td>
-                    <td class="text-foreground max-w-[22rem] px-4 py-3">
+                Ostatnie opinie
+            </h2>
+            <p class="text-muted-foreground mt-1 text-sm">
+                Lista zachowuje filtry, komentarze i powiazanie z lekcja.
+            </p>
+        </div>
+
+        <div class="space-y-2 p-4 md:p-3">
+            <article
+                v-for="rating in props.ratings"
+                :key="rating.id"
+                class="border-border bg-background flex min-w-0 items-start justify-between gap-3 rounded-xl border px-3 py-3 md:px-4"
+            >
+                <div class="min-w-0 space-y-1">
+                    <p class="text-foreground text-sm leading-snug font-bold">
                         <span v-if="rating.comment">
                             {{ rating.comment }}
                         </span>
-                        <span v-else class="text-muted-foreground">-</span>
-                    </td>
-                    <td class="text-foreground px-4 py-3">
+                        <span v-else>Brak komentarza do tej jazdy.</span>
+                    </p>
+                    <p class="text-muted-foreground text-xs">
+                        <span v-if="props.showStudent">
+                            {{ formatLessonRatingPersonName(rating.student) }}
+                            -
+                        </span>
                         {{ formatLessonRatingPersonName(rating.instructor) }}
-                    </td>
-                    <td
-                        v-if="props.showStudent"
-                        class="text-foreground px-4 py-3"
-                    >
-                        {{ formatLessonRatingPersonName(rating.student) }}
-                    </td>
-                    <td class="text-muted-foreground px-4 py-3">
+                        -
                         {{ formatDateTime(rating.lesson.startTime) }}
-                    </td>
-                    <td class="text-muted-foreground px-4 py-3">
-                        {{ formatDateTime(rating.createdAt) }}
-                    </td>
-                </tr>
-            </tbody>
-            <tbody v-else>
-                <tr>
-                    <td
-                        class="text-muted-foreground px-4 py-6 text-center"
-                        :colspan="props.showStudent ? 6 : 5"
-                    >
-                        {{
-                            props.isLoading
-                                ? 'Wczytywanie opinii...'
-                                : props.emptyLabel
-                        }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                    </p>
+                </div>
+
+                <UiBadge
+                    variant="outline"
+                    class="shrink-0 rounded-full border-sky-200 bg-sky-50 px-3 py-1 font-semibold text-sky-700 tabular-nums"
+                >
+                    {{ ratingLabel(rating.rating) }}
+                </UiBadge>
+            </article>
+
+            <p
+                v-if="props.ratings.length === 0"
+                class="text-muted-foreground rounded-xl border border-dashed px-4 py-8 text-center text-sm"
+                role="status"
+            >
+                {{
+                    props.isLoading ? 'Wczytywanie opinii...' : props.emptyLabel
+                }}
+            </p>
+        </div>
+    </section>
 </template>

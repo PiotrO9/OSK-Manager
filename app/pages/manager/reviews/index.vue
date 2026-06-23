@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CalendarDays, Plus } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/drivingSchool';
 import type { InstructorListItem } from '~/types/instructor';
 import type {
@@ -33,10 +34,9 @@ const summary = ref<LessonRatingsSummary>({
 
 const activeSchoolId = ref('');
 const activeInstructorId = ref('');
-const activePeriod = ref<LessonRatingsPeriod>('latest');
+const activePeriod = ref<LessonRatingsPeriod>('last7days');
 
 const isSchoolsLoading = ref(false);
-const isInstructorsLoading = ref(false);
 const isRatingsLoading = ref(false);
 const loadError = ref<string | null>(null);
 
@@ -51,6 +51,34 @@ function readQueryString(raw: unknown): string {
 
     return '';
 }
+
+function formatCurrentWeekLabel(): string {
+    const today = new Date();
+    const day = today.getDay();
+    const offsetToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+
+    monday.setDate(today.getDate() + offsetToMonday);
+
+    const sunday = new Date(monday);
+
+    sunday.setDate(monday.getDate() + 6);
+
+    const monthLabel = new Intl.DateTimeFormat('pl-PL', {
+        month: 'long',
+    }).format(sunday);
+
+    return `${monday.getDate()}-${sunday.getDate()} ${monthLabel}`;
+}
+
+const periodOptions = computed<
+    Array<{ value: LessonRatingsPeriod; label: string }>
+>(() => [
+    { value: 'latest', label: 'Ostatnie' },
+    { value: 'yesterday', label: 'Wczoraj' },
+    { value: 'last7days', label: formatCurrentWeekLabel() },
+    { value: 'all', label: 'Wszystkie' },
+]);
 
 function resolveInitialSchoolId(): string {
     const fromQuery = readQueryString(route.query.schoolId);
@@ -106,16 +134,12 @@ async function loadInstructors(): Promise<void> {
         return;
     }
 
-    isInstructorsLoading.value = true;
-
     try {
         instructors.value = await fetchInstructorsList(schoolId);
         activeInstructorId.value = resolveInitialInstructorId();
     } catch {
         instructors.value = [];
         activeInstructorId.value = '';
-    } finally {
-        isInstructorsLoading.value = false;
     }
 }
 
@@ -154,18 +178,6 @@ async function loadRatings(): Promise<void> {
     }
 }
 
-async function handleSchoolChange(schoolId: string): Promise<void> {
-    activeSchoolId.value = schoolId;
-    activeInstructorId.value = '';
-    await loadInstructors();
-    await loadRatings();
-}
-
-async function handleInstructorChange(instructorId: string): Promise<void> {
-    activeInstructorId.value = instructorId;
-    await loadRatings();
-}
-
 async function handlePeriodChange(period: LessonRatingsPeriod): Promise<void> {
     activePeriod.value = period;
     await loadRatings();
@@ -179,14 +191,61 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Opinie
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Wewnetrzny przeglad opinii po zakonczonych jazdach praktycznych.
-            </p>
+    <div class="space-y-5">
+        <div
+            class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+        >
+            <div class="space-y-1.5">
+                <h1
+                    class="text-foreground text-2xl leading-tight font-bold tracking-tight md:text-3xl"
+                >
+                    Opinie o lekcjach
+                </h1>
+                <p class="text-muted-foreground text-sm">
+                    Oceny instruktorow, komentarze kursantow i filtry okresu.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                <UiSelect
+                    :model-value="activePeriod"
+                    :disabled="isRatingsLoading"
+                    @update:model-value="
+                        handlePeriodChange(
+                            String($event) as LessonRatingsPeriod,
+                        )
+                    "
+                >
+                    <UiSelectTrigger
+                        class="bg-card h-10 w-auto min-w-36 gap-2 rounded-xl px-3 font-semibold shadow-xs"
+                        aria-label="Wybierz okres opinii"
+                    >
+                        <CalendarDays class="size-4" aria-hidden="true" />
+                        <UiSelectValue placeholder="Okres" />
+                    </UiSelectTrigger>
+                    <UiSelectContent>
+                        <UiSelectGroup>
+                            <UiSelectItem
+                                v-for="option in periodOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </UiSelectItem>
+                        </UiSelectGroup>
+                    </UiSelectContent>
+                </UiSelect>
+
+                <UiButton as-child class="h-10 rounded-xl px-4 shadow-lg">
+                    <NuxtLink
+                        to="/events"
+                        aria-label="Przejdz do dodawania jazdy"
+                    >
+                        <Plus class="size-4" aria-hidden="true" />
+                        Dodaj jazde
+                    </NuxtLink>
+                </UiButton>
+            </div>
         </div>
 
         <p
@@ -207,26 +266,15 @@ onMounted(async () => {
         </p>
 
         <template v-else-if="schools.length > 0">
-            <ManagerLessonRatingsFilters
-                :schools="schools"
-                :instructors="instructors"
-                :school-id="activeSchoolId"
-                :instructor-id="activeInstructorId"
-                :period="activePeriod"
-                :is-loading="isRatingsLoading"
-                :is-instructors-loading="isInstructorsLoading"
-                @school-change="handleSchoolChange"
-                @instructor-change="handleInstructorChange"
-                @period-change="handlePeriodChange"
-            />
+            <div class="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)]">
+                <LessonRatingsSummary :summary="summary" />
 
-            <LessonRatingsSummary :summary="summary" />
-
-            <LessonRatingsTable
-                :ratings="ratings"
-                :is-loading="isRatingsLoading"
-                empty-label="Brak opinii dla wybranych filtrow"
-            />
+                <LessonRatingsTable
+                    :ratings="ratings"
+                    :is-loading="isRatingsLoading"
+                    empty-label="Brak opinii dla wybranego okresu"
+                />
+            </div>
         </template>
 
         <p v-else class="text-muted-foreground text-sm" role="status">
