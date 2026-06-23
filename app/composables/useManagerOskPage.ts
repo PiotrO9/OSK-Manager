@@ -1,4 +1,8 @@
 import type { DrivingSchool } from '~/types/drivingSchool';
+import { normalizeInstructorsList } from '~/types/instructor';
+import { normalizeStudentListPage } from '~/types/student';
+import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
+import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
     getOskClearDefaultBlockedMessage,
     isOskDefaultSwitchLocked,
@@ -22,6 +26,9 @@ export function useManagerOskPage() {
 
     const schools = ref<DrivingSchool[]>([]);
     const loadError = ref<string | null>(null);
+    const statsError = ref<string | null>(null);
+    const instructorCount = ref<number | null>(null);
+    const studentCount = ref<number | null>(null);
     const deletingId = ref<string | null>(null);
     const confirmTarget = ref<DrivingSchool | null>(null);
 
@@ -34,6 +41,7 @@ export function useManagerOskPage() {
     const editTarget = ref<DrivingSchool | null>(null);
 
     const isLocalCreateSaving = ref(false);
+    const isStatsLoading = ref(false);
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
     const isEditSaving = computed(
@@ -46,13 +54,93 @@ export function useManagerOskPage() {
     const isDefaultSwitchLocked = computed(() =>
         isOskDefaultSwitchLocked(schools.value, editTarget.value),
     );
+    const defaultSchoolCount = computed(
+        () =>
+            schools.value.filter((school) => school.isDefault === true).length,
+    );
+
+    async function fetchInstructorCount(schoolId: string): Promise<number> {
+        const raw = await bffFetch<unknown>(
+            'GET',
+            resolveBffEndpoint(
+                `/api/instructors?schoolId=${encodeURIComponent(schoolId)}`,
+            ),
+        );
+        const data = unwrapApiSuccessData<unknown>(raw);
+
+        return normalizeInstructorsList(data).length;
+    }
+
+    async function fetchStudentCount(schoolId: string): Promise<number> {
+        const qs = new URLSearchParams({
+            schoolId,
+            page: '1',
+            limit: '1',
+        });
+        const raw = await bffFetch<unknown>(
+            'GET',
+            resolveBffEndpoint(`/api/students?${qs.toString()}`),
+        );
+        const data = unwrapApiSuccessData<unknown>(raw);
+        const page = normalizeStudentListPage(data);
+
+        return page?.total ?? 0;
+    }
+
+    async function loadSchoolStats(list: DrivingSchool[]) {
+        statsError.value = null;
+
+        if (list.length === 0) {
+            instructorCount.value = 0;
+            studentCount.value = 0;
+
+            return;
+        }
+
+        isStatsLoading.value = true;
+
+        try {
+            const [instructorResults, studentResults] = await Promise.all([
+                Promise.allSettled(
+                    list.map((school) => fetchInstructorCount(school.id)),
+                ),
+                Promise.allSettled(
+                    list.map((school) => fetchStudentCount(school.id)),
+                ),
+            ]);
+
+            const hasRejected = [...instructorResults, ...studentResults].some(
+                (result) => result.status === 'rejected',
+            );
+
+            instructorCount.value = instructorResults.reduce(
+                (sum, result) =>
+                    result.status === 'fulfilled' ? sum + result.value : sum,
+                0,
+            );
+            studentCount.value = studentResults.reduce(
+                (sum, result) =>
+                    result.status === 'fulfilled' ? sum + result.value : sum,
+                0,
+            );
+
+            if (hasRejected) {
+                statsError.value = 'Część statystyk OSK nie została wczytana.';
+            }
+        } finally {
+            isStatsLoading.value = false;
+        }
+    }
 
     async function loadSchools() {
         loadError.value = null;
 
         try {
             schools.value = await fetchList();
+            await loadSchoolStats(schools.value);
         } catch (err) {
+            instructorCount.value = null;
+            studentCount.value = null;
             loadError.value =
                 err instanceof Error
                     ? err.message
@@ -275,7 +363,12 @@ export function useManagerOskPage() {
     return {
         schools,
         loadError,
+        statsError,
         isListLoading,
+        isStatsLoading,
+        instructorCount,
+        studentCount,
+        defaultSchoolCount,
         loadSchools,
         deletingId,
         confirmTarget,
