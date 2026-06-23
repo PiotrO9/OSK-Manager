@@ -172,7 +172,7 @@ function handleSubmit(payload: { rating: number; comment: string | null }) {
                             class="text-muted-foreground text-xs"
                             role="status"
                         >
-                            OdĹ›wieĹĽanie opinii...
+                            Od?wie?anie opinii...
                         </p>
                     </div>
 

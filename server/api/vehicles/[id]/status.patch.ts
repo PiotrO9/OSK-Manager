@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     if (!isUuid(id)) {
         throw createError({
             statusCode: 400,
-            message: 'NieprawidĹ‚owy identyfikator pojazdu.',
+            message: 'Nieprawid?owy identyfikator pojazdu.',
         });
     }
 
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     if (!status) {
         throw createError({
             statusCode: 400,
-            message: 'Pole status musi byÄ‡ ACTIVE albo UNAVAILABLE.',
+            message: 'Pole status musi być ACTIVE albo UNAVAILABLE.',
         });
     }
 

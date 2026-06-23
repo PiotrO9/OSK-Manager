@@ -1,43 +1,5 @@
 import type { H3Event } from 'h3';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
-
-function getAccessToken(event: H3Event): string {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostepu' });
-    }
-
-    return access;
-}
-
-async function parseBackendEnvelope<T>(
-    res: Response,
-    fallbackMessage: string,
-): Promise<BackendEnvelope<T>> {
-    const text = await res.text();
-
-    if (!text.trim()) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: fallbackMessage,
-        });
-    }
-
-    try {
-        return JSON.parse(text) as BackendEnvelope<T>;
-    } catch {
-        throw createError({
-            statusCode: 502,
-            statusMessage: 'Nieprawidlowa odpowiedz serwera.',
-        });
-    }
-}
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
 function copyRatingQuery(rawQuery: Record<string, unknown>): URLSearchParams {
     const qs = new URLSearchParams();
@@ -72,29 +34,13 @@ export async function bffUpstreamLessonRatingsList(
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown }> {
     const qs = copyRatingQuery(getQuery(event));
-    const res = await fetch(`${upstreamBase}/ratings?${qs.toString()}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getAccessToken(event)}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/ratings',
+        query: qs,
+        fallbackError: 'Nie udalo sie pobrac opinii.',
     });
-    const json = await parseBackendEnvelope<unknown>(
-        res,
-        'Nie udalo sie pobrac opinii.',
-    );
 
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udalo sie pobrac opinii.',
-        });
-    }
-
-    return { success: true, data: json.data };
+    return { success: true, data };
 }
 
 export async function bffUpstreamInstructorLessonRatingsList(
@@ -105,64 +51,25 @@ export async function bffUpstreamInstructorLessonRatingsList(
     const qs = copyRatingQuery(getQuery(event));
 
     qs.delete('instructorId');
-    const suffix = qs.toString();
-    const res = await fetch(
-        `${upstreamBase}/instructors/${encodeURIComponent(instructorId)}/ratings${
-            suffix ? `?${suffix}` : ''
-        }`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${getAccessToken(event)}`,
-            },
-        },
-    );
-    const json = await parseBackendEnvelope<unknown>(
-        res,
-        'Nie udalo sie pobrac opinii instruktora.',
-    );
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/instructors/${encodeURIComponent(instructorId)}/ratings`,
+        query: qs,
+        fallbackError: 'Nie udalo sie pobrac opinii instruktora.',
+    });
 
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udalo sie pobrac opinii instruktora.',
-        });
-    }
-
-    return { success: true, data: json.data };
+    return { success: true, data };
 }
 
 export async function bffUpstreamOwnLessonRatingsList(
     event: H3Event,
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown }> {
-    const res = await fetch(`${upstreamBase}/ratings/me`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${getAccessToken(event)}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/ratings/me',
+        fallbackError: 'Nie udalo sie pobrac Twoich opinii.',
     });
-    const json = await parseBackendEnvelope<unknown>(
-        res,
-        'Nie udalo sie pobrac Twoich opinii.',
-    );
 
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udalo sie pobrac Twoich opinii.',
-        });
-    }
-
-    return { success: true, data: json.data };
+    return { success: true, data };
 }
 
 function makeMockRating(id: string, instructorId: string, index: number) {

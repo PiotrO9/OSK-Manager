@@ -1,11 +1,6 @@
 import type { H3Event } from 'h3';
 import type { MockWeeklyEntry } from './mockAvailabilityStore';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
 export type WeeklyEntryResponse = MockWeeklyEntry;
 
@@ -24,6 +19,16 @@ export interface SchoolSlotsEntryResponse {
     endTime: string;
 }
 
+function statusCodeFromError(err: unknown): number | undefined {
+    if (err && typeof err === 'object' && 'statusCode' in err) {
+        const code = (err as { statusCode?: unknown }).statusCode;
+
+        return typeof code === 'number' ? code : undefined;
+    }
+
+    return undefined;
+}
+
 export async function bffSchoolSlotsGet(
     event: H3Event,
     upstreamBase: string,
@@ -33,46 +38,21 @@ export async function bffSchoolSlotsGet(
     success: true;
     data: { slots: SchoolSlotsEntryResponse[]; total?: number };
 }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/driving-schools/${encodeURIComponent(schoolId)}/availability/slots?${queryString}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<{
-        slots: SchoolSlotsEntryResponse[];
+    const suffix = queryString.trim();
+    const { data } = await upstreamRequest<{
+        slots?: SchoolSlotsEntryResponse[];
         total?: number;
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać slotów szkoły',
-        });
-    }
-
-    const data = json.data ?? { slots: [] };
-    const slots = Array.isArray(data.slots) ? data.slots : [];
+    }>(event, upstreamBase, {
+        path: `/driving-schools/${encodeURIComponent(schoolId)}/availability/slots${suffix ? `?${suffix}` : ''}`,
+        fallbackError: 'Nie udało się pobrać slotów szkoły',
+    });
+    const slots = Array.isArray(data?.slots) ? data.slots : [];
 
     return {
         success: true,
         data: {
             slots,
-            total: typeof data.total === 'number' ? data.total : slots.length,
+            total: typeof data?.total === 'number' ? data.total : slots.length,
         },
     };
 }
@@ -84,45 +64,19 @@ export async function bffSlotsGet(
     dateFrom: string,
     dateTo: string,
 ): Promise<{ success: true; data: { slots: SlotsEntryResponse[] } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const query = new URLSearchParams({
-        dateFrom,
-        dateTo,
-    });
-
-    const res = await fetch(
-        `${upstreamBase}/instructors/${encodeURIComponent(instructorId)}/availability/slots?${query.toString()}`,
+    const { data } = await upstreamRequest<{ slots?: SlotsEntryResponse[] }>(
+        event,
+        upstreamBase,
         {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
+            path: `/instructors/${encodeURIComponent(instructorId)}/availability/slots`,
+            query: { dateFrom, dateTo },
+            fallbackError: 'Nie udało się pobrać slotów',
         },
     );
 
-    const json = (await res.json()) as BackendEnvelope<{
-        slots: SlotsEntryResponse[];
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać slotów',
-        });
-    }
-
     return {
         success: true,
-        data: json.data ?? { slots: [] },
+        data: { slots: Array.isArray(data?.slots) ? data.slots : [] },
     };
 }
 
@@ -131,40 +85,18 @@ export async function bffWeeklyGet(
     upstreamBase: string,
     instructorId: string,
 ): Promise<{ success: true; data: { weekly: WeeklyEntryResponse[] } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/instructors/${encodeURIComponent(instructorId)}/availability/weekly`,
+    const { data } = await upstreamRequest<{ weekly?: WeeklyEntryResponse[] }>(
+        event,
+        upstreamBase,
         {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
+            path: `/instructors/${encodeURIComponent(instructorId)}/availability/weekly`,
+            fallbackError: 'Nie udało się pobrać dostępności',
         },
     );
 
-    const json = (await res.json()) as BackendEnvelope<{
-        weekly: WeeklyEntryResponse[];
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać dostępności',
-        });
-    }
-
     return {
         success: true,
-        data: json.data ?? { weekly: [] },
+        data: { weekly: Array.isArray(data?.weekly) ? data.weekly : [] },
     };
 }
 
@@ -175,39 +107,18 @@ export async function bffWeeklyPut(
     dayOfWeek: number,
     body: { startTime: string; endTime: string },
 ): Promise<{ success: true; data: { entry: WeeklyEntryResponse } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/instructors/${encodeURIComponent(instructorId)}/availability/weekly/${dayOfWeek}`,
+    const { data } = await upstreamRequest<{ entry?: WeeklyEntryResponse }>(
+        event,
+        upstreamBase,
         {
+            path: `/instructors/${encodeURIComponent(instructorId)}/availability/weekly/${dayOfWeek}`,
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body),
+            body,
+            fallbackError: 'Nie udało się zapisać dnia',
         },
     );
 
-    const json = (await res.json()) as BackendEnvelope<{
-        entry: WeeklyEntryResponse;
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zapisać dnia',
-        });
-    }
-
-    if (!json.data?.entry) {
+    if (!data?.entry) {
         throw createError({
             statusCode: 502,
             statusMessage: 'Nieprawidłowa odpowiedź serwera',
@@ -216,7 +127,7 @@ export async function bffWeeklyPut(
 
     return {
         success: true,
-        data: json.data,
+        data: { entry: data.entry },
     };
 }
 
@@ -226,45 +137,17 @@ export async function bffWeeklyDelete(
     instructorId: string,
     dayOfWeek: number,
 ): Promise<{ success: true }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/instructors/${encodeURIComponent(instructorId)}/availability/weekly/${dayOfWeek}`,
-        {
+    try {
+        await upstreamRequest(event, upstreamBase, {
+            path: `/instructors/${encodeURIComponent(instructorId)}/availability/weekly/${dayOfWeek}`,
             method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    if (res.status === 204 || res.status === 404) {
-        return { success: true };
-    }
-
-    const text = await res.text();
-    let json: BackendEnvelope<unknown> | null = null;
-
-    if (text.trim().length > 0) {
-        try {
-            json = JSON.parse(text) as BackendEnvelope<unknown>;
-        } catch {
-            json = null;
-        }
-    }
-
-    if (!res.ok) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                json !== null && typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się usunąć dnia',
+            fallbackError: 'Nie udało się usunąć dnia',
+            allowEmptySuccess: true,
         });
+    } catch (err: unknown) {
+        if (statusCodeFromError(err) !== 404) {
+            throw err;
+        }
     }
 
     return { success: true };

@@ -1,101 +1,5 @@
 import type { H3Event } from 'h3';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
-
-export async function bffUpstreamVehiclesList(
-    event: H3Event,
-    upstreamBase: string,
-    schoolId: string,
-    timeFilter?: { startTime: string; endTime: string },
-): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const qs = new URLSearchParams({ schoolId });
-
-    if (timeFilter) {
-        qs.set('startTime', timeFilter.startTime);
-        qs.set('endTime', timeFilter.endTime);
-    }
-
-    const res = await fetch(`${upstreamBase}/vehicles?${qs.toString()}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-    });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy pojazdów',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
-}
-
-export async function bffUpstreamVehiclesGetById(
-    event: H3Event,
-    upstreamBase: string,
-    id: string,
-): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/vehicles/${encodeURIComponent(id)}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać pojazdu',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
-}
+import { upstreamRequest } from './upstreamRequest';
 
 export interface BffVehicleWriteBody {
     schoolId: string;
@@ -120,45 +24,60 @@ export interface BffVehicleStatusBody {
     status: 'ACTIVE' | 'UNAVAILABLE';
 }
 
+function dataSuccess(data: unknown): { success: true; data: unknown } {
+    return {
+        success: true,
+        data,
+    };
+}
+
+export async function bffUpstreamVehiclesList(
+    event: H3Event,
+    upstreamBase: string,
+    schoolId: string,
+    timeFilter?: { startTime: string; endTime: string },
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/vehicles',
+        method: 'GET',
+        query: {
+            schoolId,
+            startTime: timeFilter?.startTime,
+            endTime: timeFilter?.endTime,
+        },
+        fallbackError: 'Nie udało się pobrać listy pojazdów',
+    });
+
+    return dataSuccess(data);
+}
+
+export async function bffUpstreamVehiclesGetById(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/vehicles/${encodeURIComponent(id)}`,
+        method: 'GET',
+        fallbackError: 'Nie udało się pobrać pojazdu',
+    });
+
+    return dataSuccess(data);
+}
+
 export async function bffUpstreamVehiclesCreate(
     event: H3Event,
     upstreamBase: string,
     body: BffVehicleWriteBody,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/vehicles`, {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/vehicles',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body),
+        body,
+        fallbackError: 'Nie udało się utworzyć pojazdu',
     });
 
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się utworzyć pojazdu',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return dataSuccess(data);
 }
 
 export async function bffUpstreamVehiclesUpdate(
@@ -167,40 +86,14 @@ export async function bffUpstreamVehiclesUpdate(
     id: string,
     body: BffVehiclePatchBody,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/vehicles/${id}`, {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/vehicles/${encodeURIComponent(id)}`,
         method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body),
+        body,
+        fallbackError: 'Nie udało się zaktualizować pojazdu',
     });
 
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zaktualizować pojazdu',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return dataSuccess(data);
 }
 
 export async function bffUpstreamVehiclesUpdateStatus(
@@ -209,43 +102,14 @@ export async function bffUpstreamVehiclesUpdateStatus(
     id: string,
     body: BffVehicleStatusBody,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/vehicles/${encodeURIComponent(id)}/status`,
+        method: 'PATCH',
+        body,
+        fallbackError: 'Nie udało się zmienić statusu pojazdu',
+    });
 
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostÄ™pu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/vehicles/${encodeURIComponent(id)}/status`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body),
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return dataSuccess(data);
 }
 
 export async function bffUpstreamVehiclesDelete(
@@ -253,39 +117,12 @@ export async function bffUpstreamVehiclesDelete(
     upstreamBase: string,
     id: string,
 ): Promise<{ success: true }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/vehicles/${id}`, {
+    await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/vehicles/${encodeURIComponent(id)}`,
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+        fallbackError: 'Nie udało się usunąć pojazdu',
+        allowEmptySuccess: true,
     });
-
-    if (!res.ok) {
-        let errorMessage = 'Nie udało się usunąć pojazdu';
-
-        try {
-            const json = (await res.json()) as BackendEnvelope<unknown>;
-
-            if (typeof json.error === 'string') errorMessage = json.error;
-        } catch {
-            /* ignoruj błąd parsowania */
-        }
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: errorMessage,
-        });
-    }
 
     return { success: true };
 }
@@ -297,44 +134,16 @@ export async function bffUpstreamVehiclesUploadPhoto(
     file: Blob,
     filename: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
     const form = new FormData();
 
     form.append('file', file, filename);
 
-    const res = await fetch(
-        `${upstreamBase}/vehicles/${encodeURIComponent(id)}/photo`,
-        {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
-            body: form,
-        },
-    );
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/vehicles/${encodeURIComponent(id)}/photo`,
+        method: 'POST',
+        body: form,
+        fallbackError: 'Nie udało się przesłać zdjęcia',
+    });
 
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się przesłać zdjęcia',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return dataSuccess(data);
 }

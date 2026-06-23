@@ -172,7 +172,7 @@ const shadcnSliderValue = ref([42]);
                     <div
                         v-for="(testimonial, index) in [
                             {
-                                text: 'This starter kit saved me days of setup. Everything just works out of the box!',
+                                text: 'OSK Manager keeps daily school operations in one focused panel.',
                                 author: 'Anna K.',
                                 role: 'Frontend developer',
                             },

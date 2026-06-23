@@ -6,7 +6,7 @@ definePageMeta({
 usePageMeta({
     title: () => 'Design system',
     description: () =>
-        'Podgląd palety Tailwind, komponentów shadcn-vue oraz bloków UI startera.',
+        'Podgląd palety Tailwind, komponentów shadcn-vue oraz bloków UI OSK Manager.',
 });
 
 const isDialogOpen = ref(false);

@@ -26,7 +26,7 @@ function handleToast(variant: ToastVariant) {
             <UiCardDescription>
                 Komunikaty w prawym górnym rogu przez
                 <code class="font-mono text-xs">ToastStack</code>
-                (własny komponent startera).
+                (własny komponent aplikacji).
             </UiCardDescription>
         </UiCardHeader>
         <UiCardContent>

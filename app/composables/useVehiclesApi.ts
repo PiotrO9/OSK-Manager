@@ -215,7 +215,7 @@ export function useVehiclesApi() {
                 throw new Error(
                     getApiFetchErrorMessage(
                         statusUpdateError.value,
-                        'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu.',
+                        'Nie udało się zmienić statusu pojazdu.',
                     ),
                 );
             }
@@ -224,7 +224,7 @@ export function useVehiclesApi() {
             const vehicle = normalizeVehicle(data, 0);
 
             if (!vehicle) {
-                throw new Error('NieprawidĹ‚owa odpowiedĹş serwera.');
+                throw new Error('Nieprawid?owa odpowied? serwera.');
             }
 
             return vehicle;

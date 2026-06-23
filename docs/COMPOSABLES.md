@@ -148,7 +148,7 @@ usePageMeta({ title, description?, image? })
 
 | Option        | Type                                 | Description                                 |
 | ------------- | ------------------------------------ | ------------------------------------------- |
-| `title`       | `Ref \| ComputedRef \| () => string` | Page title (appends ` \| Frontend Starter`) |
+| `title`       | `Ref \| ComputedRef \| () => string` | Page title (appends ` \| OSK Manager`) |
 | `description` | Same                                 | Meta description, og:description            |
 | `image`       | `string`                             | Path or URL for og:image                    |
 

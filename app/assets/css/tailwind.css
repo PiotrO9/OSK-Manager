@@ -17,7 +17,7 @@
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    /* brand: sky ~ #0ea5e9 (starter primary) */
+    /* brand: sky ~ #0ea5e9 (primary) */
     --primary: oklch(0.69 0.13 237);
     --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0);
@@ -121,7 +121,7 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Skala kolorów startera (np. text-primary-500) — obok tokenów shadcn */
+/* Skala kolorów aplikacji (np. text-primary-500) — obok tokenów shadcn */
 @theme {
     --color-primary-50: #f0f9ff;
     --color-primary-100: #e0f2fe;

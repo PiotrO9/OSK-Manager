@@ -169,7 +169,7 @@ async function handleRatingLessonSelected(
 
         ratingErrorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udaĹ‚o siÄ™ odĹ›wieĹĽyÄ‡ opinii.',
+            'Nie udało się odświeżyć opinii.',
         );
     } finally {
         if (seq === ratingFetchSeq) {

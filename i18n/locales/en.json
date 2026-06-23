@@ -21,9 +21,9 @@
     "commonLoggedOut": "logged out",
     "commonHome": "Home",
     "homeTitle": "Home",
-    "homeMetaDescription": "Frontend starter template with Nuxt 4, Vue 3, TypeScript and TailwindCSS. Ready template for quick project start.",
-    "homeHeading": "Frontend Starter (Nuxt 4 + Vue 3 + TS + Tailwind)",
-    "homeIntro": "This is an example skeleton: layout, routing, \"auth\" middleware, composables, and a few UI components. You can use it as a base for a real project.",
+    "homeMetaDescription": "OSK Manager frontend for managing driving school students, instructors, vehicles, payments, and schedules.",
+    "homeHeading": "OSK Manager",
+    "homeIntro": "Application panel for day-to-day driving school operations: schedules, students, instructors, vehicles, and account access.",
     "homeGoToProtected": "Go to protected",
     "homeNavigationToast": "Navigation",
     "homeGoingToProtected": "Going to protected...",
@@ -92,7 +92,7 @@
     "apiDemoLoading": "Loading...",
     "apiDemoGetResponse": "GET Response:",
     "apiDemoPostResponse": "POST Response:",
-    "footerTagline": "Nuxt 4 + Tailwind starter — example structure and patterns",
+    "footerTagline": "OSK Manager - driving school operations panel",
     "logoutTitle": "Logged out",
     "logoutSeeYouLater": "See you later, {name}!"
 }

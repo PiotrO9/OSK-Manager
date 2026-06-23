@@ -73,8 +73,12 @@ interface SessionUserPayload {
     defaultOskId: string | null;
 }
 
-function getAuthFetch() {
-    return import.meta.server ? useRequestFetch() : $fetch;
+function getAuthFetch(): typeof $fetch {
+    if (import.meta.server) {
+        return useRequestFetch() as typeof $fetch;
+    }
+
+    return $fetch;
 }
 
 function getFetchStatusCode(error: unknown): number | undefined {

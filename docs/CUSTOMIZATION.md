@@ -1,74 +1,58 @@
-# Customization
+# Project Configuration Checklist
 
-Checklist for adapting the Frontend Starter to your new project.
+Lista miejsc, które trzeba sprawdzić przy zmianie środowiska, brandingu lub integracji OSK Manager.
 
-## 1. Package Identity
+## Package Identity
 
-Edit `package.json`:
+`package.json` powinien opisywać projekt OSK Manager, a nie bazowy szablon:
 
 ```json
 {
-    "name": "your-project-name",
-    "description": "Your project description",
-    "repository": {
-        "url": "https://github.com/YOUR_USERNAME/your-repo.git"
-    }
+    "name": "osk-manager-fe",
+    "description": "Frontend aplikacji OSK Manager..."
 }
 ```
 
-## 2. Nuxt Configuration
+## Nuxt Configuration
 
-In `nuxt.config.ts`, update:
+`nuxt.config.ts` korzysta z `NUXT_PUBLIC_SITE_URL` dla konfiguracji SEO:
 
 ```ts
 site: {
-  url: process.env.NUXT_PUBLIC_SITE_URL || 'https://your-domain.com',
-  name: 'Your App Name',
-},
+  url: process.env.NUXT_PUBLIC_SITE_URL,
+  name: 'OSK Manager',
+}
 ```
 
-## 3. Demo Pages
+Nie ustawiaj `localhost` jako domyślnego URL dla buildów produkcyjnych.
 
-Remove or repurpose demo pages as needed:
+## Environment Variables
 
-| Page                          | Action                                |
-| ----------------------------- | ------------------------------------- |
-| `app/pages/design-system.vue` | Remove or keep for internal reference |
-| `app/pages/api-demo.vue`      | Remove or adapt for your API          |
-| `app/pages/protected.vue`     | Adapt or remove                       |
-| `app/pages/login.vue`         | Adapt to your auth flow               |
-| `app/pages/index.vue`         | Replace with your homepage            |
-
-## 4. Environment Variables
-
-Create `.env` (and `.env.example` for documentation):
+Przykład deploymentu:
 
 ```env
-NUXT_PUBLIC_API_BASE=https://api.your-domain.com
-NUXT_PUBLIC_SITE_URL=https://your-domain.com
+NUXT_API_UPSTREAM=https://api.example.com
+NUXT_BFF_ADAPTER=upstream
+NUXT_PUBLIC_API_BASE=https://api.example.com
+NUXT_PUBLIC_SITE_URL=https://app.example.com
 ```
 
-## 5. Internationalization
+## Application Areas
 
-- Edit `i18n/locales/en.json` and `i18n/locales/pl.json` with your copy
-- Add or remove locales in `nuxt.config.ts` under `i18n.locales`
-- Update `LanguageSwitch.vue` if you change locale codes
+- `app/pages/login.vue` - logowanie i sesja
+- `app/pages/manager/*` - widoki managera OSK
+- `app/pages/my-*` - widoki kursanta
+- `server/api/*` - Nitro BFF
+- `app/components/shadcn/*` - komponenty shadcn-vue
 
-## 6. Layout and Branding
+## Branding
 
-- Update `AppHeader.vue` — navigation links, logo, branding
-- Update `AppFooter.vue` — footer content, links
-- Adjust colors and theme in `tailwind.config.ts` if needed
+- `app/components/app/AppHeader.vue` - nazwa i nawigacja
+- `app/components/app/AppFooter.vue` - stopka
+- `app/assets/css/tailwind.css` - tokeny kolorów i style globalne
 
-## 7. Authentication
+## Auth And API
 
-- Set `NUXT_PUBLIC_API_BASE` to your backend URL (e.g. `https://api.example.com`)
-- Expected endpoints: `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh`, `POST /auth/logout` (see [ARCHITECTURE.md](ARCHITECTURE.md))
-- Update login/logout flows in `app/pages/login.vue` and `app/composables/useLogout.ts`
-- Adjust `app/middleware/auth.ts` for your auth logic
-
-## 8. Cleanup
-
-- Remove this checklist from your project docs once done
-- Update `README.md` with your project-specific instructions
-- Remove or update `CHANGELOG.md` for your project history
+- Backend auth: `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh`, `POST /auth/logout`
+- Frontend session flow: `app/composables/useAuthSession.ts`
+- Shared API helpers: `app/composables/useApi.ts`, `app/utils/apiEnvelope.ts`

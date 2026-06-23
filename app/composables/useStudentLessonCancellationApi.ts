@@ -34,7 +34,7 @@ export function useStudentLessonCancellationApi() {
             const lesson = data.lesson;
 
             if (!lesson || typeof lesson !== 'object') {
-                throw new Error('Nieprawidlowa odpowiedz serwera.');
+                throw new Error('Nieprawid?owa odpowied? serwera.');
             }
 
             return lesson;

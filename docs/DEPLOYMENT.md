@@ -1,61 +1,61 @@
 # Deployment
 
-Guidelines for deploying projects based on the Frontend Starter.
+Wytyczne deploymentu frontendu OSK Manager.
 
 ## Build
 
 ```bash
-pnpm build
+npm run build
 ```
 
-Output is in `.output/` directory.
+Output trafia do katalogu `.output/`.
 
-## Static Generation (SSG)
+## Static Generation
 
-For static hosting (e.g. Netlify, Vercel static):
+Jeśli aplikacja ma być generowana statycznie:
 
 ```bash
-pnpm generate
+npm run generate
 ```
 
-Output is in `.output/public/`.
+Output trafia do `.output/public/`.
 
 ## Environment Variables
 
-Ensure these are set in your deployment environment:
+Ustaw w środowisku deploymentu:
 
-| Variable               | Required           | Description             |
-| ---------------------- | ------------------ | ----------------------- |
-| `NUXT_PUBLIC_API_BASE` | Yes (if using API) | Backend API base URL    |
-| `NUXT_PUBLIC_SITE_URL` | Yes (for SEO)      | Public URL of your site |
+| Variable               | Required           | Description                              |
+| ---------------------- | ------------------ | ---------------------------------------- |
+| `NUXT_API_UPSTREAM`    | Yes for BFF proxy  | Backend API URL used by Nitro server     |
+| `NUXT_BFF_ADAPTER`     | No                 | `upstream` or `mock`; empty uses fallback |
+| `NUXT_PUBLIC_API_BASE` | Yes if client calls API directly | Public API base URL              |
+| `NUXT_PUBLIC_SITE_URL` | Yes for build/deploy | Public HTTPS URL for SEO/sitemap/OG    |
 
-## Platform-Specific Notes
+`NUXT_PUBLIC_SITE_URL` should be the real public HTTPS URL. Do not leave it as `localhost` in production builds.
 
-### Vercel
+## Vercel
 
-- Nuxt is detected automatically
-- Set env vars in Project Settings → Environment Variables
-- Use `pnpm build` as build command
+- Nuxt is detected automatically.
+- Set env vars in Project Settings -> Environment Variables.
+- Use `npm run build` as build command.
 
-### Netlify
+## Netlify
 
-- Build command: `pnpm build`
-- Publish directory: `dist` (for Nuxt 3) or `.output/public` (for static)
-- Configure redirects for SPA if needed: `/* /index.html 200`
+- Build command: `npm run build`.
+- Publish directory for static generation: `.output/public`.
+- Configure redirects for SPA/static hosting if needed: `/* /index.html 200`.
 
-### Node.js (Server)
+## Node.js Server
 
 ```bash
-pnpm build
+npm run build
 node .output/server/index.mjs
 ```
 
 Set `HOST` and `PORT` env vars if needed.
 
-## Previews
-
-Test production build locally:
+## Preview
 
 ```bash
-pnpm preview
+npm run preview
 ```

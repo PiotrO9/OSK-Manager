@@ -1,7 +1,7 @@
 <script setup lang="ts">
 useSeoMeta({
     description:
-        'Frontend starter template z Nuxt 4, Vue 3, TypeScript i TailwindCSS',
+        'Panel OSK Manager do obsługi kursantów, instruktorów, pojazdów, płatności i harmonogramu szkoły jazdy.',
     ogType: 'website',
 });
 

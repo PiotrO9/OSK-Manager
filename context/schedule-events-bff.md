@@ -31,7 +31,7 @@ Handler: [`server/api/schedule/index.get.ts`](../server/api/schedule/index.get.t
 
 ### Query
 
-Uwaga: przy wariancie `studentId` wymagany jest rĂłwnieĹĽ `schoolId`, aby podglÄ…d terminarza kursanta byĹ‚ ograniczony do jednej OSK.
+Uwaga: przy wariancie `studentId` wymagany jest równie? `schoolId`, aby podgląd terminarza kursanta był ograniczony do jednej OSK.
 
 | Parametr       | Wymagane               | Opis                                        |
 | -------------- | ---------------------- | ------------------------------------------- |

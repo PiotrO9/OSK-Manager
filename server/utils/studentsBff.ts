@@ -1,10 +1,5 @@
 import type { H3Event } from 'h3';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
 export async function bffUpstreamStudentsList(
     event: H3Event,
@@ -16,48 +11,25 @@ export async function bffUpstreamStudentsList(
         courseId?: string;
     },
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const qs = new URLSearchParams({
+    const query: Record<string, string | number | undefined> = {
         schoolId: params.schoolId,
-        page: String(params.page),
-        limit: String(params.limit),
-    });
+        page: params.page,
+        limit: params.limit,
+    };
 
     if (params.courseId !== undefined && params.courseId.trim().length > 0) {
-        qs.set('courseId', params.courseId.trim());
+        query.courseId = params.courseId.trim();
     }
 
-    const res = await fetch(`${upstreamBase}/students?${qs.toString()}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/students',
+        query,
+        fallbackError: 'Nie udało się pobrać listy kursantów',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy kursantów',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -67,48 +39,20 @@ export async function bffUpstreamStudentDetail(
     userId: string,
     schoolId: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const qs = new URLSearchParams({ schoolId: schoolId.trim() });
-
-    const res = await fetch(
-        `${upstreamBase}/students/${encodeURIComponent(userId)}?${qs.toString()}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać danych kursanta',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}`,
+        query: { schoolId: schoolId.trim() },
+        fallbackError: 'Nie udało się pobrać danych kursanta',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
 /**
- * GET {upstream}/students/:userId/events — wydarzenia przypisane do kursanta.
+ * GET {upstream}/students/:userId/events - wydarzenia przypisane do kursanta.
  * Opcjonalny query (np. dateFrom, dateTo) przekazywany bez zmian, jeśli backend wspiera.
  */
 export async function bffUpstreamStudentEvents(
@@ -117,42 +61,15 @@ export async function bffUpstreamStudentEvents(
     userId: string,
     queryString?: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const qs = queryString?.trim() ?? '';
-    const path = `${upstreamBase}/students/${encodeURIComponent(userId)}/events`;
-    const url = qs.length > 0 ? `${path}?${qs}` : path;
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const suffix = queryString?.trim() ?? '';
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/events${suffix ? `?${suffix}` : ''}`,
+        fallbackError: 'Nie udało się pobrać wydarzeń kursanta',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać wydarzeń kursanta',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -162,43 +79,15 @@ export async function bffUpstreamStudentProcessStatus(
     userId: string,
     schoolId: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostÄ™pu',
-        });
-    }
-
-    const qs = new URLSearchParams({ schoolId: schoolId.trim() });
-
-    const res = await fetch(
-        `${upstreamBase}/students/${encodeURIComponent(userId)}/process-status?${qs.toString()}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udaĹ‚o siÄ™ pobraÄ‡ statusu procesu kursanta',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/process-status`,
+        query: { schoolId: schoolId.trim() },
+        fallbackError: 'Nie udało się pobrać statusu procesu kursanta',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -208,42 +97,16 @@ export async function bffUpstreamUpdateStudentNotes(
     userId: string,
     notes: string | null,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/students/${encodeURIComponent(userId)}`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify({ notes }),
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zapisać notatki kursanta',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}`,
+        method: 'PATCH',
+        body: { notes },
+        fallbackError: 'Nie udało się zapisać notatki kursanta',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -253,41 +116,15 @@ export async function bffUpstreamStudentAssignToCourse(
     studentUserId: string,
     body: { courseId: string },
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/students/${encodeURIComponent(studentUserId)}/courses`,
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify({ courseId: body.courseId }),
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zapisać kursanta na kurs',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(studentUserId)}/courses`,
+        method: 'POST',
+        body: { courseId: body.courseId },
+        fallbackError: 'Nie udało się zapisać kursanta na kurs',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }

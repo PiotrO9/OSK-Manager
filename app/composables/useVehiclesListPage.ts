@@ -229,7 +229,7 @@ export function useVehiclesListPage() {
                 description:
                     err instanceof Error
                         ? err.message
-                        : 'Nie udaĹ‚o siÄ™ zmieniÄ‡ statusu pojazdu.',
+                        : 'Nie udało się zmienić statusu pojazdu.',
                 variant: 'error',
             });
         } finally {

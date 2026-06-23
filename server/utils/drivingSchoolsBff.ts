@@ -1,47 +1,28 @@
 import type { H3Event } from 'h3';
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
+function statusCodeFromError(err: unknown): number | undefined {
+    if (err && typeof err === 'object' && 'statusCode' in err) {
+        const code = (err as { statusCode?: unknown }).statusCode;
+
+        return typeof code === 'number' ? code : undefined;
+    }
+
+    return undefined;
 }
 
 export async function bffUpstreamDrivingSchoolsList(
     event: H3Event,
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/driving-schools`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/driving-schools',
+        fallbackError: 'Nie udało się pobrać listy OSK',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy OSK',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -49,43 +30,23 @@ export async function bffUpstreamDrivingSchoolsDefault(
     event: H3Event,
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown | null }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
+    try {
+        const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+            path: '/driving-schools/default',
+            fallbackError: 'Nie udało się pobrać domyślnego OSK',
         });
+
+        return {
+            success: true,
+            data: data ?? null,
+        };
+    } catch (err: unknown) {
+        if (statusCodeFromError(err) === 404) {
+            return { success: true, data: null };
+        }
+
+        throw err;
     }
-
-    const res = await fetch(`${upstreamBase}/driving-schools/default`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-    });
-
-    if (res.status === 404) {
-        return { success: true, data: null };
-    }
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać domyślnego OSK',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data ?? null,
-    };
 }
 
 export async function bffUpstreamDrivingSchoolsCreate(
@@ -93,39 +54,16 @@ export async function bffUpstreamDrivingSchoolsCreate(
     upstreamBase: string,
     body: { name: string; city?: string; address?: string },
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/driving-schools`, {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/driving-schools',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body),
+        body,
+        fallbackError: 'Nie udało się utworzyć OSK',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się utworzyć OSK',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -134,39 +72,12 @@ export async function bffUpstreamDrivingSchoolsDelete(
     upstreamBase: string,
     id: string,
 ): Promise<{ success: true }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/driving-schools/${id}`, {
+    await upstreamRequest(event, upstreamBase, {
+        path: `/driving-schools/${encodeURIComponent(id)}`,
         method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+        fallbackError: 'Nie udało się usunąć OSK',
+        allowEmptySuccess: true,
     });
-
-    if (!res.ok) {
-        let errorMessage = 'Nie udało się usunąć OSK';
-
-        try {
-            const json = (await res.json()) as BackendEnvelope<unknown>;
-
-            if (typeof json.error === 'string') errorMessage = json.error;
-        } catch {
-            /* ignoruj błąd parsowania */
-        }
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: errorMessage,
-        });
-    }
 
     return { success: true };
 }
@@ -177,39 +88,16 @@ export async function bffUpstreamDrivingSchoolsUpdate(
     id: string,
     body: { name: string; city?: string | null; address?: string | null },
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/driving-schools/${id}`, {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/driving-schools/${encodeURIComponent(id)}`,
         method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body),
+        body,
+        fallbackError: 'Nie udało się zaktualizować OSK',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zaktualizować OSK',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -218,62 +106,16 @@ export async function bffUpstreamDrivingSchoolsSetDefault(
     upstreamBase: string,
     id: string,
 ): Promise<{ success: true; data?: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/driving-schools/${id}/set-default`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const text = await res.text();
-    let json: BackendEnvelope<unknown> | null = null;
-
-    if (text) {
-        try {
-            json = JSON.parse(text) as BackendEnvelope<unknown>;
-        } catch {
-            /* odpowiedź może być pusta */
-        }
-    }
-
-    if (!res.ok) {
-        const msg =
-            json && typeof json.error === 'string'
-                ? json.error
-                : 'Nie udało się ustawić domyślnego OSK';
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: msg,
-        });
-    }
-
-    if (json && json.success === false) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się ustawić domyślnego OSK',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/driving-schools/${encodeURIComponent(id)}/set-default`,
+        method: 'PATCH',
+        fallbackError: 'Nie udało się ustawić domyślnego OSK',
+        allowEmptySuccess: true,
+    });
 
     return {
         success: true,
-        data: json?.data,
+        data,
     };
 }
 
@@ -283,62 +125,16 @@ export async function bffUpstreamDrivingSchoolsSetDefaultVehicle(
     schoolId: string,
     vehicleId: string,
 ): Promise<{ success: true; data?: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/driving-schools/${encodeURIComponent(schoolId)}/default-vehicle`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify({ vehicleId }),
-        },
-    );
-
-    const text = await res.text();
-    let json: BackendEnvelope<unknown> | null = null;
-
-    if (text) {
-        try {
-            json = JSON.parse(text) as BackendEnvelope<unknown>;
-        } catch {
-            /* odpowiedź może być pusta */
-        }
-    }
-
-    if (!res.ok) {
-        const msg =
-            json && typeof json.error === 'string'
-                ? json.error
-                : 'Nie udało się ustawić domyślnego pojazdu';
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: msg,
-        });
-    }
-
-    if (json && json.success === false) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się ustawić domyślnego pojazdu',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/driving-schools/${encodeURIComponent(schoolId)}/default-vehicle`,
+        method: 'PATCH',
+        body: { vehicleId },
+        fallbackError: 'Nie udało się ustawić domyślnego pojazdu',
+        allowEmptySuccess: true,
+    });
 
     return {
         success: true,
-        data: json?.data,
+        data,
     };
 }

@@ -1,43 +1,14 @@
-import { getQuery, type H3Event } from 'h3';
+import { createError, getQuery, type H3Event } from 'h3';
+import {
+    upstreamRequest,
+    type UpstreamRequestOptions,
+} from './upstreamRequest';
 
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
-
-/**
- * Upstream czasem zwraca HTML (404 nginx, brak routy) zamiast JSON — `res.json()` wtedy rzuca.
- */
-function parseBackendEnvelopeFromResponseText<T>(
-    res: Response,
-    text: string,
-    fallbackError: string,
-): BackendEnvelope<T> {
-    const trimmed = text.trim();
-
-    if (trimmed.startsWith('<') || trimmed === '') {
-        const code = res.status >= 400 && res.status < 600 ? res.status : 502;
-        const msg =
-            res.status === 404
-                ? 'Nie znaleziono zasobu lub brak endpointu GET/PATCH /events/:id na serwerze (odpowiedź HTML zamiast JSON).'
-                : 'Serwer zwrócił odpowiedź HTML lub pustą zamiast JSON — sprawdź upstream API.';
-
-        throw createError({
-            statusCode: code,
-            statusMessage: msg,
-        });
-    }
-
-    try {
-        return JSON.parse(text) as BackendEnvelope<T>;
-    } catch {
-        throw createError({
-            statusCode: 502,
-            statusMessage: fallbackError,
-        });
-    }
-}
+const EVENT_HTML_ERROR =
+    'Serwer zwrócił odpowiedź HTML lub pustą zamiast JSON — sprawdź upstream API.';
+const EVENT_NOT_FOUND_HTML =
+    'Nie znaleziono zasobu lub brak endpointu GET/PATCH /events/:id na serwerze (odpowiedź HTML zamiast JSON).';
+const INVALID_JSON = 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).';
 
 export interface InstructorEventResponse {
     id: string;
@@ -52,42 +23,19 @@ export interface InstructorEventResponse {
     createdAt: string;
 }
 
-export async function bffEventsPost(
-    event: H3Event,
-    upstreamBase: string,
-    body: unknown,
-): Promise<{ success: true; data: { event: InstructorEventResponse } }> {
-    const access = getCookie(event, 'access_token');
+export interface EventStudentsReplaceResponse {
+    studentUserIds: string[];
+}
 
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
+export interface EventStudentsAssignResponse {
+    assigned: number;
+    skipped: number;
+}
 
-    const res = await fetch(`${upstreamBase}/events`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body ?? {}),
-    });
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<{
-        event: InstructorEventResponse;
-    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się utworzyć bloku czasu',
-        });
-    }
-
-    const ev = json.data?.event;
+function assertEventPayload(
+    data: { event?: InstructorEventResponse } | undefined,
+): InstructorEventResponse {
+    const ev = data?.event;
 
     if (!ev || typeof ev !== 'object') {
         throw createError({
@@ -96,10 +44,21 @@ export async function bffEventsPost(
         });
     }
 
-    return {
-        success: true,
-        data: { event: ev },
-    };
+    return ev;
+}
+
+function normalizeStudentUserIds(raw: unknown): string[] {
+    const out: string[] = [];
+
+    if (!Array.isArray(raw)) return out;
+
+    for (const item of raw) {
+        if (typeof item === 'string' && item.trim()) {
+            out.push(item.trim());
+        }
+    }
+
+    return out;
 }
 
 function shouldForwardIncludeSlots(event: H3Event): boolean {
@@ -117,244 +76,121 @@ function shouldForwardIncludeSlots(event: H3Event): boolean {
     return false;
 }
 
+async function eventDataRequest<T>(
+    event: H3Event,
+    upstreamBase: string,
+    options: UpstreamRequestOptions,
+): Promise<T | undefined> {
+    const { data } = await upstreamRequest<T>(event, upstreamBase, {
+        invalidJsonError: INVALID_JSON,
+        htmlError: EVENT_HTML_ERROR,
+        ...options,
+    });
+
+    return data;
+}
+
+export async function bffEventsPost(
+    event: H3Event,
+    upstreamBase: string,
+    body: unknown,
+): Promise<{ success: true; data: { event: InstructorEventResponse } }> {
+    const data = await eventDataRequest<{ event: InstructorEventResponse }>(
+        event,
+        upstreamBase,
+        {
+            path: '/events',
+            method: 'POST',
+            body: body ?? {},
+            fallbackError: 'Nie udało się utworzyć bloku czasu',
+        },
+    );
+
+    return {
+        success: true,
+        data: { event: assertEventPayload(data) },
+    };
+}
+
 export async function bffEventsGet(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
 ): Promise<{ success: true; data: { event: InstructorEventResponse } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const path = `${upstreamBase}/events/${encodeURIComponent(eventId)}`;
-    const url = shouldForwardIncludeSlots(event)
-        ? `${path}?includeSlots=true`
-        : path;
-
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${access}`,
+    const data = await eventDataRequest<{ event: InstructorEventResponse }>(
+        event,
+        upstreamBase,
+        {
+            path: `/events/${encodeURIComponent(eventId)}`,
+            method: 'GET',
+            query: shouldForwardIncludeSlots(event)
+                ? { includeSlots: true }
+                : undefined,
+            fallbackError: 'Nie udało się pobrać wydarzenia',
+            notFoundHtmlError: EVENT_NOT_FOUND_HTML,
         },
-    });
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<{
-        event: InstructorEventResponse;
-    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać wydarzenia',
-        });
-    }
-
-    const ev = json.data?.event;
-
-    if (!ev || typeof ev !== 'object') {
-        throw createError({
-            statusCode: 502,
-            statusMessage: 'Nieprawidłowa odpowiedź serwera',
-        });
-    }
+    );
 
     return {
         success: true,
-        data: { event: ev },
+        data: { event: assertEventPayload(data) },
     };
 }
 
-/**
- * DELETE {upstream}/events/:eventId — soft delete (np. is_active=false).
- * Upstream może zwrócić 204 z pustym ciałem lub JSON `{ success: true }`.
- */
 export async function bffEventsDelete(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
 ): Promise<{ success: true }> {
-    const access = getCookie(event, 'access_token');
+    await eventDataRequest<unknown>(event, upstreamBase, {
+        path: `/events/${encodeURIComponent(eventId)}`,
+        method: 'DELETE',
+        fallbackError: 'Nie udało się usunąć wydarzenia',
+        allowEmptySuccess: true,
+        notFoundHtmlError: EVENT_NOT_FOUND_HTML,
+    });
 
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}`,
-        {
-            method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const text = await res.text();
-    const trimmed = text.trim();
-
-    if (res.ok) {
-        if (res.status === 204 || trimmed === '') {
-            return { success: true };
-        }
-
-        const json = parseBackendEnvelopeFromResponseText<unknown>(
-            res,
-            text,
-            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-        );
-
-        if (json.success) {
-            return { success: true };
-        }
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się usunąć wydarzenia',
-        });
-    }
-
-    try {
-        const json = parseBackendEnvelopeFromResponseText<unknown>(
-            res,
-            text,
-            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-        );
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się usunąć wydarzenia',
-        });
-    } catch (err: unknown) {
-        if (
-            err &&
-            typeof err === 'object' &&
-            'statusCode' in err &&
-            typeof (err as { statusCode?: unknown }).statusCode === 'number'
-        ) {
-            throw err;
-        }
-
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage: 'Nie udało się usunąć wydarzenia',
-        });
-    }
+    return { success: true };
 }
 
-/**
- * GET {upstream}/events/:eventId/students — lista kursantów przypisanych (np. teoria).
- * Kształt `data` przekazywany dalej (normalizacja po stronie klienta).
- */
 export async function bffEventStudentsGet(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
+    const data = await eventDataRequest<unknown>(event, upstreamBase, {
+        path: `/events/${encodeURIComponent(eventId)}/students`,
+        method: 'GET',
+        fallbackError: 'Nie udało się pobrać kursantów wydarzenia',
+    });
 
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students`,
-        {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<unknown>(
-        res,
-        text,
-        'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-    );
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać kursantów wydarzenia',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return { success: true, data };
 }
 
-/**
- * GET {upstream}/events/:eventId/eligible-students — kursanci kursu + flagi (THEORY + courseId).
- */
 export async function bffEventEligibleStudentsGet(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
+    const q = getQuery(event);
+    const startTime =
+        typeof q.startTime === 'string' && q.startTime.trim()
+            ? q.startTime.trim()
+            : undefined;
+    const endTime =
+        typeof q.endTime === 'string' && q.endTime.trim()
+            ? q.endTime.trim()
+            : undefined;
+    const data = await eventDataRequest<unknown>(event, upstreamBase, {
+        path: `/events/${encodeURIComponent(eventId)}/eligible-students`,
+        method: 'GET',
+        query: { startTime, endTime },
+        fallbackError: 'Nie udało się pobrać listy kwalifikacji kursantów',
+    });
 
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/eligible-students`,
-        {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<unknown>(
-        res,
-        text,
-        'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-    );
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy kwalifikacji kursantów',
-        });
-    }
-
-    return {
-        success: true,
-        data: json.data,
-    };
+    return { success: true, data };
 }
 
-export interface EventStudentsReplaceResponse {
-    studentUserIds: string[];
-}
-
-/**
- * PUT {upstream}/events/:eventId/students — pełna zamiana listy uczestników (THEORY).
- */
 export async function bffEventStudentsPut(
     event: H3Event,
     upstreamBase: string,
@@ -364,54 +200,21 @@ export async function bffEventStudentsPut(
     success: true;
     data: EventStudentsReplaceResponse;
 }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students`,
+    const data = await eventDataRequest<{ studentUserIds?: unknown }>(
+        event,
+        upstreamBase,
         {
+            path: `/events/${encodeURIComponent(eventId)}/students`,
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body),
+            body,
+            fallbackError: 'Nie udało się zapisać listy kursantów wydarzenia',
         },
     );
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<{
-        studentUserIds?: unknown;
-    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zapisać listy kursantów wydarzenia',
-        });
-    }
-
-    const raw = json.data?.studentUserIds;
-    const out: string[] = [];
-
-    if (Array.isArray(raw)) {
-        for (const item of raw) {
-            if (typeof item === 'string' && item.trim()) {
-                out.push(item.trim());
-            }
-        }
-    }
 
     return {
         success: true,
         data: {
-            studentUserIds: out,
+            studentUserIds: normalizeStudentUserIds(data?.studentUserIds),
         },
     };
 }
@@ -422,57 +225,22 @@ export async function bffEventsPatch(
     eventId: string,
     body: unknown,
 ): Promise<{ success: true; data: { event: InstructorEventResponse } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}`,
+    const data = await eventDataRequest<{ event: InstructorEventResponse }>(
+        event,
+        upstreamBase,
         {
+            path: `/events/${encodeURIComponent(eventId)}`,
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body ?? {}),
+            body: body ?? {},
+            fallbackError: 'Nie udało się zaktualizować wydarzenia',
+            notFoundHtmlError: EVENT_NOT_FOUND_HTML,
         },
     );
 
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<{
-        event: InstructorEventResponse;
-    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zaktualizować wydarzenia',
-        });
-    }
-
-    const ev = json.data?.event;
-
-    if (!ev || typeof ev !== 'object') {
-        throw createError({
-            statusCode: 502,
-            statusMessage: 'Nieprawidłowa odpowiedź serwera',
-        });
-    }
-
     return {
         success: true,
-        data: { event: ev },
+        data: { event: assertEventPayload(data) },
     };
-}
-
-export interface EventStudentsAssignResponse {
-    assigned: number;
-    skipped: number;
 }
 
 export async function bffEventStudentsPost(
@@ -484,43 +252,16 @@ export async function bffEventStudentsPost(
     success: true;
     data: EventStudentsAssignResponse;
 }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students`,
+    const data = await eventDataRequest<EventStudentsAssignResponse>(
+        event,
+        upstreamBase,
         {
+            path: `/events/${encodeURIComponent(eventId)}/students`,
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body),
+            body,
+            fallbackError: 'Nie udało się przypisać kursantów do wydarzenia',
         },
     );
-
-    const text = await res.text();
-    const json =
-        parseBackendEnvelopeFromResponseText<EventStudentsAssignResponse>(
-            res,
-            text,
-            'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).',
-        );
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się przypisać kursantów do wydarzenia',
-        });
-    }
-
-    const data = json.data;
 
     if (
         !data ||
@@ -543,9 +284,6 @@ export async function bffEventStudentsPost(
     };
 }
 
-/**
- * DELETE {upstream}/events/:eventId/students/:studentUserId — wypisanie jednego kursanta.
- */
 export async function bffEventStudentDeleteOne(
     event: H3Event,
     upstreamBase: string,
@@ -555,52 +293,20 @@ export async function bffEventStudentDeleteOne(
     success: true;
     data: EventStudentsReplaceResponse;
 }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/events/${encodeURIComponent(eventId)}/students/${encodeURIComponent(studentUserId)}`,
+    const data = await eventDataRequest<{ studentUserIds?: unknown }>(
+        event,
+        upstreamBase,
         {
+            path: `/events/${encodeURIComponent(eventId)}/students/${encodeURIComponent(studentUserId)}`,
             method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${access}`,
-            },
+            fallbackError: 'Nie udało się usunąć kursanta z wydarzenia',
         },
     );
-
-    const text = await res.text();
-    const json = parseBackendEnvelopeFromResponseText<{
-        studentUserIds?: unknown;
-    }>(res, text, 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).');
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się usunąć kursanta z wydarzenia',
-        });
-    }
-
-    const raw = json.data?.studentUserIds;
-    const out: string[] = [];
-
-    if (Array.isArray(raw)) {
-        for (const item of raw) {
-            if (typeof item === 'string' && item.trim()) {
-                out.push(item.trim());
-            }
-        }
-    }
 
     return {
         success: true,
         data: {
-            studentUserIds: out,
+            studentUserIds: normalizeStudentUserIds(data?.studentUserIds),
         },
     };
 }

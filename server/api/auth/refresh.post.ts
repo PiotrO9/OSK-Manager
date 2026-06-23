@@ -1,4 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
+import {
+    clearSessionCookies,
+    setAccessTokenCookie,
+} from '~~/server/utils/upstreamRequest';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
@@ -78,21 +82,14 @@ export default defineEventHandler(async (event) => {
             .setExpirationTime(now + accessTokenExpiresIn)
             .sign(SECRET);
 
-        setCookie(event, 'access_token', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: accessTokenExpiresIn,
-            path: '/',
-        });
+        setAccessTokenCookie(event, accessToken, accessTokenExpiresIn);
 
         return {
             success: true,
             data: {},
         };
     } catch {
-        deleteCookie(event, 'access_token', { path: '/' });
-        deleteCookie(event, 'refresh_token', { path: '/' });
+        clearSessionCookies(event);
 
         throw createError({
             statusCode: 401,

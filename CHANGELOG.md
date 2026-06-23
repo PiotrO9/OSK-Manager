@@ -27,4 +27,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial stable version of the project
 
-[1.0.0]: https://github.com/PiotrO9/nuxt-frontend-starter/releases/tag/v1.0.0
+[1.0.0]: https://github.com/PiotrO9/OSK-Manager/releases/tag/v1.0.0

@@ -17,7 +17,21 @@ import type {
     PatchInstructorEventPayload,
     TheoryEventEligibleStudentsData,
 } from '~/types/instructorEvent';
+import type { paths } from '~/types/generated/api';
 import { normalizeTheoryEventEligibleStudents } from '~/utils/theoryEventEligibleStudents';
+
+type ApiSuccessData<T> = T extends { success: true; data: infer Data }
+    ? Data
+    : never;
+type EventCreateResponse =
+    paths['/events']['post']['responses'][201]['content']['application/json'];
+type EventGetResponse =
+    paths['/events/{id}']['get']['responses'][200]['content']['application/json'];
+type EventPatchResponse =
+    paths['/events/{id}']['patch']['responses'][200]['content']['application/json'];
+type EventCreateApiData = ApiSuccessData<EventCreateResponse>;
+type EventGetApiData = ApiSuccessData<EventGetResponse>;
+type EventPatchApiData = ApiSuccessData<EventPatchResponse>;
 
 /**
  * BE często zwraca `instructor: { id }` / `vehicle: { id }` zamiast samych `instructorId` / `vehicleId`
@@ -401,7 +415,7 @@ export function useInstructorEventsApi() {
                 body.courseId = payload.courseId.trim();
             }
 
-            const raw = await $fetch<unknown>(
+            const raw = await $fetch<EventCreateResponse>(
                 resolveBffEndpoint('/api/events'),
                 {
                     method: 'POST',
@@ -410,7 +424,7 @@ export function useInstructorEventsApi() {
                 },
             );
 
-            const data = unwrapApiSuccessData<{ event: InstructorEvent }>(raw);
+            const data = unwrapApiSuccessData<EventCreateApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -474,7 +488,7 @@ export function useInstructorEventsApi() {
         try {
             const query =
                 options?.includeSlots === true ? '?includeSlots=true' : '';
-            const raw = await $fetch<unknown>(
+            const raw = await $fetch<EventGetResponse>(
                 resolveBffEndpoint(
                     `/api/events/${encodeURIComponent(eid)}${query}`,
                 ),
@@ -484,7 +498,7 @@ export function useInstructorEventsApi() {
                 },
             );
 
-            const data = unwrapApiSuccessData<{ event: InstructorEvent }>(raw);
+            const data = unwrapApiSuccessData<EventGetApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -549,7 +563,7 @@ export function useInstructorEventsApi() {
         try {
             const body = buildPatchRequestBody(payload);
 
-            const raw = await $fetch<unknown>(
+            const raw = await $fetch<EventPatchResponse>(
                 resolveBffEndpoint(`/api/events/${encodeURIComponent(eid)}`),
                 {
                     method: 'PATCH',
@@ -558,7 +572,7 @@ export function useInstructorEventsApi() {
                 },
             );
 
-            const data = unwrapApiSuccessData<{ event: InstructorEvent }>(raw);
+            const data = unwrapApiSuccessData<EventPatchApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');

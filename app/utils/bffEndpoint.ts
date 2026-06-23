@@ -1,6 +1,6 @@
 /**
- * Adres BFF na tym samym originie co aplikacja (np. /api/driving-schools).
- * Wymagany, gdy NUXT_PUBLIC_API_BASE wskazuje na zewnętrzny backend — inaczej useApi doda złą bazę.
+ * Same-origin BFF endpoint helper kept for compatibility.
+ * New API code should prefer `bffFetch` / `useBffApi`.
  */
 export function resolveBffEndpoint(path: string): string {
     if (path.startsWith('http://') || path.startsWith('https://')) {

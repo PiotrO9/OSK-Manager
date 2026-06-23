@@ -21,9 +21,9 @@
     "commonLoggedOut": "wylogowany",
     "commonHome": "Strona główna",
     "homeTitle": "Strona główna",
-    "homeMetaDescription": "Szablon startowy frontend z Nuxt 4, Vue 3, TypeScript i TailwindCSS. Gotowy szablon do szybkiego startu projektów.",
-    "homeHeading": "Frontend Starter (Nuxt 4 + Vue 3 + TS + Tailwind)",
-    "homeIntro": "To przykładowy szkielet: layout, routing, middleware \"auth\", composables i kilka komponentów UI. Możesz go użyć jako bazę dla prawdziwego projektu.",
+    "homeMetaDescription": "Panel OSK Manager do obsługi kursantów, instruktorów, pojazdów, płatności i harmonogramu szkoły jazdy.",
+    "homeHeading": "OSK Manager",
+    "homeIntro": "Panel aplikacji do codziennej obsługi szkoły jazdy: harmonogramów, kursantów, instruktorów, pojazdów i kont użytkowników.",
     "homeGoToProtected": "Przejdź do chronionej",
     "homeNavigationToast": "Nawigacja",
     "homeGoingToProtected": "Przekierowanie do chronionej...",
@@ -92,7 +92,7 @@
     "apiDemoLoading": "Ładowanie...",
     "apiDemoGetResponse": "Odpowiedź GET:",
     "apiDemoPostResponse": "Odpowiedź POST:",
-    "footerTagline": "Nuxt 4 + Tailwind starter — przykładowa struktura i wzorce",
+    "footerTagline": "OSK Manager - panel operacyjny szkoły jazdy",
     "logoutTitle": "Wylogowano",
     "logoutSeeYouLater": "Do zobaczenia, {name}!"
 }

@@ -1,10 +1,5 @@
 import type { H3Event } from 'h3';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
 export interface ScheduleItemResponse {
     id: string;
@@ -27,45 +22,28 @@ export interface ScheduleItemResponse {
     students?: { id: string; firstName: string; lastName: string }[];
 }
 
+interface ScheduleData {
+    items?: ScheduleItemResponse[];
+}
+
+function normalizeScheduleItems(data: ScheduleData | undefined) {
+    return Array.isArray(data?.items) ? data.items : [];
+}
+
 export async function bffScheduleMeGet(
     event: H3Event,
     upstreamBase: string,
     queryString: string,
 ): Promise<{ success: true; data: { items: ScheduleItemResponse[] } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(`${upstreamBase}/schedule/me?${queryString}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const suffix = queryString.trim();
+    const { data } = await upstreamRequest<ScheduleData>(event, upstreamBase, {
+        path: `/schedule/me${suffix ? `?${suffix}` : ''}`,
+        fallbackError: 'Nie udało się pobrać terminarza',
     });
-
-    const json = (await res.json()) as BackendEnvelope<{
-        items: ScheduleItemResponse[];
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać terminarza',
-        });
-    }
-
-    const data = json.data ?? { items: [] };
-    const items = Array.isArray(data.items) ? data.items : [];
 
     return {
         success: true,
-        data: { items },
+        data: { items: normalizeScheduleItems(data) },
     };
 }
 
@@ -74,39 +52,14 @@ export async function bffScheduleManagerGet(
     upstreamBase: string,
     queryString: string,
 ): Promise<{ success: true; data: { items: ScheduleItemResponse[] } }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({ statusCode: 401, message: 'Brak tokena dostępu' });
-    }
-
-    const res = await fetch(`${upstreamBase}/schedule?${queryString}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const suffix = queryString.trim();
+    const { data } = await upstreamRequest<ScheduleData>(event, upstreamBase, {
+        path: `/schedule${suffix ? `?${suffix}` : ''}`,
+        fallbackError: 'Nie udało się pobrać terminarza',
     });
-
-    const json = (await res.json()) as BackendEnvelope<{
-        items: ScheduleItemResponse[];
-    }>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać terminarza',
-        });
-    }
-
-    const data = json.data ?? { items: [] };
-    const items = Array.isArray(data.items) ? data.items : [];
 
     return {
         success: true,
-        data: { items },
+        data: { items: normalizeScheduleItems(data) },
     };
 }

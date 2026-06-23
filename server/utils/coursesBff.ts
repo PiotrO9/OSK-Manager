@@ -1,49 +1,20 @@
 import type { H3Event } from 'h3';
-
-interface BackendEnvelope<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-}
+import { upstreamRequest } from '~~/server/utils/upstreamRequest';
 
 export async function bffUpstreamCoursesList(
     event: H3Event,
     upstreamBase: string,
     schoolId: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const qs = new URLSearchParams({ schoolId });
-    const res = await fetch(`${upstreamBase}/courses?${qs.toString()}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/courses',
+        query: { schoolId },
+        fallbackError: 'Nie udało się pobrać listy kursów',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy kursów',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -51,38 +22,14 @@ export async function bffUpstreamMyCoursesList(
     event: H3Event,
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/me/courses`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/me/courses',
+        fallbackError: 'Nie udało się pobrać listy kursów użytkownika',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać listy kursów użytkownika',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -91,41 +38,14 @@ export async function bffUpstreamCoursesGetById(
     upstreamBase: string,
     id: string,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/courses/${encodeURIComponent(id)}`,
-        {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się pobrać szczegółów kursu',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/courses/${encodeURIComponent(id)}`,
+        fallbackError: 'Nie udało się pobrać szczegółów kursu',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -134,39 +54,16 @@ export async function bffUpstreamCoursesCreate(
     upstreamBase: string,
     body: Record<string, unknown>,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(`${upstreamBase}/courses`, {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: '/courses',
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-        },
-        body: JSON.stringify(body),
+        body,
+        fallbackError: 'Nie udało się utworzyć kursu',
     });
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się utworzyć kursu',
-        });
-    }
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
 
@@ -176,41 +73,15 @@ export async function bffUpstreamCoursesPatch(
     id: string,
     body: Record<string, unknown>,
 ): Promise<{ success: true; data: unknown }> {
-    const access = getCookie(event, 'access_token');
-
-    if (!access) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    const res = await fetch(
-        `${upstreamBase}/courses/${encodeURIComponent(id)}`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${access}`,
-            },
-            body: JSON.stringify(body),
-        },
-    );
-
-    const json = (await res.json()) as BackendEnvelope<unknown>;
-
-    if (!res.ok || !json.success) {
-        throw createError({
-            statusCode: res.status || 502,
-            statusMessage:
-                typeof json.error === 'string'
-                    ? json.error
-                    : 'Nie udało się zaktualizować kursu',
-        });
-    }
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/courses/${encodeURIComponent(id)}`,
+        method: 'PATCH',
+        body,
+        fallbackError: 'Nie udało się zaktualizować kursu',
+    });
 
     return {
         success: true,
-        data: json.data,
+        data,
     };
 }
