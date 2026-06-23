@@ -2,6 +2,10 @@
 const route = useRoute();
 
 function resolveShellHeading(): string {
+    if (route.path === '/manager/instructors/new') {
+        return 'Nowy instruktor';
+    }
+
     if (route.path === '/manager/osk/new') {
         return 'Nowa szkoła';
     }
