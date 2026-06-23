@@ -2,6 +2,10 @@
 const route = useRoute();
 
 function resolveShellHeading(): string {
+    if (route.path === '/manager/osk/new') {
+        return 'Nowa szkoła';
+    }
+
     const map: Record<string, string> = {
         '/': 'Pulpit',
         '/design-system': 'Design system',
