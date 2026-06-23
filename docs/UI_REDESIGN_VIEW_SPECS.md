@@ -197,7 +197,7 @@ Do not lose:
 ### Manager Instructor Details
 
 Path: `app/pages/manager/instructors/[id]/index.vue`  
-Status: `[ ]`  
+Status: `[x]`  
 Priority: `P1`  
 Role: `manager`  
 Type: `details`
@@ -1340,7 +1340,7 @@ This spec covers all current `app/pages` entries:
 - [ ] `app/pages/manager/courses/new.vue`
 - [ ] `app/pages/manager/events/[id]/edit.vue`
 - [ ] `app/pages/manager/instructors/[id]/availability.vue`
-- [ ] `app/pages/manager/instructors/[id]/index.vue`
+- [x] `app/pages/manager/instructors/[id]/index.vue`
 - [ ] `app/pages/manager/instructors/[id]/schedule.vue`
 - [ ] `app/pages/manager/instructors/[id]/slots.vue`
 - [ ] `app/pages/manager/instructors/index.vue`

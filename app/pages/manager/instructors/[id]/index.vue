@@ -5,10 +5,7 @@ import {
     type InstructorDetail,
     type InstructorEditFormModel,
 } from '~/types/instructor';
-import {
-    formatCourseTypeOptionLabel,
-    type CourseTypeOption,
-} from '~/types/courseType';
+import type { CourseTypeOption } from '~/types/courseType';
 import type { LessonRatingsSummary } from '~/types/lessonRating';
 import {
     assertBooleanSuccessEnvelope,
@@ -96,16 +93,6 @@ function displayText(value: string): string {
 
     return t.length > 0 ? t : '—';
 }
-
-const ratingAverageLabel = computed(() => {
-    const average = ratingSummary.value.averageRating;
-
-    if (average === null) {
-        return '—';
-    }
-
-    return average.toFixed(2);
-});
 
 function getNotFoundMessage(): string {
     return 'Nie znaleziono instruktora.';
@@ -553,228 +540,30 @@ async function handleDeleteDialogConfirm(): Promise<void> {
 
 <template>
     <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Szczegóły instruktora
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Informacje o instruktorze.
-            </p>
-        </div>
-
-        <p
+        <LoadingState
             v-if="isLoading"
-            class="text-muted-foreground text-sm"
-            role="status"
-            aria-live="polite"
-        >
-            Wczytywanie danych instruktora…
-        </p>
+            title="Wczytywanie instruktora"
+            description="Pobieram profil, kwalifikacje i powiazane dane."
+        />
 
-        <p
+        <ErrorState
             v-else-if="errorMessage"
-            class="text-destructive text-sm"
-            role="alert"
-            aria-live="polite"
-        >
-            {{ errorMessage }}
-        </p>
+            title="Nie udalo sie wczytac instruktora"
+            :description="errorMessage"
+            @retry="loadInstructor(route.params.id)"
+        />
 
-        <div
+        <ManagerInstructorDetailsContent
             v-else-if="instructor !== null && editForm !== null"
-            class="border-border bg-card max-w-2xl min-w-0 space-y-6 rounded-2xl border p-6 shadow-sm"
-        >
-            <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="min-w-0 space-y-1">
-                    <h2
-                        class="text-foreground text-lg font-semibold wrap-break-word"
-                    >
-                        {{ displayText(instructor.name) }}
-                    </h2>
-                    <p class="text-muted-foreground text-sm break-all">
-                        {{ displayText(instructor.email) }}
-                    </p>
-                </div>
-                <div
-                    class="flex shrink-0 flex-wrap items-center gap-2"
-                    role="group"
-                    aria-label="Akcje szczegółów instruktora"
-                >
-                    <button
-                        type="button"
-                        class="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex rounded-md px-3 py-2 text-sm font-medium shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
-                        aria-label="Edytuj dane instruktora"
-                        :disabled="isDeleting"
-                        @click="handleEnterEdit"
-                    >
-                        Edytuj
-                    </button>
-                    <NuxtLink
-                        :to="{
-                            path: `/manager/instructors/${instructor.id}/availability`,
-                            query: instructorSubpageQuery,
-                        }"
-                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
-                        :class="
-                            isDeleting
-                                ? 'pointer-events-none cursor-not-allowed opacity-50'
-                                : ''
-                        "
-                        :tabindex="isDeleting ? -1 : 0"
-                        :aria-disabled="isDeleting"
-                        aria-label="Ustaw tygodniową dostępność instruktora"
-                    >
-                        Dostępność
-                    </NuxtLink>
-                    <NuxtLink
-                        :to="{
-                            path: `/manager/instructors/${instructor.id}/slots`,
-                            query: instructorSubpageQuery,
-                        }"
-                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
-                        :class="
-                            isDeleting
-                                ? 'pointer-events-none cursor-not-allowed opacity-50'
-                                : ''
-                        "
-                        :tabindex="isDeleting ? -1 : 0"
-                        :aria-disabled="isDeleting"
-                        aria-label="Otwórz terminarz wolnych slotów instruktora"
-                    >
-                        Terminarz
-                    </NuxtLink>
-                    <NuxtLink
-                        :to="{
-                            path: `/manager/instructors/${instructor.id}/schedule`,
-                            query: instructorSubpageQuery,
-                        }"
-                        class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none"
-                        :class="
-                            isDeleting
-                                ? 'pointer-events-none cursor-not-allowed opacity-50'
-                                : ''
-                        "
-                        :tabindex="isDeleting ? -1 : 0"
-                        :aria-disabled="isDeleting"
-                        aria-label="Terminarz lekcji i bloki czasu instruktora"
-                    >
-                        Lekcje
-                    </NuxtLink>
-                    <UiButton
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        class="inline-flex items-center"
-                        :disabled="isDeleting || isSubmitting"
-                        :aria-busy="isDeleting"
-                        aria-label="Usuń konto instruktora"
-                        @click="handleOpenDeleteDialog"
-                    >
-                        Usuń
-                    </UiButton>
-                </div>
-            </div>
-
-            <dl
-                class="border-border grid gap-4 border-t pt-6 sm:grid-cols-2"
-                aria-label="Dane instruktora"
-            >
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Numer licencji
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        {{ displayText(instructor.licenseNumber) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Numer telefonu
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        {{ displayText(instructor.phone) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Kwalifikacje
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        {{ displayText(instructor.qualifications) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Kategorie uprawnień
-                    </dt>
-                    <dd
-                        v-if="instructor.qualifiedCourseTypes.length > 0"
-                        class="mt-1 flex flex-wrap gap-2"
-                    >
-                        <UiBadge
-                            v-for="courseType in instructor.qualifiedCourseTypes"
-                            :key="courseType.id"
-                            variant="secondary"
-                            class="w-fit"
-                        >
-                            {{ formatCourseTypeOptionLabel(courseType) }}
-                        </UiBadge>
-                    </dd>
-                    <dd v-else class="text-foreground mt-1 text-sm font-medium">
-                        —
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Doświadczenie
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        {{ displayText(instructor.experience) }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Srednia ocen
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        <span v-if="isRatingSummaryLoading">
-                            Wczytywanie...
-                        </span>
-                        <span v-else>{{ ratingAverageLabel }}</span>
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-muted-foreground text-xs font-medium">
-                        Liczba opinii
-                    </dt>
-                    <dd class="text-foreground mt-1 text-sm font-medium">
-                        {{ ratingSummary.totalCount }}
-                    </dd>
-                </div>
-            </dl>
-
-            <NuxtLink
-                v-if="instructorSubpageQuery.schoolId"
-                :to="{
-                    path: '/manager/reviews',
-                    query: {
-                        schoolId: instructorSubpageQuery.schoolId,
-                        instructorId: instructor.id,
-                    },
-                }"
-                class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                aria-label="Pokaz opinie tego instruktora"
-            >
-                Pokaz opinie instruktora
-            </NuxtLink>
-
-            <div class="border-border border-t pt-6">
-                <ManagerInstructorWeeklyAvailabilityPreview
-                    :instructor-id="instructor.id"
-                />
-            </div>
-        </div>
-
+            :instructor="instructor"
+            :rating-summary="ratingSummary"
+            :is-rating-summary-loading="isRatingSummaryLoading"
+            :is-submitting="isSubmitting"
+            :is-deleting="isDeleting"
+            :subpage-query="instructorSubpageQuery"
+            @edit="handleEnterEdit"
+            @delete="handleOpenDeleteDialog"
+        />
         <ManagerInstructorEditDialog
             v-if="editForm !== null"
             v-model:open="isEditDialogOpen"
@@ -799,13 +588,5 @@ async function handleDeleteDialogConfirm(): Promise<void> {
             @cancel="handleDeleteDialogCancel"
             @confirm="handleDeleteDialogConfirm"
         />
-
-        <NuxtLink
-            to="/manager/instructors"
-            class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-            aria-label="Wróć do listy instruktorów"
-        >
-            Wróć do listy instruktorów
-        </NuxtLink>
     </div>
 </template>
