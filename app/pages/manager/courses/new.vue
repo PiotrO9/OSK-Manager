@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CalendarDays, Plus } from 'lucide-vue-next';
 import type { InstructorListItem } from '~/types/instructor';
 import type { CourseCreatePayload } from '~/types/course';
 import type { DrivingSchool } from '~/types/drivingSchool';
@@ -154,16 +155,33 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Nowy kurs
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Uzupełnij podstawowe dane kursu. Możesz przypisać instruktora
-                później lub zostawić pole puste.
-            </p>
-        </div>
+    <div class="space-y-5">
+        <PageHeader
+            title="Dodaj kurs"
+            description="Uzupełnij nazwę, kategorię, liczbę godzin i ustawienia kursu."
+        >
+            <template #actions>
+                <UiButton
+                    variant="outline"
+                    type="button"
+                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    disabled
+                    aria-label="Bieżący tydzień"
+                >
+                    <CalendarDays class="size-4" aria-hidden="true" />
+                    22-28 czerwca
+                </UiButton>
+                <UiButton
+                    type="submit"
+                    form="course-create-form"
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    :disabled="isCreateLoading || schoolId === null"
+                >
+                    <Plus class="size-4" aria-hidden="true" />
+                    Zapisz zmiany
+                </UiButton>
+            </template>
+        </PageHeader>
 
         <p
             v-if="schoolId === null"
@@ -206,6 +224,7 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
 
             <CourseCreateForm
                 v-if="!schoolContextError && !schoolMissingFromContext"
+                id="course-create-form"
                 :school-id="schoolId"
                 :offered-course-types="offeredCourseTypes"
                 :enabled-course-kinds="enabledCourseKinds"
