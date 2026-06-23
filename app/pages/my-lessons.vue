@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
+import { CalendarDays, Plus } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
+import type { SummaryStripItem } from '~/components/app/ui/types';
 import type { ScheduleLessonItem } from '~/types/schedule';
 
 definePageMeta({
@@ -10,7 +12,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Moje lekcje',
-    description: () => 'Terminarz zaplanowanych lekcji i wydarzeń.',
+    description: () => 'Terminarz zaplanowanych lekcji i wydarzen.',
 });
 
 const { session } = useAuthSession();
@@ -35,10 +37,85 @@ const isStudent = computed(
     () => session.value?.role?.trim().toUpperCase() === 'STUDENT',
 );
 
-const scheduleView = ref<'calendar' | 'list'>('calendar');
+const scheduleView = ref<'calendar' | 'list'>('list');
 const cancellingLessonId = computed(() =>
     isCancelling.value ? (pendingCancelLesson.value?.id ?? null) : null,
 );
+const pageDescription = computed(() =>
+    isStudent.value
+        ? 'Najblizsze jazdy, teoria i historia spotkan.'
+        : 'Zaplanowane lekcje w wybranym tygodniu.',
+);
+const dateRangeLabel = computed(
+    () =>
+        `${formatCompactDate(range.value.dateFrom)} - ${formatCompactDate(range.value.dateTo)}`,
+);
+const todayItems = computed(() => {
+    const todayKey = dateKeyFromDate(new Date());
+
+    return items.value.filter(
+        (item) => dateKeyFromIso(item.startTime) === todayKey,
+    );
+});
+const attentionItems = computed(() =>
+    items.value.filter((item) => {
+        const status = item.status.trim().toUpperCase();
+
+        if (
+            status === 'CANCELLED' ||
+            status === 'CANCELED' ||
+            status === 'NO_SHOW'
+        ) {
+            return true;
+        }
+
+        return (
+            item.kind === 'lesson' &&
+            item.type.trim().toUpperCase() === 'PRACTICE' &&
+            status === 'SCHEDULED' &&
+            !item.vehicle
+        );
+    }),
+);
+const completedPracticeWithoutRating = computed(() =>
+    isStudent.value
+        ? items.value.filter(
+              (item) =>
+                  item.kind === 'lesson' &&
+                  item.type.trim().toUpperCase() === 'PRACTICE' &&
+                  item.status.trim().toUpperCase() === 'COMPLETED' &&
+                  !item.rating,
+          )
+        : [],
+);
+const summaryItems = computed<SummaryStripItem[]>(() => {
+    const attentionCount = isStudent.value
+        ? completedPracticeWithoutRating.value.length
+        : attentionItems.value.length;
+
+    return [
+        {
+            label: 'Pozycji w tygodniu',
+            value: String(items.value.length),
+            description: 'Lekcje i wydarzenia w zakresie',
+            tone: 'info',
+        },
+        {
+            label: 'Dzisiaj',
+            value: String(todayItems.value.length),
+            description: 'Zaplanowane na dzis',
+            tone: 'neutral',
+        },
+        {
+            label: isStudent.value ? 'Do oceny' : 'Wymagaja uwagi',
+            value: String(attentionCount),
+            description: isStudent.value
+                ? 'Zakonczone jazdy bez opinii'
+                : 'Anulowane lub bez pojazdu',
+            tone: attentionCount > 0 ? 'warning' : 'success',
+        },
+    ];
+});
 const isCancelDialogOpen = computed({
     get: () => pendingCancelLesson.value !== null,
     set: (open: boolean) => {
@@ -81,8 +158,8 @@ async function loadWeek(): Promise<void> {
         errorMessage.value = getApiFetchErrorMessage(
             err,
             isStudent.value
-                ? 'Nie udało się wczytać terminarza.'
-                : 'Nie udało się wczytać lekcji.',
+                ? 'Nie udalo sie wczytac terminarza.'
+                : 'Nie udalo sie wczytac lekcji.',
         );
     } finally {
         if (seq === loadSeq) {
@@ -118,6 +195,20 @@ function handleNextWeek(): void {
 
     d.setDate(d.getDate() + 7);
     weekStart.value = getMonday(d);
+}
+
+function dateKeyFromDate(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function dateKeyFromIso(iso: string): string {
+    const d = new Date(iso);
+
+    if (Number.isNaN(d.getTime())) {
+        return iso.slice(0, 10);
+    }
+
+    return dateKeyFromDate(d);
 }
 
 function isCompletedPracticeLesson(lesson: ScheduleLessonItem): boolean {
@@ -169,7 +260,7 @@ async function handleRatingLessonSelected(
 
         ratingErrorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udało się odświeżyć opinii.',
+            'Nie udalo sie odswiezyc opinii.',
         );
     } finally {
         if (seq === ratingFetchSeq) {
@@ -202,18 +293,18 @@ async function handleRatingSubmit(payload: {
         selectedRatingLessonId.value = payload.lesson.id;
 
         addToast({
-            title: 'Opinia została dodana',
+            title: 'Opinia zostala dodana',
             variant: 'success',
         });
     } catch (err: unknown) {
         const message = getApiFetchErrorMessage(
             err,
-            'Nie udało się dodać opinii.',
+            'Nie udalo sie dodac opinii.',
         );
 
         ratingErrorMessage.value = message;
         addToast({
-            title: 'Nie udało się dodać opinii',
+            title: 'Nie udalo sie dodac opinii',
             description: message,
             variant: 'error',
         });
@@ -273,6 +364,19 @@ function formatWeekLabel(d: Date): string {
     }).format(d);
 }
 
+function formatCompactDate(iso: string): string {
+    const d = new Date(`${iso}T00:00:00`);
+
+    if (Number.isNaN(d.getTime())) {
+        return iso;
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+    }).format(d);
+}
+
 function formatIsoLocal(iso: string): string {
     const d = new Date(iso);
 
@@ -293,81 +397,219 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
 
 <template>
     <div class="flex flex-col gap-6">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Moje lekcje
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                <template v-if="isStudent">
-                    Twoje lekcje i wydarzenia w wybranym tygodniu.
-                </template>
-                <template v-else>
-                    Zaplanowane lekcje w wybranym tygodniu.
-                </template>
-            </p>
-        </div>
+        <PageHeader title="Moje lekcje" :description="pageDescription">
+            <template #actions>
+                <div
+                    class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
+                >
+                    <div
+                        class="border-border bg-background flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-semibold shadow-xs"
+                        :aria-label="`Zakres dat ${dateRangeLabel}`"
+                    >
+                        <CalendarDays
+                            class="text-muted-foreground size-4"
+                            aria-hidden="true"
+                        />
+                        <span>{{ dateRangeLabel }}</span>
+                    </div>
+                    <UiButton
+                        v-if="isStudent"
+                        as-child
+                        class="h-10 shadow-sm shadow-sky-200/60"
+                    >
+                        <NuxtLink to="/book-lesson">
+                            <Plus class="size-4" aria-hidden="true" />
+                            Dodaj jazde
+                        </NuxtLink>
+                    </UiButton>
+                </div>
+            </template>
+        </PageHeader>
 
         <div
-            class="flex flex-wrap items-center gap-2"
-            role="tablist"
-            aria-label="Widok terminarza"
+            class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]"
         >
-            <UiButton
-                id="my-schedule-calendar-tab"
-                type="button"
-                size="sm"
-                role="tab"
-                :variant="scheduleView === 'calendar' ? 'default' : 'outline'"
-                :aria-selected="scheduleView === 'calendar'"
-                aria-controls="my-schedule-calendar-panel"
-                @click="scheduleView = 'calendar'"
+            <section
+                class="border-border bg-background overflow-hidden rounded-xl border shadow-xs"
+                aria-labelledby="my-lessons-panel-title"
             >
-                Kalendarz
-            </UiButton>
-            <UiButton
-                id="my-schedule-list-tab"
-                type="button"
-                size="sm"
-                role="tab"
-                :variant="scheduleView === 'list' ? 'default' : 'outline'"
-                :aria-selected="scheduleView === 'list'"
-                aria-controls="my-schedule-list-panel"
-                @click="scheduleView = 'list'"
-            >
-                Lista
-            </UiButton>
-        </div>
+                <div
+                    class="border-border flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-start sm:justify-between"
+                >
+                    <div class="min-w-0">
+                        <h2
+                            id="my-lessons-panel-title"
+                            class="text-foreground text-lg font-bold"
+                        >
+                            Moje lekcje
+                        </h2>
+                        <p class="text-muted-foreground mt-1 text-sm">
+                            {{ pageDescription }}
+                        </p>
+                    </div>
 
-        <div
-            v-show="scheduleView === 'list'"
-            class="flex flex-wrap items-center gap-2"
-            role="group"
-            aria-label="Nawigacja tygodnia"
-        >
-            <UiButton
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-label="Poprzedni tydzień"
-                @click="handlePrevWeek"
+                    <div
+                        class="flex shrink-0 flex-wrap items-center gap-2"
+                        role="tablist"
+                        aria-label="Widok terminarza"
+                    >
+                        <UiButton
+                            id="my-schedule-list-tab"
+                            type="button"
+                            size="sm"
+                            role="tab"
+                            :variant="
+                                scheduleView === 'list' ? 'default' : 'outline'
+                            "
+                            :aria-selected="scheduleView === 'list'"
+                            aria-controls="my-schedule-list-panel"
+                            @click="scheduleView = 'list'"
+                        >
+                            Lista
+                        </UiButton>
+                        <UiButton
+                            id="my-schedule-calendar-tab"
+                            type="button"
+                            size="sm"
+                            role="tab"
+                            :variant="
+                                scheduleView === 'calendar'
+                                    ? 'default'
+                                    : 'outline'
+                            "
+                            :aria-selected="scheduleView === 'calendar'"
+                            aria-controls="my-schedule-calendar-panel"
+                            @click="scheduleView = 'calendar'"
+                        >
+                            Kalendarz
+                        </UiButton>
+                    </div>
+                </div>
+
+                <div
+                    v-show="scheduleView === 'list'"
+                    class="border-border flex flex-wrap items-center gap-2 border-b px-4 py-3"
+                    role="group"
+                    aria-label="Nawigacja tygodnia"
+                >
+                    <UiButton
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-label="Poprzedni tydzien"
+                        @click="handlePrevWeek"
+                    >
+                        Poprzedni
+                    </UiButton>
+                    <UiButton
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-label="Nastepny tydzien"
+                        @click="handleNextWeek"
+                    >
+                        Nastepny
+                    </UiButton>
+                    <span
+                        class="text-muted-foreground text-sm"
+                        :aria-label="`Wybrany tydzien od ${formatWeekLabel(weekStart)}`"
+                    >
+                        Tydzien od {{ formatWeekLabel(weekStart) }}
+                    </span>
+                </div>
+
+                <div class="p-4">
+                    <div
+                        v-if="scheduleView === 'calendar'"
+                        id="my-schedule-calendar-panel"
+                        role="tabpanel"
+                        aria-labelledby="my-schedule-calendar-tab"
+                    >
+                        <ManagerSchoolScheduleCalendar
+                            v-model:week-start="weekStart"
+                            parent-schedule
+                            :school-id="''"
+                            :parent-items="items"
+                            :parent-loading="isLoading"
+                            :parent-error="errorMessage"
+                            :student-rating-selection-enabled="isStudent"
+                            :schedule-count-badge-label="
+                                isStudent ? 'Pozycji' : 'Lekcji'
+                            "
+                            :empty-day-message="
+                                isStudent ? 'Brak pozycji' : 'Brak lekcji'
+                            "
+                            :practice-primary-line="
+                                isStudent ? 'instructor' : 'student'
+                            "
+                            @lesson-selected="handleRatingLessonSelected"
+                        />
+                    </div>
+
+                    <div
+                        v-else
+                        id="my-schedule-list-panel"
+                        role="tabpanel"
+                        aria-labelledby="my-schedule-list-tab"
+                    >
+                        <StudentScheduleGroupedList
+                            v-if="isStudent"
+                            :items="items"
+                            :is-loading="isLoading"
+                            :error-message="errorMessage"
+                            :student-lesson-cancel-enabled="true"
+                            :cancelling-lesson-id="cancellingLessonId"
+                            @request-cancel-lesson="handleCancelLessonRequested"
+                        />
+
+                        <template v-else>
+                            <p
+                                v-if="isLoading"
+                                class="text-muted-foreground text-sm"
+                                role="status"
+                            >
+                                Wczytywanie...
+                            </p>
+                            <p
+                                v-else-if="errorMessage"
+                                class="text-destructive text-sm"
+                                role="alert"
+                            >
+                                {{ errorMessage }}
+                            </p>
+                            <ManagerScheduleLessonTable
+                                v-else
+                                :items="items"
+                                :student-lesson-cancel-enabled="isStudent"
+                                :cancelling-lesson-id="cancellingLessonId"
+                                @request-cancel-lesson="
+                                    handleCancelLessonRequested
+                                "
+                            />
+                        </template>
+                    </div>
+                </div>
+            </section>
+
+            <section
+                class="border-border bg-background overflow-hidden rounded-xl border shadow-xs"
+                aria-labelledby="my-lessons-summary-title"
             >
-                Poprzedni
-            </UiButton>
-            <UiButton
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-label="Następny tydzień"
-                @click="handleNextWeek"
-            >
-                Następny
-            </UiButton>
-            <span
-                class="text-muted-foreground text-sm"
-                :aria-label="`Wybrany tydzień od ${formatWeekLabel(weekStart)}`"
-            >
-                Tydzień od {{ formatWeekLabel(weekStart) }}
-            </span>
+                <div class="border-border border-b p-4">
+                    <h2
+                        id="my-lessons-summary-title"
+                        class="text-foreground text-lg font-bold"
+                    >
+                        Podsumowanie dnia
+                    </h2>
+                    <p class="text-muted-foreground mt-1 text-sm">
+                        Najwazniejsze informacje z aktualnego zakresu.
+                    </p>
+                </div>
+                <div class="p-4">
+                    <SummaryStrip :items="summaryItems" />
+                </div>
+            </section>
         </div>
 
         <StudentLessonRatingsPanel
@@ -380,68 +622,6 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
             @select="handleRatingLessonSelected"
             @submit="handleRatingSubmit"
         />
-
-        <div
-            v-if="scheduleView === 'calendar'"
-            id="my-schedule-calendar-panel"
-            role="tabpanel"
-            aria-labelledby="my-schedule-calendar-tab"
-        >
-            <ManagerSchoolScheduleCalendar
-                v-model:week-start="weekStart"
-                parent-schedule
-                :school-id="''"
-                :parent-items="items"
-                :parent-loading="isLoading"
-                :parent-error="errorMessage"
-                :student-rating-selection-enabled="isStudent"
-                :schedule-count-badge-label="isStudent ? 'Pozycji' : 'Lekcji'"
-                :empty-day-message="isStudent ? 'Brak pozycji' : 'Brak lekcji'"
-                :practice-primary-line="isStudent ? 'instructor' : 'student'"
-                @lesson-selected="handleRatingLessonSelected"
-            />
-        </div>
-
-        <div
-            v-else
-            id="my-schedule-list-panel"
-            role="tabpanel"
-            aria-labelledby="my-schedule-list-tab"
-        >
-            <StudentScheduleGroupedList
-                v-if="isStudent"
-                :items="items"
-                :is-loading="isLoading"
-                :error-message="errorMessage"
-                :student-lesson-cancel-enabled="true"
-                :cancelling-lesson-id="cancellingLessonId"
-                @request-cancel-lesson="handleCancelLessonRequested"
-            />
-
-            <template v-else>
-                <p
-                    v-if="isLoading"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Wczytywanie...
-                </p>
-                <p
-                    v-else-if="errorMessage"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ errorMessage }}
-                </p>
-                <ManagerScheduleLessonTable
-                    v-else
-                    :items="items"
-                    :student-lesson-cancel-enabled="isStudent"
-                    :cancelling-lesson-id="cancellingLessonId"
-                    @request-cancel-lesson="handleCancelLessonRequested"
-                />
-            </template>
-        </div>
 
         <UiDialog
             :open="isCancelDialogOpen"

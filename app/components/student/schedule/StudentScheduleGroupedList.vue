@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { BookOpen, Car } from 'lucide-vue-next';
+import type { StatusTone } from '~/components/app/ui/types';
 import type { ScheduleLessonItem, SchedulePersonRef } from '~/types/schedule';
 
 interface ScheduleDayGroup {
@@ -20,7 +21,7 @@ const props = withDefaults(
     {
         isLoading: false,
         errorMessage: null,
-        emptyMessage: 'Brak zaplanowanych jazd i wykładów w tym tygodniu.',
+        emptyMessage: 'Brak zaplanowanych jazd i wykladow w tym tygodniu.',
         studentLessonCancelEnabled: false,
         cancellingLessonId: null,
     },
@@ -35,11 +36,6 @@ const groups = computed<ScheduleDayGroup[]>(() => {
 
     for (const item of props.items) {
         const dateKey = dateKeyFromIso(item.startTime);
-
-        if (!dateKey) {
-            continue;
-        }
-
         const groupItems = map.get(dateKey) ?? [];
 
         groupItems.push(item);
@@ -78,7 +74,6 @@ function formatDateLabel(dateKey: string): string {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
-        year: 'numeric',
     }).format(d);
 }
 
@@ -109,11 +104,11 @@ function isPractice(item: ScheduleLessonItem): boolean {
 
 function eventTypeLabel(item: ScheduleLessonItem): string {
     if (isTheory(item)) {
-        return 'Wykład';
+        return 'Teoria';
     }
 
     if (isPractice(item)) {
-        return 'Jazda';
+        return 'Jazda praktyczna';
     }
 
     return item.type;
@@ -123,18 +118,44 @@ function statusLabel(raw: string): string {
     const normalized = raw.trim().toUpperCase();
 
     if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
-        return 'Zaplanowane';
+        return 'Plan';
     }
 
     if (normalized === 'COMPLETED' || normalized === 'DONE') {
-        return 'Zakończone';
+        return 'Zakonczone';
     }
 
-    if (normalized === 'CANCELLED') {
+    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
         return 'Anulowane';
     }
 
+    if (normalized === 'NO_SHOW') {
+        return 'Nieobecnosc';
+    }
+
     return raw;
+}
+
+function statusTone(raw: string): StatusTone {
+    const normalized = raw.trim().toUpperCase();
+
+    if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
+        return 'info';
+    }
+
+    if (normalized === 'COMPLETED' || normalized === 'DONE') {
+        return 'success';
+    }
+
+    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
+        return 'danger';
+    }
+
+    if (normalized === 'NO_SHOW') {
+        return 'warning';
+    }
+
+    return 'neutral';
 }
 
 function displayPerson(person: SchedulePersonRef | undefined): string {
@@ -145,13 +166,18 @@ function displayPerson(person: SchedulePersonRef | undefined): string {
     return `${person.firstName} ${person.lastName}`.trim();
 }
 
+function itemTitle(item: ScheduleLessonItem): string {
+    const person = displayPerson(item.instructor);
+
+    if (person) {
+        return `${eventTypeLabel(item)} - ${person}`;
+    }
+
+    return eventTypeLabel(item);
+}
+
 function itemDescription(item: ScheduleLessonItem): string {
     const parts: string[] = [];
-    const instructor = displayPerson(item.instructor);
-
-    if (instructor) {
-        parts.push(`Instruktor: ${instructor}`);
-    }
 
     if (item.vehicle && isPractice(item)) {
         const name = item.vehicle.name.trim();
@@ -159,15 +185,15 @@ function itemDescription(item: ScheduleLessonItem): string {
         const vehicle = name && reg ? `${name} (${reg})` : name || reg;
 
         if (vehicle) {
-            parts.push(`Pojazd: ${vehicle}`);
+            parts.push(vehicle);
         }
+    } else if (isTheory(item) && item.participantCount != null) {
+        parts.push(`${item.participantCount} uczestnikow`);
+    } else {
+        parts.push('Sala lub pojazd przypisany');
     }
 
-    if (isTheory(item) && item.participantCount != null) {
-        parts.push(`Uczestnicy: ${item.participantCount}`);
-    }
-
-    return parts.join(' · ');
+    return parts.join(' - ');
 }
 
 function isStudentCancellableLesson(item: ScheduleLessonItem): boolean {
@@ -186,54 +212,42 @@ function handleCancelClick(item: ScheduleLessonItem): void {
 
 <template>
     <div class="space-y-4">
-        <p v-if="isLoading" class="text-muted-foreground text-sm" role="status">
-            Wczytywanie...
-        </p>
+        <LoadingState v-if="isLoading" title="Wczytywanie lekcji..." />
 
-        <p
-            v-else-if="errorMessage"
-            class="text-destructive text-sm"
-            role="alert"
-        >
-            {{ errorMessage }}
-        </p>
+        <ErrorState v-else-if="errorMessage" :description="errorMessage" />
 
-        <p
+        <EmptyState
             v-else-if="groups.length === 0"
-            class="text-muted-foreground rounded-lg border px-4 py-6 text-center text-sm"
-            role="status"
-        >
-            {{ emptyMessage }}
-        </p>
+            title="Brak lekcji"
+            :description="emptyMessage"
+        />
 
         <template v-else>
             <section
                 v-for="group in groups"
                 :key="group.date"
-                class="border-border overflow-hidden rounded-lg border"
+                class="space-y-2"
                 :aria-label="`Harmonogram na ${group.label}`"
             >
-                <header class="bg-muted/40 border-border border-b px-4 py-3">
-                    <h2
-                        class="text-foreground text-sm font-semibold capitalize"
-                    >
-                        {{ group.label }}
-                    </h2>
-                </header>
+                <h3
+                    class="text-muted-foreground px-1 text-xs font-semibold tracking-wide uppercase"
+                >
+                    {{ group.label }}
+                </h3>
 
-                <ul class="divide-border divide-y">
+                <ul class="space-y-2">
                     <li
                         v-for="item in group.items"
                         :key="item.id"
-                        class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                        class="border-border bg-background hover:bg-muted/30 flex flex-col gap-3 rounded-xl border px-3 py-3 transition sm:flex-row sm:items-center sm:justify-between"
                     >
                         <div class="flex min-w-0 gap-3">
                             <span
-                                class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border"
+                                class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border"
                                 :class="
                                     isTheory(item)
-                                        ? 'border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-200'
-                                        : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
+                                        ? 'border-violet-200 bg-violet-50 text-violet-700'
+                                        : 'border-sky-200 bg-sky-50 text-sky-700'
                                 "
                                 aria-hidden="true"
                             >
@@ -245,24 +259,30 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                             </span>
 
                             <div class="min-w-0">
-                                <div class="flex flex-wrap items-center gap-2">
+                                <div
+                                    class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
+                                >
                                     <p
-                                        class="text-foreground text-sm font-medium"
+                                        class="text-foreground text-sm leading-5 font-bold"
                                     >
-                                        {{ displayTimeRange(item) }}
+                                        {{ formatTime(item.startTime) }} -
+                                        {{ itemTitle(item) }}
                                     </p>
-                                    <UiBadge variant="secondary">
-                                        {{ eventTypeLabel(item) }}
-                                    </UiBadge>
-                                    <UiBadge variant="outline">
-                                        {{ statusLabel(item.status) }}
-                                    </UiBadge>
+                                    <StatusBadge
+                                        :label="statusLabel(item.status)"
+                                        :tone="statusTone(item.status)"
+                                        subtle
+                                    />
                                 </div>
                                 <p
-                                    v-if="itemDescription(item)"
-                                    class="text-muted-foreground mt-1 text-sm"
+                                    class="text-muted-foreground mt-1 text-sm leading-5"
                                 >
                                     {{ itemDescription(item) }}
+                                </p>
+                                <p
+                                    class="text-muted-foreground mt-1 text-xs tabular-nums"
+                                >
+                                    {{ displayTimeRange(item) }}
                                 </p>
                             </div>
                         </div>
