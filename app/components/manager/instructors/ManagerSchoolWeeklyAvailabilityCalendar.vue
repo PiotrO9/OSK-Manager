@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import type { CalendarDate, DateValue } from '@internationalized/date';
-import { ChevronLeft, ChevronRight, Filter } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import { useCoursesApi } from '~/composables/useCoursesApi';
-import { useInstructorsApi } from '~/composables/useInstructorsApi';
 import { useSchoolAvailabilitySlotsApi } from '~/composables/useSchoolAvailabilitySlotsApi';
 import type { CourseListItem } from '~/types/course';
-import {
-    formatInstructorDisplayName,
-    type InstructorListItem,
-} from '~/types/instructor';
 import type { SchoolAvailabilitySlotsQueryFilters } from '~/types/schoolAvailabilityFilters';
 import type {
     LessonBookingAggregatedSlot,
@@ -42,206 +37,40 @@ const eventForPicker = ref<{ id: string; capacity: number | null } | null>(
 );
 const activeSlotCtx = ref<LessonBookingSlotContext | null>(null);
 
-/** Dni tygodnia API: 0=niedz. … 6=sob. (UTC). Kolejność UI: pon–nd. */
-const WEEKDAY_CHOICES: { value: number; label: string }[] = [
-    { value: 1, label: 'Pon' },
-    { value: 2, label: 'Wt' },
-    { value: 3, label: 'Śr' },
-    { value: 4, label: 'Czw' },
-    { value: 5, label: 'Pt' },
-    { value: 6, label: 'Sob' },
-    { value: 0, label: 'Nd' },
-];
-
-function createEmptyFilterForm() {
-    return {
-        instructorIds: [] as string[],
-        timeFrom: '',
-        timeTo: '',
-        weekdays: [] as number[],
-        slotDurationMinutes: null as number | null,
-        courseId: '',
-        lessonType: '' as '' | 'THEORY' | 'PRACTICE',
-        sort: 'startTime' as 'startTime' | 'instructorName',
-        excludeMyLessons: false,
-    };
-}
-
-const filterForm = ref(createEmptyFilterForm());
-const filtersPanelOpen = ref(false);
-const instructors = ref<InstructorListItem[]>([]);
 const courses = ref<CourseListItem[]>([]);
-const instructorsLoadError = ref<string | null>(null);
 
-const { fetchList: fetchInstructorsList, isListLoading: isInstructorsLoading } =
-    useInstructorsApi();
-const { fetchList: fetchCoursesList, isListLoading: isCoursesLoading } =
-    useCoursesApi();
+const { fetchList: fetchCoursesList } = useCoursesApi();
 
-async function loadFilterOptions(): Promise<void> {
+async function loadSchoolCourses(): Promise<void> {
     const sid = props.schoolId.trim();
 
     if (!sid) {
-        instructors.value = [];
         courses.value = [];
-        instructorsLoadError.value = null;
 
         return;
     }
 
-    instructorsLoadError.value = null;
-
-    const settled = await Promise.allSettled([
-        fetchInstructorsList(sid),
-        fetchCoursesList(sid),
-    ]);
-
-    const instRes = settled[0];
-    const courseRes = settled[1];
-
-    instructors.value = instRes.status === 'fulfilled' ? instRes.value : [];
-    courses.value = courseRes.status === 'fulfilled' ? courseRes.value : [];
-
-    if (instRes.status === 'rejected' && courseRes.status === 'rejected') {
-        instructorsLoadError.value = getApiFetchErrorMessage(
-            instRes.reason,
-            'Nie udało się wczytać list do filtrów.',
-        );
-    } else if (instRes.status === 'rejected') {
-        instructorsLoadError.value = getApiFetchErrorMessage(
-            instRes.reason,
-            'Nie udało się wczytać listy instruktorów.',
-        );
-    } else if (courseRes.status === 'rejected') {
-        instructorsLoadError.value = getApiFetchErrorMessage(
-            courseRes.reason,
-            'Nie udało się wczytać listy kursów.',
-        );
-    }
+    courses.value = await fetchCoursesList(sid).catch(() => []);
 }
 
 function buildFiltersPayload(): SchoolAvailabilitySlotsQueryFilters {
-    const form = filterForm.value;
-    const out: SchoolAvailabilitySlotsQueryFilters = {
+    return {
         limit: 500,
-        sort: form.sort,
+        sort: 'startTime',
     };
-
-    if (form.instructorIds.length > 0) {
-        out.instructorIds = [...form.instructorIds];
-    }
-
-    const tf = form.timeFrom.trim();
-    const tt = form.timeTo.trim();
-
-    if (tf && tt) {
-        out.timeFrom = tf;
-        out.timeTo = tt;
-    }
-
-    const wd = form.weekdays;
-
-    if (wd.length > 0 && wd.length < 7) {
-        out.weekdays = [...wd].sort((a, b) => a - b);
-    }
-
-    if (
-        form.slotDurationMinutes !== null &&
-        form.slotDurationMinutes >= 15 &&
-        form.slotDurationMinutes <= 240
-    ) {
-        out.slotDurationMinutes = form.slotDurationMinutes;
-    }
-
-    const cid = form.courseId.trim();
-
-    if (cid) {
-        out.courseId = cid;
-    }
-
-    if (form.lessonType === 'THEORY' || form.lessonType === 'PRACTICE') {
-        out.lessonType = form.lessonType;
-    }
-
-    if (form.excludeMyLessons) {
-        out.excludeMyLessons = true;
-    }
-
-    return out;
-}
-
-function handleToggleInstructor(id: string, checked: boolean): void {
-    const arr = filterForm.value.instructorIds;
-    const idx = arr.indexOf(id);
-
-    if (checked && idx === -1) {
-        arr.push(id);
-    }
-
-    if (!checked && idx !== -1) {
-        arr.splice(idx, 1);
-    }
-}
-
-function handleInstructorCheckboxChange(id: string, event: Event): void {
-    const el = event.target as HTMLInputElement;
-
-    handleToggleInstructor(id, el.checked);
-}
-
-function handleToggleWeekday(value: number, checked: boolean): void {
-    const arr = filterForm.value.weekdays;
-    const idx = arr.indexOf(value);
-
-    if (checked && idx === -1) {
-        arr.push(value);
-    }
-
-    if (!checked && idx !== -1) {
-        arr.splice(idx, 1);
-    }
-}
-
-function handleWeekdayCheckboxChange(value: number, event: Event): void {
-    const el = event.target as HTMLInputElement;
-
-    handleToggleWeekday(value, el.checked);
-}
-
-function handleSlotDurationInput(event: Event): void {
-    const el = event.target as HTMLInputElement;
-    const raw = el.value.trim();
-
-    if (raw === '') {
-        filterForm.value.slotDurationMinutes = null;
-
-        return;
-    }
-
-    const n = Number.parseInt(raw, 10);
-
-    filterForm.value.slotDurationMinutes = Number.isFinite(n) ? n : null;
-}
-
-function handleApplyFilters(): void {
-    void loadWeek();
-}
-
-function handleResetFilters(): void {
-    filterForm.value = createEmptyFilterForm();
-    void loadWeek();
 }
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
 const BASE_HOUR = 7;
-const GRID_HEIGHT_PX = 720;
+const END_HOUR = 19;
+const GRID_HEIGHT_PX = (END_HOUR - BASE_HOUR) * 60;
 const PX_PER_MINUTE = 1;
 
-function slotTopPx(startTime: string): number {
-    const parts = startTime.trim().split(':').map(Number);
+function timeToMinutes(time: string): number | null {
+    const parts = time.trim().split(':').map(Number);
 
     if (parts.length < 2) {
-        return 0;
+        return null;
     }
 
     const h = parts[0];
@@ -253,10 +82,32 @@ function slotTopPx(startTime: string): number {
         !Number.isFinite(h) ||
         !Number.isFinite(m)
     ) {
+        return null;
+    }
+
+    return h * 60 + m;
+}
+
+function isSlotInsideTimeline(slot: LessonBookingAggregatedSlot): boolean {
+    const startMin = timeToMinutes(slot.startTime);
+    const endMin = timeToMinutes(slot.endTime);
+    const baseMin = BASE_HOUR * 60;
+    const endBoundaryMin = END_HOUR * 60;
+
+    if (startMin === null || endMin === null) {
+        return false;
+    }
+
+    return startMin >= baseMin && endMin <= endBoundaryMin && endMin > startMin;
+}
+
+function slotTopPx(startTime: string): number {
+    const startMin = timeToMinutes(startTime);
+
+    if (startMin === null) {
         return 0;
     }
 
-    const startMin = h * 60 + m;
     const baseMin = BASE_HOUR * 60;
 
     return (startMin - baseMin) * PX_PER_MINUTE;
@@ -398,7 +249,7 @@ function buildAggregatedSlots(
 }
 
 const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
-    buildAggregatedSlots(slots.value),
+    buildAggregatedSlots(slots.value).filter(isSlotInsideTimeline),
 );
 
 const aggregatedSlotsByDate = computed(() => {
@@ -522,7 +373,7 @@ async function loadWeek(): Promise<void> {
 watch(
     () => props.schoolId,
     () => {
-        void loadFilterOptions();
+        void loadSchoolCourses();
     },
     { immediate: true },
 );
@@ -600,18 +451,18 @@ function handleKeyDownWeekNav(
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-0">
         <div
-            class="flex flex-wrap items-center justify-between gap-3"
+            class="border-border flex flex-col gap-3 border-b px-4 py-4 md:flex-row md:items-center md:justify-between md:px-5"
             role="toolbar"
             aria-label="Nawigacja tygodnia kalendarza slotów szkoły"
         >
-            <div class="flex flex-wrap items-center gap-2">
-                <UiButton
+            <div
+                class="border-border inline-flex w-fit overflow-hidden rounded-xl border bg-white shadow-xs dark:bg-transparent"
+            >
+                <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="inline-flex items-center gap-1"
+                    class="text-foreground hover:bg-muted/60 focus-visible:ring-ring inline-flex h-9 items-center gap-1 border-r px-3 text-xs font-semibold transition focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                     aria-label="Poprzedni tydzień"
                     :disabled="isLoading"
                     @click="handlePrevWeek"
@@ -619,12 +470,10 @@ function handleKeyDownWeekNav(
                 >
                     <ChevronLeft class="size-4" aria-hidden="true" />
                     Poprzedni
-                </UiButton>
-                <UiButton
+                </button>
+                <button
                     type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="inline-flex items-center gap-1"
+                    class="text-foreground hover:bg-muted/60 focus-visible:ring-ring inline-flex h-9 items-center gap-1 px-3 text-xs font-semibold transition focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                     aria-label="Następny tydzień"
                     :disabled="isLoading"
                     @click="handleNextWeek"
@@ -632,11 +481,11 @@ function handleKeyDownWeekNav(
                 >
                     Następny
                     <ChevronRight class="size-4" aria-hidden="true" />
-                </UiButton>
+                </button>
             </div>
 
             <p
-                class="text-foreground min-w-0 flex-1 text-center text-sm font-medium"
+                class="border-border bg-muted/30 text-foreground min-w-0 rounded-xl border px-4 py-2 text-center text-xs font-semibold md:min-w-64"
                 aria-live="polite"
             >
                 {{ weekRangeLabel }}
@@ -644,15 +493,14 @@ function handleKeyDownWeekNav(
 
             <UiPopover v-model:open="isCalendarOpen">
                 <UiPopoverTrigger>
-                    <UiButton
+                    <button
                         type="button"
-                        variant="outline"
-                        size="sm"
+                        class="border-border bg-card text-foreground hover:bg-muted/60 focus-visible:ring-ring inline-flex h-9 items-center rounded-xl border px-3 text-sm font-semibold shadow-xs transition focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                         :disabled="isLoading"
                         aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
                     >
                         Wybierz tydzień
-                    </UiButton>
+                    </button>
                 </UiPopoverTrigger>
                 <UiPopoverContent class="w-auto p-0" align="end">
                     <UiCalendar
@@ -670,303 +518,23 @@ function handleKeyDownWeekNav(
             </UiPopover>
         </div>
 
-        <div class="border-border rounded-xl border">
-            <button
-                type="button"
-                class="text-foreground hover:bg-muted/50 flex w-full items-center justify-between gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium transition"
-                :aria-expanded="filtersPanelOpen"
-                aria-controls="school-slots-filters-panel"
-                @click="filtersPanelOpen = !filtersPanelOpen"
-            >
-                <span class="inline-flex items-center gap-2">
-                    <Filter
-                        class="text-muted-foreground size-4"
-                        aria-hidden="true"
-                    />
-                    Filtry zapytania (API)
-                </span>
-                <span class="text-muted-foreground text-xs">
-                    {{ filtersPanelOpen ? 'Zwiń' : 'Rozwiń' }}
-                </span>
-            </button>
-
-            <div
-                v-show="filtersPanelOpen"
-                id="school-slots-filters-panel"
-                class="border-border space-y-4 border-t px-4 py-4"
-            >
-                <p
-                    v-if="instructorsLoadError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ instructorsLoadError }}
-                </p>
-
-                <div
-                    class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-                    role="group"
-                    aria-label="Filtry slotów szkoły"
-                >
-                    <div class="space-y-2 sm:col-span-2 lg:col-span-3">
-                        <p class="text-muted-foreground text-xs font-medium">
-                            Instruktorzy (puste = wszyscy)
-                        </p>
-                        <div
-                            v-if="isInstructorsLoading"
-                            class="text-muted-foreground text-xs"
-                            role="status"
-                        >
-                            Wczytywanie instruktorów…
-                        </div>
-                        <div v-else class="flex flex-wrap gap-x-4 gap-y-2">
-                            <label
-                                v-for="inst in instructors"
-                                :key="inst.id"
-                                class="flex cursor-pointer items-center gap-2 text-sm"
-                            >
-                                <input
-                                    type="checkbox"
-                                    class="border-input accent-primary size-4 rounded"
-                                    :checked="
-                                        filterForm.instructorIds.includes(
-                                            inst.id,
-                                        )
-                                    "
-                                    @change="
-                                        handleInstructorCheckboxChange(
-                                            inst.id,
-                                            $event,
-                                        )
-                                    "
-                                />
-                                <span>{{
-                                    formatInstructorDisplayName(inst)
-                                }}</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-time-from"
-                        >
-                            Godzina od (HH:mm)
-                        </label>
-                        <input
-                            id="school-slot-filter-time-from"
-                            v-model="filterForm.timeFrom"
-                            type="time"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        />
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-time-to"
-                        >
-                            Godzina do (HH:mm)
-                        </label>
-                        <input
-                            id="school-slot-filter-time-to"
-                            v-model="filterForm.timeTo"
-                            type="time"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                        />
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-duration"
-                        >
-                            Długość slotu (min, 15–240)
-                        </label>
-                        <input
-                            id="school-slot-filter-duration"
-                            type="number"
-                            min="15"
-                            max="240"
-                            step="15"
-                            placeholder="Domyślnie z OSK"
-                            class="border-input bg-background ring-offset-background focus-visible:ring-ring w-full rounded-md border px-2 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                            :value="
-                                filterForm.slotDurationMinutes === null
-                                    ? ''
-                                    : filterForm.slotDurationMinutes
-                            "
-                            @input="handleSlotDurationInput"
-                        />
-                    </div>
-
-                    <div class="space-y-2 sm:col-span-2 lg:col-span-3">
-                        <p class="text-muted-foreground text-xs font-medium">
-                            Dni tygodnia (UTC, 0=niedz.) — puste = wszystkie
-                        </p>
-                        <div class="flex flex-wrap gap-x-4 gap-y-2">
-                            <label
-                                v-for="ch in WEEKDAY_CHOICES"
-                                :key="ch.value"
-                                class="flex cursor-pointer items-center gap-2 text-sm"
-                            >
-                                <input
-                                    type="checkbox"
-                                    class="border-input accent-primary size-4 rounded"
-                                    :checked="
-                                        filterForm.weekdays.includes(ch.value)
-                                    "
-                                    @change="
-                                        handleWeekdayCheckboxChange(
-                                            ch.value,
-                                            $event,
-                                        )
-                                    "
-                                />
-                                <span>{{ ch.label }}</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-course"
-                        >
-                            Kurs (opcjonalnie)
-                        </label>
-                        <UiSelect
-                            v-model="filterForm.courseId"
-                            :disabled="isCoursesLoading"
-                        >
-                            <UiSelectTrigger
-                                id="school-slot-filter-course"
-                                class="w-full"
-                            >
-                                <UiSelectValue placeholder="— dowolny —" />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem
-                                        v-for="c in courses"
-                                        :key="c.id"
-                                        :value="c.id"
-                                    >
-                                        {{ c.name }}
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-lesson-type"
-                        >
-                            Typ lekcji (API)
-                        </label>
-                        <UiSelect v-model="filterForm.lessonType">
-                            <UiSelectTrigger
-                                id="school-slot-filter-lesson-type"
-                                class="w-full"
-                            >
-                                <UiSelectValue placeholder="— dowolny —" />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem value="THEORY"
-                                        >Teoria</UiSelectItem
-                                    >
-                                    <UiSelectItem value="PRACTICE">
-                                        Praktyka
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label
-                            class="text-foreground text-xs font-medium"
-                            for="school-slot-filter-sort"
-                        >
-                            Sortowanie
-                        </label>
-                        <UiSelect v-model="filterForm.sort">
-                            <UiSelectTrigger
-                                id="school-slot-filter-sort"
-                                class="w-full"
-                            >
-                                <UiSelectValue placeholder="Sortowanie" />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem value="startTime">
-                                        Godzina rozpoczęcia
-                                    </UiSelectItem>
-                                    <UiSelectItem value="instructorName">
-                                        Nazwisko instruktora
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                    </div>
-
-                    <div
-                        class="flex items-end gap-2 sm:col-span-2 lg:col-span-3"
-                    >
-                        <label
-                            class="flex cursor-pointer items-center gap-2 text-sm"
-                        >
-                            <input
-                                v-model="filterForm.excludeMyLessons"
-                                type="checkbox"
-                                class="border-input accent-primary size-4 rounded"
-                            />
-                            <span>Wyklucz moje lekcje (excludeMyLessons)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <UiButton
-                        type="button"
-                        size="sm"
-                        :disabled="isLoading"
-                        @click="handleApplyFilters"
-                    >
-                        Zastosuj filtry
-                    </UiButton>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        :disabled="isLoading"
-                        @click="handleResetFilters"
-                    >
-                        Wyczyść i odśwież
-                    </UiButton>
-                </div>
-            </div>
-        </div>
-
         <p
             v-if="errorMessage"
-            class="text-destructive text-sm"
+            class="text-destructive px-4 pb-3 text-sm md:px-5"
             role="alert"
             aria-live="polite"
         >
             {{ errorMessage }}
         </p>
 
-        <div class="border-border relative overflow-x-auto rounded-xl border">
+        <div
+            class="border-border relative overflow-x-auto border-t bg-white dark:bg-transparent"
+        >
             <div
-                class="bg-muted/30 text-muted-foreground border-border flex min-w-[720px] flex-wrap items-center gap-2 border-b px-3 py-2 text-xs"
+                class="bg-muted/30 text-muted-foreground border-border flex min-w-[720px] flex-wrap items-center gap-2 border-b px-4 py-2 text-xs font-medium md:px-5"
                 role="status"
             >
-                <span>Oś godzin: {{ BASE_HOUR }}:00–19:00</span>
+                <span>Oś godzin: {{ BASE_HOUR }}:00-{{ END_HOUR }}:00</span>
                 <UiBadge v-if="isLoading" variant="secondary"
                     >Ładowanie…</UiBadge
                 >
@@ -995,7 +563,7 @@ function handleKeyDownWeekNav(
                     :aria-label="`Terminarz dostępności instruktorów, ${weekRangeLabel}`"
                 >
                     <div
-                        class="border-border flex w-12 shrink-0 flex-col border-r"
+                        class="border-border bg-muted/20 flex w-14 shrink-0 flex-col border-r"
                         aria-hidden="true"
                     >
                         <div
@@ -1025,19 +593,19 @@ function handleKeyDownWeekNav(
                                 class="border-border flex h-12 shrink-0 flex-col items-center justify-center border-b px-1 text-center"
                                 :class="
                                     day.isToday
-                                        ? 'bg-primary/10 font-semibold'
-                                        : ''
+                                        ? 'bg-primary-50 text-primary-900 font-semibold'
+                                        : 'bg-white dark:bg-transparent'
                                 "
                             >
                                 <span
-                                    class="text-foreground text-xs font-medium capitalize"
+                                    class="text-foreground text-xs font-semibold capitalize"
                                 >
                                     {{ day.header }}
                                 </span>
                                 <UiBadge
                                     v-if="day.isToday"
                                     variant="secondary"
-                                    class="mt-1"
+                                    class="mt-1 h-4 px-1.5 text-[10px]"
                                 >
                                     dziś
                                 </UiBadge>
@@ -1066,30 +634,30 @@ function handleKeyDownWeekNav(
                                 >
                                     <button
                                         type="button"
-                                        class="bg-primary/15 border-primary text-primary hover:bg-primary/25 focus-visible:ring-ring absolute right-1 left-1 overflow-hidden rounded-md border px-1 py-0.5 text-left text-xs leading-tight shadow-sm focus-visible:ring-2 focus-visible:outline-none"
+                                        class="border-primary bg-primary-50/90 text-primary-800 hover:bg-primary-100 focus-visible:ring-ring absolute right-1 left-1 overflow-hidden rounded-lg border border-l-4 px-2 py-1 text-left text-xs leading-tight shadow-sm transition focus-visible:ring-2 focus-visible:outline-none"
                                         :style="{
                                             top: `${slotTopPx(slot.startTime)}px`,
-                                            height: '60px',
+                                            height: '52px',
                                         }"
-                                        :title="`Dostępny slot ${slot.startTime}–${slot.endTime} (${slot.instructorCount} instr.)`"
-                                        :aria-label="`Wybierz akcję w slocie ${slot.startTime}–${slot.endTime}, instruktorów: ${slot.instructorCount}`"
+                                        :title="`Dostępny slot ${slot.startTime}-${slot.endTime} (${slot.instructorCount} instr.)`"
+                                        :aria-label="`Wybierz akcję w slocie ${slot.startTime}-${slot.endTime}, instruktorów: ${slot.instructorCount}`"
                                         :disabled="isLoading"
                                         @click="handleSlotClick(slot)"
                                     >
-                                        <span class="block font-medium">
+                                        <span class="block font-semibold">
                                             Dostępny
                                         </span>
                                         <span
                                             v-if="slot.instructorCount > 1"
-                                            class="text-primary/90 block truncate text-[10px]"
+                                            class="text-primary-700 block truncate text-[10px]"
                                         >
                                             {{ slot.instructorCount }}
                                             instruktorów
                                         </span>
                                         <span
-                                            class="text-primary/80 block truncate text-[10px]"
+                                            class="text-primary-700/80 block truncate text-[10px]"
                                         >
-                                            {{ slot.startTime }}–{{
+                                            {{ slot.startTime }}-{{
                                                 slot.endTime
                                             }}
                                         </span>
@@ -1128,18 +696,18 @@ function handleKeyDownWeekNav(
             @created="handleTheoryEventCreated"
         />
 
-        <ManagerEventStudentPickerDialog
-            v-model:open="isStudentPickerOpen"
-            :event-id="eventForPicker?.id ?? ''"
-            :capacity="eventForPicker?.capacity ?? null"
-            :school-id="schoolId"
-        />
-
         <ManagerLessonBookingDialog
             v-model:open="isBookingOpen"
             :slot-ctx="activeSlotCtx"
             :school-courses="courses"
             @booked="handleBookingBooked"
+        />
+
+        <ManagerEventStudentPickerDialog
+            v-model:open="isStudentPickerOpen"
+            :event-id="eventForPicker?.id ?? ''"
+            :capacity="eventForPicker?.capacity ?? null"
+            :school-id="schoolId"
         />
     </div>
 </template>

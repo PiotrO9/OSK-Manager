@@ -63,26 +63,32 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Witaj{{ session?.userName ? `, ${session.userName}` : '' }}
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                {{
-                    isManager
-                        ? 'Twój panel zarządzania szkołą jazdy.'
-                        : isInstructorOrStudent
-                          ? 'Twój panel w szkole jazdy.'
-                          : 'Panel aplikacji.'
-                }}
-            </p>
+    <div class="space-y-5 md:space-y-6">
+        <div
+            class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
+        >
+            <div class="space-y-1.5">
+                <h1
+                    class="text-foreground text-2xl leading-tight font-bold tracking-tight md:text-3xl"
+                >
+                    Witaj{{ session?.userName ? `, ${session.userName}` : '' }}
+                </h1>
+                <p class="text-muted-foreground text-sm leading-relaxed">
+                    {{
+                        isManager
+                            ? 'Twój panel zarządzania szkołą jazdy.'
+                            : isInstructorOrStudent
+                              ? 'Twój panel w szkole jazdy.'
+                              : 'Panel aplikacji.'
+                    }}
+                </p>
+            </div>
         </div>
 
         <template v-if="isManager">
             <div
                 v-if="isDefaultLoading"
-                class="text-muted-foreground text-sm"
+                class="border-border bg-card text-muted-foreground rounded-2xl border p-5 text-sm shadow-sm"
                 role="status"
             >
                 Wczytywanie danych OSK…
@@ -90,62 +96,72 @@ onMounted(() => {
 
             <p
                 v-else-if="defaultOskError"
-                class="text-destructive text-sm"
+                class="border-destructive/30 bg-destructive/5 text-destructive rounded-2xl border p-5 text-sm"
                 role="alert"
             >
                 {{ defaultOskError }}
             </p>
 
             <template v-else-if="defaultOsk">
-                <div class="space-y-6">
+                <div class="space-y-4 md:space-y-5">
                     <div
-                        class="border-border rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        class="border-border bg-card overflow-hidden rounded-2xl border p-4 shadow-sm md:p-5"
                         :aria-label="`Karta domyślnego OSK: ${defaultOsk.name}`"
                     >
-                        <div class="flex items-start gap-4">
-                            <div
-                                class="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl"
-                            >
-                                <Building2 class="size-5" aria-hidden="true" />
-                            </div>
-
-                            <div class="min-w-0 flex-1 space-y-1">
-                                <p
-                                    class="text-foreground truncate text-lg font-semibold"
+                        <div
+                            class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+                        >
+                            <div class="flex min-w-0 items-start gap-4">
+                                <div
+                                    class="bg-primary-50 text-primary-600 flex size-10 shrink-0 items-center justify-center rounded-xl md:size-11"
                                 >
-                                    {{ defaultOsk.name }}
-                                </p>
-
-                                <p
-                                    v-if="defaultOsk.city || defaultOsk.address"
-                                    class="text-muted-foreground flex items-center gap-1 text-sm"
-                                >
-                                    <MapPin
-                                        class="size-3.5 shrink-0"
+                                    <Building2
+                                        class="size-5"
                                         aria-hidden="true"
                                     />
-                                    <span>
-                                        <span v-if="defaultOsk.city">{{
-                                            defaultOsk.city
-                                        }}</span>
-                                        <span
-                                            v-if="
-                                                defaultOsk.city &&
-                                                defaultOsk.address
-                                            "
-                                        >
-                                            ·
-                                        </span>
-                                        <span v-if="defaultOsk.address">{{
+                                </div>
+
+                                <div class="min-w-0 flex-1 space-y-1">
+                                    <p
+                                        class="text-foreground truncate text-lg font-semibold tracking-tight"
+                                    >
+                                        {{ defaultOsk.name }}
+                                    </p>
+
+                                    <p
+                                        v-if="
+                                            defaultOsk.city ||
                                             defaultOsk.address
-                                        }}</span>
-                                    </span>
-                                </p>
+                                        "
+                                        class="text-muted-foreground flex items-center gap-1.5 text-sm"
+                                    >
+                                        <MapPin
+                                            class="size-3.5 shrink-0"
+                                            aria-hidden="true"
+                                        />
+                                        <span class="min-w-0 truncate">
+                                            <span v-if="defaultOsk.city">{{
+                                                defaultOsk.city
+                                            }}</span>
+                                            <span
+                                                v-if="
+                                                    defaultOsk.city &&
+                                                    defaultOsk.address
+                                                "
+                                            >
+                                                ·
+                                            </span>
+                                            <span v-if="defaultOsk.address">{{
+                                                defaultOsk.address
+                                            }}</span>
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
 
                             <NuxtLink
                                 to="/manager/osk"
-                                class="text-muted-foreground hover:text-foreground focus-visible:ring-primary shrink-0 rounded-lg p-1.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                                class="border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary inline-flex size-9 shrink-0 items-center justify-center rounded-xl border bg-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:bg-transparent"
                                 aria-label="Przejdź do listy szkół jazdy"
                             >
                                 <ExternalLink
@@ -157,29 +173,36 @@ onMounted(() => {
                     </div>
 
                     <section
-                        class="border-border space-y-3 rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        class="border-border bg-card overflow-hidden rounded-2xl border shadow-sm"
                         aria-labelledby="dashboard-school-availability-heading"
                     >
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div
-                                class="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg"
-                            >
-                                <CalendarDays
-                                    class="size-4"
-                                    aria-hidden="true"
-                                />
-                            </div>
-                            <div class="min-w-0 flex-1 space-y-0.5">
-                                <h2
-                                    id="dashboard-school-availability-heading"
-                                    class="text-foreground text-lg font-semibold tracking-tight"
+                        <div
+                            class="border-border flex flex-col gap-4 border-b p-4 md:flex-row md:items-center md:justify-between md:p-5"
+                        >
+                            <div class="flex min-w-0 items-start gap-3">
+                                <div
+                                    class="bg-primary-50 text-primary-600 flex size-10 shrink-0 items-center justify-center rounded-xl"
                                 >
-                                    Dostępność instruktorów
-                                </h2>
-                                <p class="text-muted-foreground text-sm">
-                                    Wolne sloty wszystkich instruktorów
-                                    przypisanych do szkoły (widok tygodniowy).
-                                </p>
+                                    <CalendarDays
+                                        class="size-5"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                                <div class="min-w-0 space-y-1">
+                                    <h2
+                                        id="dashboard-school-availability-heading"
+                                        class="text-foreground text-xl leading-tight font-semibold tracking-tight"
+                                    >
+                                        Dostępność instruktorów
+                                    </h2>
+                                    <p
+                                        class="text-muted-foreground max-w-2xl text-sm leading-relaxed"
+                                    >
+                                        Wolne sloty wszystkich instruktorów
+                                        przypisanych do szkoły (widok
+                                        tygodniowy).
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -216,12 +239,12 @@ onMounted(() => {
                     <div
                         v-for="school in sessionDrivingSchools"
                         :key="school.id"
-                        class="border-border rounded-2xl border bg-white p-5 dark:bg-transparent"
+                        class="border-border bg-card rounded-2xl border p-5 shadow-sm"
                         :aria-label="`Szkoła jazdy: ${school.name}`"
                     >
                         <div class="flex items-start gap-4">
                             <div
-                                class="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl"
+                                class="bg-primary-50 text-primary-600 flex size-11 shrink-0 items-center justify-center rounded-xl"
                             >
                                 <Building2 class="size-5" aria-hidden="true" />
                             </div>
@@ -235,13 +258,13 @@ onMounted(() => {
 
                                 <p
                                     v-if="school.city || school.address"
-                                    class="text-muted-foreground flex items-center gap-1 text-sm"
+                                    class="text-muted-foreground flex items-center gap-1.5 text-sm"
                                 >
                                     <MapPin
                                         class="size-3.5 shrink-0"
                                         aria-hidden="true"
                                     />
-                                    <span>
+                                    <span class="min-w-0 truncate">
                                         <span v-if="school.city">{{
                                             school.city
                                         }}</span>
