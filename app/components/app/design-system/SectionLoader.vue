@@ -1,5 +1,5 @@
 <template>
-    <UiCard aria-label="Card: Loader (SVG)" class="min-w-0">
+    <UiCard aria-label="Card: Loader (SVG)" class="min-w-0 lg:col-span-2">
         <UiCardHeader>
             <UiCardTitle class="text-base">Loader (SVG)</UiCardTitle>
         </UiCardHeader>

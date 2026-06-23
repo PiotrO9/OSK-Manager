@@ -5,25 +5,35 @@
         </UiCardHeader>
         <UiCardContent class="space-y-6">
             <div class="space-y-3">
-                <p class="text-foreground text-sm font-semibold">Przykład</p>
+                <p class="text-foreground text-sm font-semibold">Przyklad</p>
                 <UiBreadcrumb>
                     <UiBreadcrumbList>
                         <UiBreadcrumbItem>
-                            <UiBreadcrumbLink :as-child="true">
-                                <NuxtLink to="/"> Strona główna </NuxtLink>
+                            <UiBreadcrumbLink
+                                :as-child="true"
+                                class="text-primary hover:text-primary-700 font-medium"
+                            >
+                                <NuxtLink to="/">Strona glowna</NuxtLink>
                             </UiBreadcrumbLink>
                         </UiBreadcrumbItem>
-                        <UiBreadcrumbSeparator />
+                        <UiBreadcrumbSeparator class="text-primary/40" />
                         <UiBreadcrumbItem>
-                            <UiBreadcrumbLink :as-child="true">
+                            <UiBreadcrumbLink
+                                :as-child="true"
+                                class="text-primary hover:text-primary-700 font-medium"
+                            >
                                 <NuxtLink to="/design-system">
                                     Design system
                                 </NuxtLink>
                             </UiBreadcrumbLink>
                         </UiBreadcrumbItem>
-                        <UiBreadcrumbSeparator />
+                        <UiBreadcrumbSeparator class="text-primary/40" />
                         <UiBreadcrumbItem>
-                            <UiBreadcrumbPage>Komponenty</UiBreadcrumbPage>
+                            <UiBreadcrumbPage
+                                class="text-primary-800 font-semibold"
+                            >
+                                Komponenty
+                            </UiBreadcrumbPage>
                         </UiBreadcrumbItem>
                     </UiBreadcrumbList>
                 </UiBreadcrumb>
