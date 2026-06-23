@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { CalendarCheck } from 'lucide-vue-next';
+import {
+    CalendarCheck,
+    CalendarDays,
+    Clock3,
+    GraduationCap,
+} from 'lucide-vue-next';
 import {
     buildSlotIsoUTC,
     getMonday,
     weekRangeFromMonday,
 } from '~/utils/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import type { CurrentUserCourseItem } from '~/types/course';
+import {
+    formatCourseKindLabel,
+    type CurrentUserCourseItem,
+} from '~/types/course';
 import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
 
 definePageMeta({
@@ -15,7 +23,7 @@ definePageMeta({
 });
 
 usePageMeta({
-    title: () => 'Rezerwuj jazde',
+    title: () => 'Rezerwuj jazdę',
     description: () => 'Samodzielna rezerwacja jazdy praktycznej.',
 });
 
@@ -68,6 +76,49 @@ const weekLabel = computed(() => {
     });
 
     return `${formatter.format(start)} - ${formatter.format(end)}`;
+});
+
+const weekShortLabel = computed(() => {
+    const start = weekStart.value;
+    const end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate() + 6,
+    );
+    const formatter = new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: '2-digit',
+    });
+
+    return `${formatter.format(start)} - ${formatter.format(end)}`;
+});
+
+const selectedCourseProgressLabel = computed(() => {
+    const course = selectedCourse.value;
+
+    if (!course) {
+        return 'Wybierz kurs, żeby zobaczyć postęp.';
+    }
+
+    return `${course.progress} z ${course.totalHours} godzin wykorzystane`;
+});
+
+const selectedCourseTypeLabel = computed(() => {
+    const course = selectedCourse.value;
+
+    return course ? formatCourseKindLabel(course.type) : 'Brak wybranego kursu';
+});
+
+const availableSlotsLabel = computed(() => {
+    if (!selectedCourse.value) {
+        return 'Najpierw wybierz kurs';
+    }
+
+    if (isSlotsLoading.value) {
+        return 'Wczytywanie terminów';
+    }
+
+    return `${slots.value.length} dostępnych terminów`;
 });
 
 function slotKey(slot: SchoolAvailabilitySlot): string {
@@ -214,66 +265,172 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-6">
-        <div class="flex flex-col gap-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Rezerwuj jazde
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Wybierz kurs i wolny termin jazdy praktycznej.
-            </p>
-        </div>
-
-        <p
-            v-if="coursesErrorMessage"
-            class="text-destructive text-sm"
-            role="alert"
+    <div class="space-y-5">
+        <PageHeader
+            title="Rezerwacja jazdy"
+            description="Wybierz kurs, sprawdź dostępność i zarezerwuj pasujący slot."
         >
-            {{ coursesErrorMessage }}
-        </p>
-
-        <StudentLessonBookingCourseSelect
-            v-model="selectedCourseId"
-            :courses="bookableCourses"
-            :is-loading="isCoursesLoading"
-            :disabled="bookingSlotKey !== null"
-        />
-
-        <StudentLessonBookingWeekNav
-            :label="weekLabel"
-            :disabled="bookingSlotKey !== null"
-            @prev="handlePrevWeek"
-            @next="handleNextWeek"
-        />
+            <template #actions>
+                <UiBadge
+                    variant="outline"
+                    class="bg-background h-10 rounded-xl px-4 text-sm font-semibold shadow-sm"
+                >
+                    <CalendarDays class="mr-2 size-4" aria-hidden="true" />
+                    {{ weekShortLabel }}
+                </UiBadge>
+            </template>
+        </PageHeader>
 
         <div
-            v-if="successMessage"
-            class="border-border bg-muted/40 flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-            role="status"
+            class="grid gap-4 xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.72fr)]"
         >
-            <div class="flex min-w-0 items-center gap-3">
-                <span
-                    class="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                    aria-hidden="true"
-                >
-                    <CalendarCheck class="size-4" />
-                </span>
-                <p class="text-foreground text-sm font-medium">
-                    {{ successMessage }}
-                </p>
-            </div>
-            <UiButton as-child size="sm" variant="outline">
-                <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
-            </UiButton>
-        </div>
+            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+                <UiCardHeader class="border-border border-b p-5 pt-0">
+                    <UiCardTitle class="text-xl font-extrabold">
+                        Dostępne terminy
+                    </UiCardTitle>
+                    <UiCardDescription>
+                        Sloty zgodne z kursem i filtrami kursanta.
+                    </UiCardDescription>
+                </UiCardHeader>
 
-        <StudentLessonBookingSlotList
-            :slots="slots"
-            :is-loading="isSlotsLoading"
-            :error-message="slotsErrorMessage"
-            :selected-course-id="selectedCourseId"
-            :booking-slot-key="bookingSlotKey"
-            @book="handleBookSlot"
-        />
+                <UiCardContent class="space-y-4 px-4 py-0">
+                    <ErrorState
+                        v-if="coursesErrorMessage"
+                        title="Nie udało się wczytać kursów"
+                        :description="coursesErrorMessage"
+                        @retry="loadCourses"
+                    />
+
+                    <StudentLessonBookingCourseSelect
+                        v-model="selectedCourseId"
+                        :courses="bookableCourses"
+                        :is-loading="isCoursesLoading"
+                        :disabled="bookingSlotKey !== null"
+                    />
+
+                    <StudentLessonBookingWeekNav
+                        :label="weekLabel"
+                        :disabled="bookingSlotKey !== null"
+                        @prev="handlePrevWeek"
+                        @next="handleNextWeek"
+                    />
+
+                    <StudentLessonBookingSlotList
+                        :slots="slots"
+                        :is-loading="isSlotsLoading"
+                        :error-message="slotsErrorMessage"
+                        :selected-course-id="selectedCourseId"
+                        :booking-slot-key="bookingSlotKey"
+                        :week-start-date="weekRange.dateFrom"
+                        @book="handleBookSlot"
+                    />
+                </UiCardContent>
+            </UiCard>
+
+            <UiCard class="self-start overflow-hidden rounded-2xl shadow-sm">
+                <UiCardHeader class="border-border border-b p-5 pt-0">
+                    <UiCardTitle class="text-xl font-extrabold">
+                        Wybrany kurs
+                    </UiCardTitle>
+                    <UiCardDescription>
+                        Kontekst rezerwacji przed wyborem slotu.
+                    </UiCardDescription>
+                </UiCardHeader>
+
+                <UiCardContent class="space-y-3 px-4 py-0">
+                    <div class="border-border rounded-xl border p-4">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600"
+                            >
+                                <GraduationCap
+                                    class="size-5"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <div class="min-w-0">
+                                <p class="truncate font-extrabold">
+                                    {{
+                                        selectedCourse?.name ??
+                                        'Nie wybrano kursu'
+                                    }}
+                                </p>
+                                <p class="text-muted-foreground text-sm">
+                                    {{ selectedCourseTypeLabel }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-border rounded-xl border p-4">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"
+                            >
+                                <Clock3 class="size-5" aria-hidden="true" />
+                            </div>
+                            <div>
+                                <p class="font-extrabold">Saldo godzin</p>
+                                <p class="text-muted-foreground text-sm">
+                                    {{ selectedCourseProgressLabel }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-border rounded-xl border p-4">
+                        <div class="flex items-start gap-3">
+                            <div
+                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600"
+                            >
+                                <CalendarDays
+                                    class="size-5"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <div>
+                                <p class="font-extrabold">Tydzień</p>
+                                <p class="text-muted-foreground text-sm">
+                                    {{ weekLabel }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="rounded-xl border border-sky-200 bg-sky-50/70 p-4 text-sky-950"
+                    >
+                        <p class="font-extrabold">
+                            {{ availableSlotsLabel }}
+                        </p>
+                        <p class="text-sm text-sky-700">
+                            Rezerwacja działa bezpośrednio na wybranym slocie.
+                        </p>
+                    </div>
+
+                    <div
+                        v-if="successMessage"
+                        class="border-border bg-muted/40 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
+                        role="status"
+                    >
+                        <div class="flex min-w-0 items-center gap-3">
+                            <span
+                                class="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
+                                aria-hidden="true"
+                            >
+                                <CalendarCheck class="size-4" />
+                            </span>
+                            <p class="text-foreground text-sm font-medium">
+                                {{ successMessage }}
+                            </p>
+                        </div>
+                        <UiButton as-child size="sm" variant="outline">
+                            <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
+                        </UiButton>
+                    </div>
+                </UiCardContent>
+            </UiCard>
+        </div>
     </div>
 </template>

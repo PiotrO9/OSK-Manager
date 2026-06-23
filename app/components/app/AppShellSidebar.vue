@@ -76,10 +76,10 @@ const navItems = computed<NavItem[]>(() => {
     if (role === 'STUDENT') {
         items.splice(2, 0, {
             to: '/book-lesson',
-            label: 'Rezerwuj jazde',
+            label: 'Rezerwuj jazdę',
             ariaLabel: 'Przejdz do rezerwacji jazdy',
             icon: CalendarPlus,
-            tooltip: 'Rezerwuj jazde',
+            tooltip: 'Rezerwuj jazdę',
         });
         items.splice(4, 0, {
             to: '/my-payments',

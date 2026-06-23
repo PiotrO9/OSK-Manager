@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { UserPlus, Users } from 'lucide-vue-next';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Mail,
+    Phone,
+    UserPlus,
+} from 'lucide-vue-next';
 import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import type { DrivingSchool } from '~/types/drivingSchool';
 import type { CourseListItem } from '~/types/course';
@@ -337,6 +343,68 @@ const assignTargetDisplayName = computed(() => {
     return formatStudentDisplayName(s);
 });
 
+const activeSchool = computed(
+    () =>
+        schools.value.find((school) => school.id === activeSchoolId.value) ??
+        null,
+);
+
+const activeCourse = computed(
+    () =>
+        courses.value.find((course) => course.id === activeCourseId.value) ??
+        null,
+);
+
+const totalStudentsCount = computed(
+    () => studentsPagination.value?.total ?? students.value.length,
+);
+
+const activeStudentsOnPage = computed(
+    () => students.value.filter((student) => student.isActive).length,
+);
+
+const studentsWithPkkOnPage = computed(
+    () =>
+        students.value.filter(
+            (student) =>
+                student.pkkNumber !== null && student.pkkNumber.length > 0,
+        ).length,
+);
+
+const visibleStudentsLabel = computed(() => {
+    const total = studentsPagination.value?.total ?? students.value.length;
+
+    if (total === students.value.length) {
+        return `${students.value.length} wyników`;
+    }
+
+    return `${students.value.length} z ${total} wyników`;
+});
+
+function formatStudentCreatedAt(value: string): string {
+    const d = new Date(value);
+
+    if (Number.isNaN(d.getTime())) {
+        return 'Brak daty';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    }).format(d);
+}
+
+function studentStatusLabel(student: StudentListItem): string {
+    return student.isActive ? 'Aktywny' : 'Nieaktywny';
+}
+
+function studentStatusClasses(student: StudentListItem): string {
+    return student.isActive
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        : 'border-slate-200 bg-slate-50 text-slate-600';
+}
+
 function handleOpenAssignCourse(student: StudentListItem) {
     assignTargetStudent.value = student;
     assignApiError.value = null;
@@ -458,64 +526,101 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Kursanci
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Przeglądaj kursantów wybranej OSK z paginacją i filtrem po
-                kursie. Możesz zapisać kursanta na kurs z poziomu tabeli.
-                Dodawanie konta odbywa się przyciskiem poniżej; formularz można
-                otworzyć z adresu z parametrami
-                <span class="font-mono">?schoolId=…&amp;register=1</span>
-                (prefill szkoły jest opcjonalny).
-            </p>
+    <div class="space-y-5">
+        <PageHeader
+            title="Kursanci"
+            description="Lista kursantów, filtry OSK i szybkie przypisanie kursu."
+        >
+            <template #actions>
+                <UiButton
+                    type="button"
+                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    aria-label="Otwórz formularz dodawania kursanta"
+                    @click="handleOpenCreateDialog"
+                >
+                    <UserPlus class="mr-2 size-4" aria-hidden="true" />
+                    Dodaj kursanta
+                </UiButton>
+            </template>
+        </PageHeader>
+
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div
+                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            >
+                <p class="text-muted-foreground text-sm font-medium">
+                    Kursanci
+                </p>
+                <p class="text-foreground mt-2 text-3xl font-extrabold">
+                    {{ totalStudentsCount }}
+                </p>
+            </div>
+            <div
+                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            >
+                <p class="text-muted-foreground text-sm font-medium">
+                    Na stronie
+                </p>
+                <p class="text-foreground mt-2 text-3xl font-extrabold">
+                    {{ students.length }}
+                </p>
+            </div>
+            <div
+                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            >
+                <p class="text-muted-foreground text-sm font-medium">
+                    Aktywni na stronie
+                </p>
+                <p class="text-foreground mt-2 text-3xl font-extrabold">
+                    {{ activeStudentsOnPage }}
+                </p>
+            </div>
+            <div
+                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            >
+                <p class="text-muted-foreground text-sm font-medium">
+                    Z numerem PKK
+                </p>
+                <p class="text-foreground mt-2 text-3xl font-extrabold">
+                    {{ studentsWithPkkOnPage }}
+                </p>
+            </div>
         </div>
 
-        <UiButton
-            type="button"
-            class="inline-flex items-center gap-2"
-            aria-label="Otwórz formularz dodawania kursanta"
-            @click="handleOpenCreateDialog"
-        >
-            <Users class="size-4 shrink-0" aria-hidden="true" />
-            Dodaj kursanta
-        </UiButton>
+        <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+            <UiCardHeader class="border-border border-b p-5 pt-0">
+                <div
+                    class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"
+                >
+                    <div class="space-y-1">
+                        <UiCardTitle class="text-xl font-extrabold">
+                            Lista kursantów
+                        </UiCardTitle>
+                        <UiCardDescription>
+                            {{ visibleStudentsLabel }}
+                            <span v-if="activeSchool">
+                                · {{ activeSchool.name }}
+                            </span>
+                        </UiCardDescription>
+                    </div>
+                    <UiBadge
+                        v-if="activeCourse"
+                        variant="outline"
+                        class="w-fit rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
+                    >
+                        Kurs: {{ activeCourse.name }}
+                    </UiBadge>
+                </div>
+            </UiCardHeader>
 
-        <div
-            class="border-border rounded-lg border p-4 md:p-6"
-            :aria-busy="isSchoolsLoading || isStudentsLoading"
-        >
-            <p
-                v-if="isSchoolsLoading"
-                class="text-muted-foreground text-sm"
-                role="status"
+            <UiCardContent
+                class="space-y-4 px-4 py-0"
+                :aria-busy="isSchoolsLoading || isStudentsLoading"
             >
-                Wczytywanie listy szkół jazdy…
-            </p>
-
-            <template v-else>
-                <p
-                    v-if="schoolsLoadError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                    aria-live="polite"
+                <div
+                    class="border-border bg-muted/20 grid gap-3 rounded-2xl border p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
                 >
-                    {{ schoolsLoadError }}
-                </p>
-
-                <p
-                    v-else-if="schools.length === 0"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Nie masz jeszcze żadnej szkoły jazdy. Dodaj OSK w panelu
-                    szkół, aby wyświetlić listę kursantów.
-                </p>
-
-                <template v-else>
-                    <div v-if="schools.length > 1" class="mb-4 space-y-2">
+                    <div v-if="schools.length > 1" class="space-y-1.5">
                         <UiLabel for="students-page-school"
                             >Szkoła jazdy</UiLabel
                         >
@@ -526,7 +631,7 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                         >
                             <UiSelectTrigger
                                 id="students-page-school"
-                                class="w-full max-w-md"
+                                class="bg-background h-11 w-full rounded-xl"
                                 aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
                             >
                                 <UiSelectValue placeholder="Wybierz szkołę" />
@@ -550,18 +655,36 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                         </UiSelect>
                     </div>
 
-                    <div v-if="activeSchoolId" class="mb-4 space-y-2">
-                        <UiLabel for="students-page-course-filter"
-                            >Filtr: kurs (opcjonalnie)</UiLabel
+                    <div
+                        v-else
+                        class="border-border bg-background rounded-xl border p-3"
+                    >
+                        <p class="text-muted-foreground text-xs font-medium">
+                            Szkoła jazdy
+                        </p>
+                        <p
+                            class="text-foreground mt-1 truncate text-sm font-bold"
                         >
+                            {{ activeSchool?.name ?? 'Brak wybranej szkoły' }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <UiLabel for="students-page-course-filter">
+                            Kurs
+                        </UiLabel>
                         <UiSelect
                             v-model="activeCourseId"
-                            :disabled="isStudentsLoading || isCoursesLoading"
+                            :disabled="
+                                isStudentsLoading ||
+                                isCoursesLoading ||
+                                !activeSchoolId
+                            "
                             @update:model-value="handleCourseFilterChange"
                         >
                             <UiSelectTrigger
                                 id="students-page-course-filter"
-                                class="w-full max-w-md"
+                                class="bg-background h-11 w-full rounded-xl"
                                 aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
                             >
                                 <UiSelectValue placeholder="Wszystkie kursy" />
@@ -578,123 +701,213 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                 </UiSelectGroup>
                             </UiSelectContent>
                         </UiSelect>
-                        <p
-                            v-if="isCoursesLoading"
-                            class="text-muted-foreground text-sm"
-                            role="status"
-                        >
-                            Wczytywanie kursów do filtra…
-                        </p>
-                        <p
-                            v-else-if="coursesLoadError"
-                            class="text-destructive text-sm"
-                            role="alert"
-                            aria-live="polite"
-                        >
-                            {{ coursesLoadError }}
-                        </p>
                     </div>
+                </div>
 
-                    <template v-if="studentsLoadError">
-                        <p
-                            class="text-destructive text-sm"
-                            role="alert"
-                            aria-live="polite"
-                        >
-                            {{ studentsLoadError }}
-                        </p>
-                    </template>
-                    <template v-else-if="isStudentsLoading">
-                        <p class="text-muted-foreground text-sm" role="status">
-                            Wczytywanie listy kursantów…
-                        </p>
-                    </template>
-                    <template v-else-if="students.length > 0">
-                        <div class="overflow-x-auto rounded-md border">
-                            <table
-                                class="w-full min-w-[560px] text-left text-sm"
+                <p
+                    v-if="isCoursesLoading"
+                    class="text-muted-foreground text-sm"
+                    role="status"
+                >
+                    Wczytywanie kursów do filtra…
+                </p>
+                <p
+                    v-else-if="coursesLoadError"
+                    class="text-destructive text-sm"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    {{ coursesLoadError }}
+                </p>
+
+                <div v-if="isSchoolsLoading" class="space-y-3" role="status">
+                    <UiSkeleton class="h-16 rounded-xl" />
+                    <UiSkeleton class="h-16 rounded-xl" />
+                    <UiSkeleton class="h-16 rounded-xl" />
+                </div>
+
+                <ErrorState
+                    v-else-if="schoolsLoadError"
+                    title="Nie udało się wczytać szkół jazdy"
+                    :description="schoolsLoadError"
+                    @retry="loadSchools"
+                />
+
+                <EmptyState
+                    v-else-if="schools.length === 0"
+                    title="Brak szkół jazdy"
+                    description="Dodaj OSK w panelu szkół, aby wyświetlić listę kursantów."
+                />
+
+                <ErrorState
+                    v-else-if="studentsLoadError"
+                    title="Nie udało się wczytać kursantów"
+                    :description="studentsLoadError"
+                    @retry="loadStudents"
+                />
+
+                <div
+                    v-else-if="isStudentsLoading"
+                    class="space-y-3"
+                    role="status"
+                >
+                    <UiSkeleton class="h-14 rounded-xl" />
+                    <UiSkeleton class="h-14 rounded-xl" />
+                    <UiSkeleton class="h-14 rounded-xl" />
+                </div>
+
+                <EmptyState
+                    v-else-if="students.length === 0"
+                    title="Brak kursantów"
+                    description="W wybranej szkole lub filtrze kursu nie ma jeszcze kursantów."
+                />
+
+                <template v-else>
+                    <div
+                        class="hidden overflow-hidden rounded-2xl border md:block"
+                    >
+                        <table class="w-full min-w-[760px] text-left text-sm">
+                            <thead
+                                class="bg-muted/50 text-muted-foreground border-b"
                             >
-                                <thead
-                                    class="bg-muted/50 text-muted-foreground border-b"
-                                >
-                                    <tr>
-                                        <th
-                                            scope="col"
-                                            class="px-4 py-3 font-medium"
-                                        >
-                                            Imię
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-4 py-3 font-medium"
-                                        >
-                                            Nazwisko
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-4 py-3 font-medium"
-                                        >
-                                            E-mail
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-4 py-3 font-medium"
-                                        >
-                                            Szczegóły
-                                        </th>
-                                        <th
-                                            scope="col"
-                                            class="px-4 py-3 font-medium"
-                                        >
-                                            Akcje
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-border divide-y">
-                                    <tr
-                                        v-for="student in students"
-                                        :key="student.id"
-                                        class="hover:bg-muted/30"
+                                <tr>
+                                    <th
+                                        scope="col"
+                                        class="px-4 py-3 font-semibold"
                                     >
-                                        <td class="text-foreground px-4 py-3">
-                                            {{ student.firstName }}
-                                        </td>
-                                        <td class="text-foreground px-4 py-3">
-                                            {{ student.lastName }}
-                                        </td>
-                                        <td
-                                            class="text-muted-foreground px-4 py-3 break-all"
+                                        Kursant
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        class="px-4 py-3 font-semibold"
+                                    >
+                                        Kontakt
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        class="px-4 py-3 font-semibold"
+                                    >
+                                        Status
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        class="px-4 py-3 font-semibold"
+                                    >
+                                        Utworzono
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        class="px-4 py-3 font-semibold"
+                                    >
+                                        Akcje
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-border divide-y">
+                                <tr
+                                    v-for="student in students"
+                                    :key="student.id"
+                                    class="hover:bg-muted/30"
+                                >
+                                    <td class="px-4 py-3">
+                                        <div
+                                            class="flex min-w-0 items-center gap-3"
                                         >
-                                            {{ student.email }}
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <NuxtLink
+                                            <div
+                                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-extrabold text-sky-700"
+                                            >
+                                                {{ student.firstName[0]
+                                                }}{{ student.lastName[0] }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p
+                                                    class="truncate font-extrabold"
+                                                >
+                                                    {{
+                                                        formatStudentDisplayName(
+                                                            student,
+                                                        )
+                                                    }}
+                                                </p>
+                                                <p
+                                                    class="text-muted-foreground text-xs"
+                                                >
+                                                    PKK:
+                                                    {{
+                                                        student.pkkNumber ??
+                                                        'brak'
+                                                    }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="space-y-1">
+                                            <p
+                                                class="text-muted-foreground flex items-center gap-2 text-sm break-all"
+                                            >
+                                                <Mail
+                                                    class="size-3.5 shrink-0"
+                                                    aria-hidden="true"
+                                                />
+                                                {{ student.email }}
+                                            </p>
+                                            <p
+                                                class="text-muted-foreground flex items-center gap-2 text-sm"
+                                            >
+                                                <Phone
+                                                    class="size-3.5 shrink-0"
+                                                    aria-hidden="true"
+                                                />
+                                                {{ student.phone ?? 'brak' }}
+                                            </p>
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <UiBadge
+                                            variant="outline"
+                                            class="rounded-full"
+                                            :class="
+                                                studentStatusClasses(student)
+                                            "
+                                        >
+                                            {{ studentStatusLabel(student) }}
+                                        </UiBadge>
+                                    </td>
+                                    <td class="text-muted-foreground px-4 py-3">
+                                        {{
+                                            formatStudentCreatedAt(
+                                                student.createdAt,
+                                            )
+                                        }}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex flex-wrap gap-2">
+                                            <UiButton
                                                 v-if="activeSchoolId"
-                                                :to="{
-                                                    path: `/manager/students/${student.userId}`,
-                                                    query: {
-                                                        schoolId:
-                                                            activeSchoolId,
-                                                    },
-                                                }"
-                                                class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                                                :aria-label="`Otwórz szczegóły kursanta ${formatStudentDisplayName(student)}`"
+                                                as-child
+                                                variant="outline"
+                                                size="sm"
+                                                class="rounded-xl"
                                             >
-                                                Otwórz
-                                            </NuxtLink>
-                                            <span
-                                                v-else
-                                                class="text-muted-foreground text-sm"
-                                            >
-                                                —
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3">
+                                                <NuxtLink
+                                                    :to="{
+                                                        path: `/manager/students/${student.userId}`,
+                                                        query: {
+                                                            schoolId:
+                                                                activeSchoolId,
+                                                        },
+                                                    }"
+                                                    :aria-label="`Otwórz szczegóły kursanta ${formatStudentDisplayName(student)}`"
+                                                >
+                                                    Szczegóły
+                                                </NuxtLink>
+                                            </UiButton>
                                             <UiButton
                                                 type="button"
                                                 variant="outline"
                                                 size="sm"
-                                                class="inline-flex items-center gap-1.5"
+                                                class="rounded-xl"
                                                 :disabled="
                                                     !activeSchoolId ||
                                                     isStudentsLoading
@@ -707,69 +920,157 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
                                                 "
                                             >
                                                 <UserPlus
-                                                    class="size-3.5 shrink-0"
+                                                    class="mr-1.5 size-3.5 shrink-0"
                                                     aria-hidden="true"
                                                 />
                                                 Kurs
                                             </UiButton>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <p class="text-muted-foreground text-sm" role="status">
-                            Brak kursantów
-                        </p>
-                    </template>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div
-                        v-if="
-                            activeSchoolId &&
-                            studentsPagination &&
-                            studentsPagination.totalPages > 1 &&
-                            !studentsLoadError
-                        "
-                        class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                        <p class="text-muted-foreground text-sm tabular-nums">
-                            Strona {{ currentPage }} z
-                            {{ studentsPagination.totalPages }} ({{
-                                studentsPagination.total
-                            }}
-                            kursantów)
-                        </p>
-                        <div class="flex flex-wrap gap-2">
-                            <UiButton
-                                type="button"
-                                variant="outline"
-                                :disabled="
-                                    currentPage <= 1 || isStudentsLoading
-                                "
-                                aria-label="Poprzednia strona listy kursantów"
-                                @click="handlePrevPage"
-                            >
-                                Poprzednia
-                            </UiButton>
-                            <UiButton
-                                type="button"
-                                variant="outline"
-                                :disabled="
-                                    currentPage >=
-                                        studentsPagination.totalPages ||
-                                    isStudentsLoading
-                                "
-                                aria-label="Następna strona listy kursantów"
-                                @click="handleNextPage"
-                            >
-                                Następna
-                            </UiButton>
-                        </div>
+                    <div class="space-y-3 md:hidden">
+                        <article
+                            v-for="student in students"
+                            :key="student.id"
+                            class="border-border rounded-2xl border p-4"
+                        >
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="truncate font-extrabold">
+                                        {{ formatStudentDisplayName(student) }}
+                                    </p>
+                                    <p
+                                        class="text-muted-foreground mt-1 text-sm break-all"
+                                    >
+                                        {{ student.email }}
+                                    </p>
+                                </div>
+                                <UiBadge
+                                    variant="outline"
+                                    class="shrink-0 rounded-full"
+                                    :class="studentStatusClasses(student)"
+                                >
+                                    {{ studentStatusLabel(student) }}
+                                </UiBadge>
+                            </div>
+
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <UiBadge
+                                    variant="outline"
+                                    class="bg-muted/40 rounded-full"
+                                >
+                                    PKK: {{ student.pkkNumber ?? 'brak' }}
+                                </UiBadge>
+                                <UiBadge
+                                    variant="outline"
+                                    class="bg-muted/40 rounded-full"
+                                >
+                                    {{
+                                        formatStudentCreatedAt(
+                                            student.createdAt,
+                                        )
+                                    }}
+                                </UiBadge>
+                            </div>
+
+                            <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                                <UiButton
+                                    v-if="activeSchoolId"
+                                    as-child
+                                    variant="outline"
+                                    size="sm"
+                                    class="rounded-xl"
+                                >
+                                    <NuxtLink
+                                        :to="{
+                                            path: `/manager/students/${student.userId}`,
+                                            query: { schoolId: activeSchoolId },
+                                        }"
+                                        :aria-label="`Otwórz szczegóły kursanta ${formatStudentDisplayName(student)}`"
+                                    >
+                                        Szczegóły
+                                    </NuxtLink>
+                                </UiButton>
+                                <UiButton
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    class="rounded-xl"
+                                    :disabled="
+                                        !activeSchoolId || isStudentsLoading
+                                    "
+                                    :aria-label="`Przypisz ${formatStudentDisplayName(student)} do kursu`"
+                                    @click="handleOpenAssignCourse(student)"
+                                >
+                                    <UserPlus
+                                        class="mr-1.5 size-3.5 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                    Przypisz kurs
+                                </UiButton>
+                            </div>
+                        </article>
                     </div>
                 </template>
-            </template>
-        </div>
+
+                <div
+                    v-if="
+                        activeSchoolId &&
+                        studentsPagination &&
+                        studentsPagination.totalPages > 1 &&
+                        !studentsLoadError
+                    "
+                    class="border-border flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                    <p class="text-muted-foreground text-sm tabular-nums">
+                        Strona {{ currentPage }} z
+                        {{ studentsPagination.totalPages }} ({{
+                            studentsPagination.total
+                        }}
+                        kursantów)
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            class="rounded-xl"
+                            :disabled="currentPage <= 1 || isStudentsLoading"
+                            aria-label="Poprzednia strona listy kursantów"
+                            @click="handlePrevPage"
+                        >
+                            <ChevronLeft
+                                class="mr-1 size-4"
+                                aria-hidden="true"
+                            />
+                            Poprzednia
+                        </UiButton>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            class="rounded-xl"
+                            :disabled="
+                                currentPage >= studentsPagination.totalPages ||
+                                isStudentsLoading
+                            "
+                            aria-label="Następna strona listy kursantów"
+                            @click="handleNextPage"
+                        >
+                            Następna
+                            <ChevronRight
+                                class="ml-1 size-4"
+                                aria-hidden="true"
+                            />
+                        </UiButton>
+                    </div>
+                </div>
+            </UiCardContent>
+        </UiCard>
 
         <ManagerStudentAssignCourseDialog
             :open="assignDialogOpen"

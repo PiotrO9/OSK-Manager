@@ -14,7 +14,7 @@ const hasCourses = computed(() => props.courses.length > 0);
 </script>
 
 <template>
-    <section class="border-border rounded-lg border p-4 md:p-5">
+    <section class="border-border bg-muted/20 rounded-2xl border p-3">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div class="min-w-0 flex-1 space-y-1.5">
                 <label
@@ -27,7 +27,10 @@ const hasCourses = computed(() => props.courses.length > 0);
                     v-model="selectedCourseId"
                     :disabled="disabled || isLoading || !hasCourses"
                 >
-                    <UiSelectTrigger id="student-booking-course" class="w-full">
+                    <UiSelectTrigger
+                        id="student-booking-course"
+                        class="bg-background h-11 w-full rounded-xl"
+                    >
                         <UiSelectValue placeholder="Wybierz kurs" />
                     </UiSelectTrigger>
                     <UiSelectContent>
@@ -45,11 +48,11 @@ const hasCourses = computed(() => props.courses.length > 0);
             </div>
 
             <div
-                class="bg-muted text-muted-foreground flex min-h-10 items-center gap-2 rounded-md px-3 text-sm"
+                class="bg-background text-muted-foreground flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm"
                 aria-live="polite"
             >
                 <BookOpen class="size-4 shrink-0" aria-hidden="true" />
-                <span v-if="isLoading">Wczytywanie kursow...</span>
+                <span v-if="isLoading">Wczytywanie kursów...</span>
                 <span v-else>{{ courses.length }} aktywne</span>
             </div>
         </div>
@@ -59,7 +62,7 @@ const hasCourses = computed(() => props.courses.length > 0);
             class="text-muted-foreground mt-3 text-sm"
             role="status"
         >
-            Brak aktywnych kursow praktycznych do rezerwacji.
+            Brak aktywnych kursów praktycznych do rezerwacji.
         </p>
     </section>
 </template>

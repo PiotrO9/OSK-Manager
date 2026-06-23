@@ -54,7 +54,7 @@ Przy kazdym widoku sprawdz:
 ### Manager Students List
 
 Path: `app/pages/manager/students/index.vue`  
-Status: `[ ]`  
+Status: `[~]`  
 Priority: `P0`  
 Role: `manager`  
 Type: `list`
@@ -67,7 +67,7 @@ Current components:
 - `UiSelect`
 - `UiLabel`
 - `NuxtLink`
-- icons: `Users`, `UserPlus`
+- icons: `UserPlus`
 
 Currently contains:
 
@@ -91,6 +91,13 @@ After redesign should contain:
 - `EmptyState`, `LoadingState`, `ErrorState`;
 - dialog styling aligned with `FormSection`.
 
+Implementation notes:
+
+- Use generated references `07-manager-students-list-desktop.png` and `07-manager-students-list-mobile.png`.
+- Keep the existing table, pagination, create dialog, assign dialog and route/query behavior.
+- Do not add mock-only metrics from the reference. The current API exposes only the student list fields, so summary cards should use real data such as total students, visible rows, active rows on the current page and rows with PKK.
+- On mobile, use compact student cards instead of forcing the desktop table into a narrow viewport.
+
 Do not lose:
 
 - `schoolId` query handling;
@@ -105,7 +112,7 @@ Do not lose:
 ### Manager Student Details
 
 Path: `app/pages/manager/students/[userId].vue`  
-Status: `[ ]`  
+Status: `[x]`  
 Priority: `P1`  
 Role: `manager`  
 Type: `details`
@@ -149,6 +156,13 @@ Do not lose:
 - payments section;
 - weekly lessons section;
 - dynamic page title from student name.
+
+Implementation notes:
+
+- Use generated references `08-manager-student-details-desktop.png` and `08-manager-student-details-mobile.png`.
+- Keep the existing profile load, notes edit/save, process status, payments, schedule and courses sections.
+- Do not add mock-only values for phone, school display name or profile active status because the current student details endpoint does not expose them.
+- Mobile should remain a single-column operational flow: profile summary, overview, process status, notes, schedule, payments and courses.
 
 ### Manager Instructors List
 
@@ -980,6 +994,13 @@ After redesign should contain:
 - `EmptyState`, `LoadingState`, `ErrorState`;
 - clear selected course and week context.
 
+Implemented notes:
+
+- desktop uses a weekly slot grid with day columns and hour rows;
+- mobile keeps a compact grouped list to avoid forcing a wide schedule grid;
+- right panel is a selected course/context panel, not a separate selected-slot confirmation step;
+- booking still happens directly from a real slot via the existing `bookOwnLesson` flow.
+
 Do not lose:
 
 - course selection;
@@ -1057,7 +1078,7 @@ Do not lose:
 ### My Reviews
 
 Path: `app/pages/my-reviews.vue`  
-Status: `[ ]`  
+Status: `[x]`  
 Priority: `P2`  
 Role: `instructor`  
 Type: `list`
@@ -1084,6 +1105,12 @@ Do not lose:
 - instructor middleware;
 - ratings data;
 - existing table behavior.
+
+Implementation notes:
+
+- Uses the generated references `31-my-reviews-desktop.png` and `31-my-reviews-mobile.png`.
+- Keeps the existing instructor ratings endpoint and computes the summary locally because `ratings/me` returns only the list.
+- Does not display the mockup category label (`Kat. B`) because the current rating payload does not expose course category data.
 
 ---
 
@@ -1350,12 +1377,12 @@ This spec covers all current `app/pages` entries:
 - [ ] `app/pages/manager/osk/new.vue`
 - [ ] `app/pages/manager/reviews/index.vue`
 - [ ] `app/pages/manager/schedule/index.vue`
-- [ ] `app/pages/manager/students/[userId].vue`
-- [ ] `app/pages/manager/students/index.vue`
+- [x] `app/pages/manager/students/[userId].vue`
+- [x] `app/pages/manager/students/index.vue`
 - [ ] `app/pages/my-courses.vue`
 - [ ] `app/pages/my-lessons.vue`
 - [ ] `app/pages/my-payments.vue`
-- [ ] `app/pages/my-reviews.vue`
+- [x] `app/pages/my-reviews.vue`
 - [ ] `app/pages/vehicles/[id]/edit.vue`
 - [ ] `app/pages/vehicles/[id]/index.vue`
 - [ ] `app/pages/vehicles/index.vue`
