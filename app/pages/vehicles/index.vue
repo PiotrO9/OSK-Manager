@@ -5,7 +5,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Pojazdy',
-    description: () => 'Lista pojazdów szkoły jazdy.',
+    description: () => 'Lista pojazdow szkoly jazdy.',
 });
 
 const {
@@ -33,16 +33,7 @@ const {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Pojazdy
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Lista pojazdów przypisanych do szkoły jazdy.
-            </p>
-        </div>
-
+    <div>
         <p
             v-if="contextMessage"
             class="text-muted-foreground text-sm"
