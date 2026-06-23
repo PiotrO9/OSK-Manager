@@ -1,4 +1,21 @@
 <script setup lang="ts">
+import {
+    Camera,
+    IdCard,
+    Info,
+    Mail,
+    Pencil,
+    Phone,
+    Save,
+    UserRound,
+    X,
+} from 'lucide-vue-next';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/shadcn/tooltip';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 
@@ -157,43 +174,113 @@ watch(canEditPhoneAndBio, (ok) => {
 
 const isDemoSession = computed(() => session.value?.userId === 'demo');
 
-const showProfileNamesEditButton = computed(() =>
-    Boolean(session.value && !isDemoSession.value && canEditProfileNames.value),
+const inlineProfileEditing = ref(false);
+
+const canEditInlineProfile = computed(
+    () =>
+        Boolean(session.value && !isDemoSession.value) &&
+        (canEditProfileNames.value || canEditPhoneAndBio.value),
 );
 
-const showProfileContactEditButton = computed(() =>
-    Boolean(session.value && !isDemoSession.value && canEditPhoneAndBio.value),
+const isInlineProfileSaving = computed(
+    () => isProfileNamesSaving.value || isProfileContactSaving.value,
 );
 
-const namesDialogOpen = ref(false);
-const contactDialogOpen = ref(false);
-
-function handleOpenNamesDialog() {
-    if (!session.value || isDemoSession.value) return;
+function handleStartInlineProfileEdit() {
+    if (!canEditInlineProfile.value) return;
 
     profileNamesError.value = '';
-    syncNameFormFromSession();
-    namesDialogOpen.value = true;
-}
-
-function handleNamesDialogOpenChange(open: boolean) {
-    namesDialogOpen.value = open;
-
-    if (!open) profileNamesError.value = '';
-}
-
-function handleOpenContactDialog() {
-    if (!session.value || isDemoSession.value) return;
-
     profileContactError.value = '';
+    syncNameFormFromSession();
     syncContactFormFromSession();
-    contactDialogOpen.value = true;
+    inlineProfileEditing.value = true;
 }
 
-function handleContactDialogOpenChange(open: boolean) {
-    contactDialogOpen.value = open;
+function handleCancelInlineProfileEdit() {
+    profileNamesError.value = '';
+    profileContactError.value = '';
+    syncNameFormFromSession();
+    syncContactFormFromSession();
+    inlineProfileEditing.value = false;
+}
 
-    if (!open) profileContactError.value = '';
+async function handleInlineProfileSubmit() {
+    if (!canEditInlineProfile.value || isInlineProfileSaving.value) return;
+
+    profileNamesError.value = '';
+    profileContactError.value = '';
+
+    const payload: {
+        firstName?: string;
+        lastName?: string;
+        phone?: string | null;
+        bio?: string | null;
+    } = {};
+
+    if (canEditProfileNames.value) {
+        const first = editFirstName.value.trim();
+        const last = editLastName.value.trim();
+
+        if (!first) {
+            profileNamesError.value = 'Imię jest wymagane.';
+
+            return;
+        }
+
+        if (!last) {
+            profileNamesError.value = 'Nazwisko jest wymagane.';
+
+            return;
+        }
+
+        if (
+            first.length > PROFILE_NAME_MAX_LEN ||
+            last.length > PROFILE_NAME_MAX_LEN
+        ) {
+            profileNamesError.value = `Każde pole może mieć co najwyżej ${PROFILE_NAME_MAX_LEN} znaków.`;
+
+            return;
+        }
+
+        payload.firstName = first;
+        payload.lastName = last;
+    }
+
+    if (canEditPhoneAndBio.value) {
+        const phone = editPhone.value.trim();
+        const bio = editBio.value.trim();
+
+        if (bio.length > PROFILE_BIO_MAX_LEN) {
+            profileContactError.value = `Opis może mieć co najwyżej ${PROFILE_BIO_MAX_LEN} znaków.`;
+
+            return;
+        }
+
+        payload.phone = phone.length > 0 ? phone : null;
+        payload.bio = bio.length > 0 ? bio : null;
+    }
+
+    isProfileNamesSaving.value = canEditProfileNames.value;
+    isProfileContactSaving.value = canEditPhoneAndBio.value;
+
+    try {
+        await patchProfile(payload);
+        inlineProfileEditing.value = false;
+
+        addToast({
+            variant: 'success',
+            title: 'Profil zaktualizowany',
+        });
+    } catch (err: unknown) {
+        addToast({
+            variant: 'error',
+            title: 'Nie zapisano zmian',
+            description: getApiFetchErrorMessage(err, 'Spróbuj ponownie.'),
+        });
+    } finally {
+        isProfileNamesSaving.value = false;
+        isProfileContactSaving.value = false;
+    }
 }
 
 const avatarFileInputRef = ref<HTMLInputElement | null>(null);
@@ -357,299 +444,348 @@ function formatProfileField(value: string | null | undefined): string {
 
     return value.trim();
 }
-
-async function handleProfileNamesSubmit() {
-    profileNamesError.value = '';
-
-    const first = editFirstName.value.trim();
-    const last = editLastName.value.trim();
-
-    if (!first) {
-        profileNamesError.value = 'Imię jest wymagane.';
-
-        return;
-    }
-
-    if (!last) {
-        profileNamesError.value = 'Nazwisko jest wymagane.';
-
-        return;
-    }
-
-    if (
-        first.length > PROFILE_NAME_MAX_LEN ||
-        last.length > PROFILE_NAME_MAX_LEN
-    ) {
-        profileNamesError.value = `Każde pole może mieć co najwyżej ${PROFILE_NAME_MAX_LEN} znaków.`;
-
-        return;
-    }
-
-    if (isProfileNamesSaving.value) return;
-
-    isProfileNamesSaving.value = true;
-
-    try {
-        await patchProfile({ firstName: first, lastName: last });
-
-        namesDialogOpen.value = false;
-
-        addToast({
-            variant: 'success',
-            title: 'Profil zaktualizowany',
-        });
-    } catch (err: unknown) {
-        addToast({
-            variant: 'error',
-            title: 'Nie zapisano zmian',
-            description: getApiFetchErrorMessage(err, 'Spróbuj ponownie.'),
-        });
-    } finally {
-        isProfileNamesSaving.value = false;
-    }
-}
-
-async function handleProfileContactSubmit() {
-    profileContactError.value = '';
-
-    const phone = editPhone.value.trim();
-    const bio = editBio.value.trim();
-
-    if (!phone && !bio) {
-        profileContactError.value =
-            'Podaj numer telefonu lub treść w polu „O mnie” (albo oba).';
-
-        return;
-    }
-
-    if (bio.length > PROFILE_BIO_MAX_LEN) {
-        profileContactError.value = `Opis może mieć co najwyżej ${PROFILE_BIO_MAX_LEN} znaków.`;
-
-        return;
-    }
-
-    if (isProfileContactSaving.value) return;
-
-    isProfileContactSaving.value = true;
-
-    try {
-        await patchProfile({
-            phone: phone.length > 0 ? phone : null,
-            bio: bio.length > 0 ? bio : null,
-        });
-
-        contactDialogOpen.value = false;
-
-        addToast({
-            variant: 'success',
-            title: 'Profil zaktualizowany',
-        });
-    } catch (err: unknown) {
-        addToast({
-            variant: 'error',
-            title: 'Nie zapisano zmian',
-            description: getApiFetchErrorMessage(err, 'Spróbuj ponownie.'),
-        });
-    } finally {
-        isProfileContactSaving.value = false;
-    }
-}
 </script>
 
 <template>
-    <div class="mx-auto w-full max-w-lg space-y-6">
-        <div>
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Moje konto
-            </h1>
-            <p class="text-muted-foreground mt-1 text-sm">
-                Podgląd danych profilu i zmiana zdjęcia używanego jako avatar.
-            </p>
+    <div class="mx-auto w-full max-w-[1120px] space-y-5 md:space-y-6">
+        <div
+            class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
+        >
+            <div>
+                <h1
+                    class="text-foreground text-2xl leading-tight font-bold tracking-tight md:text-3xl"
+                >
+                    Konto użytkownika
+                </h1>
+                <p
+                    class="text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed"
+                >
+                    Dane profilu, rola i ustawienia konta w jednym miejscu.
+                </p>
+            </div>
+
+            <div v-if="canEditInlineProfile" class="flex flex-wrap gap-2">
+                <UiButton
+                    v-if="!inlineProfileEditing"
+                    type="button"
+                    variant="outline"
+                    class="gap-2"
+                    :disabled="isInlineProfileSaving"
+                    aria-label="Włącz edycję profilu"
+                    @click="handleStartInlineProfileEdit"
+                >
+                    <Pencil class="size-4" aria-hidden="true" />
+                    Edytuj profil
+                </UiButton>
+                <UiButton
+                    v-if="inlineProfileEditing"
+                    type="button"
+                    variant="outline"
+                    class="gap-2"
+                    :disabled="isInlineProfileSaving"
+                    aria-label="Anuluj edycję profilu"
+                    @click="handleCancelInlineProfileEdit"
+                >
+                    <X class="size-4" aria-hidden="true" />
+                    Anuluj
+                </UiButton>
+                <UiButton
+                    v-if="inlineProfileEditing"
+                    type="button"
+                    class="gap-2"
+                    :disabled="isInlineProfileSaving"
+                    :aria-busy="isInlineProfileSaving"
+                    aria-label="Zapisz profil"
+                    @click="handleInlineProfileSubmit"
+                >
+                    <Save class="size-4" aria-hidden="true" />
+                    {{ isInlineProfileSaving ? 'Zapisywanie...' : 'Zapisz' }}
+                </UiButton>
+            </div>
         </div>
 
-        <UiCard aria-label="Karta: dane konta">
-            <UiCardHeader>
-                <UiCardTitle>Profil</UiCardTitle>
-            </UiCardHeader>
-            <UiCardContent class="space-y-6">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div class="grid gap-4">
+            <UiCard
+                class="border-border bg-card overflow-hidden rounded-2xl shadow-sm"
+                aria-label="Karta: dane konta"
+            >
+                <UiCardContent class="flex flex-col gap-4 px-6 py-0">
                     <div
-                        class="border-border bg-muted/40 relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-full border"
-                        aria-hidden="true"
+                        class="border-border/70 bg-muted/20 flex flex-col gap-4 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center"
                     >
-                        <img
-                            v-if="showAvatarImage"
-                            :src="avatarSrc"
-                            alt=""
-                            class="size-full object-cover"
-                            loading="lazy"
-                            @error="handleAvatarImageError"
-                        />
-                        <span
-                            v-else
-                            class="text-muted-foreground text-xl font-semibold tracking-tight"
+                        <div
+                            class="border-border bg-muted/40 relative flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border"
+                            aria-hidden="true"
                         >
-                            {{ userInitials }}
-                        </span>
+                            <img
+                                v-if="showAvatarImage"
+                                :src="avatarSrc"
+                                alt=""
+                                class="size-full object-cover"
+                                loading="lazy"
+                                @error="handleAvatarImageError"
+                            />
+                            <span
+                                v-else
+                                class="text-foreground text-2xl font-bold tracking-tight"
+                            >
+                                {{ userInitials }}
+                            </span>
+                            <span
+                                class="bg-primary text-primary-foreground absolute right-2 bottom-2 inline-flex size-8 items-center justify-center rounded-full shadow-sm"
+                                aria-hidden="true"
+                            >
+                                <Camera class="size-4" />
+                            </span>
+                        </div>
+                        <div class="min-w-0 flex-1 space-y-3">
+                            <input
+                                ref="avatarFileInputRef"
+                                type="file"
+                                class="sr-only"
+                                accept="image/jpeg,image/png,image/webp"
+                                aria-label="Wybierz plik obrazu avatara"
+                                :disabled="
+                                    isDemoSession || isAvatarUploadLoading
+                                "
+                                @change="handleAvatarFileChange"
+                            />
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <p
+                                        class="text-foreground text-sm font-semibold"
+                                    >
+                                        Zdjęcie profilowe
+                                    </p>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger as-child>
+                                                <button
+                                                    type="button"
+                                                    class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                                    aria-label="Wymagania zdjęcia profilowego"
+                                                >
+                                                    <Info
+                                                        class="size-4"
+                                                        aria-hidden="true"
+                                                    />
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent
+                                                side="right"
+                                                align="center"
+                                            >
+                                                JPEG, PNG lub WebP, do 5 MB.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                                <p
+                                    v-if="isDemoSession"
+                                    class="text-muted-foreground text-sm"
+                                    role="status"
+                                >
+                                    W trybie demo nie można przesłać avatara.
+                                </p>
+                            </div>
+                            <UiButton
+                                type="button"
+                                variant="secondary"
+                                :disabled="
+                                    isDemoSession || isAvatarUploadLoading
+                                "
+                                :aria-busy="isAvatarUploadLoading"
+                                @click="handleChooseAvatarClick"
+                                @keydown="handleChooseAvatarKeyDown"
+                            >
+                                {{
+                                    isAvatarUploadLoading
+                                        ? 'Wysyłanie…'
+                                        : 'Zmień avatar'
+                                }}
+                            </UiButton>
+                        </div>
                     </div>
-                    <div class="min-w-0 flex-1 space-y-3">
-                        <input
-                            ref="avatarFileInputRef"
-                            type="file"
-                            class="sr-only"
-                            accept="image/jpeg,image/png,image/webp"
-                            aria-label="Wybierz plik obrazu avatara"
-                            :disabled="isDemoSession || isAvatarUploadLoading"
-                            @change="handleAvatarFileChange"
-                        />
-                        <UiButton
-                            type="button"
-                            variant="secondary"
-                            :disabled="isDemoSession || isAvatarUploadLoading"
-                            :aria-busy="isAvatarUploadLoading"
-                            @click="handleChooseAvatarClick"
-                            @keydown="handleChooseAvatarKeyDown"
-                        >
-                            {{
-                                isAvatarUploadLoading
-                                    ? 'Wysyłanie…'
-                                    : 'Zmień avatar'
-                            }}
-                        </UiButton>
-                        <p
-                            v-if="isDemoSession"
-                            class="text-muted-foreground text-sm"
-                            role="status"
-                        >
-                            W trybie demo nie można przesłać avatara.
-                        </p>
-                        <p v-else class="text-muted-foreground text-xs">
-                            JPEG, PNG lub WebP, do 5 MB.
-                        </p>
-                    </div>
-                </div>
 
-                <dl class="space-y-3 text-sm">
-                    <div
-                        class="flex flex-wrap items-start justify-between gap-3"
-                    >
-                        <div class="min-w-0 flex-1">
-                            <dt class="text-muted-foreground font-medium">
-                                Imię i nazwisko
+                    <dl class="grid gap-4 text-sm sm:grid-cols-2">
+                        <div
+                            class="flex flex-wrap items-start justify-between gap-3 sm:col-span-2"
+                        >
+                            <div class="min-w-0 flex-1">
+                                <dt
+                                    class="text-foreground flex items-center gap-2 text-xs font-semibold"
+                                >
+                                    <UserRound
+                                        class="text-muted-foreground size-4"
+                                        aria-hidden="true"
+                                    />
+                                    Imię i nazwisko
+                                </dt>
+                                <div
+                                    v-if="
+                                        inlineProfileEditing &&
+                                        canEditProfileNames
+                                    "
+                                    class="mt-2 grid gap-3 sm:grid-cols-2"
+                                >
+                                    <label class="grid gap-1.5">
+                                        <span
+                                            class="text-muted-foreground text-xs font-medium"
+                                        >
+                                            Imię
+                                        </span>
+                                        <UiInput
+                                            v-model="editFirstName"
+                                            :maxlength="PROFILE_NAME_MAX_LEN"
+                                            autocomplete="given-name"
+                                            :disabled="isInlineProfileSaving"
+                                            aria-label="Imię"
+                                        />
+                                    </label>
+                                    <label class="grid gap-1.5">
+                                        <span
+                                            class="text-muted-foreground text-xs font-medium"
+                                        >
+                                            Nazwisko
+                                        </span>
+                                        <UiInput
+                                            v-model="editLastName"
+                                            :maxlength="PROFILE_NAME_MAX_LEN"
+                                            autocomplete="family-name"
+                                            :disabled="isInlineProfileSaving"
+                                            aria-label="Nazwisko"
+                                        />
+                                    </label>
+                                    <p
+                                        v-if="profileNamesError"
+                                        class="text-destructive text-xs font-medium sm:col-span-2"
+                                    >
+                                        {{ profileNamesError }}
+                                    </p>
+                                </div>
+                                <dd
+                                    v-else
+                                    class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 font-medium"
+                                >
+                                    {{ displayName }}
+                                </dd>
+                            </div>
+                        </div>
+                        <div v-if="session?.email">
+                            <dt
+                                class="text-foreground flex items-center gap-2 text-xs font-semibold"
+                            >
+                                <Mail
+                                    class="text-muted-foreground size-4"
+                                    aria-hidden="true"
+                                />
+                                Email
                             </dt>
-                            <dd class="text-foreground mt-0.5 font-medium">
-                                {{ displayName }}
+                            <dd
+                                class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 break-all"
+                            >
+                                {{ session.email }}
                             </dd>
                         </div>
-                        <UiButton
-                            v-if="showProfileNamesEditButton"
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            class="shrink-0"
-                            :disabled="
-                                isProfileNamesSaving || isProfileContactSaving
-                            "
-                            aria-label="Otwórz edycję imienia i nazwiska"
-                            @click="handleOpenNamesDialog"
-                        >
-                            Zmień
-                        </UiButton>
-                    </div>
-                    <div v-if="session?.email">
-                        <dt class="text-muted-foreground font-medium">
-                            E-mail
-                        </dt>
-                        <dd class="text-foreground mt-0.5 break-all">
-                            {{ session.email }}
-                        </dd>
-                    </div>
-                    <div v-if="session?.role">
-                        <dt class="text-muted-foreground font-medium">Rola</dt>
-                        <dd class="mt-0.5">
-                            <UiBadge
-                                :variant="sessionRoleBadge.variant"
-                                :class="sessionRoleBadge.class"
-                                class="cursor-default text-xs"
+                        <div v-if="session?.role">
+                            <dt
+                                class="text-foreground flex items-center gap-2 text-xs font-semibold"
                             >
-                                {{ sessionRoleBadge.label }}
-                            </UiBadge>
-                        </dd>
-                    </div>
-                    <div v-if="isStudentSession">
-                        <dt class="text-muted-foreground font-medium">
-                            Numer PKK
-                        </dt>
-                        <dd
-                            class="text-foreground mt-0.5 font-medium"
-                            :class="{
-                                'text-muted-foreground': isAccountPkkMissing,
-                            }"
+                                <IdCard
+                                    class="text-muted-foreground size-4"
+                                    aria-hidden="true"
+                                />
+                                Rola
+                            </dt>
+                            <dd class="mt-2">
+                                <UiBadge
+                                    :variant="sessionRoleBadge.variant"
+                                    :class="sessionRoleBadge.class"
+                                    class="cursor-default text-xs"
+                                >
+                                    {{ sessionRoleBadge.label }}
+                                </UiBadge>
+                            </dd>
+                        </div>
+                        <div v-if="isStudentSession">
+                            <dt class="text-foreground text-xs font-semibold">
+                                Numer PKK
+                            </dt>
+                            <dd
+                                class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 font-medium"
+                                :class="{
+                                    'text-muted-foreground':
+                                        isAccountPkkMissing,
+                                }"
+                            >
+                                {{ accountPkkNumber }}
+                            </dd>
+                        </div>
+                        <div v-if="session && session.phone !== undefined">
+                            <dt
+                                class="text-foreground flex items-center gap-2 text-xs font-semibold"
+                            >
+                                <Phone
+                                    class="text-muted-foreground size-4"
+                                    aria-hidden="true"
+                                />
+                                Telefon
+                            </dt>
+                            <UiInput
+                                v-if="
+                                    inlineProfileEditing && canEditPhoneAndBio
+                                "
+                                v-model="editPhone"
+                                type="tel"
+                                autocomplete="tel"
+                                class="mt-2"
+                                :disabled="isInlineProfileSaving"
+                                aria-label="Telefon"
+                            />
+                            <dd
+                                v-else
+                                class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5"
+                            >
+                                {{ formatProfileField(session.phone) }}
+                            </dd>
+                        </div>
+                        <div
+                            v-if="session && session.bio !== undefined"
+                            class="sm:col-span-2"
                         >
-                            {{ accountPkkNumber }}
-                        </dd>
-                    </div>
-                    <div
-                        v-if="showProfileContactEditButton"
-                        class="flex justify-end pt-0.5"
-                    >
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            :disabled="
-                                isProfileNamesSaving || isProfileContactSaving
-                            "
-                            aria-label="Otwórz edycję telefonu i opisu profilu"
-                            @click="handleOpenContactDialog"
-                        >
-                            Edytuj telefon i opis
-                        </UiButton>
-                    </div>
-                    <div v-if="session && session.phone !== undefined">
-                        <dt class="text-muted-foreground font-medium">
-                            Telefon
-                        </dt>
-                        <dd class="text-foreground mt-0.5">
-                            {{ formatProfileField(session.phone) }}
-                        </dd>
-                    </div>
-                    <div v-if="session && session.bio !== undefined">
-                        <dt class="text-muted-foreground font-medium">
-                            O mnie
-                        </dt>
-                        <dd class="text-foreground mt-0.5 whitespace-pre-wrap">
-                            {{ formatProfileField(session.bio) }}
-                        </dd>
-                    </div>
-                </dl>
-            </UiCardContent>
-        </UiCard>
-
-        <AccountProfileNamesFormDialog
-            :open="namesDialogOpen"
-            :first-name="editFirstName"
-            :last-name="editLastName"
-            :is-saving="isProfileNamesSaving"
-            :error-message="profileNamesError"
-            :name-max-len="PROFILE_NAME_MAX_LEN"
-            @update:open="handleNamesDialogOpenChange"
-            @update:first-name="editFirstName = $event"
-            @update:last-name="editLastName = $event"
-            @submit="handleProfileNamesSubmit"
-        />
-
-        <AccountProfileContactFormDialog
-            :open="contactDialogOpen"
-            :phone="editPhone"
-            :bio="editBio"
-            :is-saving="isProfileContactSaving"
-            :error-message="profileContactError"
-            :bio-max-len="PROFILE_BIO_MAX_LEN"
-            @update:open="handleContactDialogOpenChange"
-            @update:phone="editPhone = $event"
-            @update:bio="editBio = $event"
-            @submit="handleProfileContactSubmit"
-        />
+                            <dt class="text-foreground text-xs font-semibold">
+                                O mnie
+                            </dt>
+                            <UiTextarea
+                                v-if="
+                                    inlineProfileEditing && canEditPhoneAndBio
+                                "
+                                v-model="editBio"
+                                class="mt-2 min-h-28 resize-y"
+                                :maxlength="PROFILE_BIO_MAX_LEN"
+                                :disabled="isInlineProfileSaving"
+                                aria-label="O mnie"
+                            />
+                            <dd
+                                v-else
+                                class="border-border bg-background text-foreground mt-2 min-h-24 rounded-xl border px-3 py-2.5 leading-relaxed whitespace-pre-wrap"
+                            >
+                                {{ formatProfileField(session.bio) }}
+                            </dd>
+                            <p
+                                v-if="
+                                    inlineProfileEditing &&
+                                    canEditPhoneAndBio &&
+                                    profileContactError
+                                "
+                                class="text-destructive mt-2 text-xs font-medium"
+                            >
+                                {{ profileContactError }}
+                            </p>
+                        </div>
+                    </dl>
+                </UiCardContent>
+            </UiCard>
+        </div>
     </div>
 </template>
