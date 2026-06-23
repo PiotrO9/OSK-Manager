@@ -5,6 +5,10 @@
 1. **`NUXT_PUBLIC_API_BASE`** — bezpośrednio backend (Express itd.), używane m.in. przez [useApi.ts](../app/composables/useApi.ts) dla ścieżek względnych.
 2. **BFF Nuxt** — te same origin co front: ścieżki `/api/...` obsługiwane przez [server/api/](../server/api/). Z klienta buduje się je przez [resolveBffEndpoint](../app/utils/bffEndpoint.ts) (uwzględnia `NUXT_API_UPSTREAM` gdy ustawione).
 
+## Tryb BFF: upstream vs mock
+
+`NUXT_BFF_ADAPTER` może mieć wartość `upstream` albo `mock`. Gdy flaga jest pusta, działa kompatybilny fallback: BFF używa upstreamu, jeśli skonfigurowano `NUXT_API_UPSTREAM` lub `NUXT_PUBLIC_API_BASE`; w przeciwnym razie używa lokalnych mocków z `server/utils/mock*.ts`. Wymuszenie `NUXT_BFF_ADAPTER=mock` ignoruje skonfigurowany upstream, a `NUXT_BFF_ADAPTER=upstream` wymaga ustawionego URL backendu.
+
 ## Koperta odpowiedzi
 
 Backend zwraca obiekty z polem `success` i `data` lub `error`. Parsowanie:
