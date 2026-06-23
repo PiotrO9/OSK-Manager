@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowLeft, Save } from 'lucide-vue-next';
 import type { VehicleWritePayload } from '~/types/vehicle';
 
 definePageMeta({
@@ -8,11 +9,13 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Nowy pojazd',
-    description: () => 'Dodaj pojazd do szkoły jazdy.',
+    description: () => 'Dodaj pojazd do szkoly jazdy.',
 });
 
 const route = useRoute();
 const { createVehicle, isCreateLoading } = useVehiclesApi();
+
+const FORM_ID = 'vehicle-create-form';
 
 const apiError = ref<string | null>(null);
 
@@ -26,6 +29,11 @@ const schoolId = computed(() => {
 
     return t.length > 0 ? t : null;
 });
+
+const vehiclesListRoute = computed(() => ({
+    path: '/vehicles',
+    query: schoolId.value !== null ? { schoolId: schoolId.value } : undefined,
+}));
 
 async function handleVehicleSubmit(payload: VehicleWritePayload) {
     const sid = schoolId.value;
@@ -46,47 +54,77 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         });
     } catch (err) {
         apiError.value =
-            err instanceof Error ? err.message : 'Nie udało się dodać pojazdu.';
+            err instanceof Error ? err.message : 'Nie udalo sie dodac pojazdu.';
     }
 }
 </script>
 
 <template>
     <div class="space-y-6">
-        <div class="space-y-1">
-            <h1 class="text-foreground text-2xl font-semibold tracking-tight">
-                Nowy pojazd
-            </h1>
-            <p class="text-muted-foreground text-sm">
-                Dodaj pojazd przypisany do wybranej szkoły jazdy.
-            </p>
-        </div>
+        <PageHeader
+            title="Dodaj pojazd"
+            description="Wprowadz dane nowego pojazdu szkoleniowego."
+            eyebrow="Nowy pojazd"
+        >
+            <template #actions>
+                <UiButton as-child variant="outline">
+                    <NuxtLink :to="vehiclesListRoute">
+                        <ArrowLeft class="size-4" aria-hidden="true" />
+                        Anuluj
+                    </NuxtLink>
+                </UiButton>
+                <UiButton
+                    type="submit"
+                    :form="FORM_ID"
+                    :disabled="isCreateLoading || schoolId === null"
+                >
+                    <Save class="size-4" aria-hidden="true" />
+                    {{ isCreateLoading ? 'Zapisywanie...' : 'Zapisz pojazd' }}
+                </UiButton>
+            </template>
+        </PageHeader>
 
-        <p
+        <ErrorState
             v-if="schoolId === null"
-            class="text-muted-foreground text-sm"
-            role="status"
+            title="Brak kontekstu OSK"
+            description="Otworz te strone z listy pojazdow, aby zachowac identyfikator szkoly jazdy."
         >
-            Brak parametru szkoły. Otwórz tę stronę z listy pojazdów (link
-            „Dodaj pojazd”) lub dodaj
-            <span class="font-mono">?schoolId=…</span> w adresie URL.
-        </p>
+            <template #action>
+                <UiButton as-child variant="outline" class="bg-background">
+                    <NuxtLink to="/vehicles">Wroc do listy</NuxtLink>
+                </UiButton>
+            </template>
+        </ErrorState>
 
-        <VehicleForm
+        <FormSection
             v-else
-            mode="create"
-            :initial-vehicle="null"
-            :is-saving="isCreateLoading"
-            :api-error="apiError"
-            @submit="handleVehicleSubmit"
-        />
-
-        <NuxtLink
-            v-if="schoolId !== null"
-            :to="{ path: '/vehicles', query: { schoolId } }"
-            class="text-primary inline-flex text-sm font-medium underline-offset-4 hover:underline"
+            title="Dodaj pojazd"
+            description="Formularz jest podzielony na logiczne pola bez zmiany walidacji i flow zapisu."
         >
-            Wróć do listy pojazdów
-        </NuxtLink>
+            <VehicleForm
+                :form-id="FORM_ID"
+                mode="create"
+                :initial-vehicle="null"
+                :is-saving="isCreateLoading"
+                :api-error="apiError"
+                hide-default-actions
+                @submit="handleVehicleSubmit"
+            />
+
+            <template #footer>
+                <ActionGroup label="Akcje formularza" align="end">
+                    <UiButton as-child variant="outline">
+                        <NuxtLink :to="vehiclesListRoute">Anuluj</NuxtLink>
+                    </UiButton>
+                    <UiButton
+                        type="submit"
+                        :form="FORM_ID"
+                        :disabled="isCreateLoading"
+                    >
+                        {{ isCreateLoading ? 'Zapisywanie...' : 'Zapisz' }}
+                    </UiButton>
+                </ActionGroup>
+            </template>
+        </FormSection>
     </div>
 </template>
