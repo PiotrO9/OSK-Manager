@@ -1,6 +1,3 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeStudentListPage,
     normalizeStudentProcessStatus,
@@ -53,87 +50,44 @@ function normalizeCourseParticipant(
     return { id, courseId, studentId, createdAt };
 }
 
+function buildStudentsListPath(params: StudentsListQuery): string {
+    const qs = new URLSearchParams({
+        schoolId: params.schoolId.trim(),
+        page: String(params.page),
+        limit: String(params.limit),
+    });
+
+    const courseId = params.courseId?.trim();
+
+    if (courseId) {
+        qs.set('courseId', courseId);
+    }
+
+    return `/api/students?${qs.toString()}`;
+}
+
 export function useStudentsApi() {
-    const _schoolId = ref<string | null>(null);
-    const _page = ref(1);
-    const _limit = ref(20);
-    const _courseId = ref<string | null>(null);
-
-    const listUrl = () => {
-        const id = _schoolId.value?.trim();
-
-        if (!id) {
-            return '';
-        }
-
-        const qs = new URLSearchParams({
-            schoolId: id,
-            page: String(_page.value),
-            limit: String(_limit.value),
-        });
-
-        const cid = _courseId.value?.trim();
-
-        if (cid) {
-            qs.set('courseId', cid);
-        }
-
-        return resolveBffEndpoint(`/api/students?${qs.toString()}`);
-    };
-
-    const {
-        execute: _execList,
-        isLoading: isListLoading,
-        error: listError,
-    } = useApi<unknown>('GET', listUrl);
+    const isListLoading = ref(false);
 
     async function fetchList(
         params: StudentsListQuery,
     ): Promise<StudentListPage> {
-        _schoolId.value = params.schoolId.trim();
-        _page.value = params.page;
-        _limit.value = params.limit;
+        isListLoading.value = true;
 
-        const trimmedCourse = params.courseId?.trim();
-
-        _courseId.value =
-            trimmedCourse && trimmedCourse.length > 0 ? trimmedCourse : null;
-
-        const raw = await _execList();
-
-        if (raw === null) {
-            const apiErr = listError.value;
-            const message = getApiFetchErrorMessage(
-                apiErr,
-                'Nie udało się pobrać listy kursantów.',
+        try {
+            return await requestBffData<StudentListPage>(
+                'GET',
+                buildStudentsListPath(params),
+                {
+                    fallbackMessage: 'Nie udało się pobrać listy kursantów.',
+                    invalidMessage:
+                        'Nieprawidłowa odpowiedź serwera (lista kursantów).',
+                    normalize: normalizeStudentListPage,
+                },
             );
-            const out = new Error(message) as Error & { statusCode?: number };
-
-            if (
-                apiErr !== null &&
-                typeof apiErr === 'object' &&
-                'statusCode' in apiErr
-            ) {
-                const code = (apiErr as { statusCode: unknown }).statusCode;
-
-                if (typeof code === 'number') {
-                    out.statusCode = code;
-                }
-            }
-
-            throw out;
+        } finally {
+            isListLoading.value = false;
         }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const pageData = normalizeStudentListPage(data);
-
-        if (!pageData) {
-            throw new Error(
-                'Nieprawidłowa odpowiedź serwera (lista kursantów).',
-            );
-        }
-
-        return pageData;
     }
 
     async function assignToCourse(
@@ -146,49 +100,17 @@ export function useStudentsApi() {
             throw new Error('Brak identyfikatora kursanta lub kursu.');
         }
 
-        try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/students/${encodeURIComponent(userId)}/courses`,
-                ),
-                {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: { courseId },
-                },
-            );
-
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const participant = normalizeCourseParticipant(data);
-
-            if (!participant) {
-                throw new Error(
+        return requestBffData<CourseParticipantDto>(
+            'POST',
+            `/api/students/${encodeURIComponent(userId)}/courses`,
+            {
+                body: { courseId },
+                fallbackMessage: 'Nie udało się zapisać kursanta na kurs.',
+                invalidMessage:
                     'Nieprawidłowa odpowiedź serwera (zapis na kurs).',
-                );
-            }
-
-            return participant;
-        } catch (err) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się zapisać kursanta na kurs.',
-            );
-            const out = new Error(message) as Error & { statusCode?: number };
-
-            if (
-                err !== null &&
-                typeof err === 'object' &&
-                'statusCode' in err
-            ) {
-                const code = (err as { statusCode: unknown }).statusCode;
-
-                if (typeof code === 'number') {
-                    out.statusCode = code;
-                }
-            }
-
-            throw out;
-        }
+                normalize: normalizeCourseParticipant,
+            },
+        );
     }
 
     async function fetchProcessStatus(
@@ -201,50 +123,23 @@ export function useStudentsApi() {
             throw new Error('Brak identyfikatora kursanta lub szkoły.');
         }
 
-        try {
-            const qs = new URLSearchParams({ schoolId });
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/students/${encodeURIComponent(userId)}/process-status?${qs.toString()}`,
-                ),
-                { method: 'GET', credentials: 'include' },
-            );
+        const qs = new URLSearchParams({ schoolId });
 
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const status = normalizeStudentProcessStatus(data);
-
-            if (!status) {
-                throw new Error(
+        return requestBffData<StudentProcessStatus>(
+            'GET',
+            `/api/students/${encodeURIComponent(userId)}/process-status?${qs.toString()}`,
+            {
+                fallbackMessage:
+                    'Nie udało się pobrać statusu procesu kursanta.',
+                invalidMessage:
                     'Nieprawidłowa odpowiedź serwera (status procesu kursanta).',
-                );
-            }
-
-            return status;
-        } catch (err) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać statusu procesu kursanta.',
-            );
-            const out = new Error(message) as Error & { statusCode?: number };
-
-            if (
-                err !== null &&
-                typeof err === 'object' &&
-                'statusCode' in err
-            ) {
-                const code = (err as { statusCode: unknown }).statusCode;
-
-                if (typeof code === 'number') {
-                    out.statusCode = code;
-                }
-            }
-
-            throw out;
-        }
+                normalize: normalizeStudentProcessStatus,
+            },
+        );
     }
 
     return {
-        isListLoading,
+        isListLoading: readonly(isListLoading),
         fetchList,
         assignToCourse,
         fetchProcessStatus,

@@ -1,8 +1,6 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
     assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
-    unwrapApiSuccessData,
 } from '~/utils/apiEnvelope';
 import {
     extractStudentAttendanceFromEvent,
@@ -415,16 +413,14 @@ export function useInstructorEventsApi() {
                 body.courseId = payload.courseId.trim();
             }
 
-            const raw = await $fetch<EventCreateResponse>(
-                resolveBffEndpoint('/api/events'),
+            const data = await requestBffData<EventCreateApiData>(
+                'POST',
+                '/api/events',
                 {
-                    method: 'POST',
-                    credentials: 'include',
                     body,
+                    fallbackMessage: 'Nie udało się utworzyć wydarzenia.',
                 },
             );
-
-            const data = unwrapApiSuccessData<EventCreateApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -446,17 +442,14 @@ export function useInstructorEventsApi() {
         }
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/events/${encodeURIComponent(eid)}/students`,
-                ),
+            const payload = await requestBffData<unknown>(
+                'GET',
+                `/api/events/${encodeURIComponent(eid)}/students`,
                 {
-                    method: 'GET',
-                    credentials: 'include',
+                    fallbackMessage:
+                        'Nie udało się pobrać kursantów wydarzenia.',
                 },
             );
-
-            const payload = unwrapApiSuccessData<unknown>(raw);
 
             return extractStudentUserIdsFromEventStudentsPayload(payload);
         } catch (err: unknown) {
@@ -488,17 +481,13 @@ export function useInstructorEventsApi() {
         try {
             const query =
                 options?.includeSlots === true ? '?includeSlots=true' : '';
-            const raw = await $fetch<EventGetResponse>(
-                resolveBffEndpoint(
-                    `/api/events/${encodeURIComponent(eid)}${query}`,
-                ),
+            const data = await requestBffData<EventGetApiData>(
+                'GET',
+                `/api/events/${encodeURIComponent(eid)}${query}`,
                 {
-                    method: 'GET',
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się pobrać wydarzenia.',
                 },
             );
-
-            const data = unwrapApiSuccessData<EventGetApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -563,16 +552,14 @@ export function useInstructorEventsApi() {
         try {
             const body = buildPatchRequestBody(payload);
 
-            const raw = await $fetch<EventPatchResponse>(
-                resolveBffEndpoint(`/api/events/${encodeURIComponent(eid)}`),
+            const data = await requestBffData<EventPatchApiData>(
+                'PATCH',
+                `/api/events/${encodeURIComponent(eid)}`,
                 {
-                    method: 'PATCH',
-                    credentials: 'include',
                     body,
+                    fallbackMessage: 'Nie udało się zapisać wydarzenia.',
                 },
             );
-
-            const data = unwrapApiSuccessData<EventPatchApiData>(raw);
 
             if (!data?.event || typeof data.event !== 'object') {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
@@ -601,17 +588,14 @@ export function useInstructorEventsApi() {
                 ? `?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`
                 : '';
 
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(
-                `/api/events/${encodeURIComponent(eid)}/eligible-students${query}`,
-            ),
+        const data = await requestBffData<unknown>(
+            'GET',
+            `/api/events/${encodeURIComponent(eid)}/eligible-students${query}`,
             {
-                method: 'GET',
-                credentials: 'include',
+                fallbackMessage:
+                    'Nie udało się pobrać kursantów dostępnych dla wydarzenia.',
             },
         );
-
-        const data = unwrapApiSuccessData<unknown>(raw);
         const normalized = normalizeTheoryEventEligibleStudents(data);
 
         if (!normalized) {
@@ -633,12 +617,9 @@ export function useInstructorEventsApi() {
         isDeleteLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(`/api/events/${encodeURIComponent(eid)}`),
-                {
-                    method: 'DELETE',
-                    credentials: 'include',
-                },
+            const raw = await bffFetch<unknown>(
+                'DELETE',
+                `/api/events/${encodeURIComponent(eid)}`,
             );
 
             assertBooleanSuccessEnvelope(raw);

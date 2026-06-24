@@ -1,5 +1,7 @@
 import { toValue } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
+import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -8,6 +10,12 @@ export interface ApiRequestOptions {
     body?: MaybeRefOrGetter<unknown>;
     headers?: Record<string, string>;
     skipAuth?: boolean;
+}
+
+export interface RequestBffDataOptions<T> extends ApiRequestOptions {
+    fallbackMessage: string;
+    invalidMessage?: string;
+    normalize?: (data: unknown) => T | null;
 }
 
 export interface ApiResponse<T = unknown> {
@@ -90,6 +98,57 @@ function createApiError(err: unknown, defaultMessage: string): Error {
     }
 
     return new Error(defaultMessage);
+}
+
+function createRequestBffDataError(
+    err: unknown,
+    fallbackMessage: string,
+): Error {
+    const message = getApiFetchErrorMessage(err, fallbackMessage);
+    const out = new Error(message) as ApiError;
+
+    if (err !== null && typeof err === 'object') {
+        if ('statusCode' in err) {
+            const code = (err as { statusCode: unknown }).statusCode;
+
+            if (typeof code === 'number') {
+                out.statusCode = code;
+            }
+        }
+
+        if ('data' in err) {
+            out.data = (err as { data: unknown }).data;
+        }
+    }
+
+    return out;
+}
+
+export async function requestBffData<T = unknown>(
+    method: Method,
+    path: string,
+    options: RequestBffDataOptions<T>,
+): Promise<T> {
+    try {
+        const raw = await bffFetch<unknown>(method, path, options);
+        const data = unwrapApiSuccessData<unknown>(raw);
+
+        if (!options.normalize) {
+            return data as T;
+        }
+
+        const normalized = options.normalize(data);
+
+        if (normalized === null) {
+            throw new Error(
+                options.invalidMessage ?? 'Nieprawidłowa odpowiedź serwera.',
+            );
+        }
+
+        return normalized;
+    } catch (err) {
+        throw createRequestBffDataError(err, options.fallbackMessage);
+    }
 }
 
 export async function bffFetch<T = unknown>(

@@ -11,30 +11,10 @@ import type {
     FreeWindow,
     InstructorEvent,
     PatchInstructorEventPayload,
-    TheoryEventEligibleStudentRow,
-    TheoryEventEligibleStudentsData,
 } from '~/types/instructorEvent';
-import type { StudentListItem } from '~/types/student';
 import { formatStudentDisplayName } from '~/types/student';
 import { theoryEligibleRowToStudentListItem } from '~/utils/theoryEventEligibleStudents';
-import {
-    isSlotWithinFreeWindows,
-    slotsToFreeWindows,
-} from '~/utils/freeWindows';
-import {
-    getAllowedHoursForDate,
-    getAllowedHoursForEnd,
-    getAllowedMinutesForDateHour,
-    getAllowedMinutesForEndHour,
-    getLocalDateBoundsForCalendar,
-    suggestDefaultEndLocal,
-} from '~/utils/eventEditFreeWindowsPicker';
-import {
-    buildDatetimeLocal,
-    isoDateStringToCalendarDate,
-    isoInstantToDatetimeLocalString,
-    parseDatetimeLocalParts,
-} from '~/utils/weeklyCalendarDates';
+import { isSlotWithinFreeWindows } from '~/utils/freeWindows';
 import type { Vehicle } from '~/types/vehicle';
 
 const route = useRoute();
@@ -90,28 +70,58 @@ const loadedEvent = ref<InstructorEvent | null>(null);
 const loadError = ref<string | null>(null);
 const notFound = ref(false);
 
-const formType = ref<'THEORY' | 'DRIVE'>('THEORY');
-const formStartLocal = ref('');
-const formEndLocal = ref('');
-/** Rozdzielone pola UI — synchronizowane z `formStartLocal` / `formEndLocal`. */
-const formStartDate = ref('');
-const formStartHour = ref(9);
-const formStartMinute = ref(0);
-const formEndDate = ref('');
-const formEndHour = ref(9);
-const formEndMinute = ref(0);
+const freeWindows = ref<FreeWindow[]>([]);
+const freeWindowsUnavailable = ref(false);
 
-const FULL_HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
+const {
+    formType,
+    formStartLocal,
+    formEndLocal,
+    formStartDate,
+    formStartHour,
+    formStartMinute,
+    formEndDate,
+    formEndHour,
+    formEndMinute,
+    formVehicleId,
+    formInstructorId,
+    formCapacityInput,
+    formError,
+    isFormFieldsDirty,
+    currentFormDate,
+    pickerMinDate,
+    pickerMaxDate,
+    startHourOptionsResolved,
+    startMinuteOptionsResolved,
+    endHourOptionsResolved,
+    endMinuteOptionsResolved,
+    applyPrefill,
+    parseCapacity,
+    localDatetimeToIso,
+    needsTimeOrInstructorSlotValidation,
+    handleStartDateChange,
+    handleStartHourChange,
+    handleStartMinuteChange,
+    handleEndDateChange,
+    handleEndHourChange,
+    handleEndMinuteChange,
+} = useManagerEventEditForm({
+    loadedEvent,
+    freeWindows,
+    freeWindowsUnavailable,
+});
 
-const FULL_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i);
-const formVehicleId = ref('');
-const formInstructorId = ref('');
-const { fetchSlots: fetchInstructorSlots, isLoading: isSlotsLoading } =
-    useInstructorSlotsApi(formInstructorId);
-/** `type="number"` + v-model może dać `number` lub `string`. */
-const formCapacityInput = ref<string | number>('');
-const formError = ref<string | null>(null);
-
+const {
+    isSlotsLoading,
+    syncFreeWindowsFromEvent,
+    refreshFreeWindowsFromSlots,
+    skipNextSlotsRefresh,
+} = useManagerEventSlots({
+    formInstructorId,
+    currentFormDate,
+    freeWindows,
+    freeWindowsUnavailable,
+});
 const vehicles = ref<Vehicle[]>([]);
 const vehiclesError = ref<string | null>(null);
 const isVehiclesLoading = ref(false);
@@ -120,12 +130,35 @@ const instructors = ref<InstructorListItem[]>([]);
 const instructorsError = ref<string | null>(null);
 const isInstructorsLoading = ref(false);
 
-const theoryStudentsError = ref<string | null>(null);
-const theoryEligibleData = ref<TheoryEventEligibleStudentsData | null>(null);
-const theoryEligibleError = ref<string | null>(null);
-const isTheoryEligibleLoading = ref(false);
+const {
+    theoryStudentsError,
+    theoryEligibleData,
+    theoryEligibleError,
+    isTheoryEligibleLoading,
+    theoryEligibleNoCourse,
+    draftTheoryStudentUserIds,
+    theoryCapacitySummary,
+    studentAttendanceKnown,
+    isTheoryStudentsDirty,
+    capacityForStudentPicker,
+    sortedStudentIds,
+    isTheoryRowChecked,
+    isTheoryEligibleRowInteractive,
+    handleToggleTheoryStudent,
+    loadTheoryEligibleStudents,
+    resetStudentDraftFromEvent,
+    refreshEligibleForCurrentTime,
+} = useManagerEventParticipants({
+    eventId,
+    loadedEvent,
+    formStartLocal,
+    formEndLocal,
+    formCapacityInput,
+    parseCapacity,
+    localDatetimeToIso,
+    fetchTheoryEventEligibleStudents,
+});
 /** Event THEORY bez `courseId` — brak endpointu eligible-students. */
-const theoryEligibleNoCourse = ref(false);
 
 /** Etykieta kursu przy `courseId` (teoria) — do podpowiedzi w UI. */
 const linkedCourseLabel = ref<string | null>(null);
@@ -150,513 +183,15 @@ const qualifiedInstructorsForEvent = computed((): InstructorListItem[] => {
 });
 
 /** Stan zapisany na serwerze (posortowany zestaw UUID) — do porównania z draftem. */
-const theoryStudentsBaseline = ref<string[]>([]);
 /** Zaznaczenia przed zapisem formularza (checkboxy). */
-const draftTheoryStudentUserIds = ref<string[]>([]);
 
 /** Wolne okna czasu instruktora (GET includeSlots lub przeliczone z GET …/availability/slots). */
-const freeWindows = ref<FreeWindow[]>([]);
 /** true gdy `freeWindows` jest pustą tablicą — brak dostępności w danym dniu. */
-const freeWindowsUnavailable = ref(false);
 /** Po `loadEvent` — pomiń jeden refresh slotów (unikaj podwójnego GET). */
-let skipSlotsRefreshAfterLoad = false;
 
 const isSaving = computed(() => isUpdateLoading.value || isReplacing.value);
 
 let loadSeq = 0;
-
-let eligibleDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-let eligibleSeq = 0;
-
-function isoToDatetimeLocal(iso: string): string {
-    return isoInstantToDatetimeLocalString(iso);
-}
-
-function localDatetimeToIso(local: string): string | null {
-    const t = local.trim();
-
-    if (!t) {
-        return null;
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return null;
-    }
-
-    return d.toISOString();
-}
-
-const ISO_DATE_LOCAL_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function isValidLocalDateString(s: string): boolean {
-    return ISO_DATE_LOCAL_RE.test(s.trim());
-}
-
-function hydrateStartSplitFromLocal(): void {
-    const v = formStartLocal.value.trim();
-    const p = parseDatetimeLocalParts(v);
-
-    if (!p) {
-        formStartDate.value = '';
-        formStartHour.value = 9;
-        formStartMinute.value = 0;
-
-        return;
-    }
-
-    formStartDate.value = `${p.date.year}-${String(p.date.month).padStart(2, '0')}-${String(p.date.day).padStart(2, '0')}`;
-    formStartHour.value = p.hour;
-    formStartMinute.value = p.minute;
-}
-
-function hydrateEndSplitFromLocal(): void {
-    const v = formEndLocal.value.trim();
-    const p = parseDatetimeLocalParts(v);
-
-    if (!p) {
-        formEndDate.value = '';
-        formEndHour.value = 9;
-        formEndMinute.value = 0;
-
-        return;
-    }
-
-    formEndDate.value = `${p.date.year}-${String(p.date.month).padStart(2, '0')}-${String(p.date.day).padStart(2, '0')}`;
-    formEndHour.value = p.hour;
-    formEndMinute.value = p.minute;
-}
-
-function clampStartTimeParts(): void {
-    const d = formStartDate.value.trim();
-
-    if (!isValidLocalDateString(d)) {
-        return;
-    }
-
-    const constraintsActive =
-        freeWindows.value.length > 0 && !freeWindowsUnavailable.value;
-
-    if (!constraintsActive) {
-        return;
-    }
-
-    const hAllowed = getAllowedHoursForDate(freeWindows.value, d);
-
-    if (hAllowed && hAllowed.length > 0) {
-        let h = formStartHour.value;
-
-        if (!hAllowed.includes(h)) {
-            h = hAllowed[0] ?? h;
-            formStartHour.value = h;
-        }
-    }
-
-    const mAllowed = getAllowedMinutesForDateHour(
-        freeWindows.value,
-        d,
-        formStartHour.value,
-    );
-
-    if (mAllowed && mAllowed.length > 0) {
-        let mi = formStartMinute.value;
-
-        if (!mAllowed.includes(mi)) {
-            mi = mAllowed[0] ?? mi;
-            formStartMinute.value = mi;
-        }
-    }
-}
-
-function clampEndTimeParts(): void {
-    const d = formEndDate.value.trim();
-
-    if (!isValidLocalDateString(d)) {
-        return;
-    }
-
-    const constraintsActive =
-        freeWindows.value.length > 0 && !freeWindowsUnavailable.value;
-
-    if (!constraintsActive) {
-        return;
-    }
-
-    const hAllowed = getAllowedHoursForEnd(
-        freeWindows.value,
-        formStartLocal.value.trim(),
-        d,
-    );
-
-    if (hAllowed && hAllowed.length > 0) {
-        let h = formEndHour.value;
-
-        if (!hAllowed.includes(h)) {
-            h = hAllowed[0] ?? h;
-            formEndHour.value = h;
-        }
-    }
-
-    const mAllowed = getAllowedMinutesForEndHour(
-        freeWindows.value,
-        formStartLocal.value.trim(),
-        d,
-        formEndHour.value,
-    );
-
-    if (mAllowed && mAllowed.length > 0) {
-        let mi = formEndMinute.value;
-
-        if (!mAllowed.includes(mi)) {
-            mi = mAllowed[0] ?? mi;
-            formEndMinute.value = mi;
-        }
-    }
-}
-
-function commitStartLocal(): void {
-    const d = formStartDate.value.trim();
-
-    if (!isValidLocalDateString(d)) {
-        formStartLocal.value = '';
-
-        return;
-    }
-
-    clampStartTimeParts();
-    const cd = isoDateStringToCalendarDate(d);
-
-    if (!cd) {
-        formStartLocal.value = '';
-
-        return;
-    }
-
-    formStartLocal.value = buildDatetimeLocal(
-        cd,
-        formStartHour.value,
-        formStartMinute.value,
-    );
-}
-
-function commitEndLocal(): void {
-    const d = formEndDate.value.trim();
-
-    if (!isValidLocalDateString(d)) {
-        formEndLocal.value = '';
-
-        return;
-    }
-
-    clampEndTimeParts();
-    const cd = isoDateStringToCalendarDate(d);
-
-    if (!cd) {
-        formEndLocal.value = '';
-
-        return;
-    }
-
-    formEndLocal.value = buildDatetimeLocal(
-        cd,
-        formEndHour.value,
-        formEndMinute.value,
-    );
-}
-
-function handleStartDateChange(event: Event): void {
-    const raw = (event.target as HTMLInputElement).value;
-
-    formStartDate.value = raw.trim();
-    clampStartTimeParts();
-    commitStartLocal();
-}
-
-function handleStartHourChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const h = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(h) || h < 0 || h > 23) {
-        return;
-    }
-
-    formStartHour.value = h;
-    clampStartTimeParts();
-    commitStartLocal();
-}
-
-function handleStartMinuteChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const m = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(m) || m < 0 || m > 59) {
-        return;
-    }
-
-    formStartMinute.value = m;
-    commitStartLocal();
-}
-
-function handleEndDateChange(event: Event): void {
-    const raw = (event.target as HTMLInputElement).value;
-
-    formEndDate.value = raw.trim();
-    clampEndTimeParts();
-    commitEndLocal();
-}
-
-function handleEndHourChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const h = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(h) || h < 0 || h > 23) {
-        return;
-    }
-
-    formEndHour.value = h;
-    clampEndTimeParts();
-    commitEndLocal();
-}
-
-function handleEndMinuteChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const m = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(m) || m < 0 || m > 59) {
-        return;
-    }
-
-    formEndMinute.value = m;
-    commitEndLocal();
-}
-
-watch(formStartLocal, () => {
-    hydrateStartSplitFromLocal();
-});
-
-watch(formEndLocal, () => {
-    hydrateEndSplitFromLocal();
-});
-
-function normalizeCapacityForCompare(cap: number | null | undefined): string {
-    if (cap === null || cap === undefined) {
-        return '';
-    }
-
-    if (!Number.isFinite(cap)) {
-        return '';
-    }
-
-    return String(Math.trunc(cap));
-}
-
-function applyPrefill(ev: InstructorEvent): void {
-    formType.value = ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY';
-    formStartLocal.value = isoToDatetimeLocal(ev.startTime ?? '');
-    formEndLocal.value = isoToDatetimeLocal(ev.endTime ?? '');
-    formVehicleId.value = ev.vehicleId?.trim() ? ev.vehicleId : '';
-    formInstructorId.value = (ev.instructorId ?? '').trim();
-    formCapacityInput.value =
-        ev.capacity !== undefined && ev.capacity !== null ? ev.capacity : '';
-    formError.value = null;
-}
-
-function parseCapacity(raw: unknown): number | null | false {
-    if (raw === null || raw === undefined) {
-        return null;
-    }
-
-    if (typeof raw === 'number') {
-        if (!Number.isFinite(raw)) {
-            return null;
-        }
-
-        if (raw < 0) {
-            return false;
-        }
-
-        return Math.trunc(raw);
-    }
-
-    const t = String(raw).trim();
-
-    if (t === '') {
-        return null;
-    }
-
-    const n = Number.parseInt(t, 10);
-
-    if (!Number.isFinite(n) || n < 0) {
-        return false;
-    }
-
-    return n;
-}
-
-const baselineSnapshot = computed((): Record<string, string> | null => {
-    const ev = loadedEvent.value;
-
-    if (!ev) {
-        return null;
-    }
-
-    return {
-        type: ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY',
-        start: isoToDatetimeLocal(ev.startTime ?? ''),
-        end: isoToDatetimeLocal(ev.endTime ?? ''),
-        vehicle: (ev.vehicleId ?? '').trim(),
-        capacity: normalizeCapacityForCompare(ev.capacity ?? null),
-        instructorId: (ev.instructorId ?? '').trim(),
-    };
-});
-
-const currentSnapshot = computed((): Record<string, string> | null => {
-    const capParsed = parseCapacity(formCapacityInput.value);
-    const cap = capParsed === false ? null : capParsed;
-
-    return {
-        type: formType.value,
-        start: formStartLocal.value,
-        end: formEndLocal.value,
-        vehicle: formType.value === 'DRIVE' ? formVehicleId.value.trim() : '',
-        capacity: normalizeCapacityForCompare(cap),
-        instructorId: formInstructorId.value.trim(),
-    };
-});
-
-function sortedStudentIds(ids: string[]): string[] {
-    return [...ids]
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .sort();
-}
-
-function draftIdBelongsToStudentRow(
-    row: StudentListItem,
-    assignedId: string,
-): boolean {
-    const t = assignedId.trim();
-
-    if (!t) {
-        return false;
-    }
-
-    if (t === row.userId.trim()) {
-        return true;
-    }
-
-    const pid = row.id?.trim();
-
-    return Boolean(pid && t === pid);
-}
-
-function isTheoryRowChecked(s: StudentListItem): boolean {
-    for (const raw of draftTheoryStudentUserIds.value) {
-        if (draftIdBelongsToStudentRow(s, raw)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-function getCanonicalParticipantUserIdForRow(s: StudentListItem): string {
-    return s.userId.trim() || s.id.trim();
-}
-
-const isFormFieldsDirty = computed((): boolean => {
-    const a = baselineSnapshot.value;
-    const b = currentSnapshot.value;
-
-    if (!a || !b) {
-        return false;
-    }
-
-    return JSON.stringify(a) !== JSON.stringify(b);
-});
-
-const instructorSelectLabel = computed((): string => {
-    const id = formInstructorId.value.trim();
-
-    if (!id) {
-        return '—';
-    }
-
-    const fromList = instructors.value.find((i) => i.id === id);
-
-    if (fromList) {
-        return formatInstructorDisplayName(fromList);
-    }
-
-    const embedded = loadedEvent.value?.eventInstructor;
-
-    if (embedded && embedded.id === id) {
-        return formatInstructorDisplayName(embedded);
-    }
-
-    return id;
-});
-
-const theoryCapacitySummary = computed((): string | null => {
-    const d = theoryEligibleData.value;
-
-    if (!d) {
-        return null;
-    }
-
-    const { limit, used, remaining } = d.capacity;
-
-    if (limit === null) {
-        return `Miejsca na evencie: ${used} (bez limitu)`;
-    }
-
-    const rem =
-        remaining === null ? '—' : String(Math.max(0, Math.trunc(remaining)));
-
-    return `Miejsca: ${used} / ${limit} (wolnych: ${rem})`;
-});
-
-const studentAttendanceKnown = computed(
-    (): boolean => loadedEvent.value?.studentAttendanceKnown ?? false,
-);
-
-/** Zmiana składu grupy (checkboxy) — nie zależy od `studentAttendanceKnown` (przycisk Zapisz musi reagować na draft vs baseline). */
-const isTheoryStudentsDirty = computed((): boolean => {
-    const ev = loadedEvent.value;
-
-    if (
-        !ev ||
-        String(ev.type ?? '')
-            .trim()
-            .toUpperCase() !== 'THEORY'
-    ) {
-        return false;
-    }
-
-    return (
-        JSON.stringify(sortedStudentIds(draftTheoryStudentUserIds.value)) !==
-        JSON.stringify(theoryStudentsBaseline.value)
-    );
-});
-
-const isFormDirty = computed(
-    (): boolean => isFormFieldsDirty.value || isTheoryStudentsDirty.value,
-);
-
-const capacityForStudentPicker = computed((): number | null => {
-    const parsed = parseCapacity(formCapacityInput.value);
-
-    if (parsed === false) {
-        return loadedEvent.value?.capacity ?? null;
-    }
-
-    if (parsed !== null) {
-        return parsed;
-    }
-
-    return loadedEvent.value?.capacity ?? null;
-});
 
 function getErrorStatusCode(err: unknown): number | undefined {
     if (typeof err !== 'object' || err === null) {
@@ -680,52 +215,6 @@ function isPatchParticipantConflict(err: unknown): boolean {
     const msg = getApiFetchErrorMessage(err, '').toLowerCase();
 
     return msg.includes('participant schedules');
-}
-
-/** Czy zmieniono początek, koniec lub instruktora względem baseline (walidacja wolnych okien). */
-function needsTimeOrInstructorSlotValidation(): boolean {
-    const a = baselineSnapshot.value;
-    const b = currentSnapshot.value;
-
-    if (!a || !b) {
-        return false;
-    }
-
-    return (
-        a.start !== b.start ||
-        a.end !== b.end ||
-        a.instructorId !== b.instructorId
-    );
-}
-
-function syncFreeWindowsFromEvent(ev: InstructorEvent): void {
-    const fw = ev.freeWindows;
-
-    if (!Array.isArray(fw)) {
-        return;
-    }
-
-    freeWindows.value = fw;
-    freeWindowsUnavailable.value = fw.length === 0;
-}
-
-async function refreshFreeWindowsFromSlots(date: string): Promise<void> {
-    const instId = formInstructorId.value.trim();
-    const d = date.trim();
-
-    if (!instId || !d) {
-        return;
-    }
-
-    try {
-        const slots = await fetchInstructorSlots(d, d);
-        const windows = slotsToFreeWindows(slots, d);
-
-        freeWindows.value = windows;
-        freeWindowsUnavailable.value = windows.length === 0;
-    } catch {
-        /* zachowaj poprzednie okna przy błędzie sieci */
-    }
 }
 
 async function loadEvent(): Promise<void> {
@@ -753,7 +242,7 @@ async function loadEvent(): Promise<void> {
         }
 
         loadedEvent.value = ev;
-        skipSlotsRefreshAfterLoad = true;
+        skipNextSlotsRefresh();
         applyPrefill(ev);
         syncFreeWindowsFromEvent(ev);
     } catch (err: unknown) {
@@ -837,45 +326,6 @@ async function loadInstructors(): Promise<void> {
     }
 }
 
-async function loadTheoryEligibleStudents(): Promise<void> {
-    theoryEligibleError.value = null;
-    theoryEligibleData.value = null;
-    theoryEligibleNoCourse.value = false;
-
-    const id = eventId.value.trim();
-    const ev = loadedEvent.value;
-
-    if (
-        !id ||
-        !ev ||
-        String(ev.type ?? '')
-            .trim()
-            .toUpperCase() !== 'THEORY'
-    ) {
-        return;
-    }
-
-    if (!ev.courseId?.trim()) {
-        theoryEligibleNoCourse.value = true;
-
-        return;
-    }
-
-    isTheoryEligibleLoading.value = true;
-
-    try {
-        theoryEligibleData.value = await fetchTheoryEventEligibleStudents(id);
-    } catch (err: unknown) {
-        theoryEligibleData.value = null;
-        theoryEligibleError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się wczytać listy kwalifikacji kursantów (kurs).',
-        );
-    } finally {
-        isTheoryEligibleLoading.value = false;
-    }
-}
-
 watch(
     eventId,
     () => {
@@ -927,308 +377,6 @@ watch(
     { immediate: true },
 );
 
-watch(
-    () =>
-        [
-            loadedEvent.value?.id ?? '',
-            String(loadedEvent.value?.type ?? '')
-                .trim()
-                .toUpperCase(),
-            loadedEvent.value?.courseId?.trim() ?? '',
-        ] as const,
-    () => {
-        void loadTheoryEligibleStudents();
-    },
-    { immediate: true },
-);
-
-watch(
-    () => {
-        const ev = loadedEvent.value;
-
-        if (!ev) {
-            return null;
-        }
-
-        const ids = ev.studentUserIds;
-        const arr = Array.isArray(ids)
-            ? ids.map((x) => String(x).trim()).filter(Boolean)
-            : [];
-
-        return [ev.id, sortedStudentIds(arr).join(',')] as const;
-    },
-    (key) => {
-        if (!key) {
-            theoryStudentsBaseline.value = [];
-            draftTheoryStudentUserIds.value = [];
-
-            return;
-        }
-
-        const ev = loadedEvent.value;
-
-        if (!ev) {
-            return;
-        }
-
-        const ids = ev.studentUserIds;
-        const arr = Array.isArray(ids)
-            ? ids.map((x) => String(x).trim()).filter(Boolean)
-            : [];
-
-        theoryStudentsBaseline.value = sortedStudentIds(arr);
-        draftTheoryStudentUserIds.value = [...arr];
-    },
-    { immediate: true },
-);
-
-const currentFormDate = computed(() => {
-    const d = formStartDate.value.trim();
-
-    if (isValidLocalDateString(d)) {
-        return d;
-    }
-
-    return formStartLocal.value.trim().slice(0, 10);
-});
-
-const pickerConstraintsActive = computed(
-    () => freeWindows.value.length > 0 && !freeWindowsUnavailable.value,
-);
-
-const pickerCalendarBounds = computed(() => {
-    if (!pickerConstraintsActive.value) {
-        return null;
-    }
-
-    return getLocalDateBoundsForCalendar(freeWindows.value);
-});
-
-const pickerMinDate = computed(() => pickerCalendarBounds.value?.minDate);
-
-const pickerMaxDate = computed(() => pickerCalendarBounds.value?.maxDate);
-
-const startDateStr = computed(() => {
-    const d = formStartDate.value.trim();
-
-    if (isValidLocalDateString(d)) {
-        return d;
-    }
-
-    return formStartLocal.value.trim().slice(0, 10);
-});
-
-const endDateStr = computed(() => {
-    const d = formEndDate.value.trim();
-
-    if (isValidLocalDateString(d)) {
-        return d;
-    }
-
-    return formEndLocal.value.trim().slice(0, 10);
-});
-
-const startHourOptions = computed(() => {
-    if (!pickerConstraintsActive.value) {
-        return undefined;
-    }
-
-    const d = startDateStr.value;
-
-    if (!isValidLocalDateString(d)) {
-        return undefined;
-    }
-
-    return getAllowedHoursForDate(freeWindows.value, d) ?? undefined;
-});
-
-const startMinuteOptions = computed(() => {
-    if (!pickerConstraintsActive.value) {
-        return undefined;
-    }
-
-    const d = startDateStr.value;
-
-    if (!isValidLocalDateString(d)) {
-        return undefined;
-    }
-
-    return (
-        getAllowedMinutesForDateHour(
-            freeWindows.value,
-            d,
-            formStartHour.value,
-        ) ?? undefined
-    );
-});
-
-const endHourOptions = computed(() => {
-    if (!pickerConstraintsActive.value) {
-        return undefined;
-    }
-
-    const d = endDateStr.value;
-
-    if (!isValidLocalDateString(d)) {
-        return undefined;
-    }
-
-    return (
-        getAllowedHoursForEnd(
-            freeWindows.value,
-            formStartLocal.value.trim(),
-            d,
-        ) ?? undefined
-    );
-});
-
-const endMinuteOptions = computed(() => {
-    if (!pickerConstraintsActive.value) {
-        return undefined;
-    }
-
-    const d = endDateStr.value;
-
-    if (!isValidLocalDateString(d)) {
-        return undefined;
-    }
-
-    return (
-        getAllowedMinutesForEndHour(
-            freeWindows.value,
-            formStartLocal.value.trim(),
-            d,
-            formEndHour.value,
-        ) ?? undefined
-    );
-});
-
-const startHourOptionsResolved = computed(
-    () => startHourOptions.value ?? FULL_HOUR_OPTIONS,
-);
-
-const startMinuteOptionsResolved = computed(
-    () => startMinuteOptions.value ?? FULL_MINUTE_OPTIONS,
-);
-
-const endHourOptionsResolved = computed(
-    () => endHourOptions.value ?? FULL_HOUR_OPTIONS,
-);
-
-const endMinuteOptionsResolved = computed(
-    () => endMinuteOptions.value ?? FULL_MINUTE_OPTIONS,
-);
-
-watch(
-    [currentFormDate, formInstructorId],
-    ([newDate, newInst], [oldDate, oldInst]) => {
-        if (skipSlotsRefreshAfterLoad) {
-            skipSlotsRefreshAfterLoad = false;
-
-            return;
-        }
-
-        if (newDate === oldDate && newInst === oldInst) {
-            return;
-        }
-
-        const d = newDate?.trim();
-        const ins = (newInst ?? '').trim();
-
-        if (!d || !ins) {
-            return;
-        }
-
-        void refreshFreeWindowsFromSlots(d);
-    },
-);
-
-watch([formStartLocal, formEndLocal], () => {
-    const ev = loadedEvent.value;
-    const id = eventId.value.trim();
-
-    if (
-        !id ||
-        !ev?.courseId?.trim() ||
-        String(ev.type ?? '')
-            .trim()
-            .toUpperCase() !== 'THEORY'
-    ) {
-        return;
-    }
-
-    const startIso = localDatetimeToIso(formStartLocal.value);
-    const endIso = localDatetimeToIso(formEndLocal.value);
-
-    if (!startIso || !endIso) {
-        return;
-    }
-
-    if (eligibleDebounceTimer) {
-        clearTimeout(eligibleDebounceTimer);
-    }
-
-    eligibleDebounceTimer = setTimeout(async () => {
-        const seq = ++eligibleSeq;
-
-        try {
-            const data = await fetchTheoryEventEligibleStudents(id, {
-                startTime: startIso,
-                endTime: endIso,
-            });
-
-            if (seq !== eligibleSeq) {
-                return;
-            }
-
-            theoryEligibleData.value = data;
-            theoryEligibleError.value = null;
-        } catch (err: unknown) {
-            if (seq !== eligibleSeq) {
-                return;
-            }
-
-            theoryEligibleError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się odświeżyć listy kursantów.',
-            );
-        }
-    }, 400);
-});
-
-watch([formStartLocal, formEndLocal], () => {
-    const startIso = localDatetimeToIso(formStartLocal.value);
-    const endIso = localDatetimeToIso(formEndLocal.value);
-
-    if (!startIso || !endIso) {
-        return;
-    }
-
-    const startT = new Date(startIso).getTime();
-    const endT = new Date(endIso).getTime();
-
-    if (endT <= startT) {
-        const suggested = suggestDefaultEndLocal(
-            pickerConstraintsActive.value ? freeWindows.value : [],
-            formStartLocal.value.trim(),
-        );
-
-        if (suggested) {
-            formEndLocal.value = suggested;
-
-            return;
-        }
-
-        formEndLocal.value = formStartLocal.value;
-    }
-});
-
-onBeforeUnmount(() => {
-    if (eligibleDebounceTimer) {
-        clearTimeout(eligibleDebounceTimer);
-    }
-});
-
 const scheduleBackHref = computed(() => {
     const ins =
         formInstructorId.value.trim() ||
@@ -1251,53 +399,6 @@ const scheduleBackHref = computed(() => {
 
 function handleCancel(): void {
     void navigateTo(scheduleBackHref.value);
-}
-
-function isTheoryEligibleRowInteractive(
-    row: TheoryEventEligibleStudentRow,
-): boolean {
-    return row.isAssignedToEvent || row.canAssign;
-}
-
-function handleToggleTheoryStudent(s: StudentListItem, next: boolean): void {
-    theoryStudentsError.value = null;
-
-    const cap = capacityForStudentPicker.value;
-
-    if (
-        next &&
-        cap !== null &&
-        !isTheoryRowChecked(s) &&
-        draftTheoryStudentUserIds.value.length >= Math.trunc(cap)
-    ) {
-        theoryStudentsError.value =
-            'Osiągnięto limit miejsc — odznacz kogoś lub zwiększ limit w danych bloku.';
-
-        return;
-    }
-
-    if (next) {
-        if (isTheoryRowChecked(s)) {
-            return;
-        }
-
-        const canonical = getCanonicalParticipantUserIdForRow(s);
-
-        if (!canonical) {
-            return;
-        }
-
-        draftTheoryStudentUserIds.value = [
-            ...draftTheoryStudentUserIds.value,
-            canonical,
-        ];
-
-        return;
-    }
-
-    draftTheoryStudentUserIds.value = draftTheoryStudentUserIds.value.filter(
-        (id) => !draftIdBelongsToStudentRow(s, id),
-    );
 }
 
 async function handleSubmit(): Promise<void> {
@@ -1479,16 +580,10 @@ async function handleSubmit(): Promise<void> {
                     applyPrefill(evReload);
                     syncFreeWindowsFromEvent(evReload);
 
-                    const ids = evReload.studentUserIds;
-                    const arr = Array.isArray(ids)
-                        ? ids.map((x) => String(x).trim()).filter(Boolean)
-                        : [];
-
-                    theoryStudentsBaseline.value = sortedStudentIds(arr);
-                    draftTheoryStudentUserIds.value = [...arr];
-
                     const startIso = localDatetimeToIso(formStartLocal.value);
                     const endIso = localDatetimeToIso(formEndLocal.value);
+
+                    resetStudentDraftFromEvent(evReload);
 
                     if (
                         evReload.courseId?.trim() &&
@@ -1498,12 +593,7 @@ async function handleSubmit(): Promise<void> {
                             .trim()
                             .toUpperCase() === 'THEORY'
                     ) {
-                        theoryEligibleData.value =
-                            await fetchTheoryEventEligibleStudents(id, {
-                                startTime: startIso,
-                                endTime: endIso,
-                            });
-                        theoryEligibleError.value = null;
+                        await refreshEligibleForCurrentTime();
                     } else {
                         await loadTheoryEligibleStudents();
                     }
