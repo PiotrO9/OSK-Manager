@@ -1,6 +1,10 @@
 import type { ScheduleLessonItem } from '~/types/schedule';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
+
+function normalizeScheduleItems(data: unknown): ScheduleLessonItem[] {
+    const items = (data as { items?: unknown } | null)?.items;
+
+    return Array.isArray(items) ? (items as ScheduleLessonItem[]) : [];
+}
 
 export function useSchoolScheduleApi() {
     const isLoading = ref(false);
@@ -26,18 +30,14 @@ export function useSchoolScheduleApi() {
         isLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/driving-schools/${encodeURIComponent(sid)}/schedule?${params.toString()}`,
-                ),
-                { credentials: 'include' },
+            return await requestBffData<ScheduleLessonItem[]>(
+                'GET',
+                `/api/driving-schools/${encodeURIComponent(sid)}/schedule?${params.toString()}`,
+                {
+                    fallbackMessage: 'Nie udało się pobrać harmonogramu.',
+                    normalize: normalizeScheduleItems,
+                },
             );
-
-            const data = unwrapApiSuccessData<{ items: ScheduleLessonItem[] }>(
-                raw,
-            );
-
-            return Array.isArray(data?.items) ? data.items : [];
         } finally {
             isLoading.value = false;
         }

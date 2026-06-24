@@ -1,7 +1,5 @@
 import { toValue } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import type { AvailabilitySlot } from '~/types/instructorSlots';
 
 function buildSlotsUrl(
@@ -14,9 +12,13 @@ function buildSlotsUrl(
         dateTo,
     });
 
-    return resolveBffEndpoint(
-        `/api/instructors/${encodeURIComponent(instructorId)}/availability/slots?${query.toString()}`,
-    );
+    return `/api/instructors/${encodeURIComponent(instructorId)}/availability/slots?${query.toString()}`;
+}
+
+function normalizeSlots(data: unknown): AvailabilitySlot[] {
+    const slots = (data as { slots?: unknown } | null)?.slots;
+
+    return Array.isArray(slots) ? (slots as AvailabilitySlot[]) : [];
 }
 
 export function useInstructorSlotsApi(instructorId: MaybeRefOrGetter<string>) {
@@ -42,15 +44,14 @@ export function useInstructorSlotsApi(instructorId: MaybeRefOrGetter<string>) {
         isLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(buildSlotsUrl(id, from, to), {
-                credentials: 'include',
-            });
-
-            const data = unwrapApiSuccessData<{ slots: AvailabilitySlot[] }>(
-                raw,
+            return await requestBffData<AvailabilitySlot[]>(
+                'GET',
+                buildSlotsUrl(id, from, to),
+                {
+                    fallbackMessage: 'Nie udało się pobrać dostępnych slotów.',
+                    normalize: normalizeSlots,
+                },
             );
-
-            return Array.isArray(data?.slots) ? data.slots : [];
         } finally {
             isLoading.value = false;
         }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ArrowLeft, CalendarDays, Save } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
     getApiErrorStatusCode,
@@ -758,34 +757,13 @@ async function handleSubmit(): Promise<void> {
 
 <template>
     <div class="space-y-6">
-        <PageHeader
-            title="Edytuj jazde"
-            description="Zmien instruktora, pojazd i termin lekcji bez naruszania przypisanego kursanta."
-            eyebrow="Edycja lekcji"
+        <ManagerLessonEditHeader
             :meta="lessonHeaderMeta"
-        >
-            <template #actions>
-                <UiButton
-                    variant="outline"
-                    type="button"
-                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    disabled
-                    aria-label="Termin lekcji"
-                >
-                    <CalendarDays class="size-4" aria-hidden="true" />
-                    {{ lessonDateLabel }}
-                </UiButton>
-                <UiButton
-                    type="submit"
-                    :form="FORM_ID"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    :disabled="!isFormDirty || isSaving || !loadedLesson"
-                >
-                    <Save class="size-4" aria-hidden="true" />
-                    {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
-                </UiButton>
-            </template>
-        </PageHeader>
+            :lesson-date-label="lessonDateLabel"
+            :form-id="FORM_ID"
+            :can-save="Boolean(loadedLesson) && isFormDirty"
+            :is-saving="isSaving"
+        />
 
         <LoadingState
             v-if="isFetchLoading && !loadedLesson"
@@ -981,24 +959,12 @@ async function handleSubmit(): Promise<void> {
                 </form>
 
                 <template #footer>
-                    <ActionGroup label="Akcje formularza" align="end">
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            @click="handleCancel"
-                        >
-                            <ArrowLeft class="size-4" aria-hidden="true" />
-                            Anuluj
-                        </UiButton>
-                        <UiButton
-                            type="submit"
-                            :form="FORM_ID"
-                            :disabled="!isFormDirty || isSaving"
-                            :aria-busy="isSaving"
-                        >
-                            {{ isSaving ? 'Zapisywanie...' : 'Zapisz' }}
-                        </UiButton>
-                    </ActionGroup>
+                    <ManagerLessonEditActions
+                        :form-id="FORM_ID"
+                        :can-save="isFormDirty"
+                        :is-saving="isSaving"
+                        @cancel="handleCancel"
+                    />
                 </template>
             </FormSection>
         </template>

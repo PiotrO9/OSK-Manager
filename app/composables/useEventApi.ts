@@ -3,9 +3,29 @@ import type {
     RemoveStudentsFromEventResponse,
     ReplaceStudentsOnEventResponse,
 } from '~/types/event';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+
+function isAssignResponse(
+    data: unknown,
+): data is AssignStudentsToEventResponse {
+    if (!data || typeof data !== 'object') {
+        return false;
+    }
+
+    const raw = data as Partial<AssignStudentsToEventResponse>;
+
+    return typeof raw.assigned === 'number' && typeof raw.skipped === 'number';
+}
+
+function isStudentIdsResponse(
+    data: unknown,
+): data is RemoveStudentsFromEventResponse & ReplaceStudentsOnEventResponse {
+    return (
+        !!data &&
+        typeof data === 'object' &&
+        Array.isArray((data as { studentUserIds?: unknown }).studentUserIds)
+    );
+}
 
 export function useEventApi() {
     const isAssigning = ref(false);
@@ -33,28 +53,16 @@ export function useEventApi() {
         assignError.value = null;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/events/${encodeURIComponent(eid)}/students`,
-                ),
+            return await requestBffData<AssignStudentsToEventResponse>(
+                'POST',
+                `/api/events/${encodeURIComponent(eid)}/students`,
                 {
-                    method: 'POST',
-                    credentials: 'include',
                     body: { studentIds },
+                    fallbackMessage: 'Nie udało się przypisać kursantów.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => (isAssignResponse(data) ? data : null),
                 },
             );
-
-            const data =
-                unwrapApiSuccessData<AssignStudentsToEventResponse>(raw);
-
-            if (
-                typeof data.assigned !== 'number' ||
-                typeof data.skipped !== 'number'
-            ) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return data;
         } catch (err: unknown) {
             assignError.value = getApiFetchErrorMessage(
                 err,
@@ -96,22 +104,17 @@ export function useEventApi() {
                     continue;
                 }
 
-                const raw = await $fetch<unknown>(
-                    resolveBffEndpoint(
-                        `/api/events/${encodeURIComponent(eid)}/students/${encodeURIComponent(uid)}`,
-                    ),
+                last = await requestBffData<RemoveStudentsFromEventResponse>(
+                    'DELETE',
+                    `/api/events/${encodeURIComponent(eid)}/students/${encodeURIComponent(uid)}`,
                     {
-                        method: 'DELETE',
-                        credentials: 'include',
+                        fallbackMessage:
+                            'Nie udało się usunąć kursantów z wydarzenia.',
+                        invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                        normalize: (data) =>
+                            isStudentIdsResponse(data) ? data : null,
                     },
                 );
-
-                last =
-                    unwrapApiSuccessData<RemoveStudentsFromEventResponse>(raw);
-
-                if (!Array.isArray(last.studentUserIds)) {
-                    throw new Error('Nieprawidłowa odpowiedź serwera.');
-                }
             }
 
             if (!last) {
@@ -145,25 +148,17 @@ export function useEventApi() {
         replaceError.value = null;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/events/${encodeURIComponent(eid)}/students`,
-                ),
+            return await requestBffData<ReplaceStudentsOnEventResponse>(
+                'PUT',
+                `/api/events/${encodeURIComponent(eid)}/students`,
                 {
-                    method: 'PUT',
-                    credentials: 'include',
                     body: { studentIds },
+                    fallbackMessage: 'Nie udało się zapisać listy kursantów.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) =>
+                        isStudentIdsResponse(data) ? data : null,
                 },
             );
-
-            const data =
-                unwrapApiSuccessData<ReplaceStudentsOnEventResponse>(raw);
-
-            if (!Array.isArray(data.studentUserIds)) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return data;
         } catch (err: unknown) {
             replaceError.value = getApiFetchErrorMessage(
                 err,

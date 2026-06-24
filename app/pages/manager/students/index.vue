@@ -13,12 +13,8 @@ import {
     formatStudentDisplayName,
     type StudentListItem,
 } from '~/types/student';
-import {
-    getApiErrorStatusCode,
-    unwrapApiSuccessData,
-} from '~/utils/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 
 definePageMeta({
     layout: 'app-shell',
@@ -35,28 +31,13 @@ const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
 const { fetchList: fetchCoursesList } = useCoursesApi();
 const { fetchList: fetchStudentsPage, assignToCourse } = useStudentsApi();
 const { addToast } = useAppToast();
-
-const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta kursanta.';
-
-const PAGE_LIMIT = 20;
-
-function resolveStudentRegisterError(err: unknown): string {
-    const status = getApiErrorStatusCode(err);
-
-    if (status === 403) {
-        return 'Brak uprawnień do tej operacji.';
-    }
-
-    if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
-    }
-
-    if (status === 400 || status === 409) {
-        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane lub konflikt.');
-    }
-
-    return getApiFetchErrorMessage(err, REGISTER_GENERIC_FALLBACK);
-}
+const {
+    isSaving: isFormSaving,
+    apiError,
+    createStudent,
+    clearCreateError,
+    resolveStudentRegisterError,
+} = useManagerStudentCreate();
 
 function resolveAssignToCourseError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
@@ -137,8 +118,6 @@ const isStudentsLoading = ref(false);
 const studentsLoadError = ref<string | null>(null);
 
 const formDialogOpen = ref(false);
-const isFormSaving = ref(false);
-const apiError = ref<string | null>(null);
 
 const assignDialogOpen = ref(false);
 const assignTargetStudent = ref<StudentListItem | null>(null);
@@ -307,7 +286,7 @@ onMounted(async () => {
     activeSchoolId.value = resolveInitialActiveSchoolId();
 
     if (openRegisterFormFromQuery.value) {
-        apiError.value = null;
+        clearCreateError();
         formDialogOpen.value = true;
     }
 
@@ -317,7 +296,7 @@ onMounted(async () => {
 });
 
 function handleOpenCreateDialog() {
-    apiError.value = null;
+    clearCreateError();
     formDialogOpen.value = true;
 
     if (schools.value.length === 0 && !isSchoolsLoading.value) {
@@ -329,7 +308,7 @@ function handleFormDialogOpenChange(open: boolean) {
     formDialogOpen.value = open;
 
     if (!open) {
-        apiError.value = null;
+        clearCreateError();
     }
 }
 
@@ -468,27 +447,8 @@ async function handleAssignCourseSubmit(courseId: string) {
 async function handleStudentSubmit(payload: StudentRegisterPayload) {
     if (isFormSaving.value) return;
 
-    apiError.value = null;
-    isFormSaving.value = true;
-
     try {
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint('/api/auth/register'),
-            {
-                method: 'POST',
-                credentials: 'include',
-                body: {
-                    role: 'STUDENT',
-                    email: payload.email,
-                    password: payload.password,
-                    firstName: payload.firstName,
-                    lastName: payload.lastName,
-                    schoolId: payload.schoolId,
-                },
-            },
-        );
-
-        unwrapApiSuccessData(raw);
+        await createStudent(payload);
 
         addToast({
             title: 'Kursant został utworzony',
@@ -512,15 +472,11 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
     } catch (err) {
         const message = resolveStudentRegisterError(err);
 
-        apiError.value = message;
-
         addToast({
             title: 'Nie udało się utworzyć konta',
             description: message,
             variant: 'error',
         });
-    } finally {
-        isFormSaving.value = false;
     }
 }
 </script>

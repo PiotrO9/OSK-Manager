@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CalendarDays, Plus } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import {
     formatInstructorDisplayName,
@@ -738,36 +737,12 @@ function handleEventStatusPatched(status: string): void {
 
 <template>
     <div class="space-y-5">
-        <PageHeader
-            title="Edytuj wydarzenie"
-            description="Zmień termin, instruktora, kursantów i status wydarzenia."
-        >
-            <template #actions>
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    aria-label="Aktualny termin wydarzenia"
-                >
-                    <CalendarDays class="mr-2 size-4" aria-hidden="true" />
-                    {{ headerDateRangeLabel }}
-                </UiButton>
-                <UiButton
-                    type="submit"
-                    form="event-edit-form"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    :disabled="
-                        !loadedEvent ||
-                        isSaving ||
-                        isDeleteLoading ||
-                        !isFormDirty
-                    "
-                >
-                    <Plus class="mr-2 size-4" aria-hidden="true" />
-                    {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
-                </UiButton>
-            </template>
-        </PageHeader>
+        <ManagerEventEditHeader
+            :date-range-label="headerDateRangeLabel"
+            :can-save="Boolean(loadedEvent) && isFormDirty"
+            :is-saving="isSaving"
+            :is-delete-loading="isDeleteLoading"
+        />
 
         <p
             v-if="!schoolId"
@@ -977,160 +952,27 @@ function handleEventStatusPatched(status: string): void {
                         </div>
                     </div>
 
-                    <div class="grid gap-4 lg:grid-cols-2">
-                        <div class="space-y-2">
-                            <UiLabel for="edit-event-start-date"
-                                >Początek</UiLabel
-                            >
-                            <div class="space-y-2">
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-muted-foreground text-xs font-medium"
-                                        for="edit-event-start-date"
-                                    >
-                                        Data
-                                    </label>
-                                    <input
-                                        id="edit-event-start-date"
-                                        type="date"
-                                        :value="formStartDate"
-                                        :disabled="isSaving"
-                                        :min="pickerMinDate ?? undefined"
-                                        :max="pickerMaxDate ?? undefined"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                        aria-label="Data początku"
-                                        aria-required="true"
-                                        @change="handleStartDateChange"
-                                    />
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-muted-foreground text-xs font-medium"
-                                            for="edit-event-start-hour"
-                                        >
-                                            Godz.
-                                        </label>
-                                        <select
-                                            id="edit-event-start-hour"
-                                            :value="formStartHour"
-                                            :disabled="isSaving"
-                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            aria-label="Godzina początku"
-                                            @change="handleStartHourChange"
-                                        >
-                                            <option
-                                                v-for="h in startHourOptionsResolved"
-                                                :key="`sh-${h}`"
-                                                :value="h"
-                                            >
-                                                {{ String(h).padStart(2, '0') }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-muted-foreground text-xs font-medium"
-                                            for="edit-event-start-minute"
-                                        >
-                                            Min.
-                                        </label>
-                                        <select
-                                            id="edit-event-start-minute"
-                                            :value="formStartMinute"
-                                            :disabled="isSaving"
-                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            aria-label="Minuta początku"
-                                            @change="handleStartMinuteChange"
-                                        >
-                                            <option
-                                                v-for="m in startMinuteOptionsResolved"
-                                                :key="`sm-${m}`"
-                                                :value="m"
-                                            >
-                                                {{ String(m).padStart(2, '0') }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="space-y-2">
-                            <UiLabel for="edit-event-end-date">Koniec</UiLabel>
-                            <div class="space-y-2">
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-muted-foreground text-xs font-medium"
-                                        for="edit-event-end-date"
-                                    >
-                                        Data
-                                    </label>
-                                    <input
-                                        id="edit-event-end-date"
-                                        type="date"
-                                        :value="formEndDate"
-                                        :disabled="isSaving"
-                                        :min="pickerMinDate ?? undefined"
-                                        :max="pickerMaxDate ?? undefined"
-                                        class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                        aria-label="Data końca"
-                                        aria-required="true"
-                                        @change="handleEndDateChange"
-                                    />
-                                </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-muted-foreground text-xs font-medium"
-                                            for="edit-event-end-hour"
-                                        >
-                                            Godz.
-                                        </label>
-                                        <select
-                                            id="edit-event-end-hour"
-                                            :value="formEndHour"
-                                            :disabled="isSaving"
-                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            aria-label="Godzina końca"
-                                            @change="handleEndHourChange"
-                                        >
-                                            <option
-                                                v-for="h in endHourOptionsResolved"
-                                                :key="`eh-${h}`"
-                                                :value="h"
-                                            >
-                                                {{ String(h).padStart(2, '0') }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-muted-foreground text-xs font-medium"
-                                            for="edit-event-end-minute"
-                                        >
-                                            Min.
-                                        </label>
-                                        <select
-                                            id="edit-event-end-minute"
-                                            :value="formEndMinute"
-                                            :disabled="isSaving"
-                                            class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                            aria-label="Minuta końca"
-                                            @change="handleEndMinuteChange"
-                                        >
-                                            <option
-                                                v-for="m in endMinuteOptionsResolved"
-                                                :key="`em-${m}`"
-                                                :value="m"
-                                            >
-                                                {{ String(m).padStart(2, '0') }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ManagerEventTimeFields
+                        :start-date="formStartDate"
+                        :start-hour="formStartHour"
+                        :start-minute="formStartMinute"
+                        :end-date="formEndDate"
+                        :end-hour="formEndHour"
+                        :end-minute="formEndMinute"
+                        :start-hour-options="startHourOptionsResolved"
+                        :start-minute-options="startMinuteOptionsResolved"
+                        :end-hour-options="endHourOptionsResolved"
+                        :end-minute-options="endMinuteOptionsResolved"
+                        :min-date="pickerMinDate"
+                        :max-date="pickerMaxDate"
+                        :is-saving="isSaving"
+                        @start-date-change="handleStartDateChange"
+                        @start-hour-change="handleStartHourChange"
+                        @start-minute-change="handleStartMinuteChange"
+                        @end-date-change="handleEndDateChange"
+                        @end-hour-change="handleEndHourChange"
+                        @end-minute-change="handleEndMinuteChange"
+                    />
 
                     <p
                         v-if="isSlotsLoading"
@@ -1156,48 +998,20 @@ function handleEventStatusPatched(status: string): void {
                         {{ formError }}
                     </p>
 
-                    <ActionGroup label="Akcje formularza" align="end">
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            class="rounded-xl"
-                            :disabled="isSaving || isDeleteLoading"
-                            @click="handleCancel"
-                        >
-                            Anuluj
-                        </UiButton>
-                        <UiButton
-                            type="submit"
-                            class="rounded-xl"
-                            :disabled="
-                                isSaving || isDeleteLoading || !isFormDirty
-                            "
-                        >
-                            {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
-                        </UiButton>
-                    </ActionGroup>
+                    <ManagerEventEditActions
+                        :is-saving="isSaving"
+                        :is-delete-loading="isDeleteLoading"
+                        :is-form-dirty="isFormDirty"
+                        @cancel="handleCancel"
+                    />
                 </form>
 
                 <template #footer>
-                    <div
-                        class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                        <p class="text-muted-foreground text-sm">
-                            Usunięcie wydarzenia wymaga dodatkowego
-                            potwierdzenia.
-                        </p>
-                        <UiButton
-                            type="button"
-                            variant="destructive"
-                            class="w-full rounded-xl sm:w-auto"
-                            :disabled="isSaving || isDeleteLoading"
-                            :aria-busy="isDeleteLoading"
-                            aria-label="Usuń to wydarzenie z harmonogramu"
-                            @click="handleOpenDeleteDialog"
-                        >
-                            Usuń wydarzenie
-                        </UiButton>
-                    </div>
+                    <ManagerEventDeleteAction
+                        :is-saving="isSaving"
+                        :is-delete-loading="isDeleteLoading"
+                        @delete="handleOpenDeleteDialog"
+                    />
                 </template>
             </FormSection>
 

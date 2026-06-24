@@ -1,17 +1,15 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import type { ScheduleLessonItem } from '~/types/schedule';
 
-function buildScheduleMeUrl(dateFrom: string, dateTo: string): string {
+function buildScheduleMePath(dateFrom: string, dateTo: string): string {
     const params = new URLSearchParams({
         dateFrom: dateFrom.trim(),
         dateTo: dateTo.trim(),
     });
 
-    return resolveBffEndpoint(`/api/schedule/me?${params.toString()}`);
+    return `/api/schedule/me?${params.toString()}`;
 }
 
-function buildScheduleManagerUrl(
+function buildScheduleManagerPath(
     dateFrom: string,
     dateTo: string,
     target: { instructorId: string } | { studentId: string; schoolId: string },
@@ -28,7 +26,13 @@ function buildScheduleManagerUrl(
         params.set('schoolId', target.schoolId.trim());
     }
 
-    return resolveBffEndpoint(`/api/schedule?${params.toString()}`);
+    return `/api/schedule?${params.toString()}`;
+}
+
+function normalizeScheduleItems(data: unknown): ScheduleLessonItem[] {
+    const items = (data as { items?: unknown } | null)?.items;
+
+    return Array.isArray(items) ? (items as ScheduleLessonItem[]) : [];
 }
 
 export function useScheduleApi() {
@@ -43,13 +47,14 @@ export function useScheduleApi() {
             return [];
         }
 
-        const raw = await $fetch<unknown>(buildScheduleMeUrl(from, to), {
-            credentials: 'include',
-        });
-
-        const data = unwrapApiSuccessData<{ items: ScheduleLessonItem[] }>(raw);
-
-        return Array.isArray(data?.items) ? data.items : [];
+        return await requestBffData<ScheduleLessonItem[]>(
+            'GET',
+            buildScheduleMePath(from, to),
+            {
+                fallbackMessage: 'Nie udało się pobrać harmonogramu.',
+                normalize: normalizeScheduleItems,
+            },
+        );
     }
 
     async function fetchScheduleForInstructor(
@@ -65,14 +70,14 @@ export function useScheduleApi() {
             return [];
         }
 
-        const raw = await $fetch<unknown>(
-            buildScheduleManagerUrl(from, to, { instructorId: id }),
-            { credentials: 'include' },
+        return await requestBffData<ScheduleLessonItem[]>(
+            'GET',
+            buildScheduleManagerPath(from, to, { instructorId: id }),
+            {
+                fallbackMessage: 'Nie udało się pobrać harmonogramu.',
+                normalize: normalizeScheduleItems,
+            },
         );
-
-        const data = unwrapApiSuccessData<{ items: ScheduleLessonItem[] }>(raw);
-
-        return Array.isArray(data?.items) ? data.items : [];
     }
 
     async function fetchScheduleForStudent(
@@ -90,14 +95,17 @@ export function useScheduleApi() {
             return [];
         }
 
-        const raw = await $fetch<unknown>(
-            buildScheduleManagerUrl(from, to, { studentId: id, schoolId: sid }),
-            { credentials: 'include' },
+        return await requestBffData<ScheduleLessonItem[]>(
+            'GET',
+            buildScheduleManagerPath(from, to, {
+                studentId: id,
+                schoolId: sid,
+            }),
+            {
+                fallbackMessage: 'Nie udało się pobrać harmonogramu.',
+                normalize: normalizeScheduleItems,
+            },
         );
-
-        const data = unwrapApiSuccessData<{ items: ScheduleLessonItem[] }>(raw);
-
-        return Array.isArray(data?.items) ? data.items : [];
     }
 
     return {

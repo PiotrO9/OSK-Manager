@@ -1,9 +1,3 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import {
-    getApiErrorStatusCode,
-    unwrapApiSuccessData,
-} from '~/utils/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import type { InstructorListItem } from '~/types/instructor';
 import type {
     ManagerLessonDetail,
@@ -245,36 +239,18 @@ export function useManagerLessonsApi() {
         isFetchLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(`/api/lessons/${encodeURIComponent(id)}`),
+            return await requestBffData<ManagerLessonDetail>(
+                'GET',
+                `/api/lessons/${encodeURIComponent(id)}`,
                 {
-                    method: 'GET',
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się wczytać lekcji.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera (lekcja).',
+                    normalize: (data) =>
+                        normalizeManagerLesson(
+                            (data as { lesson?: unknown }).lesson,
+                        ),
                 },
             );
-
-            const data = unwrapApiSuccessData<{ lesson: unknown }>(raw);
-
-            const normalized = normalizeManagerLesson(data.lesson);
-
-            if (!normalized) {
-                throw new Error('Nieprawidłowa odpowiedź serwera (lekcja).');
-            }
-
-            return normalized;
-        } catch (err: unknown) {
-            const msg = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać lekcji.',
-            );
-            const out = new Error(msg) as Error & { statusCode?: number };
-            const sc = getApiErrorStatusCode(err);
-
-            if (sc !== undefined) {
-                out.statusCode = sc;
-            }
-
-            throw out;
         } finally {
             isFetchLoading.value = false;
         }
@@ -299,36 +275,19 @@ export function useManagerLessonsApi() {
         isUpdateLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(`/api/lessons/${encodeURIComponent(id)}`),
+            return await requestBffData<ManagerLessonDetail>(
+                'PATCH',
+                `/api/lessons/${encodeURIComponent(id)}`,
                 {
-                    method: 'PATCH',
-                    credentials: 'include',
                     body,
+                    fallbackMessage: 'Nie udało się zapisać lekcji.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera (lekcja).',
+                    normalize: (data) =>
+                        normalizeManagerLesson(
+                            (data as { lesson?: unknown }).lesson,
+                        ),
                 },
             );
-
-            const data = unwrapApiSuccessData<{ lesson: unknown }>(raw);
-            const normalized = normalizeManagerLesson(data.lesson);
-
-            if (!normalized) {
-                throw new Error('Nieprawidłowa odpowiedź serwera (lekcja).');
-            }
-
-            return normalized;
-        } catch (err: unknown) {
-            const msg = getApiFetchErrorMessage(
-                err,
-                'Nie udało się zapisać lekcji.',
-            );
-            const out = new Error(msg) as Error & { statusCode?: number };
-            const sc = getApiErrorStatusCode(err);
-
-            if (sc !== undefined) {
-                out.statusCode = sc;
-            }
-
-            throw out;
         } finally {
             isUpdateLoading.value = false;
         }
