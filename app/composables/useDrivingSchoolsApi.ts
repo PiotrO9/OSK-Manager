@@ -1,9 +1,10 @@
-import type { MaybeRefOrGetter } from 'vue';
+import type { Ref } from 'vue';
 import {
     normalizeDrivingSchool,
     normalizeDrivingSchoolsList,
     type DrivingSchool,
 } from '~/types/drivingSchool';
+import { requestBffData } from './useApi';
 
 export interface CreateDrivingSchoolBody {
     name: string;
@@ -17,7 +18,7 @@ export interface UpdateDrivingSchoolBody {
     address?: string | null;
 }
 
-/** Wynik `GET /api/driving-schools/default` — rozróżnia błąd sieci vs brak konfiguracji vs błąd parsowania. */
+/** Wynik `GET /api/driving-schools/default` rozróżnia brak konfiguracji od błędnej odpowiedzi. */
 export type FetchDefaultDrivingSchoolOutcome =
     | { outcome: 'ok'; school: DrivingSchool }
     | { outcome: 'empty_response' }
@@ -25,171 +26,139 @@ export type FetchDefaultDrivingSchoolOutcome =
     | { outcome: 'unreadable' };
 
 export function useDrivingSchoolsApi() {
-    const baseUrl = () => resolveBffEndpoint('/api/driving-schools');
+    const isListLoading = ref(false);
+    const isDefaultLoading = ref(false);
+    const isCreateLoading = ref(false);
+    const isDeleteLoading = ref(false);
+    const isUpdateLoading = ref(false);
+    const isSetDefaultLoading = ref(false);
 
-    const { execute: _execList, isLoading: isListLoading } = useApi<unknown>(
-        'GET',
-        baseUrl,
-    );
-
-    const defaultUrl = () => resolveBffEndpoint('/api/driving-schools/default');
-    const { execute: _execDefault, isLoading: isDefaultLoading } =
-        useApi<unknown>('GET', defaultUrl);
-
-    const _createBody = ref<CreateDrivingSchoolBody | null>(null);
-    const { execute: _execCreate, isLoading: isCreateLoading } =
-        useApi<unknown>('POST', baseUrl, {
-            body: _createBody as MaybeRefOrGetter<unknown>,
-        });
-
-    const _deleteId = ref<string | null>(null);
-    const _deleteUrl = () => {
-        const id = _deleteId.value;
-
-        return id ? resolveBffEndpoint(`/api/driving-schools/${id}`) : '';
-    };
-
-    const { execute: _execDelete, isLoading: isDeleteLoading } =
-        useApi<unknown>('DELETE', _deleteUrl);
-
-    const _updateId = ref<string | null>(null);
-    const _updateBody = ref<UpdateDrivingSchoolBody | null>(null);
-    const _updateUrl = () => {
-        const id = _updateId.value;
-
-        return id ? resolveBffEndpoint(`/api/driving-schools/${id}`) : '';
-    };
-
-    const { execute: _execUpdate, isLoading: isUpdateLoading } =
-        useApi<unknown>('PATCH', _updateUrl, {
-            body: _updateBody as MaybeRefOrGetter<unknown>,
-        });
-
-    const _setDefaultId = ref<string | null>(null);
-    const _setDefaultUrl = () => {
-        const id = _setDefaultId.value;
-
-        return id
-            ? resolveBffEndpoint(`/api/driving-schools/${id}/set-default`)
-            : '';
-    };
-
-    const { execute: _execSetDefault, isLoading: isSetDefaultLoading } =
-        useApi<unknown>('PATCH', _setDefaultUrl);
-
-    async function fetchDefaultDrivingSchool(): Promise<FetchDefaultDrivingSchoolOutcome> {
-        const raw = await _execDefault();
-
-        if (raw === null) {
-            return { outcome: 'empty_response' };
-        }
+    async function runWithLoading<T>(
+        loading: Ref<boolean>,
+        request: () => Promise<T>,
+    ): Promise<T> {
+        loading.value = true;
 
         try {
-            const data = unwrapApiSuccessData<unknown>(raw);
-
-            if (data === null || data === undefined) {
-                return { outcome: 'not_configured' };
-            }
-
-            const school = normalizeDrivingSchool(data);
-
-            if (!school) {
-                return { outcome: 'not_configured' };
-            }
-
-            return { outcome: 'ok', school };
-        } catch {
-            return { outcome: 'unreadable' };
+            return await request();
+        } finally {
+            loading.value = false;
         }
     }
 
+    function isTransportError(err: unknown): boolean {
+        return (
+            err !== null &&
+            typeof err === 'object' &&
+            ('statusCode' in err || 'data' in err)
+        );
+    }
+
+    async function fetchDefaultDrivingSchool(): Promise<FetchDefaultDrivingSchoolOutcome> {
+        return await runWithLoading(isDefaultLoading, async () => {
+            try {
+                const data = await requestBffData<unknown>(
+                    'GET',
+                    '/api/driving-schools/default',
+                    {
+                        fallbackMessage: 'Nie udało się pobrać domyślnego OSK.',
+                    },
+                );
+
+                if (data === null || data === undefined) {
+                    return { outcome: 'not_configured' };
+                }
+
+                const school = normalizeDrivingSchool(data);
+
+                return school
+                    ? { outcome: 'ok', school }
+                    : { outcome: 'not_configured' };
+            } catch (err) {
+                return isTransportError(err)
+                    ? { outcome: 'empty_response' }
+                    : { outcome: 'unreadable' };
+            }
+        });
+    }
+
     async function fetchList(): Promise<DrivingSchool[]> {
-        const raw = await _execList();
-
-        if (raw === null) throw new Error('Nie udało się pobrać listy OSK.');
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeDrivingSchoolsList(data);
+        return await runWithLoading(isListLoading, () =>
+            requestBffData<DrivingSchool[]>('GET', '/api/driving-schools', {
+                fallbackMessage: 'Nie udało się pobrać listy OSK.',
+                normalize: (data) => normalizeDrivingSchoolsList(data),
+            }),
+        );
     }
 
     async function create(
         body: CreateDrivingSchoolBody,
     ): Promise<DrivingSchool> {
-        _createBody.value = body;
-
-        const raw = await _execCreate();
-
-        if (raw === null) throw new Error('Nie udało się dodać OSK.');
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const school = normalizeDrivingSchool(data);
-
-        if (!school) throw new Error('Nieprawidłowa odpowiedź serwera.');
-
-        return school;
+        return await runWithLoading(isCreateLoading, () =>
+            requestBffData<DrivingSchool>('POST', '/api/driving-schools', {
+                body,
+                fallbackMessage: 'Nie udało się dodać OSK.',
+                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                normalize: (data) => normalizeDrivingSchool(data),
+            }),
+        );
     }
 
     async function remove(id: string): Promise<void> {
-        _deleteId.value = id;
+        const schoolId = id.trim();
 
-        try {
-            const raw = await _execDelete();
-
-            if (raw === null) throw new Error('Nie udało się usunąć OSK.');
-        } finally {
-            _deleteId.value = null;
-        }
+        await runWithLoading(isDeleteLoading, () =>
+            requestBffData<unknown>(
+                'DELETE',
+                `/api/driving-schools/${encodeURIComponent(schoolId)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć OSK.',
+                },
+            ),
+        );
     }
 
     async function update(
         id: string,
         body: UpdateDrivingSchoolBody,
     ): Promise<DrivingSchool> {
-        _updateId.value = id;
-        _updateBody.value = body;
+        const schoolId = id.trim();
 
-        try {
-            const raw = await _execUpdate();
-
-            if (raw === null)
-                throw new Error('Nie udało się zapisać zmian OSK.');
-
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const school = normalizeDrivingSchool(data);
-
-            if (!school) throw new Error('Nieprawidłowa odpowiedź serwera.');
-
-            return school;
-        } finally {
-            _updateId.value = null;
-            _updateBody.value = null;
-        }
+        return await runWithLoading(isUpdateLoading, () =>
+            requestBffData<DrivingSchool>(
+                'PATCH',
+                `/api/driving-schools/${encodeURIComponent(schoolId)}`,
+                {
+                    body,
+                    fallbackMessage: 'Nie udało się zapisać zmian OSK.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => normalizeDrivingSchool(data),
+                },
+            ),
+        );
     }
 
     async function setAsDefault(id: string): Promise<void> {
-        _setDefaultId.value = id;
+        const schoolId = id.trim();
 
-        try {
-            const raw = await _execSetDefault();
-
-            if (raw === null) {
-                throw new Error('Nie udało się ustawić domyślnej OSK.');
-            }
-
-            assertBooleanSuccessEnvelope(raw);
-        } finally {
-            _setDefaultId.value = null;
-        }
+        await runWithLoading(isSetDefaultLoading, async () => {
+            await requestBffData<unknown>(
+                'PATCH',
+                `/api/driving-schools/${encodeURIComponent(schoolId)}/set-default`,
+                {
+                    fallbackMessage: 'Nie udało się ustawić domyślnej OSK.',
+                },
+            );
+        });
     }
 
     return {
-        isListLoading,
-        isDefaultLoading,
-        isCreateLoading,
-        isDeleteLoading,
-        isUpdateLoading,
-        isSetDefaultLoading,
+        isListLoading: readonly(isListLoading),
+        isDefaultLoading: readonly(isDefaultLoading),
+        isCreateLoading: readonly(isCreateLoading),
+        isDeleteLoading: readonly(isDeleteLoading),
+        isUpdateLoading: readonly(isUpdateLoading),
+        isSetDefaultLoading: readonly(isSetDefaultLoading),
         fetchDefaultDrivingSchool,
         fetchList,
         create,

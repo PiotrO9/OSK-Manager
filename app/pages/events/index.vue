@@ -625,39 +625,10 @@ function eventTypeLabel(type: string): string {
                     <div
                         class="flex shrink-0 flex-wrap items-center justify-end gap-2"
                     >
-                        <div
-                            v-if="isManager && !isCompactViewport"
-                            class="border-border bg-muted/30 flex rounded-xl border p-1"
-                            role="group"
-                            aria-label="Tryb widoku wydarzeń"
-                        >
-                            <button
-                                type="button"
-                                class="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-                                :class="
-                                    effectiveViewMode === 'grid'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                "
-                                :aria-pressed="effectiveViewMode === 'grid'"
-                                @click="viewMode = 'grid'"
-                            >
-                                Harmonogram
-                            </button>
-                            <button
-                                type="button"
-                                class="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-                                :class="
-                                    effectiveViewMode === 'list'
-                                        ? 'bg-background text-foreground shadow-sm'
-                                        : 'text-muted-foreground hover:text-foreground'
-                                "
-                                :aria-pressed="effectiveViewMode === 'list'"
-                                @click="viewMode = 'list'"
-                            >
-                                Lista
-                            </button>
-                        </div>
+                        <EventsViewModeToggle
+                            v-model="viewMode"
+                            :disabled="!isManager || isCompactViewport"
+                        />
 
                         <UiBadge
                             v-if="filteredEvents.length > 0"

@@ -1,7 +1,4 @@
-import type { MaybeRefOrGetter } from 'vue';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
+import type { Ref } from 'vue';
 import {
     normalizeCourseDetailData,
     normalizeCoursesList,
@@ -12,229 +9,111 @@ import {
     type CurrentUserCourseItem,
     type CoursePatchInstructorPayload,
 } from '~/types/course';
+import { requestBffData } from './useApi';
 
 export function useCoursesApi() {
-    const _schoolId = ref<string | null>(null);
-    const _courseDetailId = ref<string | null>(null);
-    const _patchCourseId = ref<string | null>(null);
+    const isListLoading = ref(false);
+    const isMyCoursesLoading = ref(false);
+    const isDetailLoading = ref(false);
+    const isCreateLoading = ref(false);
+    const isPatchLoading = ref(false);
 
-    const myCoursesUrl = () => resolveBffEndpoint('/api/me/courses');
+    async function runWithLoading<T>(
+        loading: Ref<boolean>,
+        request: () => Promise<T>,
+    ): Promise<T> {
+        loading.value = true;
 
-    const {
-        execute: _execMyCourses,
-        isLoading: isMyCoursesLoading,
-        error: myCoursesError,
-    } = useApi<unknown>('GET', myCoursesUrl);
-
-    const listUrl = () => {
-        const id = _schoolId.value;
-
-        return id
-            ? resolveBffEndpoint(
-                  `/api/courses?schoolId=${encodeURIComponent(id)}`,
-              )
-            : '';
-    };
-
-    const {
-        execute: _execList,
-        isLoading: isListLoading,
-        error: listError,
-    } = useApi<unknown>('GET', listUrl);
-
-    const detailUrl = () => {
-        const id = _courseDetailId.value?.trim();
-
-        return id
-            ? resolveBffEndpoint(`/api/courses/${encodeURIComponent(id)}`)
-            : '';
-    };
-
-    const {
-        execute: _execDetail,
-        isLoading: isDetailLoading,
-        error: detailError,
-    } = useApi<unknown>('GET', detailUrl);
-
-    const createUrl = () => resolveBffEndpoint('/api/courses');
-    const _createBody = ref<CourseCreatePayload | null>(null);
-
-    const {
-        execute: _execCreate,
-        isLoading: isCreateLoading,
-        error: createError,
-    } = useApi<unknown>('POST', createUrl, {
-        body: _createBody as MaybeRefOrGetter<unknown>,
-    });
-
-    const patchUrl = () => {
-        const id = _patchCourseId.value?.trim();
-
-        return id
-            ? resolveBffEndpoint(`/api/courses/${encodeURIComponent(id)}`)
-            : '';
-    };
-
-    const _patchBody = ref<CoursePatchInstructorPayload | null>(null);
-
-    const {
-        execute: _execPatch,
-        isLoading: isPatchLoading,
-        error: patchError,
-    } = useApi<unknown>('PATCH', patchUrl, {
-        body: _patchBody as MaybeRefOrGetter<unknown>,
-    });
+        try {
+            return await request();
+        } finally {
+            loading.value = false;
+        }
+    }
 
     async function fetchList(schoolId: string): Promise<CourseListItem[]> {
-        _schoolId.value = schoolId;
+        const sid = schoolId.trim();
+        const qs = new URLSearchParams({ schoolId: sid });
 
-        const raw = await _execList();
-
-        if (raw === null) {
-            const apiErr = listError.value;
-            const message = getApiFetchErrorMessage(
-                apiErr,
-                'Nie udało się pobrać listy kursów.',
-            );
-            const out = new Error(message) as Error & { statusCode?: number };
-
-            if (
-                apiErr !== null &&
-                typeof apiErr === 'object' &&
-                'statusCode' in apiErr
-            ) {
-                const code = (apiErr as { statusCode: unknown }).statusCode;
-
-                if (typeof code === 'number') {
-                    out.statusCode = code;
-                }
-            }
-
-            throw out;
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeCoursesList(data);
+        return await runWithLoading(isListLoading, () =>
+            requestBffData<CourseListItem[]>(
+                'GET',
+                `/api/courses?${qs.toString()}`,
+                {
+                    fallbackMessage: 'Nie udało się pobrać listy kursów.',
+                    normalize: (data) => normalizeCoursesList(data),
+                },
+            ),
+        );
     }
 
     async function fetchMyCourses(): Promise<CurrentUserCourseItem[]> {
-        const raw = await _execMyCourses();
-
-        if (raw === null) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    myCoursesError.value,
-                    'Nie udało się pobrać listy kursów.',
-                ),
-            );
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeMyCoursesList(data);
+        return await runWithLoading(isMyCoursesLoading, () =>
+            requestBffData<CurrentUserCourseItem[]>('GET', '/api/me/courses', {
+                fallbackMessage: 'Nie udało się pobrać listy kursów.',
+                normalize: (data) => normalizeMyCoursesList(data),
+            }),
+        );
     }
 
     async function fetchById(courseId: string): Promise<CourseDetail> {
-        _courseDetailId.value = courseId.trim();
+        const id = courseId.trim();
 
-        const raw = await _execDetail();
-
-        if (raw === null) {
-            const apiErr = detailError.value;
-            const message = getApiFetchErrorMessage(
-                apiErr,
-                'Nie udało się pobrać szczegółów kursu.',
-            );
-            const out = new Error(message) as Error & { statusCode?: number };
-
-            if (
-                apiErr !== null &&
-                typeof apiErr === 'object' &&
-                'statusCode' in apiErr
-            ) {
-                const code = (apiErr as { statusCode: unknown }).statusCode;
-
-                if (typeof code === 'number') {
-                    out.statusCode = code;
-                }
-            }
-
-            throw out;
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const detail = normalizeCourseDetailData(data);
-
-        if (!detail) {
-            throw new Error('Nieprawidłowa odpowiedź serwera (kurs).');
-        }
-
-        return detail;
+        return await runWithLoading(isDetailLoading, () =>
+            requestBffData<CourseDetail>(
+                'GET',
+                `/api/courses/${encodeURIComponent(id)}`,
+                {
+                    fallbackMessage: 'Nie udało się pobrać szczegółów kursu.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera (kurs).',
+                    normalize: (data) => normalizeCourseDetailData(data),
+                },
+            ),
+        );
     }
 
     async function createCourse(
         body: CourseCreatePayload,
     ): Promise<CourseDetail> {
-        _createBody.value = body;
-
-        const raw = await _execCreate();
-
-        if (raw === null) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    createError.value,
-                    'Nie udało się utworzyć kursu.',
-                ),
-            );
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const detail = normalizeCourseDetailData(data);
-
-        if (!detail) {
-            throw new Error(
-                'Nieprawidłowa odpowiedź serwera (utworzony kurs).',
-            );
-        }
-
-        return detail;
+        return await runWithLoading(isCreateLoading, () =>
+            requestBffData<CourseDetail>('POST', '/api/courses', {
+                body,
+                fallbackMessage: 'Nie udało się utworzyć kursu.',
+                invalidMessage:
+                    'Nieprawidłowa odpowiedź serwera (utworzony kurs).',
+                normalize: (data) => normalizeCourseDetailData(data),
+            }),
+        );
     }
 
     async function patchCourse(
         courseId: string,
         body: CoursePatchInstructorPayload,
     ): Promise<CourseDetail> {
-        _patchCourseId.value = courseId.trim();
-        _patchBody.value = body;
+        const id = courseId.trim();
 
-        const raw = await _execPatch();
-
-        if (raw === null) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    patchError.value,
-                    'Nie udało się zaktualizować instruktora kursu.',
-                ),
-            );
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const detail = normalizeCourseDetailData(data);
-
-        if (!detail) {
-            throw new Error('Nieprawidłowa odpowiedź serwera (kurs po PATCH).');
-        }
-
-        return detail;
+        return await runWithLoading(isPatchLoading, () =>
+            requestBffData<CourseDetail>(
+                'PATCH',
+                `/api/courses/${encodeURIComponent(id)}`,
+                {
+                    body,
+                    fallbackMessage:
+                        'Nie udało się zaktualizować instruktora kursu.',
+                    invalidMessage:
+                        'Nieprawidłowa odpowiedź serwera (kurs po PATCH).',
+                    normalize: (data) => normalizeCourseDetailData(data),
+                },
+            ),
+        );
     }
 
     return {
-        isListLoading,
-        isMyCoursesLoading,
-        isDetailLoading,
-        isCreateLoading,
-        isPatchLoading,
+        isListLoading: readonly(isListLoading),
+        isMyCoursesLoading: readonly(isMyCoursesLoading),
+        isDetailLoading: readonly(isDetailLoading),
+        isCreateLoading: readonly(isCreateLoading),
+        isPatchLoading: readonly(isPatchLoading),
         fetchMyCourses,
         fetchList,
         fetchById,

@@ -1,4 +1,4 @@
-import type { MaybeRefOrGetter } from 'vue';
+import type { Ref } from 'vue';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
@@ -16,250 +16,113 @@ export type VehicleCreateBody = VehicleWritePayload & { schoolId: string };
 export type VehicleUpdateBody = VehicleWritePayload;
 
 export function useVehiclesApi() {
-    const _schoolId = ref<string | null>(null);
-
-    const listUrl = () => {
-        const id = _schoolId.value;
-
-        return id
-            ? resolveBffEndpoint(
-                  `/api/vehicles?schoolId=${encodeURIComponent(id)}`,
-              )
-            : '';
-    };
-
-    const { execute: _execList, isLoading: isListLoading } = useApi<unknown>(
-        'GET',
-        listUrl,
-    );
-
-    const createUrl = () => resolveBffEndpoint('/api/vehicles');
-    const _createBody = ref<VehicleCreateBody | null>(null);
-
-    const {
-        execute: _execCreate,
-        isLoading: isCreateLoading,
-        error: createError,
-    } = useApi<unknown>('POST', createUrl, {
-        body: _createBody as MaybeRefOrGetter<unknown>,
-    });
-
-    const _updateId = ref<string | null>(null);
-    const _updateBody = ref<VehicleUpdateBody | null>(null);
-    const _updateUrl = () => {
-        const id = _updateId.value;
-
-        return id ? resolveBffEndpoint(`/api/vehicles/${id}`) : '';
-    };
-
-    const {
-        execute: _execUpdate,
-        isLoading: isUpdateLoading,
-        error: updateError,
-    } = useApi<unknown>('PATCH', _updateUrl, {
-        body: _updateBody as MaybeRefOrGetter<unknown>,
-    });
-
-    const _statusUpdateId = ref<string | null>(null);
-    const _statusUpdateBody = ref<{ status: VehicleStatus } | null>(null);
-    const _statusUpdateUrl = () => {
-        const id = _statusUpdateId.value;
-
-        return id
-            ? resolveBffEndpoint(
-                  `/api/vehicles/${encodeURIComponent(id)}/status`,
-              )
-            : '';
-    };
-
-    const {
-        execute: _execStatusUpdate,
-        isLoading: isStatusUpdateLoading,
-        error: statusUpdateError,
-    } = useApi<unknown>('PATCH', _statusUpdateUrl, {
-        body: _statusUpdateBody as MaybeRefOrGetter<unknown>,
-    });
-
-    const _deleteId = ref<string | null>(null);
-    const _deleteUrl = () => {
-        const id = _deleteId.value;
-
-        return id ? resolveBffEndpoint(`/api/vehicles/${id}`) : '';
-    };
-
-    const {
-        execute: _execDelete,
-        isLoading: isDeleteLoading,
-        error: deleteError,
-    } = useApi<unknown>('DELETE', _deleteUrl);
-
-    const _setDefaultSchoolId = ref<string | null>(null);
-    const _setDefaultBody = ref<{ vehicleId: string } | null>(null);
-    const _setDefaultUrl = () => {
-        const sid = _setDefaultSchoolId.value;
-
-        return sid
-            ? resolveBffEndpoint(
-                  `/api/driving-schools/${encodeURIComponent(sid)}/default-vehicle`,
-              )
-            : '';
-    };
-
-    const {
-        execute: _execSetDefault,
-        isLoading: isSetDefaultLoading,
-        error: setDefaultError,
-    } = useApi<unknown>('PATCH', _setDefaultUrl, {
-        body: _setDefaultBody as MaybeRefOrGetter<unknown>,
-    });
-
-    const _detailId = ref<string | null>(null);
-    const _detailUrl = () => {
-        const id = _detailId.value;
-
-        return id
-            ? resolveBffEndpoint(`/api/vehicles/${encodeURIComponent(id)}`)
-            : '';
-    };
-
-    const {
-        execute: _execDetail,
-        isLoading: isDetailLoading,
-        error: detailError,
-    } = useApi<unknown>('GET', _detailUrl);
-
+    const isListLoading = ref(false);
+    const isCreateLoading = ref(false);
+    const isUpdateLoading = ref(false);
+    const isStatusUpdateLoading = ref(false);
+    const isDeleteLoading = ref(false);
+    const isSetDefaultLoading = ref(false);
+    const isDetailLoading = ref(false);
     const isPhotoUploadLoading = ref(false);
+    const deleteError = ref<Error | null>(null);
+
+    async function runWithLoading<T>(
+        loading: Ref<boolean>,
+        request: () => Promise<T>,
+    ): Promise<T> {
+        loading.value = true;
+
+        try {
+            return await request();
+        } finally {
+            loading.value = false;
+        }
+    }
 
     async function fetchList(schoolId: string): Promise<Vehicle[]> {
-        _schoolId.value = schoolId;
+        const sid = schoolId.trim();
+        const qs = new URLSearchParams({ schoolId: sid });
 
-        const raw = await _execList();
-
-        if (raw === null) {
-            throw new Error('Nie udało się pobrać listy pojazdów.');
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeVehiclesList(data);
+        return await runWithLoading(isListLoading, () =>
+            requestBffData<Vehicle[]>('GET', `/api/vehicles?${qs.toString()}`, {
+                fallbackMessage: 'Nie udało się pobrać listy pojazdów.',
+                normalize: (data) => normalizeVehiclesList(data),
+            }),
+        );
     }
 
     async function createVehicle(body: VehicleCreateBody): Promise<Vehicle> {
-        _createBody.value = body;
-
-        const raw = await _execCreate();
-
-        if (raw === null) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    createError.value,
-                    'Nie udało się dodać pojazdu.',
-                ),
-            );
-        }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const vehicle = normalizeVehicle(data, 0);
-
-        if (!vehicle) {
-            throw new Error('Nieprawidłowa odpowiedź serwera.');
-        }
-
-        return vehicle;
+        return await runWithLoading(isCreateLoading, () =>
+            requestBffData<Vehicle>('POST', '/api/vehicles', {
+                body,
+                fallbackMessage: 'Nie udało się dodać pojazdu.',
+                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                normalize: (data) => normalizeVehicle(data, 0),
+            }),
+        );
     }
 
     async function updateVehicle(
         id: string,
         body: VehicleUpdateBody,
     ): Promise<Vehicle> {
-        _updateId.value = id;
-        _updateBody.value = body;
+        const vehicleId = id.trim();
 
-        try {
-            const raw = await _execUpdate();
-
-            if (raw === null) {
-                throw new Error(
-                    getApiFetchErrorMessage(
-                        updateError.value,
-                        'Nie udało się zapisać pojazdu.',
-                    ),
-                );
-            }
-
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const vehicle = normalizeVehicle(data, 0);
-
-            if (!vehicle) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return vehicle;
-        } finally {
-            _updateId.value = null;
-            _updateBody.value = null;
-        }
+        return await runWithLoading(isUpdateLoading, () =>
+            requestBffData<Vehicle>(
+                'PATCH',
+                `/api/vehicles/${encodeURIComponent(vehicleId)}`,
+                {
+                    body,
+                    fallbackMessage: 'Nie udało się zapisać pojazdu.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => normalizeVehicle(data, 0),
+                },
+            ),
+        );
     }
 
     async function updateVehicleStatus(
         id: string,
         status: VehicleStatus,
     ): Promise<Vehicle> {
-        _statusUpdateId.value = id;
-        _statusUpdateBody.value = { status };
+        const vehicleId = id.trim();
 
-        try {
-            const raw = await _execStatusUpdate();
-
-            if (raw === null) {
-                throw new Error(
-                    getApiFetchErrorMessage(
-                        statusUpdateError.value,
-                        'Nie udało się zmienić statusu pojazdu.',
-                    ),
-                );
-            }
-
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const vehicle = normalizeVehicle(data, 0);
-
-            if (!vehicle) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return vehicle;
-        } finally {
-            _statusUpdateId.value = null;
-            _statusUpdateBody.value = null;
-        }
+        return await runWithLoading(isStatusUpdateLoading, () =>
+            requestBffData<Vehicle>(
+                'PATCH',
+                `/api/vehicles/${encodeURIComponent(vehicleId)}/status`,
+                {
+                    body: { status },
+                    fallbackMessage: 'Nie udało się zmienić statusu pojazdu.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => normalizeVehicle(data, 0),
+                },
+            ),
+        );
     }
 
     async function deleteVehicle(id: string): Promise<void> {
-        _deleteId.value = id;
+        const vehicleId = id.trim();
+
+        deleteError.value = null;
 
         try {
-            const raw = await _execDelete();
-
-            if (raw === null) {
-                const source = deleteError.value;
-                const message = getApiFetchErrorMessage(
-                    source,
-                    'Nie udało się usunąć pojazdu.',
-                );
-                const err = new Error(message) as Error & {
-                    statusCode?: number;
-                };
-
-                const statusCode = getApiErrorStatusCode(source);
-
-                if (statusCode !== undefined) {
-                    err.statusCode = statusCode;
-                }
-
-                throw err;
-            }
-        } finally {
-            _deleteId.value = null;
+            await runWithLoading(isDeleteLoading, () =>
+                requestBffData<unknown>(
+                    'DELETE',
+                    `/api/vehicles/${encodeURIComponent(vehicleId)}`,
+                    {
+                        fallbackMessage: 'Nie udało się usunąć pojazdu.',
+                    },
+                ),
+            );
+        } catch (err) {
+            deleteError.value =
+                err instanceof Error
+                    ? err
+                    : new Error('Nie udało się usunąć pojazdu.');
+            throw err;
         }
     }
 
@@ -267,54 +130,35 @@ export function useVehiclesApi() {
         schoolId: string,
         vehicleId: string,
     ): Promise<void> {
-        _setDefaultSchoolId.value = schoolId;
-        _setDefaultBody.value = { vehicleId };
+        const sid = schoolId.trim();
 
-        try {
-            const raw = await _execSetDefault();
-
-            if (raw === null) {
-                throw new Error(
-                    getApiFetchErrorMessage(
-                        setDefaultError.value,
+        await runWithLoading(isSetDefaultLoading, () =>
+            requestBffData<unknown>(
+                'PATCH',
+                `/api/driving-schools/${encodeURIComponent(sid)}/default-vehicle`,
+                {
+                    body: { vehicleId },
+                    fallbackMessage:
                         'Nie udało się ustawić domyślnego pojazdu.',
-                    ),
-                );
-            }
-
-            assertBooleanSuccessEnvelope(raw);
-        } finally {
-            _setDefaultSchoolId.value = null;
-            _setDefaultBody.value = null;
-        }
+                },
+            ),
+        );
     }
 
     async function fetchVehicleById(id: string): Promise<VehicleDetail> {
-        _detailId.value = id;
+        const vehicleId = id.trim();
 
-        try {
-            const raw = await _execDetail();
-
-            if (raw === null) {
-                throw new Error(
-                    getApiFetchErrorMessage(
-                        detailError.value,
-                        'Nie udało się pobrać pojazdu.',
-                    ),
-                );
-            }
-
-            const data = unwrapApiSuccessData<unknown>(raw);
-            const vehicle = normalizeVehicleDetail(data, 0);
-
-            if (!vehicle) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return vehicle;
-        } finally {
-            _detailId.value = null;
-        }
+        return await runWithLoading(isDetailLoading, () =>
+            requestBffData<VehicleDetail>(
+                'GET',
+                `/api/vehicles/${encodeURIComponent(vehicleId)}`,
+                {
+                    fallbackMessage: 'Nie udało się pobrać pojazdu.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => normalizeVehicleDetail(data, 0),
+                },
+            ),
+        );
     }
 
     async function uploadVehiclePhoto(id: string, file: File): Promise<string> {
@@ -354,15 +198,15 @@ export function useVehiclesApi() {
     }
 
     return {
-        isListLoading,
-        isCreateLoading,
-        isUpdateLoading,
-        isStatusUpdateLoading,
-        isDeleteLoading,
-        isSetDefaultLoading,
-        isDetailLoading,
-        isPhotoUploadLoading,
-        deleteError,
+        isListLoading: readonly(isListLoading),
+        isCreateLoading: readonly(isCreateLoading),
+        isUpdateLoading: readonly(isUpdateLoading),
+        isStatusUpdateLoading: readonly(isStatusUpdateLoading),
+        isDeleteLoading: readonly(isDeleteLoading),
+        isSetDefaultLoading: readonly(isSetDefaultLoading),
+        isDetailLoading: readonly(isDetailLoading),
+        isPhotoUploadLoading: readonly(isPhotoUploadLoading),
+        deleteError: readonly(deleteError),
         fetchList,
         fetchVehicleById,
         createVehicle,

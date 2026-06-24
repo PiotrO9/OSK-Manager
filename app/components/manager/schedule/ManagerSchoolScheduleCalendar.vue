@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
-import { BookOpen, Car, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { BookOpen, Car } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
@@ -774,74 +774,19 @@ defineExpose({
 <template>
     <UiCard class="overflow-hidden rounded-2xl shadow-sm">
         <UiCardContent class="space-y-4 p-4">
-            <div
-                class="flex flex-wrap items-center justify-between gap-3"
-                role="toolbar"
-                aria-label="Nawigacja tygodnia harmonogramu lekcji"
-            >
-                <div class="flex flex-wrap items-center gap-2">
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        class="h-10 rounded-xl px-4 font-semibold"
-                        aria-label="Poprzedni tydzień"
-                        :disabled="displayLoading"
-                        @click="handlePrevWeek"
-                        @keydown="handleKeyDownWeekNav($event, 'prev')"
-                    >
-                        <ChevronLeft class="size-4" aria-hidden="true" />
-                        Poprzedni
-                    </UiButton>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        class="h-10 rounded-xl px-4 font-semibold"
-                        aria-label="Następny tydzień"
-                        :disabled="displayLoading"
-                        @click="handleNextWeek"
-                        @keydown="handleKeyDownWeekNav($event, 'next')"
-                    >
-                        Następny
-                        <ChevronRight class="size-4" aria-hidden="true" />
-                    </UiButton>
-                </div>
-
-                <p
-                    class="text-foreground min-w-0 flex-1 text-center text-sm font-medium"
-                    aria-live="polite"
-                >
-                    {{ compactWeekRangeLabel }}
-                </p>
-
-                <UiPopover v-model:open="isCalendarOpen">
-                    <UiPopoverTrigger>
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            :disabled="displayLoading"
-                            aria-label="Wybierz tydzień w kalendarzu (poniedziałek do niedzieli)"
-                        >
-                            Wybierz tydzień
-                        </UiButton>
-                    </UiPopoverTrigger>
-                    <UiPopoverContent class="w-auto p-0" align="end">
-                        <UiCalendar
-                            multiple
-                            fixed-weeks
-                            :week-starts-on="1"
-                            :min-value="WEEK_PICKER_CALENDAR_MIN"
-                            :max-value="WEEK_PICKER_CALENDAR_MAX"
-                            :disable-days-outside-current-view="false"
-                            :model-value="calendarSelectedModel"
-                            locale="pl-PL"
-                            @update:model-value="handleCalendarUpdate"
-                        />
-                    </UiPopoverContent>
-                </UiPopover>
-            </div>
+            <ManagerScheduleWeekToolbar
+                v-model:calendar-open="isCalendarOpen"
+                :is-loading="displayLoading"
+                :compact-week-range-label="compactWeekRangeLabel"
+                :calendar-selected-model="calendarSelectedModel"
+                :min-value="WEEK_PICKER_CALENDAR_MIN"
+                :max-value="WEEK_PICKER_CALENDAR_MAX"
+                @previous="handlePrevWeek"
+                @next="handleNextWeek"
+                @previous-keydown="handleKeyDownWeekNav($event, 'prev')"
+                @next-keydown="handleKeyDownWeekNav($event, 'next')"
+                @calendar-update="handleCalendarUpdate"
+            />
 
             <p
                 v-if="displayError"
@@ -852,46 +797,14 @@ defineExpose({
                 {{ displayError }}
             </p>
 
-            <FilterBar
-                title="Filtry zapytania API"
-                :result-label="displayLoading ? 'Ladowanie...' : ''"
+            <ManagerScheduleMetaBar
                 :is-loading="displayLoading"
-                class="rounded-2xl"
-            >
-                <UiBadge
-                    variant="outline"
-                    class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
-                >
-                    Wszyscy instruktorzy
-                </UiBadge>
-                <UiBadge variant="secondary" class="rounded-full">
-                    {{ BASE_HOUR }}:00-19:00
-                </UiBadge>
-                <UiBadge variant="secondary" class="rounded-full">
-                    Sortuj: godzina
-                </UiBadge>
-
-                <template #actions>
-                    <UiBadge variant="outline" class="rounded-full">
-                        {{ scheduleCountBadgeLabel }}: {{ displayItems.length }}
-                    </UiBadge>
-                </template>
-            </FilterBar>
-
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="text-muted-foreground text-sm font-semibold">
-                    Os godzin: {{ BASE_HOUR }}:00-19:00
-                </span>
-                <UiBadge
-                    variant="outline"
-                    class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
-                >
-                    Instruktorzy: {{ scheduleInstructorCount }}
-                </UiBadge>
-                <UiBadge variant="outline" class="rounded-full">
-                    Najwczesniej: {{ earliestStartLabel }}
-                </UiBadge>
-            </div>
+                :base-hour="BASE_HOUR"
+                :schedule-count-badge-label="scheduleCountBadgeLabel"
+                :display-items-count="displayItems.length"
+                :schedule-instructor-count="scheduleInstructorCount"
+                :earliest-start-label="earliestStartLabel"
+            />
 
             <div
                 class="border-border relative overflow-x-auto rounded-2xl border"
