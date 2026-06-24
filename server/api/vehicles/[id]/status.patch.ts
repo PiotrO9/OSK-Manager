@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
     if (!isUuid(id)) {
         throw createError({
             statusCode: 400,
-            message: 'Nieprawid?owy identyfikator pojazdu.',
+            message: 'Nieprawidłowy identyfikator pojazdu.',
         });
     }
 

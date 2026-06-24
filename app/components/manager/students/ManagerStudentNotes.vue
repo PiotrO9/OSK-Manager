@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
@@ -102,17 +98,15 @@ async function handleSaveNotes() {
     saveError.value = null;
 
     try {
-        const url = resolveBffEndpoint(
+        const data = await requestBffData<unknown>(
+            'PATCH',
             `/api/students/${encodeURIComponent(uid)}`,
+            {
+                body: { notes: notesPayload },
+                fallbackMessage: 'Nie udało się zapisać notatki.',
+            },
         );
 
-        const raw = await $fetch<unknown>(url, {
-            method: 'PATCH',
-            credentials: 'include',
-            body: { notes: notesPayload },
-        });
-
-        const data = unwrapApiSuccessData<unknown>(raw);
         const saved = readNotesFromPatchData(data);
 
         if (saved === undefined) {
@@ -130,10 +124,10 @@ async function handleSaveNotes() {
             variant: 'success',
         });
     } catch (err: unknown) {
-        saveError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się zapisać notatki.',
-        );
+        saveError.value =
+            err instanceof Error
+                ? err.message
+                : 'Nie udało się zapisać notatki.';
 
         addToast({
             title: 'Błąd zapisu notatki',

@@ -603,7 +603,7 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
                         Podsumowanie dnia
                     </h2>
                     <p class="text-muted-foreground mt-1 text-sm">
-                        Najwazniejsze informacje z aktualnego zakresu.
+                        Najważniejsze informacje z aktualnego zakresu.
                     </p>
                 </div>
                 <div class="p-4">

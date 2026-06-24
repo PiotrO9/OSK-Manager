@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import {
     ArrowLeft,
-    BookOpen,
     CalendarDays,
     ClipboardList,
     CreditCard,
-    IdCard,
-    Mail,
 } from 'lucide-vue-next';
 import {
     formatStudentCourseStatusLabel,
@@ -15,12 +12,8 @@ import {
     type StudentDetail,
     type StudentProcessStatus,
 } from '~/types/student';
-import {
-    getApiErrorStatusCode,
-    unwrapApiSuccessData,
-} from '~/utils/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import type { StudentPaymentItem } from '~/types/payment';
@@ -95,16 +88,6 @@ function displayText(value: string): string {
     return t.length > 0 ? t : '--';
 }
 
-function displayPkkNumber(value: string | null): string {
-    if (value === null || value === undefined) {
-        return 'Brak PKK';
-    }
-
-    const t = value.trim();
-
-    return t.length > 0 ? t : 'Brak PKK';
-}
-
 const studentDisplayName = computed(() => {
     const s = student.value;
 
@@ -159,11 +142,11 @@ const processOverviewLabel = computed(() => {
     }
 
     if (processStatusError.value) {
-        return 'Blad';
+        return 'Błąd';
     }
 
     if (total === 0) {
-        return 'Brak krokow';
+        return 'Brak kroków';
     }
 
     return `${processCompletedCount.value}/${total}`;
@@ -181,7 +164,7 @@ const paymentsOverviewLabel = computed(() => {
     }
 
     if (paymentsError.value) {
-        return 'Blad';
+        return 'Błąd';
     }
 
     return `${payments.value.length}`;
@@ -193,7 +176,7 @@ const scheduleOverviewLabel = computed(() => {
     }
 
     if (scheduleError.value) {
-        return 'Blad';
+        return 'Błąd';
     }
 
     return `${scheduleItems.value.length}`;
@@ -253,12 +236,13 @@ async function loadStudent(rawUserId: unknown) {
 
     try {
         const qs = new URLSearchParams({ schoolId });
-        const url = resolveBffEndpoint(
+        const data = await requestBffData<unknown>(
+            'GET',
             `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
+            {
+                fallbackMessage: getGenericLoadErrorMessage(),
+            },
         );
-
-        const raw = await $fetch<unknown>(url, { credentials: 'include' });
-        const data = unwrapApiSuccessData<unknown>(raw);
         const normalized = normalizeStudentDetail(data);
 
         if (seq !== fetchSeq) {
@@ -525,7 +509,7 @@ function formatScheduleWeekLabel(d: Date): string {
     <div class="space-y-5">
         <PageHeader
             :title="studentDisplayName"
-            description="Profil kursanta, status procesu, platnosci i najblizsze jazdy."
+            description="Profil kursanta, status procesu, płatności i najbliższe jazdy."
         >
             <template #actions>
                 <UiButton
@@ -557,199 +541,21 @@ function formatScheduleWeekLabel(d: Date): string {
 
         <template v-else-if="student !== null">
             <div class="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                    <UiCardContent class="space-y-5 p-5">
-                        <div class="flex items-start gap-4 xl:flex-col">
-                            <div
-                                class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-xl font-extrabold text-sky-700"
-                                aria-hidden="true"
-                            >
-                                {{ studentInitials }}
-                            </div>
-                            <div class="min-w-0">
-                                <h2
-                                    class="text-foreground truncate text-xl font-extrabold"
-                                >
-                                    {{ studentDisplayName }}
-                                </h2>
-                                <p class="text-muted-foreground mt-1 text-sm">
-                                    {{ studentSubtitle }}
-                                </p>
-                            </div>
-                        </div>
+                <ManagerStudentProfileCard
+                    :initials="studentInitials"
+                    :display-name="studentDisplayName"
+                    :subtitle="studentSubtitle"
+                    :email="student.email"
+                    :pkk-number="student.pkkNumber"
+                    :courses-count="student.courses.length"
+                />
 
-                        <dl class="divide-border divide-y">
-                            <div
-                                class="flex items-center justify-between gap-4 py-3"
-                            >
-                                <dt
-                                    class="text-muted-foreground flex items-center gap-2 text-sm"
-                                >
-                                    <Mail class="size-4" aria-hidden="true" />
-                                    Email
-                                </dt>
-                                <dd
-                                    class="max-w-[180px] truncate text-right text-sm font-bold"
-                                >
-                                    {{ displayText(student.email) }}
-                                </dd>
-                            </div>
-                            <div
-                                class="flex items-center justify-between gap-4 py-3"
-                            >
-                                <dt
-                                    class="text-muted-foreground flex items-center gap-2 text-sm"
-                                >
-                                    <IdCard class="size-4" aria-hidden="true" />
-                                    Numer PKK
-                                </dt>
-                                <dd
-                                    class="text-right text-sm font-bold"
-                                    :class="{
-                                        'text-muted-foreground':
-                                            !student.pkkNumber ||
-                                            student.pkkNumber.trim().length ===
-                                                0,
-                                    }"
-                                >
-                                    {{ displayPkkNumber(student.pkkNumber) }}
-                                </dd>
-                            </div>
-                            <div
-                                class="flex items-center justify-between gap-4 py-3"
-                            >
-                                <dt
-                                    class="text-muted-foreground flex items-center gap-2 text-sm"
-                                >
-                                    <BookOpen
-                                        class="size-4"
-                                        aria-hidden="true"
-                                    />
-                                    Kursy
-                                </dt>
-                                <dd class="text-sm font-bold">
-                                    {{ student.courses.length }}
-                                </dd>
-                            </div>
-                        </dl>
-                    </UiCardContent>
-                </UiCard>
-
-                <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                    <UiCardHeader class="border-border border-b p-5 pt-0">
-                        <div
-                            class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-                        >
-                            <div class="space-y-1">
-                                <UiCardTitle class="text-xl font-extrabold">
-                                    Przeglad
-                                </UiCardTitle>
-                                <UiCardDescription>
-                                    Najwazniejsze dane i sekcje tego widoku.
-                                </UiCardDescription>
-                            </div>
-                            <UiBadge
-                                variant="outline"
-                                class="w-fit rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
-                            >
-                                Aktualne
-                            </UiBadge>
-                        </div>
-                    </UiCardHeader>
-                    <UiCardContent class="grid gap-3 p-4 sm:grid-cols-2">
-                        <div
-                            class="border-border rounded-2xl border p-4"
-                            aria-label="Status procesu"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="font-extrabold">Status procesu</p>
-                                    <p
-                                        class="text-muted-foreground mt-1 text-sm"
-                                    >
-                                        PKK, teoria, praktyka i platnosci.
-                                    </p>
-                                </div>
-                                <UiBadge
-                                    variant="outline"
-                                    class="shrink-0 rounded-full bg-sky-50 text-sky-700"
-                                >
-                                    {{ processOverviewLabel }}
-                                </UiBadge>
-                            </div>
-                        </div>
-
-                        <div
-                            class="border-border rounded-2xl border p-4"
-                            aria-label="Notatki managera"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="font-extrabold">
-                                        Notatki managera
-                                    </p>
-                                    <p
-                                        class="text-muted-foreground mt-1 text-sm"
-                                    >
-                                        Dane zachowane w profilu kursanta.
-                                    </p>
-                                </div>
-                                <UiBadge
-                                    variant="outline"
-                                    class="shrink-0 rounded-full"
-                                >
-                                    {{ notesOverviewLabel }}
-                                </UiBadge>
-                            </div>
-                        </div>
-
-                        <div
-                            class="border-border rounded-2xl border p-4"
-                            aria-label="Platnosci"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="font-extrabold">Platnosci</p>
-                                    <p
-                                        class="text-muted-foreground mt-1 text-sm"
-                                    >
-                                        Historia opłat w wybranej szkole.
-                                    </p>
-                                </div>
-                                <UiBadge
-                                    variant="outline"
-                                    class="shrink-0 rounded-full"
-                                >
-                                    {{ paymentsOverviewLabel }}
-                                </UiBadge>
-                            </div>
-                        </div>
-
-                        <div
-                            class="border-border rounded-2xl border p-4"
-                            aria-label="Lekcje tygodniowe"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="font-extrabold">
-                                        Lekcje tygodniowe
-                                    </p>
-                                    <p
-                                        class="text-muted-foreground mt-1 text-sm"
-                                    >
-                                        Terminarz dla aktualnego tygodnia.
-                                    </p>
-                                </div>
-                                <UiBadge
-                                    variant="outline"
-                                    class="shrink-0 rounded-full"
-                                >
-                                    {{ scheduleOverviewLabel }}
-                                </UiBadge>
-                            </div>
-                        </div>
-                    </UiCardContent>
-                </UiCard>
+                <ManagerStudentOverviewCard
+                    :process-label="processOverviewLabel"
+                    :notes-label="notesOverviewLabel"
+                    :payments-label="paymentsOverviewLabel"
+                    :schedule-label="scheduleOverviewLabel"
+                />
             </div>
 
             <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
@@ -857,7 +663,7 @@ function formatScheduleWeekLabel(d: Date): string {
                                 id="student-payments-heading"
                                 class="text-foreground text-xl font-extrabold"
                             >
-                                Platnosci
+                                Płatności
                             </h2>
                             <p class="text-muted-foreground text-sm">
                                 Historia opłat kursanta w wybranej szkole.

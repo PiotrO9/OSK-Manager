@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     if (!accessToken) {
         throw createError({
             statusCode: 401,
-            message: 'Brak tokena dost?pu',
+            message: 'Brak tokena dostępu',
         });
     }
 
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
     } catch {
         throw createError({
             statusCode: 401,
-            message: 'Nieprawid?owy lub wygas?y token',
+            message: 'Nieprawidłowy lub wygasły token',
         });
     }
 });

@@ -1,8 +1,6 @@
 import type { DrivingSchool } from '~/types/drivingSchool';
 import { normalizeInstructorsList } from '~/types/instructor';
 import { normalizeStudentListPage } from '~/types/student';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 import {
     getOskClearDefaultBlockedMessage,
     isOskDefaultSwitchLocked,
@@ -60,15 +58,14 @@ export function useManagerOskPage() {
     );
 
     async function fetchInstructorCount(schoolId: string): Promise<number> {
-        const raw = await bffFetch<unknown>(
+        return await requestBffData<number>(
             'GET',
-            resolveBffEndpoint(
-                `/api/instructors?schoolId=${encodeURIComponent(schoolId)}`,
-            ),
+            `/api/instructors?schoolId=${encodeURIComponent(schoolId)}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać liczby instruktorów.',
+                normalize: (data) => normalizeInstructorsList(data).length,
+            },
         );
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeInstructorsList(data).length;
     }
 
     async function fetchStudentCount(schoolId: string): Promise<number> {
@@ -77,14 +74,15 @@ export function useManagerOskPage() {
             page: '1',
             limit: '1',
         });
-        const raw = await bffFetch<unknown>(
-            'GET',
-            resolveBffEndpoint(`/api/students?${qs.toString()}`),
-        );
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const page = normalizeStudentListPage(data);
 
-        return page?.total ?? 0;
+        return await requestBffData<number>(
+            'GET',
+            `/api/students?${qs.toString()}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać liczby kursantów.',
+                normalize: (data) => normalizeStudentListPage(data)?.total ?? 0,
+            },
+        );
     }
 
     async function loadSchoolStats(list: DrivingSchool[]) {

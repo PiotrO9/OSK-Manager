@@ -13,7 +13,7 @@ export async function requireInstructorFromCookie(
     if (!accessToken) {
         throw createError({
             statusCode: 401,
-            message: 'Brak tokena dost?pu',
+            message: 'Brak tokena dostępu',
         });
     }
 

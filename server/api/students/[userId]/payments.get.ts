@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     if (!isUuid(studentUserId)) {
         throw createError({
             statusCode: 400,
-            message: 'Nieprawid?owy identyfikator kursanta.',
+            message: 'Nieprawidłowy identyfikator kursanta.',
         });
     }
 

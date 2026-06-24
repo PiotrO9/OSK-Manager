@@ -410,7 +410,7 @@ async function handleSaveInstructorAssignment() {
         });
     } catch (err) {
         addToast({
-            title: 'Blad',
+            title: 'Błąd',
             description: getApiFetchErrorMessage(
                 err,
                 'Nie udało się zapisać instruktora.',
@@ -572,7 +572,7 @@ async function handleSaveInstructorAssignment() {
                                     Przeglad
                                 </UiCardTitle>
                                 <UiCardDescription>
-                                    Najwazniejsze dane i akcje dla tego widoku.
+                                    Najważniejsze dane i akcje dla tego widoku.
                                 </UiCardDescription>
                             </div>
                             <StatusBadge label="Aktualne" tone="info" subtle />

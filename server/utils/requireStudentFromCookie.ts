@@ -11,7 +11,7 @@ export async function requireStudentFromCookie(event: H3Event): Promise<void> {
     if (!accessToken) {
         throw createError({
             statusCode: 401,
-            message: 'Brak tokena dost?pu',
+            message: 'Brak tokena dostępu',
         });
     }
 

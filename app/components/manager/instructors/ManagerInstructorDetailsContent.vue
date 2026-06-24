@@ -267,7 +267,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
                             Przeglad
                         </UiCardTitle>
                         <UiCardDescription>
-                            Najwazniejsze dane i akcje dla tego widoku.
+                            Najważniejsze dane i akcje dla tego widoku.
                         </UiCardDescription>
                     </div>
                     <StatusBadge label="Aktualne" tone="info" subtle />

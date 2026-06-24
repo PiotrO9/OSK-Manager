@@ -3316,7 +3316,7 @@ export interface paths {
         };
         /**
          * Status procesu kursanta (checklista onboardingu)
-         * @description Zwraca dynamicznie wyliczona liste krokow procesu kursanta dla podanej OSK. Platnosci pomijamy w v1, bo obecny model nie przypisuje platnosci do konkretnego kursanta.
+         * @description Zwraca dynamicznie wyliczoną listę kroków procesu kursanta dla podanej OSK. Płatności pomijamy w v1, bo obecny model nie przypisuje płatności do konkretnego kursanta.
          */
         get: {
             parameters: {
@@ -3331,7 +3331,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Checklista krokow procesu kursanta */
+                /** @description Checklista kroków procesu kursanta */
                 200: {
                     headers: {
                         [name: string]: unknown;
