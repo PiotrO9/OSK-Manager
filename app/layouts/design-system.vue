@@ -26,7 +26,7 @@
                     to="/"
                     class="text-muted-foreground hover:text-primary focus-visible:ring-primary rounded-md text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 >
-                    Wroc do panelu
+                    Wróć do panelu
                 </NuxtLink>
             </div>
         </header>

@@ -1,10 +1,20 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import type { ScheduleLessonRating } from '~/types/schedule';
 
 export interface CreateLessonRatingInput {
     rating: number;
     comment: string | null;
+}
+
+function normalizeNullableRating(data: unknown): ScheduleLessonRating | null {
+    const rating = (data as { rating?: unknown } | null)?.rating;
+
+    return rating && typeof rating === 'object'
+        ? (rating as ScheduleLessonRating)
+        : null;
+}
+
+function normalizeRequiredRating(data: unknown): ScheduleLessonRating | null {
+    return normalizeNullableRating(data);
 }
 
 export function useLessonRatingsApi() {
@@ -17,19 +27,14 @@ export function useLessonRatingsApi() {
             throw new Error('Brak identyfikatora lekcji.');
         }
 
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(`/api/lessons/${encodeURIComponent(id)}/rating`),
+        return await requestBffData<ScheduleLessonRating | null>(
+            'GET',
+            `/api/lessons/${encodeURIComponent(id)}/rating`,
             {
-                method: 'GET',
-                credentials: 'include',
+                fallbackMessage: 'Nie udało się pobrać oceny lekcji.',
+                normalize: normalizeNullableRating,
             },
         );
-
-        const data = unwrapApiSuccessData<{
-            rating: ScheduleLessonRating | null;
-        }>(raw);
-
-        return data.rating ?? null;
     }
 
     async function createLessonRating(
@@ -42,20 +47,16 @@ export function useLessonRatingsApi() {
             throw new Error('Brak identyfikatora lekcji.');
         }
 
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(`/api/lessons/${encodeURIComponent(id)}/rating`),
+        return await requestBffData<ScheduleLessonRating>(
+            'POST',
+            `/api/lessons/${encodeURIComponent(id)}/rating`,
             {
-                method: 'POST',
-                credentials: 'include',
                 body,
+                fallbackMessage: 'Nie udało się zapisać oceny lekcji.',
+                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                normalize: normalizeRequiredRating,
             },
         );
-
-        const data = unwrapApiSuccessData<{
-            rating: ScheduleLessonRating;
-        }>(raw);
-
-        return data.rating;
     }
 
     return {

@@ -78,7 +78,7 @@ const summaryItems = computed(() => [
         tone: 'success' as const,
     },
     {
-        label: 'Niedostepne',
+        label: 'Niedostępne',
         value: unavailableVehiclesCount.value,
         tone: 'warning' as const,
     },
@@ -122,7 +122,7 @@ function formatVehicleMeta(vehicle: Vehicle): string {
 }
 
 function vehicleStatusLabel(vehicle: Vehicle): string {
-    return isVehicleAvailable(vehicle) ? 'Dostepny' : 'Niedostepny';
+    return isVehicleAvailable(vehicle) ? 'Dostępny' : 'Niedostępny';
 }
 
 function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
@@ -134,7 +134,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
     <div class="space-y-5">
         <PageHeader
             title="Pojazdy"
-            description="Flota OSK, statusy techniczne i przypisanie do szkoly."
+            description="Flota OSK, statusy techniczne i przypisanie do szkoły."
         >
             <template #actions>
                 <UiButton
@@ -179,7 +179,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                 <div
                     class="flex flex-wrap gap-1.5"
                     role="tablist"
-                    aria-label="Widok listy pojazdow"
+                    aria-label="Widok listy pojazdów"
                 >
                     <button
                         type="button"
@@ -235,8 +235,8 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
 
         <EmptyState
             v-else-if="vehicles.length === 0"
-            title="Brak pojazdow"
-            description="Nie zarejestrowano jeszcze zadnego pojazdu dla tej szkoly."
+            title="Brak pojazdów"
+            description="Nie zarejestrowano jeszcze żadnego pojazdu dla tej szkoły."
         >
             <template v-if="isManager && resolvedSchoolId" #action>
                 <UiButton as-child variant="secondary" size="sm">
@@ -306,7 +306,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                                 />
                                 <StatusBadge
                                     v-if="vehicle.isDefault"
-                                    label="Domyslny"
+                                    label="Domyślny"
                                     tone="info"
                                     subtle
                                 />
@@ -361,9 +361,9 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                                                 schoolId: resolvedSchoolId,
                                             },
                                         }"
-                                        :aria-label="`Szczegoly pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                        :aria-label="`Szczegóły pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
                                     >
-                                        Szczegoly
+                                        Szczegóły
                                     </NuxtLink>
                                 </UiButton>
                                 <UiButton
@@ -441,7 +441,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                             />
                             <StatusBadge
                                 v-if="vehicle.isDefault"
-                                label="Domyslny"
+                                label="Domyślny"
                                 tone="info"
                                 subtle
                             />
@@ -504,7 +504,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                                     }"
                                 >
                                     <Eye class="size-4" aria-hidden="true" />
-                                    Szczegoly
+                                    Szczegóły
                                 </NuxtLink>
                             </UiButton>
                             <UiButton
@@ -571,7 +571,7 @@ function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
                         Szybka kontrola statusow
                     </p>
                     <p class="text-muted-foreground mt-1 text-xs">
-                        Przelacz dostepnosc pojazdow bez wchodzenia w edycje.
+                        Przełącz dostępność pojazdów bez wchodzenia w edycję.
                     </p>
                 </div>
             </div>

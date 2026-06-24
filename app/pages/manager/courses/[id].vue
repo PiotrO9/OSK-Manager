@@ -97,7 +97,7 @@ const createCourseTarget = computed(() => ({
 }));
 
 const courseTitle = computed(
-    () => course.value?.name?.trim() || 'Szczegoly kursu',
+    () => course.value?.name?.trim() || 'Szczegóły kursu',
 );
 
 const courseCategoryLabel = computed(() => {
@@ -222,7 +222,7 @@ function resolveCourseDetailError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
     if (status === 403) {
-        return 'Brak dostepu do szczegolow tego kursu.';
+        return 'Brak dostępu do szczegółów tego kursu.';
     }
 
     if (status === 404) {
@@ -230,14 +230,14 @@ function resolveCourseDetailError(err: unknown): string {
     }
 
     if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostepny. Sprobuj ponownie.';
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
     }
 
     if (err instanceof Error && err.message.trim().length > 0) {
         return err.message.trim();
     }
 
-    return getApiFetchErrorMessage(err, 'Nie udalo sie wczytac danych kursu.');
+    return getApiFetchErrorMessage(err, 'Nie udało się wczytać danych kursu.');
 }
 
 function formatCapacityText(capacity: number | null): string {
@@ -284,7 +284,7 @@ async function loadInstructors(schoolId: string) {
         instructors.value = [];
         instructorsLoadError.value = getApiFetchErrorMessage(
             e,
-            'Nie udalo sie pobrac listy instruktorow.',
+            'Nie udało się pobrać listy instruktorów.',
         );
     } finally {
         isInstructorsLoading.value = false;
@@ -361,7 +361,7 @@ function handleInstructorSelectChange() {
 
 const instructorSaveBlockedReason = computed(() => {
     if (!effectiveSchoolId.value) {
-        return 'Brak identyfikatora szkoly. Otworz szczegoly z listy kursow albo dodaj parametr schoolId w adresie.';
+        return 'Brak identyfikatora szkoły. Otwórz szczegóły z listy kursów albo dodaj parametr schoolId w adresie.';
     }
 
     return '';
@@ -413,7 +413,7 @@ async function handleSaveInstructorAssignment() {
             title: 'Blad',
             description: getApiFetchErrorMessage(
                 err,
-                'Nie udalo sie zapisac instruktora.',
+                'Nie udało się zapisać instruktora.',
             ),
             variant: 'error',
         });
@@ -432,10 +432,10 @@ async function handleSaveInstructorAssignment() {
                 >
                     <NuxtLink
                         :to="backToCoursesHref"
-                        aria-label="Wroc do listy kursow"
+                        aria-label="Wróć do listy kursów"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista kursow
+                        Lista kursów
                     </NuxtLink>
                 </UiButton>
                 <UiButton
@@ -461,7 +461,7 @@ async function handleSaveInstructorAssignment() {
 
         <ErrorState
             v-else-if="loadError"
-            title="Nie udalo sie wczytac kursu"
+            title="Nie udało się wczytać kursu"
             :description="loadError"
             @retry="loadCourse(route.params.id)"
         />
@@ -609,7 +609,7 @@ async function handleSaveInstructorAssignment() {
                                     Przypisanie instruktora
                                 </UiCardTitle>
                                 <UiCardDescription>
-                                    Aktualizuj prowadzacego z listy instruktorow
+                                    Aktualizuj prowadzącego z listy instruktorów
                                     tej OSK.
                                 </UiCardDescription>
                             </div>
@@ -631,7 +631,7 @@ async function handleSaveInstructorAssignment() {
                                     <p
                                         class="text-muted-foreground mt-1 text-sm"
                                     >
-                                        To przypisanie jest uzywane przy
+                                        To przypisanie jest używane przy
                                         organizacji zajec.
                                     </p>
                                 </div>
@@ -657,7 +657,7 @@ async function handleSaveInstructorAssignment() {
 
                         <ErrorState
                             v-if="instructorsLoadError"
-                            title="Nie udalo sie wczytac instruktorow"
+                            title="Nie udało się wczytać instruktorów"
                             :description="instructorsLoadError"
                             @retry="loadInstructors(effectiveSchoolId)"
                         />
@@ -671,7 +671,7 @@ async function handleSaveInstructorAssignment() {
                                 class="text-muted-foreground text-sm"
                                 role="status"
                             >
-                                Wczytywanie listy instruktorow...
+                                Wczytywanie listy instruktorów...
                             </p>
                             <UiSelect
                                 v-else
@@ -725,8 +725,8 @@ async function handleSaveInstructorAssignment() {
                                 class="text-muted-foreground text-sm"
                                 role="status"
                             >
-                                Brak instruktorow w tej szkole. Mozesz wyczyscic
-                                przypisanie albo dodac instruktorow w panelu
+                                Brak instruktorów w tej szkole. Możesz wyczyścić
+                                przypisanie albo dodać instruktorów w panelu
                                 OSK.
                             </p>
                             <p
@@ -738,7 +738,7 @@ async function handleSaveInstructorAssignment() {
                                 class="text-muted-foreground text-sm"
                                 role="status"
                             >
-                                Brak instruktorow z uprawnieniem do kategorii
+                                Brak instruktorów z uprawnieniem do kategorii
                                 tego kursu.
                             </p>
                         </div>
@@ -767,7 +767,7 @@ async function handleSaveInstructorAssignment() {
                                     Powiazane dane
                                 </UiCardTitle>
                                 <UiCardDescription>
-                                    Elementy, ktorych nie mozna zgubic po
+                                    Elementy, ktorych nie można zgubic po
                                     redesignie.
                                 </UiCardDescription>
                             </div>

@@ -122,7 +122,7 @@ function statusLabel(raw: string): string {
     }
 
     if (normalized === 'COMPLETED' || normalized === 'DONE') {
-        return 'Zakonczone';
+        return 'Zakończone';
     }
 
     if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
@@ -295,7 +295,7 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                             class="shrink-0"
                             :disabled="cancellingLessonId === item.id"
                             :aria-busy="cancellingLessonId === item.id"
-                            :aria-label="`Anuluj rezerwacje ${displayTimeRange(item)}`"
+                            :aria-label="`Anuluj rezerwację ${displayTimeRange(item)}`"
                             @click="handleCancelClick(item)"
                         >
                             {{

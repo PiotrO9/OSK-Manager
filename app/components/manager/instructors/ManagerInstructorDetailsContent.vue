@@ -160,7 +160,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
     <div class="space-y-5">
         <PageHeader
             :title="displayValue(props.instructor.name)"
-            description="Szczegoly instruktora, kwalifikacje, oceny i dostepnosc."
+            description="Szczegóły instruktora, kwalifikacje, oceny i dostępność."
             eyebrow="Instruktor"
         >
             <template #actions>
@@ -171,7 +171,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
                 >
                     <NuxtLink
                         to="/manager/instructors"
-                        aria-label="Wroc do listy instruktorow"
+                        aria-label="Wróć do listy instruktorów"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
                         Lista
@@ -317,7 +317,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
                         <div class="min-w-0">
                             <p class="text-foreground font-semibold">Akcje</p>
                             <p class="text-muted-foreground mt-1 text-sm">
-                                Edycja, usuniecie, terminarz i dostepnosc.
+                                Edycja, usunięcie, terminarz i dostępność.
                             </p>
                         </div>
                         <StatusBadge label="5 akcji" tone="neutral" subtle />
@@ -352,7 +352,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
                             Powiazane dane
                         </UiCardTitle>
                         <UiCardDescription>
-                            Elementy, ktorych nie mozna zgubic po redesignie.
+                            Elementy, ktorych nie można zgubic po redesignie.
                         </UiCardDescription>
                     </UiCardHeader>
 

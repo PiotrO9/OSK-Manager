@@ -65,7 +65,7 @@ const students = [
                 Wzorce redesignu
             </h2>
             <p class="text-muted-foreground max-w-3xl text-sm leading-relaxed">
-                Gotowe elementy do skladania widokow list, szczegolow i
+                Gotowe elementy do skladania widokow list, szczegółów i
                 formularzy bez lokalnego odtwarzania tych samych klas.
             </p>
         </div>
@@ -75,7 +75,7 @@ const students = [
         >
             <PageHeader
                 title="Kursanci"
-                description="Lista kursantow, filtry OSK i szybkie przypisanie kursu."
+                description="Lista kursantów, filtry OSK i szybkie przypisanie kursu."
                 eyebrow="Manager"
                 :meta="[
                     { label: 'Widok', value: 'lista' },
@@ -111,9 +111,9 @@ const students = [
                 </FilterBar>
 
                 <DataTableShell
-                    title="Tabela kursantow"
-                    description="Desktop uzywa tabeli, mobile dostaje liste rekordow."
-                    empty-title="Brak kursantow"
+                    title="Tabela kursantów"
+                    description="Desktop u?ywa tabeli, mobile dostaje liste rekordow."
+                    empty-title="Brak kursantów"
                     empty-description="Zmien filtry albo dodaj pierwszego kursanta."
                 >
                     <template #toolbar>
@@ -181,7 +181,7 @@ const students = [
                                             variant="outline"
                                             size="sm"
                                         >
-                                            Szczegoly
+                                            Szczegóły
                                         </UiButton>
                                     </ActionGroup>
                                 </td>
@@ -228,7 +228,7 @@ const students = [
                                     variant="outline"
                                     size="sm"
                                 >
-                                    Szczegoly
+                                    Szczegóły
                                 </UiButton>
                             </li>
                         </ul>

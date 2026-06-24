@@ -5,7 +5,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Pojazdy',
-    description: () => 'Lista pojazdow szkoly jazdy.',
+    description: () => 'Lista pojazdów szkoły jazdy.',
 });
 
 const {

@@ -72,16 +72,16 @@ const vehicleInitials = computed(() => {
 const availability = computed(() => {
     if (props.vehicle.status === 'UNAVAILABLE') {
         return {
-            label: 'Niedostepny',
+            label: 'Niedostępny',
             tone: 'danger' as StatusTone,
-            description: 'Pojazd oznaczony jako niedostepny.',
+            description: 'Pojazd oznaczony jako niedostępny.',
         };
     }
 
     return {
         label: 'Aktywny',
         tone: 'success' as StatusTone,
-        description: 'Pojazd moze byc uzywany w harmonogramie.',
+        description: 'Pojazd może być używany w harmonogramie.',
     };
 });
 
@@ -110,10 +110,10 @@ const overviewItems = computed(() => [
         icon: CalendarCheck,
     },
     {
-        label: 'Domyslny pojazd',
+        label: 'Domyślny pojazd',
         description: props.vehicle.isDefault
             ? 'Ten pojazd jest domyslny dla OSK.'
-            : 'Domyslny pojazd mozna ustawic z listy pojazdow.',
+            : 'Domyślny pojazd można ustawić z listy pojazdów.',
         badge: props.vehicle.isDefault ? 'Tak' : 'Nie',
         tone: props.vehicle.isDefault
             ? ('info' as StatusTone)
@@ -176,7 +176,7 @@ const relatedItems = computed(() => [
         icon: Pencil,
     },
     {
-        label: 'Lista pojazdow',
+        label: 'Lista pojazdów',
         description: 'Status, domyslnosc i usuwanie zostaja w panelu listy.',
         to: props.backToListHref,
         badge: 'Widoczna',
@@ -189,7 +189,7 @@ const relatedItems = computed(() => [
     <div class="space-y-5">
         <PageHeader
             :title="vehicleTitle"
-            description="Szczegoly pojazdu, status i najwazniejsze dane techniczne."
+            description="Szczegóły pojazdu, status i najważniejsze dane techniczne."
             eyebrow="Pojazd"
         >
             <template #actions>
@@ -200,10 +200,10 @@ const relatedItems = computed(() => [
                 >
                     <NuxtLink
                         :to="props.backToListHref"
-                        aria-label="Wroc do listy pojazdow"
+                        aria-label="Wróć do listy pojazdów"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista pojazdow
+                        Lista pojazdów
                     </NuxtLink>
                 </UiButton>
                 <UiButton
@@ -284,7 +284,7 @@ const relatedItems = computed(() => [
                         />
                         <StatusBadge
                             v-if="props.vehicle.isDefault"
-                            label="Domyslny"
+                            label="Domyślny"
                             tone="info"
                             subtle
                         />
@@ -390,7 +390,7 @@ const relatedItems = computed(() => [
                                 Powiazane dane
                             </UiCardTitle>
                             <UiCardDescription>
-                                Elementy, ktorych nie mozna zgubic po
+                                Elementy, ktorych nie można zgubic po
                                 redesignie.
                             </UiCardDescription>
                         </div>

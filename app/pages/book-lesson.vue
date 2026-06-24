@@ -143,7 +143,7 @@ async function loadCourses(): Promise<void> {
         selectedCourseId.value = '';
         coursesErrorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy kursow.',
+            'Nie udało się pobrać listy kursów.',
         );
     } finally {
         isCoursesLoading.value = false;
@@ -189,7 +189,7 @@ async function loadSlots(): Promise<void> {
         slots.value = [];
         slotsErrorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac wolnych terminow.',
+            'Nie udało się pobrać wolnych terminów.',
         );
     }
 }
@@ -238,12 +238,12 @@ async function handleBookSlot(slot: SchoolAvailabilitySlot): Promise<void> {
     } catch (err: unknown) {
         const message = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie zarezerwowac jazdy.',
+            'Nie udało się zarezerwować jazdy.',
         );
 
         slotsErrorMessage.value = message;
         addToast({
-            title: 'Nie udalo sie zarezerwowac jazdy',
+            title: 'Nie udało się zarezerwować jazdy',
             description: message,
             variant: 'error',
         });

@@ -224,7 +224,7 @@ export function useVehiclesApi() {
             const vehicle = normalizeVehicle(data, 0);
 
             if (!vehicle) {
-                throw new Error('Nieprawid?owa odpowied? serwera.');
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
             }
 
             return vehicle;

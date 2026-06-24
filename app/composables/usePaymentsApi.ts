@@ -2,28 +2,17 @@ import {
     normalizeStudentPayments,
     type StudentPaymentItem,
 } from '~/types/payment';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 
 export function usePaymentsApi() {
     async function fetchMyPayments(): Promise<StudentPaymentItem[]> {
-        try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint('/api/me/payments'),
-                { method: 'GET', credentials: 'include' },
-            );
-            const data = unwrapApiSuccessData<unknown>(raw);
-
-            return normalizeStudentPayments(data);
-        } catch (err) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    err,
-                    'Nie udało się pobrać listy opłat.',
-                ),
-            );
-        }
+        return await requestBffData<StudentPaymentItem[]>(
+            'GET',
+            '/api/me/payments',
+            {
+                fallbackMessage: 'Nie udało się pobrać listy opłat.',
+                normalize: (data) => normalizeStudentPayments(data),
+            },
+        );
     }
 
     async function fetchStudentPayments(
@@ -37,25 +26,16 @@ export function usePaymentsApi() {
             throw new Error('Brak identyfikatora kursanta lub szkoły.');
         }
 
-        try {
-            const qs = new URLSearchParams({ schoolId: sid });
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/students/${encodeURIComponent(uid)}/payments?${qs.toString()}`,
-                ),
-                { method: 'GET', credentials: 'include' },
-            );
-            const data = unwrapApiSuccessData<unknown>(raw);
+        const qs = new URLSearchParams({ schoolId: sid });
 
-            return normalizeStudentPayments(data);
-        } catch (err) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    err,
-                    'Nie udało się pobrać listy opłat kursanta.',
-                ),
-            );
-        }
+        return await requestBffData<StudentPaymentItem[]>(
+            'GET',
+            `/api/students/${encodeURIComponent(uid)}/payments?${qs.toString()}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać listy opłat kursanta.',
+                normalize: (data) => normalizeStudentPayments(data),
+            },
+        );
     }
 
     return {

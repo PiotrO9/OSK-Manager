@@ -704,7 +704,7 @@ function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
     const base = ariaSummaryForLesson(lesson);
 
     if (isStudentRatingSelectableLesson(lesson)) {
-        return `${base}. Naciśnij Enter lub Spację, aby otworzyć opinię.`;
+        return `${base}. Naciśnij Enter lub Spację, aby otwórzyć opinię.`;
     }
 
     if (!props.eventEditEnabled) {

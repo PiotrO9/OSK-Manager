@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-    ChevronLeft,
-    ChevronRight,
-    Mail,
-    Phone,
-    UserPlus,
-} from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Mail, Phone } from 'lucide-vue-next';
 import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import type { DrivingSchool } from '~/types/drivingSchool';
 import type { CourseListItem } from '~/types/course';
@@ -483,66 +477,14 @@ async function handleStudentSubmit(payload: StudentRegisterPayload) {
 
 <template>
     <div class="space-y-5">
-        <PageHeader
-            title="Kursanci"
-            description="Lista kursantów, filtry OSK i szybkie przypisanie kursu."
-        >
-            <template #actions>
-                <UiButton
-                    type="button"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    aria-label="Otwórz formularz dodawania kursanta"
-                    @click="handleOpenCreateDialog"
-                >
-                    <UserPlus class="mr-2 size-4" aria-hidden="true" />
-                    Dodaj kursanta
-                </UiButton>
-            </template>
-        </PageHeader>
+        <ManagerStudentsPageHeader @create="handleOpenCreateDialog" />
 
-        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div
-                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-            >
-                <p class="text-muted-foreground text-sm font-medium">
-                    Kursanci
-                </p>
-                <p class="text-foreground mt-2 text-3xl font-extrabold">
-                    {{ totalStudentsCount }}
-                </p>
-            </div>
-            <div
-                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-            >
-                <p class="text-muted-foreground text-sm font-medium">
-                    Na stronie
-                </p>
-                <p class="text-foreground mt-2 text-3xl font-extrabold">
-                    {{ students.length }}
-                </p>
-            </div>
-            <div
-                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-            >
-                <p class="text-muted-foreground text-sm font-medium">
-                    Aktywni na stronie
-                </p>
-                <p class="text-foreground mt-2 text-3xl font-extrabold">
-                    {{ activeStudentsOnPage }}
-                </p>
-            </div>
-            <div
-                class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-            >
-                <p class="text-muted-foreground text-sm font-medium">
-                    Z numerem PKK
-                </p>
-                <p class="text-foreground mt-2 text-3xl font-extrabold">
-                    {{ studentsWithPkkOnPage }}
-                </p>
-            </div>
-        </div>
-
+        <ManagerStudentsStats
+            :total-students-count="totalStudentsCount"
+            :page-students-count="students.length"
+            :active-students-on-page="activeStudentsOnPage"
+            :students-with-pkk-on-page="studentsWithPkkOnPage"
+        />
         <UiCard class="overflow-hidden rounded-2xl shadow-sm">
             <UiCardHeader class="border-border border-b p-5 pt-0">
                 <div

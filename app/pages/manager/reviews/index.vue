@@ -117,7 +117,7 @@ async function loadSchools(): Promise<void> {
         activeSchoolId.value = '';
         loadError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy OSK.',
+            'Nie udało się pobrać listy OSK.',
         );
     } finally {
         isSchoolsLoading.value = false;
@@ -171,7 +171,7 @@ async function loadRatings(): Promise<void> {
         summary.value = { averageRating: null, totalCount: 0 };
         loadError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac opinii.',
+            'Nie udało się pobrać opinii.',
         );
     } finally {
         isRatingsLoading.value = false;
@@ -202,7 +202,7 @@ onMounted(async () => {
                     Opinie o lekcjach
                 </h1>
                 <p class="text-muted-foreground text-sm">
-                    Oceny instruktorow, komentarze kursantow i filtry okresu.
+                    Oceny instruktorów, komentarze kursantów i filtry okresu.
                 </p>
             </div>
 
@@ -262,7 +262,7 @@ onMounted(async () => {
             class="text-muted-foreground text-sm"
             role="status"
         >
-            Wczytywanie szkol jazdy...
+            Wczytywanie szkół jazdy...
         </p>
 
         <template v-else-if="schools.length > 0">
@@ -278,7 +278,7 @@ onMounted(async () => {
         </template>
 
         <p v-else class="text-muted-foreground text-sm" role="status">
-            Brak szkol jazdy do wyswietlenia opinii.
+            Brak szkół jazdy do wyświetlenia opinii.
         </p>
     </div>
 </template>

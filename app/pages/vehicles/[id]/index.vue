@@ -38,7 +38,7 @@ const loadError = shallowRef<string | null>(null);
 const vehicleTitle = computed(() => {
     const name = vehicle.value?.name.trim();
 
-    return name && name.length > 0 ? name : 'Szczegoly pojazdu';
+    return name && name.length > 0 ? name : 'Szczegóły pojazdu';
 });
 
 const backToListHref = computed<RouteLocationRaw>(() => {
@@ -85,7 +85,7 @@ async function loadVehicle() {
         loadError.value =
             err instanceof Error && err.message.trim().length > 0
                 ? err.message
-                : 'Nie udalo sie wczytac pojazdu.';
+                : 'Nie udało się wczytać pojazdu.';
     }
 }
 
@@ -107,14 +107,14 @@ watch(
         >
             <template #action>
                 <UiButton as-child variant="outline" size="sm">
-                    <NuxtLink :to="backToListHref">Lista pojazdow</NuxtLink>
+                    <NuxtLink :to="backToListHref">Lista pojazdów</NuxtLink>
                 </UiButton>
             </template>
         </ErrorState>
 
         <ErrorState
             v-else-if="loadError"
-            title="Nie udalo sie wczytac pojazdu"
+            title="Nie udało się wczytać pojazdu"
             :description="loadError"
             @retry="loadVehicle"
         />

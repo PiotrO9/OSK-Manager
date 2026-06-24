@@ -95,7 +95,7 @@ const headerMeta = computed<HeaderMetaItem[]>(() => {
         },
         {
             label: 'Status',
-            value: vehicle.status === 'UNAVAILABLE' ? 'Niedostepny' : 'Aktywny',
+            value: vehicle.status === 'UNAVAILABLE' ? 'Niedostępny' : 'Aktywny',
             tone: vehicle.status === 'UNAVAILABLE' ? 'warning' : 'success',
         },
     ];
@@ -151,7 +151,7 @@ async function loadList() {
         loadError.value =
             err instanceof Error
                 ? err.message
-                : 'Nie udalo sie wczytac listy pojazdow.';
+                : 'Nie udało się wczytać listy pojazdów.';
         vehicles.value = [];
     } finally {
         isListBootloading.value = false;
@@ -184,7 +184,7 @@ async function loadVehicleDetail() {
         detailLoadError.value =
             err instanceof Error
                 ? err.message
-                : 'Nie udalo sie wczytac szczegolow pojazdu.';
+                : 'Nie udało się wczytać szczegółów pojazdu.';
         vehicleDetail.value = null;
     } finally {
         isDetailLoading.value = false;
@@ -267,7 +267,7 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
                 photoUploadError.value =
                     err instanceof Error
                         ? err.message
-                        : 'Nie udalo sie przeslac zdjecia.';
+                        : 'Nie udało się przesłać zdjęcia.';
 
                 return;
             }
@@ -281,7 +281,7 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         apiError.value =
             err instanceof Error
                 ? err.message
-                : 'Nie udalo sie zapisac pojazdu.';
+                : 'Nie udało się zapisać pojazdu.';
     }
 }
 </script>
@@ -315,18 +315,18 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         <ErrorState
             v-if="schoolId === null || vehicleId === null"
             title="Nieprawidlowy adres strony"
-            description="Otworz edycje z listy pojazdow, aby zachowac kontekst OSK i identyfikator pojazdu."
+            description="Otwórz edycję z listy pojazdów, aby zachować kontekst OSK i identyfikator pojazdu."
         >
             <template #action>
                 <UiButton as-child variant="outline" class="bg-background">
-                    <NuxtLink to="/vehicles">Wroc do listy</NuxtLink>
+                    <NuxtLink to="/vehicles">Wróć do listy</NuxtLink>
                 </UiButton>
             </template>
         </ErrorState>
 
         <ErrorState
             v-else-if="loadError"
-            title="Nie udalo sie wczytac pojazdu"
+            title="Nie udało się wczytać pojazdu"
             :description="loadError"
             @retry="loadList"
         />
@@ -340,11 +340,11 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         <EmptyState
             v-else-if="initialVehicle === null"
             title="Nie znaleziono pojazdu"
-            description="Wroc do listy pojazdow i otworz edycje ponownie."
+            description="Wróć do listy pojazdów i otwórz edycję ponownie."
         >
             <template #action>
                 <UiButton as-child variant="outline">
-                    <NuxtLink :to="vehiclesListRoute">Wroc do listy</NuxtLink>
+                    <NuxtLink :to="vehiclesListRoute">Wróć do listy</NuxtLink>
                 </UiButton>
             </template>
         </EmptyState>
@@ -401,15 +401,15 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
                                     class="flex size-full items-center justify-center px-4 text-center text-sm"
                                     role="status"
                                 >
-                                    Wczytywanie podgladu zdjecia...
+                                    Wczytywanie podgladu zdjęcia...
                                 </div>
                                 <div
                                     v-else
                                     class="flex size-full items-center justify-center px-4 text-center text-sm"
                                     role="img"
-                                    aria-label="Brak zdjecia pojazdu"
+                                    aria-label="Brak zdjęcia pojazdu"
                                 >
-                                    Brak zdjecia
+                                    Brak zdjęcia
                                 </div>
                             </div>
 
@@ -426,7 +426,7 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
                                                 <button
                                                     type="button"
                                                     class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                                                    aria-label="Wymagania zdjecia pojazdu"
+                                                    aria-label="Wymagania zdjęcia pojazdu"
                                                 >
                                                     <Info
                                                         class="size-4"

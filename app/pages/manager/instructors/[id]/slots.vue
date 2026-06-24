@@ -74,7 +74,7 @@ const scheduleHref = computed(() => {
 usePageMeta({
     title: () => 'Sloty instruktora',
     description: () =>
-        'Tygodniowy widok dostepnych slotow czasowych instruktora.',
+        'Tygodniowy widok dostępnych slotów czasowych instruktora.',
 });
 </script>
 
@@ -82,7 +82,7 @@ usePageMeta({
     <div class="space-y-5">
         <PageHeader
             title="Wolne sloty instruktora"
-            description="Kalendarz dostepnych okien do rezerwacji jazd."
+            description="Kalendarz dostępnych okien do rezerwacji jazd."
             eyebrow="Sloty instruktora"
         >
             <template #actions>
@@ -93,10 +93,10 @@ usePageMeta({
                 >
                     <NuxtLink
                         :to="backToDetailHref"
-                        aria-label="Wroc do szczegolow instruktora"
+                        aria-label="Wróć do szczegółów instruktora"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Szczegoly
+                        Szczegóły
                     </NuxtLink>
                 </UiButton>
 

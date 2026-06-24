@@ -4,13 +4,9 @@ import type {
     LessonBookingSlotContext,
     StudentCourseWithKind,
 } from '~/types/lessonBooking';
-import type { StudentListItem } from '~/types/student';
-import type { Vehicle } from '~/types/vehicle';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
+import { normalizeStudentDetail, type StudentListItem } from '~/types/student';
+import { normalizeVehiclesList, type Vehicle } from '~/types/vehicle';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { normalizeStudentDetail } from '~/types/student';
-import { normalizeVehiclesList } from '~/types/vehicle';
 import { buildSlotIsoUTC } from '~/utils/weeklyCalendarDates';
 
 export interface LessonBookingModalData {
@@ -36,14 +32,14 @@ export function useLessonBookingApi() {
             endTime: endIso,
         });
 
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(`/api/vehicles?${qs.toString()}`),
-            { credentials: 'include' },
+        return await requestBffData<Vehicle[]>(
+            'GET',
+            `/api/vehicles?${qs.toString()}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać listy pojazdów.',
+                normalize: (data) => normalizeVehiclesList(data),
+            },
         );
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeVehiclesList(data);
     }
 
     async function loadModalData(
@@ -96,20 +92,15 @@ export function useLessonBookingApi() {
         }
 
         const qs = new URLSearchParams({ schoolId: sid });
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(
-                `/api/students/${encodeURIComponent(uid)}?${qs.toString()}`,
-            ),
-            { credentials: 'include' },
+        const detail = await requestBffData(
+            'GET',
+            `/api/students/${encodeURIComponent(uid)}?${qs.toString()}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać danych kursanta.',
+                invalidMessage: 'Nieprawidłowa odpowiedź serwera (kursant).',
+                normalize: normalizeStudentDetail,
+            },
         );
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        const detail = normalizeStudentDetail(data);
-
-        if (!detail) {
-            throw new Error('Nieprawidłowa odpowiedź serwera (kursant).');
-        }
-
         const byId = new Map(schoolCourses.map((c) => [c.id, c]));
 
         return detail.courses.map((c) => {
@@ -140,10 +131,9 @@ export function useLessonBookingApi() {
         };
 
         try {
-            await $fetch<unknown>(resolveBffEndpoint('/api/lessons'), {
-                method: 'POST',
-                credentials: 'include',
+            await requestBffData<unknown>('POST', '/api/lessons', {
                 body: payload,
+                fallbackMessage: 'Nie udało się utworzyć rezerwacji.',
             });
         } catch (err: unknown) {
             modalError.value = getApiFetchErrorMessage(

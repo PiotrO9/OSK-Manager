@@ -61,7 +61,7 @@ usePageMeta({
 
         return name.length > 0 ? name : 'Kursant';
     },
-    description: () => 'Szczegoly kursanta.',
+    description: () => 'Szczegóły kursanta.',
 });
 
 let fetchSeq = 0;
@@ -217,11 +217,11 @@ function getNotFoundMessage(): string {
 }
 
 function getGenericLoadErrorMessage(): string {
-    return 'Nie udalo sie wczytac danych kursanta.';
+    return 'Nie udało się wczytać danych kursanta.';
 }
 
 function getMissingSchoolIdMessage(): string {
-    return 'Brak identyfikatora szkoly w adresie strony. Wroc do listy kursantow i otworz szczegoly ponownie.';
+    return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
 }
 
 async function loadStudent(rawUserId: unknown) {
@@ -340,7 +340,7 @@ async function loadStudentProcessStatus(rawUserId: unknown): Promise<void> {
         processStatus.value = null;
         processStatusError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie wczytac statusu procesu kursanta.',
+            'Nie udało się wczytać statusu procesu kursanta.',
         );
     } finally {
         if (seq === processStatusFetchSeq) {
@@ -392,7 +392,7 @@ async function loadStudentPayments(rawUserId: unknown): Promise<void> {
         payments.value = [];
         paymentsError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie wczytac oplat kursanta.',
+            'Nie udało się wczytać opłat kursanta.',
         );
     } finally {
         if (seq === paymentsFetchSeq) {
@@ -481,7 +481,7 @@ async function loadStudentSchedule(): Promise<void> {
         scheduleItems.value = [];
         scheduleError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie wczytac terminarza lekcji.',
+            'Nie udało się wczytać terminarza lekcji.',
         );
     } finally {
         if (seq === scheduleFetchSeq) {
@@ -535,10 +535,10 @@ function formatScheduleWeekLabel(d: Date): string {
                 >
                     <NuxtLink
                         :to="backToListHref"
-                        aria-label="Wroc do listy kursantow"
+                        aria-label="Wróć do listy kursantów"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista kursantow
+                        Lista kursantów
                     </NuxtLink>
                 </UiButton>
             </template>
@@ -551,7 +551,7 @@ function formatScheduleWeekLabel(d: Date): string {
 
         <ErrorState
             v-else-if="errorMessage"
-            title="Nie udalo sie wczytac kursanta"
+            title="Nie udało się wczytać kursanta"
             :description="errorMessage"
         />
 
@@ -713,7 +713,7 @@ function formatScheduleWeekLabel(d: Date): string {
                                     <p
                                         class="text-muted-foreground mt-1 text-sm"
                                     >
-                                        Historia oplat w wybranej szkole.
+                                        Historia opłat w wybranej szkole.
                                     </p>
                                 </div>
                                 <UiBadge
@@ -860,7 +860,7 @@ function formatScheduleWeekLabel(d: Date): string {
                                 Platnosci
                             </h2>
                             <p class="text-muted-foreground text-sm">
-                                Historia oplat kursanta w wybranej szkole.
+                                Historia opłat kursanta w wybranej szkole.
                             </p>
                         </div>
                         <CreditCard
@@ -888,7 +888,7 @@ function formatScheduleWeekLabel(d: Date): string {
                                 Kursy w szkole
                             </h2>
                             <p class="text-muted-foreground text-sm">
-                                Przypisania kursanta do kursow w tej OSK.
+                                Przypisania kursanta do kursów w tej OSK.
                             </p>
                         </div>
                         <ClipboardList
@@ -899,8 +899,8 @@ function formatScheduleWeekLabel(d: Date): string {
 
                     <EmptyState
                         v-if="student.courses.length === 0"
-                        title="Brak kursow"
-                        description="Kursant nie jest przypisany do zadnego kursu w tej szkole."
+                        title="Brak kursów"
+                        description="Kursant nie jest przypisany do żadnego kursu w tej szkole."
                     />
 
                     <ul v-else class="space-y-3" role="list">

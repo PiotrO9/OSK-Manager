@@ -2,14 +2,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { parseDate } from '@internationalized/date';
 import { toDate } from 'reka-ui/date';
-import {
-    CalendarDays,
-    ChevronLeft,
-    ChevronRight,
-    Clock3,
-    ListChecks,
-    Users,
-} from 'lucide-vue-next';
+import { CalendarDays, Clock3, ListChecks, Users } from 'lucide-vue-next';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import {
@@ -89,6 +82,10 @@ function statusFilterLabel(opt: StatusFilterOption): string {
     }
 
     return INSTRUCTOR_EVENT_STATUS_LABELS[opt];
+}
+
+function statusFilterLabelForOption(opt: string): string {
+    return statusFilterLabel(opt as StatusFilterOption);
 }
 
 const filteredEvents = computed(() =>
@@ -408,6 +405,10 @@ function handleStatusFilterSelect(opt: StatusFilterOption): void {
     selectedStatus.value = opt;
 }
 
+function handleStatusFilterOptionSelect(opt: string): void {
+    handleStatusFilterSelect(opt as StatusFilterOption);
+}
+
 function handleStatusChanged(payload: { id: string; status: string }): void {
     const idx = events.value.findIndex((e) => e.id === payload.id);
 
@@ -594,57 +595,13 @@ function eventTypeLabel(type: string): string {
             </template>
         </PageHeader>
 
-        <div
-            class="border-border bg-background flex flex-col gap-3 rounded-2xl border p-3 shadow-sm md:flex-row md:items-center md:justify-between"
-        >
-            <div class="flex flex-wrap items-center gap-2">
-                <UiButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="rounded-xl"
-                    aria-label="Poprzedni dzień"
-                    :disabled="isLoading"
-                    @click="handlePrevDay"
-                >
-                    <ChevronLeft class="mr-1 size-4" aria-hidden="true" />
-                    Poprzedni
-                </UiButton>
-
-                <UiButton
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    class="rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100"
-                    aria-label="Dzisiaj"
-                    :disabled="isLoading"
-                    @click="handleTodayClick"
-                >
-                    Dziś
-                </UiButton>
-
-                <UiButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="rounded-xl"
-                    aria-label="Następny dzień"
-                    :disabled="isLoading"
-                    @click="handleNextDay"
-                >
-                    Następny
-                    <ChevronRight class="ml-1 size-4" aria-hidden="true" />
-                </UiButton>
-            </div>
-
-            <p
-                class="text-foreground min-w-0 text-sm font-semibold capitalize"
-                aria-live="polite"
-            >
-                {{ selectedDateLabel }}
-            </p>
-        </div>
-
+        <EventsDayNavigation
+            :selected-date-label="selectedDateLabel"
+            :is-loading="isLoading"
+            @previous="handlePrevDay"
+            @today="handleTodayClick"
+            @next="handleNextDay"
+        />
         <div
             class="grid gap-4"
             :class="
@@ -713,31 +670,12 @@ function eventTypeLabel(type: string): string {
                 </UiCardHeader>
 
                 <UiCardContent class="space-y-4 px-4 py-0">
-                    <div
-                        class="flex flex-wrap items-center gap-2"
-                        role="group"
-                        aria-label="Filtruj po statusie"
-                    >
-                        <span class="text-muted-foreground text-sm font-medium">
-                            Status
-                        </span>
-                        <button
-                            v-for="opt in STATUS_FILTER_OPTIONS"
-                            :key="opt"
-                            type="button"
-                            class="focus-visible:ring-ring rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                            :class="
-                                selectedStatus === opt
-                                    ? 'border-sky-200 bg-sky-50 text-sky-700'
-                                    : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground'
-                            "
-                            :aria-pressed="selectedStatus === opt"
-                            @click="handleStatusFilterSelect(opt)"
-                        >
-                            {{ statusFilterLabel(opt) }}
-                        </button>
-                    </div>
-
+                    <EventsStatusFilter
+                        :options="STATUS_FILTER_OPTIONS"
+                        :selected="selectedStatus"
+                        :label-for-option="statusFilterLabelForOption"
+                        @select="handleStatusFilterOptionSelect"
+                    />
                     <div
                         v-if="
                             isLoading || isSchoolLoading || isInstructorsLoading

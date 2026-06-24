@@ -9,7 +9,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Nowy pojazd',
-    description: () => 'Dodaj pojazd do szkoly jazdy.',
+    description: () => 'Dodaj pojazd do szkoły jazdy.',
 });
 
 const route = useRoute();
@@ -54,7 +54,7 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         });
     } catch (err) {
         apiError.value =
-            err instanceof Error ? err.message : 'Nie udalo sie dodac pojazdu.';
+            err instanceof Error ? err.message : 'Nie udało się dodać pojazdu.';
     }
 }
 </script>
@@ -87,11 +87,11 @@ async function handleVehicleSubmit(payload: VehicleWritePayload) {
         <ErrorState
             v-if="schoolId === null"
             title="Brak kontekstu OSK"
-            description="Otworz te strone z listy pojazdow, aby zachowac identyfikator szkoly jazdy."
+            description="Otwórz te stronę z listy pojazdów, aby zachować identyfikator szkoły jazdy."
         >
             <template #action>
                 <UiButton as-child variant="outline" class="bg-background">
-                    <NuxtLink to="/vehicles">Wroc do listy</NuxtLink>
+                    <NuxtLink to="/vehicles">Wróć do listy</NuxtLink>
                 </UiButton>
             </template>
         </ErrorState>

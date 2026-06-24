@@ -2,36 +2,29 @@ import {
     normalizeCourseTypesList,
     type CourseTypeOption,
 } from '~/types/courseType';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
 
 export function useCourseTypesApi() {
-    const {
-        execute: _execList,
-        isLoading: isListLoading,
-        error: listError,
-    } = useApi<unknown>('GET', () => resolveBffEndpoint('/api/course-types'));
+    const isListLoading = ref(false);
 
     async function fetchList(): Promise<CourseTypeOption[]> {
-        const raw = await _execList();
+        isListLoading.value = true;
 
-        if (raw === null) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    listError.value,
-                    'Nie udało się pobrać katalogu kategorii.',
-                ),
+        try {
+            return await requestBffData<CourseTypeOption[]>(
+                'GET',
+                '/api/course-types',
+                {
+                    fallbackMessage: 'Nie udało się pobrać katalogu kategorii.',
+                    normalize: normalizeCourseTypesList,
+                },
             );
+        } finally {
+            isListLoading.value = false;
         }
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeCourseTypesList(data);
     }
 
     return {
-        isListLoading,
+        isListLoading: readonly(isListLoading),
         fetchList,
     };
 }

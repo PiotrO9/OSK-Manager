@@ -48,7 +48,7 @@ const schoolLocationLabel = computed(() => {
     const school = activeSchool.value;
 
     if (!school) {
-        return 'Wybrana szkola jazdy';
+        return 'Wybrana szkóła jazdy';
     }
 
     const parts = [school.city, school.address]
@@ -67,7 +67,7 @@ async function loadSchools(): Promise<void> {
         schools.value = [];
         schoolsLoadError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy OSK.',
+            'Nie udało się pobrać listy OSK.',
         );
     }
 }
@@ -79,7 +79,7 @@ watch(
 
         if (!sid) {
             schoolIdError.value =
-                'Brak identyfikatora szkoly. Dodaj ?schoolId= do adresu lub ustaw domyslna OSK.';
+                'Brak identyfikatora szkoły. Dodaj ?schoolId= do adresu lub ustaw domyslna OSK.';
         }
     },
     { immediate: true },
@@ -126,7 +126,7 @@ usePageMeta({
 
         <ErrorState
             v-else-if="schoolsLoadError"
-            title="Nie udalo sie wczytac danych OSK"
+            title="Nie udało się wczytać danych OSK"
             :description="schoolsLoadError"
             @retry="loadSchools"
         />

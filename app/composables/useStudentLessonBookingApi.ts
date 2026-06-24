@@ -1,10 +1,15 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import type {
     CreateOwnLessonBody,
     LessonCreateResult,
 } from '~/types/lessonBooking';
+
+function normalizeLessonResult(data: unknown): LessonCreateResult | null {
+    const lesson = (data as { lesson?: unknown } | null)?.lesson;
+
+    return lesson && typeof lesson === 'object'
+        ? (lesson as LessonCreateResult)
+        : null;
+}
 
 export function useStudentLessonBookingApi() {
     const isBooking = shallowRef(false);
@@ -15,31 +20,15 @@ export function useStudentLessonBookingApi() {
         isBooking.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint('/api/lessons/me'),
+            return await requestBffData<LessonCreateResult>(
+                'POST',
+                '/api/lessons/me',
                 {
-                    method: 'POST',
                     body,
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się zarezerwować jazdy.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: normalizeLessonResult,
                 },
-            );
-
-            const data = unwrapApiSuccessData<{ lesson?: LessonCreateResult }>(
-                raw,
-            );
-            const lesson = data.lesson;
-
-            if (!lesson || typeof lesson !== 'object') {
-                throw new Error('Nieprawid?owa odpowied? serwera.');
-            }
-
-            return lesson;
-        } catch (err: unknown) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    err,
-                    'Nie udalo sie zarezerwowac jazdy.',
-                ),
             );
         } finally {
             isBooking.value = false;

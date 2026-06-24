@@ -1,7 +1,10 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
 import type { SchoolAvailabilitySlotsQueryFilters } from '~/types/schoolAvailabilityFilters';
+import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
+
+interface SchoolAvailabilitySlotsResult {
+    slots: SchoolAvailabilitySlot[];
+    total: number;
+}
 
 function buildSchoolSlotsSearchParams(
     dateFrom: string,
@@ -70,7 +73,7 @@ function buildSchoolSlotsSearchParams(
     return params;
 }
 
-function buildSchoolSlotsUrl(
+function buildSchoolSlotsPath(
     schoolId: string,
     dateFrom: string,
     dateTo: string,
@@ -78,9 +81,18 @@ function buildSchoolSlotsUrl(
 ): string {
     const query = buildSchoolSlotsSearchParams(dateFrom, dateTo, filters);
 
-    return resolveBffEndpoint(
-        `/api/driving-schools/${encodeURIComponent(schoolId)}/availability/slots?${query.toString()}`,
-    );
+    return `/api/driving-schools/${encodeURIComponent(schoolId)}/availability/slots?${query.toString()}`;
+}
+
+function normalizeSlotsResult(data: unknown): SchoolAvailabilitySlotsResult {
+    const payload = data as { slots?: unknown; total?: unknown } | null;
+    const slots = Array.isArray(payload?.slots)
+        ? (payload.slots as SchoolAvailabilitySlot[])
+        : [];
+    const total =
+        typeof payload?.total === 'number' ? payload.total : slots.length;
+
+    return { slots, total };
 }
 
 export function useSchoolAvailabilitySlotsApi() {
@@ -91,7 +103,7 @@ export function useSchoolAvailabilitySlotsApi() {
         dateFrom: string,
         dateTo: string,
         filters?: SchoolAvailabilitySlotsQueryFilters,
-    ): Promise<{ slots: SchoolAvailabilitySlot[]; total: number }> {
+    ): Promise<SchoolAvailabilitySlotsResult> {
         const sid = schoolId.trim();
 
         if (!sid) {
@@ -108,23 +120,14 @@ export function useSchoolAvailabilitySlotsApi() {
         isLoading.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                buildSchoolSlotsUrl(sid, from, to, filters),
+            return await requestBffData<SchoolAvailabilitySlotsResult>(
+                'GET',
+                buildSchoolSlotsPath(sid, from, to, filters),
                 {
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się pobrać dostępnych slotów.',
+                    normalize: normalizeSlotsResult,
                 },
             );
-
-            const data = unwrapApiSuccessData<{
-                slots: SchoolAvailabilitySlot[];
-                total?: number;
-            }>(raw);
-
-            const slots = Array.isArray(data?.slots) ? data.slots : [];
-            const total =
-                typeof data?.total === 'number' ? data.total : slots.length;
-
-            return { slots, total };
         } finally {
             isLoading.value = false;
         }

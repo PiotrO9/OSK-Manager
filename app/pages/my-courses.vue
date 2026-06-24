@@ -13,7 +13,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Moje kursy',
-    description: () => 'Lista kursow przypisanych do zalogowanego uzytkownika.',
+    description: () => 'Lista kursów przypisanych do zalogowanego użytkownika.',
 });
 
 const { session } = useAuthSession();
@@ -33,7 +33,7 @@ async function loadCourses(): Promise<void> {
         courses.value = [];
         errorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy kursow.',
+            'Nie udało się pobrać listy kursów.',
         );
     } finally {
         isLoading.value = false;
@@ -107,7 +107,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
     <div class="space-y-5">
         <PageHeader
             title="Moje kursy"
-            description="Postep szkolenia, godziny i przypisane kursy."
+            description="Postęp szkolenia, godziny i przypisane kursy."
         >
             <template v-if="isStudent" #actions>
                 <UiButton
@@ -151,7 +151,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                             {{
                                 featuredCourse
                                     ? featuredCourse.name
-                                    : 'Postep kursu'
+                                    : 'Postęp kursu'
                             }}
                         </p>
                     </div>
@@ -161,7 +161,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                         :aria-valuenow="featuredCourse?.progress ?? 0"
                         aria-valuemin="0"
                         aria-valuemax="100"
-                        aria-label="Postep wyroznionego kursu"
+                        aria-label="Postęp wyróżnionego kursu"
                     >
                         <div
                             class="bg-primary h-full rounded-full"
@@ -204,7 +204,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                         {{ totalHours }} h
                     </p>
                     <p class="text-muted-foreground text-sm">
-                        Laczny zakres przypisanych kursow
+                        Łączny zakres przypisanych kursów
                     </p>
                 </div>
             </section>
@@ -242,12 +242,12 @@ function progressLabel(course: CurrentUserCourseItem): string {
         </div>
 
         <DataTableShell
-            title="Lista kursow"
+            title="Lista kursów"
             description="Kursy przypisane do Twojego konta."
             :is-loading="isLoading"
             :error-message="errorMessage"
-            empty-title="Brak kursow"
-            empty-description="Nie masz jeszcze przypisanych kursow."
+            empty-title="Brak kursów"
+            empty-description="Nie masz jeszcze przypisanych kursów."
             @retry="loadCourses"
         >
             <template #toolbar>
@@ -266,8 +266,8 @@ function progressLabel(course: CurrentUserCourseItem): string {
 
             <EmptyState
                 v-if="courses.length === 0"
-                title="Brak kursow"
-                description="Nie masz jeszcze przypisanych kursow."
+                title="Brak kursów"
+                description="Nie masz jeszcze przypisanych kursów."
                 class="m-4"
             />
 
@@ -279,7 +279,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                         </th>
                         <th scope="col" class="px-4 py-3 font-semibold">Typ</th>
                         <th scope="col" class="px-4 py-3 font-semibold">
-                            Postep
+                            Postęp
                         </th>
                         <th scope="col" class="px-4 py-3 font-semibold">
                             Status
@@ -337,7 +337,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                                     :aria-valuenow="course.progress"
                                     aria-valuemin="0"
                                     aria-valuemax="100"
-                                    :aria-label="`Postep kursu ${course.name}`"
+                                    :aria-label="`Postęp kursu ${course.name}`"
                                 >
                                     <div
                                         class="bg-primary h-full rounded-full"
@@ -395,7 +395,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                                 class="flex items-center justify-between gap-3 text-xs"
                             >
                                 <span class="text-muted-foreground font-medium">
-                                    Postep
+                                    Postęp
                                 </span>
                                 <span
                                     class="text-foreground font-semibold tabular-nums"
@@ -409,7 +409,7 @@ function progressLabel(course: CurrentUserCourseItem): string {
                                 :aria-valuenow="course.progress"
                                 aria-valuemin="0"
                                 aria-valuemax="100"
-                                :aria-label="`Postep kursu ${course.name}`"
+                                :aria-label="`Postęp kursu ${course.name}`"
                             >
                                 <div
                                     class="bg-primary h-full rounded-full"

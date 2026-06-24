@@ -774,12 +774,12 @@ async function handleSubmit(): Promise<void> {
         <EmptyState
             v-else-if="notFound"
             title="Nie znaleziono lekcji"
-            description="Lekcja nie istnieje albo nie jest dostepna w aktualnym kontekscie."
+            description="Lekcja nie istnieje albo nie jest dostępna w aktualnym kontekście."
         >
             <template #action>
                 <UiButton as-child variant="outline">
                     <NuxtLink :to="scheduleBackHref"
-                        >Wroc do harmonogramu</NuxtLink
+                        >Wróć do harmonogramu</NuxtLink
                     >
                 </UiButton>
             </template>
@@ -787,7 +787,7 @@ async function handleSubmit(): Promise<void> {
 
         <ErrorState
             v-else-if="loadError"
-            title="Nie udalo sie wczytac lekcji"
+            title="Nie udało się wczytać lekcji"
             :description="loadError"
             @retry="loadLesson"
         />
@@ -831,7 +831,7 @@ async function handleSubmit(): Promise<void> {
                             class="text-muted-foreground text-xs"
                             role="status"
                         >
-                            Wczytywanie instruktorow...
+                            Wczytywanie instruktorów...
                         </p>
                         <p
                             v-else-if="instructorsError"
@@ -874,7 +874,7 @@ async function handleSubmit(): Promise<void> {
                             class="text-muted-foreground text-xs"
                             role="status"
                         >
-                            Wczytywanie pojazdow...
+                            Wczytywanie pojazdów...
                         </p>
                         <p
                             v-else-if="vehiclesError"
@@ -918,11 +918,11 @@ async function handleSubmit(): Promise<void> {
                         </legend>
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="space-y-2">
-                                <UiLabel for="lesson-start">Poczatek</UiLabel>
+                                <UiLabel for="lesson-start">Początek</UiLabel>
                                 <UiDateTimePicker
                                     id="lesson-start"
                                     v-model="formStartLocal"
-                                    placeholder="Data i godzina poczatku"
+                                    placeholder="Data i godzina początku"
                                     :aria-required="true"
                                     trigger-class="h-10 rounded-xl bg-background"
                                 />
@@ -932,7 +932,7 @@ async function handleSubmit(): Promise<void> {
                                 <UiDateTimePicker
                                     id="lesson-end"
                                     v-model="formEndLocal"
-                                    placeholder="Data i godzina konca"
+                                    placeholder="Data i godzina końca"
                                     :aria-required="true"
                                     trigger-class="h-10 rounded-xl bg-background"
                                 />

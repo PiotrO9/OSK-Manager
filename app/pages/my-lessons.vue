@@ -43,7 +43,7 @@ const cancellingLessonId = computed(() =>
 );
 const pageDescription = computed(() =>
     isStudent.value
-        ? 'Najblizsze jazdy, teoria i historia spotkan.'
+        ? 'Najbliższe jazdy, teoria i historia spotkań.'
         : 'Zaplanowane lekcje w wybranym tygodniu.',
 );
 const dateRangeLabel = computed(
@@ -107,10 +107,10 @@ const summaryItems = computed<SummaryStripItem[]>(() => {
             tone: 'neutral',
         },
         {
-            label: isStudent.value ? 'Do oceny' : 'Wymagaja uwagi',
+            label: isStudent.value ? 'Do oceny' : 'Wymagają uwagi',
             value: String(attentionCount),
             description: isStudent.value
-                ? 'Zakonczone jazdy bez opinii'
+                ? 'Zakończone jazdy bez opinii'
                 : 'Anulowane lub bez pojazdu',
             tone: attentionCount > 0 ? 'warning' : 'success',
         },
@@ -158,8 +158,8 @@ async function loadWeek(): Promise<void> {
         errorMessage.value = getApiFetchErrorMessage(
             err,
             isStudent.value
-                ? 'Nie udalo sie wczytac terminarza.'
-                : 'Nie udalo sie wczytac lekcji.',
+                ? 'Nie udało się wczytać terminarza.'
+                : 'Nie udało się wczytać lekcji.',
         );
     } finally {
         if (seq === loadSeq) {
@@ -260,7 +260,7 @@ async function handleRatingLessonSelected(
 
         ratingErrorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie odswiezyc opinii.',
+            'Nie udało się odświeżyć opinii.',
         );
     } finally {
         if (seq === ratingFetchSeq) {
@@ -299,12 +299,12 @@ async function handleRatingSubmit(payload: {
     } catch (err: unknown) {
         const message = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie dodac opinii.',
+            'Nie udało się dodać opinii.',
         );
 
         ratingErrorMessage.value = message;
         addToast({
-            title: 'Nie udalo sie dodac opinii',
+            title: 'Nie udało się dodać opinii',
             description: message,
             variant: 'error',
         });
@@ -345,11 +345,11 @@ async function handleConfirmCancelLesson(): Promise<void> {
     } catch (err: unknown) {
         const message = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie anulowac rezerwacji.',
+            'Nie udało się anulować rezerwacji.',
         );
 
         addToast({
-            title: 'Nie udalo sie anulowac rezerwacji',
+            title: 'Nie udało się anulować rezerwacji',
             description: message,
             variant: 'error',
         });
@@ -632,7 +632,7 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
                 aria-describedby="student-cancel-lesson-description"
             >
                 <UiDialogHeader>
-                    <UiDialogTitle>Anulowac rezerwacje?</UiDialogTitle>
+                    <UiDialogTitle>Anulować rezerwację?</UiDialogTitle>
                     <UiDialogDescription id="student-cancel-lesson-description">
                         Ta jazda zostanie oznaczona jako anulowana i zniknie z
                         Twojego aktywnego harmonogramu.
@@ -662,7 +662,7 @@ function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
                         @click="handleConfirmCancelLesson"
                     >
                         {{
-                            isCancelling ? 'Anulowanie...' : 'Anuluj rezerwacje'
+                            isCancelling ? 'Anulowanie...' : 'Anuluj rezerwację'
                         }}
                     </UiButton>
                 </UiDialogFooter>

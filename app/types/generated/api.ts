@@ -5064,7 +5064,7 @@ export interface paths {
         put?: never;
         /**
          * Samodzielna rezerwacja jazdy praktycznej (STUDENT)
-         * @description Tworzy Lesson PRACTICE dla zalogowanego kursanta. Backend bierze kursanta z tokenu, nie przyjmuje studentId/vehicleId/lessonType i automatycznie dobiera dostepny pojazd.
+         * @description Tworzy Lesson PRACTICE dla zalogowanego kursanta. Backend bierze kursanta z tokenu, nie przyjmuje studentId/vehicleId/lessonType i automatycznie dobiera dostępny pojazd.
          */
         post: {
             parameters: {

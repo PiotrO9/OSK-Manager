@@ -1,5 +1,3 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import {
     normalizeInstructorOwnLessonRatingsPayload,
     normalizeLessonRatingsListPayload,
@@ -51,42 +49,41 @@ export function useLessonRatingsListApi() {
     async function fetchManagerRatings(
         input: FetchLessonRatingsInput,
     ): Promise<LessonRatingsListPayload> {
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(`/api/ratings?${buildRatingsQuery(input)}`),
-            { credentials: 'include' },
+        return await requestBffData<LessonRatingsListPayload>(
+            'GET',
+            `/api/ratings?${buildRatingsQuery(input)}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać listy ocen.',
+                normalize: normalizeLessonRatingsListPayload,
+            },
         );
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeLessonRatingsListPayload(data);
     }
 
     async function fetchInstructorRatings(
         instructorId: string,
         input: FetchLessonRatingsInput,
     ): Promise<LessonRatingsListPayload> {
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint(
-                `/api/instructors/${encodeURIComponent(
-                    instructorId,
-                )}/ratings?${buildRatingsQuery(input)}`,
-            ),
-            { credentials: 'include' },
+        return await requestBffData<LessonRatingsListPayload>(
+            'GET',
+            `/api/instructors/${encodeURIComponent(
+                instructorId,
+            )}/ratings?${buildRatingsQuery(input)}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać listy ocen instruktora.',
+                normalize: normalizeLessonRatingsListPayload,
+            },
         );
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeLessonRatingsListPayload(data);
     }
 
     async function fetchOwnInstructorRatings(): Promise<InstructorOwnLessonRatingsPayload> {
-        const raw = await $fetch<unknown>(
-            resolveBffEndpoint('/api/ratings/me'),
+        return await requestBffData<InstructorOwnLessonRatingsPayload>(
+            'GET',
+            '/api/ratings/me',
             {
-                credentials: 'include',
+                fallbackMessage: 'Nie udało się pobrać Twoich ocen.',
+                normalize: normalizeInstructorOwnLessonRatingsPayload,
             },
         );
-        const data = unwrapApiSuccessData<unknown>(raw);
-
-        return normalizeInstructorOwnLessonRatingsPayload(data);
     }
 
     return {

@@ -548,7 +548,7 @@ async function handleDeleteDialogConfirm(): Promise<void> {
 
         <ErrorState
             v-else-if="errorMessage"
-            title="Nie udalo sie wczytac instruktora"
+            title="Nie udało się wczytać instruktora"
             :description="errorMessage"
             @retry="loadInstructor(route.params.id)"
         />

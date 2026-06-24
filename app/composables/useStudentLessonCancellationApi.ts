@@ -1,7 +1,12 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
 import type { LessonCreateResult } from '~/types/lessonBooking';
+
+function normalizeLessonResult(data: unknown): LessonCreateResult | null {
+    const lesson = (data as { lesson?: unknown } | null)?.lesson;
+
+    return lesson && typeof lesson === 'object'
+        ? (lesson as LessonCreateResult)
+        : null;
+}
 
 export function useStudentLessonCancellationApi() {
     const isCancelling = shallowRef(false);
@@ -18,32 +23,14 @@ export function useStudentLessonCancellationApi() {
         isCancelling.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/lessons/${encodeURIComponent(id)}/cancel`,
-                ),
+            return await requestBffData<LessonCreateResult>(
+                'PATCH',
+                `/api/lessons/${encodeURIComponent(id)}/cancel`,
                 {
-                    method: 'PATCH',
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się anulować rezerwacji.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: normalizeLessonResult,
                 },
-            );
-
-            const data = unwrapApiSuccessData<{ lesson?: LessonCreateResult }>(
-                raw,
-            );
-            const lesson = data.lesson;
-
-            if (!lesson || typeof lesson !== 'object') {
-                throw new Error('Nieprawid?owa odpowied? serwera.');
-            }
-
-            return lesson;
-        } catch (err: unknown) {
-            throw new Error(
-                getApiFetchErrorMessage(
-                    err,
-                    'Nie udalo sie anulowac rezerwacji.',
-                ),
             );
         } finally {
             isCancelling.value = false;

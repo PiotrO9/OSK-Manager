@@ -326,7 +326,7 @@ function labelForLessonStatus(rawStatus: string): string {
                             class="shrink-0"
                             :disabled="props.cancellingLessonId === item.id"
                             :aria-busy="props.cancellingLessonId === item.id"
-                            :aria-label="`Anuluj rezerwacje ${formatIsoLocal(item.startTime)} - ${formatIsoLocal(item.endTime)}`"
+                            :aria-label="`Anuluj rezerwację ${formatIsoLocal(item.startTime)} - ${formatIsoLocal(item.endTime)}`"
                             @click="handleRequestCancelLessonClick(item)"
                         >
                             {{

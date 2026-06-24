@@ -10,7 +10,7 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Moje opinie',
-    description: () => 'Opinie kursantow o moich zakonczonych lekcjach.',
+    description: () => 'Opinie kursantów o moich zakończonych lekcjach.',
 });
 
 const { fetchOwnInstructorRatings } = useLessonRatingsListApi();
@@ -68,7 +68,7 @@ async function loadRatings(): Promise<void> {
         ratings.value = [];
         errorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac opinii.',
+            'Nie udało się pobrać opinii.',
         );
     } finally {
         isLoading.value = false;
@@ -92,7 +92,7 @@ onMounted(() => {
                     Moje opinie
                 </h1>
                 <p class="text-muted-foreground text-sm">
-                    Oceny i komentarze po zakonczonych lekcjach.
+                    Oceny i komentarze po zakończonych lekcjach.
                 </p>
             </div>
 

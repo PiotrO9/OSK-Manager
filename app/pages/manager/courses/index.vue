@@ -11,25 +11,25 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Kursy',
-    description: () => 'Lista kursow w wybranej szkole jazdy.',
+    description: () => 'Lista kursów w wybranej szkole jazdy.',
 });
 
 function resolveCoursesListError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
     if (status === 403) {
-        return 'Brak dostepu do listy kursow dla wybranej szkoly.';
+        return 'Brak dostępu do listy kursów dla wybranej szkoły.';
     }
 
     if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostepny. Sprobuj ponownie.';
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
     }
 
     if (err instanceof Error && err.message.trim().length > 0) {
         return err.message.trim();
     }
 
-    return getApiFetchErrorMessage(err, 'Nie udalo sie pobrac listy kursow.');
+    return getApiFetchErrorMessage(err, 'Nie udało się pobrać listy kursów.');
 }
 
 const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
@@ -52,7 +52,7 @@ async function loadSchools() {
         schools.value = await fetchSchoolsList();
     } catch (e) {
         schoolsLoadError.value =
-            e instanceof Error ? e.message : 'Nie udalo sie pobrac listy OSK.';
+            e instanceof Error ? e.message : 'Nie udało się pobrać listy OSK.';
     } finally {
         isSchoolsLoading.value = false;
     }

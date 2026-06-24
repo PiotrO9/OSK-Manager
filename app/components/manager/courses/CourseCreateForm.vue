@@ -660,8 +660,8 @@ function handleSubmit() {
                         class="text-muted-foreground text-sm"
                         role="status"
                     >
-                        Brak instruktorow z uprawnieniem do wybranej kategorii -
-                        mozesz utworzyc kurs bez instruktora.
+                        Brak instruktorów z uprawnieniem do wybranej kategorii -
+                        możesz utworzyć kurs bez instruktora.
                     </p>
                 </div>
             </div>

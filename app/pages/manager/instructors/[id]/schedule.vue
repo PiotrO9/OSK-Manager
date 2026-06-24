@@ -200,7 +200,7 @@ async function loadSchedule(): Promise<void> {
         items.value = [];
         scheduleError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie wczytac terminarza lekcji.',
+            'Nie udało się wczytać terminarza lekcji.',
         );
     } finally {
         if (seq === scheduleSeq) {
@@ -226,7 +226,7 @@ async function loadVehicles(): Promise<void> {
     } catch (err: unknown) {
         vehiclesError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy pojazdow.',
+            'Nie udało się pobrać listy pojazdów.',
         );
     } finally {
         isVehiclesLoading.value = false;
@@ -250,7 +250,7 @@ async function loadCourses(): Promise<void> {
     } catch (err: unknown) {
         coursesError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac listy kursow.',
+            'Nie udało się pobrać listy kursów.',
         );
     } finally {
         isCoursesLoading.value = false;
@@ -361,7 +361,7 @@ async function handleSubmitEvent(): Promise<void> {
     }
 
     if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
-        eventFormError.value = 'Koniec musi byc pozniej niz poczatek.';
+        eventFormError.value = 'Koniec musi być pozniej niz poczatek.';
 
         return;
     }
@@ -407,7 +407,7 @@ async function handleSubmitEvent(): Promise<void> {
     } catch (err: unknown) {
         eventFormError.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie utworzyc bloku.',
+            'Nie udało się utworzyć bloku.',
         );
     }
 }
@@ -444,10 +444,10 @@ async function handleDeleteDialogConfirm(): Promise<void> {
         handleDeleteDialogCancel();
     } catch (err: unknown) {
         addToast({
-            title: 'Nie udalo sie usunac bloku',
+            title: 'Nie udało się usunąć bloku',
             description: getApiFetchErrorMessage(
                 err,
-                'Sprobuj ponownie lub odswiez strone.',
+                'Spróbuj ponownie lub odśwież stronę.',
             ),
             variant: 'error',
         });
@@ -508,7 +508,7 @@ const backHref = computed(() => {
             <template #action>
                 <UiButton as-child variant="outline" size="sm">
                     <NuxtLink to="/manager/instructors">
-                        Wroc do instruktorow
+                        Wróć do instruktorów
                     </NuxtLink>
                 </UiButton>
             </template>
@@ -537,7 +537,7 @@ const backHref = computed(() => {
                                 class="text-muted-foreground mt-1 text-sm leading-relaxed"
                             >
                                 Kliknij wiersz bloku lub jazdy praktycznej, aby
-                                otworzyc edycje. Bloki bez kursanta zmieniaja
+                                otworzyć edycję. Bloki bez kursanta zmieniają
                                 wolne sloty instruktora.
                             </p>
                             <p
@@ -685,7 +685,7 @@ const backHref = computed(() => {
                         />
                         <ErrorState
                             v-else-if="scheduleError"
-                            title="Nie udalo sie wczytac terminarza"
+                            title="Nie udało się wczytać terminarza"
                             :description="scheduleError"
                             @retry="loadSchedule"
                         />
@@ -742,7 +742,7 @@ const backHref = computed(() => {
                                 class="text-muted-foreground text-xs"
                                 role="status"
                             >
-                                Wczytywanie kursow...
+                                Wczytywanie kursów...
                             </p>
                             <p
                                 v-else-if="coursesError"
@@ -758,7 +758,7 @@ const backHref = computed(() => {
                                 <UiSelectTrigger
                                     id="event-course"
                                     class="w-full"
-                                    aria-label="Powiazanie bloku teorii z kursem"
+                                    aria-label="Powiązanie bloku teorii z kursem"
                                 >
                                     <UiSelectValue
                                         placeholder="Bez powiazania z kursem"
@@ -777,7 +777,7 @@ const backHref = computed(() => {
                                 </UiSelectContent>
                             </UiSelect>
                             <p class="text-muted-foreground text-xs">
-                                Powiazanie z kursem nie dodaje kursantow na ten
+                                Powiązanie z kursem nie dodaje kursantów na ten
                                 blok.
                             </p>
                         </div>
@@ -789,7 +789,7 @@ const backHref = computed(() => {
                                 class="text-muted-foreground text-xs"
                                 role="status"
                             >
-                                Wczytywanie pojazdow...
+                                Wczytywanie pojazdów...
                             </p>
                             <p
                                 v-else-if="vehiclesError"
@@ -832,11 +832,11 @@ const backHref = computed(() => {
                         </div>
 
                         <div class="space-y-2">
-                            <UiLabel for="event-start">Poczatek</UiLabel>
+                            <UiLabel for="event-start">Początek</UiLabel>
                             <UiDateTimePicker
                                 id="event-start"
                                 v-model="eventStartLocal"
-                                placeholder="Data i godzina poczatku"
+                                placeholder="Data i godzina początku"
                                 :aria-required="true"
                             />
                         </div>
@@ -846,7 +846,7 @@ const backHref = computed(() => {
                             <UiDateTimePicker
                                 id="event-end"
                                 v-model="eventEndLocal"
-                                placeholder="Data i godzina konca"
+                                placeholder="Data i godzina końca"
                                 :aria-required="true"
                             />
                         </div>
@@ -881,7 +881,7 @@ const backHref = computed(() => {
                                     class="text-primary size-4 shrink-0"
                                     aria-hidden="true"
                                 />
-                                Po zapisie odswiezam tydzien
+                                Po zapisie odświeżam tydzien
                             </div>
                         </div>
                     </div>
@@ -890,7 +890,7 @@ const backHref = computed(() => {
                         <ActionGroup label="Akcje bloku czasu" align="end">
                             <UiButton as-child variant="outline" type="button">
                                 <NuxtLink :to="backHref">
-                                    Szczegoly instruktora
+                                    Szczegóły instruktora
                                 </NuxtLink>
                             </UiButton>
                             <UiButton

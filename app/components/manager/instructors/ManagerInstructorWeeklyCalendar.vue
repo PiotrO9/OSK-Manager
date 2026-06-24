@@ -238,7 +238,7 @@ async function loadWeek(): Promise<void> {
         slots.value = [];
         errorMessage.value = getApiFetchErrorMessage(
             err,
-            'Nie udalo sie pobrac slotow.',
+            'Nie udało się pobrać slotów.',
         );
     }
 }
@@ -340,7 +340,7 @@ function handleKeyDownWeekNav(
                         Wolne sloty instruktora
                     </UiCardTitle>
                     <UiCardDescription class="mt-1">
-                        Kalendarz dostepnych okien do rezerwacji jazd.
+                        Kalendarz dostępnych okien do rezerwacji jazd.
                     </UiCardDescription>
                 </div>
             </div>
@@ -348,7 +348,7 @@ function handleKeyDownWeekNav(
             <div
                 class="flex min-w-0 flex-wrap items-center gap-2"
                 role="toolbar"
-                aria-label="Nawigacja tygodnia kalendarza slotow"
+                aria-label="Nawigacja tygodnia kalendarza slotów"
             >
                 <UiPopover v-model:open="isCalendarOpen">
                     <UiPopoverTrigger>
@@ -478,7 +478,7 @@ function handleKeyDownWeekNav(
             <ErrorState
                 v-if="errorMessage"
                 class="m-4 md:m-5"
-                title="Nie udalo sie wczytac slotow"
+                title="Nie udało się wczytać slotów"
                 :description="errorMessage"
                 @retry="loadWeek"
             />
@@ -528,7 +528,7 @@ function handleKeyDownWeekNav(
                     <div
                         class="flex"
                         role="grid"
-                        :aria-label="`Terminarz slotow, ${weekRangeLabel}`"
+                        :aria-label="`Terminarz slotów, ${weekRangeLabel}`"
                     >
                         <div
                             class="border-border flex shrink-0 flex-col border-r bg-white"
@@ -613,7 +613,7 @@ function handleKeyDownWeekNav(
                                             :aria-label="`Wolny slot ${slot.startTime} do ${slot.endTime}`"
                                         >
                                             <span class="block font-extrabold">
-                                                Dostepny
+                                                Dostępny
                                             </span>
                                             <span class="block truncate">
                                                 {{ slot.startTime }}-{{
@@ -630,7 +630,7 @@ function handleKeyDownWeekNav(
                                         "
                                         class="text-muted-foreground absolute inset-0 flex items-center justify-center p-2 text-center text-xs"
                                     >
-                                        Brak slotow
+                                        Brak slotów
                                     </div>
                                 </div>
                             </div>
@@ -642,7 +642,7 @@ function handleKeyDownWeekNav(
                         class="pointer-events-none absolute right-4 bottom-4"
                     >
                         <StatusBadge
-                            :label="`Najwiecej dostepnosci: ${busiestDay.label}`"
+                            :label="`Najwięcej dostępności: ${busiestDay.label}`"
                             tone="success"
                             subtle
                         />

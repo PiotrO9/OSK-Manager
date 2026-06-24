@@ -1,5 +1,3 @@
-import { resolveBffEndpoint } from '~/utils/bffEndpoint';
-import { unwrapApiSuccessData } from '~/utils/apiEnvelope';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import {
     filterScheduleItemsByYyyyMmDdRange,
@@ -27,22 +25,18 @@ export function useStudentEventsApi() {
         }
 
         const qs = params.toString();
-        const url = resolveBffEndpoint(
+        const items = await requestBffData<ScheduleLessonItem[]>(
+            'GET',
             `/api/students/${encodeURIComponent(uid)}/events${qs.length > 0 ? `?${qs}` : ''}`,
+            {
+                fallbackMessage: 'Nie udało się pobrać wydarzeń kursanta.',
+                normalize: studentEventsPayloadToScheduleItems,
+            },
         );
 
-        const raw = await $fetch<unknown>(url, {
-            credentials: 'include',
-        });
-
-        const data = unwrapApiSuccessData<unknown>(raw);
-        let items = studentEventsPayloadToScheduleItems(data);
-
-        if (from && to) {
-            items = filterScheduleItemsByYyyyMmDdRange(items, from, to);
-        }
-
-        return items;
+        return from && to
+            ? filterScheduleItemsByYyyyMmDdRange(items, from, to)
+            : items;
     }
 
     return {

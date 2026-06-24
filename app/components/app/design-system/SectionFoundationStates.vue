@@ -25,16 +25,16 @@ const fields = [
 
         <div class="grid min-w-0 gap-4 lg:grid-cols-3">
             <LoadingState
-                title="Wczytywanie kursantow"
+                title="Wczytywanie kursantów"
                 description="Skeleton utrzymuje miejsce dla docelowego ukladu."
             />
             <ErrorState
-                title="Nie udalo sie pobrac listy"
+                title="Nie udało się pobrać listy"
                 description="Komunikat bledu jest blisko danych, ktorych dotyczy."
             />
             <EmptyState
-                title="Brak kursantow"
-                description="Pusty stan moze zawierac konkretna akcje."
+                title="Brak kursantów"
+                description="Pusty stan może zawierac konkretna akcje."
             >
                 <template #action>
                     <UiButton type="button" size="sm">Dodaj kursanta</UiButton>

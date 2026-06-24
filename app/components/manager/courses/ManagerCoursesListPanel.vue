@@ -193,7 +193,7 @@ function courseTypeBadgeClasses(course: CourseListItem): string {
                     >
                         <UiSelectTrigger
                             class="h-8 w-auto min-w-36 rounded-full border-sky-200 bg-sky-50 px-3 text-xs font-bold text-sky-700"
-                            aria-label="Wybierz szkole jazdy do listy kursow"
+                            aria-label="Wybierz szkole jazdy do listy kursów"
                         >
                             <UiSelectValue placeholder="Wybierz OSK" />
                         </UiSelectTrigger>
@@ -253,20 +253,20 @@ function courseTypeBadgeClasses(course: CourseListItem): string {
 
                 <ErrorState
                     v-else-if="props.schoolsLoadError"
-                    title="Nie udalo sie wczytac szkol jazdy"
+                    title="Nie udało się wczytać szkół jazdy"
                     :description="props.schoolsLoadError"
                     @retry="emit('retrySchools')"
                 />
 
                 <EmptyState
                     v-else-if="hasNoSchools"
-                    title="Brak szkol jazdy"
-                    description="Dodaj OSK w panelu szkol, aby wyswietlic liste kursow."
+                    title="Brak szkół jazdy"
+                    description="Dodaj OSK w panelu szkół, aby wyświetlić liste kursów."
                 />
 
                 <ErrorState
                     v-else-if="props.coursesLoadError"
-                    title="Nie udalo sie wczytac kursow"
+                    title="Nie udało się wczytać kursów"
                     :description="props.coursesLoadError"
                     @retry="emit('retryCourses')"
                 />
@@ -283,8 +283,8 @@ function courseTypeBadgeClasses(course: CourseListItem): string {
 
                 <EmptyState
                     v-else-if="props.courses.length === 0"
-                    title="Brak kursow"
-                    description="W wybranej szkole nie ma jeszcze kursow."
+                    title="Brak kursów"
+                    description="W wybranej szkole nie ma jeszcze kursów."
                 />
 
                 <template v-else>
@@ -391,9 +391,9 @@ function courseTypeBadgeClasses(course: CourseListItem): string {
                                                           }
                                                         : undefined,
                                                 }"
-                                                :aria-label="`Szczegoly kursu: ${course.name}`"
+                                                :aria-label="`Szczegóły kursu: ${course.name}`"
                                             >
-                                                Szczegoly
+                                                Szczegóły
                                             </NuxtLink>
                                         </UiButton>
                                     </td>
@@ -464,9 +464,9 @@ function courseTypeBadgeClasses(course: CourseListItem): string {
                                             ? { schoolId: props.activeSchoolId }
                                             : undefined,
                                     }"
-                                    :aria-label="`Szczegoly kursu: ${course.name}`"
+                                    :aria-label="`Szczegóły kursu: ${course.name}`"
                                 >
-                                    Szczegoly
+                                    Szczegóły
                                 </NuxtLink>
                             </UiButton>
                         </article>
