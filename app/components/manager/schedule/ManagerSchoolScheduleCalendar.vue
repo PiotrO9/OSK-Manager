@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
-import { BookOpen, Car } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule';
 import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
@@ -11,11 +10,6 @@ import {
 import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
 import {
-    instructorEventStatusBadgeVariant,
-    labelForInstructorEventStatusRaw,
-    normalizeInstructorEventStatus,
-} from '~/utils/instructorEventStatusDisplay';
-import {
     formatDateOnly,
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
@@ -23,6 +17,18 @@ import {
     weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from '~/utils/weeklyCalendarDates';
+import {
+    ariaSummaryForLesson,
+    BASE_HOUR,
+    GRID_HEIGHT_PX,
+    isoToDateStr,
+    isoToHm,
+    lessonDurationMinutes,
+    PX_PER_MINUTE,
+    SAME_START_TILE_GAP_PX,
+    SLOT_END_GUTTER_PX,
+    slotTopPx,
+} from '~/utils/managerScheduleCalendarUtils';
 
 const props = withDefaults(
     defineProps<{
@@ -68,235 +74,6 @@ const emit = defineEmits<{
 }>();
 
 /** Oś czasu: 7:00–19:00 (12 h × 60 px). */
-const BASE_HOUR = 7;
-const GRID_HEIGHT_PX = 720;
-const PX_PER_MINUTE = 1;
-/** Odstęp przed granicą następnego bloku w siatce (chroni przed „double border” i nachodzeniem). */
-const SLOT_END_GUTTER_PX = 1;
-/** Odstęp między kafelkami, gdy w jednym przedziale startu jest kilka lekcji. */
-const SAME_START_TILE_GAP_PX = 2;
-
-function isoToHm(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return '00:00';
-    }
-
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-function isoToDateStr(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return '';
-    }
-
-    return formatDateOnly(d);
-}
-
-function slotTopPx(startTimeHm: string): number {
-    const parts = startTimeHm.trim().split(':').map(Number);
-
-    if (parts.length < 2) {
-        return 0;
-    }
-
-    const h = parts[0];
-    const m = parts[1];
-
-    if (
-        h === undefined ||
-        m === undefined ||
-        !Number.isFinite(h) ||
-        !Number.isFinite(m)
-    ) {
-        return 0;
-    }
-
-    const startMin = h * 60 + m;
-    const baseMin = BASE_HOUR * 60;
-
-    return (startMin - baseMin) * PX_PER_MINUTE;
-}
-
-function isTheoryLessonType(type: string): boolean {
-    return type.trim().toUpperCase() === 'THEORY';
-}
-
-function lessonBlockClasses(type: string): string {
-    const t = type.trim().toUpperCase();
-
-    if (t === 'PRACTICE') {
-        return 'border-sky-400 bg-sky-50 text-sky-950 shadow-sky-900/10 dark:border-sky-500/70 dark:bg-sky-950/50 dark:text-sky-50';
-    }
-
-    if (t === 'THEORY') {
-        return 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-indigo-900/10 dark:border-indigo-400/60 dark:bg-indigo-950/50 dark:text-indigo-50';
-    }
-
-    return 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/70 dark:bg-amber-950/50 dark:text-amber-100';
-}
-
-function displayStudent(item: ScheduleLessonItem): string {
-    const s = item.student;
-
-    if (!s) {
-        return '—';
-    }
-
-    const name = `${s.firstName} ${s.lastName}`.trim();
-
-    return name.length > 0 ? name : '—';
-}
-
-function displayVehicle(item: ScheduleLessonItem): string {
-    const v = item.vehicle;
-
-    if (!v) {
-        return '';
-    }
-
-    const n = v.name.trim();
-    const r = v.registrationNumber.trim();
-
-    if (n && r) {
-        return `${n} (${r})`;
-    }
-
-    return n || r || '';
-}
-
-function displayInstructorName(item: ScheduleLessonItem): string {
-    const i = item.instructor;
-
-    if (!i) {
-        return '';
-    }
-
-    const name = `${i.firstName} ${i.lastName}`.trim();
-
-    return name.length > 0 ? name : '';
-}
-
-/** Treść główna dla bloku teoretycznego: grupa / pojedynczy kursant (zgodnie z BE). */
-function displayTheoryPrimaryLine(item: ScheduleLessonItem): string {
-    const list = item.students;
-
-    if (list && list.length > 0) {
-        const shown = list.slice(0, 2).map((s) => {
-            const n = `${s.firstName} ${s.lastName}`.trim();
-
-            return n.length > 0 ? n : '—';
-        });
-        const rest = list.length - shown.length;
-
-        if (rest > 0) {
-            return `${shown.join(', ')} +${rest}`;
-        }
-
-        return shown.join(', ');
-    }
-
-    const pc = item.participantCount;
-    const cap = item.capacity;
-
-    if (pc != null && cap != null && cap > 0) {
-        return `${pc}/${cap} miejsc`;
-    }
-
-    if (pc != null && pc > 0) {
-        return `${pc} uczestników`;
-    }
-
-    return displayStudent(item);
-}
-
-function displayPrimaryLine(item: ScheduleLessonItem): string {
-    if (isTheoryLessonType(item.type)) {
-        return displayTheoryPrimaryLine(item);
-    }
-
-    if (props.practicePrimaryLine === 'instructor') {
-        const ins = displayInstructorName(item);
-
-        if (ins.length > 0) {
-            return ins;
-        }
-    }
-
-    return displayStudent(item);
-}
-
-function displayInstructorSubtitle(item: ScheduleLessonItem): string {
-    const ins = displayInstructorName(item);
-
-    if (ins) {
-        return `Prowadzący: ${ins}`;
-    }
-
-    return '';
-}
-
-function lessonDurationMinutes(lesson: ScheduleLessonItem): number {
-    const start = new Date(lesson.startTime).getTime();
-    const end = new Date(lesson.endTime).getTime();
-
-    if (Number.isNaN(start) || Number.isNaN(end) || end <= start) {
-        return 60;
-    }
-
-    return Math.max(1, Math.round((end - start) / 60000));
-}
-
-function ariaSummaryForLesson(item: ScheduleLessonItem): string {
-    const time = `${isoToHm(item.startTime)}–${isoToHm(item.endTime)}`;
-
-    if (isScheduleInstructorEvent(item)) {
-        const statusLabel = labelForInstructorEventStatusRaw(item.status);
-        const primary = displayPrimaryLine(item);
-        const sub = displayInstructorSubtitle(item);
-        const parts = ['Blok czasu', `status ${statusLabel}`, time, primary];
-
-        if (sub) {
-            parts.push(sub);
-        }
-
-        return parts.join(', ');
-    }
-
-    if (isTheoryLessonType(item.type)) {
-        const primary = displayTheoryPrimaryLine(item);
-        const sub = displayInstructorSubtitle(item);
-        const parts = [`Lekcja teoretyczna`, time, primary];
-
-        if (sub) {
-            parts.push(sub);
-        }
-
-        return parts.join(', ');
-    }
-
-    const v = displayVehicle(item);
-    const ins = displayInstructorName(item);
-    const parts = [
-        `Lekcja praktyczna`,
-        time,
-        `kursant ${displayStudent(item)}`,
-    ];
-
-    if (v) {
-        parts.push(v);
-    }
-
-    if (ins) {
-        parts.push(`instruktor ${ins}`);
-    }
-
-    return parts.join(', ');
-}
-
 const localWeekStart = ref<Date>(getMonday(new Date()));
 const internalItems = ref<ScheduleLessonItem[]>([]);
 const errorMessage = ref<string | null>(null);
@@ -701,7 +478,7 @@ function isStudentRatingSelectableLesson(lesson: ScheduleLessonItem): boolean {
 }
 
 function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
-    const base = ariaSummaryForLesson(lesson);
+    const base = ariaSummaryForLesson(lesson, props.practicePrimaryLine);
 
     if (isStudentRatingSelectableLesson(lesson)) {
         return `${base}. Naciśnij Enter lub Spację, aby otwórzyć opinię.`;
@@ -916,176 +693,39 @@ defineExpose({
                                         )"
                                         :key="lesson.id"
                                     >
-                                        <div
-                                            class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
-                                            :class="[
-                                                lessonBlockClasses(lesson.type),
-                                                lessonBlockInteractiveClasses(
+                                        <ManagerScheduleLessonBlock
+                                            :lesson="lesson"
+                                            :top-px="
+                                                lessonBlockTopPx(
                                                     lesson,
-                                                ),
-                                            ]"
-                                            :style="{
-                                                top: `${lessonBlockTopPx(lesson, day.dateStr)}px`,
-                                                height: `${lessonBlockHeightPx(lesson, day.dateStr)}px`,
-                                            }"
-                                            :title="
+                                                    day.dateStr,
+                                                )
+                                            "
+                                            :height-px="
+                                                lessonBlockHeightPx(
+                                                    lesson,
+                                                    day.dateStr,
+                                                )
+                                            "
+                                            :accessibility-label="
                                                 blockAccessibilityLabel(lesson)
                                             "
-                                            :role="
-                                                blockIsClickable(lesson)
-                                                    ? 'button'
-                                                    : 'group'
-                                            "
-                                            :aria-label="
-                                                blockAccessibilityLabel(lesson)
-                                            "
-                                            :tabindex="
-                                                blockIsClickable(lesson)
-                                                    ? 0
-                                                    : undefined
-                                            "
-                                            @click="
-                                                handleScheduleBlockClick(lesson)
-                                            "
-                                            @keydown="
-                                                handleScheduleBlockKeydown(
-                                                    $event,
+                                            :interactive-classes="
+                                                lessonBlockInteractiveClasses(
                                                     lesson,
                                                 )
                                             "
-                                        >
-                                            <div
-                                                v-if="
-                                                    isTheoryLessonType(
-                                                        lesson.type,
-                                                    )
-                                                "
-                                                class="mb-0.5 flex items-center gap-1"
-                                            >
-                                                <BookOpen
-                                                    class="size-3 shrink-0 text-violet-700 dark:text-violet-200"
-                                                    aria-hidden="true"
-                                                />
-                                                <UiBadge
-                                                    variant="secondary"
-                                                    class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[9px] font-semibold tracking-wide text-violet-950 uppercase dark:text-violet-50"
-                                                >
-                                                    Teoria
-                                                </UiBadge>
-                                                <span
-                                                    class="ml-auto shrink-0 font-medium tabular-nums"
-                                                >
-                                                    {{
-                                                        isoToHm(
-                                                            lesson.startTime,
-                                                        )
-                                                    }}–{{
-                                                        isoToHm(lesson.endTime)
-                                                    }}
-                                                </span>
-                                            </div>
-                                            <span
-                                                v-else
-                                                class="mb-0.5 flex items-center gap-1"
-                                            >
-                                                <Car
-                                                    class="size-3 shrink-0 text-emerald-800 dark:text-emerald-200"
-                                                    aria-hidden="true"
-                                                />
-                                                <span
-                                                    class="font-medium tabular-nums"
-                                                >
-                                                    {{
-                                                        isoToHm(
-                                                            lesson.startTime,
-                                                        )
-                                                    }}–{{
-                                                        isoToHm(lesson.endTime)
-                                                    }}
-                                                </span>
-                                            </span>
-                                            <span
-                                                class="block truncate text-[10px] font-medium"
-                                                :class="
-                                                    isTheoryLessonType(
-                                                        lesson.type,
-                                                    )
-                                                        ? 'text-violet-950/95 dark:text-violet-50/95'
-                                                        : ''
-                                                "
-                                            >
-                                                {{ displayPrimaryLine(lesson) }}
-                                            </span>
-                                            <span
-                                                v-if="
-                                                    isScheduleInstructorEvent(
-                                                        lesson,
-                                                    )
-                                                "
-                                                class="mt-0.5 block"
-                                            >
-                                                <UiBadge
-                                                    :variant="
-                                                        instructorEventStatusBadgeVariant(
-                                                            normalizeInstructorEventStatus(
-                                                                lesson.status,
-                                                            ),
-                                                        )
-                                                    "
-                                                    class="px-1 py-0 text-[9px] font-medium"
-                                                >
-                                                    {{
-                                                        labelForInstructorEventStatusRaw(
-                                                            lesson.status,
-                                                        )
-                                                    }}
-                                                </UiBadge>
-                                            </span>
-                                            <span
-                                                v-if="
-                                                    isTheoryLessonType(
-                                                        lesson.type,
-                                                    ) &&
-                                                    displayInstructorSubtitle(
-                                                        lesson,
-                                                    )
-                                                "
-                                                class="block truncate text-[10px] leading-snug text-violet-900/85 dark:text-violet-100/85"
-                                            >
-                                                {{
-                                                    displayInstructorSubtitle(
-                                                        lesson,
-                                                    )
-                                                }}
-                                            </span>
-                                            <span
-                                                v-if="
-                                                    !isTheoryLessonType(
-                                                        lesson.type,
-                                                    ) && displayVehicle(lesson)
-                                                "
-                                                class="block truncate text-[10px] opacity-85"
-                                            >
-                                                {{ displayVehicle(lesson) }}
-                                            </span>
-                                            <span
-                                                v-if="
-                                                    !isTheoryLessonType(
-                                                        lesson.type,
-                                                    ) &&
-                                                    displayInstructorSubtitle(
-                                                        lesson,
-                                                    )
-                                                "
-                                                class="block truncate text-[10px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
-                                            >
-                                                {{
-                                                    displayInstructorSubtitle(
-                                                        lesson,
-                                                    )
-                                                }}
-                                            </span>
-                                        </div>
+                                            :is-clickable="
+                                                blockIsClickable(lesson)
+                                            "
+                                            :practice-primary-line="
+                                                practicePrimaryLine
+                                            "
+                                            @select="handleScheduleBlockClick"
+                                            @keydown="
+                                                handleScheduleBlockKeydown
+                                            "
+                                        />
                                     </template>
 
                                     <div
