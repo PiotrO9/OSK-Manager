@@ -1,5 +1,8 @@
 import { bffLessonsPatch } from '~~/server/utils/lessonsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import {
+    isUuid,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 
 function validatePatchBody(
     raw: unknown,
@@ -86,22 +89,10 @@ function validatePatchBody(
 }
 
 export default defineEventHandler(async (event) => {
-    const lessonIdRaw = getRouterParam(event, 'id');
-    const lessonId = lessonIdRaw?.trim() ?? '';
-
-    if (!lessonId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora lekcji.',
-        });
-    }
-
-    if (!isUuid(lessonId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator lekcji.',
-        });
-    }
+    const lessonId = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora lekcji.',
+        invalid: 'Nieprawidłowy identyfikator lekcji.',
+    });
 
     const rawBody = await readBody(event);
     const parsed = validatePatchBody(rawBody);

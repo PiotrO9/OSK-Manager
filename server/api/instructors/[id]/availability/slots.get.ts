@@ -1,25 +1,13 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import { bffSlotsGet } from '~~/server/utils/availabilityBff';
 import { mockGenerateSlots } from '~~/server/utils/mockSlots';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/slotsDateRangeValidation';
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora instruktora.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator instruktora.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora instruktora.',
+        invalid: 'Nieprawidłowy identyfikator instruktora.',
+    });
 
     const query = getQuery(event);
     const { dateFromRaw, dateToRaw } = getValidatedSlotsDateRangeQuery(query);

@@ -1,28 +1,16 @@
 import { readMultipartFormData } from 'h3';
-import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehiclesBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import {
     mockVehiclesGetById,
     mockVehiclesSetPhotoUrl,
 } from '~~/server/utils/mockVehiclesStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora pojazdu.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator pojazdu.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora pojazdu.',
+        invalid: 'Nieprawidłowy identyfikator pojazdu.',
+    });
 
     const parts = await readMultipartFormData(event);
     const filePart = parts?.find((p) => p.name === 'file');

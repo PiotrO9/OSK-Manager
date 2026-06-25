@@ -1,7 +1,9 @@
 import {
-    isUuid,
+    readOptionalDateString,
+    readOptionalUuid,
+    readTrimmedBodyString,
     parseSchoolIdFromBody,
-} from '~~/server/utils/parseVehicleRequestBody';
+} from '~~/server/utils/requestValidation';
 
 export type CourseCreateKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
 
@@ -54,53 +56,6 @@ function isCourseCreateKind(value: string): value is CourseCreateKind {
     );
 }
 
-function readTrimmedString(body: Record<string, unknown>, key: string): string {
-    const raw = body[key];
-
-    if (typeof raw === 'string') {
-        return raw.trim();
-    }
-
-    if (raw == null) {
-        return '';
-    }
-
-    return String(raw).trim();
-}
-
-type OptionalUuidResult =
-    | { status: 'omit' }
-    | { status: 'null' }
-    | { status: 'value'; uuid: string }
-    | { status: 'invalid' };
-
-function readOptionalUuid(
-    body: Record<string, unknown>,
-    key: string,
-): OptionalUuidResult {
-    if (!(key in body)) {
-        return { status: 'omit' };
-    }
-
-    const raw = body[key];
-
-    if (raw === null) {
-        return { status: 'null' };
-    }
-
-    const s = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
-
-    if (!s) {
-        return { status: 'null' };
-    }
-
-    if (!isUuid(s)) {
-        return { status: 'invalid' };
-    }
-
-    return { status: 'value', uuid: s };
-}
-
 function parseTotalHours(body: Record<string, unknown>): number | null {
     const raw = body.totalHours;
 
@@ -123,30 +78,6 @@ function parseTotalHours(body: Record<string, unknown>): number | null {
     }
 
     return null;
-}
-
-/** `YYYY-MM-DD` z input[type=date] lub pusty. */
-function readOptionalDateString(
-    body: Record<string, unknown>,
-    key: string,
-): string | null | undefined {
-    if (!(key in body)) {
-        return undefined;
-    }
-
-    const raw = body[key];
-
-    if (raw === null) {
-        return null;
-    }
-
-    const s = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
-
-    if (!s) {
-        return null;
-    }
-
-    return s;
 }
 
 function parseCapacityForTheory(
@@ -217,8 +148,8 @@ export function parseCourseCreateBody(body: unknown):
     }
 
     const o = body as Record<string, unknown>;
-    const name = readTrimmedString(o, 'name');
-    const category = readTrimmedString(o, 'category');
+    const name = readTrimmedBodyString(o, 'name');
+    const category = readTrimmedBodyString(o, 'category');
 
     if (!name) {
         return { error: 'Pole name jest wymagane.' };
@@ -228,7 +159,7 @@ export function parseCourseCreateBody(body: unknown):
         return { error: 'Pole category jest wymagane.' };
     }
 
-    const kindRaw = readTrimmedString(o, 'kind');
+    const kindRaw = readTrimmedBodyString(o, 'kind');
 
     if (!kindRaw || !isCourseCreateKind(kindRaw)) {
         return {

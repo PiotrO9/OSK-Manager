@@ -99,29 +99,3 @@ export function parseVehicleWriteFields(
         mileageKm,
     };
 }
-
-export function isUuid(value: string): boolean {
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        value.trim(),
-    );
-}
-
-export function parseSchoolIdFromBody(body: unknown): string | null {
-    if (!body || typeof body !== 'object') return null;
-
-    const o = body as Record<string, unknown>;
-    const raw = o.schoolId;
-
-    const s =
-        typeof raw === 'string'
-            ? raw.trim()
-            : raw == null
-              ? ''
-              : String(raw).trim();
-
-    if (!s) return null;
-
-    if (!isUuid(s)) return null;
-
-    return s;
-}

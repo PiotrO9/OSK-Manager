@@ -1,4 +1,4 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 import {
     bffUpstreamLessonRatingsList,
     mockLessonRatingsListPayload,

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { bffOwnLessonPost } from '~~/server/utils/lessonsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
 
 function readRequiredUuid(

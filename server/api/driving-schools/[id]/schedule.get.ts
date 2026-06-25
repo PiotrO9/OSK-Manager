@@ -1,4 +1,4 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 import { bffAggregateSchoolSchedule } from '~~/server/utils/schoolScheduleBff';
 import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/slotsDateRangeValidation';
 

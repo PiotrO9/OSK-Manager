@@ -1,17 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { bffOwnLessonCancel } from '~~/server/utils/lessonsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
 
 export default defineEventHandler(async (event) => {
-    const lessonId = getRouterParam(event, 'lessonId')?.trim() ?? '';
-
-    if (!lessonId || !isUuid(lessonId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidlowy identyfikator lekcji.',
-        });
-    }
+    const lessonId = parseRequiredUuidRouterParam(event, 'lessonId', {
+        required: 'Nieprawidlowy identyfikator lekcji.',
+        invalid: 'Nieprawidlowy identyfikator lekcji.',
+    });
 
     const upstream = resolveUpstreamBase(event);
 

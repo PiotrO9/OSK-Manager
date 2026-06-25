@@ -1,23 +1,11 @@
 import { bffEventsGet } from '~~/server/utils/eventsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 
 export default defineEventHandler(async (event) => {
-    const eventIdRaw = getRouterParam(event, 'eventId');
-    const eventId = eventIdRaw?.trim() ?? '';
-
-    if (!eventId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora wydarzenia.',
-        });
-    }
-
-    if (!isUuid(eventId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator wydarzenia.',
-        });
-    }
+    const eventId = parseRequiredUuidRouterParam(event, 'eventId', {
+        required: 'Brak identyfikatora wydarzenia.',
+        invalid: 'Nieprawidłowy identyfikator wydarzenia.',
+    });
 
     const upstream = resolveUpstreamBase(event);
 

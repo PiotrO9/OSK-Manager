@@ -1,12 +1,12 @@
-export default defineEventHandler(async (event) => {
-    const id = getRouterParam(event, 'id');
+import { parseVehicleWriteFields } from '~~/server/utils/parseVehicleRequestBody';
+import { parseRequiredRouterParam } from '~~/server/utils/requestValidation';
 
-    if (!id || !id.trim()) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora pojazdu.',
-        });
-    }
+export default defineEventHandler(async (event) => {
+    const id = parseRequiredRouterParam(
+        event,
+        'id',
+        'Brak identyfikatora pojazdu.',
+    );
 
     const body = await readBody(event);
     const fields = parseVehicleWriteFields(body);
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffUpstreamVehiclesUpdate(event, upstream, id.trim(), {
+        return bffUpstreamVehiclesUpdate(event, upstream, id, {
             name: fields.name,
             registrationNumber: fields.registrationNumber,
             inspectionDate: fields.inspectionDate,
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const existing = mockVehiclesGetById(id.trim());
+    const existing = mockVehiclesGetById(id);
 
     if (!existing) {
         throw createError({
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
         mockVehiclesFindDuplicateRegistration(
             existing.schoolId,
             fields.registrationNumber,
-            id.trim(),
+            id,
         )
     ) {
         throw createError({
@@ -70,7 +70,7 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const updated = mockVehiclesUpdate(id.trim(), {
+    const updated = mockVehiclesUpdate(id, {
         name: fields.name,
         registrationNumber: fields.registrationNumber,
         inspectionDate: fields.inspectionDate,

@@ -1,24 +1,22 @@
+import { parseRequiredRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamVehiclesDelete } from '~~/server/utils/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
-    const id = getRouterParam(event, 'id');
-
-    if (!id || !id.trim()) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora pojazdu.',
-        });
-    }
+    const id = parseRequiredRouterParam(
+        event,
+        'id',
+        'Brak identyfikatora pojazdu.',
+    );
 
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffUpstreamVehiclesDelete(event, upstream, id.trim());
+        return bffUpstreamVehiclesDelete(event, upstream, id);
     }
 
     await requireManagerFromCookie(event);
 
-    const deleted = mockVehiclesDelete(id.trim());
+    const deleted = mockVehiclesDelete(id);
 
     if (!deleted) {
         throw createError({

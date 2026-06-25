@@ -1,24 +1,15 @@
 import { mockCourseParticipantAssign } from '~~/server/utils/mockStudentsList';
+import {
+    isUuid,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 import { bffUpstreamStudentAssignToCourse } from '~~/server/utils/studentsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 
 export default defineEventHandler(async (event) => {
-    const userIdRaw = getRouterParam(event, 'userId');
-    const studentUserId = userIdRaw?.trim() ?? '';
-
-    if (!studentUserId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora kursanta.',
-        });
-    }
-
-    if (!isUuid(studentUserId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator kursanta.',
-        });
-    }
+    const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {
+        required: 'Brak identyfikatora kursanta.',
+        invalid: 'Nieprawidłowy identyfikator kursanta.',
+    });
 
     const body = await readBody(event);
 

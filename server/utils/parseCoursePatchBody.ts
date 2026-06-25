@@ -1,4 +1,4 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 
 /**
  * Parsuje body PATCH `/courses/:id` — tylko `instructorId` (MVP).

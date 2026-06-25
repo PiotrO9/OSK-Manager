@@ -1,4 +1,4 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 import { bffSchoolSlotsGet } from '~~/server/utils/availabilityBff';
 import { applyMockSchoolSlotFilters } from '~~/server/utils/mockSchoolSlotFilters';
 import { mockGenerateSchoolSlots } from '~~/server/utils/mockSlots';

@@ -1,8 +1,8 @@
-import { jwtVerify } from 'jose';
 import type { H3Event } from 'h3';
-import { bffUpstreamStudentEvents } from '~~/server/utils/studentsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { jwtVerify } from 'jose';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { parseScheduleMeQuery } from '~~/server/utils/scheduleQueryValidation';
+import { bffUpstreamStudentEvents } from '~~/server/utils/studentsBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
@@ -25,9 +25,6 @@ function readStudentEventsQueryString(query: Record<string, unknown>): string {
     }).toString();
 }
 
-/**
- * W trybie bez upstreamu: tylko STUDENT i tylko własny userId (ochrona przed odczytem cudzych danych w demo).
- */
 async function assertMockStudentOwnsEventsRoute(
     event: H3Event,
     routeUserId: string,
@@ -86,22 +83,10 @@ async function assertMockStudentOwnsEventsRoute(
 }
 
 export default defineEventHandler(async (event) => {
-    const userIdRaw = getRouterParam(event, 'userId');
-    const studentUserId = userIdRaw?.trim() ?? '';
-
-    if (!studentUserId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora kursanta.',
-        });
-    }
-
-    if (!isUuid(studentUserId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator kursanta.',
-        });
-    }
+    const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {
+        required: 'Brak identyfikatora kursanta.',
+        invalid: 'Nieprawidłowy identyfikator kursanta.',
+    });
 
     const queryString = readStudentEventsQueryString(
         getQuery(event) as Record<string, unknown>,

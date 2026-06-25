@@ -1,4 +1,4 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 

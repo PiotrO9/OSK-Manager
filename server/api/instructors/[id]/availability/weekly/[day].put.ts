@@ -1,6 +1,6 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import { bffWeeklyPut } from '~~/server/utils/availabilityBff';
 import { mockAvailabilityUpsertDay } from '~~/server/utils/mockAvailabilityStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 
 const TIME_REGEX = /^\d{2}:\d{2}$/;
 
@@ -19,22 +19,10 @@ function parseDayParam(raw: string | undefined): number | null {
 }
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora instruktora.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator instruktora.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora instruktora.',
+        invalid: 'Nieprawidłowy identyfikator instruktora.',
+    });
 
     const dayRaw = getRouterParam(event, 'day');
     const dayOfWeek = parseDayParam(dayRaw);

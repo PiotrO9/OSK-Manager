@@ -1,5 +1,8 @@
 import { bffEventStudentsPost } from '~~/server/utils/eventsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import {
+    isUuid,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 
 const MIN_IDS = 1;
 const MAX_IDS = 50;
@@ -60,22 +63,10 @@ function validateAssignStudentsBody(
 }
 
 export default defineEventHandler(async (event) => {
-    const eventIdRaw = getRouterParam(event, 'eventId');
-    const eventId = eventIdRaw?.trim() ?? '';
-
-    if (!eventId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora wydarzenia.',
-        });
-    }
-
-    if (!isUuid(eventId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator wydarzenia.',
-        });
-    }
+    const eventId = parseRequiredUuidRouterParam(event, 'eventId', {
+        required: 'Brak identyfikatora wydarzenia.',
+        invalid: 'Nieprawidłowy identyfikator wydarzenia.',
+    });
 
     const rawBody = await readBody(event);
     const parsed = validateAssignStudentsBody(rawBody);

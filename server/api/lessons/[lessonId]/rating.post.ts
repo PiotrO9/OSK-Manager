@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { bffLessonRatingPost } from '~~/server/utils/lessonsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
 
 function validateRatingBody(raw: unknown):
@@ -48,14 +48,10 @@ function validateRatingBody(raw: unknown):
 }
 
 export default defineEventHandler(async (event) => {
-    const lessonId = getRouterParam(event, 'lessonId')?.trim() ?? '';
-
-    if (!lessonId || !isUuid(lessonId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator lekcji.',
-        });
-    }
+    const lessonId = parseRequiredUuidRouterParam(event, 'lessonId', {
+        required: 'Nieprawidłowy identyfikator lekcji.',
+        invalid: 'Nieprawidłowy identyfikator lekcji.',
+    });
 
     const rawBody = await readBody(event);
     const parsed = validateRatingBody(rawBody);

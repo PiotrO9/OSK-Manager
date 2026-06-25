@@ -1,6 +1,6 @@
 import { mockUpdateStudentNotes } from '~~/server/utils/mockStudentsList';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamUpdateStudentNotes } from '~~/server/utils/studentsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 
 const NOTES_MAX_LEN = 5000;
 
@@ -25,22 +25,10 @@ function readNotesFromPatchBody(raw: unknown): string | null | undefined {
 }
 
 export default defineEventHandler(async (event) => {
-    const userIdRaw = getRouterParam(event, 'userId');
-    const studentUserId = userIdRaw?.trim() ?? '';
-
-    if (!studentUserId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora kursanta.',
-        });
-    }
-
-    if (!isUuid(studentUserId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator kursanta.',
-        });
-    }
+    const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {
+        required: 'Brak identyfikatora kursanta.',
+        invalid: 'Nieprawidłowy identyfikator kursanta.',
+    });
 
     const rawBody = await readBody(event);
     const rawNotes = readNotesFromPatchBody(rawBody);

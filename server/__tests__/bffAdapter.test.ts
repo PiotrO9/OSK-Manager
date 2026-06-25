@@ -51,4 +51,21 @@ describe('resolveBffAdapterFromConfig', () => {
             'NUXT_BFF_ADAPTER=upstream requires NUXT_API_UPSTREAM or NUXT_PUBLIC_API_BASE',
         );
     });
+
+    it('rejects localhost upstreams in production', () => {
+        const previousNodeEnv = process.env.NODE_ENV;
+
+        process.env.NODE_ENV = 'production';
+
+        try {
+            expect(() =>
+                resolveBffAdapterFromConfig({
+                    adapter: 'upstream',
+                    apiUpstream: 'http://localhost:3001',
+                }),
+            ).toThrow('Production backend URL cannot point to localhost');
+        } finally {
+            process.env.NODE_ENV = previousNodeEnv;
+        }
+    });
 });

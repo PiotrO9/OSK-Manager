@@ -1,27 +1,15 @@
-import { bffUpstreamVehiclesGetById } from '~~/server/utils/vehiclesBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import {
     mockVehicleRowToDetailPayload,
     mockVehiclesGetById,
 } from '~~/server/utils/mockVehiclesStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffUpstreamVehiclesGetById } from '~~/server/utils/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora pojazdu.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator pojazdu.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora pojazdu.',
+        invalid: 'Nieprawidłowy identyfikator pojazdu.',
+    });
 
     const upstream = resolveUpstreamBase(event);
 

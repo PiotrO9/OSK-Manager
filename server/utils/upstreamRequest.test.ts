@@ -182,6 +182,23 @@ describe('upstreamRequest', () => {
             },
         });
     });
+
+    it('maps backend connection failures to a deployment configuration error', async () => {
+        const { event } = mockEvent();
+
+        await expect(
+            upstreamRequest(event, 'https://api.example.test', {
+                path: '/auth/login',
+                method: 'POST',
+                auth: false,
+                body: { email: 'manager001@post.pl', password: 'secret' },
+                fallbackError: 'failed',
+                fetchImpl: async () => {
+                    throw new TypeError('fetch failed');
+                },
+            }),
+        ).rejects.toThrow('Cannot connect to backend API');
+    });
 });
 
 describe('refresh cookie propagation', () => {

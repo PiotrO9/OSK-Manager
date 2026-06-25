@@ -1,6 +1,9 @@
 import { bffUpstreamInstructorsPatch } from '~~/server/utils/instructorsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import { mockInstructorsPatchById } from '~~/server/utils/mockInstructorsList';
+import {
+    isUuid,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 
 const ALLOWED_PATCH_KEYS = [
     'firstName',
@@ -80,22 +83,10 @@ function stripInstructorPatchBody(raw: unknown): Record<string, unknown> {
 }
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora instruktora.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator instruktora.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora instruktora.',
+        invalid: 'Nieprawidłowy identyfikator instruktora.',
+    });
 
     const rawBody = await readBody(event);
     const patch = stripInstructorPatchBody(rawBody);

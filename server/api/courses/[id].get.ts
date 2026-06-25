@@ -1,24 +1,12 @@
 import { bffUpstreamCoursesGetById } from '~~/server/utils/coursesBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import { mockCoursesGetById } from '~~/server/utils/mockCoursesList';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora kursu.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator kursu.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora kursu.',
+        invalid: 'Nieprawidłowy identyfikator kursu.',
+    });
 
     const upstream = resolveUpstreamBase(event);
 

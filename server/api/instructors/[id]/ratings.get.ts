@@ -1,48 +1,22 @@
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
 import {
     bffUpstreamInstructorLessonRatingsList,
     mockLessonRatingsListPayload,
 } from '~~/server/utils/lessonRatingsBff';
+import {
+    parseRequiredUuidQuery,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora instruktora.',
+        invalid: 'Nieprawidlowy identyfikator instruktora.',
+    });
     const query = getQuery(event);
-    const schoolIdRaw = query.schoolId;
-    const schoolId =
-        typeof schoolIdRaw === 'string'
-            ? schoolIdRaw.trim()
-            : Array.isArray(schoolIdRaw)
-              ? String(schoolIdRaw[0] ?? '').trim()
-              : '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora instruktora.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidlowy identyfikator instruktora.',
-        });
-    }
-
-    if (!schoolId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Parametr schoolId jest wymagany.',
-        });
-    }
-
-    if (!isUuid(schoolId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Parametr schoolId musi byc poprawnym UUID.',
-        });
-    }
+    const schoolId = parseRequiredUuidQuery(query, 'schoolId', {
+        required: 'Parametr schoolId jest wymagany.',
+        invalid: 'Parametr schoolId musi byc poprawnym UUID.',
+    });
 
     const upstream = resolveUpstreamBase(event);
 

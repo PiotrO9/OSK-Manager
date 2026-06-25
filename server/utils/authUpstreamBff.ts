@@ -17,6 +17,34 @@ export type BffAdapter =
     | { mode: 'upstream'; upstreamBase: string }
     | { mode: 'mock' };
 
+function isLoopbackUpstream(upstreamBase: string): boolean {
+    try {
+        const { hostname } = new URL(upstreamBase);
+
+        return (
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '::1'
+        );
+    } catch {
+        return false;
+    }
+}
+
+function assertProductionUpstream(upstreamBase: string): void {
+    if (process.env.NODE_ENV !== 'production') return;
+
+    if (!isLoopbackUpstream(upstreamBase)) return;
+
+    throw createError({
+        statusCode: 500,
+        statusMessage:
+            'Production backend URL cannot point to localhost. Set NUXT_API_UPSTREAM to the public backend URL.',
+        message:
+            'Production backend URL cannot point to localhost. Set NUXT_API_UPSTREAM to the public backend URL.',
+    });
+}
+
 export function resolveBffAdapterFromConfig(config: {
     adapter?: unknown;
     apiUpstream?: unknown;
@@ -42,6 +70,8 @@ export function resolveBffAdapterFromConfig(config: {
             });
         }
 
+        assertProductionUpstream(rawUpstream);
+
         return { mode: 'upstream', upstreamBase: rawUpstream };
     }
 
@@ -52,9 +82,13 @@ export function resolveBffAdapterFromConfig(config: {
         });
     }
 
-    return rawUpstream
-        ? { mode: 'upstream', upstreamBase: rawUpstream }
-        : { mode: 'mock' };
+    if (!rawUpstream) {
+        return { mode: 'mock' };
+    }
+
+    assertProductionUpstream(rawUpstream);
+
+    return { mode: 'upstream', upstreamBase: rawUpstream };
 }
 
 export function resolveBffAdapter(event: H3Event): BffAdapter {

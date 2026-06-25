@@ -292,14 +292,29 @@ export async function upstreamRequest<T = unknown>(
     }
 
     const body = buildBodyAndHeaders(options.body, headers);
-    const res = await (options.fetchImpl ?? fetch)(
-        buildUpstreamUrl(upstreamBase, options.path, options.query),
-        {
+    const upstreamUrl = buildUpstreamUrl(
+        upstreamBase,
+        options.path,
+        options.query,
+    );
+    let res: Response;
+
+    try {
+        res = await (options.fetchImpl ?? fetch)(upstreamUrl, {
             method: options.method ?? 'GET',
             headers,
             ...(body !== undefined ? { body } : {}),
-        },
-    );
+        });
+    } catch {
+        throw createError({
+            statusCode: 502,
+            statusMessage:
+                'Cannot connect to backend API. Check NUXT_API_UPSTREAM in deployment environment variables.',
+            message:
+                'Cannot connect to backend API. Check NUXT_API_UPSTREAM in deployment environment variables.',
+        });
+    }
+
     const text = await res.text();
     const envelope = parseBackendEnvelopeFromResponseText<T>(res, text, {
         fallbackError: options.fallbackError,

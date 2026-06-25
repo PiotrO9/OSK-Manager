@@ -4,7 +4,7 @@ import {
     mockVehiclesUpdateStatus,
     type MockVehicleStatus,
 } from '~~/server/utils/mockVehiclesStore';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamVehiclesUpdateStatus } from '~~/server/utils/vehiclesBff';
 
 function parseVehicleStatus(raw: unknown): MockVehicleStatus | null {
@@ -17,22 +17,10 @@ function parseVehicleStatus(raw: unknown): MockVehicleStatus | null {
 }
 
 export default defineEventHandler(async (event) => {
-    const idRaw = getRouterParam(event, 'id');
-    const id = idRaw?.trim() ?? '';
-
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora pojazdu.',
-        });
-    }
-
-    if (!isUuid(id)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator pojazdu.',
-        });
-    }
+    const id = parseRequiredUuidRouterParam(event, 'id', {
+        required: 'Brak identyfikatora pojazdu.',
+        invalid: 'Nieprawidłowy identyfikator pojazdu.',
+    });
 
     const body = await readBody(event);
     const status = parseVehicleStatus(body);

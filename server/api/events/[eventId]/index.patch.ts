@@ -1,5 +1,8 @@
 import { bffEventsPatch } from '~~/server/utils/eventsBff';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import {
+    isUuid,
+    parseRequiredUuidRouterParam,
+} from '~~/server/utils/requestValidation';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
 
@@ -148,9 +151,7 @@ function validatePatchBody(
             };
         }
 
-        if (cap !== undefined) {
-            body.capacity = cap;
-        }
+        if (cap !== undefined) body.capacity = cap;
     }
 
     if ('status' in o) {
@@ -172,22 +173,10 @@ function validatePatchBody(
 }
 
 export default defineEventHandler(async (event) => {
-    const eventIdRaw = getRouterParam(event, 'eventId');
-    const eventId = eventIdRaw?.trim() ?? '';
-
-    if (!eventId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Brak identyfikatora wydarzenia.',
-        });
-    }
-
-    if (!isUuid(eventId)) {
-        throw createError({
-            statusCode: 400,
-            message: 'Nieprawidłowy identyfikator wydarzenia.',
-        });
-    }
+    const eventId = parseRequiredUuidRouterParam(event, 'eventId', {
+        required: 'Brak identyfikatora wydarzenia.',
+        invalid: 'Nieprawidłowy identyfikator wydarzenia.',
+    });
 
     const rawBody = await readBody(event);
     const parsed = validatePatchBody(rawBody);
@@ -209,7 +198,6 @@ export default defineEventHandler(async (event) => {
 
     const now = new Date().toISOString();
     const b = parsed.body;
-
     const type =
         (b.type as EventTypeLiteral | undefined) ??
         ('THEORY' as EventTypeLiteral);
@@ -222,8 +210,6 @@ export default defineEventHandler(async (event) => {
                 ? (b.vehicleId as string | null)
                 : '00000000-0000-4000-8000-000000000002';
     }
-
-    const defaultStatus = 'PLANNED' as const;
 
     return {
         success: true,
@@ -241,7 +227,7 @@ export default defineEventHandler(async (event) => {
                     b.capacity !== undefined
                         ? (b.capacity as number | null)
                         : null,
-                status: (b.status as string | undefined) ?? defaultStatus,
+                status: (b.status as string | undefined) ?? 'PLANNED',
                 createdAt: now,
             },
         },

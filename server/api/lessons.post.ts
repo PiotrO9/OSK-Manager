@@ -4,7 +4,7 @@ import {
     mockCoursesGetById,
     mockInstructorQualifiedForCategory,
 } from '~~/server/utils/mockCoursesList';
-import { isUuid } from '~~/server/utils/parseVehicleRequestBody';
+import { isUuid } from '~~/server/utils/requestValidation';
 
 type LessonTypeLiteral = 'THEORY' | 'PRACTICE';
 
