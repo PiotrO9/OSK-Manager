@@ -1,22 +1,7 @@
 <script setup lang="ts">
-import {
-    ArrowLeft,
-    CalendarDays,
-    Clock3,
-    Mail,
-    Pencil,
-    Phone,
-    Star,
-    Trash2,
-    UserRound,
-} from 'lucide-vue-next';
-import {
-    formatCourseTypeOptionLabel,
-    type CourseTypeOption,
-} from '~/types/courseType';
+import { ArrowLeft, Mail, Pencil, Phone, Star, Trash2 } from 'lucide-vue-next';
 import type { InstructorDetail } from '~/types/instructor';
 import type { LessonRatingsSummary } from '~/types/lessonRating';
-import type { SummaryStripItem } from '~/components/app/ui/types';
 
 const props = defineProps<{
     instructor: InstructorDetail;
@@ -32,128 +17,19 @@ const emit = defineEmits<{
     delete: [];
 }>();
 
-function displayValue(value: string): string {
-    const trimmed = value.trim();
+const {
+    initials,
+    categoryLabel,
+    ratingAverageLabel,
+    ratingsCountLabel,
+    summaryItems,
+    actionDisabledClass,
+    relatedLinks,
+    profileRows,
+} = useManagerInstructorDetailsContent(props);
 
-    return trimmed.length > 0 ? trimmed : '-';
-}
-
-const initials = computed(() => {
-    const normalized = props.instructor.name
-        .split(/\s+/)
-        .map((part) => part.trim().charAt(0))
-        .filter((part) => part.length > 0)
-        .slice(0, 2)
-        .join('');
-
-    return normalized.length > 0 ? normalized.toUpperCase() : 'IN';
-});
-
-const categoryLabel = computed(() => {
-    const labels = props.instructor.qualifiedCourseTypes
-        .map((courseType) => courseType.code.trim() || courseType.name.trim())
-        .filter((label) => label.length > 0);
-
-    return labels.length > 0 ? labels.join(', ') : 'Brak kategorii';
-});
-
-const ratingAverageLabel = computed(() => {
-    if (props.isRatingSummaryLoading) {
-        return '...';
-    }
-
-    const average = props.ratingSummary.averageRating;
-
-    return average === null ? '-' : average.toFixed(2);
-});
-
-const ratingsCountLabel = computed(() => {
-    const count = props.ratingSummary.totalCount;
-
-    if (count === 1) {
-        return '1 opinia';
-    }
-
-    if (count >= 2 && count <= 4) {
-        return `${count} opinie`;
-    }
-
-    return `${count} opinii`;
-});
-
-const summaryItems = computed<SummaryStripItem[]>(() => [
-    {
-        label: 'Kategorie',
-        value: props.instructor.qualifiedCourseTypes.length,
-        description: categoryLabel.value,
-        tone: 'info',
-    },
-    {
-        label: 'Doswiadczenie',
-        value: displayValue(props.instructor.experience),
-        description: 'Z profilu instruktora',
-        tone: 'neutral',
-    },
-    {
-        label: 'Srednia ocen',
-        value: ratingAverageLabel.value,
-        description: ratingsCountLabel.value,
-        tone:
-            props.ratingSummary.averageRating === null ? 'neutral' : 'success',
-    },
-    {
-        label: 'Telefon',
-        value: displayValue(props.instructor.phone),
-        description: 'Dane kontaktowe',
-        tone: 'neutral',
-    },
-]);
-
-const actionDisabledClass = computed(() =>
-    props.isDeleting ? 'pointer-events-none cursor-not-allowed opacity-50' : '',
-);
-
-const relatedLinks = computed(() => [
-    {
-        label: 'Dostepnosc',
-        description: 'Tygodniowy wzorzec pracy',
-        to: {
-            path: `/manager/instructors/${props.instructor.id}/availability`,
-            query: props.subpageQuery,
-        },
-        icon: Clock3,
-    },
-    {
-        label: 'Terminarz',
-        description: 'Wolne sloty instruktora',
-        to: {
-            path: `/manager/instructors/${props.instructor.id}/slots`,
-            query: props.subpageQuery,
-        },
-        icon: CalendarDays,
-    },
-    {
-        label: 'Lekcje',
-        description: 'Lekcje i bloki czasu',
-        to: {
-            path: `/manager/instructors/${props.instructor.id}/schedule`,
-            query: props.subpageQuery,
-        },
-        icon: UserRound,
-    },
-]);
-
-const profileRows = computed(() => [
-    { label: 'Status', value: 'Aktywny' },
-    { label: 'Kategorie', value: categoryLabel.value },
-    { label: 'Telefon', value: displayValue(props.instructor.phone) },
-    { label: 'Email', value: displayValue(props.instructor.email) },
-    { label: 'Licencja', value: displayValue(props.instructor.licenseNumber) },
-]);
-
-function courseTypeLabel(courseType: CourseTypeOption): string {
-    return formatCourseTypeOptionLabel(courseType);
-}
+const displayValue = displayManagerInstructorDetailsValue;
+const courseTypeLabel = managerInstructorCourseTypeLabel;
 </script>
 
 <template>
