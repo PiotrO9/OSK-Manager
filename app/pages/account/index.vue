@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import AccountPageHeader from '~/components/account/AccountPageHeader.vue';
+import AccountProfileCard from '~/components/account/AccountProfileCard.vue';
+
 definePageMeta({
     layout: 'app-shell',
 });

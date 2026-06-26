@@ -350,7 +350,13 @@ export function useEventsDayPage() {
         selectedDate.value = formatDateOnly(new Date());
     }
 
-    function handleCalendarUpdate(val: DateValue | DateValue[]): void {
+    function handleCalendarUpdate(
+        val: DateValue | DateValue[] | undefined,
+    ): void {
+        if (val === undefined) {
+            return;
+        }
+
         const single = Array.isArray(val) ? val[0] : val;
 
         if (!single) {

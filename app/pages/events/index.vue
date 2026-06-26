@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { CalendarDays } from 'lucide-vue-next';
+import EventsDayNavigation from '~/components/events/EventsDayNavigation.vue';
+import EventsDaySchedulePanel from '~/components/events/EventsDaySchedulePanel.vue';
+import EventsDaySummary from '~/components/events/EventsDaySummary.vue';
 import {
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,

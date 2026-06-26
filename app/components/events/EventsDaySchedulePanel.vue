@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import EventsStatusFilter from '~/components/events/EventsStatusFilter.vue';
+import EventsViewModeToggle from '~/components/events/EventsViewModeToggle.vue';
 import {
     displayEventMeta,
     displayEventPrimary,

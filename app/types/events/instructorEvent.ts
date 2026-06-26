@@ -1,4 +1,4 @@
-import type { InstructorListItem } from './instructor';
+import type { InstructorListItem } from '~/types/instructors/instructor';
 
 /** Event instruktora — POST /events (BE InstructorEventDto). */
 
