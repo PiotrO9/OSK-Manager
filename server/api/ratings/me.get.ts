@@ -1,7 +1,5 @@
-import {
-    bffUpstreamOwnLessonRatingsList,
-    mockOwnLessonRatingsPayload,
-} from '~~/server/utils/lessonRatingsBff';
+import { bffUpstreamOwnLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
+import { bffMockOwnLessonRatingsList } from '~~/server/utils/ratingsMockBff';
 
 export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
@@ -12,8 +10,5 @@ export default defineEventHandler(async (event) => {
 
     await requireInstructorFromCookie(event);
 
-    return {
-        success: true,
-        data: mockOwnLessonRatingsPayload(),
-    };
+    return bffMockOwnLessonRatingsList();
 });

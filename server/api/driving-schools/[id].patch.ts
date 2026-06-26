@@ -1,15 +1,27 @@
+import { bffUpstreamDrivingSchoolsUpdate } from '~~/server/utils/drivingSchoolsBff';
+import { bffMockDrivingSchoolsUpdate } from '~~/server/utils/drivingSchoolsMockBff';
+
+function readNullableTrimmedString(raw: unknown): string | null {
+    if (typeof raw === 'string') {
+        return raw.trim() || null;
+    }
+
+    if (raw == null) {
+        return null;
+    }
+
+    return String(raw).trim() || null;
+}
+
 export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id');
 
     if (!id) {
-        throw createError({ statusCode: 400, message: 'Brak ID szkoły' });
+        throw createError({ statusCode: 400, message: 'Brak ID szkoĹ‚y' });
     }
 
     const body = await readBody(event);
-
-    const nameRaw = body?.name;
-    const name =
-        typeof nameRaw === 'string' ? nameRaw.trim() : String(nameRaw ?? '');
+    const name = readNullableTrimmedString(body?.name);
 
     if (!name) {
         throw createError({
@@ -18,49 +30,18 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const cityRaw = body?.city;
-    const addressRaw = body?.address;
-
-    const city =
-        typeof cityRaw === 'string'
-            ? cityRaw.trim() || null
-            : cityRaw == null
-              ? null
-              : String(cityRaw).trim() || null;
-
-    const address =
-        typeof addressRaw === 'string'
-            ? addressRaw.trim() || null
-            : addressRaw == null
-              ? null
-              : String(addressRaw).trim() || null;
-
+    const payload = {
+        name,
+        city: readNullableTrimmedString(body?.city),
+        address: readNullableTrimmedString(body?.address),
+    };
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
-        return bffUpstreamDrivingSchoolsUpdate(event, upstream, id, {
-            name,
-            city,
-            address,
-        });
+        return bffUpstreamDrivingSchoolsUpdate(event, upstream, id, payload);
     }
 
     await requireManagerFromCookie(event);
 
-    const updated = mockDrivingSchoolsUpdate(id, {
-        name,
-        city,
-        address,
-    });
-
-    if (!updated) {
-        throw createError({ statusCode: 404, message: 'Szkoła nie istnieje' });
-    }
-
-    const row = mockDrivingSchoolsList().find((s) => s.id === id);
-
-    return {
-        success: true,
-        data: row ?? { ...updated, isDefault: false },
-    };
+    return bffMockDrivingSchoolsUpdate(id, payload);
 });

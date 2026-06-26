@@ -1,11 +1,21 @@
+import { bffUpstreamDrivingSchoolsCreate } from '~~/server/utils/drivingSchoolsBff';
+import { bffMockDrivingSchoolsCreate } from '~~/server/utils/drivingSchoolsMockBff';
+
+function readOptionalTrimmedString(raw: unknown): string | undefined {
+    if (typeof raw === 'string') {
+        return raw.trim() || undefined;
+    }
+
+    if (raw == null) {
+        return undefined;
+    }
+
+    return String(raw).trim() || undefined;
+}
+
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
-
     const body = await readBody(event);
-
-    const nameRaw = body?.name;
-    const name =
-        typeof nameRaw === 'string' ? nameRaw.trim() : String(nameRaw ?? '');
+    const name = readOptionalTrimmedString(body?.name);
 
     if (!name) {
         throw createError({
@@ -14,47 +24,20 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const cityRaw = body?.city;
-    const addressRaw = body?.address;
-
-    const city =
-        typeof cityRaw === 'string'
-            ? cityRaw.trim() || undefined
-            : cityRaw == null
-              ? undefined
-              : String(cityRaw).trim() || undefined;
-
-    const address =
-        typeof addressRaw === 'string'
-            ? addressRaw.trim() || undefined
-            : addressRaw == null
-              ? undefined
-              : String(addressRaw).trim() || undefined;
+    const city = readOptionalTrimmedString(body?.city);
+    const address = readOptionalTrimmedString(body?.address);
+    const upstream = resolveUpstreamBase(event);
+    const payload = {
+        name,
+        ...(city !== undefined ? { city } : {}),
+        ...(address !== undefined ? { address } : {}),
+    };
 
     if (upstream) {
-        /*
-         * Tryb upstream (NUXT_API_UPSTREAM): żądanie jest proxowane do zewnętrznego
-         * backendu z access_token w nagłówku Authorization. Weryfikacja roli MANAGER
-         * odbywa się po stronie backendu — BFF jej tu nie powtarza.
-         */
-        return bffUpstreamDrivingSchoolsCreate(event, upstream, {
-            name,
-            ...(city !== undefined ? { city } : {}),
-            ...(address !== undefined ? { address } : {}),
-        });
+        return bffUpstreamDrivingSchoolsCreate(event, upstream, payload);
     }
 
-    // Tryb lokalny (bez NUXT_API_UPSTREAM): weryfikujemy rolę samodzielnie z ciasteczka JWT.
     await requireManagerFromCookie(event);
 
-    const created = mockDrivingSchoolsPush({
-        name,
-        city: city ?? null,
-        address: address ?? null,
-    });
-
-    return {
-        success: true,
-        data: created,
-    };
+    return bffMockDrivingSchoolsCreate(payload);
 });

@@ -1,11 +1,11 @@
 import { bffUpstreamInstructorsDelete } from '~~/server/utils/instructorsBff';
-import { mockInstructorsDeleteById } from '~~/server/utils/mockInstructorsList';
+import { bffMockInstructorsDelete } from '~~/server/utils/instructorsMockBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {
         required: 'Brak identyfikatora instruktora.',
-        invalid: 'Nieprawidłowy identyfikator instruktora.',
+        invalid: 'NieprawidĹ‚owy identyfikator instruktora.',
     });
 
     const upstream = resolveUpstreamBase(event);
@@ -16,16 +16,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const deleted = mockInstructorsDeleteById(id);
-
-    if (!deleted) {
-        throw createError({
-            statusCode: 404,
-            message: 'Instruktor nie istnieje.',
-        });
-    }
-
-    return {
-        success: true,
-    };
+    return bffMockInstructorsDelete(id);
 });

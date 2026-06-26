@@ -1,3 +1,6 @@
+import { bffUpstreamDrivingSchoolsList } from '~~/server/utils/drivingSchoolsBff';
+import { bffMockDrivingSchoolsList } from '~~/server/utils/drivingSchoolsMockBff';
+
 export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);
 
@@ -7,8 +10,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    return {
-        success: true,
-        data: mockDrivingSchoolsList(),
-    };
+    return bffMockDrivingSchoolsList();
 });

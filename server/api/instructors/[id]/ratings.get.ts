@@ -1,7 +1,5 @@
-import {
-    bffUpstreamInstructorLessonRatingsList,
-    mockLessonRatingsListPayload,
-} from '~~/server/utils/lessonRatingsBff';
+import { bffUpstreamInstructorLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
+import { bffMockLessonRatingsList } from '~~/server/utils/ratingsMockBff';
 import {
     parseRequiredUuidQuery,
     parseRequiredUuidRouterParam,
@@ -12,12 +10,10 @@ export default defineEventHandler(async (event) => {
         required: 'Brak identyfikatora instruktora.',
         invalid: 'Nieprawidlowy identyfikator instruktora.',
     });
-    const query = getQuery(event);
-    const schoolId = parseRequiredUuidQuery(query, 'schoolId', {
+    const schoolId = parseRequiredUuidQuery(getQuery(event), 'schoolId', {
         required: 'Parametr schoolId jest wymagany.',
         invalid: 'Parametr schoolId musi byc poprawnym UUID.',
     });
-
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
@@ -26,8 +22,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    return {
-        success: true,
-        data: mockLessonRatingsListPayload(schoolId, id),
-    };
+    return bffMockLessonRatingsList({ schoolId, instructorId: id });
 });

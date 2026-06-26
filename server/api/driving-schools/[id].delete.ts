@@ -1,8 +1,11 @@
+import { bffUpstreamDrivingSchoolsDelete } from '~~/server/utils/drivingSchoolsBff';
+import { bffMockDrivingSchoolsDelete } from '~~/server/utils/drivingSchoolsMockBff';
+
 export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id');
 
     if (!id) {
-        throw createError({ statusCode: 400, message: 'Brak ID szkoły' });
+        throw createError({ statusCode: 400, message: 'Brak ID szkoĹ‚y' });
     }
 
     const upstream = resolveUpstreamBase(event);
@@ -13,11 +16,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const deleted = mockDrivingSchoolsDelete(id);
-
-    if (!deleted) {
-        throw createError({ statusCode: 404, message: 'Szkoła nie istnieje' });
-    }
-
-    return { success: true };
+    return bffMockDrivingSchoolsDelete(id);
 });

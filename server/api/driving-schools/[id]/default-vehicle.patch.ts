@@ -1,17 +1,18 @@
-export default defineEventHandler(async (event) => {
-    const schoolIdParam = getRouterParam(event, 'id');
+import { bffUpstreamDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/drivingSchoolsBff';
+import { bffMockDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/drivingSchoolsMockBff';
 
-    if (!schoolIdParam || !schoolIdParam.trim()) {
+export default defineEventHandler(async (event) => {
+    const schoolId = getRouterParam(event, 'id')?.trim() ?? '';
+
+    if (!schoolId) {
         throw createError({
             statusCode: 400,
-            message: 'Brak identyfikatora szkoły jazdy.',
+            message: 'Brak identyfikatora szkoĹ‚y jazdy.',
         });
     }
 
-    const schoolId = schoolIdParam.trim();
     const body = await readBody(event);
-
-    const vehicleIdRaw =
+    const vehicleId =
         body &&
         typeof body === 'object' &&
         'vehicleId' in body &&
@@ -19,7 +20,7 @@ export default defineEventHandler(async (event) => {
             ? String(body.vehicleId).trim()
             : '';
 
-    if (!vehicleIdRaw) {
+    if (!vehicleId) {
         throw createError({
             statusCode: 400,
             message: 'Pole vehicleId jest wymagane.',
@@ -33,26 +34,11 @@ export default defineEventHandler(async (event) => {
             event,
             upstream,
             schoolId,
-            vehicleIdRaw,
+            vehicleId,
         );
     }
 
     await requireManagerFromCookie(event);
 
-    const ok = mockVehiclesSetDefaultForSchool(schoolId, vehicleIdRaw);
-
-    if (!ok) {
-        throw createError({
-            statusCode: 404,
-            message:
-                'Szkoła lub pojazd nie istnieje, albo pojazd nie należy do tej szkoły.',
-        });
-    }
-
-    const row = mockVehiclesGetById(vehicleIdRaw);
-
-    return {
-        success: true,
-        data: row ? mockVehiclesResponseFromRow(row) : null,
-    };
+    return bffMockDrivingSchoolsSetDefaultVehicle(schoolId, vehicleId);
 });

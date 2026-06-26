@@ -1,19 +1,15 @@
 import { bffUpstreamCoursesPatch } from '~~/server/utils/coursesBff';
-import {
-    mockCoursesGetById,
-    mockCoursesPatchInstructor,
-} from '~~/server/utils/mockCoursesList';
+import { bffMockCoursesPatch } from '~~/server/utils/coursesMockBff';
 import { parseCoursePatchInstructorBody } from '~~/server/utils/parseCoursePatchBody';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {
         required: 'Brak identyfikatora kursu.',
-        invalid: 'Nieprawidłowy identyfikator kursu.',
+        invalid: 'NieprawidĹ‚owy identyfikator kursu.',
     });
 
-    const body = await readBody(event);
-    const parsed = parseCoursePatchInstructorBody(body);
+    const parsed = parseCoursePatchInstructorBody(await readBody(event));
 
     if ('error' in parsed) {
         throw createError({
@@ -23,7 +19,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const { record } = parsed;
-
     const upstream = resolveUpstreamBase(event);
 
     if (upstream) {
@@ -32,50 +27,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    if (!('instructorId' in record)) {
-        const course = mockCoursesGetById(id);
-
-        if (!course) {
-            throw createError({
-                statusCode: 404,
-                message: 'Kurs nie istnieje.',
-            });
-        }
-
-        return {
-            success: true,
-            data: { course },
-        };
-    }
-
-    const instructorProfileId = record.instructorId as string | null;
-
-    const patchResult = mockCoursesPatchInstructor(id, instructorProfileId);
-
-    if (patchResult.outcome === 'course_not_found') {
-        throw createError({
-            statusCode: 404,
-            message: 'Kurs nie istnieje.',
-        });
-    }
-
-    if (patchResult.outcome === 'instructor_not_in_school') {
-        throw createError({
-            statusCode: 400,
-            message:
-                'Wybrany instruktor nie jest przypisany do szkoły tego kursu.',
-        });
-    }
-
-    if (patchResult.outcome === 'instructor_not_qualified') {
-        throw createError({
-            statusCode: 400,
-            message: 'Instructor is not qualified for this course category',
-        });
-    }
-
-    return {
-        success: true,
-        data: { course: patchResult.course },
-    };
+    return bffMockCoursesPatch(id, record);
 });

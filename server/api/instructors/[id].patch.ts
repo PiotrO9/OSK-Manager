@@ -1,5 +1,5 @@
 import { bffUpstreamInstructorsPatch } from '~~/server/utils/instructorsBff';
-import { mockInstructorsPatchById } from '~~/server/utils/mockInstructorsList';
+import { bffMockInstructorsPatch } from '~~/server/utils/instructorsMockBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
@@ -99,17 +99,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const updated = mockInstructorsPatchById(id, patch);
-
-    if (!updated) {
-        throw createError({
-            statusCode: 404,
-            message: 'Instruktor nie istnieje.',
-        });
-    }
-
-    return {
-        success: true,
-        data: updated,
-    };
+    return bffMockInstructorsPatch(id, patch);
 });

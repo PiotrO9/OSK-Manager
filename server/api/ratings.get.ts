@@ -1,25 +1,23 @@
+import { bffUpstreamLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
+import { bffMockLessonRatingsList } from '~~/server/utils/ratingsMockBff';
 import { isUuid } from '~~/server/utils/requestValidation';
-import {
-    bffUpstreamLessonRatingsList,
-    mockLessonRatingsListPayload,
-} from '~~/server/utils/lessonRatingsBff';
+
+function readQueryString(raw: unknown): string {
+    if (typeof raw === 'string') {
+        return raw.trim();
+    }
+
+    if (Array.isArray(raw)) {
+        return String(raw[0] ?? '').trim();
+    }
+
+    return '';
+}
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
-    const schoolIdRaw = query.schoolId;
-    const schoolId =
-        typeof schoolIdRaw === 'string'
-            ? schoolIdRaw.trim()
-            : Array.isArray(schoolIdRaw)
-              ? String(schoolIdRaw[0] ?? '').trim()
-              : '';
-    const instructorIdRaw = query.instructorId;
-    const instructorId =
-        typeof instructorIdRaw === 'string'
-            ? instructorIdRaw.trim()
-            : Array.isArray(instructorIdRaw)
-              ? String(instructorIdRaw[0] ?? '').trim()
-              : '';
+    const schoolId = readQueryString(query.schoolId);
+    const instructorId = readQueryString(query.instructorId);
 
     if (!schoolId) {
         throw createError({
@@ -50,11 +48,8 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    return {
-        success: true,
-        data: mockLessonRatingsListPayload(
-            schoolId,
-            instructorId.length > 0 ? instructorId : undefined,
-        ),
-    };
+    return bffMockLessonRatingsList({
+        schoolId,
+        ...(instructorId ? { instructorId } : {}),
+    });
 });
