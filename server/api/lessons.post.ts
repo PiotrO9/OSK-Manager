@@ -1,9 +1,4 @@
-import { randomUUID } from 'node:crypto';
 import { bffLessonsPost } from '~~/server/utils/lessonsBff';
-import {
-    mockCoursesGetById,
-    mockInstructorQualifiedForCategory,
-} from '~~/server/utils/mockCoursesList';
 import { isUuid } from '~~/server/utils/requestValidation';
 
 type LessonTypeLiteral = 'THEORY' | 'PRACTICE';
@@ -121,41 +116,7 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const course = mockCoursesGetById(String(parsed.body.courseId));
-
-    if (
-        course &&
-        !mockInstructorQualifiedForCategory(
-            course.schoolId,
-            String(parsed.body.instructorId),
-            course.category,
-        )
-    ) {
-        throw createError({
-            statusCode: 400,
-            message: 'Instructor is not qualified for this course category',
-        });
-    }
-
-    const now = new Date().toISOString();
-
     setResponseStatus(event, 201);
 
-    return {
-        success: true,
-        data: {
-            lesson: {
-                id: randomUUID(),
-                courseId: String(parsed.body.courseId),
-                studentId: randomUUID(),
-                instructorId: String(parsed.body.instructorId),
-                vehicleId: String(parsed.body.vehicleId ?? ''),
-                lessonType: String(parsed.body.lessonType),
-                startTime: String(parsed.body.startTime),
-                endTime: String(parsed.body.endTime),
-                status: 'SCHEDULED',
-                createdAt: now,
-            },
-        },
-    };
+    return bffMockLessonsPost(parsed.body);
 });

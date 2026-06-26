@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
         throw createError({
             statusCode: 400,
             message:
-                'Pole schoolId jest wymagane i musi być poprawnym identyfikatorem UUID.',
+                'Pole schoolId jest wymagane i musi byÄ‡ poprawnym identyfikatorem UUID.',
         });
     }
 
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     if (!fields) {
         throw createError({
             statusCode: 400,
-            message: 'Nieprawidłowe dane żądania.',
+            message: 'NieprawidĹ‚owe dane ĹĽÄ…dania.',
         });
     }
 
@@ -49,20 +49,7 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    if (
-        mockVehiclesFindDuplicateRegistration(
-            schoolId,
-            fields.registrationNumber,
-        )
-    ) {
-        throw createError({
-            statusCode: 409,
-            message:
-                'Pojazd z tym numerem rejestracyjnym jest już zapisany dla tej szkoły.',
-        });
-    }
-
-    const created = mockVehiclesCreate({
+    return bffMockVehiclesCreate({
         schoolId,
         name: fields.name,
         registrationNumber: fields.registrationNumber,
@@ -71,9 +58,4 @@ export default defineEventHandler(async (event) => {
         modelYear: fields.modelYear,
         mileageKm: fields.mileageKm,
     });
-
-    return {
-        success: true,
-        data: mockVehiclesResponseFromRow(created),
-    };
 });

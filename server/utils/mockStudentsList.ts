@@ -1,7 +1,4 @@
-import {
-    mockCoursesGetById,
-    mockCoursesListPayload,
-} from '~~/server/utils/mockCoursesList';
+import { mockCoursesGetById, mockCoursesListPayload } from './mockCoursesList';
 
 /** Wiersz listy kursantów — kształt elementu `data.data[]`  wg students-api.md. */
 export interface MockStudentListRow {

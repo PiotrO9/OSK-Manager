@@ -1,7 +1,7 @@
 import {
     mockInstructorBelongsToSchool,
     mockInstructorsListPayload,
-} from '~~/server/utils/mockInstructorsList';
+} from './mockInstructorsList';
 import {
     MOCK_DEFAULT_OFFERED_COURSE_TYPES,
     type MockDrivingSchoolOfferedType,

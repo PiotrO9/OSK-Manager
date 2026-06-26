@@ -1,4 +1,3 @@
-import { mockStudentDetailPayload } from '~~/server/utils/mockStudentsList';
 import {
     parseRequiredUuidQuery,
     parseRequiredUuidRouterParam,
@@ -30,17 +29,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const detail = mockStudentDetailPayload(studentUserId, schoolId);
-
-    if (!detail) {
-        throw createError({
-            statusCode: 404,
-            message: 'Student not found',
-        });
-    }
-
-    return {
-        success: true,
-        data: detail,
-    };
+    return bffMockStudentDetail(studentUserId, schoolId);
 });

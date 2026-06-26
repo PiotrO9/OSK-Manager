@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!fields) {
         throw createError({
             statusCode: 400,
-            message: 'Nieprawidłowe dane żądania.',
+            message: 'NieprawidĹ‚owe dane ĹĽÄ…dania.',
         });
     }
 
@@ -47,30 +47,7 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const existing = mockVehiclesGetById(id);
-
-    if (!existing) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    if (
-        mockVehiclesFindDuplicateRegistration(
-            existing.schoolId,
-            fields.registrationNumber,
-            id,
-        )
-    ) {
-        throw createError({
-            statusCode: 409,
-            message:
-                'Pojazd z tym numerem rejestracyjnym jest już zapisany dla tej szkoły.',
-        });
-    }
-
-    const updated = mockVehiclesUpdate(id, {
+    return bffMockVehiclesUpdate(id, {
         name: fields.name,
         registrationNumber: fields.registrationNumber,
         inspectionDate: fields.inspectionDate,
@@ -78,16 +55,4 @@ export default defineEventHandler(async (event) => {
         modelYear: fields.modelYear,
         mileageKm: fields.mileageKm,
     });
-
-    if (!updated) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    return {
-        success: true,
-        data: mockVehiclesResponseFromRow(updated),
-    };
 });

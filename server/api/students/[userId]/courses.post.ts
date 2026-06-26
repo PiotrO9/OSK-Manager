@@ -1,4 +1,3 @@
-import { mockCourseParticipantAssign } from '~~/server/utils/mockStudentsList';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
@@ -60,34 +59,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const result = mockCourseParticipantAssign({
-        studentUserId,
-        courseId,
-    });
-
-    if (!result.ok) {
-        if (result.code === 'COURSE_NOT_FOUND') {
-            throw createError({
-                statusCode: 404,
-                message: 'Course not found',
-            });
-        }
-
-        if (result.code === 'STUDENT_NOT_IN_SCHOOL') {
-            throw createError({
-                statusCode: 403,
-                message: 'Forbidden',
-            });
-        }
-
-        throw createError({
-            statusCode: 409,
-            message: 'Student is already enrolled in this course',
-        });
-    }
-
-    return {
-        success: true,
-        data: { participant: result.participant },
-    };
+    return bffMockStudentAssignToCourse(studentUserId, courseId);
 });

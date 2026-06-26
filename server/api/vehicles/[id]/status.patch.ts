@@ -1,9 +1,4 @@
-import {
-    mockVehiclesGetById,
-    mockVehiclesResponseFromRow,
-    mockVehiclesUpdateStatus,
-    type MockVehicleStatus,
-} from '~~/server/utils/mockVehiclesStore';
+import type { MockVehicleStatus } from '~~/server/utils/mockVehiclesStore';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamVehiclesUpdateStatus } from '~~/server/utils/vehiclesBff';
 
@@ -42,26 +37,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const existing = mockVehiclesGetById(id);
-
-    if (!existing) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    const updated = mockVehiclesUpdateStatus(id, status);
-
-    if (!updated) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    return {
-        success: true,
-        data: mockVehiclesResponseFromRow(updated),
-    };
+    return bffMockVehiclesUpdateStatus(id, status);
 });

@@ -1,5 +1,3 @@
-import { mockCoursesGetById } from '~~/server/utils/mockCoursesList';
-import { mockStudentsListPayload } from '~~/server/utils/mockStudentsList';
 import {
     isUuid,
     parsePositiveIntQuery,
@@ -57,19 +55,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    if (courseId !== undefined) {
-        const course = mockCoursesGetById(courseId);
-
-        if (!course || course.schoolId !== schoolId) {
-            throw createError({
-                statusCode: 404,
-                message: 'Course not found',
-            });
-        }
-    }
-
-    return {
-        success: true,
-        data: mockStudentsListPayload(schoolId, page, limit, courseId),
-    };
+    return bffMockStudentsList({ schoolId, page, limit, courseId });
 });

@@ -16,14 +16,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const deleted = mockVehiclesDelete(id);
-
-    if (!deleted) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    return { success: true };
+    return bffMockVehiclesDelete(id);
 });

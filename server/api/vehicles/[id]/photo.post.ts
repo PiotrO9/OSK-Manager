@@ -1,8 +1,4 @@
 import { readMultipartFormData } from 'h3';
-import {
-    mockVehiclesGetById,
-    mockVehiclesSetPhotoUrl,
-} from '~~/server/utils/mockVehiclesStore';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehiclesBff';
 
@@ -39,21 +35,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const row = mockVehiclesGetById(id);
-
-    if (!row) {
-        throw createError({
-            statusCode: 404,
-            message: 'Pojazd nie istnieje.',
-        });
-    }
-
-    const demoPhotoUrl = 'https://placehold.co/600x400/png?text=Demo+pojazd';
-
-    mockVehiclesSetPhotoUrl(id, demoPhotoUrl);
-
-    return {
-        success: true,
-        data: { photoUrl: demoPhotoUrl },
-    };
+    return bffMockVehiclesUploadPhoto(id);
 });

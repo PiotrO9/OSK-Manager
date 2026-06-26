@@ -1,515 +1,46 @@
 <script setup lang="ts">
-import {
-    ArrowLeft,
-    CalendarDays,
-    ClipboardList,
-    CreditCard,
-} from 'lucide-vue-next';
-import {
-    formatStudentCourseStatusLabel,
-    getStudentCourseStatusVariant,
-    normalizeStudentDetail,
-    type StudentDetail,
-    type StudentProcessStatus,
-} from '~/types/student';
-import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { getMonday, weekRangeFromMonday } from '~/utils/weeklyCalendarDates';
-import type { ScheduleLessonItem } from '~/types/schedule';
-import type { StudentPaymentItem } from '~/types/payment';
+import { ArrowLeft } from 'lucide-vue-next';
 
 definePageMeta({
     layout: 'app-shell',
     middleware: ['manager'],
 });
 
-const route = useRoute();
-const { fetchScheduleForStudent } = useScheduleApi();
-const { fetchProcessStatus } = useStudentsApi();
-const { fetchStudentPayments } = usePaymentsApi();
-
-const student = ref<StudentDetail | null>(null);
-const isLoading = ref(false);
-const errorMessage = ref<string | null>(null);
-const processStatus = ref<StudentProcessStatus | null>(null);
-const processStatusLoading = ref(false);
-const processStatusError = ref<string | null>(null);
-const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
-const payments = ref<StudentPaymentItem[]>([]);
-const paymentsLoading = ref(false);
-const paymentsError = ref<string | null>(null);
-
-usePageMeta({
-    title: () => {
-        const s = student.value;
-
-        if (!s) {
-            return 'Kursant';
-        }
-
-        const name = [s.firstName, s.lastName]
-            .map((x) => x.trim())
-            .filter((x) => x.length > 0)
-            .join(' ');
-
-        return name.length > 0 ? name : 'Kursant';
-    },
-    description: () => 'Szczegóły kursanta.',
-});
-
-let fetchSeq = 0;
-
-function getRouteUserIdString(rawId: unknown): string {
-    if (typeof rawId === 'string') {
-        return rawId.trim();
-    }
-
-    if (Array.isArray(rawId)) {
-        return String(rawId[0] ?? '').trim();
-    }
-
-    return '';
-}
-
-function readSchoolIdFromQuery(): string {
-    const raw = route.query.schoolId;
-    const s = Array.isArray(raw) ? raw[0] : raw;
-
-    if (typeof s !== 'string') {
-        return '';
-    }
-
-    return s.trim();
-}
-
-function displayText(value: string): string {
-    const t = value.trim();
-
-    return t.length > 0 ? t : '--';
-}
-
-const studentDisplayName = computed(() => {
-    const s = student.value;
-
-    if (!s) {
-        return 'Kursant';
-    }
-
-    const name = [s.firstName, s.lastName]
-        .map((part) => part.trim())
-        .filter((part) => part.length > 0)
-        .join(' ');
-
-    return name.length > 0 ? name : 'Kursant';
-});
-
-const studentInitials = computed(() => {
-    const s = student.value;
-
-    if (!s) {
-        return 'K';
-    }
-
-    const first = s.firstName.trim().charAt(0);
-    const last = s.lastName.trim().charAt(0);
-    const initials = `${first}${last}`.trim();
-
-    return initials.length > 0 ? initials.toUpperCase() : 'K';
-});
-
-const primaryCourse = computed(() => student.value?.courses[0] ?? null);
-
-const studentSubtitle = computed(() => {
-    const course = primaryCourse.value;
-    const category = course?.category?.trim();
-
-    if (category) {
-        return `Kursant - Kat. ${category}`;
-    }
-
-    return 'Kursant';
-});
-
-const processCompletedCount = computed(
-    () => processStatusSteps.value.filter((step) => step.completed).length,
-);
-
-const processOverviewLabel = computed(() => {
-    const total = processStatusSteps.value.length;
-
-    if (processStatusLoading.value) {
-        return 'Wczytywanie';
-    }
-
-    if (processStatusError.value) {
-        return 'Błąd';
-    }
-
-    if (total === 0) {
-        return 'Brak kroków';
-    }
-
-    return `${processCompletedCount.value}/${total}`;
-});
-
-const notesOverviewLabel = computed(() => {
-    const notes = student.value?.notes?.trim();
-
-    return notes && notes.length > 0 ? 'Dodano' : 'Brak notatki';
-});
-
-const paymentsOverviewLabel = computed(() => {
-    if (paymentsLoading.value) {
-        return 'Wczytywanie';
-    }
-
-    if (paymentsError.value) {
-        return 'Błąd';
-    }
-
-    return `${payments.value.length}`;
-});
-
-const scheduleOverviewLabel = computed(() => {
-    if (scheduleLoading.value) {
-        return 'Wczytywanie';
-    }
-
-    if (scheduleError.value) {
-        return 'Błąd';
-    }
-
-    return `${scheduleItems.value.length}`;
-});
-
-function formatShortDate(value: string): string {
-    const d = new Date(value);
-
-    if (Number.isNaN(d.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-    }).format(d);
-}
-
-function getNotFoundMessage(): string {
-    return 'Nie znaleziono kursanta.';
-}
-
-function getGenericLoadErrorMessage(): string {
-    return 'Nie udało się wczytać danych kursanta.';
-}
-
-function getMissingSchoolIdMessage(): string {
-    return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
-}
-
-async function loadStudent(rawUserId: unknown) {
-    errorMessage.value = null;
-
-    const userId = getRouteUserIdString(rawUserId);
-    const schoolId = readSchoolIdFromQuery();
-
-    if (!schoolId) {
-        student.value = null;
-        errorMessage.value = getMissingSchoolIdMessage();
-        isLoading.value = false;
-
-        return;
-    }
-
-    if (!userId) {
-        student.value = null;
-        errorMessage.value = getNotFoundMessage();
-        isLoading.value = false;
-
-        return;
-    }
-
-    const seq = ++fetchSeq;
-
-    isLoading.value = true;
-    student.value = null;
-
-    try {
-        const qs = new URLSearchParams({ schoolId });
-        const data = await requestBffData<unknown>(
-            'GET',
-            `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
-            {
-                fallbackMessage: getGenericLoadErrorMessage(),
-            },
-        );
-        const normalized = normalizeStudentDetail(data);
-
-        if (seq !== fetchSeq) {
-            return;
-        }
-
-        if (!normalized) {
-            errorMessage.value = getNotFoundMessage();
-            student.value = null;
-
-            return;
-        }
-
-        student.value = normalized;
-    } catch (err: unknown) {
-        if (seq !== fetchSeq) {
-            return;
-        }
-
-        const status = getApiErrorStatusCode(err);
-
-        if (status === 404 || status === 400) {
-            errorMessage.value = getNotFoundMessage();
-        } else {
-            errorMessage.value = getApiFetchErrorMessage(
-                err,
-                getGenericLoadErrorMessage(),
-            );
-        }
-
-        student.value = null;
-    } finally {
-        if (seq === fetchSeq) {
-            isLoading.value = false;
-        }
-    }
-}
-
-watch(
-    () => [route.params.userId, route.query.schoolId] as const,
-    async ([userId]) => {
-        await loadStudent(userId);
-    },
-    { immediate: true },
-);
-
-let processStatusFetchSeq = 0;
-
-async function loadStudentProcessStatus(rawUserId: unknown): Promise<void> {
-    const userId = getRouteUserIdString(rawUserId);
-    const schoolId = readSchoolIdFromQuery();
-
-    processStatus.value = null;
-    processStatusError.value = null;
-
-    if (!userId || !schoolId) {
-        processStatusLoading.value = false;
-
-        return;
-    }
-
-    const seq = ++processStatusFetchSeq;
-
-    processStatusLoading.value = true;
-
-    try {
-        const status = await fetchProcessStatus({ userId, schoolId });
-
-        if (seq !== processStatusFetchSeq) {
-            return;
-        }
-
-        processStatus.value = status;
-    } catch (err: unknown) {
-        if (seq !== processStatusFetchSeq) {
-            return;
-        }
-
-        processStatus.value = null;
-        processStatusError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się wczytać statusu procesu kursanta.',
-        );
-    } finally {
-        if (seq === processStatusFetchSeq) {
-            processStatusLoading.value = false;
-        }
-    }
-}
-
-watch(
-    () => [route.params.userId, route.query.schoolId] as const,
-    ([userId]) => {
-        void loadStudentProcessStatus(userId);
-    },
-    { immediate: true },
-);
-
-let paymentsFetchSeq = 0;
-
-async function loadStudentPayments(rawUserId: unknown): Promise<void> {
-    const userId = getRouteUserIdString(rawUserId);
-    const schoolId = readSchoolIdFromQuery();
-
-    payments.value = [];
-    paymentsError.value = null;
-
-    if (!userId || !schoolId) {
-        paymentsLoading.value = false;
-
-        return;
-    }
-
-    const seq = ++paymentsFetchSeq;
-
-    paymentsLoading.value = true;
-
-    try {
-        const data = await fetchStudentPayments(userId, schoolId);
-
-        if (seq !== paymentsFetchSeq) {
-            return;
-        }
-
-        payments.value = data;
-    } catch (err: unknown) {
-        if (seq !== paymentsFetchSeq) {
-            return;
-        }
-
-        payments.value = [];
-        paymentsError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się wczytać opłat kursanta.',
-        );
-    } finally {
-        if (seq === paymentsFetchSeq) {
-            paymentsLoading.value = false;
-        }
-    }
-}
-
-watch(
-    () => [route.params.userId, route.query.schoolId] as const,
-    ([userId]) => {
-        void loadStudentPayments(userId);
-    },
-    { immediate: true },
-);
-
-const backToListHref = computed(() => {
-    const sid = readSchoolIdFromQuery();
-
-    if (!sid) {
-        return '/manager/students';
-    }
-
-    return {
-        path: '/manager/students',
-        query: { schoolId: sid },
-    };
-});
-
-function handleStudentNotesUpdate(notes: string | null) {
-    const s = student.value;
-
-    if (!s) {
-        return;
-    }
-
-    s.notes = notes;
-}
-
-const scheduleWeekStart = ref<Date>(getMonday(new Date()));
-const scheduleItems = ref<ScheduleLessonItem[]>([]);
-const scheduleLoading = ref(false);
-const scheduleError = ref<string | null>(null);
-
-const studentScheduleRange = computed(() =>
-    weekRangeFromMonday(scheduleWeekStart.value),
-);
-
-let scheduleFetchSeq = 0;
-
-async function loadStudentSchedule(): Promise<void> {
-    const s = student.value;
-    const schoolId = readSchoolIdFromQuery();
-
-    if (!s?.id || !schoolId) {
-        scheduleItems.value = [];
-
-        return;
-    }
-
-    const seq = ++scheduleFetchSeq;
-
-    scheduleError.value = null;
-    scheduleLoading.value = true;
-
-    const { dateFrom, dateTo } = studentScheduleRange.value;
-
-    try {
-        const data = await fetchScheduleForStudent(
-            s.id,
-            dateFrom,
-            dateTo,
-            schoolId,
-        );
-
-        if (seq !== scheduleFetchSeq) {
-            return;
-        }
-
-        scheduleItems.value = data;
-    } catch (err: unknown) {
-        if (seq !== scheduleFetchSeq) {
-            return;
-        }
-
-        scheduleItems.value = [];
-        scheduleError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się wczytać terminarza lekcji.',
-        );
-    } finally {
-        if (seq === scheduleFetchSeq) {
-            scheduleLoading.value = false;
-        }
-    }
-}
-
-watch(
-    [() => student.value?.id, () => route.query.schoolId, studentScheduleRange],
-    () => {
-        void loadStudentSchedule();
-    },
-    { immediate: true },
-);
-
-function handlePrevScheduleWeek(): void {
-    const d = new Date(scheduleWeekStart.value);
-
-    d.setDate(d.getDate() - 7);
-    scheduleWeekStart.value = getMonday(d);
-}
-
-function handleNextScheduleWeek(): void {
-    const d = new Date(scheduleWeekStart.value);
-
-    d.setDate(d.getDate() + 7);
-    scheduleWeekStart.value = getMonday(d);
-}
-
-function formatScheduleWeekLabel(d: Date): string {
-    return new Intl.DateTimeFormat('pl-PL', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    }).format(d);
-}
+const {
+    student,
+    isLoading,
+    errorMessage,
+    schoolId,
+    processStatusSteps,
+    processStatusLoading,
+    processStatusError,
+    payments,
+    paymentsLoading,
+    paymentsError,
+    studentDisplayName,
+    studentInitials,
+    studentSubtitle,
+    processOverviewLabel,
+    notesOverviewLabel,
+    paymentsOverviewLabel,
+    scheduleOverviewLabel,
+    backToListHref,
+    scheduleWeekStart,
+    scheduleItems,
+    scheduleLoading,
+    scheduleError,
+    studentScheduleRange,
+    handleStudentNotesUpdate,
+    handlePrevScheduleWeek,
+    handleNextScheduleWeek,
+} = useManagerStudentDetailsPage();
 </script>
 
 <template>
     <div class="space-y-5">
         <PageHeader
             :title="studentDisplayName"
-            description="Profil kursanta, status procesu, płatności i najbliższe jazdy."
+            description="Profil kursanta, status procesu, pĹ‚atnoĹ›ci i najbliĹĽsze jazdy."
         >
             <template #actions>
                 <UiButton
@@ -519,10 +50,10 @@ function formatScheduleWeekLabel(d: Date): string {
                 >
                     <NuxtLink
                         :to="backToListHref"
-                        aria-label="Wróć do listy kursantów"
+                        aria-label="WrĂłÄ‡ do listy kursantĂłw"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista kursantów
+                        Lista kursantĂłw
                     </NuxtLink>
                 </UiButton>
             </template>
@@ -535,7 +66,7 @@ function formatScheduleWeekLabel(d: Date): string {
 
         <ErrorState
             v-else-if="errorMessage"
-            title="Nie udało się wczytać kursanta"
+            title="Nie udaĹ‚o siÄ™ wczytaÄ‡ kursanta"
             :description="errorMessage"
         />
 
@@ -569,183 +100,29 @@ function formatScheduleWeekLabel(d: Date): string {
                 <ManagerStudentNotes
                     class="min-w-0"
                     :user-id="student.userId"
-                    :school-id="readSchoolIdFromQuery()"
+                    :school-id="schoolId"
                     :initial-notes="student.notes"
                     @update:notes="handleStudentNotesUpdate"
                 />
 
-                <section
-                    aria-labelledby="student-schedule-heading"
-                    class="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm xl:col-span-2"
-                >
-                    <div
-                        class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-                    >
-                        <div class="space-y-1">
-                            <h2
-                                id="student-schedule-heading"
-                                class="text-foreground text-xl font-extrabold"
-                            >
-                                Terminarz lekcji
-                            </h2>
-                            <p class="text-muted-foreground text-sm">
-                                Lekcje przypisane do kursanta w wybranym
-                                tygodniu.
-                            </p>
-                        </div>
-                        <UiBadge
-                            variant="outline"
-                            class="w-fit rounded-full px-3 py-1"
-                        >
-                            <CalendarDays
-                                class="mr-1.5 size-3.5"
-                                aria-hidden="true"
-                            />
-                            {{ formatShortDate(studentScheduleRange.dateFrom) }}
-                            -
-                            {{ formatShortDate(studentScheduleRange.dateTo) }}
-                        </UiBadge>
-                    </div>
-                    <div
-                        class="mb-4 flex flex-wrap items-center gap-2"
-                        role="group"
-                        aria-label="Nawigacja tygodnia terminarza"
-                    >
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            class="rounded-xl"
-                            aria-label="Poprzedni tydzien"
-                            @click="handlePrevScheduleWeek"
-                        >
-                            Poprzedni
-                        </UiButton>
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            class="rounded-xl"
-                            aria-label="Nastepny tydzien"
-                            @click="handleNextScheduleWeek"
-                        >
-                            Nastepny
-                        </UiButton>
-                        <span class="text-muted-foreground text-sm">
-                            Tydzien od
-                            {{ formatScheduleWeekLabel(scheduleWeekStart) }}
-                        </span>
-                    </div>
-                    <p
-                        v-if="scheduleLoading"
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Wczytywanie lekcji...
-                    </p>
-                    <p
-                        v-else-if="scheduleError"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ scheduleError }}
-                    </p>
-                    <ManagerScheduleLessonTable v-else :items="scheduleItems" />
-                </section>
+                <ManagerStudentScheduleSection
+                    :date-from="studentScheduleRange.dateFrom"
+                    :date-to="studentScheduleRange.dateTo"
+                    :week-start="scheduleWeekStart"
+                    :items="scheduleItems"
+                    :is-loading="scheduleLoading"
+                    :error="scheduleError"
+                    @prev-week="handlePrevScheduleWeek"
+                    @next-week="handleNextScheduleWeek"
+                />
 
-                <section
-                    aria-labelledby="student-payments-heading"
-                    class="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm"
-                >
-                    <div class="mb-4 flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <h2
-                                id="student-payments-heading"
-                                class="text-foreground text-xl font-extrabold"
-                            >
-                                Płatności
-                            </h2>
-                            <p class="text-muted-foreground text-sm">
-                                Historia opłat kursanta w wybranej szkole.
-                            </p>
-                        </div>
-                        <CreditCard
-                            class="text-muted-foreground size-5 shrink-0"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <StudentPaymentsList
-                        :payments="payments"
-                        :is-loading="paymentsLoading"
-                        :error="paymentsError"
-                    />
-                </section>
+                <ManagerStudentPaymentsSection
+                    :payments="payments"
+                    :is-loading="paymentsLoading"
+                    :error="paymentsError"
+                />
 
-                <section
-                    aria-labelledby="student-courses-heading"
-                    class="border-border bg-card min-w-0 rounded-2xl border p-5 shadow-sm"
-                >
-                    <div class="mb-4 flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <h2
-                                id="student-courses-heading"
-                                class="text-foreground text-xl font-extrabold"
-                            >
-                                Kursy w szkole
-                            </h2>
-                            <p class="text-muted-foreground text-sm">
-                                Przypisania kursanta do kursów w tej OSK.
-                            </p>
-                        </div>
-                        <ClipboardList
-                            class="text-muted-foreground size-5 shrink-0"
-                            aria-hidden="true"
-                        />
-                    </div>
-
-                    <EmptyState
-                        v-if="student.courses.length === 0"
-                        title="Brak kursów"
-                        description="Kursant nie jest przypisany do żadnego kursu w tej szkole."
-                    />
-
-                    <ul v-else class="space-y-3" role="list">
-                        <li
-                            v-for="course in student.courses"
-                            :key="course.id"
-                            class="border-border flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                            <div class="min-w-0">
-                                <p
-                                    class="text-foreground text-sm font-extrabold wrap-break-word"
-                                >
-                                    {{ displayText(course.name) }}
-                                </p>
-                                <p class="text-muted-foreground mt-1 text-xs">
-                                    Kategoria:
-                                    {{
-                                        course.category.trim().length > 0
-                                            ? course.category
-                                            : '--'
-                                    }}
-                                </p>
-                            </div>
-                            <UiBadge
-                                :variant="
-                                    getStudentCourseStatusVariant(course.status)
-                                "
-                                class="w-fit shrink-0 rounded-full"
-                                :aria-label="`Status w kursie: ${formatStudentCourseStatusLabel(course.status)}`"
-                            >
-                                {{
-                                    formatStudentCourseStatusLabel(
-                                        course.status,
-                                    )
-                                }}
-                            </UiBadge>
-                        </li>
-                    </ul>
-                </section>
+                <ManagerStudentCoursesSection :courses="student.courses" />
             </div>
         </template>
     </div>

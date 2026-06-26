@@ -34,8 +34,5 @@ export default defineEventHandler(async (event) => {
 
     await requireAuthenticatedFromCookie(event);
 
-    return {
-        success: true,
-        data: mockVehiclesListForSchool(schoolId),
-    };
+    return bffMockVehiclesList(schoolId);
 });

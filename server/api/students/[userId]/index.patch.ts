@@ -1,4 +1,3 @@
-import { mockUpdateStudentNotes } from '~~/server/utils/mockStudentsList';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
 import { bffUpstreamUpdateStudentNotes } from '~~/server/utils/studentsBff';
 
@@ -27,7 +26,7 @@ function readNotesFromPatchBody(raw: unknown): string | null | undefined {
 export default defineEventHandler(async (event) => {
     const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {
         required: 'Brak identyfikatora kursanta.',
-        invalid: 'Nieprawidłowy identyfikator kursanta.',
+        invalid: 'NieprawidĹ‚owy identyfikator kursanta.',
     });
 
     const rawBody = await readBody(event);
@@ -36,7 +35,7 @@ export default defineEventHandler(async (event) => {
     if (rawNotes === undefined) {
         throw createError({
             statusCode: 400,
-            message: 'Pole notes jest wymagane w treści żądania.',
+            message: 'Pole notes jest wymagane w treĹ›ci ĹĽÄ…dania.',
         });
     }
 
@@ -53,7 +52,7 @@ export default defineEventHandler(async (event) => {
     if (notes !== null && notes.length > NOTES_MAX_LEN) {
         throw createError({
             statusCode: 400,
-            message: `Notatka nie może przekraczać ${NOTES_MAX_LEN} znaków.`,
+            message: `Notatka nie moĹĽe przekraczaÄ‡ ${NOTES_MAX_LEN} znakĂłw.`,
         });
     }
 
@@ -70,27 +69,5 @@ export default defineEventHandler(async (event) => {
 
     await requireManagerFromCookie(event);
 
-    const updated = mockUpdateStudentNotes(studentUserId, notes);
-
-    if (!updated.ok) {
-        if (updated.code === 'NOT_FOUND') {
-            throw createError({
-                statusCode: 404,
-                message: 'Nie znaleziono kursanta.',
-            });
-        }
-
-        throw createError({
-            statusCode: 400,
-            message: `Notatka nie może przekraczać ${NOTES_MAX_LEN} znaków.`,
-        });
-    }
-
-    return {
-        success: true,
-        data: {
-            userId: updated.userId,
-            notes: updated.notes,
-        },
-    };
+    return bffMockUpdateStudentNotes(studentUserId, notes, NOTES_MAX_LEN);
 });
