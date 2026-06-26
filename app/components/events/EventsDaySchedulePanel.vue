@@ -6,7 +6,7 @@ import {
     eventTypeBadgeClasses,
     eventTypeLabel,
     EVENTS_DAY_STATUS_FILTER_OPTIONS,
-    isoToHm,
+    eventIsoToHm,
     statusFilterLabelForOption,
     type EventsDayStatusFilterOption,
     type EventsDayViewMode,
@@ -186,9 +186,9 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                                         class="flex items-start justify-between gap-2"
                                     >
                                         <p class="text-sm font-extrabold">
-                                            {{ isoToHm(event.startTime) }}
+                                            {{ eventIsoToHm(event.startTime) }}
                                             -
-                                            {{ isoToHm(event.endTime) }}
+                                            {{ eventIsoToHm(event.endTime) }}
                                         </p>
                                         <UiBadge
                                             variant="outline"

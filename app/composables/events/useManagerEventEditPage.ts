@@ -1,3 +1,5 @@
+import { usePageMeta } from '../core/usePageMeta';
+
 export function useManagerEventEditPage() {
     const route = useRoute();
 

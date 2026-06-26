@@ -9,7 +9,7 @@ import {
     type CurrentUserCourseItem,
     type CoursePatchInstructorPayload,
 } from '~/types/courses/course';
-import { requestBffData } from './useApi';
+import { requestBffData } from '../core/useApi';
 
 export function useCoursesApi() {
     const isListLoading = ref(false);

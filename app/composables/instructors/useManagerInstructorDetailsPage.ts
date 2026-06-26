@@ -13,6 +13,7 @@ import {
 } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { usePageMeta } from '../core/usePageMeta';
 
 export function getManagerInstructorRouteString(raw: unknown): string {
     if (typeof raw === 'string') {

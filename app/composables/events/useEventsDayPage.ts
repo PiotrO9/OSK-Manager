@@ -453,7 +453,7 @@ export function statusFilterLabelForOption(opt: string): string {
     return statusFilterLabel(opt as EventsDayStatusFilterOption);
 }
 
-export function isoToHm(iso: string): string {
+export function eventIsoToHm(iso: string): string {
     const d = new Date(iso);
 
     if (Number.isNaN(d.getTime())) {
@@ -493,7 +493,7 @@ function initialsForName(name: string): string {
         .join('');
 }
 
-export function displayInstructorName(item: ScheduleLessonItem): string {
+function displayInstructorName(item: ScheduleLessonItem): string {
     const ins = item.instructor;
 
     if (!ins) {
@@ -522,7 +522,7 @@ export function displayEventPrimary(
     item: ScheduleLessonItem,
     isManager: boolean,
 ): string {
-    const time = isoToHm(item.startTime);
+    const time = eventIsoToHm(item.startTime);
     const type = eventTypeLabel(item.type);
 
     if (!isManager) {
@@ -538,7 +538,7 @@ export function displayEventPrimary(
 
 export function displayEventMeta(item: ScheduleLessonItem): string {
     const parts = [
-        `${isoToHm(item.startTime)}-${isoToHm(item.endTime)}`,
+        `${eventIsoToHm(item.startTime)}-${eventIsoToHm(item.endTime)}`,
         `${displayParticipantCount(item)} kursantĂłw`,
     ];
 

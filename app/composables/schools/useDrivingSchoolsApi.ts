@@ -4,7 +4,7 @@ import {
     normalizeDrivingSchoolsList,
     type DrivingSchool,
 } from '~/types/schools/drivingSchool';
-import { requestBffData } from './useApi';
+import { requestBffData } from '../core/useApi';
 
 export interface CreateDrivingSchoolBody {
     name: string;

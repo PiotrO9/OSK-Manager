@@ -1,5 +1,7 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { useAppToast } from '../core/useAppToast';
+import { useAuthSession } from '../auth/useAuthSession';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);

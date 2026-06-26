@@ -9,6 +9,7 @@ import {
 } from '~/types/courses/course';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { usePageMeta } from '../core/usePageMeta';
 
 export const MANAGER_COURSE_NO_INSTRUCTOR_VALUE = '__no_instructor__';
 

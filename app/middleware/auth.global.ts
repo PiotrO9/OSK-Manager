@@ -1,3 +1,6 @@
+import { useAuthReturnTo } from '~/composables/auth/useAuthReturnTo';
+import { useAuthSession } from '~/composables/auth/useAuthSession';
+
 const PUBLIC_PATH_PREFIXES = ['/login'] as const;
 
 function isPublicPath(path: string): boolean {
