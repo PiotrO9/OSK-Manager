@@ -1,5 +1,5 @@
 import { jwtVerify } from 'jose';
-import { bffUpstreamMyPaymentsList } from '~~/server/utils/paymentsBff';
+import { bffUpstreamMyPaymentsList } from '~~/server/utils/payments/paymentsBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

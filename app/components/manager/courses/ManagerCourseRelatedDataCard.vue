@@ -1,6 +1,6 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { ListChecks } from 'lucide-vue-next';
-import type { ManagerCourseInfoItem } from '~/composables/useManagerCourseDetailPage';
+import type { ManagerCourseInfoItem } from '~/composables/courses/useManagerCourseDetailPage';
 
 defineProps<{
     items: ManagerCourseInfoItem[];
@@ -16,7 +16,7 @@ defineProps<{
                         Powiazane dane
                     </UiCardTitle>
                     <UiCardDescription>
-                        Elementy, ktorych nie można zgubic po redesignie.
+                        Elementy, ktorych nie mo�na zgubic po redesignie.
                     </UiCardDescription>
                 </div>
                 <ListChecks

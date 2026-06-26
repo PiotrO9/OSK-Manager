@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BookOpen, Car } from 'lucide-vue-next';
-import type { ScheduleLessonItem } from '~/types/schedule';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     displayInstructorSubtitle,
     displayPrimaryLine,
@@ -8,13 +8,13 @@ import {
     isoToHm,
     isTheoryLessonType,
     lessonBlockClasses,
-} from '~/utils/managerScheduleCalendarUtils';
+} from '~/utils/schedule/managerScheduleCalendarUtils';
 import {
     instructorEventStatusBadgeVariant,
     labelForInstructorEventStatusRaw,
     normalizeInstructorEventStatus,
-} from '~/utils/instructorEventStatusDisplay';
-import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
+} from '~/utils/events/instructorEventStatusDisplay';
+import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 
 defineProps<{
     lesson: ScheduleLessonItem;

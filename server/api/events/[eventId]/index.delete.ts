@@ -1,5 +1,5 @@
-import { bffEventsDelete } from '~~/server/utils/eventsBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffEventsDelete } from '~~/server/utils/events/eventsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const eventId = parseRequiredUuidRouterParam(event, 'eventId', {

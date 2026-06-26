@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
-import type { StudentsPagePagination } from '~/composables/useManagerStudentsPage';
+import type { StudentsPagePagination } from '~/composables/students/useManagerStudentsPage';
 
 interface Props {
     activeSchoolId: string;

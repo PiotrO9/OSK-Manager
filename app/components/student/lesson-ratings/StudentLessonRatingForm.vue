@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScheduleLessonItem } from '~/types/schedule';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 const props = defineProps<{
     lesson: ScheduleLessonItem;

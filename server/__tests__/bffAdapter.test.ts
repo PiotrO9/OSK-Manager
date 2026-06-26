@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveBffAdapterFromConfig } from '../utils/authUpstreamBff';
+import { resolveBffAdapterFromConfig } from '../utils/auth/authUpstreamBff';
 
 describe('resolveBffAdapterFromConfig', () => {
     it('uses explicit upstream adapter and trims the upstream URL', () => {

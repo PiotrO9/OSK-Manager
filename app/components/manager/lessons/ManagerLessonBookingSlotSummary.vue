@@ -2,7 +2,7 @@
 import type {
     LessonBookingInstructorOption,
     LessonBookingSlotContext,
-} from '~/types/lessonBooking';
+} from '~/types/lessons/lessonBooking';
 
 defineProps<{
     slotCtx: LessonBookingSlotContext;

@@ -1,5 +1,5 @@
-import { bffScheduleManagerGet } from '~~/server/utils/scheduleBff';
-import { parseScheduleManagerQuery } from '~~/server/utils/scheduleQueryValidation';
+import { bffScheduleManagerGet } from '~~/server/utils/schedule/scheduleBff';
+import { parseScheduleManagerQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);

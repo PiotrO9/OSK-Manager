@@ -1,5 +1,5 @@
-import { bffEventsPost } from '~~/server/utils/eventsBff';
-import { isUuid } from '~~/server/utils/requestValidation';
+import { bffEventsPost } from '~~/server/utils/events/eventsBff';
+import { isUuid } from '~~/server/utils/validation/requestValidation';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
 

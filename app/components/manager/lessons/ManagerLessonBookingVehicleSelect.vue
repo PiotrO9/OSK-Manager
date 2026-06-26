@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Vehicle } from '~/types/vehicle';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 defineProps<{
     vehicles: readonly Vehicle[];

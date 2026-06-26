@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CourseListItem } from '~/types/course';
+import type { CourseListItem } from '~/types/courses/course';
 
 interface Props {
     open: boolean;

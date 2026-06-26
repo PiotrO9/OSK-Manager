@@ -1,5 +1,5 @@
-import { bffUpstreamDrivingSchoolsDefault } from '~~/server/utils/drivingSchoolsBff';
-import { bffMockDrivingSchoolsDefault } from '~~/server/utils/drivingSchoolsMockBff';
+import { bffUpstreamDrivingSchoolsDefault } from '~~/server/utils/schools/drivingSchoolsBff';
+import { bffMockDrivingSchoolsDefault } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
 export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);

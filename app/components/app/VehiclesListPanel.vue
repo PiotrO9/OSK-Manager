@@ -9,8 +9,8 @@ import {
     Shield,
     Trash2,
 } from 'lucide-vue-next';
-import type { VehiclesListPanelId } from '~/composables/useVehiclesListPage';
-import type { Vehicle, VehicleStatus } from '~/types/vehicle';
+import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
+import type { Vehicle, VehicleStatus } from '~/types/vehicles/vehicle';
 
 const props = defineProps<{
     isManager: boolean;

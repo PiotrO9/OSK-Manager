@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import type { ScheduleLessonItem } from '~/types/schedule';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     buildScheduleManagerItemEditRoute,
     isScheduleManagerItemEditable,
-} from '~/utils/scheduleManagerEditNavigation';
-import { isScheduleBookedPracticalLesson } from '~/utils/scheduleBookedPracticalLesson';
-import { isScheduleInstructorEvent } from '~/utils/scheduleInstructorEvent';
+} from '~/utils/schedule/scheduleManagerEditNavigation';
+import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
+import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import {
     instructorEventStatusBadgeVariant,
     labelForInstructorEventStatusRaw,
     normalizeInstructorEventStatus,
-} from '~/utils/instructorEventStatusDisplay';
+} from '~/utils/events/instructorEventStatusDisplay';
 
 const props = withDefaults(
     defineProps<{

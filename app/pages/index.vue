@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Building2, CalendarDays, MapPin, ExternalLink } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 definePageMeta({
     layout: 'app-shell',

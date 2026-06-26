@@ -1,5 +1,5 @@
-import { parseRequiredRouterParam } from '~~/server/utils/requestValidation';
-import { bffUpstreamVehiclesDelete } from '~~/server/utils/vehiclesBff';
+import { parseRequiredRouterParam } from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamVehiclesDelete } from '~~/server/utils/vehicles/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredRouterParam(

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { CalendarDays, Plus } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
-import type { InstructorListItem } from '~/types/instructor';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { InstructorListItem } from '~/types/instructors/instructor';
 import type {
     LessonRatingListItem,
     LessonRatingsPeriod,
     LessonRatingsSummary,
-} from '~/types/lessonRating';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+} from '~/types/lessons/lessonRating';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

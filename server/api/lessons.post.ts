@@ -1,5 +1,5 @@
-import { bffLessonsPost } from '~~/server/utils/lessonsBff';
-import { isUuid } from '~~/server/utils/requestValidation';
+import { bffLessonsPost } from '~~/server/utils/lessons/lessonsBff';
+import { isUuid } from '~~/server/utils/validation/requestValidation';
 
 type LessonTypeLiteral = 'THEORY' | 'PRACTICE';
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Clock, UserRound } from 'lucide-vue-next';
-import type { SchoolAvailabilitySlot } from '~/types/schoolAvailabilitySlots';
+import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 
 const props = defineProps<{
     slots: SchoolAvailabilitySlot[];

@@ -64,7 +64,7 @@ Globalne powiadomienia (stan `useState`, kontener [ToastStack](../app/components
 | `addToast`    | `(input) => string` | Add toast, returns id |
 | `removeToast` | `(id) => void`      | Remove by id          |
 
-Typy: `ToastVariant`, `AddToastInput` w [useAppToast.ts](../app/composables/useAppToast.ts).
+Typy: `ToastVariant`, `AddToastInput` w [useAppToast.ts](../app/composables/core/useAppToast.ts).
 
 **addToast input:**
 
@@ -146,11 +146,11 @@ SEO meta (title, description, og:image).
 usePageMeta({ title, description?, image? })
 ```
 
-| Option        | Type                                 | Description                                 |
-| ------------- | ------------------------------------ | ------------------------------------------- |
+| Option        | Type                                 | Description                            |
+| ------------- | ------------------------------------ | -------------------------------------- |
 | `title`       | `Ref \| ComputedRef \| () => string` | Page title (appends ` \| OSK Manager`) |
-| `description` | Same                                 | Meta description, og:description            |
-| `image`       | `string`                             | Path or URL for og:image                    |
+| `description` | Same                                 | Meta description, og:description       |
+| `image`       | `string`                             | Path or URL for og:image               |
 
 ---
 
@@ -211,7 +211,7 @@ Tygodniowa dostępność instruktora (BFF `/api/instructors/:id/availability/wee
 | `saveDay(dayOfWeek, startTime, endTime)` | `Promise<WeeklyEntry>` — `PUT …/weekly/:day`, body `{ startTime, endTime }` (`HH:mm`)                                                      |
 | `deleteDay(dayOfWeek)`                   | `Promise<void>` — `DELETE …/weekly/:day`; odpowiedź BFF to `{ success: true }` bez `data` — composable nie wywołuje `unwrapApiSuccessData` |
 
-**Uwaga:** Ścieżki buduje [`resolveBffEndpoint`](../app/utils/bffEndpoint.ts); żądania z `credentials: 'include'`. Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+**Uwaga:** Ścieżki buduje [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts); żądania z `credentials: 'include'`. Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructors/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
 
 ---
 
@@ -228,4 +228,4 @@ Sloty dostępności instruktora w zakresie dat (BFF `GET /api/instructors/:id/av
 | `isLoading`                    | `Readonly<Ref<boolean>>` — trwa `fetchSlots`                                                                 |
 | `fetchSlots(dateFrom, dateTo)` | `Promise<AvailabilitySlot[]>` — `unwrapApiSuccessData` → `data.slots`; pusta tablica gdy brak `instructorId` |
 
-Typ `AvailabilitySlot`: [instructorSlots.ts](../app/types/instructorSlots.ts). Kontekst: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+Typ `AvailabilitySlot`: [instructorSlots.ts](../app/types/instructors/instructorSlots.ts). Kontekst: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).

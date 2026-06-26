@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CalendarDays } from 'lucide-vue-next';
-import type { ScheduleLessonItem } from '~/types/schedule';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 defineProps<{
     dateFrom: string;

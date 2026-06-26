@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { InstructorListItem } from '~/types/instructor';
-import type { OfferedCourseType } from '~/types/drivingSchool';
+import type { InstructorListItem } from '~/types/instructors/instructor';
+import type { OfferedCourseType } from '~/types/schools/drivingSchool';
 import {
     formatCourseKindLabel,
     type CourseCreatePayload,
     type CourseKind,
-} from '~/types/course';
-import { formatInstructorDisplayName } from '~/types/instructor';
+} from '~/types/courses/course';
+import { formatInstructorDisplayName } from '~/types/instructors/instructor';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '~/components/shadcn/button';
 

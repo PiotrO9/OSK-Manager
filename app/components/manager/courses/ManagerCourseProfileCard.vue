@@ -1,11 +1,14 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import {
     BookOpen,
     CheckCircle2,
     GraduationCap,
     Settings2,
 } from 'lucide-vue-next';
-import { formatCourseKindLabel, type CourseDetail } from '~/types/course';
+import {
+    formatCourseKindLabel,
+    type CourseDetail,
+} from '~/types/courses/course';
 
 defineProps<{
     course: CourseDetail;

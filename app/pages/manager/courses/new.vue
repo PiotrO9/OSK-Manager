@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { CalendarDays, Plus } from 'lucide-vue-next';
-import type { InstructorListItem } from '~/types/instructor';
-import type { CourseCreatePayload } from '~/types/course';
-import type { DrivingSchool } from '~/types/drivingSchool';
-import { useAppToast } from '~/composables/useAppToast';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { InstructorListItem } from '~/types/instructors/instructor';
+import type { CourseCreatePayload } from '~/types/courses/course';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import { useAppToast } from '~/composables/core/useAppToast';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSlots } from 'vue';
-import type { Vehicle, VehicleWritePayload } from '~/types/vehicle';
+import type { Vehicle, VehicleWritePayload } from '~/types/vehicles/vehicle';
 
 const props = defineProps<{
     mode: 'create' | 'edit';

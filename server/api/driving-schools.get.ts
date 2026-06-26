@@ -1,5 +1,5 @@
-import { bffUpstreamDrivingSchoolsList } from '~~/server/utils/drivingSchoolsBff';
-import { bffMockDrivingSchoolsList } from '~~/server/utils/drivingSchoolsMockBff';
+import { bffUpstreamDrivingSchoolsList } from '~~/server/utils/schools/drivingSchoolsBff';
+import { bffMockDrivingSchoolsList } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
 export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);

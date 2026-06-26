@@ -1,5 +1,5 @@
-import { parseVehicleWriteFields } from '~~/server/utils/parseVehicleRequestBody';
-import { parseRequiredRouterParam } from '~~/server/utils/requestValidation';
+import { parseVehicleWriteFields } from '~~/server/utils/vehicles/parseVehicleRequestBody';
+import { parseRequiredRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredRouterParam(

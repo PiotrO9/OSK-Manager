@@ -4,11 +4,11 @@ Kontrakty warstwy Nitro dla modułu kursantów w tym repozytorium. Upstream (gdy
 
 ## Szczegóły kursanta — pole `notes`
 
-W odpowiedzi `GET /api/students/:userId?schoolId=<uuid>` pole `data.notes` jest typu `string | null` (notatka globalna profilu; normalizacja w [`app/types/student.ts`](../app/types/student.ts) w `normalizeStudentDetail`).
+W odpowiedzi `GET /api/students/:userId?schoolId=<uuid>` pole `data.notes` jest typu `string | null` (notatka globalna profilu; normalizacja w [`app/types/students/student.ts`](../app/types/students/student.ts) w `normalizeStudentDetail`).
 
 ## `PATCH /api/students/:userId`
 
-Handler: [`server/api/students/[userId]/index.patch.ts`](../server/api/students/[userId]/index.patch.ts). Proxy upstream: [`bffUpstreamUpdateStudentNotes`](../server/utils/studentsBff.ts) → `PATCH {upstreamBase}/students/:userId`.
+Handler: [`server/api/students/[userId]/index.patch.ts`](../server/api/students/[userId]/index.patch.ts). Proxy upstream: [`bffUpstreamUpdateStudentNotes`](../server/utils/students/studentsBff.ts) → `PATCH {upstreamBase}/students/:userId`.
 
 ### Treść żądania (JSON)
 
@@ -26,7 +26,7 @@ Brak klucza `notes` w obiekcie JSON → **400**, komunikat: pole wymagane.
 
 Koperta jak w reszcie API: `{ success: true, data: … }`.
 
-- **Tryb mock** (brak upstreamu): po `requireManagerFromCookie`, `data` = `{ userId: string, notes: string | null }`. Zapis w pamięci: [`mockUpdateStudentNotes`](../server/utils/mockStudentsList.ts) (klucz po `userId` kursanta). Brak kursanta w mocku → **404**.
+- **Tryb mock** (brak upstreamu): po `requireManagerFromCookie`, `data` = `{ userId: string, notes: string | null }`. Zapis w pamięci: [`mockUpdateStudentNotes`](../server/utils/students/mockStudentsList.ts) (klucz po `userId` kursanta). Brak kursanta w mocku → **404**.
 - **Upstream**: `data` przekazywane z odpowiedzi backendu (jak w kopercie upstream).
 
 ### UI

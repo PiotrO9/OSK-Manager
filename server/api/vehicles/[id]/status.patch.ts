@@ -1,6 +1,6 @@
-import type { MockVehicleStatus } from '~~/server/utils/mockVehiclesStore';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { bffUpstreamVehiclesUpdateStatus } from '~~/server/utils/vehiclesBff';
+import type { MockVehicleStatus } from '~~/server/utils/vehicles/mockVehiclesStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamVehiclesUpdateStatus } from '~~/server/utils/vehicles/vehiclesBff';
 
 function parseVehicleStatus(raw: unknown): MockVehicleStatus | null {
     if (!raw || typeof raw !== 'object') return null;

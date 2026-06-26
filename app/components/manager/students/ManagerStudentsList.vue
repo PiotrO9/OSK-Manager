@@ -3,7 +3,7 @@ import { Mail, Phone, UserPlus } from 'lucide-vue-next';
 import {
     formatStudentDisplayName,
     type StudentListItem,
-} from '~/types/student';
+} from '~/types/students/student';
 
 interface Props {
     students: readonly StudentListItem[];

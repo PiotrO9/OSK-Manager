@@ -3,8 +3,8 @@ import {
     parsePositiveIntQuery,
     parseRequiredUuidQuery,
     readQueryString,
-} from '~~/server/utils/requestValidation';
-import { bffUpstreamStudentsList } from '~~/server/utils/studentsBff';
+} from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamStudentsList } from '~~/server/utils/students/studentsBff';
 
 export default defineEventHandler(async (event) => {
     const rawQuery = getQuery(event);

@@ -1,8 +1,8 @@
-import { bffUpstreamStudentPaymentsList } from '~~/server/utils/paymentsBff';
+import { bffUpstreamStudentPaymentsList } from '~~/server/utils/payments/paymentsBff';
 import {
     parseRequiredUuidQuery,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {

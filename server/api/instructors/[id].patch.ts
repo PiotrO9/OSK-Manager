@@ -1,9 +1,9 @@
-import { bffUpstreamInstructorsPatch } from '~~/server/utils/instructorsBff';
-import { bffMockInstructorsPatch } from '~~/server/utils/instructorsMockBff';
+import { bffUpstreamInstructorsPatch } from '~~/server/utils/instructors/instructorsBff';
+import { bffMockInstructorsPatch } from '~~/server/utils/instructors/instructorsMockBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 const ALLOWED_PATCH_KEYS = [
     'firstName',

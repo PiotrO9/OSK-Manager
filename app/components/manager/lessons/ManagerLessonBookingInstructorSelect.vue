@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LessonBookingInstructorOption } from '~/types/lessonBooking';
+import type { LessonBookingInstructorOption } from '~/types/lessons/lessonBooking';
 
 defineProps<{
     instructors: readonly LessonBookingInstructorOption[];

@@ -14,20 +14,20 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 | [app/utils/](../app/utils/)                                               | Funkcje czyste: `apiEnvelope`, `bffEndpoint`, `availabilityTimeline` (oś 6:00–22:00 dla UI dostępności), `date`, `keyboard`. |
 | [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).                                                   |
 | [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                                                            |
-| [server/utils/](../server/utils/)                                         | `*Bff.ts`, store mocków.                                                                                                     |
+| [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                    |
 
 ## Pojazdy i szkoły (OSK)
 
 - Strony: [app/pages/vehicles/](../app/pages/vehicles/), [app/pages/manager/osk/](../app/pages/manager/osk/).
-- Composable strony listy: [useVehiclesListPage.ts](../app/composables/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
-- API klient: [useVehiclesApi.ts](../app/composables/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
-- Typy: [vehicle.ts](../app/types/vehicle.ts), [drivingSchool.ts](../app/types/drivingSchool.ts).
+- Composable strony listy: [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+- API klient: [useVehiclesApi.ts](../app/composables/vehicles/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/schools/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
+- Typy: [vehicle.ts](../app/types/vehicles/vehicle.ts), [drivingSchool.ts](../app/types/schools/drivingSchool.ts).
 
 ## Kursanci (manager)
 
 - Strona: [app/pages/manager/students/index.vue](../app/pages/manager/students/index.vue) (lista z paginacją i filtrem po kursie, formularz rejestracji).
-- Klient listy: [useStudentsApi.ts](../app/composables/useStudentsApi.ts); typy: [student.ts](../app/types/student.ts).
-- BFF: [students.get.ts](../server/api/students.get.ts); mock: [mockStudentsList.ts](../server/utils/mockStudentsList.ts); upstream: [studentsBff.ts](../server/utils/studentsBff.ts).
+- Klient listy: [useStudentsApi.ts](../app/composables/students/useStudentsApi.ts); typy: [student.ts](../app/types/students/student.ts).
+- BFF: [students.get.ts](../server/api/students.get.ts); mock: [mockStudentsList.ts](../server/utils/students/mockStudentsList.ts); upstream: [studentsBff.ts](../server/utils/students/studentsBff.ts).
 
 ## Instruktorzy (manager)
 
@@ -35,15 +35,15 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 - Strony: [app/pages/manager/instructors/](../app/pages/manager/instructors/) — `index.vue`, `new.vue`, folder **[id]/**: [`index.vue`](../app/pages/manager/instructors/[id]/index.vue) (szczegóły), [`availability.vue`](../app/pages/manager/instructors/[id]/availability.vue) (edycja tygodnia).
 - Formularz rejestracji: [ManagerInstructorFormDialog.vue](../app/components/manager/instructors/ManagerInstructorFormDialog.vue).
 - Dostępność tygodniowa: [ManagerInstructorAvailabilityEditor.vue](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue), [ManagerInstructorWeeklyAvailabilityPreview.vue](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue).
-- Klient listy: [useInstructorsApi.ts](../app/composables/useInstructorsApi.ts); klient harmonogramu: [useInstructorAvailabilityApi.ts](../app/composables/useInstructorAvailabilityApi.ts).
-- Typy: [instructor.ts](../app/types/instructor.ts) (profil); [instructorAvailability.ts](../app/types/instructorAvailability.ts) (`WeeklyEntry`, kolejność dni); oś czasu UI: [availabilityTimeline.ts](../app/utils/availabilityTimeline.ts).
+- Klient listy: [useInstructorsApi.ts](../app/composables/instructors/useInstructorsApi.ts); klient harmonogramu: [useInstructorAvailabilityApi.ts](../app/composables/instructors/useInstructorAvailabilityApi.ts).
+- Typy: [instructor.ts](../app/types/instructors/instructor.ts) (profil); [instructorAvailability.ts](../app/types/instructors/instructorAvailability.ts) (`WeeklyEntry`, kolejność dni); oś czasu UI: [availabilityTimeline.ts](../app/utils/schedule/availabilityTimeline.ts).
 - BFF instruktorzy: [instructors.get.ts](../server/api/instructors.get.ts), [instructors/[id].get.ts](../server/api/instructors/[id].get.ts), [instructors/[id].patch.ts](../server/api/instructors/[id].patch.ts), [instructors/[id].delete.ts](../server/api/instructors/[id].delete.ts).
-- BFF weekly: [weekly.get.ts](../server/api/instructors/[id]/availability/weekly.get.ts), [[day].put.ts](../server/api/instructors/[id]/availability/weekly/[day].put.ts), [[day].delete.ts](../server/api/instructors/[id]/availability/weekly/[day].delete.ts); upstream: [availabilityBff.ts](../server/utils/availabilityBff.ts); mock: [mockAvailabilityStore.ts](../server/utils/mockAvailabilityStore.ts).
-- Mocki listy/szczegółu: [mockInstructorsList.ts](../server/utils/mockInstructorsList.ts).
+- BFF weekly: [weekly.get.ts](../server/api/instructors/[id]/availability/weekly.get.ts), [[day].put.ts](../server/api/instructors/[id]/availability/weekly/[day].put.ts), [[day].delete.ts](../server/api/instructors/[id]/availability/weekly/[day].delete.ts); upstream: [availabilityBff.ts](../server/utils/instructors/availabilityBff.ts); mock: [mockAvailabilityStore.ts](../server/utils/instructors/mockAvailabilityStore.ts).
+- Mocki listy/szczegółu: [mockInstructorsList.ts](../server/utils/instructors/mockInstructorsList.ts).
 
 ## Auth
 
-- [useAuthSession.ts](../app/composables/useAuthSession.ts), [useLogout.ts](../app/composables/useLogout.ts), [auth.global.ts](../app/middleware/auth.global.ts), [manager.ts](../app/middleware/manager.ts).
+- [useAuthSession.ts](../app/composables/auth/useAuthSession.ts), [useLogout.ts](../app/composables/auth/useLogout.ts), [auth.global.ts](../app/middleware/auth.global.ts), [manager.ts](../app/middleware/manager.ts).
 - Logowanie: [login.vue](../app/pages/login.vue).
 
 ## UI — zasada

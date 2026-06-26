@@ -1,6 +1,6 @@
-import { bffUpstreamInstructorsGetById } from '~~/server/utils/instructorsBff';
-import { bffMockInstructorsGetById } from '~~/server/utils/instructorsMockBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffUpstreamInstructorsGetById } from '~~/server/utils/instructors/instructorsBff';
+import { bffMockInstructorsGetById } from '~~/server/utils/instructors/instructorsMockBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

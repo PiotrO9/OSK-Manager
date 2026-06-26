@@ -1,5 +1,5 @@
 import { jwtVerify } from 'jose';
-import { mockUserAvatarGetUrl } from '~~/server/utils/mockUserAvatarStore';
+import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

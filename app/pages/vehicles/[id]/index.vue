@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router';
-import type { VehicleDetail } from '~/types/vehicle';
+import type { VehicleDetail } from '~/types/vehicles/vehicle';
 
 definePageMeta({
     layout: 'app-shell',

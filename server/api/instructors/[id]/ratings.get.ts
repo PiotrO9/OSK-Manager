@@ -1,9 +1,9 @@
-import { bffUpstreamInstructorLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
-import { bffMockLessonRatingsList } from '~~/server/utils/ratingsMockBff';
+import { bffUpstreamInstructorLessonRatingsList } from '~~/server/utils/ratings/lessonRatingsBff';
+import { bffMockLessonRatingsList } from '~~/server/utils/ratings/ratingsMockBff';
 import {
     parseRequiredUuidQuery,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

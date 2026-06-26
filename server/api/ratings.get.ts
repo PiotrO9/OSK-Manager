@@ -1,6 +1,6 @@
-import { bffUpstreamLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
-import { bffMockLessonRatingsList } from '~~/server/utils/ratingsMockBff';
-import { isUuid } from '~~/server/utils/requestValidation';
+import { bffUpstreamLessonRatingsList } from '~~/server/utils/ratings/lessonRatingsBff';
+import { bffMockLessonRatingsList } from '~~/server/utils/ratings/ratingsMockBff';
+import { isUuid } from '~~/server/utils/validation/requestValidation';
 
 function readQueryString(raw: unknown): string {
     if (typeof raw === 'string') {

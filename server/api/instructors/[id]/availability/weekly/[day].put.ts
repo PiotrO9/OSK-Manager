@@ -1,6 +1,6 @@
-import { bffWeeklyPut } from '~~/server/utils/availabilityBff';
-import { mockAvailabilityUpsertDay } from '~~/server/utils/mockAvailabilityStore';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffWeeklyPut } from '~~/server/utils/instructors/availabilityBff';
+import { mockAvailabilityUpsertDay } from '~~/server/utils/instructors/mockAvailabilityStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 const TIME_REGEX = /^\d{2}:\d{2}$/;
 

@@ -1,6 +1,6 @@
-import { bffLessonRatingGet } from '~~/server/utils/lessonsBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
+import { bffLessonRatingGet } from '~~/server/utils/lessons/lessonsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
 
 export default defineEventHandler(async (event) => {
     const lessonId = parseRequiredUuidRouterParam(event, 'lessonId', {

@@ -11,7 +11,7 @@ import {
 } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
 import type { StatusTone } from '~/components/app/ui/types';
-import type { VehicleDetail } from '~/types/vehicle';
+import type { VehicleDetail } from '~/types/vehicles/vehicle';
 
 const props = defineProps<{
     vehicle: VehicleDetail;

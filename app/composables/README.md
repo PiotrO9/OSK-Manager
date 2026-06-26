@@ -1,21 +1,25 @@
 # Composables (`app/composables/`)
 
-Auto-import w Nuxt. Krótki indeks:
+Nuxt auto-imports composables from this directory and nested groups via
+`nuxt.config.ts` (`app/composables/**`). Keep new composables close to the
+feature domain instead of adding more files to the root.
 
-| Plik                       | Rola                                          |
-| -------------------------- | --------------------------------------------- |
-| `useApi.ts` / `useApiLazy` | Klient HTTP z obsługą 401 / refresh           |
-| `useAppToast.ts`           | Kolejka toastów + `addToast` / `removeToast`  |
-| `useAuthSession.ts`        | Sesja, login, logout, checkSession            |
-| `useAuthReturnTo.ts`       | Cookie / redirect po logowaniu                |
-| `useDarkMode.ts`           | Tryb jasny/ciemny                             |
-| `useDrivingSchoolsApi.ts`  | API szkół jazdy + `fetchDefaultDrivingSchool` |
-| `useFormValidation.ts`     | Walidacja Zod                                 |
-| `useKeyboardShortcut.ts`   | Skróty klawiatury                             |
-| `useLogout.ts`             | Wylogowanie z redirectem                      |
-| `useManagerOskPage.ts`     | Stan strony managera OSK                      |
-| `usePageMeta.ts`           | Tytuł / SEO meta                              |
-| `useVehiclesApi.ts`        | API pojazdów                                  |
-| `useVehiclesListPage.ts`   | Logika listy pojazdów (strona)                |
+| Folder         | Responsibility                                                                          |
+| -------------- | --------------------------------------------------------------------------------------- |
+| `account/`     | Account/profile page state and actions.                                                 |
+| `auth/`        | Session, login return path, logout helpers.                                             |
+| `core/`        | Shared app-level primitives: API client, toast, meta, dark mode, validation, shortcuts. |
+| `courses/`     | Course APIs, course creation form state, manager course details.                        |
+| `events/`      | Event/day views, instructor events API, manager event edit flow.                        |
+| `instructors/` | Instructor APIs and manager instructor screens/calendars.                               |
+| `lessons/`     | Lesson booking/editing, lesson ratings, student and manager lesson flows.               |
+| `payments/`    | Payments API and payment-related page logic.                                            |
+| `schedule/`    | Shared schedule APIs and manager school schedule calendar state.                        |
+| `schools/`     | Driving school APIs, OSK manager page, school availability/schedule APIs.               |
+| `students/`    | Student APIs, manager student list/detail/create flows, student events.                 |
+| `vehicles/`    | Vehicle APIs, vehicle list page state, vehicle list panel helpers.                      |
 
-Pełniejszy opis: [docs/COMPOSABLES.md](../../docs/COMPOSABLES.md).
+Prefer explicit imports only for types or helpers that must be referenced by
+path. Runtime composables can usually rely on Nuxt auto-imports.
+
+Broader notes: [docs/COMPOSABLES.md](../../docs/COMPOSABLES.md).

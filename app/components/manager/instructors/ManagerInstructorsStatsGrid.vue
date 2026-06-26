@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 defineProps<{
     instructorsCount: number;

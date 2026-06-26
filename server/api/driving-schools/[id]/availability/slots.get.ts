@@ -1,11 +1,11 @@
-import { isUuid } from '~~/server/utils/requestValidation';
-import { bffSchoolSlotsGet } from '~~/server/utils/availabilityBff';
-import { applyMockSchoolSlotFilters } from '~~/server/utils/mockSchoolSlotFilters';
-import { mockGenerateSchoolSlots } from '~~/server/utils/mockSlots';
+import { isUuid } from '~~/server/utils/validation/requestValidation';
+import { bffSchoolSlotsGet } from '~~/server/utils/instructors/availabilityBff';
+import { applyMockSchoolSlotFilters } from '~~/server/utils/schedule/mockSchoolSlotFilters';
+import { mockGenerateSchoolSlots } from '~~/server/utils/instructors/mockSlots';
 import {
     buildQueryStringFromGetQuery,
     getValidatedSlotsDateRangeQuery,
-} from '~~/server/utils/slotsDateRangeValidation';
+} from '~~/server/utils/instructors/slotsDateRangeValidation';
 
 export default defineEventHandler(async (event) => {
     const idRaw = getRouterParam(event, 'id');

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { BookOpen, Plus } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
-import { formatCourseKindLabel, type CourseListItem } from '~/types/course';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import {
+    formatCourseKindLabel,
+    type CourseListItem,
+} from '~/types/courses/course';
 
 const props = withDefaults(
     defineProps<{

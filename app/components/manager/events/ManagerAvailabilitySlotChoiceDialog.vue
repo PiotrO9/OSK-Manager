@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LessonBookingSlotContext } from '~/types/lessonBooking';
+import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
 
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;

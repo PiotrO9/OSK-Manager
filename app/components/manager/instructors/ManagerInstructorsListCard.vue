@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Mail } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
-} from '~/types/instructor';
+} from '~/types/instructors/instructor';
 
 defineProps<{
     schools: DrivingSchool[];

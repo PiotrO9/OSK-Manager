@@ -7,7 +7,7 @@ import {
     ShieldCheck,
 } from 'lucide-vue-next';
 import { z } from 'zod';
-import { isSafeRelativeRedirectPath } from '~/utils/authReturnPath';
+import { isSafeRelativeRedirectPath } from '~/utils/auth/authReturnPath';
 
 definePageMeta({
     layout: false,

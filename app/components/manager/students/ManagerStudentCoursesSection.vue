@@ -4,7 +4,7 @@ import {
     formatStudentCourseStatusLabel,
     getStudentCourseStatusVariant,
     type StudentCourseItem,
-} from '~/types/student';
+} from '~/types/students/student';
 
 defineProps<{
     courses: readonly StudentCourseItem[];

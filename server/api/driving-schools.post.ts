@@ -1,5 +1,5 @@
-import { bffUpstreamDrivingSchoolsCreate } from '~~/server/utils/drivingSchoolsBff';
-import { bffMockDrivingSchoolsCreate } from '~~/server/utils/drivingSchoolsMockBff';
+import { bffUpstreamDrivingSchoolsCreate } from '~~/server/utils/schools/drivingSchoolsBff';
+import { bffMockDrivingSchoolsCreate } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
 function readOptionalTrimmedString(raw: unknown): string | undefined {
     if (typeof raw === 'string') {

@@ -4,13 +4,13 @@ import {
     WEEK_DAY_LABELS,
     WEEK_DAY_SHORT_LABELS,
     type WeeklyEntry,
-} from '~/types/instructorAvailability';
-import { useInstructorAvailabilityApi } from '~/composables/useInstructorAvailabilityApi';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+} from '~/types/instructors/instructorAvailability';
+import { useInstructorAvailabilityApi } from '~/composables/instructors/useInstructorAvailabilityApi';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     getAvailabilityTimelineBarStyle,
     type AvailabilityTimelineBar,
-} from '~/utils/availabilityTimeline';
+} from '~/utils/schedule/availabilityTimeline';
 
 const props = defineProps<{
     instructorId: string;

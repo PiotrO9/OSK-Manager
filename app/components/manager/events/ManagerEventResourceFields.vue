@@ -2,8 +2,8 @@
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
-} from '~/types/instructor';
-import type { Vehicle } from '~/types/vehicle';
+} from '~/types/instructors/instructor';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 defineProps<{
     eventType: string;

@@ -1,7 +1,7 @@
-import { bffSlotsGet } from '~~/server/utils/availabilityBff';
-import { mockGenerateSlots } from '~~/server/utils/mockSlots';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/slotsDateRangeValidation';
+import { bffSlotsGet } from '~~/server/utils/instructors/availabilityBff';
+import { mockGenerateSlots } from '~~/server/utils/instructors/mockSlots';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/instructors/slotsDateRangeValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { AssignStudentsToEventResponse } from '~/types/event';
-import type { StudentListItem } from '~/types/student';
-import { formatStudentDisplayName } from '~/types/student';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { AssignStudentsToEventResponse } from '~/types/events/event';
+import type { StudentListItem } from '~/types/students/student';
+import { formatStudentDisplayName } from '~/types/students/student';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 const props = defineProps<{
     eventId: string;

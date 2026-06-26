@@ -1,7 +1,7 @@
 import {
     parseRequiredUuidQuery,
     readQueryString,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const rawQuery = getQuery(event);

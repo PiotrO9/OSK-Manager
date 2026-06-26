@@ -54,5 +54,5 @@ NUXT_PUBLIC_SITE_URL=https://app.example.com
 ## Auth And API
 
 - Backend auth: `POST /auth/login`, `GET /auth/me`, `POST /auth/refresh`, `POST /auth/logout`
-- Frontend session flow: `app/composables/useAuthSession.ts`
-- Shared API helpers: `app/composables/useApi.ts`, `app/utils/apiEnvelope.ts`
+- Frontend session flow: `app/composables/auth/useAuthSession.ts`
+- Shared API helpers: `app/composables/core/useApi.ts`, `app/utils/api/apiEnvelope.ts`

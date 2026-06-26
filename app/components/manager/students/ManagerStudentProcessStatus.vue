@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CheckCircle2, Circle } from 'lucide-vue-next';
-import type { StudentProcessStatusStep } from '~/types/student';
+import type { StudentProcessStatusStep } from '~/types/students/student';
 
 interface Props {
     steps: readonly StudentProcessStatusStep[];

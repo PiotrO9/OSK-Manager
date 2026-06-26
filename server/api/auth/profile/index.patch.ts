@@ -1,6 +1,6 @@
 import { jwtVerify } from 'jose';
-import { mockUserAvatarGetUrl } from '~~/server/utils/mockUserAvatarStore';
-import { bffUpstreamProfilePatch } from '~~/server/utils/authUpstreamBff';
+import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
+import { bffUpstreamProfilePatch } from '~~/server/utils/auth/authUpstreamBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

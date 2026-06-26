@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CalendarDays, Plus } from 'lucide-vue-next';
-import type { LessonRatingListItem } from '~/types/lessonRating';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { LessonRatingListItem } from '~/types/lessons/lessonRating';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

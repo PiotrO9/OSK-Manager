@@ -1,6 +1,6 @@
-import { bffUpstreamCoursesGetById } from '~~/server/utils/coursesBff';
-import { bffMockCoursesGetById } from '~~/server/utils/coursesMockBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffUpstreamCoursesGetById } from '~~/server/utils/courses/coursesBff';
+import { bffMockCoursesGetById } from '~~/server/utils/courses/coursesMockBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

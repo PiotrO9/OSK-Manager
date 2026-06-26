@@ -1,5 +1,5 @@
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { bffUpstreamUpdateStudentNotes } from '~~/server/utils/studentsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamUpdateStudentNotes } from '~~/server/utils/students/studentsBff';
 
 const NOTES_MAX_LEN = 5000;
 

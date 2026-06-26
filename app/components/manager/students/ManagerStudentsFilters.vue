@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { CourseListItem } from '~/types/course';
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { CourseListItem } from '~/types/courses/course';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 interface Props {
     schools: readonly DrivingSchool[];

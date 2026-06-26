@@ -2,8 +2,8 @@
 import {
     formatWeekLabel,
     type MyLessonsScheduleView,
-} from '~/composables/useMyLessonsPage';
-import type { ScheduleLessonItem } from '~/types/schedule';
+} from '~/composables/lessons/useMyLessonsPage';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 defineProps<{
     cancellingLessonId: string | null;

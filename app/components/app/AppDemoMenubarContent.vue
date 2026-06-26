@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DemoMenubarItem } from '~/types/demoMenubar';
+import type { DemoMenubarItem } from '~/types/demo/demoMenubar';
 
 defineProps<{
     items: DemoMenubarItem[];

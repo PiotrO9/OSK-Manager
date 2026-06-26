@@ -10,8 +10,8 @@ import {
     PROFILE_BIO_MAX_LEN,
     PROFILE_NAME_MAX_LEN,
     type RoleBadgePresentation,
-} from '~/composables/useAccountPage';
-import type { AuthSession } from '~/composables/useAuthSession';
+} from '~/composables/account/useAccountPage';
+import type { AuthSession } from '~/composables/auth/useAuthSession';
 
 defineProps<{
     accountPkkNumber: string;

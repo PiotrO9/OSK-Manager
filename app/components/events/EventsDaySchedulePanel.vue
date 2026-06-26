@@ -12,13 +12,13 @@ import {
     type EventsDayViewMode,
     type InstructorScheduleColumn,
     type InstructorScheduleRow,
-} from '~/composables/useEventsDayPage';
-import type { ScheduleLessonItem } from '~/types/schedule';
+} from '~/composables/events/useEventsDayPage';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     instructorEventStatusBadgeVariant,
     labelForInstructorEventStatusRaw,
     normalizeInstructorEventStatus,
-} from '~/utils/instructorEventStatusDisplay';
+} from '~/utils/events/instructorEventStatusDisplay';
 
 defineProps<{
     attentionEvents: ScheduleLessonItem[];

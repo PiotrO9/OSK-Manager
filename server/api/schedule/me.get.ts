@@ -1,6 +1,6 @@
-import { bffScheduleMeGet } from '~~/server/utils/scheduleBff';
-import { parseScheduleMeQuery } from '~~/server/utils/scheduleQueryValidation';
-import { requireStudentOrInstructorFromCookie } from '~~/server/utils/requireStudentOrInstructorFromCookie';
+import { bffScheduleMeGet } from '~~/server/utils/schedule/scheduleBff';
+import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
+import { requireStudentOrInstructorFromCookie } from '~~/server/utils/auth/requireStudentOrInstructorFromCookie';
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);

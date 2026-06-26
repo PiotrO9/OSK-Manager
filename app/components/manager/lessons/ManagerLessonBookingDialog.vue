@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { CourseListItem } from '~/types/course';
-import type { LessonBookingSlotContext } from '~/types/lessonBooking';
+import type { CourseListItem } from '~/types/courses/course';
+import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
 
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;

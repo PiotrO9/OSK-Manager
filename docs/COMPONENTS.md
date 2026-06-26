@@ -22,11 +22,11 @@ Drzewo nawigacji (ARIA tree), eksport typu `NavTreeItem` ze [NavTree.vue](../app
 
 ### VehiclesListPanel
 
-Lista/karty pojazdów + taby managera — używana ze [useVehiclesListPage](../app/composables/useVehiclesListPage.ts).
+Lista/karty pojazdów + taby managera — używana ze [useVehiclesListPage](../app/composables/vehicles/useVehiclesListPage.ts).
 
 ### AppDemoNavigationMenubar, AppDemoMenubarContent
 
-Demo paska menu (shadcn `UiMenubar*`), typ elementów: [demoMenubar.ts](../app/types/demoMenubar.ts).
+Demo paska menu (shadcn `UiMenubar*`), typ elementów: [demoMenubar.ts](../app/types/demo/demoMenubar.ts).
 
 ## Design system (`app/components/app/design-system/`)
 
@@ -39,7 +39,7 @@ Sekcje `Section*` (podstrona design-system), m.in.:
 
 Komponenty modułu OSK (formularze, siatki).
 
-- **Instruktorzy** (`manager/instructors/`): formularz rejestracji (`ManagerInstructorFormDialog`), edycja / usuwanie (`ManagerInstructorEditDialog`, `ManagerInstructorDeleteDialog`), **dostępność tygodniowa** — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) (edycja + podgląd paska na osi 6:00–22:00), [`ManagerInstructorWeeklyAvailabilityPreview`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) (podgląd na karcie szczegółów), **terminarz slotów** — [`ManagerInstructorWeeklyCalendar`](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue) (widok tygodniowy siatki godzin, sloty z API). Wspólna logika pozycji paska: [`availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts). Opis tras, BFF i MVP: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+- **Instruktorzy** (`manager/instructors/`): formularz rejestracji (`ManagerInstructorFormDialog`), edycja / usuwanie (`ManagerInstructorEditDialog`, `ManagerInstructorDeleteDialog`), **dostępność tygodniowa** — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) (edycja + podgląd paska na osi 6:00–22:00), [`ManagerInstructorWeeklyAvailabilityPreview`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) (podgląd na karcie szczegółów), **terminarz slotów** — [`ManagerInstructorWeeklyCalendar`](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue) (widok tygodniowy siatki godzin, sloty z API). Wspólna logika pozycji paska: [`availabilityTimeline.ts`](../app/utils/schedule/availabilityTimeline.ts). Opis tras, BFF i MVP: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
 
 ## Zasady
 

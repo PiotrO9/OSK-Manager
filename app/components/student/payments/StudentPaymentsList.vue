@@ -3,7 +3,7 @@ import { CreditCard } from 'lucide-vue-next';
 import {
     formatPaymentStatusLabel,
     type StudentPaymentItem,
-} from '~/types/payment';
+} from '~/types/payments/payment';
 
 interface Props {
     payments: readonly StudentPaymentItem[];

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LessonRatingsSummary } from '~/types/lessonRating';
+import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 
 const props = defineProps<{
     summary: LessonRatingsSummary;

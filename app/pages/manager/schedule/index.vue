@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Building2, CalendarDays, MapPin } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

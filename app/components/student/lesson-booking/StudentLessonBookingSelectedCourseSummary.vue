@@ -5,7 +5,7 @@ import {
     Clock3,
     GraduationCap,
 } from 'lucide-vue-next';
-import type { CurrentUserCourseItem } from '~/types/course';
+import type { CurrentUserCourseItem } from '~/types/courses/course';
 
 defineProps<{
     selectedCourse: CurrentUserCourseItem | null;

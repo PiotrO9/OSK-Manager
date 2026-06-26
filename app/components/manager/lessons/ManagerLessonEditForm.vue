@@ -1,11 +1,11 @@
-ï»¿<script setup lang="ts">
+<script setup lang="ts">
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
-} from '~/types/instructor';
-import type { ManagerLessonDetail } from '~/types/managerLesson';
+} from '~/types/instructors/instructor';
+import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
 import type { StatusTone } from '~/components/app/ui/types';
-import type { Vehicle } from '~/types/vehicle';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 defineProps<{
     formId: string;
@@ -71,7 +71,7 @@ const formInstructorId = defineModel<string>('instructorId', {
                 class="text-muted-foreground text-xs"
                 role="status"
             >
-                Wczytywanie instruktorÃ³w...
+                Wczytywanie instruktorów...
             </p>
             <p
                 v-else-if="instructorsError"
@@ -112,7 +112,7 @@ const formInstructorId = defineModel<string>('instructorId', {
                 class="text-muted-foreground text-xs"
                 role="status"
             >
-                Wczytywanie pojazdÃ³w...
+                Wczytywanie pojazdów...
             </p>
             <p
                 v-else-if="vehiclesError"
@@ -152,11 +152,11 @@ const formInstructorId = defineModel<string>('instructorId', {
             </legend>
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                    <UiLabel for="lesson-start">PoczÄ…tek</UiLabel>
+                    <UiLabel for="lesson-start">Pocz¹tek</UiLabel>
                     <UiDateTimePicker
                         id="lesson-start"
                         v-model="formStartLocal"
-                        placeholder="Data i godzina poczÄ…tku"
+                        placeholder="Data i godzina pocz¹tku"
                         :aria-required="true"
                         trigger-class="h-10 rounded-xl bg-background"
                     />
@@ -166,7 +166,7 @@ const formInstructorId = defineModel<string>('instructorId', {
                     <UiDateTimePicker
                         id="lesson-end"
                         v-model="formEndLocal"
-                        placeholder="Data i godzina koÅ„ca"
+                        placeholder="Data i godzina koñca"
                         :aria-required="true"
                         trigger-class="h-10 rounded-xl bg-background"
                     />

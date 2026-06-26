@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { SummaryStripItem } from '~/components/app/ui/types';
-import type { StudentPaymentItem } from '~/types/payment';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { StudentPaymentItem } from '~/types/payments/payment';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

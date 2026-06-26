@@ -3,11 +3,11 @@ import {
     mergeWeeklyEntriesToRows,
     buildEmptyWeekRows,
     type WeeklyDayFormRow,
-} from '~/types/instructorAvailability';
-import { useInstructorAvailabilityApi } from '~/composables/useInstructorAvailabilityApi';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { useAppToast } from '~/composables/useAppToast';
-import { getAvailabilityTimelineBarStyle } from '~/utils/availabilityTimeline';
+} from '~/types/instructors/instructorAvailability';
+import { useInstructorAvailabilityApi } from '~/composables/instructors/useInstructorAvailabilityApi';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useAppToast } from '~/composables/core/useAppToast';
+import { getAvailabilityTimelineBarStyle } from '~/utils/schedule/availabilityTimeline';
 
 const props = defineProps<{
     instructorId: string;

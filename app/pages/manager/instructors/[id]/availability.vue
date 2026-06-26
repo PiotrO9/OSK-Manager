@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { CalendarDays, Plus } from 'lucide-vue-next';
-import { getMonday } from '~/utils/weeklyCalendarDates';
+import { getMonday } from '~/utils/date/weeklyCalendarDates';
 
 definePageMeta({
     layout: 'app-shell',

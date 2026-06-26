@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { CourseListItem } from '~/types/course';
-import type { LessonBookingSlotContext } from '~/types/lessonBooking';
+import type { CourseListItem } from '~/types/courses/course';
+import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
 import {
     instructorHasCourseCategoryQualification,
     type InstructorListItem,
-} from '~/types/instructor';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { buildSlotIsoUTC } from '~/utils/weeklyCalendarDates';
+} from '~/types/instructors/instructor';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
 
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;

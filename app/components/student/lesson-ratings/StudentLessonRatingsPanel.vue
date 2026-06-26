@@ -2,7 +2,7 @@
 import type {
     ScheduleLessonItem,
     ScheduleLessonRating,
-} from '~/types/schedule';
+} from '~/types/schedule/schedule';
 
 const props = defineProps<{
     items: readonly ScheduleLessonItem[];

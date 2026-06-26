@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
-} from '~/types/instructor';
-import type { LessonRatingsPeriod } from '~/types/lessonRating';
+} from '~/types/instructors/instructor';
+import type { LessonRatingsPeriod } from '~/types/lessons/lessonRating';
 
 const props = defineProps<{
     schools: DrivingSchool[];

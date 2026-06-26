@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import type { ManagerCourseInfoItem } from '~/composables/useManagerCourseDetailPage';
+<script setup lang="ts">
+import type { ManagerCourseInfoItem } from '~/composables/courses/useManagerCourseDetailPage';
 
 defineProps<{
     items: ManagerCourseInfoItem[];
@@ -17,7 +17,7 @@ defineProps<{
                         Przeglad
                     </UiCardTitle>
                     <UiCardDescription>
-                        Najważniejsze dane i akcje dla tego widoku.
+                        Najwa�niejsze dane i akcje dla tego widoku.
                     </UiCardDescription>
                 </div>
                 <StatusBadge label="Aktualne" tone="info" subtle />

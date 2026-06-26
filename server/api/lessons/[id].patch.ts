@@ -1,8 +1,8 @@
-import { bffLessonsPatch } from '~~/server/utils/lessonsBff';
+import { bffLessonsPatch } from '~~/server/utils/lessons/lessonsBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 function validatePatchBody(
     raw: unknown,

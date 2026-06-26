@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose';
 import {
     clearSessionCookies,
     setAccessTokenCookie,
-} from '~~/server/utils/upstreamRequest';
+} from '~~/server/utils/upstream/upstreamRequest';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

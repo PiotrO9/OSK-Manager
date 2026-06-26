@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { BookOpen, Car } from 'lucide-vue-next';
 import type { StatusTone } from '~/components/app/ui/types';
-import type { ScheduleLessonItem, SchedulePersonRef } from '~/types/schedule';
+import type {
+    ScheduleLessonItem,
+    SchedulePersonRef,
+} from '~/types/schedule/schedule';
 
 interface ScheduleDayGroup {
     date: string;

@@ -1,8 +1,8 @@
 import {
     parseRequiredUuidQuery,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
-import { bffUpstreamStudentDetail } from '~~/server/utils/studentsBff';
+} from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamStudentDetail } from '~~/server/utils/students/studentsBff';
 
 export default defineEventHandler(async (event) => {
     const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {

@@ -6,7 +6,7 @@ Szczegóły domenowe backendu (osobne repo): plik `context/events-schedule-api.m
 
 ## `GET /api/schedule/me`
 
-Handler: [`server/api/schedule/me.get.ts`](../server/api/schedule/me.get.ts). Upstream: [`bffScheduleMeGet`](../server/utils/scheduleBff.ts) → `GET {upstream}/schedule/me`.
+Handler: [`server/api/schedule/me.get.ts`](../server/api/schedule/me.get.ts). Upstream: [`bffScheduleMeGet`](../server/utils/schedule/scheduleBff.ts) → `GET {upstream}/schedule/me`.
 
 ### Query
 
@@ -15,7 +15,7 @@ Handler: [`server/api/schedule/me.get.ts`](../server/api/schedule/me.get.ts). Up
 | `dateFrom` | tak      | `YYYY-MM-DD`                        |
 | `dateTo`   | tak      | `YYYY-MM-DD`; musi być ≥ `dateFrom` |
 
-Walidacja: [`parseScheduleMeQuery`](../server/utils/scheduleQueryValidation.ts). Błędny format lub zakres → **400**.
+Walidacja: [`parseScheduleMeQuery`](../server/utils/schedule/scheduleQueryValidation.ts). Błędny format lub zakres → **400**.
 
 ### Odpowiedź
 
@@ -23,11 +23,11 @@ Walidacja: [`parseScheduleMeQuery`](../server/utils/scheduleQueryValidation.ts).
 
 ### Tryb bez upstreamu
 
-Po [`requireStudentOrInstructorFromCookie`](../server/utils/requireStudentOrInstructorFromCookie.ts) (JWT: rola **STUDENT** lub **INSTRUCTOR**): `data.items` = `[]`. Inne role / brak tokenu → **401** / **403**.
+Po [`requireStudentOrInstructorFromCookie`](../server/utils/auth/requireStudentOrInstructorFromCookie.ts) (JWT: rola **STUDENT** lub **INSTRUCTOR**): `data.items` = `[]`. Inne role / brak tokenu → **401** / **403**.
 
 ## `GET /api/schedule`
 
-Handler: [`server/api/schedule/index.get.ts`](../server/api/schedule/index.get.ts). Upstream: [`bffScheduleManagerGet`](../server/utils/scheduleBff.ts) → `GET {upstream}/schedule`.
+Handler: [`server/api/schedule/index.get.ts`](../server/api/schedule/index.get.ts). Upstream: [`bffScheduleManagerGet`](../server/utils/schedule/scheduleBff.ts) → `GET {upstream}/schedule`.
 
 ### Query
 
@@ -40,7 +40,7 @@ Uwaga: przy wariancie `studentId` wymagany jest równie? `schoolId`, aby podglą
 | `instructorId` | dokładnie jeden z parą | UUID profilu instruktora                    |
 | `studentId`    | dokładnie jeden z parą | UUID profilu kursanta (`StudentProfile.id`) |
 
-Nie wolno podać obu ani żadnego — **400**. UUID walidowane w [`parseScheduleManagerQuery`](../server/utils/scheduleQueryValidation.ts).
+Nie wolno podać obu ani żadnego — **400**. UUID walidowane w [`parseScheduleManagerQuery`](../server/utils/schedule/scheduleQueryValidation.ts).
 
 ### Odpowiedź
 
@@ -52,7 +52,7 @@ Po `requireManagerFromCookie`: `data.items` = `[]`.
 
 ## `POST /api/events`
 
-Handler: [`server/api/events/index.post.ts`](../server/api/events/index.post.ts). Upstream: [`bffEventsPost`](../server/utils/eventsBff.ts) → `POST {upstream}/events`.
+Handler: [`server/api/events/index.post.ts`](../server/api/events/index.post.ts). Upstream: [`bffEventsPost`](../server/utils/events/eventsBff.ts) → `POST {upstream}/events`.
 
 ### Body (JSON)
 
@@ -70,8 +70,8 @@ Po `requireManagerFromCookie`: syntetyczna odpowiedź sukcesu z `data.event` (m.
 
 ## Composable i strony (skrót)
 
-| Zasób                            | Plik                                                                                                                                                     |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Klient HTTP                      | [`app/composables/useScheduleApi.ts`](../app/composables/useScheduleApi.ts), [`useInstructorEventsApi.ts`](../app/composables/useInstructorEventsApi.ts) |
-| Moje lekcje (STUDENT/INSTRUCTOR) | [`app/pages/my-lessons.vue`](../app/pages/my-lessons.vue), middleware [`student-or-instructor.ts`](../app/middleware/student-or-instructor.ts)           |
-| Panel: lekcje instruktora + blok | [`app/pages/manager/instructors/[id]/schedule.vue`](../app/pages/manager/instructors/[id]/schedule.vue)                                                  |
+| Zasób                            | Plik                                                                                                                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Klient HTTP                      | [`app/composables/schedule/useScheduleApi.ts`](../app/composables/schedule/useScheduleApi.ts), [`useInstructorEventsApi.ts`](../app/composables/events/useInstructorEventsApi.ts) |
+| Moje lekcje (STUDENT/INSTRUCTOR) | [`app/pages/my-lessons.vue`](../app/pages/my-lessons.vue), middleware [`student-or-instructor.ts`](../app/middleware/student-or-instructor.ts)                                    |
+| Panel: lekcje instruktora + blok | [`app/pages/manager/instructors/[id]/schedule.vue`](../app/pages/manager/instructors/[id]/schedule.vue)                                                                           |

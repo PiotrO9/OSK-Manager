@@ -1,10 +1,10 @@
-ï»¿<script setup lang="ts">
+<script setup lang="ts">
 import { User } from 'lucide-vue-next';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
-} from '~/types/instructor';
-import type { CourseDetail } from '~/types/course';
+} from '~/types/instructors/instructor';
+import type { CourseDetail } from '~/types/courses/course';
 
 defineProps<{
     course: CourseDetail;
@@ -43,7 +43,7 @@ const selectedInstructorProfileId = defineModel<string>(
                         Przypisanie instruktora
                     </UiCardTitle>
                     <UiCardDescription>
-                        Aktualizuj prowadzÄ…cego z listy instruktorÃ³w tej OSK.
+                        Aktualizuj prowadz¹cego z listy instruktorów tej OSK.
                     </UiCardDescription>
                 </div>
                 <User
@@ -60,7 +60,7 @@ const selectedInstructorProfileId = defineModel<string>(
                     <div class="min-w-0">
                         <p class="font-extrabold">Zapisany w kursie</p>
                         <p class="text-muted-foreground mt-1 text-sm">
-                            To przypisanie jest uÅ¼ywane przy organizacji zajec.
+                            To przypisanie jest u¿ywane przy organizacji zajec.
                         </p>
                     </div>
                     <StatusBadge
@@ -81,7 +81,7 @@ const selectedInstructorProfileId = defineModel<string>(
 
             <ErrorState
                 v-if="instructorsLoadError"
-                title="Nie udaÅ‚o siÄ™ wczytaÄ‡ instruktorÃ³w"
+                title="Nie uda³o siê wczytaæ instruktorów"
                 :description="instructorsLoadError"
                 @retry="$emit('retryInstructors')"
             />
@@ -95,7 +95,7 @@ const selectedInstructorProfileId = defineModel<string>(
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Wczytywanie listy instruktorÃ³w...
+                    Wczytywanie listy instruktorów...
                 </p>
                 <UiSelect
                     v-else
@@ -139,8 +139,8 @@ const selectedInstructorProfileId = defineModel<string>(
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Brak instruktorÃ³w w tej szkole. MoÅ¼esz wyczyÅ›ciÄ‡ przypisanie
-                    albo dodaÄ‡ instruktorÃ³w w panelu OSK.
+                    Brak instruktorów w tej szkole. Mo¿esz wyczyœciæ przypisanie
+                    albo dodaæ instruktorów w panelu OSK.
                 </p>
                 <p
                     v-else-if="
@@ -151,7 +151,7 @@ const selectedInstructorProfileId = defineModel<string>(
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Brak instruktorÃ³w z uprawnieniem do kategorii tego kursu.
+                    Brak instruktorów z uprawnieniem do kategorii tego kursu.
                 </p>
             </div>
 

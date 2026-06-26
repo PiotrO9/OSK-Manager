@@ -1,5 +1,5 @@
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { bffUpstreamVehiclesGetById } from '~~/server/utils/vehiclesBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamVehiclesGetById } from '~~/server/utils/vehicles/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

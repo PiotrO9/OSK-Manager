@@ -1,7 +1,7 @@
 import { readMultipartFormData } from 'h3';
-import { bffUpstreamProfileAvatarUpload } from '~~/server/utils/authUpstreamBff';
-import { mockUserAvatarSetUrl } from '~~/server/utils/mockUserAvatarStore';
-import { requireAuthUserIdFromCookie } from '~~/server/utils/requireAuthFromCookie';
+import { bffUpstreamProfileAvatarUpload } from '~~/server/utils/auth/authUpstreamBff';
+import { mockUserAvatarSetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
+import { requireAuthUserIdFromCookie } from '~~/server/utils/auth/requireAuthFromCookie';
 
 const MOCK_AVATAR_PLACEHOLDER =
     'https://placehold.co/256x256/png?text=Avatar+OK';

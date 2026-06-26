@@ -1,6 +1,6 @@
 import { readMultipartFormData } from 'h3';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehiclesBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehicles/vehiclesBff';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

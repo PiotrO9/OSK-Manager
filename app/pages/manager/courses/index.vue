@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { DrivingSchool } from '~/types/drivingSchool';
-import type { CourseListItem } from '~/types/course';
-import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { CourseListItem } from '~/types/courses/course';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

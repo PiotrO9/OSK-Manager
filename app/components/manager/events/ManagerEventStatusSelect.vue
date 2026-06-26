@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
-import { getApiErrorStatusCode } from '~/utils/apiEnvelope';
-import type { EventStatusCode, InstructorEvent } from '~/types/instructorEvent';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
+import type {
+    EventStatusCode,
+    InstructorEvent,
+} from '~/types/events/instructorEvent';
 import {
     INSTRUCTOR_EVENT_STATUS_LABELS,
     INSTRUCTOR_EVENT_STATUS_OPTIONS,
     instructorEventStatusBadgeVariant,
     normalizeInstructorEventStatus,
-} from '~/utils/instructorEventStatusDisplay';
+} from '~/utils/events/instructorEventStatusDisplay';
 
 const props = defineProps<{
     eventId: string;

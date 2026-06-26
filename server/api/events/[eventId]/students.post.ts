@@ -1,8 +1,8 @@
-import { bffEventStudentsPost } from '~~/server/utils/eventsBff';
+import { bffEventStudentsPost } from '~~/server/utils/events/eventsBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 const MIN_IDS = 1;
 const MAX_IDS = 50;

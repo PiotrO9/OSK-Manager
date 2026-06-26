@@ -1,5 +1,5 @@
-import { bffLessonsGet } from '~~/server/utils/lessonsBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffLessonsGet } from '~~/server/utils/lessons/lessonsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const lessonId = parseRequiredUuidRouterParam(event, 'id', {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Mail, Pencil, Phone, Star, Trash2 } from 'lucide-vue-next';
-import type { InstructorDetail } from '~/types/instructor';
-import type { LessonRatingsSummary } from '~/types/lessonRating';
+import type { InstructorDetail } from '~/types/instructors/instructor';
+import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 
 const props = defineProps<{
     instructor: InstructorDetail;

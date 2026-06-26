@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { FreeWindow, InstructorEvent } from '~/types/instructorEvent';
-import { theoryEligibleRowToStudentListItem } from '~/utils/theoryEventEligibleStudents';
+import type {
+    FreeWindow,
+    InstructorEvent,
+} from '~/types/events/instructorEvent';
+import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
 const { eventId, schoolId } = useManagerEventEditPage();
 

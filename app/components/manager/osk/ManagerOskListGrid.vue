@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-vue-next';
-import type { DrivingSchool } from '~/types/drivingSchool';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 interface Props {
     schools: DrivingSchool[];

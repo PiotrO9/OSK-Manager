@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, ArrowRight, CalendarDays } from 'lucide-vue-next';
-import type { ScheduleLessonItem } from '~/types/schedule';
-import { formatManagerInstructorScheduleWeekLabel } from '~/composables/manager/instructors/useManagerInstructorSchedulePage';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { formatManagerInstructorScheduleWeekLabel } from '~/composables/instructors/manager/useManagerInstructorSchedulePage';
 
 defineProps<{
     weekStart: Date;

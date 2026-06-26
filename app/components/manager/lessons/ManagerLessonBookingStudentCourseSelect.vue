@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { formatCourseKindLabel } from '~/types/course';
-import type { StudentCourseWithKind } from '~/types/lessonBooking';
+import { formatCourseKindLabel } from '~/types/courses/course';
+import type { StudentCourseWithKind } from '~/types/lessons/lessonBooking';
 import {
     formatStudentCourseStatusLabel,
     formatStudentDisplayName,
     type StudentListItem,
-} from '~/types/student';
+} from '~/types/students/student';
 
 defineProps<{
     students: readonly StudentListItem[];

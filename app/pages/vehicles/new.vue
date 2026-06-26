@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft, Save } from 'lucide-vue-next';
-import type { VehicleWritePayload } from '~/types/vehicle';
+import type { VehicleWritePayload } from '~/types/vehicles/vehicle';
 
 definePageMeta({
     layout: 'app-shell',

@@ -1,5 +1,5 @@
-import { bffUpstreamOwnLessonRatingsList } from '~~/server/utils/lessonRatingsBff';
-import { bffMockOwnLessonRatingsList } from '~~/server/utils/ratingsMockBff';
+import { bffUpstreamOwnLessonRatingsList } from '~~/server/utils/ratings/lessonRatingsBff';
+import { bffMockOwnLessonRatingsList } from '~~/server/utils/ratings/ratingsMockBff';
 
 export default defineEventHandler(async (event) => {
     const upstream = resolveUpstreamBase(event);

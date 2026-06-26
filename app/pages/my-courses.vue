@@ -4,8 +4,8 @@ import {
     formatCourseKindLabel,
     formatCourseParticipantStatusLabel,
     type CurrentUserCourseItem,
-} from '~/types/course';
-import { getApiFetchErrorMessage } from '~/utils/apiFetchErrorMessage';
+} from '~/types/courses/course';
+import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 definePageMeta({
     layout: 'app-shell',

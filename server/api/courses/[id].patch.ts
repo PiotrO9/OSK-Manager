@@ -1,7 +1,7 @@
-import { bffUpstreamCoursesPatch } from '~~/server/utils/coursesBff';
-import { bffMockCoursesPatch } from '~~/server/utils/coursesMockBff';
-import { parseCoursePatchInstructorBody } from '~~/server/utils/parseCoursePatchBody';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffUpstreamCoursesPatch } from '~~/server/utils/courses/coursesBff';
+import { bffMockCoursesPatch } from '~~/server/utils/courses/coursesMockBff';
+import { parseCoursePatchInstructorBody } from '~~/server/utils/courses/parseCoursePatchBody';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

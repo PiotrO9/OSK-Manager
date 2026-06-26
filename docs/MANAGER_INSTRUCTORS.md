@@ -1,6 +1,6 @@
 # Manager — instruktorzy (kontekst)
 
-Moduł listy i **szczegółów** instruktora w panelu managera oraz **edycji tygodniowej dostępności** (MVP: jeden przedział godzin na dzień). BFF na tym samym originie co front; z klienta adresy buduje się przez [`resolveBffEndpoint`](../app/utils/bffEndpoint.ts).
+Moduł listy i **szczegółów** instruktora w panelu managera oraz **edycji tygodniowej dostępności** (MVP: jeden przedział godzin na dzień). BFF na tym samym originie co front; z klienta adresy buduje się przez [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts).
 
 ## Trasy (pages)
 
@@ -23,22 +23,22 @@ Layout: `app-shell`, middleware: [`manager`](../app/middleware/manager.ts).
 | `PATCH`  | `/api/instructors/:id`                          | Częściowa aktualizacja — handler [`server/api/instructors/[id].patch.ts`](../server/api/instructors/[id].patch.ts); body: opcjonalnie `firstName`, `lastName`, `experienceYears` (liczba całkowita), `qualifications`                                                                                                                                                              |
 | `GET`    | `/api/instructors/:id/availability/weekly`      | Tygodniowy wzorzec dostępności — [`server/api/instructors/[id]/availability/weekly.get.ts`](../server/api/instructors/[id]/availability/weekly.get.ts); odpowiedź: `data.weekly` — tablica wpisów `{ id, dayOfWeek, startTime, endTime }`                                                                                                                                          |
 | `PUT`    | `/api/instructors/:id/availability/weekly/:day` | Ustawienie / nadpisanie jednego dnia — [`server/api/instructors/[id]/availability/weekly/[day].put.ts`](../server/api/instructors/[id]/availability/weekly/[day].put.ts); body JSON: `{ startTime, endTime }` (`HH:mm`); `day` ∈ 0–6; odpowiedź: `data.entry`                                                                                                                      |
-| `DELETE` | `/api/instructors/:id/availability/weekly/:day` | Usunięcie wpisu dnia (brak dostępności tego dnia) — [`server/api/instructors/[id]/availability/weekly/[day].delete.ts`](../server/api/instructors/[id]/availability/weekly/[day].delete.ts); **odpowiedź BFF dla klienta** zawsze JSON: `{ success: true }` (upstream **204** / **404** jest mapowany w [`availabilityBff.ts`](../server/utils/availabilityBff.ts) na ten kształt) |
-| `GET`    | `/api/instructors/:id/availability/slots`       | Sloty 60 min w zakresie dat — [`server/api/instructors/[id]/availability/slots.get.ts`](../server/api/instructors/[id]/availability/slots.get.ts); query: `dateFrom`, `dateTo` (`YYYY-MM-DD`), max 30 dni włącznie; upstream: `bffSlotsGet` w [`availabilityBff.ts`](../server/utils/availabilityBff.ts); mock: [`mockSlots.ts`](../server/utils/mockSlots.ts)                     |
+| `DELETE` | `/api/instructors/:id/availability/weekly/:day` | Usunięcie wpisu dnia (brak dostępności tego dnia) — [`server/api/instructors/[id]/availability/weekly/[day].delete.ts`](../server/api/instructors/[id]/availability/weekly/[day].delete.ts); **odpowiedź BFF dla klienta** zawsze JSON: `{ success: true }` (upstream **204** / **404** jest mapowany w [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts) na ten kształt) |
+| `GET`    | `/api/instructors/:id/availability/slots`       | Sloty 60 min w zakresie dat — [`server/api/instructors/[id]/availability/slots.get.ts`](../server/api/instructors/[id]/availability/slots.get.ts); query: `dateFrom`, `dateTo` (`YYYY-MM-DD`), max 30 dni włącznie; upstream: `bffSlotsGet` w [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts); mock: [`mockSlots.ts`](../server/utils/instructors/mockSlots.ts)                     |
 
 ### Koperty odpowiedzi (weekly)
 
-| Operacja               | `success: true` | `data` (pole w kopercie)                                                                                                                                                                  |
-| ---------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET …/weekly`         | tak             | `{ weekly: WeeklyEntry[] }` — pusta tablica = brak wzorca                                                                                                                                 |
-| `PUT …/weekly/:day`    | tak             | `{ entry: WeeklyEntry }` — zapisany / zaktualizowany wpis                                                                                                                                 |
-| `DELETE …/weekly/:day` | tak             | brak pola `data` (tylko `{ success: true }`) — patrz [`useInstructorAvailabilityApi`](../app/composables/useInstructorAvailabilityApi.ts): `deleteDay` nie parsuje `unwrapApiSuccessData` |
+| Operacja               | `success: true` | `data` (pole w kopercie)                                                                                                                                                                              |
+| ---------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET …/weekly`         | tak             | `{ weekly: WeeklyEntry[] }` — pusta tablica = brak wzorca                                                                                                                                             |
+| `PUT …/weekly/:day`    | tak             | `{ entry: WeeklyEntry }` — zapisany / zaktualizowany wpis                                                                                                                                             |
+| `DELETE …/weekly/:day` | tak             | brak pola `data` (tylko `{ success: true }`) — patrz [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts): `deleteDay` nie parsuje `unwrapApiSuccessData` |
 
-Typ `WeeklyEntry`: [`instructorAvailability.ts`](../app/types/instructorAvailability.ts) (`id`, `dayOfWeek`, `startTime`, `endTime`).
+Typ `WeeklyEntry`: [`instructorAvailability.ts`](../app/types/instructors/instructorAvailability.ts) (`id`, `dayOfWeek`, `startTime`, `endTime`).
 
 ### Walidacja po stronie BFF (weekly)
 
-- `:id` — UUID ([`isUuid`](../server/utils/parseVehicleRequestBody.ts) w handlerach).
+- `:id` — UUID ([`isUuid`](../server/utils/vehicles/parseVehicleRequestBody.ts) w handlerach).
 - `:day` — liczba całkowita **0–6** (inaczej **400**).
 - `PUT` — body: `startTime`, `endTime` w formacie **`HH:mm`**; w [`[day].put.ts`](../server/api/instructors/[id]/availability/weekly/[day].put.ts) dodatkowo **`startTime < endTime`** (inaczej **400**).
 - Błędy upstreamu: propagowane jako `createError` z kodem HTTP serwera i `statusMessage` / treść `error` z koperty.
@@ -46,16 +46,16 @@ Typ `WeeklyEntry`: [`instructorAvailability.ts`](../app/types/instructorAvailabi
 ### Autoryzacja (weekly + reszta modułu)
 
 - **Strony** (`/manager/instructors/...`): middleware [`manager`](../app/middleware/manager.ts) — tylko role **MANAGER** lub **ADMIN** (stan z `useAuthSession`; rola **DEMO** nie wchodzi w panel).
-- **BFF bez upstreamu:** [`requireManagerFromCookie`](../server/utils/requireManagerFromCookie.ts) — JWT w ciasteczku `access_token`, role **MANAGER** / **ADMIN**.
+- **BFF bez upstreamu:** [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts) — JWT w ciasteczku `access_token`, role **MANAGER** / **ADMIN**.
 - **BFF z upstreamem:** ten sam token w cookie; handlery wołają `resolveUpstreamBase` i proxy przekazuje **`Authorization: Bearer`** do backendu.
 
 ### Upstream i mock (profil + weekly)
 
-- **Profil instruktora (lista, GET, PATCH):** [`instructorsBff.ts`](../server/utils/instructorsBff.ts).
-- **Tygodniowa dostępność:** [`availabilityBff.ts`](../server/utils/availabilityBff.ts) — `bffWeeklyGet` / `bffWeeklyPut` / `bffWeeklyDelete` → `{upstream}/instructors/:id/availability/weekly` (i `…/weekly/:day`).
-- **Mock (brak upstreamu):** po `requireManagerFromCookie` koperta `{ success: true, data: … }`. Instruktorzy: [`mockInstructorsList.ts`](../server/utils/mockInstructorsList.ts). Weekly: [`mockAvailabilityStore.ts`](../server/utils/mockAvailabilityStore.ts) (pre-seed pon–pt 8:00–16:00 przy pierwszym `GET` dla danego `:id`).
+- **Profil instruktora (lista, GET, PATCH):** [`instructorsBff.ts`](../server/utils/instructors/instructorsBff.ts).
+- **Tygodniowa dostępność:** [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts) — `bffWeeklyGet` / `bffWeeklyPut` / `bffWeeklyDelete` → `{upstream}/instructors/:id/availability/weekly` (i `…/weekly/:day`).
+- **Mock (brak upstreamu):** po `requireManagerFromCookie` koperta `{ success: true, data: … }`. Instruktorzy: [`mockInstructorsList.ts`](../server/utils/instructors/mockInstructorsList.ts). Weekly: [`mockAvailabilityStore.ts`](../server/utils/instructors/mockAvailabilityStore.ts) (pre-seed pon–pt 8:00–16:00 przy pierwszym `GET` dla danego `:id`).
 
-Dla odpowiedzi **z polem `data`**: parsowanie przez [`unwrapApiSuccessData`](../app/utils/apiEnvelope.ts) (jak w reszcie API).
+Dla odpowiedzi **z polem `data`**: parsowanie przez [`unwrapApiSuccessData`](../app/utils/api/apiEnvelope.ts) (jak w reszcie API).
 
 ### Zakres vs pełne API backendu
 
@@ -63,23 +63,23 @@ Backend może udostępniać także **wyjątki** (np. `…/availability/exception
 
 ## Kształt `data` dla szczegółu (FE)
 
-Typ domenowy: [`InstructorDetail`](../app/types/instructor.ts) — m.in. `id`, `name`, `email`, `licenseNumber`, `phone`, `qualifications`, `experience`. Normalizacja z odpowiedzi BE: [`normalizeInstructorDetail`](../app/types/instructor.ts) (obsługa m.in. `license_number`, `phone_number`, `firstName`/`lastName` zamiast `name`). Prefill formularza edycji: [`normalizeInstructorDetailForEdit`](../app/types/instructor.ts) / [`InstructorEditFormModel`](../app/types/instructor.ts).
+Typ domenowy: [`InstructorDetail`](../app/types/instructors/instructor.ts) — m.in. `id`, `name`, `email`, `licenseNumber`, `phone`, `qualifications`, `experience`. Normalizacja z odpowiedzi BE: [`normalizeInstructorDetail`](../app/types/instructors/instructor.ts) (obsługa m.in. `license_number`, `phone_number`, `firstName`/`lastName` zamiast `name`). Prefill formularza edycji: [`normalizeInstructorDetailForEdit`](../app/types/instructors/instructor.ts) / [`InstructorEditFormModel`](../app/types/instructors/instructor.ts).
 
-Lista w UI używa [`useInstructorsApi`](../app/composables/useInstructorsApi.ts) (`fetchList`). **Szczegóły** celowo bez osobnego composable — fetch w stronie [`[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue).
+Lista w UI używa [`useInstructorsApi`](../app/composables/instructors/useInstructorsApi.ts) (`fetchList`). **Szczegóły** celowo bez osobnego composable — fetch w stronie [`[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue).
 
 ## Dostępność tygodniowa (MVP)
 
 - **Model:** jeden przedział `startTime`–`endTime` na dzień (`HH:mm`, zgodny z `<input type="time">` i backendem). Brak wpisu dla `dayOfWeek` = dzień niedostępny. **Wyjątki kalendarzowe** (exceptions) nie są częścią tego widoku.
-- **`dayOfWeek`:** jak `Date.getUTCDay()` — `0` = niedziela, `1` = poniedziałek, …, `6` = sobota. UI listuje dni od poniedziałku ([`WEEK_DAYS_ORDER`](../app/types/instructorAvailability.ts)).
+- **`dayOfWeek`:** jak `Date.getUTCDay()` — `0` = niedziela, `1` = poniedziałek, …, `6` = sobota. UI listuje dni od poniedziałku ([`WEEK_DAYS_ORDER`](../app/types/instructors/instructorAvailability.ts)).
 - **`:id` w ścieżkach API:** profil instruktora (**`InstructorProfile.id`** / to samo `id` co na liście `GET /api/instructors?schoolId=`).
-- **FE — typy i logika wizualna:** [`app/types/instructorAvailability.ts`](../app/types/instructorAvailability.ts); wspólna oś graficzna **6:00–22:00:** [`app/utils/availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts) (`getAvailabilityTimelineBarStyle`).
-- **FE — klient HTTP:** [`useInstructorAvailabilityApi`](../app/composables/useInstructorAvailabilityApi.ts) — `fetchWeekly` / `saveDay` parsują `data` przez [`unwrapApiSuccessData`](../app/utils/apiEnvelope.ts); `deleteDay` tylko `$fetch` (odpowiedź `{ success: true }` bez `data`).
+- **FE — typy i logika wizualna:** [`app/types/instructors/instructorAvailability.ts`](../app/types/instructors/instructorAvailability.ts); wspólna oś graficzna **6:00–22:00:** [`app/utils/schedule/availabilityTimeline.ts`](../app/utils/schedule/availabilityTimeline.ts) (`getAvailabilityTimelineBarStyle`).
+- **FE — klient HTTP:** [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts) — `fetchWeekly` / `saveDay` parsują `data` przez [`unwrapApiSuccessData`](../app/utils/api/apiEnvelope.ts); `deleteDay` tylko `$fetch` (odpowiedź `{ success: true }` bez `data`).
 - **Komponenty:**
     - [`ManagerInstructorWeeklyAvailabilityPreview.vue`](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue) — podsumowanie tygodnia na karcie szczegółów (paski + skróty dni).
     - [`ManagerInstructorAvailabilityEditor.vue`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue) — pełna edycja: przełącznik dnia, godziny, pasek na żywo, zapis per dzień.
 - **Routing:** szczegóły i edycja dostępności to **osobne strony** pod [`app/pages/manager/instructors/[id]/`](../app/pages/manager/instructors/[id]/): `index.vue` (szczegóły), `availability.vue` (harmonogram). **Uwaga (Nuxt):** równoległy plik `pages/.../[id].vue` i podfolder `pages/.../[id]/*.vue` tworzy zagnieżdżenie — bez `<NuxtPage />` w rodzicu podstrona nie renderuje się poprawnie; stąd szczegóły są w **`[id]/index.vue`**, a nie w `[id].vue` obok folderu.
 - **Strefa czasu:** backend w specyfikacji OSK zakłada czas lokalny jak dla Polski; API zwraca same stringi `HH:mm` bez offsetu — UI nie powinien konwertować stref przy tym MVP.
-- **Poza zakresem wykresu:** komponenty z [`availabilityTimeline.ts`](../app/utils/availabilityTimeline.ts) pokazują pasek na osi **6:00–22:00** (przycięcie do tego zakresu); rzeczywisty zapis `PUT` może obejmować inne godziny zgodnie z walidacją backendu.
+- **Poza zakresem wykresu:** komponenty z [`availabilityTimeline.ts`](../app/utils/schedule/availabilityTimeline.ts) pokazują pasek na osi **6:00–22:00** (przycięcie do tego zakresu); rzeczywisty zapis `PUT` może obejmować inne godziny zgodnie z walidacją backendu.
 
 ## Zachowanie UI (szczegóły)
 

@@ -1,6 +1,6 @@
-import { bffWeeklyGet } from '~~/server/utils/availabilityBff';
-import { mockAvailabilityGetWeekly } from '~~/server/utils/mockAvailabilityStore';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffWeeklyGet } from '~~/server/utils/instructors/availabilityBff';
+import { mockAvailabilityGetWeekly } from '~~/server/utils/instructors/mockAvailabilityStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {

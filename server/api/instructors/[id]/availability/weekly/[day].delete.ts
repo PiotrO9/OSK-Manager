@@ -1,6 +1,6 @@
-import { bffWeeklyDelete } from '~~/server/utils/availabilityBff';
-import { mockAvailabilityDeleteDay } from '~~/server/utils/mockAvailabilityStore';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
+import { bffWeeklyDelete } from '~~/server/utils/instructors/availabilityBff';
+import { mockAvailabilityDeleteDay } from '~~/server/utils/instructors/mockAvailabilityStore';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 function parseDayParam(raw: string | undefined): number | null {
     if (!raw) return null;

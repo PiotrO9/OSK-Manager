@@ -1,6 +1,6 @@
-import { isUuid } from '~~/server/utils/requestValidation';
-import { bffAggregateSchoolSchedule } from '~~/server/utils/schoolScheduleBff';
-import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/slotsDateRangeValidation';
+import { isUuid } from '~~/server/utils/validation/requestValidation';
+import { bffAggregateSchoolSchedule } from '~~/server/utils/schedule/schoolScheduleBff';
+import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/instructors/slotsDateRangeValidation';
 
 export default defineEventHandler(async (event) => {
     const idRaw = getRouterParam(event, 'id');

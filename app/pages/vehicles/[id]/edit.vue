@@ -10,7 +10,7 @@ import type {
     Vehicle,
     VehicleDetail,
     VehicleWritePayload,
-} from '~/types/vehicle';
+} from '~/types/vehicles/vehicle';
 import type { HeaderMetaItem } from '~/components/app/ui/types';
 
 definePageMeta({

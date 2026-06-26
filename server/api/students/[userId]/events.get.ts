@@ -1,8 +1,8 @@
 import type { H3Event } from 'h3';
 import { jwtVerify } from 'jose';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { parseScheduleMeQuery } from '~~/server/utils/scheduleQueryValidation';
-import { bffUpstreamStudentEvents } from '~~/server/utils/studentsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
+import { bffUpstreamStudentEvents } from '~~/server/utils/students/studentsBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

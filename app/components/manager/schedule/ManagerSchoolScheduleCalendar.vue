@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ScheduleLessonItem } from '~/types/schedule';
-import { useManagerSchoolScheduleCalendar } from '~/composables/useManagerSchoolScheduleCalendar';
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { useManagerSchoolScheduleCalendar } from '~/composables/schedule/useManagerSchoolScheduleCalendar';
 
 const props = withDefaults(
     defineProps<{

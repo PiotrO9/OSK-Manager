@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { BookOpen } from 'lucide-vue-next';
-import type { CurrentUserCourseItem } from '~/types/course';
+import type { CurrentUserCourseItem } from '~/types/courses/course';
 
 const props = defineProps<{
     courses: CurrentUserCourseItem[];

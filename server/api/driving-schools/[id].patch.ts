@@ -1,5 +1,5 @@
-import { bffUpstreamDrivingSchoolsUpdate } from '~~/server/utils/drivingSchoolsBff';
-import { bffMockDrivingSchoolsUpdate } from '~~/server/utils/drivingSchoolsMockBff';
+import { bffUpstreamDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsBff';
+import { bffMockDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
 function readNullableTrimmedString(raw: unknown): string | null {
     if (typeof raw === 'string') {

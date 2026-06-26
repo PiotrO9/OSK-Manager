@@ -1,5 +1,5 @@
 import { jwtVerify } from 'jose';
-import { bffUpstreamMyCoursesList } from '~~/server/utils/coursesBff';
+import { bffUpstreamMyCoursesList } from '~~/server/utils/courses/coursesBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

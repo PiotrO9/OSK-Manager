@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils';
 import {
     formatCourseTypeOptionLabel,
     type CourseTypeOption,
-} from '~/types/courseType';
-import type { InstructorEditFormModel } from '~/types/instructor';
+} from '~/types/courses/courseType';
+import type { InstructorEditFormModel } from '~/types/instructors/instructor';
 
 const props = defineProps<{
     isSubmitting: boolean;

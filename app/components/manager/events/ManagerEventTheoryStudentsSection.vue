@@ -3,9 +3,9 @@ import type {
     InstructorEvent,
     TheoryEventEligibleStudentRow,
     TheoryEventEligibleStudentsData,
-} from '~/types/instructorEvent';
-import { formatStudentDisplayName } from '~/types/student';
-import { theoryEligibleRowToStudentListItem } from '~/utils/theoryEventEligibleStudents';
+} from '~/types/events/instructorEvent';
+import { formatStudentDisplayName } from '~/types/students/student';
+import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
 defineProps<{
     loadedEvent: InstructorEvent;

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { bffLessonRatingPost } from '~~/server/utils/lessonsBff';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/requestValidation';
-import { requireStudentFromCookie } from '~~/server/utils/requireStudentFromCookie';
+import { bffLessonRatingPost } from '~~/server/utils/lessons/lessonsBff';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
 
 function validateRatingBody(raw: unknown):
     | {

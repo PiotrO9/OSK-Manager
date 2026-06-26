@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import {
     dateValueToIsoDateString,
     isoDateStringToCalendarDate,
-} from '~/utils/weeklyCalendarDates';
+} from '~/utils/date/weeklyCalendarDates';
 
 defineOptions({
     name: 'UiDatePicker',

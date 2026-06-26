@@ -3,7 +3,7 @@ import { CalendarDays } from 'lucide-vue-next';
 import {
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
-} from '~/utils/weeklyCalendarDates';
+} from '~/utils/date/weeklyCalendarDates';
 
 definePageMeta({
     layout: 'app-shell',

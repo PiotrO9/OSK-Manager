@@ -10,7 +10,7 @@ import {
     formatDatetimeLocalPl,
     isoDateStringToCalendarDate,
     parseDatetimeLocalParts,
-} from '~/utils/weeklyCalendarDates';
+} from '~/utils/date/weeklyCalendarDates';
 
 defineOptions({
     name: 'UiDateTimePicker',

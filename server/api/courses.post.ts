@@ -1,9 +1,9 @@
-import { bffUpstreamCoursesCreate } from '~~/server/utils/coursesBff';
-import { bffMockCoursesCreate } from '~~/server/utils/coursesMockBff';
+import { bffUpstreamCoursesCreate } from '~~/server/utils/courses/coursesBff';
+import { bffMockCoursesCreate } from '~~/server/utils/courses/coursesMockBff';
 import {
     courseCreateBodyToUpstreamRecord,
     parseCourseCreateBody,
-} from '~~/server/utils/parseCourseCreateBody';
+} from '~~/server/utils/courses/parseCourseCreateBody';
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);

@@ -1,6 +1,6 @@
-import { bffUpstreamInstructorsList } from '~~/server/utils/instructorsBff';
-import { bffMockInstructorsList } from '~~/server/utils/instructorsMockBff';
-import { parseRequiredUuidQuery } from '~~/server/utils/requestValidation';
+import { bffUpstreamInstructorsList } from '~~/server/utils/instructors/instructorsBff';
+import { bffMockInstructorsList } from '~~/server/utils/instructors/instructorsMockBff';
+import { parseRequiredUuidQuery } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
     const schoolId = parseRequiredUuidQuery(getQuery(event), 'schoolId', {

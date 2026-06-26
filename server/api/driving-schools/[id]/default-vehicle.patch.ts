@@ -1,5 +1,5 @@
-import { bffUpstreamDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/drivingSchoolsBff';
-import { bffMockDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/drivingSchoolsMockBff';
+import { bffUpstreamDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/schools/drivingSchoolsBff';
+import { bffMockDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
 export default defineEventHandler(async (event) => {
     const schoolId = getRouterParam(event, 'id')?.trim() ?? '';

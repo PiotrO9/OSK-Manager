@@ -1,8 +1,8 @@
-import { bffEventsPatch } from '~~/server/utils/eventsBff';
+import { bffEventsPatch } from '~~/server/utils/events/eventsBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
-} from '~~/server/utils/requestValidation';
+} from '~~/server/utils/validation/requestValidation';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
 

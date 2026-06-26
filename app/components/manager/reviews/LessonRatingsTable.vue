@@ -2,7 +2,7 @@
 import {
     formatLessonRatingPersonName,
     type LessonRatingListItem,
-} from '~/types/lessonRating';
+} from '~/types/lessons/lessonRating';
 
 const props = withDefaults(
     defineProps<{
