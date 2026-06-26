@@ -36,7 +36,7 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
                 class="w-full"
                 aria-required="true"
             >
-                <UiSelectValue placeholder="â€” Wybierz kursanta â€”" />
+                <UiSelectValue placeholder="— Wybierz kursanta —" />
             </UiSelectTrigger>
             <UiSelectContent>
                 <UiSelectGroup>
@@ -72,7 +72,7 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
                 class="w-full"
                 aria-required="true"
             >
-                <UiSelectValue placeholder="â€” Wybierz kurs â€”" />
+                <UiSelectValue placeholder="— Wybierz kurs —" />
             </UiSelectTrigger>
             <UiSelectContent>
                 <UiSelectGroup>
@@ -83,15 +83,15 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
                         :disabled="course.status === 'FINISHED'"
                         :title="
                             course.status === 'FINISHED'
-                                ? 'Kurs zakoĹ„czony â€” wybierz inny lub odznacz'
+                                ? 'Kurs zakończony — wybierz inny lub odznacz'
                                 : undefined
                         "
                     >
                         {{ course.name }} ({{ course.category }})
                         <template v-if="course.kind">
-                            â€” {{ formatCourseKindLabel(course.kind) }}
+                            — {{ formatCourseKindLabel(course.kind) }}
                         </template>
-                        â€” {{ formatStudentCourseStatusLabel(course.status) }}
+                        — {{ formatStudentCourseStatusLabel(course.status) }}
                     </UiSelectItem>
                 </UiSelectGroup>
             </UiSelectContent>
@@ -105,7 +105,7 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Brak kursĂłw praktycznych lub dodatkowych dla tego kursanta.
+            Brak kursów praktycznych lub dodatkowych dla tego kursanta.
         </p>
     </div>
 </template>

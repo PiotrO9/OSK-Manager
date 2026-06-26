@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     const id = getRouterParam(event, 'id');
 
     if (!id) {
-        throw createError({ statusCode: 400, message: 'Brak ID szkoĹ‚y' });
+        throw createError({ statusCode: 400, message: 'Brak ID szkoły' });
     }
 
     const body = await readBody(event);

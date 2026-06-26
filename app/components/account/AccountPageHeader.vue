@@ -22,7 +22,7 @@ defineEmits<{
             <h1
                 class="text-foreground text-2xl leading-tight font-bold tracking-tight md:text-3xl"
             >
-                Konto uĹĽytkownika
+                Konto użytkownika
             </h1>
             <p
                 class="text-muted-foreground mt-1 max-w-2xl text-sm leading-relaxed"
@@ -38,7 +38,7 @@ defineEmits<{
                 variant="outline"
                 class="gap-2"
                 :disabled="isInlineProfileSaving"
-                aria-label="WĹ‚Ä…cz edycjÄ™ profilu"
+                aria-label="Włącz edycję profilu"
                 @click="$emit('startEdit')"
             >
                 <Pencil class="size-4" aria-hidden="true" />
@@ -50,7 +50,7 @@ defineEmits<{
                 variant="outline"
                 class="gap-2"
                 :disabled="isInlineProfileSaving"
-                aria-label="Anuluj edycjÄ™ profilu"
+                aria-label="Anuluj edycję profilu"
                 @click="$emit('cancelEdit')"
             >
                 <X class="size-4" aria-hidden="true" />

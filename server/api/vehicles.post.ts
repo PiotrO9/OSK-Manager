@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
         throw createError({
             statusCode: 400,
             message:
-                'Pole schoolId jest wymagane i musi byÄ‡ poprawnym identyfikatorem UUID.',
+                'Pole schoolId jest wymagane i musi być poprawnym identyfikatorem UUID.',
         });
     }
 
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     if (!fields) {
         throw createError({
             statusCode: 400,
-            message: 'NieprawidĹ‚owe dane ĹĽÄ…dania.',
+            message: 'Nieprawidłowe dane żądania.',
         });
     }
 

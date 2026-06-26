@@ -71,7 +71,7 @@ defineProps<{
                         <CalendarDays class="size-5" aria-hidden="true" />
                     </div>
                     <div>
-                        <p class="font-extrabold">TydzieĹ„</p>
+                        <p class="font-extrabold">Tydzień</p>
                         <p class="text-muted-foreground text-sm">
                             {{ weekLabel }}
                         </p>
@@ -86,7 +86,7 @@ defineProps<{
                     {{ availableSlotsLabel }}
                 </p>
                 <p class="text-sm text-sky-700">
-                    Rezerwacja dziaĹ‚a bezpoĹ›rednio na wybranym slocie.
+                    Rezerwacja działa bezpośrednio na wybranym slocie.
                 </p>
             </div>
 

@@ -42,7 +42,7 @@ const {
 
         <ErrorState
             v-else-if="errorMessage"
-            title="Nie udaĹ‚o siÄ™ wczytaÄ‡ instruktora"
+            title="Nie udało się wczytać instruktora"
             :description="errorMessage"
             @retry="loadInstructor(route.params.id)"
         />

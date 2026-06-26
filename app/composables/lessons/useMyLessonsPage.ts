@@ -38,7 +38,7 @@ export function useMyLessonsPage() {
 
     const pageDescription = computed(() =>
         isStudent.value
-            ? 'NajbliĹĽsze jazdy, teoria i historia spotkaĹ„.'
+            ? 'Najbliższe jazdy, teoria i historia spotkań.'
             : 'Zaplanowane lekcje w wybranym tygodniu.',
     );
 
@@ -107,10 +107,10 @@ export function useMyLessonsPage() {
                 tone: 'neutral',
             },
             {
-                label: isStudent.value ? 'Do oceny' : 'WymagajÄ… uwagi',
+                label: isStudent.value ? 'Do oceny' : 'Wymagają uwagi',
                 value: String(attentionCount),
                 description: isStudent.value
-                    ? 'ZakoĹ„czone jazdy bez opinii'
+                    ? 'Zakończone jazdy bez opinii'
                     : 'Anulowane lub bez pojazdu',
                 tone: attentionCount > 0 ? 'warning' : 'success',
             },
@@ -160,8 +160,8 @@ export function useMyLessonsPage() {
             errorMessage.value = getApiFetchErrorMessage(
                 err,
                 isStudent.value
-                    ? 'Nie udaĹ‚o siÄ™ wczytaÄ‡ terminarza.'
-                    : 'Nie udaĹ‚o siÄ™ wczytaÄ‡ lekcji.',
+                    ? 'Nie udało się wczytać terminarza.'
+                    : 'Nie udało się wczytać lekcji.',
             );
         } finally {
             if (seq === loadSeq) {
@@ -217,7 +217,7 @@ export function useMyLessonsPage() {
 
             ratingErrorMessage.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ odĹ›wieĹĽyÄ‡ opinii.',
+                'Nie udało się odświeżyć opinii.',
             );
         } finally {
             if (seq === ratingFetchSeq) {
@@ -256,12 +256,12 @@ export function useMyLessonsPage() {
         } catch (err: unknown) {
             const message = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ dodaÄ‡ opinii.',
+                'Nie udało się dodać opinii.',
             );
 
             ratingErrorMessage.value = message;
             addToast({
-                title: 'Nie udaĹ‚o siÄ™ dodaÄ‡ opinii',
+                title: 'Nie udało się dodać opinii',
                 description: message,
                 variant: 'error',
             });
@@ -302,11 +302,11 @@ export function useMyLessonsPage() {
         } catch (err: unknown) {
             const message = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ anulowaÄ‡ rezerwacji.',
+                'Nie udało się anulować rezerwacji.',
             );
 
             addToast({
-                title: 'Nie udaĹ‚o siÄ™ anulowaÄ‡ rezerwacji',
+                title: 'Nie udało się anulować rezerwacji',
                 description: message,
                 variant: 'error',
             });

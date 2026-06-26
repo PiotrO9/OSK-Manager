@@ -51,7 +51,7 @@ export function bffMockDrivingSchoolsUpdate(
     const updated = mockDrivingSchoolsUpdate(id, body);
 
     if (!updated) {
-        throw createError({ statusCode: 404, message: 'SzkoĹ‚a nie istnieje' });
+        throw createError({ statusCode: 404, message: 'Szkoła nie istnieje' });
     }
 
     const row = mockDrivingSchoolsList().find((school) => school.id === id);
@@ -63,7 +63,7 @@ export function bffMockDrivingSchoolsDelete(id: string): { success: true } {
     const deleted = mockDrivingSchoolsDelete(id);
 
     if (!deleted) {
-        throw createError({ statusCode: 404, message: 'SzkoĹ‚a nie istnieje' });
+        throw createError({ statusCode: 404, message: 'Szkoła nie istnieje' });
     }
 
     return { success: true };
@@ -76,7 +76,7 @@ export function bffMockDrivingSchoolsSetDefault(id: string): {
     const ok = mockDrivingSchoolsSetDefault(id);
 
     if (!ok) {
-        throw createError({ statusCode: 404, message: 'SzkoĹ‚a nie istnieje' });
+        throw createError({ statusCode: 404, message: 'Szkoła nie istnieje' });
     }
 
     const row = mockDrivingSchoolsList().find((school) => school.id === id);
@@ -94,7 +94,7 @@ export function bffMockDrivingSchoolsSetDefaultVehicle(
         throw createError({
             statusCode: 404,
             message:
-                'SzkoĹ‚a lub pojazd nie istnieje, albo pojazd nie naleĹĽy do tej szkoĹ‚y.',
+                'Szkoła lub pojazd nie istnieje, albo pojazd nie należy do tej szkoły.',
         });
     }
 

@@ -37,7 +37,7 @@ const emit = defineEmits<{
 <template>
     <FormSection
         title="Kursanci (teoria)"
-        description="ZarzÄ…dzaj realnÄ… listÄ… kursantĂłw z kursu, z zachowaniem limitĂłw i kolizji grafiku."
+        description="Zarządzaj realną listą kursantów z kursu, z zachowaniem limitów i kolizji grafiku."
     >
         <div class="space-y-6">
             <p
@@ -62,7 +62,7 @@ const emit = defineEmits<{
                 class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
                 role="status"
             >
-                Limit miejsc wynosi 0 â€” ĹĽaden kursant nie moĹĽe zostaÄ‡
+                Limit miejsc wynosi 0 — żaden kursant nie może zostać
                 przypisany do tego bloku.
             </p>
 
@@ -75,11 +75,11 @@ const emit = defineEmits<{
                     Brak listy zapisanych na ten blok
                 </span>
                 <span class="block">
-                    Nie udaĹ‚o siÄ™ ustaliÄ‡ aktualnych przypisaĹ„ (np.
+                    Nie udało się ustalić aktualnych przypisań (np.
                     <span class="font-mono text-xs">
-                        GET â€¦/events/â€¦/students
+                        GET …/events/…/students
                     </span>
-                    ). Bez tego nie moĹĽna edytowaÄ‡ skĹ‚adu grupy.
+                    ). Bez tego nie można edytować składu grupy.
                 </span>
             </p>
 
@@ -91,14 +91,14 @@ const emit = defineEmits<{
                 >
                     Ten blok nie ma przypisanego kursu (
                     <code class="text-xs">courseId</code>
-                    ) â€” lista kursantĂłw jest niedostÄ™pna.
+                    ) — lista kursantów jest niedostępna.
                 </p>
                 <p
                     v-else-if="isTheoryEligibleLoading"
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Wczytywanie listy kursantĂłwâ€¦
+                    Wczytywanie listy kursantów…
                 </p>
                 <p
                     v-else-if="theoryEligibleError"
@@ -114,7 +114,7 @@ const emit = defineEmits<{
                     "
                     class="space-y-2"
                     role="list"
-                    aria-label="Kursanci kursu â€” zaznacz uczestnikĂłw wydarzenia"
+                    aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
                 >
                     <li
                         v-for="row in theoryEligibleData.students"
@@ -169,13 +169,13 @@ const emit = defineEmits<{
                                 v-if="!row.canAssign && !row.isAssignedToEvent"
                                 variant="secondary"
                             >
-                                NiedostÄ™pny
+                                Niedostępny
                             </UiBadge>
                         </div>
                     </li>
                 </ul>
                 <p v-else class="text-muted-foreground text-sm" role="status">
-                    Brak kursantĂłw na kursie lub lista nie zostaĹ‚a wczytana.
+                    Brak kursantów na kursie lub lista nie została wczytana.
                 </p>
             </div>
 

@@ -26,7 +26,7 @@ function readNotesFromPatchBody(raw: unknown): string | null | undefined {
 export default defineEventHandler(async (event) => {
     const studentUserId = parseRequiredUuidRouterParam(event, 'userId', {
         required: 'Brak identyfikatora kursanta.',
-        invalid: 'NieprawidĹ‚owy identyfikator kursanta.',
+        invalid: 'Nieprawidłowy identyfikator kursanta.',
     });
 
     const rawBody = await readBody(event);
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
     if (rawNotes === undefined) {
         throw createError({
             statusCode: 400,
-            message: 'Pole notes jest wymagane w treĹ›ci ĹĽÄ…dania.',
+            message: 'Pole notes jest wymagane w treści żądania.',
         });
     }
 
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     if (notes !== null && notes.length > NOTES_MAX_LEN) {
         throw createError({
             statusCode: 400,
-            message: `Notatka nie moĹĽe przekraczaÄ‡ ${NOTES_MAX_LEN} znakĂłw.`,
+            message: `Notatka nie może przekraczać ${NOTES_MAX_LEN} znaków.`,
         });
     }
 

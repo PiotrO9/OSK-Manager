@@ -5,7 +5,7 @@ import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/request
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {
         required: 'Brak identyfikatora kursu.',
-        invalid: 'NieprawidĹ‚owy identyfikator kursu.',
+        invalid: 'Nieprawidłowy identyfikator kursu.',
     });
 
     const upstream = resolveUpstreamBase(event);

@@ -116,7 +116,7 @@ export function useEventsDayPage() {
 
     const pageDescription = computed(() =>
         isManager.value
-            ? 'Dzienne lekcje, teoria i bloki czasu instruktorĂłw.'
+            ? 'Dzienne lekcje, teoria i bloki czasu instruktorów.'
             : 'Twoje bloki czasu w wybranym dniu.',
     );
 
@@ -287,7 +287,7 @@ export function useEventsDayPage() {
 
                 if (!sid) {
                     errorMessage.value =
-                        'Brak identyfikatora szkoĹ‚y. Ustaw domyĹ›lnÄ… OSK w swoim profilu lub dodaj ?schoolId= do adresu.';
+                        'Brak identyfikatora szkoły. Ustaw domyślną OSK w swoim profilu lub dodaj ?schoolId= do adresu.';
                     events.value = [];
                     instructors.value = [];
 
@@ -323,7 +323,7 @@ export function useEventsDayPage() {
             instructors.value = [];
             errorMessage.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ wczytaÄ‡ wydarzeĹ„.',
+                'Nie udało się wczytać wydarzeń.',
             );
         } finally {
             if (seq === loadSeq) {
@@ -539,7 +539,7 @@ export function displayEventPrimary(
 export function displayEventMeta(item: ScheduleLessonItem): string {
     const parts = [
         `${eventIsoToHm(item.startTime)}-${eventIsoToHm(item.endTime)}`,
-        `${displayParticipantCount(item)} kursantĂłw`,
+        `${displayParticipantCount(item)} kursantów`,
     ];
 
     if (item.vehicle?.name || item.vehicle?.registrationNumber) {

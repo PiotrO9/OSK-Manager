@@ -30,7 +30,7 @@ export function getManagerInstructorRouteString(raw: unknown): string {
 export function displayManagerInstructorText(value: string): string {
     const text = value.trim();
 
-    return text.length > 0 ? text : 'â€”';
+    return text.length > 0 ? text : '—';
 }
 
 export function normalizeManagerInstructorCourseTypeIds(
@@ -103,18 +103,18 @@ export function validateManagerInstructorPatch(
     patch: Record<string, unknown>,
 ): string | null {
     if (typeof patch.firstName === 'string' && !patch.firstName.trim()) {
-        return 'ImiÄ™ nie moĹĽe byÄ‡ puste.';
+        return 'Imię nie może być puste.';
     }
 
     if (typeof patch.lastName === 'string' && !patch.lastName.trim()) {
-        return 'Nazwisko nie moĹĽe byÄ‡ puste.';
+        return 'Nazwisko nie może być puste.';
     }
 
     if (typeof patch.experienceYears === 'number') {
         const years = patch.experienceYears;
 
         if (!Number.isInteger(years) || years < 0 || years > 80) {
-            return 'StaĹĽ musi byÄ‡ liczbÄ… caĹ‚kowitÄ… od 0 do 80.';
+            return 'Staż musi być liczbą całkowitą od 0 do 80.';
         }
     }
 
@@ -126,15 +126,15 @@ function getNotFoundMessage(): string {
 }
 
 function getGenericLoadErrorMessage(): string {
-    return 'Nie udaĹ‚o siÄ™ wczytaÄ‡ danych instruktora.';
+    return 'Nie udało się wczytać danych instruktora.';
 }
 
 function getGenericSaveErrorMessage(): string {
-    return 'Nie udaĹ‚o siÄ™ zapisaÄ‡ zmian.';
+    return 'Nie udało się zapisać zmian.';
 }
 
 function getGenericCourseTypesErrorMessage(): string {
-    return 'Nie udaĹ‚o siÄ™ pobraÄ‡ katalogu kategorii uprawnieĹ„.';
+    return 'Nie udało się pobrać katalogu kategorii uprawnień.';
 }
 
 function getInstructorSaveErrorMessage(err: unknown): string {
@@ -144,13 +144,13 @@ function getInstructorSaveErrorMessage(err: unknown): string {
     if (status === 400) {
         return fromServer.length > 0
             ? fromServer
-            : 'NieprawidĹ‚owe dane. SprawdĹş formularz i sprĂłbuj ponownie.';
+            : 'Nieprawidłowe dane. Sprawdź formularz i spróbuj ponownie.';
     }
 
     if (status === 403) {
         return fromServer.length > 0
             ? fromServer
-            : 'Brak uprawnieĹ„ do zapisu zmian.';
+            : 'Brak uprawnień do zapisu zmian.';
     }
 
     if (status === 404) {
@@ -162,7 +162,7 @@ function getInstructorSaveErrorMessage(err: unknown): string {
     if (status !== undefined && status >= 500) {
         return fromServer.length > 0
             ? fromServer
-            : 'BĹ‚Ä…d serwera. SprĂłbuj ponownie pĂłĹşniej.';
+            : 'Błąd serwera. Spróbuj ponownie później.';
     }
 
     return getApiFetchErrorMessage(err, getGenericSaveErrorMessage());
@@ -172,11 +172,11 @@ function getInstructorDeleteErrorMessage(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
     if (status === 403) {
-        return 'Brak uprawnieĹ„ do tej operacji.';
+        return 'Brak uprawnień do tej operacji.';
     }
 
     if (status === 404) {
-        return 'Instruktor nie istnieje lub zostaĹ‚ juĹĽ usuniÄ™ty.';
+        return 'Instruktor nie istnieje lub został już usunięty.';
     }
 
     if (status === 401) {
@@ -184,16 +184,16 @@ function getInstructorDeleteErrorMessage(err: unknown): string {
     }
 
     if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostÄ™pny. SprĂłbuj ponownie.';
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
     }
 
     if (status === 400) {
-        return getApiFetchErrorMessage(err, 'NieprawidĹ‚owe dane.');
+        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane.');
     }
 
     return getApiFetchErrorMessage(
         err,
-        'Nie udaĹ‚o siÄ™ usunÄ…Ä‡ instruktora.',
+        'Nie udało się usunąć instruktora.',
     );
 }
 
@@ -232,7 +232,7 @@ export function useManagerInstructorDetailsPage() {
 
     usePageMeta({
         title: () => instructor.value?.name?.trim() || 'Instruktor',
-        description: () => 'SzczegĂłĹ‚y instruktora.',
+        description: () => 'Szczegóły instruktora.',
     });
 
     let fetchSeq = 0;
@@ -431,7 +431,7 @@ export function useManagerInstructorDetailsPage() {
 
             if (!normalized || !forEdit) {
                 submitError.value =
-                    'NieprawidĹ‚owa odpowiedĹş serwera po zapisie. SprĂłbuj ponownie.';
+                    'Nieprawidłowa odpowiedź serwera po zapisie. Spróbuj ponownie.';
 
                 return;
             }
@@ -442,7 +442,7 @@ export function useManagerInstructorDetailsPage() {
 
             addToast({
                 title: 'Zapisano zmiany',
-                description: 'Dane instruktora zostaĹ‚y zaktualizowane.',
+                description: 'Dane instruktora zostały zaktualizowane.',
                 variant: 'success',
             });
 
@@ -498,7 +498,7 @@ export function useManagerInstructorDetailsPage() {
             assertBooleanSuccessEnvelope(raw);
 
             addToast({
-                title: 'Instruktor zostaĹ‚ usuniÄ™ty',
+                title: 'Instruktor został usunięty',
                 variant: 'success',
             });
 
@@ -507,7 +507,7 @@ export function useManagerInstructorDetailsPage() {
             await navigateTo('/manager/instructors');
         } catch (err: unknown) {
             addToast({
-                title: 'Nie udaĹ‚o siÄ™ usunÄ…Ä‡ instruktora',
+                title: 'Nie udało się usunąć instruktora',
                 description: getInstructorDeleteErrorMessage(err),
                 variant: 'error',
             });

@@ -87,7 +87,7 @@ export function bffMockUpdateStudentNotes(
 
         throw createError({
             statusCode: 400,
-            message: `Notatka nie moĹĽe przekraczaÄ‡ ${notesMaxLen} znakĂłw.`,
+            message: `Notatka nie może przekraczać ${notesMaxLen} znaków.`,
         });
     }
 

@@ -25,7 +25,7 @@ const selectedInstructorId = defineModel<string>('selectedInstructorId', {
                 class="w-full"
                 aria-required="true"
             >
-                <UiSelectValue placeholder="â€” Wybierz instruktora â€”" />
+                <UiSelectValue placeholder="— Wybierz instruktora —" />
             </UiSelectTrigger>
             <UiSelectContent>
                 <UiSelectGroup>

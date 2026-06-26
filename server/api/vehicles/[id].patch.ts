@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     if (!fields) {
         throw createError({
             statusCode: 400,
-            message: 'NieprawidĹ‚owe dane ĹĽÄ…dania.',
+            message: 'Nieprawidłowe dane żądania.',
         });
     }
 

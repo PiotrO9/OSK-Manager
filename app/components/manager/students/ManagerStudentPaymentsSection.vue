@@ -20,10 +20,10 @@ defineProps<{
                     id="student-payments-heading"
                     class="text-foreground text-xl font-extrabold"
                 >
-                    PĹ‚atnoĹ›ci
+                    Płatności
                 </h2>
                 <p class="text-muted-foreground text-sm">
-                    Historia opĹ‚at kursanta w wybranej szkole.
+                    Historia opłat kursanta w wybranej szkole.
                 </p>
             </div>
             <CreditCard

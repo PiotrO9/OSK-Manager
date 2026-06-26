@@ -17,7 +17,7 @@ defineProps<{
                 Podsumowanie dnia
             </UiCardTitle>
             <UiCardDescription>
-                Dane wyliczone z aktualnie wczytanych wydarzeĹ„.
+                Dane wyliczone z aktualnie wczytanych wydarzeń.
             </UiCardDescription>
         </UiCardHeader>
 
@@ -30,7 +30,7 @@ defineProps<{
                         <ListChecks class="size-5" aria-hidden="true" />
                     </div>
                     <div>
-                        <p class="font-extrabold">{{ eventCount }} wydarzeĹ„</p>
+                        <p class="font-extrabold">{{ eventCount }} wydarzeń</p>
                         <p class="text-muted-foreground text-sm">
                             Wszystkie wczytane dla wybranego dnia
                         </p>
@@ -65,10 +65,10 @@ defineProps<{
                     </div>
                     <div>
                         <p class="font-extrabold">
-                            {{ participantTotal }} kursantĂłw
+                            {{ participantTotal }} kursantów
                         </p>
                         <p class="text-muted-foreground text-sm">
-                            Suma uczestnikĂłw w wydarzeniach
+                            Suma uczestników w wydarzeniach
                         </p>
                     </div>
                 </div>
@@ -79,10 +79,10 @@ defineProps<{
                 class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-amber-900"
             >
                 <p class="font-extrabold">
-                    {{ attentionEvents.length }} wymagajÄ… uwagi
+                    {{ attentionEvents.length }} wymagają uwagi
                 </p>
                 <p class="text-sm">
-                    Anulowane lub oznaczone jako nieobecnoĹ›Ä‡.
+                    Anulowane lub oznaczone jako nieobecność.
                 </p>
             </div>
         </UiCardContent>

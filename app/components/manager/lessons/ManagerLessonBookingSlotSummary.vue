@@ -23,7 +23,7 @@ defineProps<{
         </p>
         <p v-else>
             <span class="text-muted-foreground">
-                DostÄ™pnych instruktorĂłw w tym oknie:
+                Dostępnych instruktorów w tym oknie:
             </span>
             {{ availableInstructors.length }}
         </p>

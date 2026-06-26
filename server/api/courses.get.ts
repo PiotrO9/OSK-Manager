@@ -5,7 +5,7 @@ import { parseRequiredUuidQuery } from '~~/server/utils/validation/requestValida
 export default defineEventHandler(async (event) => {
     const schoolId = parseRequiredUuidQuery(getQuery(event), 'schoolId', {
         required: 'Parametr schoolId jest wymagany.',
-        invalid: 'Parametr schoolId musi byÄ‡ poprawnym identyfikatorem UUID.',
+        invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
     });
 
     const upstream = resolveUpstreamBase(event);

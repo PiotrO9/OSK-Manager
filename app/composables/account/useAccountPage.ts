@@ -61,7 +61,7 @@ export function useAccountPage() {
     const avatarImageFailed = ref(false);
 
     const displayName = computed(
-        () => session.value?.userName ?? 'UĹĽytkownik',
+        () => session.value?.userName ?? 'Użytkownik',
     );
 
     const sessionRoleBadge = computed(() =>
@@ -157,7 +157,7 @@ export function useAccountPage() {
             const last = editLastName.value.trim();
 
             if (!first) {
-                profileNamesError.value = 'ImiÄ™ jest wymagane.';
+                profileNamesError.value = 'Imię jest wymagane.';
 
                 return;
             }
@@ -172,7 +172,7 @@ export function useAccountPage() {
                 first.length > PROFILE_NAME_MAX_LEN ||
                 last.length > PROFILE_NAME_MAX_LEN
             ) {
-                profileNamesError.value = `KaĹĽde pole moĹĽe mieÄ‡ co najwyĹĽej ${PROFILE_NAME_MAX_LEN} znakĂłw.`;
+                profileNamesError.value = `Każde pole może mieć co najwyżej ${PROFILE_NAME_MAX_LEN} znaków.`;
 
                 return;
             }
@@ -186,7 +186,7 @@ export function useAccountPage() {
             const bio = editBio.value.trim();
 
             if (bio.length > PROFILE_BIO_MAX_LEN) {
-                profileContactError.value = `Opis moĹĽe mieÄ‡ co najwyĹĽej ${PROFILE_BIO_MAX_LEN} znakĂłw.`;
+                profileContactError.value = `Opis może mieć co najwyżej ${PROFILE_BIO_MAX_LEN} znaków.`;
 
                 return;
             }
@@ -210,7 +210,7 @@ export function useAccountPage() {
             addToast({
                 variant: 'error',
                 title: 'Nie zapisano zmian',
-                description: getApiFetchErrorMessage(err, 'SprĂłbuj ponownie.'),
+                description: getApiFetchErrorMessage(err, 'Spróbuj ponownie.'),
             });
         } finally {
             isProfileNamesSaving.value = false;
@@ -246,7 +246,7 @@ export function useAccountPage() {
         if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
             addToast({
                 variant: 'error',
-                title: 'NieobsĹ‚ugiwany format',
+                title: 'Nieobsługiwany format',
                 description: 'Dozwolone: JPEG, PNG, WebP.',
             });
 
@@ -256,7 +256,7 @@ export function useAccountPage() {
         if (file.size > MAX_AVATAR_BYTES) {
             addToast({
                 variant: 'error',
-                title: 'Plik za duĹĽy',
+                title: 'Plik za duży',
                 description: 'Maksymalny rozmiar avatara to 5 MB.',
             });
 
@@ -281,7 +281,7 @@ export function useAccountPage() {
             });
 
             if (raw?.success !== true || !raw?.data?.photoUrl) {
-                throw new Error('NieprawidĹ‚owa odpowiedĹş serwera.');
+                throw new Error('Nieprawidłowa odpowiedź serwera.');
             }
 
             await refreshProfileFromServer();
@@ -293,10 +293,10 @@ export function useAccountPage() {
         } catch (err: unknown) {
             addToast({
                 variant: 'error',
-                title: 'Upload nie powiĂłdĹ‚ siÄ™',
+                title: 'Upload nie powiódł się',
                 description: getApiFetchErrorMessage(
                     err,
-                    'SprĂłbuj ponownie pĂłĹşniej.',
+                    'Spróbuj ponownie później.',
                 ),
             });
         } finally {
@@ -455,7 +455,7 @@ function userInitialsFromName(name: string): string {
 
 function formatProfileField(value: string | null | undefined): string {
     if (value === null || value === undefined || value.trim() === '') {
-        return 'â€”';
+        return '—';
     }
 
     return value.trim();

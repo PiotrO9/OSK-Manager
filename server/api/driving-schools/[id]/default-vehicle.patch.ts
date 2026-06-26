@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!schoolId) {
         throw createError({
             statusCode: 400,
-            message: 'Brak identyfikatora szkoĹ‚y jazdy.',
+            message: 'Brak identyfikatora szkoły jazdy.',
         });
     }
 

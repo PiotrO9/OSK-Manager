@@ -87,7 +87,7 @@ export function useStudentLessonBookingPage() {
         const course = selectedCourse.value;
 
         if (!course) {
-            return 'Wybierz kurs, ĹĽeby zobaczyÄ‡ postÄ™p.';
+            return 'Wybierz kurs, żeby zobaczyć postęp.';
         }
 
         return `${course.progress} z ${course.totalHours} godzin wykorzystane`;
@@ -107,10 +107,10 @@ export function useStudentLessonBookingPage() {
         }
 
         if (isSlotsLoading.value) {
-            return 'Wczytywanie terminĂłw';
+            return 'Wczytywanie terminów';
         }
 
-        return `${slots.value.length} dostÄ™pnych terminĂłw`;
+        return `${slots.value.length} dostępnych terminów`;
     });
 
     async function loadCourses(): Promise<void> {
@@ -131,7 +131,7 @@ export function useStudentLessonBookingPage() {
             selectedCourseId.value = '';
             coursesErrorMessage.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ pobraÄ‡ listy kursĂłw.',
+                'Nie udało się pobrać listy kursów.',
             );
         } finally {
             isCoursesLoading.value = false;
@@ -177,7 +177,7 @@ export function useStudentLessonBookingPage() {
             slots.value = [];
             slotsErrorMessage.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ pobraÄ‡ wolnych terminĂłw.',
+                'Nie udało się pobrać wolnych terminów.',
             );
         }
     }
@@ -224,12 +224,12 @@ export function useStudentLessonBookingPage() {
         } catch (err: unknown) {
             const message = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ zarezerwowaÄ‡ jazdy.',
+                'Nie udało się zarezerwować jazdy.',
             );
 
             slotsErrorMessage.value = message;
             addToast({
-                title: 'Nie udaĹ‚o siÄ™ zarezerwowaÄ‡ jazdy',
+                title: 'Nie udało się zarezerwować jazdy',
                 description: message,
                 variant: 'error',
             });

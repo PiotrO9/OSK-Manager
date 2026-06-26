@@ -7,7 +7,7 @@ definePageMeta({
 });
 
 usePageMeta({
-    title: () => 'Rezerwuj jazdÄ™',
+    title: () => 'Rezerwuj jazdę',
     description: () => 'Samodzielna rezerwacja jazdy praktycznej.',
 });
 
@@ -39,7 +39,7 @@ const {
     <div class="space-y-5">
         <PageHeader
             title="Rezerwacja jazdy"
-            description="Wybierz kurs, sprawdĹş dostÄ™pnoĹ›Ä‡ i zarezerwuj pasujÄ…cy slot."
+            description="Wybierz kurs, sprawdź dostępność i zarezerwuj pasujący slot."
         >
             <template #actions>
                 <UiBadge
@@ -58,7 +58,7 @@ const {
             <UiCard class="overflow-hidden rounded-2xl shadow-sm">
                 <UiCardHeader class="border-border border-b p-5 pt-0">
                     <UiCardTitle class="text-xl font-extrabold">
-                        DostÄ™pne terminy
+                        Dostępne terminy
                     </UiCardTitle>
                     <UiCardDescription>
                         Sloty zgodne z kursem i filtrami kursanta.
@@ -68,7 +68,7 @@ const {
                 <UiCardContent class="space-y-4 px-4 py-0">
                     <ErrorState
                         v-if="coursesErrorMessage"
-                        title="Nie udaĹ‚o siÄ™ wczytaÄ‡ kursĂłw"
+                        title="Nie udało się wczytać kursów"
                         :description="coursesErrorMessage"
                         @retry="loadCourses"
                     />

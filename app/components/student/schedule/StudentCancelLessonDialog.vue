@@ -21,7 +21,7 @@ const open = defineModel<boolean>('open', {
             aria-describedby="student-cancel-lesson-description"
         >
             <UiDialogHeader>
-                <UiDialogTitle>AnulowaÄ‡ rezerwacjÄ™?</UiDialogTitle>
+                <UiDialogTitle>Anulować rezerwację?</UiDialogTitle>
                 <UiDialogDescription id="student-cancel-lesson-description">
                     Ta jazda zostanie oznaczona jako anulowana i zniknie z
                     Twojego aktywnego harmonogramu.
@@ -50,7 +50,7 @@ const open = defineModel<boolean>('open', {
                     :aria-busy="isCancelling"
                     @click="$emit('confirm')"
                 >
-                    {{ isCancelling ? 'Anulowanie...' : 'Anuluj rezerwacjÄ™' }}
+                    {{ isCancelling ? 'Anulowanie...' : 'Anuluj rezerwację' }}
                 </UiButton>
             </UiDialogFooter>
         </UiDialogContent>

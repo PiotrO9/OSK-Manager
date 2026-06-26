@@ -46,7 +46,7 @@ export function bffMockCoursesCreate(body: BffCourseCreateBody): {
             throw createError({
                 statusCode: 400,
                 message:
-                    'Wybrany instruktor nie jest przypisany do tej szkoĹ‚y jazdy.',
+                    'Wybrany instruktor nie jest przypisany do tej szkoły jazdy.',
             });
         }
 
@@ -114,7 +114,7 @@ export function bffMockCoursesPatch(
         throw createError({
             statusCode: 400,
             message:
-                'Wybrany instruktor nie jest przypisany do szkoĹ‚y tego kursu.',
+                'Wybrany instruktor nie jest przypisany do szkoły tego kursu.',
         });
     }
 

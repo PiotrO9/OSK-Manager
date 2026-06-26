@@ -49,12 +49,12 @@ const {
             class="max-h-[90vh] max-w-lg overflow-y-auto"
         >
             <UiDialogHeader>
-                <UiDialogTitle>Rezerwuj lekcjÄ™</UiDialogTitle>
+                <UiDialogTitle>Rezerwuj lekcję</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
                     Utworzenie jazdy praktycznej przez
                     <span class="font-mono">POST /api/lessons</span>. Wybierz
                     kursanta, kurs praktyczny lub dodatkowy oraz pojazd. Lekcji
-                    teoretycznych nie planuje siÄ™ w tym oknie â€” sÄ… grupowe.
+                    teoretycznych nie planuje się w tym oknie — są grupowe.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -103,7 +103,7 @@ const {
                     class="border-primary/30 bg-primary/5 text-primary rounded-md border px-3 py-2 text-xs"
                     role="note"
                 >
-                    Ta rezerwacja dotyczy wyĹ‚Ä…cznie jazdy praktycznej â€”
+                    Ta rezerwacja dotyczy wyłącznie jazdy praktycznej —
                     lekcja zostanie zaliczona do kursu praktycznego lub
                     dodatkowego kursanta.
                 </p>
@@ -142,7 +142,7 @@ const {
                     </UiButton>
                     <UiButton type="submit" :disabled="isCreating">
                         {{
-                            isCreating ? 'Zapisywanieâ€¦' : 'Zarezerwuj lekcjÄ™'
+                            isCreating ? 'Zapisywanie…' : 'Zarezerwuj lekcję'
                         }}
                     </UiButton>
                 </UiDialogFooter>

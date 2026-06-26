@@ -98,7 +98,7 @@ const editBio = defineModel<string>('editBio', { required: true });
                     <div class="space-y-1">
                         <div class="flex items-center gap-2">
                             <p class="text-foreground text-sm font-semibold">
-                                ZdjÄ™cie profilowe
+                                Zdjęcie profilowe
                             </p>
                             <TooltipProvider>
                                 <Tooltip>
@@ -106,7 +106,7 @@ const editBio = defineModel<string>('editBio', { required: true });
                                         <button
                                             type="button"
                                             class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                                            aria-label="Wymagania zdjÄ™cia profilowego"
+                                            aria-label="Wymagania zdjęcia profilowego"
                                         >
                                             <Info
                                                 class="size-4"
@@ -125,7 +125,7 @@ const editBio = defineModel<string>('editBio', { required: true });
                             class="text-muted-foreground text-sm"
                             role="status"
                         >
-                            W trybie demo nie moĹĽna przesĹ‚aÄ‡ avatara.
+                            W trybie demo nie można przesłać avatara.
                         </p>
                     </div>
                     <UiButton
@@ -138,8 +138,8 @@ const editBio = defineModel<string>('editBio', { required: true });
                     >
                         {{
                             isAvatarUploadLoading
-                                ? 'WysyĹ‚anieâ€¦'
-                                : 'ZmieĹ„ avatar'
+                                ? 'Wysyłanie…'
+                                : 'Zmień avatar'
                         }}
                     </UiButton>
                 </div>
@@ -157,7 +157,7 @@ const editBio = defineModel<string>('editBio', { required: true });
                                 class="text-muted-foreground size-4"
                                 aria-hidden="true"
                             />
-                            ImiÄ™ i nazwisko
+                            Imię i nazwisko
                         </dt>
                         <div
                             v-if="inlineProfileEditing && canEditProfileNames"
@@ -167,14 +167,14 @@ const editBio = defineModel<string>('editBio', { required: true });
                                 <span
                                     class="text-muted-foreground text-xs font-medium"
                                 >
-                                    ImiÄ™
+                                    Imię
                                 </span>
                                 <UiInput
                                     v-model="editFirstName"
                                     :maxlength="PROFILE_NAME_MAX_LEN"
                                     autocomplete="given-name"
                                     :disabled="isInlineProfileSaving"
-                                    aria-label="ImiÄ™"
+                                    aria-label="Imię"
                                 />
                             </label>
                             <label class="grid gap-1.5">

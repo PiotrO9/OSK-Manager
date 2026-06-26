@@ -53,7 +53,7 @@ export function bffMockVehiclesCreate(body: BffVehicleWriteBody): {
         throw createError({
             statusCode: 409,
             message:
-                'Pojazd z tym numerem rejestracyjnym jest juĹĽ zapisany dla tej szkoĹ‚y.',
+                'Pojazd z tym numerem rejestracyjnym jest już zapisany dla tej szkoły.',
         });
     }
 
@@ -85,7 +85,7 @@ export function bffMockVehiclesUpdate(
         throw createError({
             statusCode: 409,
             message:
-                'Pojazd z tym numerem rejestracyjnym jest juĹĽ zapisany dla tej szkoĹ‚y.',
+                'Pojazd z tym numerem rejestracyjnym jest już zapisany dla tej szkoły.',
         });
     }
 

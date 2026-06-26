@@ -28,7 +28,7 @@ const selectedVehicleId = defineModel<string>('selectedVehicleId', {
                 class="w-full"
                 aria-required="true"
             >
-                <UiSelectValue placeholder="â€” Wybierz pojazd â€”" />
+                <UiSelectValue placeholder="— Wybierz pojazd —" />
             </UiSelectTrigger>
             <UiSelectContent>
                 <UiSelectGroup>
@@ -47,8 +47,8 @@ const selectedVehicleId = defineModel<string>('selectedVehicleId', {
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Brak wolnych pojazdĂłw w tym oknie â€” wybierz inny slot lub
-            sprawdĹş flotÄ™ OSK.
+            Brak wolnych pojazdów w tym oknie — wybierz inny slot lub
+            sprawdź flotę OSK.
         </p>
     </div>
 </template>

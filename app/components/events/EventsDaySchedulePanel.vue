@@ -99,7 +99,7 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
 
             <ErrorState
                 v-else-if="errorMessage"
-                title="Nie udaĹ‚o siÄ™ wczytaÄ‡ wydarzeĹ„"
+                title="Nie udało się wczytać wydarzeń"
                 :description="errorMessage"
                 @retry="$emit('retry')"
             />
@@ -112,13 +112,13 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                 "
                 :title="
                     events.length === 0
-                        ? 'Brak wydarzeĹ„ w wybranym dniu'
-                        : 'Brak wydarzeĹ„ dla wybranego statusu'
+                        ? 'Brak wydarzeń w wybranym dniu'
+                        : 'Brak wydarzeń dla wybranego statusu'
                 "
                 :description="
                     events.length === 0
-                        ? 'ZmieĹ„ dzieĹ„ lub wrĂłÄ‡ do dzisiejszego widoku.'
-                        : 'Wybierz inny status, aby zobaczyÄ‡ pozostaĹ‚e wydarzenia.'
+                        ? 'Zmień dzień lub wróć do dzisiejszego widoku.'
+                        : 'Wybierz inny status, aby zobaczyć pozostałe wydarzenia.'
                 "
             />
 
@@ -206,7 +206,7 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                                         class="mt-1 text-xs font-medium text-sky-700"
                                     >
                                         {{ displayParticipantCount(event) }}
-                                        kursantĂłw
+                                        kursantów
                                     </p>
                                     <div
                                         class="mt-3 flex items-center justify-between gap-2"

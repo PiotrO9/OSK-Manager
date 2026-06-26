@@ -26,7 +26,7 @@ function formatInstructorDisplayName(item: InstructorListItem): string {
         .map((part) => part.trim())
         .filter((part) => part.length > 0);
 
-    return parts.length > 0 ? parts.join(' ') : 'â€”';
+    return parts.length > 0 ? parts.join(' ') : '—';
 }
 
 export function parseInstructorListItemFromApi(

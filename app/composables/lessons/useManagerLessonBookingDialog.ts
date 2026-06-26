@@ -87,7 +87,7 @@ export function formatLessonBookingSlotWhenLabel(
     const date = new Date(`${slotCtx.date}T12:00:00`);
 
     if (Number.isNaN(date.getTime())) {
-        return `${slotCtx.date}, ${slotCtx.startTime}â€“${slotCtx.endTime}`;
+        return `${slotCtx.date}, ${slotCtx.startTime}–${slotCtx.endTime}`;
     }
 
     const dateStr = date.toLocaleDateString('pl-PL', {
@@ -97,7 +97,7 @@ export function formatLessonBookingSlotWhenLabel(
         year: 'numeric',
     });
 
-    return `${dateStr}, ${slotCtx.startTime}â€“${slotCtx.endTime}`;
+    return `${dateStr}, ${slotCtx.startTime}–${slotCtx.endTime}`;
 }
 
 export function readLessonBookingFetchStatusCode(
@@ -236,7 +236,7 @@ export function useManagerLessonBookingDialog(
         const instructor = resolvedInstructor.value;
 
         if (!instructor) {
-            return 'â€”';
+            return '—';
         }
 
         return `${instructor.firstName} ${instructor.lastName}`.trim();
@@ -326,7 +326,7 @@ export function useManagerLessonBookingDialog(
         } catch (err: unknown) {
             loadCoursesError.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ wczytaÄ‡ kursĂłw kursanta.',
+                'Nie udało się wczytać kursów kursanta.',
             );
         }
     });
@@ -357,7 +357,7 @@ export function useManagerLessonBookingDialog(
 
             addToast({
                 title: 'Rezerwacja utworzona',
-                description: 'Lekcja zostaĹ‚a zapisana w systemie.',
+                description: 'Lekcja została zapisana w systemie.',
                 variant: 'success',
             });
 
@@ -368,11 +368,11 @@ export function useManagerLessonBookingDialog(
 
             if (code === 409) {
                 formError.value =
-                    'Slot lub pojazd zostaĹ‚ juĹĽ zajÄ™ty. OdĹ›wieĹĽ kalendarz i sprĂłbuj ponownie.';
+                    'Slot lub pojazd został już zajęty. Odśwież kalendarz i spróbuj ponownie.';
             } else {
                 formError.value = getApiFetchErrorMessage(
                     err,
-                    'Nie udaĹ‚o siÄ™ utworzyÄ‡ rezerwacji.',
+                    'Nie udało się utworzyć rezerwacji.',
                 );
             }
         }

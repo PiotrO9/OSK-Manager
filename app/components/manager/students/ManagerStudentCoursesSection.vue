@@ -31,7 +31,7 @@ function displayText(value: string): string {
                     Kursy w szkole
                 </h2>
                 <p class="text-muted-foreground text-sm">
-                    Przypisania kursanta do kursĂłw w tej OSK.
+                    Przypisania kursanta do kursów w tej OSK.
                 </p>
             </div>
             <ClipboardList
@@ -42,8 +42,8 @@ function displayText(value: string): string {
 
         <EmptyState
             v-if="courses.length === 0"
-            title="Brak kursĂłw"
-            description="Kursant nie jest przypisany do ĹĽadnego kursu w tej szkole."
+            title="Brak kursów"
+            description="Kursant nie jest przypisany do żadnego kursu w tej szkole."
         />
 
         <ul v-else class="space-y-3" role="list">

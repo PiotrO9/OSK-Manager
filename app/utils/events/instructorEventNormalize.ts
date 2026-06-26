@@ -266,7 +266,7 @@ export function readFreeWindowsFromRaw(
 
 export function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
     if (!raw || typeof raw !== 'object') {
-        throw new Error('NieprawidĹ‚owa odpowiedĹş serwera');
+        throw new Error('Nieprawidłowa odpowiedź serwera');
     }
 
     const o = raw as Record<string, unknown>;

@@ -40,7 +40,7 @@ const {
     <div class="space-y-5">
         <PageHeader
             :title="studentDisplayName"
-            description="Profil kursanta, status procesu, pĹ‚atnoĹ›ci i najbliĹĽsze jazdy."
+            description="Profil kursanta, status procesu, płatności i najbliższe jazdy."
         >
             <template #actions>
                 <UiButton
@@ -50,10 +50,10 @@ const {
                 >
                     <NuxtLink
                         :to="backToListHref"
-                        aria-label="WrĂłÄ‡ do listy kursantĂłw"
+                        aria-label="Wróć do listy kursantów"
                     >
                         <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista kursantĂłw
+                        Lista kursantów
                     </NuxtLink>
                 </UiButton>
             </template>
@@ -66,7 +66,7 @@ const {
 
         <ErrorState
             v-else-if="errorMessage"
-            title="Nie udaĹ‚o siÄ™ wczytaÄ‡ kursanta"
+            title="Nie udało się wczytać kursanta"
             :description="errorMessage"
         />
 

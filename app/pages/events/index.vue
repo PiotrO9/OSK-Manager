@@ -13,7 +13,7 @@ definePageMeta({
 usePageMeta({
     title: () => 'Wydarzenia',
     description: () =>
-        'Dzienny widok wydarzeĹ„ instruktora - zajÄ™cia grupowe i bloki czasu.',
+        'Dzienny widok wydarzeń instruktora - zajęcia grupowe i bloki czasu.',
 });
 
 const eventsDay = useEventsDayPage();
@@ -37,7 +37,7 @@ const eventsDay = useEventsDayPage();
                             variant="outline"
                             class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
                             :disabled="eventsDay.isLoading.value"
-                            aria-label="Wybierz dzieĹ„ w kalendarzu"
+                            aria-label="Wybierz dzień w kalendarzu"
                         >
                             <CalendarDays
                                 class="mr-2 size-4"

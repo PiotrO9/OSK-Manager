@@ -29,11 +29,11 @@ function getNotFoundMessage(): string {
 }
 
 function getGenericLoadErrorMessage(): string {
-    return 'Nie udaĹ‚o siÄ™ wczytaÄ‡ danych kursanta.';
+    return 'Nie udało się wczytać danych kursanta.';
 }
 
 function getMissingSchoolIdMessage(): string {
-    return 'Brak identyfikatora szkoĹ‚y w adresie strony. WrĂłÄ‡ do listy kursantĂłw i otwĂłrz szczegĂłĹ‚y ponownie.';
+    return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
 }
 
 export function useManagerStudentDetailsPage() {
@@ -122,11 +122,11 @@ export function useManagerStudentDetailsPage() {
         }
 
         if (processStatusError.value) {
-            return 'BĹ‚Ä…d';
+            return 'Błąd';
         }
 
         if (total === 0) {
-            return 'Brak krokĂłw';
+            return 'Brak kroków';
         }
 
         return `${processCompletedCount.value}/${total}`;
@@ -144,7 +144,7 @@ export function useManagerStudentDetailsPage() {
         }
 
         if (paymentsError.value) {
-            return 'BĹ‚Ä…d';
+            return 'Błąd';
         }
 
         return `${payments.value.length}`;
@@ -156,7 +156,7 @@ export function useManagerStudentDetailsPage() {
         }
 
         if (scheduleError.value) {
-            return 'BĹ‚Ä…d';
+            return 'Błąd';
         }
 
         return `${scheduleItems.value.length}`;
@@ -181,7 +181,7 @@ export function useManagerStudentDetailsPage() {
 
     usePageMeta({
         title: () => studentDisplayName.value,
-        description: () => 'SzczegĂłĹ‚y kursanta.',
+        description: () => 'Szczegóły kursanta.',
     });
 
     let fetchSeq = 0;
@@ -297,7 +297,7 @@ export function useManagerStudentDetailsPage() {
             processStatus.value = null;
             processStatusError.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ wczytaÄ‡ statusu procesu kursanta.',
+                'Nie udało się wczytać statusu procesu kursanta.',
             );
         } finally {
             if (seq === processStatusFetchSeq) {
@@ -338,7 +338,7 @@ export function useManagerStudentDetailsPage() {
             payments.value = [];
             paymentsError.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ wczytaÄ‡ opĹ‚at kursanta.',
+                'Nie udało się wczytać opłat kursanta.',
             );
         } finally {
             if (seq === paymentsFetchSeq) {
@@ -384,7 +384,7 @@ export function useManagerStudentDetailsPage() {
             scheduleItems.value = [];
             scheduleError.value = getApiFetchErrorMessage(
                 err,
-                'Nie udaĹ‚o siÄ™ wczytaÄ‡ terminarza lekcji.',
+                'Nie udało się wczytać terminarza lekcji.',
             );
         } finally {
             if (seq === scheduleFetchSeq) {
