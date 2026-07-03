@@ -9,9 +9,12 @@ import {
     mockVehiclesSetPhotoUrl,
     mockVehiclesUpdate,
     mockVehiclesUpdateStatus,
-    type MockVehicleStatus,
 } from '~~/server/utils/vehicles/mockVehiclesStore';
-import type { BffVehiclePatchBody, BffVehicleWriteBody } from './vehiclesBff';
+import type {
+    BffVehiclePatchBody,
+    BffVehicleStatusBody,
+    BffVehicleWriteBody,
+} from './vehiclesBff';
 
 function dataSuccess(data: unknown): { success: true; data: unknown } {
     return { success: true, data };
@@ -103,7 +106,7 @@ export function bffMockVehiclesUpdate(
 
 export function bffMockVehiclesUpdateStatus(
     id: string,
-    status: MockVehicleStatus,
+    body: BffVehicleStatusBody,
 ): { success: true; data: unknown } {
     const existing = mockVehiclesGetById(id);
 
@@ -114,7 +117,7 @@ export function bffMockVehiclesUpdateStatus(
         });
     }
 
-    const updated = mockVehiclesUpdateStatus(id, status);
+    const updated = mockVehiclesUpdateStatus(id, body);
 
     if (!updated) {
         throw createError({

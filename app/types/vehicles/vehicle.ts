@@ -17,6 +17,7 @@ export interface Vehicle {
     name: string;
     registrationNumber: string;
     status: VehicleStatus;
+    unavailableUntil: string | null;
     isDefault: boolean;
     /** ISO YYYY-MM-DD lub null */
     inspectionDate: string | null;
@@ -211,6 +212,7 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
 
     const inspectionRaw = o.inspectionDate ?? o.inspection_date;
     const insuranceRaw = o.insuranceDate ?? o.insurance_date;
+    const unavailableUntilRaw = o.unavailableUntil ?? o.unavailable_until;
     const modelYearRaw = o.modelYear ?? o.model_year;
     const mileageRaw = o.mileageKm ?? o.mileage_km;
 
@@ -219,6 +221,7 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
         name: name.trim(),
         registrationNumber: registrationNumber.trim(),
         status,
+        unavailableUntil: parseOptionalIsoDate(unavailableUntilRaw),
         isDefault,
         inspectionDate: parseOptionalIsoDate(inspectionRaw),
         insuranceDate: parseOptionalIsoDate(insuranceRaw),

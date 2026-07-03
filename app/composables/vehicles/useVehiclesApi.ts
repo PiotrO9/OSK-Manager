@@ -15,6 +15,11 @@ export type VehicleCreateBody = VehicleWritePayload & { schoolId: string };
 
 export type VehicleUpdateBody = VehicleWritePayload;
 
+export interface VehicleStatusUpdateBody {
+    status: VehicleStatus;
+    unavailableUntil?: string | null;
+}
+
 export function useVehiclesApi() {
     const isListLoading = ref(false);
     const isCreateLoading = ref(false);
@@ -84,16 +89,20 @@ export function useVehiclesApi() {
 
     async function updateVehicleStatus(
         id: string,
-        status: VehicleStatus,
+        statusOrBody: VehicleStatus | VehicleStatusUpdateBody,
     ): Promise<Vehicle> {
         const vehicleId = id.trim();
+        const body =
+            typeof statusOrBody === 'string'
+                ? { status: statusOrBody }
+                : statusOrBody;
 
         return await runWithLoading(isStatusUpdateLoading, () =>
             requestBffData<Vehicle>(
                 'PATCH',
                 `/api/vehicles/${encodeURIComponent(vehicleId)}/status`,
                 {
-                    body: { status },
+                    body,
                     fallbackMessage: 'Nie udało się zmienić statusu pojazdu.',
                     invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
                     normalize: (data) => normalizeVehicle(data, 0),

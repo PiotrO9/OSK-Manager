@@ -2,13 +2,35 @@ import { describe, expect, it } from 'vitest';
 import { bffMockEventsPost } from '~~/server/utils/events/eventsMockBff';
 import { bffMockLessonsPost } from '~~/server/utils/lessons/lessonsMockBff';
 import { bffMockStudentPaymentsList } from '~~/server/utils/students/studentsMockBff';
-import { bffMockVehiclesList } from '~~/server/utils/vehicles/vehiclesMockBff';
+import {
+    bffMockVehiclesList,
+    bffMockVehiclesUpdateStatus,
+} from '~~/server/utils/vehicles/vehiclesMockBff';
 
 describe('mock BFF adapters', () => {
     it('returns vehicle lists in the BFF success envelope', () => {
         expect(bffMockVehiclesList('school-1')).toMatchObject({
             success: true,
             data: expect.any(Array),
+        });
+    });
+
+    it('returns temporary vehicle unavailability from the mock BFF', () => {
+        const vehicle = (
+            bffMockVehiclesList('school-temp').data as Array<{ id: string }>
+        )[0];
+
+        expect(
+            bffMockVehiclesUpdateStatus(vehicle.id, {
+                status: 'UNAVAILABLE',
+                unavailableUntil: '2026-07-10',
+            }),
+        ).toMatchObject({
+            success: true,
+            data: {
+                status: 'UNAVAILABLE',
+                unavailableUntil: '2026-07-10',
+            },
         });
     });
 

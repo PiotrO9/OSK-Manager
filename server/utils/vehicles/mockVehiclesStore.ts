@@ -6,6 +6,7 @@ export interface MockVehicleRow {
     name: string;
     registrationNumber: string;
     status: MockVehicleStatus;
+    unavailableUntil: string | null;
     isDefault: boolean;
     inspectionDate: string | null;
     insuranceDate: string | null;
@@ -42,6 +43,7 @@ function ensureSeedForSchool(schoolId: string) {
             name: 'Toyota Yaris',
             registrationNumber: 'KR 12345',
             status: 'ACTIVE',
+            unavailableUntil: null,
             isDefault: true,
             inspectionDate: '2025-06-15',
             insuranceDate: '2025-12-01',
@@ -55,6 +57,7 @@ function ensureSeedForSchool(schoolId: string) {
             name: 'Skoda Octavia — pojazd szkoleniowy z bardzo długą nazwą do testu UI',
             registrationNumber: 'WW 99999',
             status: 'UNAVAILABLE',
+            unavailableUntil: null,
             isDefault: false,
             inspectionDate: '2024-03-20',
             insuranceDate: null,
@@ -71,6 +74,7 @@ function rowToResponse(row: MockVehicleRow): Record<string, unknown> {
         name: row.name,
         registrationNumber: row.registrationNumber,
         status: row.status,
+        unavailableUntil: row.unavailableUntil,
         isDefault: row.isDefault,
         inspectionDate: row.inspectionDate,
         insuranceDate: row.insuranceDate,
@@ -89,6 +93,8 @@ export function mockVehicleRowToDetailPayload(
         name: row.name,
         registrationNumber: row.registrationNumber,
         isActive: row.status === 'ACTIVE',
+        status: row.status,
+        unavailableUntil: row.unavailableUntil,
         inspectionDate: row.inspectionDate,
         insuranceDate: row.insuranceDate,
         photoUrl: row.photoUrl,
@@ -125,6 +131,7 @@ export function mockVehiclesCreate(row: {
         name: row.name,
         registrationNumber: row.registrationNumber,
         status: 'ACTIVE',
+        unavailableUntil: null,
         isDefault: false,
         inspectionDate: row.inspectionDate,
         insuranceDate: row.insuranceDate,
@@ -221,13 +228,18 @@ export function mockVehiclesSetDefaultForSchool(
 
 export function mockVehiclesUpdateStatus(
     id: string,
-    status: MockVehicleStatus,
+    body: {
+        status: MockVehicleStatus;
+        unavailableUntil?: string | null;
+    },
 ): MockVehicleRow | null {
     const row = mockVehiclesGetById(id);
 
     if (!row) return null;
 
-    row.status = status;
+    row.status = body.status;
+    row.unavailableUntil =
+        body.status === 'UNAVAILABLE' ? (body.unavailableUntil ?? null) : null;
 
     return row;
 }

@@ -22,6 +22,7 @@ export interface BffVehiclePatchBody {
 
 export interface BffVehicleStatusBody {
     status: 'ACTIVE' | 'UNAVAILABLE';
+    unavailableUntil?: string | null;
 }
 
 function dataSuccess(data: unknown): { success: true; data: unknown } {
