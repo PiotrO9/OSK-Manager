@@ -9,8 +9,9 @@ import {
     Shield,
     Trash2,
 } from 'lucide-vue-next';
+import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
-import type { Vehicle, VehicleStatus } from '~/types/vehicles/vehicle';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 const props = defineProps<{
     isManager: boolean;
@@ -34,7 +35,7 @@ const emit = defineEmits<{
     cancelDelete: [];
     confirmDelete: [];
     setDefault: [vehicle: Vehicle];
-    statusChange: [vehicle: Vehicle, status: VehicleStatus];
+    statusChange: [vehicle: Vehicle, payload: VehicleStatusUpdateBody];
 }>();
 
 const {
@@ -376,9 +377,9 @@ const {
                             v-if="isManager && activePanel === 'manager'"
                             class="mt-4 flex flex-wrap items-center justify-between gap-3"
                         >
-                            <VehicleStatusControl
-                                :id="`vehicle-status-mobile-${vehicle.id}`"
-                                :status="vehicle.status"
+                            <VehicleAvailabilityControl
+                                id-prefix="vehicle-status-mobile"
+                                :vehicle="vehicle"
                                 :disabled="
                                     statusUpdatingVehicleId === vehicle.id
                                 "
@@ -498,9 +499,9 @@ const {
                             {{ displayText(vehicle.registrationNumber) }}
                         </span>
                     </span>
-                    <VehicleStatusControl
-                        :id="`vehicle-status-${vehicle.id}`"
-                        :status="vehicle.status"
+                    <VehicleAvailabilityControl
+                        id-prefix="vehicle-status"
+                        :vehicle="vehicle"
                         :disabled="statusUpdatingVehicleId === vehicle.id"
                         :busy="statusUpdatingVehicleId === vehicle.id"
                         :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"

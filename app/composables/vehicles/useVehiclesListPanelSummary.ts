@@ -1,5 +1,9 @@
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import {
+    vehicleAvailabilityLabel,
+    vehicleAvailabilityTone,
+} from '~/utils/vehicles/availability';
 
 export interface VehiclesListPanelSummaryProps {
     activePanel: VehiclesListPanelId;
@@ -108,9 +112,9 @@ function formatVehicleMeta(vehicle: Vehicle): string {
 }
 
 function vehicleStatusLabel(vehicle: Vehicle): string {
-    return isVehicleAvailable(vehicle) ? 'Dostępny' : 'Niedostępny';
+    return vehicleAvailabilityLabel(vehicle);
 }
 
 function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
-    return isVehicleAvailable(vehicle) ? 'success' : 'warning';
+    return vehicleAvailabilityTone(vehicle);
 }

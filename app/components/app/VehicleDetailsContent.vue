@@ -12,6 +12,11 @@ import {
 import type { RouteLocationRaw } from 'vue-router';
 import type { StatusTone } from '~/components/app/ui/types';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
+import {
+    vehicleAvailabilityDescription,
+    vehicleAvailabilityLabel,
+    vehicleAvailabilityTone,
+} from '~/utils/vehicles/availability';
 
 const props = defineProps<{
     vehicle: VehicleDetail;
@@ -72,16 +77,16 @@ const vehicleInitials = computed(() => {
 const availability = computed(() => {
     if (props.vehicle.status === 'UNAVAILABLE') {
         return {
-            label: 'Niedostępny',
-            tone: 'danger' as StatusTone,
-            description: 'Pojazd oznaczony jako niedostępny.',
+            label: vehicleAvailabilityLabel(props.vehicle),
+            tone: vehicleAvailabilityTone(props.vehicle) as StatusTone,
+            description: vehicleAvailabilityDescription(props.vehicle),
         };
     }
 
     return {
-        label: 'Aktywny',
-        tone: 'success' as StatusTone,
-        description: 'Pojazd może być używany w harmonogramie.',
+        label: vehicleAvailabilityLabel(props.vehicle),
+        tone: vehicleAvailabilityTone(props.vehicle) as StatusTone,
+        description: vehicleAvailabilityDescription(props.vehicle),
     };
 });
 

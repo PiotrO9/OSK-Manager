@@ -1,4 +1,5 @@
-import type { Vehicle, VehicleStatus } from '~/types/vehicles/vehicle';
+import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 export type VehiclesListPanelId = 'simple' | 'manager';
 
@@ -202,16 +203,21 @@ export function useVehiclesListPage() {
 
     async function handleVehicleStatusChange(
         vehicle: Vehicle,
-        status: VehicleStatus,
+        payload: VehicleStatusUpdateBody,
     ) {
-        if (vehicle.status === status) return;
+        if (
+            vehicle.status === payload.status &&
+            vehicle.unavailableUntil === (payload.unavailableUntil ?? null)
+        ) {
+            return;
+        }
 
         if (statusUpdatingVehicleId.value !== null) return;
 
         statusUpdatingVehicleId.value = vehicle.id;
 
         try {
-            const updated = await updateVehicleStatus(vehicle.id, status);
+            const updated = await updateVehicleStatus(vehicle.id, payload);
             const index = vehicles.value.findIndex((v) => v.id === vehicle.id);
 
             if (index === -1) {
