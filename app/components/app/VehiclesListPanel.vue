@@ -39,12 +39,10 @@ const emit = defineEmits<{
 
 const {
     activePanelLabel,
-    checkedToVehicleStatus,
     createVehicleTarget,
     displayText,
     formatOptionalDate,
     formatVehicleMeta,
-    isVehicleAvailable,
     resultsLabel,
     summaryItems,
     vehicleStatusLabel,
@@ -378,31 +376,18 @@ const {
                             v-if="isManager && activePanel === 'manager'"
                             class="mt-4 flex flex-wrap items-center justify-between gap-3"
                         >
-                            <label
-                                class="text-foreground bg-muted/40 border-border inline-flex items-center gap-3 rounded-lg border px-3 py-2 text-xs font-medium"
-                                :for="`vehicle-status-mobile-${vehicle.id}`"
-                            >
-                                <span>{{ vehicleStatusLabel(vehicle) }}</span>
-                                <UiSwitch
-                                    :id="`vehicle-status-mobile-${vehicle.id}`"
-                                    class="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300"
-                                    :model-value="isVehicleAvailable(vehicle)"
-                                    :disabled="
-                                        statusUpdatingVehicleId === vehicle.id
-                                    "
-                                    :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
-                                    :aria-busy="
-                                        statusUpdatingVehicleId === vehicle.id
-                                    "
-                                    @update:model-value="
-                                        emit(
-                                            'statusChange',
-                                            vehicle,
-                                            checkedToVehicleStatus($event),
-                                        )
-                                    "
-                                />
-                            </label>
+                            <VehicleStatusControl
+                                :id="`vehicle-status-mobile-${vehicle.id}`"
+                                :status="vehicle.status"
+                                :disabled="
+                                    statusUpdatingVehicleId === vehicle.id
+                                "
+                                :busy="statusUpdatingVehicleId === vehicle.id"
+                                :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                @status-change="
+                                    emit('statusChange', vehicle, $event)
+                                "
+                            />
                         </div>
 
                         <ActionGroup
@@ -498,11 +483,10 @@ const {
                 </div>
             </div>
             <div class="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                <label
+                <div
                     v-for="vehicle in vehicles"
                     :key="`status-control-${vehicle.id}`"
                     class="border-border bg-background flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
-                    :for="`vehicle-status-${vehicle.id}`"
                 >
                     <span class="min-w-0">
                         <span
@@ -514,22 +498,15 @@ const {
                             {{ displayText(vehicle.registrationNumber) }}
                         </span>
                     </span>
-                    <UiSwitch
+                    <VehicleStatusControl
                         :id="`vehicle-status-${vehicle.id}`"
-                        class="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300"
-                        :model-value="isVehicleAvailable(vehicle)"
+                        :status="vehicle.status"
                         :disabled="statusUpdatingVehicleId === vehicle.id"
+                        :busy="statusUpdatingVehicleId === vehicle.id"
                         :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
-                        :aria-busy="statusUpdatingVehicleId === vehicle.id"
-                        @update:model-value="
-                            emit(
-                                'statusChange',
-                                vehicle,
-                                checkedToVehicleStatus($event),
-                            )
-                        "
+                        @status-change="emit('statusChange', vehicle, $event)"
                     />
-                </label>
+                </div>
             </div>
         </div>
 

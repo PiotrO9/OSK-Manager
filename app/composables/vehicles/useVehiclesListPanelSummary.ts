@@ -1,5 +1,5 @@
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
-import type { Vehicle, VehicleStatus } from '~/types/vehicles/vehicle';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 export interface VehiclesListPanelSummaryProps {
     activePanel: VehiclesListPanelId;
@@ -72,12 +72,10 @@ export function useVehiclesListPanelSummary(
 
     return {
         activePanelLabel,
-        checkedToVehicleStatus,
         createVehicleTarget,
         displayText,
         formatOptionalDate,
         formatVehicleMeta,
-        isVehicleAvailable,
         resultsLabel,
         summaryItems,
         vehicleStatusLabel,
@@ -89,10 +87,6 @@ function displayText(value: string): string {
     const t = value.trim();
 
     return t.length > 0 ? t : '-';
-}
-
-function checkedToVehicleStatus(checked: unknown): VehicleStatus {
-    return checked === true ? 'ACTIVE' : 'UNAVAILABLE';
 }
 
 function isVehicleAvailable(vehicle: Vehicle): boolean {
