@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Building2, CalendarDays, MapPin, ExternalLink } from 'lucide-vue-next';
+import type { ManagerAttentionPayload } from '~/types/manager/attentionItem';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 definePageMeta({
@@ -13,6 +14,8 @@ usePageMeta({
 
 const { session } = useAuthSession();
 const { fetchDefaultDrivingSchool, isDefaultLoading } = useDrivingSchoolsApi();
+const { fetchAttentionItems, isLoading: isAttentionLoading } =
+    useManagerAttentionItemsApi();
 
 const isManager = computed(() => session.value?.role === 'MANAGER');
 
@@ -28,6 +31,25 @@ const sessionDrivingSchools = computed(
 
 const defaultOsk = ref<DrivingSchool | null>(null);
 const defaultOskError = ref<string | null>(null);
+const attentionItems = ref<ManagerAttentionPayload>({
+    items: [],
+    total: 0,
+    hiddenCount: 0,
+});
+const attentionError = shallowRef<string | null>(null);
+
+async function loadAttentionItems(schoolId: string) {
+    attentionError.value = null;
+
+    try {
+        attentionItems.value = await fetchAttentionItems(schoolId);
+    } catch (err) {
+        attentionError.value =
+            err instanceof Error
+                ? err.message
+                : 'Nie udało się pobrać spraw do obsługi.';
+    }
+}
 
 async function loadDefaultOsk() {
     if (!isManager.value) return;
@@ -55,6 +77,7 @@ async function loadDefaultOsk() {
     }
 
     defaultOsk.value = result.school;
+    await loadAttentionItems(result.school.id);
 }
 
 onMounted(() => {
@@ -171,6 +194,14 @@ onMounted(() => {
                             </NuxtLink>
                         </div>
                     </div>
+
+                    <ManagerAttentionItemsPanel
+                        :items="attentionItems.items"
+                        :hidden-count="attentionItems.hiddenCount"
+                        :is-loading="isAttentionLoading"
+                        :error="attentionError"
+                        @retry="loadAttentionItems(defaultOsk.id)"
+                    />
 
                     <section
                         class="border-border bg-card overflow-hidden rounded-2xl border shadow-sm"
