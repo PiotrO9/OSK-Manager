@@ -15,8 +15,11 @@ const {
     processStatusLoading,
     processStatusError,
     payments,
+    paymentsSummary,
     paymentsLoading,
     paymentsError,
+    paymentsSaving,
+    paymentsActionError,
     studentDisplayName,
     studentInitials,
     studentSubtitle,
@@ -33,6 +36,10 @@ const {
     handleStudentNotesUpdate,
     handlePrevScheduleWeek,
     handleNextScheduleWeek,
+    handleCreateStudentPayment,
+    handleUpdateStudentPayment,
+    handleMarkStudentPaymentPaid,
+    handleMarkStudentPaymentUnpaid,
 } = useManagerStudentDetailsPage();
 </script>
 
@@ -118,8 +125,15 @@ const {
 
                 <ManagerStudentPaymentsSection
                     :payments="payments"
+                    :summary="paymentsSummary"
                     :is-loading="paymentsLoading"
                     :error="paymentsError"
+                    :is-saving="paymentsSaving"
+                    :action-error="paymentsActionError"
+                    @create="handleCreateStudentPayment"
+                    @update="handleUpdateStudentPayment"
+                    @mark-paid="handleMarkStudentPaymentPaid"
+                    @mark-unpaid="handleMarkStudentPaymentUnpaid"
                 />
 
                 <ManagerStudentCoursesSection :courses="student.courses" />

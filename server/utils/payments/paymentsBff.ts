@@ -35,3 +35,82 @@ export async function bffUpstreamStudentPaymentsList(
         data,
     };
 }
+
+export async function bffUpstreamCreateStudentPayment(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/payments`,
+        method: 'POST',
+        body,
+        fallbackError: 'Nie udało się dodać płatności kursanta',
+    });
+
+    return {
+        success: true,
+        data,
+    };
+}
+
+export async function bffUpstreamUpdateStudentPayment(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    paymentId: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/payments/${encodeURIComponent(paymentId)}`,
+        method: 'PATCH',
+        body,
+        fallbackError: 'Nie udało się zapisać płatności kursanta',
+    });
+
+    return {
+        success: true,
+        data,
+    };
+}
+
+export async function bffUpstreamMarkStudentPaymentPaid(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    paymentId: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/payments/${encodeURIComponent(paymentId)}/mark-paid`,
+        method: 'PATCH',
+        body,
+        fallbackError: 'Nie udało się oznaczyć płatności jako opłaconej',
+    });
+
+    return {
+        success: true,
+        data,
+    };
+}
+
+export async function bffUpstreamMarkStudentPaymentUnpaid(
+    event: H3Event,
+    upstreamBase: string,
+    userId: string,
+    paymentId: string,
+    body: Record<string, unknown>,
+): Promise<{ success: true; data: unknown }> {
+    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/students/${encodeURIComponent(userId)}/payments/${encodeURIComponent(paymentId)}/mark-unpaid`,
+        method: 'PATCH',
+        body,
+        fallbackError: 'Nie udało się oznaczyć płatności jako nieopłaconej',
+    });
+
+    return {
+        success: true,
+        data,
+    };
+}
