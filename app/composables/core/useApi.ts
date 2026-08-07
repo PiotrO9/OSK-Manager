@@ -2,6 +2,12 @@ import { toValue } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { unwrapApiSuccessData } from '~/utils/api/apiEnvelope';
+import {
+    createBffClient,
+    type BffClient,
+    type BffFetch,
+    type BffRequestOptions,
+} from '~/utils/api/bffClient';
 
 export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -10,6 +16,7 @@ export interface ApiRequestOptions {
     body?: MaybeRefOrGetter<unknown>;
     headers?: Record<string, string>;
     skipAuth?: boolean;
+    signal?: AbortSignal;
 }
 
 export interface RequestBffDataOptions<T> extends ApiRequestOptions {
@@ -80,7 +87,25 @@ function buildFetchOptions(
         }
     }
 
+    if (options.signal) {
+        fetchOptions.signal = options.signal;
+    }
+
     return fetchOptions;
+}
+
+function buildBffRequestOptions(
+    method: Method,
+    options: ApiRequestOptions,
+): BffRequestOptions {
+    return {
+        method,
+        body: toValue(options.body),
+        headers: options.headers,
+        auth: options.skipAuth ? 'none' : 'required',
+        retryUnauthorized: options.skipAuth ? false : true,
+        signal: options.signal,
+    };
 }
 
 function createApiError(err: unknown, defaultMessage: string): Error {
@@ -156,16 +181,46 @@ export async function bffFetch<T = unknown>(
     path: string,
     options: ApiRequestOptions = {},
 ): Promise<T> {
-    if (!path) {
-        throw new Error('URL is required');
+    const client = getActiveBffClient();
+
+    return await client.request<T>(
+        path,
+        buildBffRequestOptions(method, options),
+    );
+}
+
+function getActiveBffClient(): BffClient {
+    const provided = getProvidedBffClient();
+
+    if (provided) {
+        return provided;
     }
 
-    const response = await $fetch<T>(
-        resolveSameOriginEndpoint(path),
-        buildFetchOptions(method, options),
-    );
+    return createBffClient({
+        fetch: $fetch as BffFetch,
+        resolveEndpoint: resolveSameOriginEndpoint,
+        onAuthFailure: clearAuthSessionState,
+    });
+}
 
-    return response as T;
+function getProvidedBffClient(): BffClient | null {
+    try {
+        const nuxtApp = useNuxtApp() as { $bff?: BffClient };
+
+        return nuxtApp.$bff ?? null;
+    } catch {
+        return null;
+    }
+}
+
+function clearAuthSessionState(): void {
+    try {
+        const session = useState<unknown | null>('auth_session', () => null);
+
+        session.value = null;
+    } catch {
+        // Keep the pure client usable outside Nuxt context.
+    }
 }
 
 export async function externalFetch<T = unknown>(
@@ -204,30 +259,10 @@ function useFetchState<T>(
             return response;
         } catch (err: unknown) {
             if (!skipAuth && isApiError(err) && err.statusCode === 401) {
-                const { refreshAccessToken, logout } = useAuthSession();
-                const refreshed = await refreshAccessToken();
-
-                if (refreshed) {
-                    try {
-                        const retryResponse = await request();
-
-                        data.value = retryResponse;
-
-                        return retryResponse;
-                    } catch (retryErr) {
-                        await logout();
-                        navigateTo('/login');
-                        error.value = createApiError(
-                            retryErr,
-                            'An unexpected error occurred',
-                        );
-
-                        return null;
-                    }
-                }
+                const { logout } = useAuthSession();
 
                 await logout();
-                navigateTo('/login');
+                await navigateTo('/login');
                 error.value = new Error('Session expired');
 
                 return null;
