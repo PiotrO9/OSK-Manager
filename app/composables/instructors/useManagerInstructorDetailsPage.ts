@@ -9,10 +9,9 @@ import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 import {
     assertBooleanSuccessEnvelope,
     getApiErrorStatusCode,
-    unwrapApiSuccessData,
 } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { bffFetch, requestBffData } from '../core/useApi';
 import { usePageMeta } from '../core/usePageMeta';
 
 export function getManagerInstructorRouteString(raw: unknown): string {
@@ -191,10 +190,7 @@ function getInstructorDeleteErrorMessage(err: unknown): string {
         return getApiFetchErrorMessage(err, 'Nieprawidłowe dane.');
     }
 
-    return getApiFetchErrorMessage(
-        err,
-        'Nie udało się usunąć instruktora.',
-    );
+    return getApiFetchErrorMessage(err, 'Nie udało się usunąć instruktora.');
 }
 
 export function useManagerInstructorDetailsPage() {
@@ -260,13 +256,13 @@ export function useManagerInstructorDetailsPage() {
         editBaseline.value = null;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/instructors/${encodeURIComponent(id)}`,
-                ),
-                { credentials: 'include' },
+            const data = await requestBffData<unknown>(
+                'GET',
+                `/api/instructors/${encodeURIComponent(id)}`,
+                {
+                    fallbackMessage: getGenericLoadErrorMessage(),
+                },
             );
-            const data = unwrapApiSuccessData<unknown>(raw);
             const normalized = normalizeInstructorDetail(data);
             const forEdit = normalizeInstructorDetailForEdit(data);
 
@@ -415,17 +411,14 @@ export function useManagerInstructorDetailsPage() {
         isSubmitting.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/instructors/${encodeURIComponent(id)}`,
-                ),
+            const updated = await requestBffData<unknown>(
+                'PATCH',
+                `/api/instructors/${encodeURIComponent(id)}`,
                 {
-                    method: 'PATCH',
                     body: patch,
-                    credentials: 'include',
+                    fallbackMessage: getGenericSaveErrorMessage(),
                 },
             );
-            const updated = unwrapApiSuccessData<unknown>(raw);
             const normalized = normalizeInstructorDetail(updated);
             const forEdit = normalizeInstructorDetailForEdit(updated);
 
@@ -485,14 +478,9 @@ export function useManagerInstructorDetailsPage() {
         isDeleting.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/instructors/${encodeURIComponent(id)}`,
-                ),
-                {
-                    method: 'DELETE',
-                    credentials: 'include',
-                },
+            const raw = await bffFetch<unknown>(
+                'DELETE',
+                `/api/instructors/${encodeURIComponent(id)}`,
             );
 
             assertBooleanSuccessEnvelope(raw);

@@ -1,12 +1,9 @@
 import type { InstructorRegisterPayload } from '~/components/manager/instructors/ManagerInstructorFormDialog.vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import {
-    getApiErrorStatusCode,
-    unwrapApiSuccessData,
-} from '~/utils/api/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { requestBffData } from '../../core/useApi';
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta instruktora.';
 const UUID_RE =
@@ -268,24 +265,18 @@ export function useManagerInstructorsPage() {
         isFormSaving.value = true;
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint('/api/auth/register'),
-                {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: {
-                        role: 'INSTRUCTOR',
-                        email: payload.email,
-                        password: payload.password,
-                        firstName: payload.firstName,
-                        lastName: payload.lastName,
-                        licenseNumber: payload.licenseNumber,
-                        schoolId: payload.schoolId,
-                    },
+            await requestBffData<unknown>('POST', '/api/auth/register', {
+                body: {
+                    role: 'INSTRUCTOR',
+                    email: payload.email,
+                    password: payload.password,
+                    firstName: payload.firstName,
+                    lastName: payload.lastName,
+                    licenseNumber: payload.licenseNumber,
+                    schoolId: payload.schoolId,
                 },
-            );
-
-            unwrapApiSuccessData(raw);
+                fallbackMessage: REGISTER_GENERIC_FALLBACK,
+            });
 
             addToast({
                 title: 'Instruktor został utworzony',
