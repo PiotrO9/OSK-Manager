@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { normalizeBffPhotoUrl } from '~/utils/api/bffPhotoUpload';
 import {
     normalizeVehicle,
     normalizeVehicleDetail,
@@ -174,29 +174,20 @@ export function useVehiclesApi() {
         isPhotoUploadLoading.value = true;
 
         try {
-            const url = resolveBffEndpoint(
-                `/api/vehicles/${encodeURIComponent(id)}/photo`,
-            );
             const body = new FormData();
 
             body.append('file', file);
 
-            const raw = await $fetch<{
-                success?: boolean;
-                data?: { photoUrl?: string };
-            }>(url, {
-                method: 'POST',
-                body,
-                credentials: 'include',
-            });
-
-            const photoUrl = raw?.data?.photoUrl;
-
-            if (typeof photoUrl !== 'string' || photoUrl.trim().length === 0) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
-
-            return photoUrl.trim();
+            return await requestBffData<string>(
+                'POST',
+                `/api/vehicles/${encodeURIComponent(id)}/photo`,
+                {
+                    body,
+                    fallbackMessage: 'Nie udało się przesłać zdjęcia.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: normalizeBffPhotoUrl,
+                },
+            );
         } catch (err) {
             throw new Error(
                 getApiFetchErrorMessage(err, 'Nie udało się przesłać zdjęcia.'),

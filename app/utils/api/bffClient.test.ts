@@ -178,4 +178,26 @@ describe('createBffClient', () => {
             }),
         );
     });
+
+    it('does not force JSON content type for FormData bodies', async () => {
+        const fetch = vi.fn().mockResolvedValue({ ok: true });
+        const body = new FormData();
+        const { client } = createClient(fetch);
+
+        body.append('file', new Blob(['avatar']), 'avatar.png');
+
+        await client.request('/api/files', {
+            method: 'POST',
+            body,
+        });
+
+        expect(fetch).toHaveBeenCalledWith(
+            'http://localhost:3000/api/files',
+            expect.objectContaining({
+                method: 'POST',
+                body,
+                headers: {},
+            }),
+        );
+    });
 });

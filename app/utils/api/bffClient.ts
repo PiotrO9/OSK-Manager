@@ -77,12 +77,21 @@ function toBffClientError(error: unknown): BffClientError {
     return out;
 }
 
+function isFormDataBody(body: unknown): body is FormData {
+    return typeof FormData !== 'undefined' && body instanceof FormData;
+}
+
 function buildRequestOptions(options: BffRequestOptions): BffFetchOptions {
     const method = options.method ?? 'GET';
+    const hasFormDataBody = isFormDataBody(options.body);
     const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
         ...options.headers,
     };
+
+    if (!hasFormDataBody) {
+        headers['Content-Type'] = headers['Content-Type'] ?? 'application/json';
+    }
+
     const request: BffFetchOptions = {
         method,
         credentials: 'include',

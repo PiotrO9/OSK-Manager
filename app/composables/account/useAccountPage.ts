@@ -1,7 +1,8 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { normalizeBffPhotoUrl } from '~/utils/api/bffPhotoUpload';
 import { useAppToast } from '../core/useAppToast';
 import { useAuthSession } from '../auth/useAuthSession';
+import { requestBffData } from '../core/useApi';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -60,9 +61,7 @@ export function useAccountPage() {
     const isAvatarUploadLoading = ref(false);
     const avatarImageFailed = ref(false);
 
-    const displayName = computed(
-        () => session.value?.userName ?? 'Użytkownik',
-    );
+    const displayName = computed(() => session.value?.userName ?? 'Użytkownik');
 
     const sessionRoleBadge = computed(() =>
         getRoleBadgePresentation(session.value?.role),
@@ -266,23 +265,16 @@ export function useAccountPage() {
         isAvatarUploadLoading.value = true;
 
         try {
-            const url = resolveBffEndpoint('/api/auth/profile/avatar');
             const body = new FormData();
 
             body.append('file', file, file.name);
 
-            const raw = await $fetch<{
-                success?: boolean;
-                data?: { photoUrl?: string };
-            }>(url, {
-                method: 'POST',
+            await requestBffData<string>('POST', '/api/auth/profile/avatar', {
                 body,
-                credentials: 'include',
+                fallbackMessage: 'Upload nie powiódł się.',
+                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                normalize: normalizeBffPhotoUrl,
             });
-
-            if (raw?.success !== true || !raw?.data?.photoUrl) {
-                throw new Error('Nieprawidłowa odpowiedź serwera.');
-            }
 
             await refreshProfileFromServer();
 
