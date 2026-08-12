@@ -73,14 +73,6 @@ interface SessionUserPayload {
     defaultOskId: string | null;
 }
 
-function getAuthFetch(): typeof $fetch {
-    if (import.meta.server) {
-        return useRequestFetch() as typeof $fetch;
-    }
-
-    return $fetch;
-}
-
 function getFetchStatusCode(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
 
@@ -250,6 +242,7 @@ function sessionLoadShouldSkipRefresh(status: number | undefined): boolean {
 export function useAuthSession() {
     const session = useState<AuthSession | null>('auth_session', () => null);
     const isCheckingSession = ref(false);
+    const bff = useBffClient();
 
     const isAuthenticated = computed(() => {
         if (!session.value?.userId) return false;
@@ -259,15 +252,11 @@ export function useAuthSession() {
 
     async function refreshAccessToken(): Promise<boolean> {
         try {
-            const raw = await getAuthFetch()(`${AUTH_PATH}/refresh`, {
+            await bff.requestData<object>(`${AUTH_PATH}/refresh`, {
                 method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                auth: 'none',
+                retryUnauthorized: false,
             });
-
-            unwrapApiSuccessData<object>(raw);
 
             return true;
         } catch {
@@ -276,15 +265,13 @@ export function useAuthSession() {
     }
 
     async function loadMeIntoSession(): Promise<boolean> {
-        const raw = await getAuthFetch()(`${AUTH_PATH}/me`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
+        const meData = await bff.requestData<{ user: BackendUserResponse }>(
+            `${AUTH_PATH}/me`,
+            {
+                method: 'GET',
+                retryUnauthorized: false,
             },
-        });
-
-        const meData = unwrapApiSuccessData<{ user: BackendUserResponse }>(raw);
+        );
 
         session.value = createSessionFromUser(
             normalizeBackendUserToSessionPayload(meData.user),
@@ -343,17 +330,13 @@ export function useAuthSession() {
         }
 
         async function doPatch(): Promise<void> {
-            const raw = await getAuthFetch()(`${AUTH_PATH}/profile`, {
-                method: 'PATCH',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
+            const data = await bff.requestData<{ user: BackendUserResponse }>(
+                `${AUTH_PATH}/profile`,
+                {
+                    method: 'PATCH',
+                    body: payload,
+                    retryUnauthorized: false,
                 },
-                body: payload,
-            });
-
-            const data = unwrapApiSuccessData<{ user: BackendUserResponse }>(
-                raw,
             );
 
             if (!data.user) {
@@ -477,17 +460,14 @@ export function useAuthSession() {
         }
 
         try {
-            const raw = await getAuthFetch()(`${AUTH_PATH}/login`, {
-                method: 'POST',
-                credentials: 'include',
-                body: { email, password },
-                headers: {
-                    'Content-Type': 'application/json',
+            const body = await bff.requestData<{ user: BackendUserResponse }>(
+                `${AUTH_PATH}/login`,
+                {
+                    method: 'POST',
+                    auth: 'none',
+                    retryUnauthorized: false,
+                    body: { email, password },
                 },
-            });
-
-            const body = unwrapApiSuccessData<{ user: BackendUserResponse }>(
-                raw,
             );
 
             if (!body.user) {
@@ -540,12 +520,10 @@ export function useAuthSession() {
 
     async function logout(): Promise<void> {
         try {
-            await getAuthFetch()(`${AUTH_PATH}/logout`, {
+            await bff.request(`${AUTH_PATH}/logout`, {
                 method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                auth: 'none',
+                retryUnauthorized: false,
             });
         } catch (error) {
             console.error(error);
