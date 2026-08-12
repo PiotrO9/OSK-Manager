@@ -7,7 +7,6 @@ Dokumentacja frontendu OSK Manager.
 | [GETTING_STARTED.md](GETTING_STARTED.md)                                 | Lokalny setup i pierwsze uruchomienie                |
 | [ARCHITECTURE.md](ARCHITECTURE.md)                                       | Struktura projektu, routing, auth i runtime config   |
 | [API_AND_BFF.md](API_AND_BFF.md)                                         | Kontrakty API i warstwa Nitro BFF                    |
-| [REFACTOR_IMPLEMENTATION_PLAN.md](REFACTOR_IMPLEMENTATION_PLAN.md)       | Plan wdrozenia refaktoru FE, BE, BFF i OpenAPI       |
 | [COMPONENTS.md](COMPONENTS.md)                                           | Komponenty UI i konwencje                            |
 | [UI_REDESIGN_GUIDELINES.md](UI_REDESIGN_GUIDELINES.md)                   | Zasady redesignu UI i kierunek wizualny              |
 | [UI_COMPONENT_PATTERNS.md](UI_COMPONENT_PATTERNS.md)                     | Reużywalne wzorce komponentów dla redesignu          |
