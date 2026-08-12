@@ -185,7 +185,7 @@ Operacje na szkołach jazdy (BFF `/api/driving-schools/...`). W BFF: [API_AND_BF
 
 ## useVehiclesApi
 
-Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`; upload zdjęcia (`$fetch` + `FormData`).
+Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`; upload zdjęcia przez shared BFF client (`requestBffData` + `FormData`).
 
 ---
 
@@ -203,15 +203,15 @@ Tygodniowa dostępność instruktora (BFF `/api/instructors/:id/availability/wee
 
 **Returns:**
 
-| Property / method                        | Opis                                                                                                                                       |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `isLoading`                              | `Readonly<Ref<boolean>>` — trwa `fetchWeekly`                                                                                              |
-| `isSaving`                               | `Readonly<Ref<boolean>>` — trwa `saveDay` lub `deleteDay`                                                                                  |
-| `fetchWeekly()`                          | `Promise<WeeklyEntry[]>` — `unwrapApiSuccessData` → `data.weekly`                                                                          |
-| `saveDay(dayOfWeek, startTime, endTime)` | `Promise<WeeklyEntry>` — `PUT …/weekly/:day`, body `{ startTime, endTime }` (`HH:mm`)                                                      |
-| `deleteDay(dayOfWeek)`                   | `Promise<void>` — `DELETE …/weekly/:day`; odpowiedź BFF to `{ success: true }` bez `data` — composable nie wywołuje `unwrapApiSuccessData` |
+| Property / method                        | Opis                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `isLoading`                              | `Readonly<Ref<boolean>>` — trwa `fetchWeekly`                                             |
+| `isSaving`                               | `Readonly<Ref<boolean>>` — trwa `saveDay` lub `deleteDay`                                 |
+| `fetchWeekly()`                          | `Promise<WeeklyEntry[]>` — `requestBffData` → `data.weekly`                               |
+| `saveDay(dayOfWeek, startTime, endTime)` | `Promise<WeeklyEntry>` — `PUT …/weekly/:day`, body `{ startTime, endTime }` (`HH:mm`)     |
+| `deleteDay(dayOfWeek)`                   | `Promise<void>` — `DELETE …/weekly/:day`; odpowiedź BFF to `{ success: true }` bez `data` |
 
-**Uwaga:** Ścieżki buduje [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts); żądania z `credentials: 'include'`. Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructors/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
+**Uwaga:** Żądania idą przez shared BFF client (`requestBffData` / `bffFetch`). Typ `WeeklyEntry`: [instructorAvailability.ts](../app/types/instructors/instructorAvailability.ts). Kontekst modułu: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
 
 ---
 
@@ -223,9 +223,9 @@ Sloty dostępności instruktora w zakresie dat (BFF `GET /api/instructors/:id/av
 
 **Returns:**
 
-| Property / method              | Opis                                                                                                         |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
-| `isLoading`                    | `Readonly<Ref<boolean>>` — trwa `fetchSlots`                                                                 |
-| `fetchSlots(dateFrom, dateTo)` | `Promise<AvailabilitySlot[]>` — `unwrapApiSuccessData` → `data.slots`; pusta tablica gdy brak `instructorId` |
+| Property / method              | Opis                                                                                                   |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `isLoading`                    | `Readonly<Ref<boolean>>` — trwa `fetchSlots`                                                           |
+| `fetchSlots(dateFrom, dateTo)` | `Promise<AvailabilitySlot[]>` — `requestBffData` → `data.slots`; pusta tablica gdy brak `instructorId` |
 
 Typ `AvailabilitySlot`: [instructorSlots.ts](../app/types/instructors/instructorSlots.ts). Kontekst: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).

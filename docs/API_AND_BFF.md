@@ -1,9 +1,12 @@
 # API klienta i BFF (Nuxt)
 
-## Dwa „bazowe” URL
+## Klient BFF i bazowe URL
 
-1. **`NUXT_PUBLIC_API_BASE`** — bezpośrednio backend (Express itd.), używane m.in. przez [useApi.ts](../app/composables/core/useApi.ts) dla ścieżek względnych.
-2. **BFF Nuxt** — te same origin co front: ścieżki `/api/...` obsługiwane przez [server/api/](../server/api/). Z klienta buduje się je przez [resolveBffEndpoint](../app/utils/api/bffEndpoint.ts) (uwzględnia `NUXT_API_UPSTREAM` gdy ustawione).
+1. **BFF Nuxt** — te same origin co front: ścieżki `/api/...` obsługiwane przez [server/api/](../server/api/).
+2. **Shared client** — aplikacja kliencka używa [`createBffClient`](../app/utils/api/bffClient.ts), providowanego jako `$bff` w [`app/plugins/bff-client.ts`](../app/plugins/bff-client.ts). Domenowe composables powinny iść przez [`requestBffData`](../app/composables/core/useApi.ts), [`bffFetch`](../app/composables/core/useApi.ts) albo bezpośrednio `useBffClient()` tylko gdy potrzebują niskopoziomowego zachowania.
+3. **`NUXT_PUBLIC_API_BASE`** — bezpośrednio backend (Express itd.), używane tylko dla jawnie zewnętrznych wywołań przez [`externalFetch`](../app/composables/core/useApi.ts). Nowe wewnętrzne wywołania `/api/...` nie powinny omijać BFF.
+
+Adresy BFF rozwiązuje [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts), ale normalny kod domenowy nie powinien wołać go bezpośrednio — robi to plugin `$bff`.
 
 ## Tryb BFF: upstream vs mock
 
@@ -16,13 +19,15 @@ Backend zwraca obiekty z polem `success` i `data` lub `error`. Parsowanie:
 - [unwrapApiSuccessData](../app/utils/api/apiEnvelope.ts) — gdy oczekujesz **`data`** przy `success: true`.
 - [assertBooleanSuccessEnvelope](../app/utils/api/apiEnvelope.ts) — gdy odpowiedź to tylko **`success: true/false`** (np. niektóre PATCH).
 
-Błędy z `$fetch` / `useApi`: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
+Błędy z BFF client / `useApi`: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
 
-## `useApi` vs surowe `$fetch`
+## `requestBffData` / `$bff` vs surowe `$fetch`
 
-- Standardowe JSON: **`useApi`** + `execute()` (retry auth przy 401).
-- Upload `FormData` (np. zdjęcie pojazdu): **`$fetch`** z `credentials: 'include'` — patrz `uploadVehiclePhoto` w [useVehiclesApi.ts](../app/composables/vehicles/useVehiclesApi.ts).
-- Avatar profilu: BFF **`POST /api/auth/profile/avatar`** (pole `file`) — proxy pod upstream `POST /auth/profile/avatar`, odpowiedź `data.photoUrl`; po sukcesie zwykle **`useAuthSession().refreshProfileFromServer()`** (GET `/api/auth/me`). Patrz [account/index.vue](../app/pages/account/index.vue).
+- Standardowe JSON w composables: **`requestBffData(method, path, { fallbackMessage, normalize? })`**. Funkcja unwrapuje kopertę `success/data`, mapuje błędy przez `getApiFetchErrorMessage` i korzysta ze shared `$bff`.
+- Reaktywne wywołania w UI: **`useApi` / `useBffApi`** + `execute()` zostają kompatybilnym wrapperem dla starszego API composable.
+- Odpowiedzi bez `data`, np. niektóre `DELETE`: **`bffFetch`** albo `$bff.request`, a potem jawna walidacja koperty, jeśli endpoint jej wymaga.
+- Upload `FormData`, np. zdjęcie pojazdu i avatar profilu: również **`requestBffData` / `$bff`**. Shared client nie ustawia `Content-Type: application/json` dla `FormData`, żeby przeglądarka mogła dodać multipart boundary.
+- Surowy `$fetch` jest dopuszczalny tylko w centralnej warstwie transportu (`bffClient`, `useApi`/`externalFetch`) albo w testach.
 
 ## Serwer
 
@@ -37,8 +42,8 @@ Formularz w modalu ([`ManagerInstructorFormDialog.vue`](../app/components/manage
 
 ## Lista i szczegóły instruktora (GET)
 
-- **Lista:** `GET /api/instructors?schoolId=<uuid>` — [`server/api/instructors.get.ts`](../server/api/instructors.get.ts); z klienta lista przez [`useInstructorsApi`](../app/composables/instructors/useInstructorsApi.ts) (`resolveBffEndpoint`).
-- **Szczegóły:** `GET /api/instructors/:id` — [`server/api/instructors/[id].get.ts`](../server/api/instructors/[id].get.ts); proxy upstream w [`instructorsBff.ts`](../server/utils/instructors/instructorsBff.ts) (`bffUpstreamInstructorsGetById` → `GET {upstream}/instructors/:id`). Odpowiedź: koperta z `data` zgodna z [`InstructorDetail`](../app/types/instructors/instructor.ts) (normalizacja: `normalizeInstructorDetail`). Widok: [`app/pages/manager/instructors/[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue) (`unwrapApiSuccessData` + `$fetch`).
+- **Lista:** `GET /api/instructors?schoolId=<uuid>` — [`server/api/instructors.get.ts`](../server/api/instructors.get.ts); z klienta lista przez [`useInstructorsApi`](../app/composables/instructors/useInstructorsApi.ts) (`requestBffData`).
+- **Szczegóły:** `GET /api/instructors/:id` — [`server/api/instructors/[id].get.ts`](../server/api/instructors/[id].get.ts); proxy upstream w [`instructorsBff.ts`](../server/utils/instructors/instructorsBff.ts) (`bffUpstreamInstructorsGetById` → `GET {upstream}/instructors/:id`). Odpowiedź: koperta z `data` zgodna z [`InstructorDetail`](../app/types/instructors/instructor.ts) (normalizacja: `normalizeInstructorDetail`). Widok korzysta z domenowego composable i shared BFF client.
 
 Pełny opis tras, mocków i zachowania UI: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 
@@ -56,4 +61,4 @@ Pełny opis: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md) (tabele BFF, koper
 
 **`dayOfWeek`:** `0` = niedziela … `6` = sobota (jak `Date.getUTCDay()`). **`:id`:** profil instruktora (ten sam identyfikator co w liście instruktorów).
 
-Z klienta: [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts) lub `$fetch` + [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts) + [`unwrapApiSuccessData`](../app/utils/api/apiEnvelope.ts) dla GET/PUT. Przy **upstreamie:** [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts). W **mocku:** [`mockAvailabilityStore.ts`](../server/utils/instructors/mockAvailabilityStore.ts) po [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts).
+Z klienta: [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts), które używa `requestBffData`; `DELETE` bez `data` nie wymaga ręcznego `$fetch`. Przy **upstreamie:** [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts). W **mocku:** [`mockAvailabilityStore.ts`](../server/utils/instructors/mockAvailabilityStore.ts) po [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts).
