@@ -8,8 +8,7 @@ import {
 } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { unwrapApiSuccessData } from '~/utils/api/apiEnvelope';
-import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { requestBffData } from '../core/useApi';
 
 interface UseManagerLessonEditReferencesOptions {
     schoolId: Ref<string>;
@@ -172,17 +171,13 @@ export function useManagerLessonEditReferences(
         }
 
         try {
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/instructors/${encodeURIComponent(id)}`,
-                ),
+            const data = await requestBffData<unknown>(
+                'GET',
+                `/api/instructors/${encodeURIComponent(id)}`,
                 {
-                    method: 'GET',
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się pobrać danych instruktora.',
                 },
             );
-
-            const data = unwrapApiSuccessData<unknown>(raw);
             const normalized = parseInstructorListItemFromApi(data);
 
             if (normalized) {
@@ -222,17 +217,13 @@ export function useManagerLessonEditReferences(
 
         try {
             const qs = new URLSearchParams({ schoolId });
-            const raw = await $fetch<unknown>(
-                resolveBffEndpoint(
-                    `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
-                ),
+            const data = await requestBffData<unknown>(
+                'GET',
+                `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
                 {
-                    method: 'GET',
-                    credentials: 'include',
+                    fallbackMessage: 'Nie udało się pobrać danych kursanta.',
                 },
             );
-
-            const data = unwrapApiSuccessData<unknown>(raw);
             const detail: StudentDetail | null = normalizeStudentDetail(data);
 
             if (detail) {
