@@ -866,6 +866,9 @@ Data: 2026-08-16.
   `server/utils/lessons/parseLessonPatchBody.ts`; handler i upstream adapter
   przyjmuja teraz waski `BffLessonPatchBody`, a surowy `Record` zostaje tylko
   w parserze nieznanego JSON.
+- Parser `PATCH /events/:eventId` zostal przeniesiony z handlera do
+  `server/utils/events/parseEventPatchBody.ts`; adapter upstream przyjmuje
+  teraz waski `BffEventPatchBody`, a mock nie wymaga rzutowania pol.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 

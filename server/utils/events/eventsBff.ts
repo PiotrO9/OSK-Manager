@@ -3,6 +3,7 @@ import {
     upstreamRequest,
     type UpstreamRequestOptions,
 } from '~~/server/utils/upstream/upstreamRequest';
+import type { BffEventPatchBody } from './parseEventPatchBody';
 
 const EVENT_HTML_ERROR =
     'Serwer zwrócił odpowiedź HTML lub pustą zamiast JSON — sprawdź upstream API.';
@@ -223,7 +224,7 @@ export async function bffEventsPatch(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
-    body: unknown,
+    body: BffEventPatchBody,
 ): Promise<{ success: true; data: { event: InstructorEventResponse } }> {
     const data = await eventDataRequest<{ event: InstructorEventResponse }>(
         event,
