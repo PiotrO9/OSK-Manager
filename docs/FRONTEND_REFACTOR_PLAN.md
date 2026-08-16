@@ -535,7 +535,7 @@ Wynik porownania po migracji:
 - [x] vehicles bez uploadu;
 - [x] courses;
 - [x] instructors bez availability;
-- [ ] driving schools;
+- [x] driving schools;
 - [ ] students i payments;
 - [ ] schedule;
 - [ ] lessons;
@@ -584,6 +584,22 @@ Fala `instructors` bez availability przepieta na `executeBffAdapter`:
 
 Poza zakresem tej fali zostaja endpointy
 `server/api/instructors/[id]/availability/**`.
+
+Fala `driving schools` bez schedule i availability przepieta na
+`executeBffAdapter`:
+
+- `server/api/driving-schools.get.ts`;
+- `server/api/driving-schools.post.ts`;
+- `server/api/driving-schools/default.get.ts`;
+- `server/api/driving-schools/[id].patch.ts`;
+- `server/api/driving-schools/[id].delete.ts`;
+- `server/api/driving-schools/[id]/default-vehicle.patch.ts`;
+- `server/api/driving-schools/[id]/set-default.patch.ts`.
+
+Poza zakresem tej fali zostaja:
+
+- `server/api/driving-schools/[id]/schedule.get.ts`;
+- `server/api/driving-schools/[id]/availability/slots.get.ts`.
 
 ### Sugerowane commity
 

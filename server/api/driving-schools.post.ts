@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamDrivingSchoolsCreate } from '~~/server/utils/schools/drivingSchoolsBff';
 import { bffMockDrivingSchoolsCreate } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
@@ -26,18 +27,19 @@ export default defineEventHandler(async (event) => {
 
     const city = readOptionalTrimmedString(body?.city);
     const address = readOptionalTrimmedString(body?.address);
-    const upstream = resolveUpstreamBase(event);
     const payload = {
         name,
         ...(city !== undefined ? { city } : {}),
         ...(address !== undefined ? { address } : {}),
     };
 
-    if (upstream) {
-        return bffUpstreamDrivingSchoolsCreate(event, upstream, payload);
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamDrivingSchoolsCreate(event, upstreamBase, payload),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    await requireManagerFromCookie(event);
-
-    return bffMockDrivingSchoolsCreate(payload);
+            return bffMockDrivingSchoolsCreate(payload);
+        },
+    });
 });
