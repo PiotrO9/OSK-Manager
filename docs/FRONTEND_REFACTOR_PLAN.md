@@ -2044,7 +2044,7 @@ juz czesciowo wyniesiona do
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
-- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
@@ -2129,6 +2129,12 @@ stanu submitu. Stan `isSaving` i `isBlocked` plynie jednokierunkowo z
 `CourseCreateFormActions.vue` nie wprowadza `v-model`. Dwukierunkowe modele
 pozostaja tylko na polach formularza w `CourseCreateForm.vue`, gdzie sa
 faktycznym kontraktem inputow.
+
+#### Computed Dla Opcji
+
+Template formularza renderuje gotowe `kindOptions` i `qualifiedInstructors`.
+Filtrowanie instruktorow po kwalifikacji oraz lista dozwolonych rodzajow kursu
+pozostaja w `useCourseCreateForm`, bez inline `filter` ani `sort` w markupie.
 
 ### Kryterium zakonczenia
 
