@@ -1321,6 +1321,14 @@ publicznego API strony.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
 
+#### Dodatkowy podzial pilota
+
+- [x] Wyciagnac status procesu do `useManagerStudentProcessStatus`.
+- [ ] Wyciagnac platnosci do `useManagerStudentPayments`.
+- [ ] Wyciagnac terminarz tygodniowy do `useManagerStudentSchedule`.
+- [ ] Odchudzic fasade `useManagerStudentDetailsPage` do route/profile/meta +
+      kompozycji mniejszych composables.
+
 #### Odpowiedzialnosci obecnego pliku
 
 | Obszar                          | Obecna odpowiedzialnosc                                                                | Uwagi do podzialu                                                              |
