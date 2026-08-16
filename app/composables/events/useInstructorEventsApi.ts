@@ -17,10 +17,30 @@ import type {
 import { normalizeInstructorEventFromApi } from '~/utils/events/instructorEventNormalize';
 import { normalizeTheoryEventEligibleStudents } from '~/utils/events/theoryEventEligibleStudents';
 
+interface InstructorEventCreateRequestBody {
+    instructorId: string;
+    type: CreateInstructorEventPayload['type'];
+    startTime: string;
+    endTime: string;
+    vehicleId?: string;
+    capacity?: number;
+    courseId?: string;
+}
+
+type InstructorEventPatchRequestBody = Partial<{
+    instructorId: string;
+    type: PatchInstructorEventPayload['type'];
+    startTime: string;
+    endTime: string;
+    vehicleId: string | null;
+    capacity: number | null;
+    status: NonNullable<PatchInstructorEventPayload['status']>;
+}>;
+
 function buildPatchRequestBody(
     payload: PatchInstructorEventPayload,
-): Record<string, unknown> {
-    const body: Record<string, unknown> = {};
+): InstructorEventPatchRequestBody {
+    const body: InstructorEventPatchRequestBody = {};
 
     if (payload.instructorId !== undefined) {
         body.instructorId = payload.instructorId.trim();
@@ -89,7 +109,7 @@ export function useInstructorEventsApi() {
         isLoading.value = true;
 
         try {
-            const body: Record<string, unknown> = {
+            const body: InstructorEventCreateRequestBody = {
                 instructorId: payload.instructorId.trim(),
                 type: payload.type,
                 startTime: payload.startTime.trim(),

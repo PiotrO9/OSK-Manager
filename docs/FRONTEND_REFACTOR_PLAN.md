@@ -859,6 +859,9 @@ Data: 2026-08-16.
   produkcyjnego: payloady rejestracji i rezerwacji lekcji ida przez
   `requestBffSuccess`, a pozostale granice BFF dostaly waskie typy raw payload
   bez usuwania lokalnej normalizacji runtime.
+- Request body eventow instruktora zostalo zawezone do lokalnych typow create
+  i patch; surowy `Record<string, unknown>` zostaje tylko dla elastycznego
+  payloadu odpowiedzi `/events/:id/students`.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 
