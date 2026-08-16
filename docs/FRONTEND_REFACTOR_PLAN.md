@@ -1767,7 +1767,7 @@ podzialem odpowiedzialnosci.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
-- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
@@ -1844,6 +1844,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - `VehicleManagerStatusGrid.vue` nie uzywa `v-model` ani `defineModel`; status
   aktualizowanego pojazdu jest przekazywany jako props.
 - Zmiana statusu pozostaje jawnym eventem `statusChange(vehicle, payload)`.
+
+#### Computed Zamiast Logiki W Template
+
+- `VehicleManagerStatusGrid.vue` nie filtruje ani nie sortuje pojazdow w
+  template; renderuje `vehicles` w kolejnosci przekazanej z parenta.
+- Istniejace liczniki i labelki panelu pozostaja w
+  `useVehiclesListPanelSummary`.
 
 #### Route Meta + Composable + Widok
 
