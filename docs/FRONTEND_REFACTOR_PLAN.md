@@ -1623,7 +1623,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
-- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
@@ -1668,10 +1668,21 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 | `VehicleForm`                  | pola formularza i walidacja danych pojazdu                         | initial vehicle, saving, api error       | `submit(payload)`              |
 | `ActionGroup` footer           | akcje anuluj/zapisz w stopce formularza                            | route powrotu, busy state, form id       | submit przez `form` attribute  |
 
-Pierwszy implementacyjny krok: wydzielic `VehicleEditPhotoSection.vue`, bo to
-najbardziej samodzielna sekcja UI i nie wymaga zmiany kontraktu `VehicleForm`.
-`useVehicleEditPage` zostaje kolejnym krokiem, gdy sekcja zdjecia bedzie juz
-odseparowana.
+Pierwszy implementacyjny krok: wydzielic `useVehicleEditPage`, zeby strona
+przestala laczyc route meta, orkiestracje API, stan uploadu i template. Po tym
+kroku najbezpieczniejsza sekcja UI do wydzielenia to
+`VehicleEditPhotoSection.vue`, bo nie wymaga zmiany kontraktu `VehicleForm`.
+
+#### Route meta + composable + widok
+
+- Wydzielono `useVehicleEditPage` dla route contextu, loadu listy i detailu,
+  submitu update/upload, stanu zdjecia, view-modelu naglowka oraz komunikatow
+  bledow.
+- `pages/vehicles/[id]/edit.vue` zostaje przy `definePageMeta`, `usePageMeta`,
+  wywolaniu composable i skladaniu obecnego widoku bez zmiany kontraktu
+  `VehicleForm`.
+- Staly identyfikator formularza przeniesiono do `VEHICLE_EDIT_FORM_ID`, a
+  strona uzywa zwroconego `formId`.
 
 ### Kryterium zakonczenia
 
