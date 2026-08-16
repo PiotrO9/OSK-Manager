@@ -2168,7 +2168,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
 - [x] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
-- [ ] Ujednolicic normalizatory odpowiedzi i ich testy.
+- [x] Ujednolicic normalizatory odpowiedzi i ich testy.
 - [ ] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
 - [ ] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
 - [ ] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
@@ -2232,6 +2232,14 @@ byl w `useInstructorEventsApi.ts`. Zostal przeniesiony do waskiego aliasu
 
 Zasada: komponenty i composables importuja typy domenowe albo waskie aliasy
 API; `generated/api.ts` zostaje szczegolem implementacji przy granicy typow.
+
+### Testy Normalizatorow Courses
+
+Dodano `app/types/courses/course.test.ts` dla `normalizeCoursesList`,
+`normalizeCourseDetailData` i `normalizeMyCoursesList`. Testy pokrywaja
+opakowania `{ courses }`, `{ data }`, `{ course }`, warianty `type` / `kind`,
+snake_case `school_id` / `total_hours`, `capacity`, clamp `progress` oraz
+odrzucanie niepelnych rekordow.
 
 ### Kryterium zakonczenia
 
