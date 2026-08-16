@@ -31,7 +31,7 @@ Ta lista jest indeksem calego procesu. Szczegolowe checklisty znajduja sie w kol
 - [ ] Etap 0: zapisac baseline i zasady refaktoru
 - [x] Etap 1: ujednolicic wybor adaptera BFF `mock/upstream`
 - [x] Etap 2: domknac jedna warstwe transportu po stronie aplikacji
-- [ ] Etap 3: uproscic sesje, autoryzacje i middleware rol
+- [x] Etap 3: uproscic sesje, autoryzacje i middleware rol
 - [ ] Etap 4: podzielic najwieksze composables na mniejsze odpowiedzialnosci
 - [ ] Etap 5: odchudzic duze strony i komponenty Vue
 - [ ] Etap 6: uporzadkowac typy, walidacje i normalizacje danych
@@ -1025,6 +1025,19 @@ Data: 2026-08-16.
 - Dodano test `403` przy sprawdzaniu sesji: sesja jest czyszczona, a refresh
   nie jest wykonywany.
 - Dodano test bledu sieciowego bez statusu HTTP jako niedostepnego backendu.
+
+### Wynik Etapu 3
+
+Data: 2026-08-16.
+
+- Reguly rol zostaly przeniesione do jednego typowanego helpera
+  `authRole.ts`, a middleware korzystaja z niego zamiast sprawdzac role inline.
+- Transport sesji zostal oddzielony od reaktywnego stanu sesji przez
+  `authSessionApi.ts`.
+- Dane sesji demo zostaly wyjete z produkcyjnego przeplywu sesji.
+- Testy chronia login, refresh, logout, wspoldzielony stan sesji, macierz rol,
+  return path po logowaniu oraz bledy `401`, `403` i brak backendu.
+- Weryfikacja koncowa Etapu 3: `npm run test` i `npm run lint`.
 
 ## Etap 4: podzial duzych composables
 
