@@ -1763,7 +1763,7 @@ podzialem odpowiedzialnosci.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
-- [ ] Uporzadkowac sekcje jako script, template, style.
+- [x] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
@@ -1844,6 +1844,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - `VehiclesListPanel.vue` pozostaje w `<script setup lang="ts">`.
 - Nowy `VehicleManagerStatusGrid.vue` rowniez uzywa `<script setup lang="ts">`
   i nie wprowadza Options API.
+
+#### Kolejnosc Sekcji SFC
+
+- `VehiclesListPanel.vue` i `VehicleManagerStatusGrid.vue` maja ksztalt
+  `<script setup lang="ts">` przed `<template>`.
+- Zaden z tych komponentow nie ma lokalnego `<style>`, wiec nie dodawano pustej
+  sekcji stylow.
 
 ### Kryterium zakonczenia
 
