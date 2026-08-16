@@ -35,6 +35,10 @@ describe('useVehicleEditPage', () => {
         vi.resetModules();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
+        fetchList.mockResolvedValue([]);
+        fetchVehicleById.mockResolvedValue(null);
+        updateVehicle.mockResolvedValue(null);
+        uploadVehiclePhoto.mockResolvedValue('/uploads/vehicles/vehicle-1.jpg');
     });
 
     it('does not call vehicle APIs without school and vehicle route context', async () => {
@@ -57,5 +61,32 @@ describe('useVehicleEditPage', () => {
         expect(updateVehicle).not.toHaveBeenCalled();
         expect(uploadVehiclePhoto).not.toHaveBeenCalled();
         expect(navigateTo).not.toHaveBeenCalled();
+    });
+
+    it('submits vehicle edit payload and returns to school vehicle list', async () => {
+        installVehicleEditPageGlobals({
+            params: { id: ' vehicle-1 ' },
+            query: { schoolId: ' school-1 ' },
+        });
+        const payload = {
+            name: 'Toyota Yaris',
+            registrationNumber: 'KR12345',
+            inspectionDate: '2026-08-20',
+            insuranceDate: null,
+            modelYear: 2020,
+            mileageKm: 54_321,
+        };
+
+        const { useVehicleEditPage } = await import('./useVehicleEditPage');
+        const page = useVehicleEditPage();
+
+        await page.handleVehicleSubmit(payload);
+
+        expect(updateVehicle).toHaveBeenCalledWith('vehicle-1', payload);
+        expect(uploadVehiclePhoto).not.toHaveBeenCalled();
+        expect(navigateTo).toHaveBeenCalledWith({
+            path: '/vehicles',
+            query: { schoolId: 'school-1' },
+        });
     });
 });

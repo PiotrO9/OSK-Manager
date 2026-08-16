@@ -2301,7 +2301,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc event edit form i payload.
 - [x] Pokryc student details: profil, kursy i platnosci.
 - [x] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
-- [ ] Pokryc vehicle edit i status availability.
+- [x] Pokryc vehicle edit i status availability.
 - [ ] Pokryc parsery body i query Nitro.
 - [ ] Dodawac test regresyjny dla kazdego znalezionego bledu.
 - [ ] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
@@ -2348,6 +2348,14 @@ ladowania platnosci z overview.
 testow dla zakresu poniedzialek-niedziela, siedmiu dni kalendarza, mapowania
 `items` z BFF, sciezek schedule managera, guardow pustych identyfikatorow oraz
 wyswietlania wydarzen dnia.
+
+### Vehicle Edit I Availability
+
+`useVehicleEditPage.test.ts`, `useVehiclesApi.test.ts`,
+`availability.test.ts`, `vehicle.test.ts` i `useVehiclesListPanelSummary.test.ts`
+przechodza: 11 testow dla guardow formularza edycji, payloadu zapisu pojazdu,
+payloadu tymczasowej niedostepnosci, labeli availability, normalizacji
+`unavailableUntil` oraz podsumowania statusow listy.
 
 ### Kryterium zakonczenia
 
