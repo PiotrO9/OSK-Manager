@@ -1428,7 +1428,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
-- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
@@ -1474,6 +1474,15 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
 - `statusFilterLabel`, `statusFilterLabelForOption`;
 - `eventIsoToHm`, `displayParticipantCount`, `displayEventPrimary`,
   `displayEventMeta`, `eventTypeBadgeClasses`, `eventTypeLabel`.
+
+#### Test regresyjny przed podzialem
+
+- Dodano test `useEventsDayPage`, ktory blokuje kontrakt managera dla
+  dziennego widoku: pobranie schedule OSK i instruktorow, odfiltrowanie wpisow
+  innych niz `instructor_event` oraz przypisanie eventu do kolumny i wiersza
+  grida wedlug instruktora i godziny startu.
+- Test celowo nie dotyka builda ani UI; stabilizuje granice przed wydzieleniem
+  helperow prezentacyjnych, buildera grida i loadera dnia.
 
 ### Kryterium zakonczenia
 
