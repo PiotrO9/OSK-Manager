@@ -2039,7 +2039,7 @@ juz czesciowo wyniesiona do
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
-- [ ] Uzyc `<script setup lang="ts">`.
+- [x] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
@@ -2100,6 +2100,11 @@ selectow ani payloadu `CourseCreatePayload`.
 konsumentem `CourseCreateForm`. Formularz zachowuje role publicznej fasady:
 przyjmuje propsy ze strony, uzywa `useCourseCreateForm` i emituje ten sam
 `submit`.
+
+#### Script Setup
+
+`CourseCreateForm.vue` juz uzywa `<script setup lang="ts">`. Nowe sekcje
+wydzielane w pilocie powinny zachowac ten sam standard SFC.
 
 ### Kryterium zakonczenia
 
