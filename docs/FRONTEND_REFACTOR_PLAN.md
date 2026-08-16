@@ -1903,7 +1903,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 #### Todo pilota
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
-- [ ] Zdefiniowac mape komponentow przed edycja.
+- [x] Zdefiniowac mape komponentow przed edycja.
 - [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
@@ -1946,6 +1946,20 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 | Selection      | Trzyma `selectedStudentUserIds`, toggle i przyciecie po limicie   | Kandydat na `useEventStudentPickerSelection`           |
 | Submit flow    | Waliduje eventId, wywoluje assign, toast, emit i close            | Zostawic w dialogu do czasu wydzielenia selection/load |
 | Publiczny open | `defineModel` steruje dialogiem                                   | To prawdziwy kontrakt dwukierunkowy                    |
+
+#### Mapa Komponentow Przed Edycja
+
+| Element                                        | Docelowa odpowiedzialnosc                               | Wejscie                                   | Wyjscie        |
+| ---------------------------------------------- | ------------------------------------------------------- | ----------------------------------------- | -------------- |
+| `ManagerEventStudentPickerDialog.vue`          | publiczny dialog, load/selection/submit i kompozycja UI | props, `v-model:open`, API composables    | `assigned`     |
+| `ManagerEventStudentPickerCapacitySummary.vue` | badge/remaining/alert limitu miejsc                     | badge variant/label, remaining slots, cap | brak emitow    |
+| `ManagerEventStudentPickerSearch.vue`          | pole wyszukiwania kursanta                              | query, disabled                           | update query   |
+| `ManagerEventStudentPickerList.vue`            | lista checkboxow, empty/loading/error/capacity reached  | students, selected ids, loading/error/cap | toggle student |
+| `useEventStudentPickerSelection`               | capacity, selected ids, toggle, przyciecie po limicie   | capacity, excluded ids                    | selection API  |
+
+Pierwszy implementacyjny krok: wydzielic tylko
+`ManagerEventStudentPickerCapacitySummary.vue`, bo nie dotyka fetchowania,
+submitu, wyszukiwania ani wyboru kursantow.
 
 ### Kryterium zakonczenia
 
