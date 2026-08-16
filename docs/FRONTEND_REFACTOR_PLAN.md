@@ -1189,6 +1189,40 @@ Pozostale composables korzystaja z danych formularza posrednio przez ten kontene
 - Weryfikacja pilota: `npx vitest run app/composables/events/useManagerEventEditForm.test.ts app/composables/events/useManagerEventEditTimePicker.test.ts app/utils/events/managerEventEditForm.test.ts`
   oraz `npm run lint`.
 
+### Pilot Etapu 4: `useAuthSession.ts`
+
+Zakres pilota: domkniecie podzialu rozpoczetego w Etapie 3 bez zmiany
+publicznego API `useAuthSession`.
+
+#### Todo pilota
+
+- [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
+- [ ] Zapisac jego publiczne API i liste konsumentow.
+- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
+- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [ ] Przepiac konsumentow.
+- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [ ] Uruchomic test domeny i lint.
+
+#### Odpowiedzialnosci obecnego pliku
+
+| Obszar                 | Obecna odpowiedzialnosc                                                                        | Uwagi do podzialu                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Publiczny stan sesji   | Trzyma `session`, `isAuthenticated` i `isCheckingSession` przez Nuxt `useState`/`computed`     | To powinno zostac w wrapperze, bo jest granica reaktywnego stanu aplikacji              |
+| Operacje sesji         | Udostepnia `login`, `logout`, `checkSession`, `refreshAccessToken`, `refreshProfileFromServer` | Orkiestracja moze zostac w wrapperze, ale transport jest juz w `authSessionApi.ts`      |
+| Demo login             | Udostepnia `loginDemo`                                                                         | Dane demo sa juz w `demoAuthSession.ts`; wrapper tylko zapisuje wynik do sesji          |
+| Normalizacja usera     | Mapuje `BackendUserResponse` na payload sesji i `AuthSession`                                  | Czyste mapowanie powinno trafic do utility z testami                                    |
+| Driving schools        | Filtruje i normalizuje liste OSK z backendu                                                    | Czysta funkcja pomocnicza do mappera sesji                                              |
+| Payload profilu        | Buduje body PATCH profilu z opcjonalnych pol                                                   | Czysta funkcja do wydzielenia i testow invalid/empty/null                               |
+| Mapowanie bledow HTTP  | Czyta `statusCode`, message/statusMessage i mapuje bledy login/profile/session                 | Kandydat na utility, ale dopiero po ustabilizowaniu mapperow, zeby nie mieszac zakresow |
+| Polityka refreshu      | Decyduje, kiedy pominac refresh (`403`, `404`) oraz kiedy wyczyscic sesje                      | Zostaje przy orkiestracji sesji, chyba ze powtorzy sie poza wrapperem                   |
+| Reaktywna izolacja SSR | Korzysta z `useState('auth_session')`, a nie ze stanu modulowego                               | Nie wydzielac do zwyklego utility; to Nuxt composable boundary                          |
+
 ### Kryterium zakonczenia
 
 Kazdy composable ma jedna opisywalna odpowiedzialnosc, a stan pochodny nie jest synchronizowany watcherami, jezeli moze byc `computed`.
