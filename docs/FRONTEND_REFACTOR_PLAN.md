@@ -2209,7 +2209,7 @@ Pierwszy praktyczny cel Etapu 6: domena `courses`, bo ma parsery
 | `CourseCreatePayload`                          | API request DTO frontend/BFF | Payload submitu formularza do `POST /api/courses`; trzymac przy granicy |
 | `BffCourseCreateBody`                          | API request DTO server/BFF   | Wynik walidacji `parseCourseCreateBody`; kandydat na wspolny alias      |
 | `CoursePatchInstructorPayload`                 | API request DTO frontend/BFF | Waske body `PATCH /api/courses/:id`                                     |
-| `parseCoursePatchInstructorBody` result        | API request DTO server/BFF   | Obecnie `Record<string, unknown>`; docelowo waski typ patcha            |
+| `parseCoursePatchInstructorBody` result        | API request DTO server/BFF   | Zrobione: `BffCoursePatchInstructorBody` opisuje no-op i `instructorId` |
 | `CourseKind`, `CourseParticipantStatus`        | model domenowy enum          | Moze pozostac wspolny dla UI i BFF, gdy wartosci pochodza z OpenAPI     |
 | `CourseListItem`, `CourseDetail`               | model domenowy UI            | Znormalizowany model po `normalizeCourseListItem` / detail              |
 | `CurrentUserCourseItem`                        | model domenowy UI            | Znormalizowany model widoku kursow zalogowanego uzytkownika             |

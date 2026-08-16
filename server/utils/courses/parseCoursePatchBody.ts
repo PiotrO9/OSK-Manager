@@ -5,13 +5,17 @@ const coursePatchRecordSchema = z.custom<Record<string, unknown>>(
     (value) => value !== null && typeof value === 'object',
 );
 
+export interface BffCoursePatchInstructorBody {
+    instructorId?: string | null;
+}
+
 /**
  * Parsuje body PATCH `/courses/:id` — tylko `instructorId` (MVP).
  * Brak klucza `instructorId` → pusty rekord `{}` (no-op wg BE).
  */
 export function parseCoursePatchInstructorBody(
     body: unknown,
-): { record: Record<string, unknown> } | { error: string } {
+): { record: BffCoursePatchInstructorBody } | { error: string } {
     const recordResult = coursePatchRecordSchema.safeParse(body);
 
     if (!recordResult.success) {
