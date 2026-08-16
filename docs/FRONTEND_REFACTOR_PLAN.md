@@ -2037,7 +2037,7 @@ juz czesciowo wyniesiona do
 #### Todo pilota
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
-- [ ] Zdefiniowac mape komponentow przed edycja.
+- [x] Zdefiniowac mape komponentow przed edycja.
 - [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
@@ -2079,6 +2079,20 @@ juz czesciowo wyniesiona do
 | Select options      | `kindOptions`, `qualifiedInstructors`                    | Juz w composable, mozna testowac osobno         |
 | Basic/theory fields | kilka niezaleznych grup markup + walidacja inline errors | Kandydaci na komponenty po akcji formularza     |
 | Actions             | link anulowania i przycisk submit                        | Najmniejszy bezpieczny pierwszy krok UI         |
+
+#### Mapa Komponentow Przed Edycja
+
+| Element                           | Docelowa odpowiedzialnosc                     | Wejscie                              | Wyjscie       |
+| --------------------------------- | --------------------------------------------- | ------------------------------------ | ------------- |
+| `CourseCreateForm.vue`            | publiczna fasada formularza i kompozycja UI   | props, `useCourseCreateForm`         | `submit`      |
+| `CourseCreateFormActions.vue`     | anulowanie i przycisk submit formularza       | `schoolId`, `isSaving`, `isBlocked`  | brak emitow   |
+| `CourseCreateBasicFields.vue`     | nazwa, kategoria, rodzaj kursu, godziny       | modele, opcje, bledy, loading state  | update modeli |
+| `CourseCreateTheoryFields.vue`    | daty teorii, limit miejsc i bledy teorii      | modele, bledy, blocked state         | update modeli |
+| `CourseCreateInstructorField.vue` | select instruktora i komunikaty empty/loading | instruktorzy, model, loading, errors | update modelu |
+
+Pierwszy implementacyjny krok: wydzielic tylko
+`CourseCreateFormActions.vue`, bo nie dotyka walidacji, modeli formularza,
+selectow ani payloadu `CourseCreatePayload`.
 
 ### Kryterium zakonczenia
 
