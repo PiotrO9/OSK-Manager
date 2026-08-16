@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamUpdateStudentNotes } from '~~/server/utils/students/studentsBff';
 
@@ -56,18 +57,22 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamUpdateStudentNotes(
+                event,
+                upstreamBase,
+                studentUserId,
+                notes,
+            ),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamUpdateStudentNotes(
-            event,
-            upstream,
-            studentUserId,
-            notes,
-        );
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockUpdateStudentNotes(studentUserId, notes, NOTES_MAX_LEN);
+            return bffMockUpdateStudentNotes(
+                studentUserId,
+                notes,
+                NOTES_MAX_LEN,
+            );
+        },
+    });
 });

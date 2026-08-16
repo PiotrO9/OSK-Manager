@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
@@ -59,18 +60,19 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator kursanta.',
     });
     const body = readPaymentBody(await readBody(event));
-    const upstream = resolveUpstreamBase(event);
 
-    if (upstream) {
-        return bffUpstreamCreateStudentPayment(
-            event,
-            upstream,
-            studentUserId,
-            body,
-        );
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamCreateStudentPayment(
+                event,
+                upstreamBase,
+                studentUserId,
+                body,
+            ),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    await requireManagerFromCookie(event);
-
-    return bffMockCreateStudentPayment(body);
+            return bffMockCreateStudentPayment(body);
+        },
+    });
 });

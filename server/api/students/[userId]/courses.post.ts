@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
     parseRequiredUuidRouterParam,
@@ -44,20 +45,20 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamStudentAssignToCourse(
+                event,
+                upstreamBase,
+                studentUserId,
+                {
+                    courseId,
+                },
+            ),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamStudentAssignToCourse(
-            event,
-            upstream,
-            studentUserId,
-            {
-                courseId,
-            },
-        );
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockStudentAssignToCourse(studentUserId, courseId);
+            return bffMockStudentAssignToCourse(studentUserId, courseId);
+        },
+    });
 });

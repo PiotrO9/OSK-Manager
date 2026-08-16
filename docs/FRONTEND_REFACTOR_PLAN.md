@@ -536,7 +536,7 @@ Wynik porownania po migracji:
 - [x] courses;
 - [x] instructors bez availability;
 - [x] driving schools;
-- [ ] students i payments;
+- [x] students i payments;
 - [ ] schedule;
 - [ ] lessons;
 - [ ] events;
@@ -600,6 +600,20 @@ Poza zakresem tej fali zostaja:
 
 - `server/api/driving-schools/[id]/schedule.get.ts`;
 - `server/api/driving-schools/[id]/availability/slots.get.ts`.
+
+Fala `students i payments` przepieta na `executeBffAdapter`:
+
+- `server/api/students.get.ts`;
+- `server/api/students/[userId]/index.get.ts`;
+- `server/api/students/[userId]/index.patch.ts`;
+- `server/api/students/[userId]/process-status.get.ts`;
+- `server/api/students/[userId]/events.get.ts`;
+- `server/api/students/[userId]/courses.post.ts`;
+- `server/api/students/[userId]/payments.get.ts`;
+- `server/api/students/[userId]/payments.post.ts`;
+- `server/api/students/[userId]/payments/[paymentId].patch.ts`;
+- `server/api/students/[userId]/payments/[paymentId]/mark-paid.patch.ts`;
+- `server/api/students/[userId]/payments/[paymentId]/mark-unpaid.patch.ts`.
 
 ### Sugerowane commity
 
