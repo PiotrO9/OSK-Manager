@@ -1198,7 +1198,7 @@ publicznego API `useAuthSession`.
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
-- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
@@ -1256,6 +1256,14 @@ Bezposredni konsumenci znalezieni przez `rg`:
 - komponenty: `app/components/app/AppHeader.vue`,
   `app/components/app/AppShellSidebar.vue`;
 - testy: `app/composables/auth/useAuthSession.test.ts`.
+
+#### Test regresyjny przed podzialem
+
+- Dodano test `patchProfile`, ktory blokuje kontrakt normalizacji opcjonalnych
+  pol profilu: trim imienia/nazwiska/opisu, puste `phone` jako `null` i
+  aktualizacja `session` po odpowiedzi BFF.
+- Test chroni najwazniejszy czysty fragment do wydzielenia: builder payloadu
+  PATCH profilu oraz mapper odpowiedzi usera do sesji.
 
 ### Kryterium zakonczenia
 

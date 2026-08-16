@@ -162,6 +162,44 @@ describe('useAuthSession', () => {
         expect(auth.session.value).toBeNull();
     });
 
+    it('patches profile with normalized optional fields and updates session', async () => {
+        bff.requestData.mockResolvedValue({
+            user: backendUser({
+                firstName: 'Piotr',
+                lastName: 'Kowalski',
+                phone: null,
+                bio: 'Nowy opis',
+            }),
+        });
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        await auth.patchProfile({
+            firstName: ' Piotr ',
+            lastName: ' Kowalski ',
+            phone: '   ',
+            bio: ' Nowy opis ',
+        });
+
+        expect(bff.requestData).toHaveBeenCalledWith('/api/auth/profile', {
+            method: 'PATCH',
+            body: {
+                firstName: 'Piotr',
+                lastName: 'Kowalski',
+                phone: null,
+                bio: 'Nowy opis',
+            },
+            retryUnauthorized: false,
+        });
+        expect(auth.session.value).toMatchObject({
+            userName: 'Piotr Kowalski',
+            firstName: 'Piotr',
+            lastName: 'Kowalski',
+            phone: null,
+            bio: 'Nowy opis',
+        });
+    });
+
     it('logs out through the BFF and clears session state', async () => {
         bff.request.mockResolvedValue({ success: true });
         const { useAuthSession } = await import('./useAuthSession');
