@@ -1749,6 +1749,66 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   szczegolow, update, uploadu zdjecia ani nawigacji po submit.
 - Test pokrywa nowa granice logiki strony bez dodawania testow SFC mount.
 
+### Pilot Etapu 5: `VehiclesListPanel.vue`
+
+Zakres pilota: odchudzic panel listy pojazdow bez zmiany publicznego API
+`app/pages/vehicles/index.vue`. Realna sciezka komponentu to
+`app/components/app/VehiclesListPanel.vue`; przeniesienie do
+`components/vehicles` zostaje osobnym krokiem, zeby nie mieszac move file z
+podzialem odpowiedzialnosci.
+
+#### Todo pilota
+
+- [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
+- [ ] Zdefiniowac mape komponentow przed edycja.
+- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [ ] Uzyc `<script setup lang="ts">`.
+- [ ] Uporzadkowac sekcje jako script, template, style.
+- [ ] Typowac props i emits.
+- [ ] Nie mutowac propsow w dziecku.
+- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [ ] Zachowac stabilne `key` dla list.
+- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+
+#### Sekcje UI
+
+| Sekcja                    | Odpowiedzialnosc                                                |
+| ------------------------- | --------------------------------------------------------------- |
+| Page header               | tytul, opis, akcja aktualnej floty i link dodania pojazdu       |
+| Summary strip             | metryki floty z `useVehiclesListPanelSummary`                   |
+| Filter bar                | label wynikow, status badge i taby `simple/manager`             |
+| Error/loading/empty state | komunikaty listy, loading shell, empty state i blad usuwania    |
+| Desktop table             | wiersze pojazdow, statusy, terminy i akcje managera             |
+| Mobile cards              | mobilna prezentacja pojazdow, akcje i kontrola statusu managera |
+| Manager status grid       | desktopowa szybka kontrola dostepnosci pojazdow                 |
+| Delete dialog             | potwierdzenie usuniecia i status akcji delete                   |
+
+#### Publiczne API I Konsumenci
+
+- Props: `isManager`, `activePanel`, `resolvedSchoolId`, `loadError`,
+  `deleteActionError`, `isListLoading`, `vehicles`, `isDeleteLoading`,
+  `isSetDefaultLoading`, `vehiclePendingDelete`, `statusUpdatingVehicleId`.
+- Emity: `tabSelect`, `tabKeydown`, `requestDelete`, `deleteDialogOpen`,
+  `cancelDelete`, `confirmDelete`, `setDefault`, `statusChange`.
+- Jedyny runtime consumer: `app/pages/vehicles/index.vue`, przez auto-import
+  Nuxt.
+- Powiazana logika pochodna jest juz czesciowo w
+  `useVehiclesListPanelSummary`.
+
+#### Odpowiedzialnosci Skryptu
+
+| Obszar              | Obecna odpowiedzialnosc                                      | Uwagi do podzialu                                            |
+| ------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Publiczny kontrakt  | Szeroki zestaw props/emits dla strony `vehicles/index.vue`   | Zachowac w wrapperze panelu podczas pierwszych ekstrakcji    |
+| Summary/view-model  | Deleguje liczniki i labelki do `useVehiclesListPanelSummary` | Nie mieszac z refaktorem UI, chyba ze dodawany jest test     |
+| Taby managera       | Renderuje i emituje `tabSelect`/`tabKeydown`                 | Kandydat na maly komponent toolbar actions                   |
+| Desktop table       | Renderuje tabele, statusy, terminy i akcje                   | Kandydat na `VehiclesListDesktopTable`                       |
+| Mobile cards        | Renderuje karty mobilne i akcje managera                     | Kandydat na `VehiclesListMobileCards`                        |
+| Manager status grid | Renderuje szybka zmiane statusow dla wszystkich pojazdow     | Najmniejszy bezpieczny pierwszy krok implementacyjny         |
+| Delete dialog       | Spina open state przez `vehiclePendingDelete !== null`       | Zostawic na pozniej, bo dotyka akcji delete i error handling |
+
 ### Kryterium zakonczenia
 
 Strony nie zawieraja pelnej implementacji feature, a duzy komponent nie laczy jednoczesnie orkiestracji danych i kilku niezaleznych sekcji prezentacji.
