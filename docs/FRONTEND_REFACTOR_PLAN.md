@@ -1904,7 +1904,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
-- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
@@ -1960,6 +1960,13 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 Pierwszy implementacyjny krok: wydzielic tylko
 `ManagerEventStudentPickerCapacitySummary.vue`, bo nie dotyka fetchowania,
 submitu, wyszukiwania ani wyboru kursantow.
+
+#### Granica Dialogu
+
+`ManagerEventStudentPickerDialog.vue` pozostaje publiczna fasada dialogu
+uzywana przez `ManagerSchoolWeeklyAvailabilityCalendar.vue`. Konsument nie
+dostaje nowych propsow, emitow ani zmiany modelu `v-model:open`; refaktor
+przenosi tylko wewnetrzne sekcje prezentacyjne pod ten sam kontrakt.
 
 ### Kryterium zakonczenia
 
