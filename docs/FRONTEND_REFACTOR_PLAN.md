@@ -1628,7 +1628,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
-- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
@@ -1711,6 +1711,13 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   przez emit `fileChange`.
 - Wlascicielem stanu pliku, object URL, nazwy pliku i bledow pozostaje
   `useVehicleEditPage`.
+
+#### V-model
+
+- W pilocie `pages/vehicles/[id]/edit.vue` oraz
+  `VehicleEditPhotoSection.vue` nie ma `v-model` ani `defineModel`.
+- Wybór pliku jest jednokierunkowy: rodzic przekazuje stan podgladu i bledow,
+  a dziecko emituje `fileChange`.
 
 ### Kryterium zakonczenia
 
