@@ -1765,7 +1765,7 @@ podzialem odpowiedzialnosci.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
-- [ ] Nie mutowac propsow w dziecku.
+- [x] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
@@ -1831,6 +1831,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - Komponent emituje typowane `statusChange(vehicle, payload)`, a
   `VehiclesListPanel.vue` przekazuje ten event dalej bez zmiany publicznego API
   strony `app/pages/vehicles/index.vue`.
+
+#### Brak Mutacji Propsow
+
+- `VehicleManagerStatusGrid.vue` nie mutuje `vehicles` ani
+  `statusUpdatingVehicleId`; renderuje stan i emituje `statusChange`.
+- Wlascicielem stanu aktualizacji statusu pozostaje `useVehiclesListPage`, a
+  `VehiclesListPanel.vue` zachowuje role fasady przekazujacej eventy.
 
 #### Route Meta + Composable + Widok
 
