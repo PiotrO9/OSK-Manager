@@ -1083,7 +1083,7 @@ kontenera `ManagerEventEditContainer.vue`.
 #### Todo pilota
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
-- [ ] Zapisac jego publiczne API i liste konsumentow.
+- [x] Zapisac jego publiczne API i liste konsumentow.
 - [ ] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
@@ -1108,6 +1108,30 @@ kontenera `ManagerEventEditContainer.vue`.
 | Snapshot i dirty state        | Porownuje baseline wydarzenia z aktualnym stanem formularza                          | Czyste snapshoty sa dobrym pierwszym testem regresyjnym                                  |
 | Walidacja slotu po zmianach   | Informuje akcje zapisu, czy start, koniec albo instruktor wymagaja walidacji slotu   | Moze zostac przy snapshotach, bo korzysta z tej samej granicy danych                     |
 | Handlery eventow input/select | Czytaja `Event.target`, aktualizuja refy i commituja lokalny datetime                | To warstwa adaptera UI; nie powinna mieszac sie z czystymi mapperami                     |
+
+#### Publiczne API i konsumenci
+
+Wejscie `useManagerEventEditForm`:
+
+- `loadedEvent: Ref<InstructorEvent | null>` - zrodlo baseline i prefillu.
+- `freeWindows: Ref<FreeWindow[]>` - zrodlo ograniczen wyboru daty i czasu.
+- `freeWindowsUnavailable: Ref<boolean>` - przelacznik wylaczajacy ograniczenia
+  pickera, gdy sloty nie sa dostepne.
+
+Zwracane API:
+
+| Grupa                   | Pola/funkcje                                                                                                                                                                                                            | Konsumenci                                                                                                          |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Stan formularza         | `formType`, `formStartLocal`, `formEndLocal`, `formStartDate`, `formStartHour`, `formStartMinute`, `formEndDate`, `formEndHour`, `formEndMinute`, `formVehicleId`, `formInstructorId`, `formCapacityInput`, `formError` | `ManagerEventEditContainer.vue`, a przez niego `useManagerEventParticipants` i `useManagerEventEditActions`         |
+| Opcje czasu             | `fullHourOptions`, `fullMinuteOptions`, `startHourOptionsResolved`, `startMinuteOptionsResolved`, `endHourOptionsResolved`, `endMinuteOptionsResolved`, `pickerMinDate`, `pickerMaxDate`                                | Template `ManagerEventEditContainer.vue`                                                                            |
+| Snapshoty i dirty state | `currentSnapshot`, `baselineSnapshot`, `isFormFieldsDirty`, `needsTimeOrInstructorSlotValidation`                                                                                                                       | `useManagerEventEditActions` przez kontener                                                                         |
+| Data formularza         | `currentFormDate`                                                                                                                                                                                                       | `useManagerEventSlots` przez kontener                                                                               |
+| Helpery domenowe        | `applyPrefill`, `parseCapacity`, `localDatetimeToIso`                                                                                                                                                                   | `useManagerEventEditData`, `useManagerEventParticipants`, `useManagerEventEditActions`, template wyboru uczestnikow |
+| Handlery input/select   | `handleStartDateChange`, `handleStartHourChange`, `handleStartMinuteChange`, `handleEndDateChange`, `handleEndHourChange`, `handleEndMinuteChange`                                                                      | Template `ManagerEventEditContainer.vue`                                                                            |
+| Flaga ograniczen czasu  | `pickerConstraintsActive`                                                                                                                                                                                               | Obecnie tylko kontrakt zwracany; brak bezposredniego uzycia znalezionego przez `rg`                                 |
+
+Bezposredni konsument znaleziony przez `rg`: `app/components/manager/events/ManagerEventEditContainer.vue`.
+Pozostale composables korzystaja z danych formularza posrednio przez ten kontener.
 
 ### Kryterium zakonczenia
 
