@@ -58,4 +58,59 @@ describe('auth role access groups', () => {
         expect(canAccessRole('demo', ['STUDENT'])).toBe(false);
         expect(canAccessRole('owner', ['ADMIN'])).toBe(false);
     });
+
+    it('documents the route access matrix', () => {
+        const roles = ['ADMIN', 'MANAGER', 'INSTRUCTOR', 'STUDENT', 'DEMO'];
+        const matrix = roles.map((role) => ({
+            role,
+            manager: hasManagerAccess(role),
+            instructor: isAuthRole(role, 'INSTRUCTOR'),
+            student: isAuthRole(role, 'STUDENT'),
+            managerOrInstructor: hasManagerOrInstructorAccess(role),
+            studentOrInstructor: hasStudentOrInstructorAccess(role),
+        }));
+
+        expect(matrix).toEqual([
+            {
+                role: 'ADMIN',
+                manager: true,
+                instructor: false,
+                student: false,
+                managerOrInstructor: true,
+                studentOrInstructor: false,
+            },
+            {
+                role: 'MANAGER',
+                manager: true,
+                instructor: false,
+                student: false,
+                managerOrInstructor: true,
+                studentOrInstructor: false,
+            },
+            {
+                role: 'INSTRUCTOR',
+                manager: false,
+                instructor: true,
+                student: false,
+                managerOrInstructor: true,
+                studentOrInstructor: true,
+            },
+            {
+                role: 'STUDENT',
+                manager: false,
+                instructor: false,
+                student: true,
+                managerOrInstructor: false,
+                studentOrInstructor: true,
+            },
+            {
+                role: 'DEMO',
+                manager: false,
+                instructor: false,
+                student: false,
+                managerOrInstructor: false,
+                studentOrInstructor: false,
+            },
+        ]);
+    });
 });

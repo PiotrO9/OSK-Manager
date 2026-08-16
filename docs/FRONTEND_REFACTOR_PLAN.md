@@ -914,7 +914,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Oddzielic dane demo od produkcyjnego przeplywu sesji.
 - [x] Rozdzielic transport sesji od reaktywnego stanu sesji.
 - [x] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
-- [ ] Dodac test macierzy rola -> dozwolona trasa.
+- [x] Dodac test macierzy rola -> dozwolona trasa.
 - [ ] Dodac test powrotu na pierwotna trase po logowaniu.
 - [ ] Dodac test zachowania przy 401, 403 i niedostepnym backendzie.
 
@@ -998,6 +998,14 @@ Data: 2026-08-16.
 - `useAuthSession` nadal trzyma dane profilu w `useState('auth_session')`.
 - Dodano test, ze wiele wywolan `useAuthSession()` wspoldzieli ten sam stan
   sesji zamiast tworzyc lokalny `ref`.
+
+### Wynik macierzy rol
+
+Data: 2026-08-16.
+
+- Dodano test macierzy roli dla wariantow tras: `manager`, `instructor`,
+  `student`, `manager-or-instructor` oraz `student-or-instructor`.
+- Macierz dokumentuje, ze `DEMO` nie ma dostepu do chronionych tras rol.
 
 ## Etap 4: podzial duzych composables
 
