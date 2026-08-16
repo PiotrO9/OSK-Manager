@@ -1768,7 +1768,7 @@ podzialem odpowiedzialnosci.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
-- [ ] Zachowac stabilne `key` dla list.
+- [x] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
@@ -1851,6 +1851,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
   template; renderuje `vehicles` w kolejnosci przekazanej z parenta.
 - Istniejace liczniki i labelki panelu pozostaja w
   `useVehiclesListPanelSummary`.
+
+#### Stabilne Key
+
+- `VehicleManagerStatusGrid.vue` zachowuje stabilny klucz
+  `` `status-control-${vehicle.id}` `` dla kazdego elementu grida.
+- Pozostale listy w `VehiclesListPanel.vue` nadal uzywaja `vehicle.id` i nie
+  byly zmieniane w tym kroku.
 
 #### Route Meta + Composable + Widok
 
