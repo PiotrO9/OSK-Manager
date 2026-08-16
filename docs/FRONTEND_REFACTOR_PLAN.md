@@ -2483,7 +2483,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [x] Potwierdzic brak nieplanowanych zmian wizualnych.
 - [x] Potwierdzic brak zmian publicznych kontraktow API.
 - [x] Uruchomic `npm run test`.
-- [ ] Uruchomic `npm run lint`.
+- [x] Uruchomic `npm run lint`.
 - [ ] Nie uruchamiac buildu bez wyraznego polecenia.
 - [ ] Wykonac smoke testy w trybie mock.
 - [ ] Wykonac smoke testy w trybie upstream.
@@ -2513,6 +2513,11 @@ normalizacji bez zmiany publicznych URL-i i metod HTTP.
 ### Finalny Test Run
 
 `npm run test` przechodzi w Etapie 9: 43 pliki testowe i 165 testow.
+
+### Finalny Lint
+
+`npm run lint` przechodzi. Polecenie wypisuje ostrzezenie Node/ESM dla
+`@stylistic/eslint-plugin`, ale ESLint konczy sie kodem 0.
 
 ### Metryki efektu
 
