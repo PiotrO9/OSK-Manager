@@ -1434,7 +1434,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Nie duplikowac stanu pomiedzy nowymi composables.
 - [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
-- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [ ] Przepiac konsumentow.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
@@ -1529,6 +1529,15 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   `EventsDayDateSelectionOptions` zamiast pozycyjnych argumentow opcjonalnych.
 - Opcje `initialDate` i `now` sa uzywane w testach do stabilizacji dat bez
   mockowania globalnego czasu.
+
+#### Kontrakt wrappera w czasie migracji
+
+- `useEventsDayPage.ts` nadal eksportuje dotychczasowe helpery prezentacyjne z
+  tych samych nazw, mimo ze implementacja mieszka juz w
+  `app/utils/events/eventsDayPage.ts`.
+- `EventsDaySchedulePanel.vue` i `app/pages/events/index.vue` nie wymagaly
+  jeszcze zmian importow ani propsow, dzieki czemu migracja pozostaje
+  kompatybilna.
 
 ### Kryterium zakonczenia
 
