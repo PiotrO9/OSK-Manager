@@ -1907,7 +1907,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
-- [ ] Typowac props i emits.
+- [x] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
@@ -1978,6 +1978,12 @@ Nowe sekcje wydzielane w tym pilocie musza utrzymac ten sam standard SFC.
 `ManagerEventStudentPickerDialog.vue` ma sekcje w kolejnosci
 `<script setup lang="ts">`, potem `<template>`, bez lokalnego `<style>`.
 Wydzielane komponenty powinny zachowac ten sam porzadek.
+
+#### Typowane Props I Emits
+
+Dodano `ManagerEventStudentPickerCapacitySummary.vue` z typowanymi propsami
+`badgeVariant`, `badgeLabel`, `capacityNumber` i `remainingSlots`.
+Komponent nie emituje zdarzen, bo renderuje wylacznie stan pojemnosci.
 
 ### Kryterium zakonczenia
 

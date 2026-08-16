@@ -359,27 +359,14 @@ const primarySubmitLabel = computed((): string => {
                 </UiDialogDescription>
             </UiDialogHeader>
 
-            <div class="flex flex-wrap items-center gap-2" role="status">
-                <UiBadge :variant="capacityBadgeVariant">
-                    {{ capacityBadgeLabel }}
-                </UiBadge>
-                <span
-                    v-if="remainingSlots !== null && remainingSlots > 0"
-                    class="text-muted-foreground text-xs"
-                >
-                    Pozostało miejsc: {{ remainingSlots }}
-                </span>
-            </div>
+            <ManagerEventStudentPickerCapacitySummary
+                :badge-variant="capacityBadgeVariant"
+                :badge-label="capacityBadgeLabel"
+                :capacity-number="capacityNumber"
+                :remaining-slots="remainingSlots"
+            />
 
-            <p
-                v-if="capacityNumber === 0"
-                class="border-destructive/40 bg-destructive/10 text-destructive rounded-md border px-3 py-2 text-sm"
-                role="alert"
-            >
-                Limit miejsc wynosi 0 — nie można wybrać kursantów.
-            </p>
-
-            <div v-else class="space-y-3">
+            <div v-if="capacityNumber !== 0" class="space-y-3">
                 <div class="space-y-2">
                     <label
                         class="text-sm leading-none font-medium"
