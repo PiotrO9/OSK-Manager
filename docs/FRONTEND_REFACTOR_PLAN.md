@@ -504,7 +504,7 @@ normalizowac statusow ani komunikatow.
 ### Migracja pilotazowa
 
 - [x] Wybrac prosty endpoint GET, np. ratings albo vehicles.
-- [ ] Zapisac test zachowania przed migracja.
+- [x] Zapisac test zachowania przed migracja.
 - [ ] Przepisac endpoint na executor.
 - [ ] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
 - [ ] Dopiero po pilocie zaakceptowac publiczne API helpera.
