@@ -1433,7 +1433,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [x] Nie duplikowac stanu pomiedzy nowymi composables.
 - [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
-- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [ ] Przepiac konsumentow.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
@@ -1522,6 +1522,13 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   zmiana kontraktu UI.
 - Test `useEventsDayPage` przestal zapisywac do `selectedDate.value` i ustawia
   date przez `handleCalendarUpdate`.
+
+#### Obiekt opcji
+
+- `useEventsDayDateSelection` przyjmuje pojedynczy obiekt
+  `EventsDayDateSelectionOptions` zamiast pozycyjnych argumentow opcjonalnych.
+- Opcje `initialDate` i `now` sa uzywane w testach do stabilizacji dat bez
+  mockowania globalnego czasu.
 
 ### Kryterium zakonczenia
 
