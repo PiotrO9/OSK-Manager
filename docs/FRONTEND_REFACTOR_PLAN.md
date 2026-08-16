@@ -1300,6 +1300,57 @@ Bezposredni konsumenci znalezieni przez `rg`:
 - Weryfikacja pilota: `npx vitest run app/composables/auth/useAuthSession.test.ts app/utils/auth/authSessionApi.test.ts app/utils/auth/authSessionMapper.test.ts app/utils/auth/authRole.test.ts app/utils/auth/demoAuthSession.test.ts app/composables/auth/useAuthReturnTo.test.ts`
   oraz `npm run lint`.
 
+### Pilot Etapu 4: `useManagerStudentDetailsPage.ts`
+
+Zakres pilota: `app/composables/students/useManagerStudentDetailsPage.ts` jako
+fasada strony `app/pages/manager/students/[userId].vue`, bez zmiany
+publicznego API strony.
+
+#### Todo pilota
+
+- [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
+- [x] Zapisac jego publiczne API i liste konsumentow.
+- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
+- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [ ] Przepiac konsumentow.
+- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [ ] Uruchomic test domeny i lint.
+
+#### Odpowiedzialnosci obecnego pliku
+
+| Obszar                          | Obecna odpowiedzialnosc                                                                | Uwagi do podzialu                                                              |
+| ------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Route context                   | Parsuje `userId` z params i `schoolId` z query                                         | Kandydat na maly helper/composable kontekstu strony                            |
+| Load profilu kursanta           | Pobiera profil przez BFF, normalizuje i obsluguje `400/404`                            | Orkiestracja page-state, z czystym helperem dla route user id                  |
+| Status procesu                  | Laduje `fetchProcessStatus`, trzyma loading/error i liczy kroki                        | Kandydat na `useManagerStudentProcessStatus`                                   |
+| Platnosci                       | Laduje summary/listy oraz akcje create/update/mark paid/unpaid                         | Kandydat na `useManagerStudentPayments`                                        |
+| Terminarz tygodniowy            | Trzyma zakres tygodnia, pobiera schedule i obsluguje prev/next week                    | Kandydat na `useManagerStudentSchedule`                                        |
+| View-model profilu i overview   | Wylicza display name, initials, subtitle, labelki overview i link powrotu              | Czyste computed/helpery do wydzielenia po teście regresyjnym                   |
+| Watchery i kolejnosc odpowiedzi | Reaguje na route/school/week i chroni przed out-of-order response licznikami sekwencji | Zachowac ostroznie; testowac guardy i brak requestow przy niepelnym kontekście |
+| Page meta                       | Ustawia tytul strony na podstawie nazwy kursanta                                       | Moze zostac w fasadzie strony                                                  |
+
+#### Publiczne API i konsumenci
+
+Bezposredni runtime consumer: `app/pages/manager/students/[userId].vue`.
+`getRouteUserIdString(rawId)` jest eksportowany, ale `rg` pokazuje tylko uzycia
+lokalne w tym samym pliku.
+
+Zwracane API:
+
+| Grupa              | Pola/funkcje                                                                                                                                                                   | Konsumenci w stronie                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| Stan profilu       | `student`, `isLoading`, `errorMessage`, `schoolId`                                                                                                                             | loading/error state, profile card, notes, courses                                     |
+| Status procesu     | `processStatusSteps`, `processStatusLoading`, `processStatusError`, `processOverviewLabel`                                                                                     | `ManagerStudentProcessStatus`, `ManagerStudentOverviewCard`                           |
+| Platnosci          | `payments`, `paymentsSummary`, `paymentsLoading`, `paymentsError`, `paymentsSaving`, `paymentsActionError`, `paymentsOverviewLabel`, akcje create/update/mark paid/mark unpaid | `ManagerStudentPaymentsSection`, `ManagerStudentOverviewCard`                         |
+| Terminarz          | `scheduleWeekStart`, `scheduleItems`, `scheduleLoading`, `scheduleError`, `studentScheduleRange`, `scheduleOverviewLabel`, `handlePrevScheduleWeek`, `handleNextScheduleWeek`  | `ManagerStudentScheduleSection`, `ManagerStudentOverviewCard`                         |
+| View-model profilu | `studentDisplayName`, `studentInitials`, `studentSubtitle`, `backToListHref`, `notesOverviewLabel`                                                                             | `PageHeader`, `ManagerStudentProfileCard`, `ManagerStudentOverviewCard`, link powrotu |
+| Akcje lokalne      | `handleStudentNotesUpdate`                                                                                                                                                     | `ManagerStudentNotes`                                                                 |
+
 ### Kryterium zakonczenia
 
 Kazdy composable ma jedna opisywalna odpowiedzialnosc, a stan pochodny nie jest synchronizowany watcherami, jezeli moze byc `computed`.
