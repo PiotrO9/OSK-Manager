@@ -43,6 +43,13 @@ function backendUser(overrides: Record<string, unknown> = {}) {
     };
 }
 
+function fetchError(statusCode: number, data?: Record<string, unknown>) {
+    return {
+        statusCode,
+        data,
+    };
+}
+
 describe('useAuthSession', () => {
     beforeEach(() => {
         vi.unstubAllGlobals();
@@ -106,6 +113,53 @@ describe('useAuthSession', () => {
         const auth = useAuthSession();
 
         await expect(auth.refreshAccessToken()).resolves.toBe(false);
+    });
+
+    it('maps 401 login failures to invalid credentials', async () => {
+        bff.requestData.mockRejectedValue(fetchError(401));
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        await expect(
+            auth.login('manager@example.com', 'wrong-password'),
+        ).rejects.toThrow('Nieprawidłowy e-mail lub hasło');
+        expect(auth.session.value).toBeNull();
+    });
+
+    it('clears session and skips refresh when session check returns 403', async () => {
+        bff.requestData.mockRejectedValue(fetchError(403));
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        auth.session.value = {
+            userId: 'user-1',
+            userName: 'Anna',
+            role: 'MANAGER',
+            drivingSchools: [],
+            defaultOskId: null,
+        };
+
+        await expect(auth.checkSession()).resolves.toBe(false);
+
+        expect(auth.session.value).toBeNull();
+        expect(bff.requestData).toHaveBeenCalledTimes(1);
+        expect(bff.requestData).toHaveBeenCalledWith('/api/auth/me', {
+            method: 'GET',
+            retryUnauthorized: false,
+        });
+    });
+
+    it('maps unavailable backend login failures to a connection error', async () => {
+        bff.requestData.mockRejectedValue(new TypeError('fetch failed'));
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        await expect(
+            auth.login('manager@example.com', 'secret'),
+        ).rejects.toThrow(
+            'Brak połączenia z serwerem. Sprawdź sieć i spróbuj ponownie.',
+        );
+        expect(auth.session.value).toBeNull();
     });
 
     it('logs out through the BFF and clears session state', async () => {

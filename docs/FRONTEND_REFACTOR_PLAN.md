@@ -916,7 +916,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
 - [x] Dodac test macierzy rola -> dozwolona trasa.
 - [x] Dodac test powrotu na pierwotna trase po logowaniu.
-- [ ] Dodac test zachowania przy 401, 403 i niedostepnym backendzie.
+- [x] Dodac test zachowania przy 401, 403 i niedostepnym backendzie.
 
 ### Kryterium zakonczenia
 
@@ -1015,6 +1015,16 @@ Data: 2026-08-16.
   sie w cookie, jest konsumowana jednokrotnie po logowaniu i potem znika.
 - Dodano test odrzucania zewnetrznych oraz protokolowo wzglednych redirectow,
   lacznie z czyszczeniem potencjalnie zmodyfikowanej wartosci cookie.
+
+### Wynik bledow auth
+
+Data: 2026-08-16.
+
+- Dodano test mapowania `401` przy logowaniu na komunikat o nieprawidlowych
+  danych logowania.
+- Dodano test `403` przy sprawdzaniu sesji: sesja jest czyszczona, a refresh
+  nie jest wykonywany.
+- Dodano test bledu sieciowego bez statusu HTTP jako niedostepnego backendu.
 
 ## Etap 4: podzial duzych composables
 
