@@ -533,7 +533,7 @@ Wynik porownania po migracji:
 
 - [x] ratings i proste endpointy `me`;
 - [x] vehicles bez uploadu;
-- [ ] courses;
+- [x] courses;
 - [ ] instructors bez availability;
 - [ ] driving schools;
 - [ ] students i payments;
@@ -566,6 +566,14 @@ Fala `vehicles` bez uploadu przepieta na `executeBffAdapter`:
 
 Poza zakresem tej fali zostaje `server/api/vehicles/[id]/photo.post.ts`,
 bo jest uploadem `FormData`.
+
+Fala `courses` przepieta na `executeBffAdapter`:
+
+- `server/api/course-types.get.ts`;
+- `server/api/courses.get.ts`;
+- `server/api/courses.post.ts`;
+- `server/api/courses/[id].get.ts`;
+- `server/api/courses/[id].patch.ts`.
 
 ### Sugerowane commity
 

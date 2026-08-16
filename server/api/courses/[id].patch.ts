@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamCoursesPatch } from '~~/server/utils/courses/coursesBff';
 import { bffMockCoursesPatch } from '~~/server/utils/courses/coursesMockBff';
 import { parseCoursePatchInstructorBody } from '~~/server/utils/courses/parseCoursePatchBody';
@@ -19,13 +20,14 @@ export default defineEventHandler(async (event) => {
     }
 
     const { record } = parsed;
-    const upstream = resolveUpstreamBase(event);
 
-    if (upstream) {
-        return bffUpstreamCoursesPatch(event, upstream, id, record);
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamCoursesPatch(event, upstreamBase, id, record),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    await requireManagerFromCookie(event);
-
-    return bffMockCoursesPatch(id, record);
+            return bffMockCoursesPatch(id, record);
+        },
+    });
 });
