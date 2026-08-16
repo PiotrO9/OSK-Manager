@@ -2305,7 +2305,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc parsery body i query Nitro.
 - [x] Dodawac test regresyjny dla kazdego znalezionego bledu.
 - [x] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
-- [ ] Ustalac staly czas i UUID w testach.
+- [x] Ustalac staly czas i UUID w testach.
 - [ ] Po kazdym etapie uruchomic pelne `npm run test`.
 
 ### Executor BFF
@@ -2377,6 +2377,13 @@ mockowane przez `fetchImpl`, `vi.stubGlobal('fetch')`, `vi.stubGlobal('$fetch')`
 albo lokalne funkcje `requestBffData` / `requestBffSuccess`. Testy z datami
 uzywaja jawnych dat albo wstrzyknietego `now()`, zamiast odczytu biezacego czasu
 systemowego.
+
+### Staly Czas I UUID
+
+Audyt `rg` nie znalazl `Date.now()`, pustego `new Date()`, `Math.random()` ani
+generatorow UUID w testach jednostkowych. Testy Etapu 7 uzywaja jawnych dat
+(`2026-...`) oraz stalych UUID typu `11111111-1111-4111-8111-111111111111`, co
+utrzymuje deterministyczne wyniki.
 
 ### Kryterium zakonczenia
 
