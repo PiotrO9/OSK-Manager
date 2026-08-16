@@ -1624,7 +1624,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
-- [ ] Uzyc `<script setup lang="ts">`.
+- [x] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
@@ -1683,6 +1683,12 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   `VehicleForm`.
 - Staly identyfikator formularza przeniesiono do `VEHICLE_EDIT_FORM_ID`, a
   strona uzywa zwroconego `formId`.
+
+#### Script Setup
+
+- `pages/vehicles/[id]/edit.vue` pozostaje w `<script setup lang="ts">`.
+- Nowy `useVehicleEditPage` przejmuje logike strony bez wprowadzania Options
+  API ani dodatkowego wrappera komponentu.
 
 ### Kryterium zakonczenia
 
