@@ -1770,7 +1770,7 @@ podzialem odpowiedzialnosci.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
 - [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
-- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+- [x] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
 
@@ -1866,6 +1866,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - Mobilne karty w `VehiclesListPanel.vue` nie byly zmieniane w tym kroku.
 - Nie uruchamiano builda ani smoke testu przegladarki; weryfikacja pozostala na
   poziomie zachowania markup/classes i pelnego lint/test.
+
+#### Test Nowej Granicy
+
+- Dodano `useVehiclesListPanelSummary.test.ts`, ktory pokrywa liczby pojazdow,
+  dostepnych/niedostepnych/default oraz route tworzenia pojazdu z zachowanym
+  `schoolId`.
+- Test zabezpiecza logike pochodna panelu bez wprowadzania SFC mount setupu.
 
 #### Route Meta + Composable + Widok
 
