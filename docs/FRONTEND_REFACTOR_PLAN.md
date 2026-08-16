@@ -1436,7 +1436,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [x] Przepiac konsumentow.
-- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [x] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
 
 #### Odpowiedzialnosci obecnego pliku
@@ -1546,6 +1546,14 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
 - Z `useEventsDayPage.ts` panel nadal importuje tylko typy powiazane z
   kontraktem fasady strony: `EventsDayViewMode`, `InstructorScheduleColumn` i
   `InstructorScheduleRow`.
+
+#### Usuniecie re-exportow wrappera
+
+- Po przepieciu `EventsDaySchedulePanel.vue` sprawdzono `rg`, ze helpery
+  prezentacyjne i `EventsDayStatusFilterOption` nie sa juz importowane z
+  `useEventsDayPage.ts`.
+- Usunieto re-exporty helperow z `useEventsDayPage.ts`; publicznym zrodlem dla
+  tych funkcji jest teraz `app/utils/events/eventsDayPage.ts`.
 
 ### Kryterium zakonczenia
 

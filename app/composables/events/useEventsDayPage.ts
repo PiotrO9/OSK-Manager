@@ -12,19 +12,6 @@ import {
 } from '~/utils/events/eventsDayPage';
 import { useEventsDayDateSelection } from './useEventsDayDateSelection';
 
-export type { EventsDayStatusFilterOption } from '~/utils/events/eventsDayPage';
-export {
-    EVENTS_DAY_STATUS_FILTER_OPTIONS,
-    displayEventMeta,
-    displayEventPrimary,
-    displayParticipantCount,
-    eventIsoToHm,
-    eventTypeBadgeClasses,
-    eventTypeLabel,
-    statusFilterLabel,
-    statusFilterLabelForOption,
-} from '~/utils/events/eventsDayPage';
-
 export type EventsDayViewMode = 'grid' | 'list';
 
 export interface InstructorScheduleColumn {
