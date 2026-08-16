@@ -78,8 +78,8 @@ Te punkty obowiazuja podczas kazdego etapu. Nie stanowia osobnej migracji i nie 
 
 ### Martwy kod
 
-- [ ] Po migracji sprawdzic konsumentow starych eksportow przez `rg`.
-- [ ] Usuwac nieuzywane composables, komponenty, typy i wrappery dopiero po przepieciu wszystkich konsumentow.
+- [x] Po migracji sprawdzic konsumentow starych eksportow przez `rg`.
+- [x] Usuwac nieuzywane composables, komponenty, typy i wrappery dopiero po przepieciu wszystkich konsumentow.
 - [ ] Nie pozostawiac tymczasowych adapterow bez zadania i terminu ich usuniecia.
 - [ ] Nie usuwac kodu tylko dlatego, ze nie jest znaleziony przez prosty import; sprawdzic auto-importy Nuxt i dynamiczne uzycia komponentow.
 
@@ -549,6 +549,7 @@ Pierwsza fala migracji domenowej przepieta na `executeBffAdapter`:
 - `server/api/ratings/me.get.ts`;
 - `server/api/ratings.get.ts`;
 - `server/api/instructors/[id]/ratings.get.ts`;
+- `server/api/manager/attention-items.get.ts`;
 - `server/api/lessons/[lessonId]/rating.get.ts`;
 - `server/api/lessons/[lessonId]/rating.post.ts`;
 - `server/api/me/courses.get.ts`;
@@ -655,6 +656,13 @@ Fala uploadow `FormData` przepieta na `executeBffAdapter`:
 
 - `server/api/vehicles/[id]/photo.post.ts`;
 - `server/api/auth/profile/avatar.post.ts`.
+
+Domkniecie migracji BFF:
+
+- `server/api/manager/attention-items.get.ts` zostal przepiety po audycie
+  koncowym Etapu 1;
+- stary eksport `resolveUpstreamBase` zostal usuniety po potwierdzeniu braku
+  konsumentow w kodzie.
 
 Zasada zachowana: `readMultipartFormData` zostaje w handlerze, a Blob dla
 upstreamu powstaje dopiero w callbacku `upstream`.
