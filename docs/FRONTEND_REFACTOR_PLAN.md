@@ -1764,7 +1764,7 @@ podzialem odpowiedzialnosci.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
-- [ ] Typowac props i emits.
+- [x] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
