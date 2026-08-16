@@ -1630,7 +1630,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
-- [ ] Zachowac stabilne `key` dla list.
+- [x] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
@@ -1726,6 +1726,12 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
 - Stan pochodny strony, taki jak `initialVehicle`, `vehicleTitle`,
   `headerMeta`, `previewPhotoSrc`, `pendingPhotoFileName`, `isSaveBusy` i route
   powrotu, jest liczony w `useVehicleEditPage` przez `computed`.
+
+#### Stabilne Key
+
+- Pilot `pages/vehicles/[id]/edit.vue` nie zawiera `v-for`, wiec refaktor nie
+  wprowadzil ani nie zmienil kluczy list.
+- Nowy `VehicleEditPhotoSection.vue` renderuje pojedyncza sekcje bez kolekcji.
 
 ### Kryterium zakonczenia
 
