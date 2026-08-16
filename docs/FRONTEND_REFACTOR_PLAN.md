@@ -2040,7 +2040,7 @@ juz czesciowo wyniesiona do
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
-- [ ] Uporzadkowac sekcje jako script, template, style.
+- [x] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
@@ -2105,6 +2105,12 @@ przyjmuje propsy ze strony, uzywa `useCourseCreateForm` i emituje ten sam
 
 `CourseCreateForm.vue` juz uzywa `<script setup lang="ts">`. Nowe sekcje
 wydzielane w pilocie powinny zachowac ten sam standard SFC.
+
+#### Kolejnosc SFC
+
+`CourseCreateForm.vue` ma sekcje w kolejnosci `<script setup lang="ts">`,
+potem `<template>`, bez lokalnego `<style>`. Nowe komponenty powinny zachowac
+ten sam porzadek.
 
 ### Kryterium zakonczenia
 
