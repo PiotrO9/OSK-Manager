@@ -2171,7 +2171,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Ujednolicic normalizatory odpowiedzi i ich testy.
 - [x] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
 - [x] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
-- [ ] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
+- [x] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
 - [ ] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
 - [ ] Dodac testy invalid, missing, null, empty i unexpected shape.
 
@@ -2255,6 +2255,13 @@ czyli sa testowalne bez uruchamiania handlera HTTP.
 minimalnego guardu rekordu na zewnetrznej granicy request body. Dotychczasowa
 walidacja pol i komunikaty bledow zostaly zachowane, a
 `parseCourseBody.test.ts` blokuje regresje dla create i patch.
+
+### Brak Nadmiarowej Walidacji Courses
+
+Po `parseCourseCreateBody` dane maja typ `BffCourseCreateBody` i sa tylko
+serializowane przez `courseCreateBodyToUpstreamRecord` albo przekazywane do
+`bffMockCoursesCreate`. Mock sprawdza juz tylko reguly biznesowe instruktora
+przypisanego do szkoly i kwalifikacji, a nie ponownie ksztalt request body.
 
 ### Kryterium zakonczenia
 
