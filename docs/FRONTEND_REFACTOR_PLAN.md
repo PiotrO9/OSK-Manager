@@ -720,7 +720,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Ujednolicic upload `FormData` bez recznego `Content-Type`.
 - [x] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
 - [x] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
-- [ ] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
+- [x] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
 - [ ] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
 
@@ -825,6 +825,17 @@ Data: 2026-08-16.
 - Warunek zabezpieczajacy jest w centralnym transporcie: `path === refreshPath`
   blokuje probe ponowienia przez refresh.
 - Weryfikacja punktu: `npx vitest run app/utils/api/bffClient.test.ts`.
+
+### Wynik SSR BFF
+
+Data: 2026-08-16.
+
+- Plugin `$bff` nadal wybiera `useRequestFetch()` po stronie serwera i `$fetch`
+  po stronie klienta.
+- Audyt `rg -n "useRequestFetch|\$fetch|resolveBffEndpoint|createBffClient" app`
+  potwierdzil, ze `useRequestFetch` nie jest rozproszone po domenach aplikacji.
+- Wewnetrzne wywolania BFF zachowuja kontekst SSR i cookies przez centralny
+  plugin.
 
 ### Kryterium zakonczenia
 
