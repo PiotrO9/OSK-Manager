@@ -718,7 +718,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
 - [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
 - [x] Ujednolicic upload `FormData` bez recznego `Content-Type`.
-- [ ] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
+- [x] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
 - [ ] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
 - [ ] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
 - [ ] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
@@ -805,6 +805,16 @@ Data: 2026-08-16.
 - Testy centralnego transportu potwierdzaja, ze `FormData` nie dostaje
   `Content-Type: application/json`, dzieki czemu przegladarka moze dopisac
   multipart boundary.
+
+### Wynik retry 401
+
+Data: 2026-08-16.
+
+- `createBffClient` ma test, ze po 401 wykonuje jeden refresh i ponawia
+  oryginalny request.
+- `createBffClient` ma test, ze rownolegle odpowiedzi 401 wspoldziela jeden
+  request refreshu (`single-flight`).
+- Weryfikacja punktu: `npx vitest run app/utils/api/bffClient.test.ts`.
 
 ### Kryterium zakonczenia
 
