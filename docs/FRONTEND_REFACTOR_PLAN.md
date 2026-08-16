@@ -2299,7 +2299,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc auth: login, refresh single-flight, logout, auth failure.
 - [x] Pokryc macierz middleware rol.
 - [x] Pokryc event edit form i payload.
-- [ ] Pokryc student details: profil, kursy i platnosci.
+- [x] Pokryc student details: profil, kursy i platnosci.
 - [ ] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
 - [ ] Pokryc vehicle edit i status availability.
 - [ ] Pokryc parsery body i query Nitro.
@@ -2332,6 +2332,14 @@ manager/instructor/student i wariantow laczonych.
 `useManagerEventEditTimePicker.test.ts` przechodza: 6 testow dla snapshotu
 formularza, payloadu PATCH, wykrywania zmian instruktora, parsowania pojemnosci
 oraz synchronizacji lokalnych pol daty/czasu.
+
+### Student Details
+
+`student.test.ts`, `studentDetailsPage.test.ts`,
+`useManagerStudentDetailsPage.test.ts` i `useManagerStudentPayments.test.ts`
+przechodza: 8 testow dla normalizacji profilu kursanta, przypisanych kursow,
+statusow kursow, labeli widoku szczegolow, guardu braku `schoolId` oraz
+ladowania platnosci z overview.
 
 ### Kryterium zakonczenia
 
