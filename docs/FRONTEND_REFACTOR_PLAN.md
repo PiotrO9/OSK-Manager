@@ -1625,7 +1625,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
-- [ ] Uporzadkowac sekcje jako script, template, style.
+- [x] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
@@ -1689,6 +1689,13 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
 - `pages/vehicles/[id]/edit.vue` pozostaje w `<script setup lang="ts">`.
 - Nowy `useVehicleEditPage` przejmuje logike strony bez wprowadzania Options
   API ani dodatkowego wrappera komponentu.
+
+#### Kolejnosc Sekcji SFC
+
+- `pages/vehicles/[id]/edit.vue` ma uporzadkowany ksztalt SFC: najpierw
+  `<script setup lang="ts">`, potem `<template>`.
+- Plik nie ma lokalnego `<style>`, wiec nie dodawano pustej sekcji tylko po to,
+  zeby wypelnic schemat.
 
 ### Kryterium zakonczenia
 
