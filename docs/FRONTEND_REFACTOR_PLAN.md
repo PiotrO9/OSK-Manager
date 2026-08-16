@@ -2047,7 +2047,7 @@ juz czesciowo wyniesiona do
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
 - [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
-- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+- [x] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
 
@@ -2146,6 +2146,12 @@ kursu uzywaja wartosci `k`, a instruktorzy uzywaja `ins.id`.
 `CourseCreateFormActions.vue` zachowuje klasy stopki formularza:
 `flex-col-reverse` na mobile oraz `sm:flex-row sm:justify-end` na szerszych
 ekranach. Przyciski zachowuja te same klasy wysokosci, paddingu i shadow.
+
+#### Test Granicy
+
+Dodano `useCourseCreateForm.test.ts`, ktory pokrywa submit payloadu teorii,
+filtrowanie `qualifiedInstructors` po kategorii oraz blokade submitu przy
+brakujacych wymaganych polach.
 
 ### Kryterium zakonczenia
 
