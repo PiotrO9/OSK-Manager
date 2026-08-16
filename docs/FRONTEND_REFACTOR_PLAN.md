@@ -2675,11 +2675,11 @@ Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden pli
 
 Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
-| ID      | Znaleziono w                                             | Problem                                                                                 | Ryzyko          | Proponowany etap lub branch                                       | Status |
-| ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------- | ------ |
-| REF-001 | etap/plik                                                | krotki opis                                                                             | low/medium/high | miejsce dalszej pracy                                             | open   |
-| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikuje `CourseKind`, ale server nie importuje obecnie `app/types` | medium          | decyzja o wspolnej warstwie kontraktow przed usunieciem duplikatu | open   |
-| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu        | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL      | open   |
+| ID      | Znaleziono w                                             | Problem                                                                                                                                                         | Ryzyko          | Proponowany etap lub branch                                       | Status |
+| ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------- | ------ |
+| REF-001 | etap/plik                                                | krotki opis                                                                                                                                                     | low/medium/high | miejsce dalszej pracy                                             | open   |
+| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` nadal odpowiada `CourseKind`, ale server nie importuje obecnie `app/types`; lokalne wartosci zostaly scentralizowane w `COURSE_CREATE_KINDS` | medium          | decyzja o wspolnej warstwie kontraktow przed usunieciem duplikatu | open   |
+| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu                                                                                | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL      | open   |
 
 ### Todo
 
