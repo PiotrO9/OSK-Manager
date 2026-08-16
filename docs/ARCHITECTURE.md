@@ -7,9 +7,13 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 ```
 ├── app/
 │   ├── components/
-│   │   ├── app/           # UI aplikacji, ToastStack, NavTree, VehiclesListPanel, design-system/
+│   │   ├── app/           # shell UI aplikacji, ToastStack, NavTree, design-system/
+│   │   ├── account/       # komponenty strony konta
+│   │   ├── events/        # dzienny widok wydarzeń
+│   │   ├── manager/       # moduł managera OSK
 │   │   ├── shadcn/        # shadcn-vue (prefiks Ui*)
-│   │   └── manager/       # moduł managera OSK
+│   │   ├── student/       # widoki kursanta
+│   │   └── vehicles/      # lista, formularze i statusy pojazdów
 │   ├── composables/
 │   ├── layouts/
 │   ├── middleware/        # auth.global.ts, manager.ts
@@ -63,8 +67,8 @@ Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 ## Configuration (`nuxt.config.ts`)
 
 - **Modules:** `@nuxt/eslint`, `@nuxt/icon`, `@nuxtjs/seo`, `shadcn-nuxt`.
-- **Components:** `~/components/app`, `~/components/app/design-system`, `~/components/shadcn`, `~/components/manager` (bez prefiksu ścieżki).
-- **Imports:** `app/composables`, `app/utils` (auto-import).
+- **Components:** `~/components/app`, `~/components/app/design-system`, `~/components/shadcn`, `~/components/manager`, `~/components/vehicles`, `~/components/student` (bez prefiksu ścieżki).
+- **Imports:** `app/composables`, `app/composables/**`, `app/utils`, `app/utils/**` (auto-import); ważne zależności domenowe w route'ach importujemy jawnie.
 - **Runtime:** `apiUpstream`, `public.apiBase`, `public.siteUrl`, `public.demoMockLogin`.
 
 ## Conventions

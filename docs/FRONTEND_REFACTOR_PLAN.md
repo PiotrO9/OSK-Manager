@@ -2419,7 +2419,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Nie dodawac nowych barrel files w domenach.
 - [x] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
 - [x] Zaktualizowac `docs/CODEMAP.md`.
-- [ ] Zaktualizowac `docs/ARCHITECTURE.md`.
+- [x] Zaktualizowac `docs/ARCHITECTURE.md`.
 - [ ] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md`.
 - [ ] Dodac link do tego planu w `docs/README.md` na czas realizacji.
