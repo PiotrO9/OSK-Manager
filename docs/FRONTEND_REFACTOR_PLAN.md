@@ -712,7 +712,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 ### Todo
 
 - [x] Zinwentaryzowac `requestBffData`, `bffFetch`, `useApi`, `useBffApi` i `externalFetch`.
-- [ ] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
+- [x] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
 - [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
 - [ ] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
 - [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
@@ -757,6 +757,31 @@ Polecenie bazowe:
 | `externalFetch`           | brak aktywnych konsumentow domenowych                                                                                      | kandydat do usuniecia albo zostawienia tylko dla jawnie zewnetrznych integracji        |
 | `useRequestFetch`         | wystepuje w pluginie `$bff`, co zachowuje cookies i kontekst SSR dla wewnetrznych wywolan BFF                              | zachowac                                                                               |
 | `ManagerStudentNotes.vue` | komponent sam wywoluje `requestBffData` i normalizuje odpowiedz PATCH                                                      | pierwszy kandydat do przeniesienia requestu do `useStudentsApi`                        |
+
+### Kontrakt uzycia transportu
+
+Data: 2026-08-16.
+
+| API                     | Kiedy uzywac                                                                                      | Kiedy nie uzywac                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `requestBffData<T>`     | domyslnie w composables domenowych dla endpointow BFF zwracajacych `{ success: true, data }`      | dla odpowiedzi bez `data`, recznej kontroli refreshu albo zewnetrznych URL-i           |
+| `bffFetch<T>`           | dla pelnej koperty BFF, szczegolnie `{ success: true }` bez `data` i nietypowych statusow         | jako zwyklego zamiennika `requestBffData` przy endpointach z `data`                    |
+| `$bff` / `useBffClient` | tylko gdy kod potrzebuje niskopoziomowej kontroli klienta, np. sesja i reczny `retryUnauthorized` | w komponentach UI i zwyklych composables domenowych                                    |
+| `useBffApi`             | tylko jesli potrzebny jest reaktywny wrapper z `execute`, `data`, `error`, `isLoading`            | dla nowych prostych operacji domenowych, gdzie latwiej utrzymac jawne `async function` |
+| `useApi` / `useApiLazy` | tymczasowa kompatybilnosc ze starszym wzorcem API                                                 | w nowym kodzie; nie rozszerzac uzyc                                                    |
+| `externalFetch`         | wylacznie dla jawnie zewnetrznych absolutnych URL-i HTTP poza BFF                                 | dla wewnetrznych `/api/**`                                                             |
+| surowy `$fetch`         | centralny transport, plugin `$bff`, testy                                                         | kod domenowy, komponenty, strony                                                       |
+| `useRequestFetch`       | plugin `$bff` po stronie SSR, zeby zachowac cookies i kontekst requestu                           | bezposrednio w domenach aplikacji, dopoki nie ma udokumentowanego wyjatku              |
+| `resolveBffEndpoint`    | infrastruktura pluginu `$bff` i kompatybilnosc                                                    | kod domenowy; endpoint ma przechodzic przez `requestBffData`, `bffFetch` albo `$bff`   |
+
+Wniosek migracyjny:
+
+- Standard domenowy: `requestBffData` + typowany `normalize`.
+- Wyjatek domenowy: `bffFetch` tylko dla success-only albo pelnej koperty.
+- Wyjatek infrastrukturalny: `$bff` w sesji do czasu Etapu 3.
+- Kandydaci do redukcji: `useApi`, `useApiLazy`, `useBffApi`, `externalFetch`.
+- Pierwsza migracja kodu: przeniesienie PATCH notatki kursanta z komponentu
+  do `useStudentsApi`.
 
 ### Kryterium zakonczenia
 
