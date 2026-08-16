@@ -1197,7 +1197,7 @@ publicznego API `useAuthSession`.
 #### Todo pilota
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
-- [ ] Zapisac jego publiczne API i liste konsumentow.
+- [x] Zapisac jego publiczne API i liste konsumentow.
 - [ ] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
@@ -1222,6 +1222,40 @@ publicznego API `useAuthSession`.
 | Mapowanie bledow HTTP  | Czyta `statusCode`, message/statusMessage i mapuje bledy login/profile/session                 | Kandydat na utility, ale dopiero po ustabilizowaniu mapperow, zeby nie mieszac zakresow |
 | Polityka refreshu      | Decyduje, kiedy pominac refresh (`403`, `404`) oraz kiedy wyczyscic sesje                      | Zostaje przy orkiestracji sesji, chyba ze powtorzy sie poza wrapperem                   |
 | Reaktywna izolacja SSR | Korzysta z `useState('auth_session')`, a nie ze stanu modulowego                               | Nie wydzielac do zwyklego utility; to Nuxt composable boundary                          |
+
+#### Publiczne API i konsumenci
+
+Zwracane API:
+
+| Pole/funkcja               | Odpowiedzialnosc publiczna                                                       | Glowne grupy konsumentow                                                       |
+| -------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `session`                  | Reaktywny profil zalogowanego uzytkownika bez tokenow                            | strony, middleware rol, sidebar/header, composables domenowe                   |
+| `isAuthenticated`          | Flaga obecnosci sesji z `userId`                                                 | `AppHeader.vue`, `login.vue`                                                   |
+| `isCheckingSession`        | Flaga trwajacego sprawdzania sesji                                               | Obecnie publiczny kontrakt, brak bezposredniego uzycia znalezionego przez `rg` |
+| `login`                    | Logowanie przez BFF i ustawienie sesji                                           | `pages/login.vue`                                                              |
+| `loginDemo`                | Lokalna sesja demonstracyjna                                                     | testy oraz potencjalne flow demo                                               |
+| `logout`                   | Logout przez BFF i czyszczenie sesji                                             | `useLogout.ts`                                                                 |
+| `refreshAccessToken`       | Jawny refresh access tokenu przez BFF                                            | testy i wewnetrzne flow sesji                                                  |
+| `refreshProfileFromServer` | Pobranie aktualnego profilu z retry refreshu                                     | `useAccountPage.ts`                                                            |
+| `patchProfile`             | PATCH profilu i aktualizacja sesji                                               | `useAccountPage.ts`                                                            |
+| `checkSession`             | Sprawdzenie sesji dla middleware auth, z czyszczeniem stanu przy niewaznej sesji | `middleware/auth.global.ts`                                                    |
+
+Bezposredni konsumenci znalezieni przez `rg`:
+
+- strony: `app/pages/index.vue`, `app/pages/login.vue`,
+  `app/pages/my-courses.vue`, `app/pages/manager/schedule/index.vue`;
+- middleware: `app/middleware/auth.global.ts`, `app/middleware/manager.ts`,
+  `app/middleware/manager-or-instructor.ts`, `app/middleware/instructor.ts`,
+  `app/middleware/student.ts`, `app/middleware/student-or-instructor.ts`;
+- composables: `app/composables/auth/useLogout.ts`,
+  `app/composables/account/useAccountPage.ts`,
+  `app/composables/vehicles/useVehiclesListPage.ts`,
+  `app/composables/events/useEventsDayPage.ts`,
+  `app/composables/lessons/useMyLessonsPage.ts`,
+  `app/composables/lessons/useManagerLessonEditPage.ts`;
+- komponenty: `app/components/app/AppHeader.vue`,
+  `app/components/app/AppShellSidebar.vue`;
+- testy: `app/composables/auth/useAuthSession.test.ts`.
 
 ### Kryterium zakonczenia
 
