@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffEventStudentsPost } from '~~/server/utils/events/eventsBff';
 import {
     isUuid,
@@ -78,21 +79,21 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffEventStudentsPost(event, upstreamBase, eventId, {
+                studentIds: parsed.studentIds,
+            }),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffEventStudentsPost(event, upstream, eventId, {
-            studentIds: parsed.studentIds,
-        });
-    }
-
-    await requireManagerFromCookie(event);
-
-    return {
-        success: true,
-        data: {
-            assigned: parsed.studentIds.length,
-            skipped: 0,
+            return {
+                success: true,
+                data: {
+                    assigned: parsed.studentIds.length,
+                    skipped: 0,
+                },
+            };
         },
-    };
+    });
 });

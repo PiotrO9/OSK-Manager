@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffEventsDelete } from '~~/server/utils/events/eventsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
@@ -7,15 +8,15 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator wydarzenia.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffEventsDelete(event, upstreamBase, eventId),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffEventsDelete(event, upstream, eventId);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return {
-        success: true,
-    };
+            return {
+                success: true,
+            };
+        },
+    });
 });

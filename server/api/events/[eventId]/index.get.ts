@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffEventsGet } from '~~/server/utils/events/eventsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
@@ -7,14 +8,14 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator wydarzenia.',
     });
 
-    const upstream = resolveUpstreamBase(event);
-
-    if (upstream) {
-        return bffEventsGet(event, upstream, eventId);
-    }
-
-    throw createError({
-        statusCode: 404,
-        statusMessage: 'Wydarzenie nie istnieje (tryb demo).',
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffEventsGet(event, upstreamBase, eventId),
+        mock: () => {
+            throw createError({
+                statusCode: 404,
+                statusMessage: 'Wydarzenie nie istnieje (tryb demo).',
+            });
+        },
     });
 });

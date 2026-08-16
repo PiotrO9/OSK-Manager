@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffEventsPost } from '~~/server/utils/events/eventsBff';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 
@@ -174,32 +175,33 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => {
+            const upstreamBody: Record<string, unknown> = {
+                instructorId: parsed.body.instructorId,
+                type: parsed.body.type,
+                startTime: parsed.body.startTime,
+                endTime: parsed.body.endTime,
+            };
 
-    if (upstream) {
-        const upstreamBody: Record<string, unknown> = {
-            instructorId: parsed.body.instructorId,
-            type: parsed.body.type,
-            startTime: parsed.body.startTime,
-            endTime: parsed.body.endTime,
-        };
+            if (parsed.body.type === 'DRIVE' && parsed.body.vehicleId) {
+                upstreamBody.vehicleId = parsed.body.vehicleId;
+            }
 
-        if (parsed.body.type === 'DRIVE' && parsed.body.vehicleId) {
-            upstreamBody.vehicleId = parsed.body.vehicleId;
-        }
+            if (parsed.body.capacity !== undefined) {
+                upstreamBody.capacity = parsed.body.capacity;
+            }
 
-        if (parsed.body.capacity !== undefined) {
-            upstreamBody.capacity = parsed.body.capacity;
-        }
+            if (parsed.body.type === 'THEORY' && parsed.body.courseId) {
+                upstreamBody.courseId = parsed.body.courseId;
+            }
 
-        if (parsed.body.type === 'THEORY' && parsed.body.courseId) {
-            upstreamBody.courseId = parsed.body.courseId;
-        }
+            return bffEventsPost(event, upstreamBase, upstreamBody);
+        },
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-        return bffEventsPost(event, upstream, upstreamBody);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockEventsPost(parsed.body);
+            return bffMockEventsPost(parsed.body);
+        },
+    });
 });

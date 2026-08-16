@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffEventsPatch } from '~~/server/utils/events/eventsBff';
 import {
     isUuid,
@@ -188,48 +189,48 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffEventsPatch(event, upstreamBase, eventId, parsed.body),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffEventsPatch(event, upstream, eventId, parsed.body);
-    }
+            const now = new Date().toISOString();
+            const b = parsed.body;
+            const type =
+                (b.type as EventTypeLiteral | undefined) ??
+                ('THEORY' as EventTypeLiteral);
 
-    await requireManagerFromCookie(event);
+            let vehicleId: string | null = null;
 
-    const now = new Date().toISOString();
-    const b = parsed.body;
-    const type =
-        (b.type as EventTypeLiteral | undefined) ??
-        ('THEORY' as EventTypeLiteral);
+            if (type === 'DRIVE') {
+                vehicleId =
+                    b.vehicleId !== undefined
+                        ? (b.vehicleId as string | null)
+                        : '00000000-0000-4000-8000-000000000002';
+            }
 
-    let vehicleId: string | null = null;
-
-    if (type === 'DRIVE') {
-        vehicleId =
-            b.vehicleId !== undefined
-                ? (b.vehicleId as string | null)
-                : '00000000-0000-4000-8000-000000000002';
-    }
-
-    return {
-        success: true,
-        data: {
-            event: {
-                id: eventId,
-                instructorId:
-                    (b.instructorId as string | undefined) ??
-                    '00000000-0000-4000-8000-000000000001',
-                type,
-                startTime: (b.startTime as string | undefined) ?? now,
-                endTime: (b.endTime as string | undefined) ?? now,
-                vehicleId,
-                capacity:
-                    b.capacity !== undefined
-                        ? (b.capacity as number | null)
-                        : null,
-                status: (b.status as string | undefined) ?? 'PLANNED',
-                createdAt: now,
-            },
+            return {
+                success: true,
+                data: {
+                    event: {
+                        id: eventId,
+                        instructorId:
+                            (b.instructorId as string | undefined) ??
+                            '00000000-0000-4000-8000-000000000001',
+                        type,
+                        startTime: (b.startTime as string | undefined) ?? now,
+                        endTime: (b.endTime as string | undefined) ?? now,
+                        vehicleId,
+                        capacity:
+                            b.capacity !== undefined
+                                ? (b.capacity as number | null)
+                                : null,
+                        status: (b.status as string | undefined) ?? 'PLANNED',
+                        createdAt: now,
+                    },
+                },
+            };
         },
-    };
+    });
 });
