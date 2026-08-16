@@ -200,7 +200,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [x] Zinwentaryzowac handlery korzystajace z `resolveUpstreamBase`.
 - [x] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
 - [x] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
-- [ ] Nie ukrywac walidacji requestu w executorze.
+- [x] Nie ukrywac walidacji requestu w executorze.
 - [ ] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
 - [ ] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
 - [ ] Dodac testy wyboru trybu jawnego i fallbacku.
@@ -436,6 +436,26 @@ Granice odpowiedzialnosci:
 - executor nie ustawia statusow HTTP;
 - executor nie parsuje kopert odpowiedzi;
 - executor nie wymusza wspolnej autoryzacji dla mocka i upstreamu.
+
+#### Zasada walidacji wejscia
+
+Walidacja pozostaje w handlerze albo w jawnie wywolanym helperze domenowym
+przed `executeBffAdapter`.
+
+Dozwolone w handlerze przed executorem:
+
+- `getRouterParam`, `getQuery`, `readBody`, `readMultipartFormData`;
+- walidacja UUID, dat, zakresow liczbowych i wymaganych pol;
+- ustawienie `setResponseStatus`;
+- zbudowanie payloadu przekazywanego do obu adapterow.
+
+Niedozwolone w executorze:
+
+- odczyt parametrow route;
+- odczyt query;
+- odczyt body;
+- normalizacja DTO domenowych;
+- mapowanie bledow walidacji requestu.
 
 ### Migracja pilotazowa
 
