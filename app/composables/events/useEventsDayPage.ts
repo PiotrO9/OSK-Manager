@@ -1,6 +1,3 @@
-import type { CalendarDate, DateValue } from '@internationalized/date';
-import { parseDate } from '@internationalized/date';
-import { toDate } from 'reka-ui/date';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
@@ -13,7 +10,7 @@ import {
     displayEventsDayInstructorName,
     type EventsDayStatusFilterOption,
 } from '~/utils/events/eventsDayPage';
-import { formatDateOnly } from '~/utils/date/weeklyCalendarDates';
+import { useEventsDayDateSelection } from './useEventsDayDateSelection';
 
 export type { EventsDayStatusFilterOption } from '~/utils/events/eventsDayPage';
 export {
@@ -73,16 +70,19 @@ export function useEventsDayPage() {
     const errorMessage = ref<string | null>(null);
     const events = ref<ScheduleLessonItem[]>([]);
     const instructors = ref<InstructorListItem[]>([]);
-
-    const selectedDate = ref<string>(formatDateOnly(new Date()));
+    const {
+        calendarSelected,
+        handleCalendarUpdate,
+        handleNextDay,
+        handlePrevDay,
+        handleTodayClick,
+        isCalendarOpen,
+        selectedDate,
+        selectedDateLabel,
+    } = useEventsDayDateSelection();
     const selectedStatus = ref<EventsDayStatusFilterOption>('ALL');
-    const isCalendarOpen = ref(false);
     const viewMode = ref<EventsDayViewMode>('grid');
     const isCompactViewport = ref(false);
-
-    const calendarSelected = computed<CalendarDate>(() =>
-        parseDate(selectedDate.value),
-    );
 
     const filteredEvents = computed(() =>
         events.value.filter(
@@ -134,39 +134,6 @@ export function useEventsDayPage() {
         }
 
         return `${filteredEvents.value.length} z ${events.value.length}`;
-    });
-
-    const selectedDateLabel = computed(() => {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        if (Number.isNaN(d.getTime())) {
-            return selectedDate.value;
-        }
-
-        const today = formatDateOnly(new Date());
-        const yesterday = formatDateOnly(new Date(Date.now() - 86_400_000));
-        const tomorrow = formatDateOnly(new Date(Date.now() + 86_400_000));
-
-        const label = new Intl.DateTimeFormat('pl-PL', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        }).format(d);
-
-        if (selectedDate.value === today) {
-            return `Dzisiaj - ${label}`;
-        }
-
-        if (selectedDate.value === yesterday) {
-            return `Wczoraj - ${label}`;
-        }
-
-        if (selectedDate.value === tomorrow) {
-            return `Jutro - ${label}`;
-        }
-
-        return label;
     });
 
     const effectiveViewMode = computed<EventsDayViewMode>(() =>
@@ -338,41 +305,6 @@ export function useEventsDayPage() {
                 isLoading.value = false;
             }
         }
-    }
-
-    function handlePrevDay(): void {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        d.setDate(d.getDate() - 1);
-        selectedDate.value = formatDateOnly(d);
-    }
-
-    function handleNextDay(): void {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        d.setDate(d.getDate() + 1);
-        selectedDate.value = formatDateOnly(d);
-    }
-
-    function handleTodayClick(): void {
-        selectedDate.value = formatDateOnly(new Date());
-    }
-
-    function handleCalendarUpdate(
-        val: DateValue | DateValue[] | undefined,
-    ): void {
-        if (val === undefined) {
-            return;
-        }
-
-        const single = Array.isArray(val) ? val[0] : val;
-
-        if (!single) {
-            return;
-        }
-
-        selectedDate.value = formatDateOnly(toDate(single));
-        isCalendarOpen.value = false;
     }
 
     function handleStatusFilterOptionSelect(opt: string): void {

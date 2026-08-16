@@ -1430,7 +1430,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
-- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
@@ -1494,6 +1494,16 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   konsumentow zostaje na osobny checkbox.
 - Dodano test `eventsDayPage.test.ts`, ktory pokrywa mapowanie statusow,
   format tekstu eventu oraz fallbacki dla liczby uczestnikow i nieznanego typu.
+
+#### Niezalezny stan daty
+
+- Wydzielono `useEventsDayDateSelection` z odpowiedzialnoscia za
+  `selectedDate`, `calendarSelected`, `isCalendarOpen`, label dnia oraz akcje
+  poprzedni/nastepny/dzisiaj/wybor z kalendarza.
+- `useEventsDayPage.ts` nadal zwraca te same pola i akcje, ale nie zawiera juz
+  szczegolow manipulacji data.
+- Dodano test `useEventsDayDateSelection.test.ts` dla przechodzenia miedzy
+  dniami, powrotu do dzisiaj i zamykania popovera po wyborze daty.
 
 ### Kryterium zakonczenia
 
