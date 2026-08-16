@@ -1,8 +1,7 @@
 export default defineNuxtRouteMiddleware(() => {
     const { session } = useAuthSession();
-    const role = session.value?.role?.trim().toUpperCase();
 
-    if (role === 'STUDENT' || role === 'INSTRUCTOR') {
+    if (hasStudentOrInstructorAccess(session.value?.role)) {
         return;
     }
 
