@@ -1769,7 +1769,7 @@ podzialem odpowiedzialnosci.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
-- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
@@ -1858,6 +1858,14 @@ Pierwszy implementacyjny krok: wydzielic tylko
   `` `status-control-${vehicle.id}` `` dla kazdego elementu grida.
 - Pozostale listy w `VehiclesListPanel.vue` nadal uzywaja `vehicle.id` i nie
   byly zmieniane w tym kroku.
+
+#### Desktop I Mobile
+
+- Wyciagniety `VehicleManagerStatusGrid.vue` zachowuje klasy desktopowego grida
+  `mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3`.
+- Mobilne karty w `VehiclesListPanel.vue` nie byly zmieniane w tym kroku.
+- Nie uruchamiano builda ani smoke testu przegladarki; weryfikacja pozostala na
+  poziomie zachowania markup/classes i pelnego lint/test.
 
 #### Route Meta + Composable + Widok
 
