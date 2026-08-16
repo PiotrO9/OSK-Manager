@@ -1086,7 +1086,7 @@ kontenera `ManagerEventEditContainer.vue`.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
-- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
@@ -1151,6 +1151,16 @@ Pozostale composables korzystaja z danych formularza posrednio przez ten kontene
   czyste mapowania do utility domenowego.
 - Dodano testy utility dla capacity, zgodnosci baseline/current oraz zmiany
   instruktora wymagajacej walidacji slotu.
+
+#### Wynik wydzielenia pickera czasu
+
+- Dodano `useManagerEventEditTimePicker` dla stanu rozbitych pol czasu,
+  ograniczen `freeWindows`, opcji godzin/minut, handlerow input/select oraz
+  efektu korygujacego koniec wydarzenia.
+- `useManagerEventEditForm` zachowuje publiczne pola czasu, ale deleguje ich
+  stan i efekty do nowego composable.
+- Dodano testy hydratacji rozbitych pol czasu oraz automatycznego przesuniecia
+  konca, gdy nie jest pozniej niz start.
 
 ### Kryterium zakonczenia
 
