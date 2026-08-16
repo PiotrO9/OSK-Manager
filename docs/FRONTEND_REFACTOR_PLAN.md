@@ -1437,7 +1437,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [x] Przepiac konsumentow.
 - [x] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
-- [ ] Uruchomic test domeny i lint.
+- [x] Uruchomic test domeny i lint.
 
 #### Odpowiedzialnosci obecnego pliku
 
@@ -1554,6 +1554,13 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   `useEventsDayPage.ts`.
 - Usunieto re-exporty helperow z `useEventsDayPage.ts`; publicznym zrodlem dla
   tych funkcji jest teraz `app/utils/events/eventsDayPage.ts`.
+
+#### Weryfikacja pilota
+
+- Uruchomiono testy domeny:
+  `npx vitest run app/composables/events/useEventsDayPage.test.ts app/composables/events/useEventsDayDateSelection.test.ts app/utils/events/eventsDayPage.test.ts`.
+- Uruchomiono `npm run lint`.
+- Build celowo pominiety zgodnie z ustaleniem procesu.
 
 ### Kryterium zakonczenia
 
