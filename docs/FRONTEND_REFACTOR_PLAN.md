@@ -1762,7 +1762,7 @@ podzialem odpowiedzialnosci.
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
-- [ ] Uzyc `<script setup lang="ts">`.
+- [x] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
@@ -1838,6 +1838,12 @@ Pierwszy implementacyjny krok: wydzielic tylko
   `usePageMeta`, wywoluje `useVehiclesListPage` i sklada `VehiclesListPanel`.
 - Ekstrakcja `VehicleManagerStatusGrid.vue` nie zmienila propsow ani emitow,
   ktore strona przekazuje do `VehiclesListPanel.vue`.
+
+#### Script Setup
+
+- `VehiclesListPanel.vue` pozostaje w `<script setup lang="ts">`.
+- Nowy `VehicleManagerStatusGrid.vue` rowniez uzywa `<script setup lang="ts">`
+  i nie wprowadza Options API.
 
 ### Kryterium zakonczenia
 
