@@ -2417,7 +2417,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
 - [x] Zachowac jawne importy dla waznych zaleznosci domenowych.
 - [x] Nie dodawac nowych barrel files w domenach.
-- [ ] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
+- [x] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
 - [ ] Zaktualizowac `docs/CODEMAP.md`.
 - [ ] Zaktualizowac `docs/ARCHITECTURE.md`.
 - [ ] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
@@ -2463,6 +2463,14 @@ dodal `index.ts` w domenach `components/vehicles`, `components/events`,
 `composables`, `utils` ani `types`. Istniejace barrel files pozostaja w
 `components/shadcn`, bo to kod biblioteki UI i jawny wyjatek w zasadach
 katalogow.
+
+### Auto-Importy Composables I Utils
+
+`nuxt.config.ts` nadal ma szerokie `imports.dirs`: `composables`,
+`composables/**`, `utils` i `utils/**`. Audyt basename dla plikow `.ts` w
+`app/composables` oraz `app/utils` nie znalazl duplikatow, wiec obecnie
+auto-importy nie maskuja kolizji nazw. Dla waznych zaleznosci domenowych nadal
+preferujemy jawne importy w route'ach i komponentach.
 
 ### Kryterium zakonczenia
 
