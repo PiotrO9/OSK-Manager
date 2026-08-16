@@ -2163,7 +2163,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 
 ### Todo
 
-- [ ] Zinwentaryzowac `unknown`, szerokie `Record<string, unknown>` i lokalne DTO.
+- [x] Zinwentaryzowac `unknown`, szerokie `Record<string, unknown>` i lokalne DTO.
 - [ ] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
 - [ ] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
 - [ ] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
@@ -2174,6 +2174,32 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [ ] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
 - [ ] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
 - [ ] Dodac testy invalid, missing, null, empty i unexpected shape.
+
+### Inwentaryzacja `unknown` I Lokalnych DTO
+
+Stan po Etapie 5:
+
+| Sygnał                            | Wynik                         | Interpretacja                                                      |
+| --------------------------------- | ----------------------------- | ------------------------------------------------------------------ |
+| Pliki z `unknown`                 | 156 plikow: 90 app, 66 server | Bardzo duzo wystapien to normalizatory, transport, `catch` i testy |
+| Pliki z `Record<string, unknown>` | 63 pliki: 26 app, 37 server   | Glownie parsery request body/query i normalizatory odpowiedzi      |
+| Jawne wzmianki DTO poza OpenAPI   | 6 plikow                      | Kilka lokalnych modeli opisuje DTO bez wspolnej klasyfikacji       |
+| `app/types/generated/api.ts`      | wygenerowany kontrakt         | Nie refaktoryzowac recznie; budowac waskie aliasy przy granicach   |
+
+#### Kategorie Do Dalszej Migracji
+
+| Kategoria                       | Przyklady plikow                                                                                | Decyzja migracyjna                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Transport i koperty BFF         | `app/utils/api/bffClient.ts`, `server/utils/upstream/upstreamRequest.ts`                        | `unknown` dopuszczalne na granicy, ale wynik ma miec typ domenowy |
+| Parsery request body/query      | `server/utils/courses/parseCourseCreateBody.ts`, `server/api/events/index.post.ts`              | Priorytet dla runtime validation i testow invalid/missing         |
+| Normalizatory domenowe          | `app/types/courses/course.ts`, `app/types/students/student.ts`, `app/types/vehicles/vehicle.ts` | Oznaczyc jako API DTO -> domain model                             |
+| Komponenty z route target props | `ManagerCourseDetailHeader.vue`, `ManagerInstructorsListCard.vue`                               | Zawezic `Record<string, unknown>` do typow routingu Nuxt          |
+| Mocki BFF                       | `server/utils/*MockBff.ts`, `server/utils/*Store.ts`                                            | Zostawic szerzej do czasu ujednolicenia typow odpowiedzi mocka    |
+| Testy                           | `*.test.ts`                                                                                     | Nie optymalizowac mechanicznie; zostawic, gdy sluzy stubom        |
+
+Pierwszy praktyczny cel Etapu 6: domena `courses`, bo ma parsery
+`parseCourseCreateBody` / `parseCoursePatchBody`, lokalne typy w
+`app/types/courses/course.ts` i swiezo dodane testy formularza.
 
 ### Kryterium zakonczenia
 
