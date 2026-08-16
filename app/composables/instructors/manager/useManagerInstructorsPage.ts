@@ -3,7 +3,7 @@ import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { requestBffData } from '../../core/useApi';
+import { requestBffSuccess } from '../../core/useApi';
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta instruktora.';
 const UUID_RE =
@@ -265,7 +265,7 @@ export function useManagerInstructorsPage() {
         isFormSaving.value = true;
 
         try {
-            await requestBffData<unknown>('POST', '/api/auth/register', {
+            await requestBffSuccess('POST', '/api/auth/register', {
                 body: {
                     role: 'INSTRUCTOR',
                     email: payload.email,
