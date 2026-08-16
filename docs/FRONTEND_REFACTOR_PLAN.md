@@ -1606,7 +1606,7 @@ Przed podzialem kazdego SFC nalezy dopisac krotka mape:
 - [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
-- [ ] Typowac props i emits.
+- [x] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
@@ -1823,6 +1823,14 @@ podzialem odpowiedzialnosci.
 Pierwszy implementacyjny krok: wydzielic tylko
 `VehicleManagerStatusGrid.vue`, bo izoluje jedna sekcje UI, zachowuje kontrakt
 `VehiclesListPanel.vue` i nie dotyka powtarzajacych sie akcji desktop/mobile.
+
+#### Props I Emits
+
+- Dodano `VehicleManagerStatusGrid.vue` z typowanymi propsami `vehicles` i
+  `statusUpdatingVehicleId`.
+- Komponent emituje typowane `statusChange(vehicle, payload)`, a
+  `VehiclesListPanel.vue` przekazuje ten event dalej bez zmiany publicznego API
+  strony `app/pages/vehicles/index.vue`.
 
 ### Kryterium zakonczenia
 
