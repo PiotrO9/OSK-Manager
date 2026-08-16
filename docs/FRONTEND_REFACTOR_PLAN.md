@@ -1085,7 +1085,7 @@ kontenera `ManagerEventEditContainer.vue`.
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
-- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
@@ -1141,6 +1141,16 @@ Pozostale composables korzystaja z danych formularza posrednio przez ten kontene
   walidacji slotu.
 - Test nie sprawdza konkretnej lokalnej godziny, dzieki czemu nie zalezy od
   strefy czasowej srodowiska testowego.
+
+#### Wynik wydzielenia czystych mapowan
+
+- Dodano `app/utils/events/managerEventEditForm.ts` dla czystych helperow:
+  parsowania capacity, budowania snapshotow, dirty state i decyzji o walidacji
+  slotu.
+- `useManagerEventEditForm` zachowuje dotychczasowe publiczne API, ale deleguje
+  czyste mapowania do utility domenowego.
+- Dodano testy utility dla capacity, zgodnosci baseline/current oraz zmiany
+  instruktora wymagajacej walidacji slotu.
 
 ### Kryterium zakonczenia
 

@@ -4,6 +4,15 @@ import type {
     InstructorEvent,
 } from '~/types/events/instructorEvent';
 import {
+    buildManagerEventBaselineSnapshot,
+    buildManagerEventCurrentSnapshot,
+    isManagerEventEditFormDirty,
+    localDatetimeToIso,
+    needsManagerEventSlotValidation,
+    parseManagerEventCapacity,
+    type ManagerEventEditFormSnapshot,
+} from '~/utils/events/managerEventEditForm';
+import {
     getAllowedHoursForDate,
     getAllowedHoursForEnd,
     getAllowedMinutesForDateHour,
@@ -43,22 +52,6 @@ export function useManagerEventEditForm(input: {
 
     function isoToDatetimeLocal(iso: string): string {
         return isoInstantToDatetimeLocalString(iso);
-    }
-
-    function localDatetimeToIso(local: string): string | null {
-        const t = local.trim();
-
-        if (!t) {
-            return null;
-        }
-
-        const d = new Date(t);
-
-        if (Number.isNaN(d.getTime())) {
-            return null;
-        }
-
-        return d.toISOString();
     }
 
     function isValidLocalDateString(s: string): boolean {
@@ -297,16 +290,6 @@ export function useManagerEventEditForm(input: {
         commitEndLocal();
     }
 
-    function normalizeCapacityForCompare(
-        cap: number | null | undefined,
-    ): string {
-        if (cap === null || cap === undefined || !Number.isFinite(cap)) {
-            return '';
-        }
-
-        return String(Math.trunc(cap));
-    }
-
     function applyPrefill(ev: InstructorEvent): void {
         formType.value = ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY';
         formStartLocal.value = isoToDatetimeLocal(ev.startTime ?? '');
@@ -321,92 +304,44 @@ export function useManagerEventEditForm(input: {
     }
 
     function parseCapacity(raw: unknown): number | null | false {
-        if (raw === null || raw === undefined) {
-            return null;
-        }
+        return parseManagerEventCapacity(raw);
+    }
 
-        if (typeof raw === 'number') {
-            if (!Number.isFinite(raw)) {
+    const baselineSnapshot = computed(
+        (): ManagerEventEditFormSnapshot | null => {
+            const ev = input.loadedEvent.value;
+
+            if (!ev) {
                 return null;
             }
 
-            if (raw < 0) {
-                return false;
-            }
+            return buildManagerEventBaselineSnapshot(ev);
+        },
+    );
 
-            return Math.trunc(raw);
-        }
-
-        const t = String(raw).trim();
-
-        if (t === '') {
-            return null;
-        }
-
-        const n = Number.parseInt(t, 10);
-
-        if (!Number.isFinite(n) || n < 0) {
-            return false;
-        }
-
-        return n;
-    }
-
-    const baselineSnapshot = computed((): Record<string, string> | null => {
-        const ev = input.loadedEvent.value;
-
-        if (!ev) {
-            return null;
-        }
-
-        return {
-            type: ev.type === 'DRIVE' ? 'DRIVE' : 'THEORY',
-            start: isoToDatetimeLocal(ev.startTime ?? ''),
-            end: isoToDatetimeLocal(ev.endTime ?? ''),
-            vehicle: (ev.vehicleId ?? '').trim(),
-            capacity: normalizeCapacityForCompare(ev.capacity ?? null),
-            instructorId: (ev.instructorId ?? '').trim(),
-        };
-    });
-
-    const currentSnapshot = computed((): Record<string, string> => {
-        const capParsed = parseCapacity(formCapacityInput.value);
-        const cap = capParsed === false ? null : capParsed;
-
-        return {
-            type: formType.value,
-            start: formStartLocal.value,
-            end: formEndLocal.value,
-            vehicle:
-                formType.value === 'DRIVE' ? formVehicleId.value.trim() : '',
-            capacity: normalizeCapacityForCompare(cap),
-            instructorId: formInstructorId.value.trim(),
-        };
-    });
+    const currentSnapshot = computed(
+        (): ManagerEventEditFormSnapshot =>
+            buildManagerEventCurrentSnapshot({
+                type: formType.value,
+                startLocal: formStartLocal.value,
+                endLocal: formEndLocal.value,
+                vehicleId: formVehicleId.value,
+                capacityInput: formCapacityInput.value,
+                instructorId: formInstructorId.value.trim(),
+            }),
+    );
 
     const isFormFieldsDirty = computed((): boolean => {
-        const a = baselineSnapshot.value;
-        const b = currentSnapshot.value;
-
-        if (!a || !b) {
-            return false;
-        }
-
-        return JSON.stringify(a) !== JSON.stringify(b);
+        return isManagerEventEditFormDirty(
+            baselineSnapshot.value,
+            currentSnapshot.value,
+        );
     });
 
     function needsTimeOrInstructorSlotValidation(): boolean {
-        const a = baselineSnapshot.value;
-        const b = currentSnapshot.value;
-
-        if (!a || !b) {
-            return false;
-        }
-
-        return (
-            a.start !== b.start ||
-            a.end !== b.end ||
-            a.instructorId !== b.instructorId
+        return needsManagerEventSlotValidation(
+            baselineSnapshot.value,
+            currentSnapshot.value,
         );
     }
 
