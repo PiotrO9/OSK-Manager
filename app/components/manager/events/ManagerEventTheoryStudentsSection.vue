@@ -62,8 +62,8 @@ const emit = defineEmits<{
                 class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
                 role="status"
             >
-                Limit miejsc wynosi 0 — żaden kursant nie może zostać
-                przypisany do tego bloku.
+                Limit miejsc wynosi 0 — żaden kursant nie może zostać przypisany
+                do tego bloku.
             </p>
 
             <p

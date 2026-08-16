@@ -103,9 +103,9 @@ const {
                     class="border-primary/30 bg-primary/5 text-primary rounded-md border px-3 py-2 text-xs"
                     role="note"
                 >
-                    Ta rezerwacja dotyczy wyłącznie jazdy praktycznej —
-                    lekcja zostanie zaliczona do kursu praktycznego lub
-                    dodatkowego kursanta.
+                    Ta rezerwacja dotyczy wyłącznie jazdy praktycznej — lekcja
+                    zostanie zaliczona do kursu praktycznego lub dodatkowego
+                    kursanta.
                 </p>
 
                 <ManagerLessonBookingStudentCourseSelect
@@ -141,9 +141,7 @@ const {
                         Anuluj
                     </UiButton>
                     <UiButton type="submit" :disabled="isCreating">
-                        {{
-                            isCreating ? 'Zapisywanie…' : 'Zarezerwuj lekcję'
-                        }}
+                        {{ isCreating ? 'Zapisywanie…' : 'Zarezerwuj lekcję' }}
                     </UiButton>
                 </UiDialogFooter>
             </form>

@@ -47,8 +47,8 @@ const selectedVehicleId = defineModel<string>('selectedVehicleId', {
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Brak wolnych pojazdów w tym oknie — wybierz inny slot lub
-            sprawdź flotę OSK.
+            Brak wolnych pojazdów w tym oknie — wybierz inny slot lub sprawdź
+            flotę OSK.
         </p>
     </div>
 </template>

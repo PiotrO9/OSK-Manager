@@ -146,13 +146,22 @@ Cel: miec punkt odniesienia, dzieki ktoremu wiadomo, czy refaktor nie zmienil za
 ### Todo
 
 - [ ] Potwierdzic czysty working tree przed pierwsza zmiana kodu.
-- [ ] Uruchomic i zapisac wynik `npm run test`.
-- [ ] Uruchomic i zapisac wynik `npm run lint`.
-- [ ] Nie uruchamiac buildu jako czesci standardowej petli testowej.
-- [ ] Spisac krytyczne scenariusze smoke testow.
+- [x] Uruchomic i zapisac wynik `npm run test`.
+- [x] Uruchomic i zapisac wynik `npm run lint`.
+- [x] Nie uruchamiac buildu jako czesci standardowej petli testowej.
+- [x] Spisac krytyczne scenariusze smoke testow.
 - [ ] Potwierdzic tryb `mock` oraz `upstream` dla BFF.
-- [ ] Ustalic zasade nazw branchy: `refactor/<numer>-<obszar>`.
+- [x] Ustalic zasade nazw branchy: `refactor/<numer>-<obszar>`.
 - [ ] Nie laczyc refaktoru z dokumentami `UI_REDESIGN_*`.
+
+### Wynik baseline
+
+Data: 2026-08-16.
+
+- `npm run test`: pass, 12 plikow testowych, 70 testow.
+- `npm run lint`: pierwsze uruchomienie wykrylo zastane roznice Prettiera w 6 plikach; po formatowaniu wskazanych plikow lint przechodzi.
+- `npm run build`: nieuruchamiany zgodnie z ustalonym trybem pracy.
+- Zakres naprawy baseline: tylko formatowanie, bez zmian zachowania.
 
 ### Krytyczne scenariusze smoke
 

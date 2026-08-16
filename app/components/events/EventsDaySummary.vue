@@ -81,9 +81,7 @@ defineProps<{
                 <p class="font-extrabold">
                     {{ attentionEvents.length }} wymagają uwagi
                 </p>
-                <p class="text-sm">
-                    Anulowane lub oznaczone jako nieobecność.
-                </p>
+                <p class="text-sm">Anulowane lub oznaczone jako nieobecność.</p>
             </div>
         </UiCardContent>
     </UiCard>

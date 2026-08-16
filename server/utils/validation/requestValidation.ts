@@ -105,10 +105,7 @@ export function parseRequiredUuidRouterParam(
     return value;
 }
 
-export function parsePositiveIntQuery(
-    raw: unknown,
-    fallback: number,
-): number {
+export function parsePositiveIntQuery(raw: unknown, fallback: number): number {
     if (typeof raw === 'number' && Number.isFinite(raw)) {
         return Math.trunc(raw);
     }
@@ -153,7 +150,8 @@ export function readOptionalUuid(
         return { status: 'null' };
     }
 
-    const uuid = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
+    const uuid =
+        typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
 
     if (!uuid) {
         return { status: 'null' };
@@ -180,7 +178,8 @@ export function readOptionalDateString(
         return null;
     }
 
-    const date = typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
+    const date =
+        typeof raw === 'string' ? raw.trim() : String(raw ?? '').trim();
 
     if (!date) {
         return null;

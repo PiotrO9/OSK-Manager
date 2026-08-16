@@ -48,10 +48,14 @@ describe('requestValidation', () => {
 
     it('parses required UUID query parameters with caller-provided errors', () => {
         expect(
-            parseRequiredUuidQuery({ schoolId: ` ${VALID_UUID} ` }, 'schoolId', {
-                required: 'schoolId required',
-                invalid: 'schoolId invalid',
-            }),
+            parseRequiredUuidQuery(
+                { schoolId: ` ${VALID_UUID} ` },
+                'schoolId',
+                {
+                    required: 'schoolId required',
+                    invalid: 'schoolId invalid',
+                },
+            ),
         ).toBe(VALID_UUID);
 
         expect(() =>
@@ -71,10 +75,14 @@ describe('requestValidation', () => {
 
     it('parses required UUID route parameters with caller-provided errors', () => {
         expect(
-            parseRequiredUuidRouterParam(mockEvent({ id: ` ${VALID_UUID} ` }), 'id', {
-                required: 'id required',
-                invalid: 'id invalid',
-            }),
+            parseRequiredUuidRouterParam(
+                mockEvent({ id: ` ${VALID_UUID} ` }),
+                'id',
+                {
+                    required: 'id required',
+                    invalid: 'id invalid',
+                },
+            ),
         ).toBe(VALID_UUID);
 
         expect(() =>
@@ -125,9 +133,9 @@ describe('requestValidation', () => {
         expect(readOptionalUuid({}, 'instructorId')).toEqual({
             status: 'omit',
         });
-        expect(readOptionalUuid({ instructorId: null }, 'instructorId')).toEqual(
-            { status: 'null' },
-        );
+        expect(
+            readOptionalUuid({ instructorId: null }, 'instructorId'),
+        ).toEqual({ status: 'null' });
         expect(readOptionalUuid({ instructorId: '' }, 'instructorId')).toEqual({
             status: 'null',
         });
@@ -142,7 +150,10 @@ describe('requestValidation', () => {
     it('reads optional date strings without validating date semantics', () => {
         expect(readOptionalDateString({}, 'theoryStartDate')).toBeUndefined();
         expect(
-            readOptionalDateString({ theoryStartDate: null }, 'theoryStartDate'),
+            readOptionalDateString(
+                { theoryStartDate: null },
+                'theoryStartDate',
+            ),
         ).toBeNull();
         expect(
             readOptionalDateString(
