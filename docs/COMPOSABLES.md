@@ -199,13 +199,28 @@ Operacje na szkołach jazdy (BFF `/api/driving-schools/...`). W BFF: [API_AND_BF
 
 ## useVehiclesApi
 
-Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`; upload zdjęcia przez shared BFF client (`requestBffData` + `FormData`).
+Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`;
+zmiana statusu dostępności; upload zdjęcia przez shared BFF client
+(`requestBffData` + `FormData`). Testy: `useVehiclesApi.test.ts` i
+normalizatory w `types/vehicles/vehicle.test.ts`.
 
 ---
 
 ## useVehiclesListPage
 
-Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie `schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie, ustawianie domyślnego pojazdu. Widok: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie
+`schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie,
+ustawianie domyślnego pojazdu i zmiana statusu. Widok:
+[VehiclesListPanel.vue](../app/components/vehicles/VehiclesListPanel.vue).
+
+---
+
+## useVehicleEditPage
+
+Logika strony [vehicles/[id]/edit](../app/pages/vehicles/[id]/edit.vue):
+kontekst route/school, ładowanie listy i szczegółów pojazdu, submit formularza
+oraz upload zdjęcia. Formularz: [VehicleForm.vue](../app/components/vehicles/VehicleForm.vue), sekcja zdjęcia:
+[VehicleEditPhotoSection.vue](../app/components/vehicles/VehicleEditPhotoSection.vue).
 
 ---
 

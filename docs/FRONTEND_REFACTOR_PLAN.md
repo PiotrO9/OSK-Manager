@@ -1753,9 +1753,9 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
 
 Zakres pilota: odchudzic panel listy pojazdow bez zmiany publicznego API
 `app/pages/vehicles/index.vue`. Realna sciezka komponentu to
-`app/components/app/VehiclesListPanel.vue`; przeniesienie do
-`components/vehicles` zostaje osobnym krokiem, zeby nie mieszac move file z
-podzialem odpowiedzialnosci.
+`app/components/vehicles/VehiclesListPanel.vue`; komponent zostal przeniesiony
+z `components/app` w Etapie 8 po zakonczeniu pilota podzialu
+odpowiedzialnosci.
 
 #### Todo pilota
 
@@ -2420,7 +2420,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
 - [x] Zaktualizowac `docs/CODEMAP.md`.
 - [x] Zaktualizowac `docs/ARCHITECTURE.md`.
-- [ ] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
+- [x] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md`.
 - [ ] Dodac link do tego planu w `docs/README.md` na czas realizacji.
 - [ ] Po zakonczeniu oznaczyc plan jako wykonany albo usunac go zgodnie z przyjetym procesem.
