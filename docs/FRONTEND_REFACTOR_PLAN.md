@@ -30,7 +30,7 @@ Ta lista jest indeksem calego procesu. Szczegolowe checklisty znajduja sie w kol
 
 - [ ] Etap 0: zapisac baseline i zasady refaktoru
 - [x] Etap 1: ujednolicic wybor adaptera BFF `mock/upstream`
-- [ ] Etap 2: domknac jedna warstwe transportu po stronie aplikacji
+- [x] Etap 2: domknac jedna warstwe transportu po stronie aplikacji
 - [ ] Etap 3: uproscic sesje, autoryzacje i middleware rol
 - [ ] Etap 4: podzielic najwieksze composables na mniejsze odpowiedzialnosci
 - [ ] Etap 5: odchudzic duze strony i komponenty Vue
@@ -872,6 +872,20 @@ Data: 2026-08-16.
 - Dokumentacja `docs/API_AND_BFF.md`, `docs/COMPOSABLES.md` i komentarz
   `resolveBffEndpoint` zostaly zaktualizowane, aby nie wskazywaly usunietych
   wrapperow.
+
+### Wynik Etapu 2
+
+Data: 2026-08-16.
+
+- Domenowe wywolania BFF korzystaja z jednego zestawu helperow:
+  `requestBffData`, `requestBffSuccess`, `bffFetch` oraz `$bff` tylko dla
+  niskopoziomowych wyjatkow.
+- Request z `ManagerStudentNotes.vue` zostal przeniesiony do `useStudentsApi`.
+- Success-only, FormData, retry 401, single-flight refresh, SSR request fetch i
+  granice surowego `$fetch` zostaly potwierdzone testami lub audytem `rg`.
+- Martwe wrappery transportu zostaly usuniete po potwierdzeniu braku
+  konsumentow.
+- Weryfikacja koncowa Etapu 2: `npm run test` i `npm run lint`.
 
 ### Kryterium zakonczenia
 
