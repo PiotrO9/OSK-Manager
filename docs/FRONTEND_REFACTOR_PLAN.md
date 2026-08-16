@@ -711,7 +711,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 
 ### Todo
 
-- [ ] Zinwentaryzowac `requestBffData`, `bffFetch`, `useApi`, `useBffApi` i `externalFetch`.
+- [x] Zinwentaryzowac `requestBffData`, `bffFetch`, `useApi`, `useBffApi` i `externalFetch`.
 - [ ] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
 - [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
 - [ ] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
@@ -723,6 +723,40 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [ ] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
 - [ ] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
+
+### Inwentarz transportu aplikacji
+
+Data: 2026-08-16.
+
+Polecenie bazowe:
+`rg -n -e 'requestBffData' -e 'bffFetch' -e '\$bff' -e 'useApi' -e 'useBffApi' -e 'externalFetch' -e 'useRequestFetch' -e '\$fetch' app server --glob '*.ts' --glob '*.vue'`.
+
+#### Warstwa centralna
+
+| Symbol                 | Plik                                                                 | Rola                                                                                            |
+| ---------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `createBffClient`      | `app/utils/api/bffClient.ts`                                         | niskopoziomowy klient BFF: credentials, koperty, retry po 401, single-flight refresh, FormData  |
+| `$bff`                 | `app/plugins/bff-client.ts`                                          | providowany klient Nuxt; na SSR uzywa `useRequestFetch`, na kliencie `$fetch`                   |
+| `useBffClient`         | `app/composables/core/useBffClient.ts`                               | dostep do `$bff` dla kodu wymagajacego niskiego poziomu lub kontroli retry                      |
+| `requestBffData`       | `app/composables/core/useApi.ts`                                     | standard dla endpointow z koperta `{ success: true, data }`; unwrap, fallbackMessage, normalize |
+| `bffFetch`             | `app/composables/core/useApi.ts`                                     | standard dla pelnej koperty, szczegolnie `{ success: true }` bez `data`                         |
+| `externalFetch`        | `app/composables/core/useApi.ts`                                     | jawne zewnetrzne URL-e HTTP; obecnie brak konsumentow poza definicja                            |
+| `useBffApi` / `useApi` | `app/composables/core/useApi.ts`                                     | kompatybilny reaktywny wrapper; obecnie brak konsumentow poza definicja i komentarzem           |
+| `resolveBffEndpoint`   | `app/utils/api/bffEndpoint.ts`                                       | kompatybilny helper endpointu uzywany przez plugin `$bff`                                       |
+| surowy `$fetch`        | `app/composables/core/useApi.ts`, `app/plugins/bff-client.ts`, testy | dopuszczony w centralnym transporcie i testach                                                  |
+
+#### Konsumenci domenowi
+
+| Mechanizm                 | Obserwacja                                                                                                                 | Decyzja na dalszy etap                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `requestBffData`          | dominujacy mechanizm w composables domenowych: kursy, pojazdy, kursanci, szkoly, lekcje, eventy, platnosci, konto, manager | zostaje standardem dla odpowiedzi z `data`; kolejne migracje maja ograniczac `unknown` |
+| `bffFetch`                | uzywany punktowo dla `DELETE`/kopert bez `data` w eventach i szczegolach instruktora                                       | zostaje, ale walidacja `{ success: true }` powinna miec jeden helper                   |
+| `$bff`                    | uzywany bezposrednio w `useAuthSession`, bo sesja kontroluje reczny refresh, skip retry i aktualizacje `useState`          | zostaje w Etapie 3; nie migrowac na `requestBffData` bez osobnej zmiany sesji          |
+| `useApi`                  | eksport kompatybilnosciowy bez aktywnych konsumentow domenowych                                                            | kandydat do usuniecia dopiero po potwierdzeniu auto-importow i dokumentacji            |
+| `useBffApi`               | eksport reaktywny bez aktywnych konsumentow domenowych poza wrapperami                                                     | zostawic do czasu decyzji, czy jest potrzebny jako publiczny wzorzec                   |
+| `externalFetch`           | brak aktywnych konsumentow domenowych                                                                                      | kandydat do usuniecia albo zostawienia tylko dla jawnie zewnetrznych integracji        |
+| `useRequestFetch`         | wystepuje w pluginie `$bff`, co zachowuje cookies i kontekst SSR dla wewnetrznych wywolan BFF                              | zachowac                                                                               |
+| `ManagerStudentNotes.vue` | komponent sam wywoluje `requestBffData` i normalizuje odpowiedz PATCH                                                      | pierwszy kandydat do przeniesienia requestu do `useStudentsApi`                        |
 
 ### Kryterium zakonczenia
 
