@@ -204,7 +204,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [x] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
 - [x] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
 - [x] Dodac testy wyboru trybu jawnego i fallbacku.
-- [ ] Dodac test bledu `upstream` bez URL.
+- [x] Dodac test bledu `upstream` bez URL.
 - [ ] Dodac test, ze callback nieaktywnego adaptera nie jest wykonywany.
 
 ### Inwentarz `resolveUpstreamBase`

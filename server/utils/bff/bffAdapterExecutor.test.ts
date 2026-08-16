@@ -86,4 +86,19 @@ describe('executeBffAdapter', () => {
             }),
         ).resolves.toEqual({ mode: 'mock' });
     });
+
+    it('rejects the explicit upstream adapter without an upstream URL', async () => {
+        stubRuntimeConfig({
+            bffAdapter: 'upstream',
+        });
+
+        await expect(
+            executeBffAdapter(event, {
+                upstream: () => ({ mode: 'upstream' }),
+                mock: () => ({ mode: 'mock' }),
+            }),
+        ).rejects.toThrow(
+            'NUXT_BFF_ADAPTER=upstream requires NUXT_API_UPSTREAM or NUXT_PUBLIC_API_BASE',
+        );
+    });
 });
