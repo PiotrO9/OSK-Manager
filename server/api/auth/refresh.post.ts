@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     clearSessionCookies,
     setAccessTokenCookie,
@@ -9,91 +10,95 @@ const SECRET = new TextEncoder().encode(
 );
 
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => bffUpstreamRefresh(event, upstreamBase),
+        mock: async () => {
+            const refreshToken = getCookie(event, 'refresh_token');
 
-    if (upstream) {
-        return bffUpstreamRefresh(event, upstream);
-    }
+            if (!refreshToken) {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Brak refresh token',
+                });
+            }
 
-    const refreshToken = getCookie(event, 'refresh_token');
+            try {
+                const { payload } = await jwtVerify(refreshToken, SECRET);
 
-    if (!refreshToken) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak refresh token',
-        });
-    }
+                if (payload.type !== 'refresh' || !payload.userId) {
+                    throw createError({
+                        statusCode: 401,
+                        message: 'Nieprawidłowy refresh token',
+                    });
+                }
 
-    try {
-        const { payload } = await jwtVerify(refreshToken, SECRET);
+                const now = Math.floor(Date.now() / 1000);
+                const accessTokenExpiresIn = 60 * 60;
 
-        if (payload.type !== 'refresh' || !payload.userId) {
-            throw createError({
-                statusCode: 401,
-                message: 'Nieprawidłowy refresh token',
-            });
-        }
+                const userId = String(payload.userId);
 
-        const now = Math.floor(Date.now() / 1000);
-        const accessTokenExpiresIn = 60 * 60;
+                const profileDefaults: Record<
+                    string,
+                    {
+                        email: string;
+                        firstName: string;
+                        lastName: string;
+                        role: string;
+                    }
+                > = {
+                    '1': {
+                        email: 'test@test.com',
+                        firstName: 'Test',
+                        lastName: 'User',
+                        role: 'STUDENT',
+                    },
+                    '2': {
+                        email: 'admin@admin.com',
+                        firstName: 'Admin',
+                        lastName: 'User',
+                        role: 'ADMIN',
+                    },
+                    '3': {
+                        email: 'manager001@post.pl',
+                        firstName: 'Jan',
+                        lastName: 'Kierownik',
+                        role: 'MANAGER',
+                    },
+                };
 
-        const userId = String(payload.userId);
+                const p = profileDefaults[userId] ?? {
+                    email: 'user@example.com',
+                    firstName: 'User',
+                    lastName: '',
+                    role: 'STUDENT',
+                };
 
-        const profileDefaults: Record<
-            string,
-            { email: string; firstName: string; lastName: string; role: string }
-        > = {
-            '1': {
-                email: 'test@test.com',
-                firstName: 'Test',
-                lastName: 'User',
-                role: 'STUDENT',
-            },
-            '2': {
-                email: 'admin@admin.com',
-                firstName: 'Admin',
-                lastName: 'User',
-                role: 'ADMIN',
-            },
-            '3': {
-                email: 'manager001@post.pl',
-                firstName: 'Jan',
-                lastName: 'Kierownik',
-                role: 'MANAGER',
-            },
-        };
+                const accessToken = await new SignJWT({
+                    userId,
+                    email: p.email,
+                    firstName: p.firstName,
+                    lastName: p.lastName,
+                    role: p.role,
+                })
+                    .setProtectedHeader({ alg: 'HS256' })
+                    .setIssuedAt(now)
+                    .setExpirationTime(now + accessTokenExpiresIn)
+                    .sign(SECRET);
 
-        const p = profileDefaults[userId] ?? {
-            email: 'user@example.com',
-            firstName: 'User',
-            lastName: '',
-            role: 'STUDENT',
-        };
+                setAccessTokenCookie(event, accessToken, accessTokenExpiresIn);
 
-        const accessToken = await new SignJWT({
-            userId,
-            email: p.email,
-            firstName: p.firstName,
-            lastName: p.lastName,
-            role: p.role,
-        })
-            .setProtectedHeader({ alg: 'HS256' })
-            .setIssuedAt(now)
-            .setExpirationTime(now + accessTokenExpiresIn)
-            .sign(SECRET);
+                return {
+                    success: true,
+                    data: {},
+                };
+            } catch {
+                clearSessionCookies(event);
 
-        setAccessTokenCookie(event, accessToken, accessTokenExpiresIn);
-
-        return {
-            success: true,
-            data: {},
-        };
-    } catch {
-        clearSessionCookies(event);
-
-        throw createError({
-            statusCode: 401,
-            message: 'Nieprawidłowy lub wygasły refresh token',
-        });
-    }
+                throw createError({
+                    statusCode: 401,
+                    message: 'Nieprawidłowy lub wygasły refresh token',
+                });
+            }
+        },
+    });
 });

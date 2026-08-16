@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 import { bffUpstreamProfilePatch } from '~~/server/utils/auth/authUpstreamBff';
 
@@ -19,8 +20,6 @@ function isNonEmptyTrimmedString(value: unknown): value is string {
 }
 
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
-
     const rawBody = await readBody(event);
 
     if (!rawBody || typeof rawBody !== 'object') {
@@ -148,117 +147,120 @@ export default defineEventHandler(async (event) => {
         Object.prototype.hasOwnProperty.call(patch, 'firstName') ||
         Object.prototype.hasOwnProperty.call(patch, 'lastName');
 
-    if (upstream) {
-        return bffUpstreamProfilePatch(event, upstream, patch);
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamProfilePatch(event, upstreamBase, patch),
+        mock: async () => {
+            const accessToken = getCookie(event, 'access_token');
 
-    const accessToken = getCookie(event, 'access_token');
-
-    if (!accessToken) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    try {
-        const { payload } = await jwtVerify(accessToken, SECRET);
-
-        const userId = String(payload.userId ?? '');
-        const email = String(payload.email ?? '');
-        let firstName = String(payload.firstName ?? '');
-        let lastName = String(payload.lastName ?? '');
-        const role = String(payload.role ?? 'STUDENT');
-        let phone: string | null = null;
-        let bio: string | null = null;
-
-        if (!userId || !email) {
-            throw createError({
-                statusCode: 401,
-                message: 'Nieprawidłowy token',
-            });
-        }
-
-        if (triesNames && !roleAllowsProfileNames(role)) {
-            throw createError({
-                statusCode: 403,
-                statusMessage:
-                    'Brak uprawnień do edycji imienia i nazwiska (wymagana rola MANAGER lub ADMIN).',
-            });
-        }
-
-        if ('firstName' in patch) {
-            const v = patch.firstName;
-
-            if (!isNonEmptyTrimmedString(v)) {
+            if (!accessToken) {
                 throw createError({
-                    statusCode: 400,
-                    message: 'Imię nie może być puste',
+                    statusCode: 401,
+                    message: 'Brak tokena dostępu',
                 });
             }
 
-            firstName = String(v).trim();
-        }
+            try {
+                const { payload } = await jwtVerify(accessToken, SECRET);
 
-        if ('lastName' in patch) {
-            const v = patch.lastName;
+                const userId = String(payload.userId ?? '');
+                const email = String(payload.email ?? '');
+                let firstName = String(payload.firstName ?? '');
+                let lastName = String(payload.lastName ?? '');
+                const role = String(payload.role ?? 'STUDENT');
+                let phone: string | null = null;
+                let bio: string | null = null;
 
-            if (!isNonEmptyTrimmedString(v)) {
+                if (!userId || !email) {
+                    throw createError({
+                        statusCode: 401,
+                        message: 'Nieprawidłowy token',
+                    });
+                }
+
+                if (triesNames && !roleAllowsProfileNames(role)) {
+                    throw createError({
+                        statusCode: 403,
+                        statusMessage:
+                            'Brak uprawnień do edycji imienia i nazwiska (wymagana rola MANAGER lub ADMIN).',
+                    });
+                }
+
+                if ('firstName' in patch) {
+                    const v = patch.firstName;
+
+                    if (!isNonEmptyTrimmedString(v)) {
+                        throw createError({
+                            statusCode: 400,
+                            message: 'Imię nie może być puste',
+                        });
+                    }
+
+                    firstName = String(v).trim();
+                }
+
+                if ('lastName' in patch) {
+                    const v = patch.lastName;
+
+                    if (!isNonEmptyTrimmedString(v)) {
+                        throw createError({
+                            statusCode: 400,
+                            message: 'Nazwisko nie może być puste',
+                        });
+                    }
+
+                    lastName = String(v).trim();
+                }
+
+                if ('phone' in patch) {
+                    phone = patch.phone ?? null;
+                }
+
+                if ('bio' in patch) {
+                    bio = patch.bio ?? null;
+                }
+
+                const nameFromParts = [firstName, lastName]
+                    .map((s) => s.trim())
+                    .filter((s) => s.length > 0)
+                    .join(' ')
+                    .trim();
+
+                const nowIso = new Date().toISOString();
+
+                return {
+                    success: true,
+                    data: {
+                        user: {
+                            id: userId,
+                            name: nameFromParts || email,
+                            firstName,
+                            lastName,
+                            email,
+                            phone,
+                            bio,
+                            profileUpdatedAt: nowIso,
+                            avatarUrl: mockUserAvatarGetUrl(userId),
+                            role,
+                        },
+                    },
+                };
+            } catch (err: unknown) {
+                if (
+                    err &&
+                    typeof err === 'object' &&
+                    'statusCode' in err &&
+                    typeof (err as { statusCode: unknown }).statusCode ===
+                        'number'
+                ) {
+                    throw err;
+                }
+
                 throw createError({
-                    statusCode: 400,
-                    message: 'Nazwisko nie może być puste',
+                    statusCode: 401,
+                    message: 'Nieprawidłowy lub wygasły token',
                 });
             }
-
-            lastName = String(v).trim();
-        }
-
-        if ('phone' in patch) {
-            phone = patch.phone ?? null;
-        }
-
-        if ('bio' in patch) {
-            bio = patch.bio ?? null;
-        }
-
-        const nameFromParts = [firstName, lastName]
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0)
-            .join(' ')
-            .trim();
-
-        const nowIso = new Date().toISOString();
-
-        return {
-            success: true,
-            data: {
-                user: {
-                    id: userId,
-                    name: nameFromParts || email,
-                    firstName,
-                    lastName,
-                    email,
-                    phone,
-                    bio,
-                    profileUpdatedAt: nowIso,
-                    avatarUrl: mockUserAvatarGetUrl(userId),
-                    role,
-                },
-            },
-        };
-    } catch (err: unknown) {
-        if (
-            err &&
-            typeof err === 'object' &&
-            'statusCode' in err &&
-            typeof (err as { statusCode: unknown }).statusCode === 'number'
-        ) {
-            throw err;
-        }
-
-        throw createError({
-            statusCode: 401,
-            message: 'Nieprawidłowy lub wygasły token',
-        });
-    }
+        },
+    });
 });
