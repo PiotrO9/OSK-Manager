@@ -7,6 +7,7 @@ import {
     type CourseKind,
 } from '~/types/courses/course';
 import { formatInstructorDisplayName } from '~/types/instructors/instructor';
+import { courseCreateFormMessages } from '~/utils/courses/courseCreateFormMessages';
 
 const props = defineProps<{
     id?: string;
@@ -52,6 +53,8 @@ const {
     theoryStartModel,
     totalHoursModel,
 } = useCourseCreateForm(props, (payload) => emit('submit', payload));
+
+const formMessages = courseCreateFormMessages;
 </script>
 
 <template>
@@ -145,7 +148,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Nazwa jest wymagana.
+                        {{ formMessages.nameRequired }}
                     </p>
                 </div>
 
@@ -214,8 +217,8 @@ const {
                     >
                         {{
                             hasOfferedCategoryList
-                                ? 'Wybierz kategorię z oferty szkoły.'
-                                : 'Podaj kod kategorii.'
+                                ? formMessages.categoryRequiredFromOffer
+                                : formMessages.categoryRequiredManual
                         }}
                     </p>
                 </div>
@@ -256,7 +259,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Wybierz rodzaj kursu.
+                        {{ formMessages.kindRequired }}
                     </p>
                 </div>
 
@@ -288,7 +291,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Podaj liczbę całkowitą co najmniej 1.
+                        {{ formMessages.totalHoursInvalid }}
                     </p>
                 </div>
 
@@ -343,20 +346,19 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        <span v-if="showTheoryStartRequired"
-                            >Data rozpoczęcia jest wymagana.</span
-                        >
-                        <span v-else-if="showTheoryEndRequired"
-                            >Data zakończenia jest wymagana.</span
-                        >
+                        <span v-if="showTheoryStartRequired">{{
+                            formMessages.theoryStartRequired
+                        }}</span>
+                        <span v-else-if="showTheoryEndRequired">{{
+                            formMessages.theoryEndRequired
+                        }}</span>
                     </p>
                     <p
                         v-else-if="showTheoryRangeInvalid"
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Data zakończenia nie może być wcześniejsza niż data
-                        rozpoczęcia.
+                        {{ formMessages.theoryRangeInvalid }}
                     </p>
 
                     <div class="space-y-2">
@@ -388,7 +390,7 @@ const {
                             class="text-destructive text-sm"
                             role="alert"
                         >
-                            Podaj liczbę całkowitą od 0 lub zostaw puste.
+                            {{ formMessages.capacityInvalid }}
                         </p>
                     </div>
                 </template>

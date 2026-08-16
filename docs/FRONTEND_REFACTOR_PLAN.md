@@ -2172,7 +2172,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
 - [x] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
 - [x] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
-- [ ] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
+- [x] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
 - [ ] Dodac testy invalid, missing, null, empty i unexpected shape.
 
 ### Inwentaryzacja `unknown` I Lokalnych DTO
@@ -2262,6 +2262,12 @@ Po `parseCourseCreateBody` dane maja typ `BffCourseCreateBody` i sa tylko
 serializowane przez `courseCreateBodyToUpstreamRecord` albo przekazywane do
 `bffMockCoursesCreate`. Mock sprawdza juz tylko reguly biznesowe instruktora
 przypisanego do szkoly i kwalifikacji, a nie ponownie ksztalt request body.
+
+### Komunikaty Walidacji CourseCreateForm
+
+Dodano `courseCreateFormMessages` w `app/utils/courses`, a
+`CourseCreateForm.vue` mapuje flagi walidacji formularza na te stale zamiast
+trzymac komunikaty inline przy kazdym polu.
 
 ### Kryterium zakonczenia
 
