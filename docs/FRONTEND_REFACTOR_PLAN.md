@@ -910,7 +910,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Wyodrebnic czyste funkcje normalizacji roli.
 - [x] Wprowadzic jedno typowane zrodlo regul dostepu.
 - [x] Ujednolicic `manager`, `instructor`, `student` i warianty laczone.
-- [ ] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
+- [x] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
 - [ ] Oddzielic dane demo od produkcyjnego przeplywu sesji.
 - [ ] Rozdzielic transport sesji od reaktywnego stanu sesji.
 - [ ] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
@@ -960,6 +960,14 @@ Data: 2026-08-16.
 - Middleware `manager`, `instructor`, `student`, `manager-or-instructor` i
   `student-or-instructor` korzystaja z jednego helpera rol.
 - `manager.ts` nie sprawdza juz surowej roli bez normalizacji.
+
+### Wynik roli `ADMIN`
+
+Data: 2026-08-16.
+
+- `ADMIN` jest jawnie czescia `MANAGER_ACCESS_ROLES`.
+- `ADMIN` jest rowniez jawnie czescia `MANAGER_OR_INSTRUCTOR_ACCESS_ROLES`.
+- Test `authRole.test.ts` potwierdza, ze `ADMIN` ma dostep menedzerski.
 
 ## Etap 4: podzial duzych composables
 
