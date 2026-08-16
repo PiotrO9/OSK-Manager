@@ -4,7 +4,7 @@ import {
     normalizeDrivingSchoolsList,
     type DrivingSchool,
 } from '~/types/schools/drivingSchool';
-import { requestBffData } from '../core/useApi';
+import { requestBffData, requestBffSuccess } from '../core/useApi';
 
 export interface CreateDrivingSchoolBody {
     name: string;
@@ -108,7 +108,7 @@ export function useDrivingSchoolsApi() {
         const schoolId = id.trim();
 
         await runWithLoading(isDeleteLoading, () =>
-            requestBffData<unknown>(
+            requestBffSuccess(
                 'DELETE',
                 `/api/driving-schools/${encodeURIComponent(schoolId)}`,
                 {
@@ -142,7 +142,7 @@ export function useDrivingSchoolsApi() {
         const schoolId = id.trim();
 
         await runWithLoading(isSetDefaultLoading, async () => {
-            await requestBffData<unknown>(
+            await requestBffSuccess(
                 'PATCH',
                 `/api/driving-schools/${encodeURIComponent(schoolId)}/set-default`,
                 {

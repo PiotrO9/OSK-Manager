@@ -715,7 +715,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
 - [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
 - [x] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
-- [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
+- [x] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
 - [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
 - [x] Ujednolicic upload `FormData` bez recznego `Content-Type`.
 - [x] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
@@ -847,6 +847,18 @@ Data: 2026-08-16.
 - Domenowe composables, komponenty i strony maja uzywac `requestBffData`,
   `requestBffSuccess`, `bffFetch` albo jawnego `$bff` tylko w uzasadnionym
   wyjatku infrastrukturalnym.
+
+### Wynik ograniczenia `unknown`
+
+Data: 2026-08-16.
+
+- Mutacje void/success-only dla OSK i pojazdow zostaly przepiete z
+  `requestBffData<unknown>` na `requestBffSuccess`.
+- Pozostale `requestBffData<unknown>` w composables sa na granicach, gdzie kod
+  celowo traktuje payload jako nieufny i przepuszcza go przez lokalny
+  normalizator albo ignoruje payload rejestracji.
+- Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
+  runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 
 ### Kryterium zakonczenia
 
