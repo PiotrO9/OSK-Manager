@@ -2295,7 +2295,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 
 ### Todo
 
-- [ ] Dodac testy executora BFF przed masowa migracja.
+- [x] Dodac testy executora BFF przed masowa migracja.
 - [ ] Pokryc auth: login, refresh single-flight, logout, auth failure.
 - [ ] Pokryc macierz middleware rol.
 - [ ] Pokryc event edit form i payload.
@@ -2307,6 +2307,12 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [ ] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
 - [ ] Ustalac staly czas i UUID w testach.
 - [ ] Po kazdym etapie uruchomic pelne `npm run test`.
+
+### Executor BFF
+
+`server/utils/bff/bffAdapterExecutor.test.ts` istnieje po migracji BFF i
+przechodzi: 6 testow dla wyboru `mock` / `upstream`, fallbacku, bledu braku
+URL upstream oraz niewykonywania nieaktywnego callbacka.
 
 ### Kryterium zakonczenia
 
