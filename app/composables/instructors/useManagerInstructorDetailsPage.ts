@@ -190,6 +190,8 @@ function getInstructorDeleteErrorMessage(err: unknown): string {
     return getApiFetchErrorMessage(err, 'Nie udało się usunąć instruktora.');
 }
 
+type InstructorDetailData = InstructorDetail | null;
+
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
     const { addToast } = useAppToast();
@@ -253,7 +255,7 @@ export function useManagerInstructorDetailsPage() {
         editBaseline.value = null;
 
         try {
-            const data = await requestBffData<unknown>(
+            const data = await requestBffData<InstructorDetailData>(
                 'GET',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
@@ -408,7 +410,7 @@ export function useManagerInstructorDetailsPage() {
         isSubmitting.value = true;
 
         try {
-            const updated = await requestBffData<unknown>(
+            const updated = await requestBffData<InstructorDetailData>(
                 'PATCH',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
