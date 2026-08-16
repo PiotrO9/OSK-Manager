@@ -113,6 +113,33 @@ describe('requestBffData', () => {
         );
     });
 
+    it('does not force JSON content type for FormData requests', async () => {
+        const body = new FormData();
+        const fetchMock = vi.fn().mockResolvedValue({
+            success: true,
+            data: { url: '/uploads/avatar.png' },
+        });
+
+        body.append('file', new Blob(['avatar']), 'avatar.png');
+        vi.stubGlobal('$fetch', fetchMock);
+
+        await expect(
+            requestBffData<{ url: string }>('POST', '/api/files', {
+                body,
+                fallbackMessage: 'Could not upload file.',
+            }),
+        ).resolves.toEqual({ url: '/uploads/avatar.png' });
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'http://localhost:3000/api/files',
+            expect.objectContaining({
+                method: 'POST',
+                body,
+                headers: {},
+            }),
+        );
+    });
+
     it('returns normalized payloads', async () => {
         vi.stubGlobal(
             '$fetch',

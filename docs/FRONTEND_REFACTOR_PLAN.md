@@ -717,7 +717,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
 - [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
 - [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
-- [ ] Ujednolicic upload `FormData` bez recznego `Content-Type`.
+- [x] Ujednolicic upload `FormData` bez recznego `Content-Type`.
 - [ ] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
 - [ ] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
 - [ ] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
@@ -793,6 +793,18 @@ Data: 2026-08-16.
   `assertBooleanSuccessEnvelope` i mapuje bledy tak samo jak `requestBffData`.
 - Przepieto success-only DELETE w eventach, usuwaniu instruktora oraz usuwaniu
   dnia dostepnosci instruktora.
+
+### Wynik FormData
+
+Data: 2026-08-16.
+
+- Potwierdzono dwa produkcyjne uploady `FormData`: zdjecie pojazdu i avatar
+  profilu.
+- Oba uploady przechodza przez `requestBffData` i nie ustawiaja recznie
+  `Content-Type`.
+- Testy centralnego transportu potwierdzaja, ze `FormData` nie dostaje
+  `Content-Type: application/json`, dzieki czemu przegladarka moze dopisac
+  multipart boundary.
 
 ### Kryterium zakonczenia
 
