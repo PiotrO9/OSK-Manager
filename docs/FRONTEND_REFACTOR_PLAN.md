@@ -1091,9 +1091,9 @@ kontenera `ManagerEventEditContainer.vue`.
 - [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
-- [ ] Przepiac konsumentow.
-- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
-- [ ] Uruchomic test domeny i lint.
+- [x] Przepiac konsumentow.
+- [x] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [x] Uruchomic test domeny i lint.
 
 #### Odpowiedzialnosci obecnego pliku
 
@@ -1175,6 +1175,19 @@ Pozostale composables korzystaja z danych formularza posrednio przez ten kontene
 - Wrapper `useManagerEventEditForm` zachowuje dotychczasowe nazwy zwracanych pol
   i funkcji, dzieki czemu `ManagerEventEditContainer.vue` nie wymagal migracji w
   tym kroku.
+
+#### Wynik zamkniecia pilota
+
+- Bezposredni konsument `ManagerEventEditContainer.vue` pozostaje podpiety do
+  `useManagerEventEditForm`, bo wrapper jest docelowa fasada dla formularza
+  edycji eventu.
+- `useManagerEventEditTimePicker` jest szczegolem wewnetrznym wrappera, wiec nie
+  przepinano kontenera na nizszy poziom abstrakcji.
+- Wrapper nie zostal usuniety, bo nadal jest publicznym kontraktem dla
+  kontenera i uklada razem stan formularza, helpery snapshotow oraz picker
+  czasu.
+- Weryfikacja pilota: `npx vitest run app/composables/events/useManagerEventEditForm.test.ts app/composables/events/useManagerEventEditTimePicker.test.ts app/utils/events/managerEventEditForm.test.ts`
+  oraz `npm run lint`.
 
 ### Kryterium zakonczenia
 
