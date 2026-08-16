@@ -1429,7 +1429,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
-- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
@@ -1483,6 +1483,17 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   grida wedlug instruktora i godziny startu.
 - Test celowo nie dotyka builda ani UI; stabilizuje granice przed wydzieleniem
   helperow prezentacyjnych, buildera grida i loadera dnia.
+
+#### Czyste mapowania
+
+- Przeniesiono helpery prezentacyjne dnia wydarzen do
+  `app/utils/events/eventsDayPage.ts`: status filter labels, formatowanie czasu,
+  licznik uczestnikow, primary/meta text oraz badge/type label.
+- `useEventsDayPage.ts` zostawia re-export dotychczasowych nazw, zeby nie
+  zmieniac jeszcze kontraktu `EventsDaySchedulePanel.vue`; przepiecie
+  konsumentow zostaje na osobny checkbox.
+- Dodano test `eventsDayPage.test.ts`, ktory pokrywa mapowanie statusow,
+  format tekstu eventu oraz fallbacki dla liczby uczestnikow i nieznanego typu.
 
 ### Kryterium zakonczenia
 
