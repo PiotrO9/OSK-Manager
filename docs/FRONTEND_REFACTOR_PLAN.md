@@ -855,9 +855,10 @@ Data: 2026-08-16.
 
 - Mutacje void/success-only dla OSK i pojazdow zostaly przepiete z
   `requestBffData<unknown>` na `requestBffSuccess`.
-- Pozostale `requestBffData<unknown>` w composables sa na granicach, gdzie kod
-  celowo traktuje payload jako nieufny i przepuszcza go przez lokalny
-  normalizator albo ignoruje payload rejestracji.
+- Kontynuacja Etapu 9 usunela pozostale `requestBffData<unknown>` z kodu
+  produkcyjnego: payloady rejestracji i rezerwacji lekcji ida przez
+  `requestBffSuccess`, a pozostale granice BFF dostaly waskie typy raw payload
+  bez usuwania lokalnej normalizacji runtime.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 
@@ -2512,7 +2513,7 @@ normalizacji bez zmiany publicznych URL-i i metod HTTP.
 
 ### Finalny Test Run
 
-`npm run test` przechodzi w Etapie 9: 43 pliki testowe i 165 testow.
+`npm run test` przechodzi w Etapie 9: 46 plikow testowych i 168 testow.
 
 ### Finalny Lint
 
@@ -2568,12 +2569,10 @@ dodawania zaleznosci do projektu:
 
 ### Stan Working Tree
 
-Po commitach `refactor: remove auth type auto import collision`,
-`docs: record smoke test results` i `docs: record final refactor metrics`
-`git status --short --branch` pokazuje czysty branch
-`refactor/03-bff-adapters...origin/refactor/03-bff-adapters`. Porty uzywane do
-dev-serverowych smoke testow (`3012`, `3014`-`3026`, `9333`) nie maja
-aktywnych listenerow.
+Po commitach smoke i metryk `git status --short --branch` pokazywal czysty
+branch `refactor/03-bff-adapters...origin/refactor/03-bff-adapters`. Porty
+uzywane do dev-serverowych smoke testow (`3012`, `3014`-`3026`, `9333`) nie
+maja aktywnych listenerow.
 
 ### Metryki efektu
 
@@ -2595,7 +2594,7 @@ Porownanie do baseline z Etapu 0:
 
 | Metryka                                    | Baseline                                   | Stan koncowy Etapu 9                                                                       |
 | ------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| Testy                                      | 12 plikow / 70 testow                      | 43 pliki / 165 testow                                                                      |
+| Testy                                      | 12 plikow / 70 testow                      | 46 plikow / 168 testow                                                                     |
 | Lint                                       | wymagal formatowania 6 plikow              | `npm run lint` przechodzi, tylko warning Node/ESM                                          |
 | Build                                      | nieuruchamiany                             | nieuruchamiany zgodnie z ustaleniem                                                        |
 | Handlery API na `executeBffAdapter`        | lokalny wybor w wielu handlerach           | 71/71 handlerow `server/api` uzywa `executeBffAdapter`                                     |
@@ -2603,7 +2602,7 @@ Porownanie do baseline z Etapu 0:
 | Surowy `$fetch` / `fetch` poza testami     | do ograniczenia                            | 4 kontrolowane miejsca w centralnym transporcie/auth                                       |
 | Pliki z `unknown` poza testami             | 156 plikow                                 | 144 pliki                                                                                  |
 | `Record<string, unknown>` poza testami     | 63 pliki                                   | 60 plikow                                                                                  |
-| `requestBffData<unknown>`                  | do ograniczenia                            | 12 miejsc na granicach bez pelnego kontraktu domenowego                                    |
+| `requestBffData<unknown>`                  | do ograniczenia                            | 0 miejsc w kodzie produkcyjnym                                                             |
 | Stare wrappery / eksporty kompatybilnosci  | `useApi`, `useBffApi`, re-exporty domenowe | pozostaje `resolveBffEndpoint`; usunieto martwe wrappery transportu i re-export typow auth |
 
 Dziesiec najwiekszych composables po refaktorze:
