@@ -534,7 +534,7 @@ Wynik porownania po migracji:
 - [x] ratings i proste endpointy `me`;
 - [x] vehicles bez uploadu;
 - [x] courses;
-- [ ] instructors bez availability;
+- [x] instructors bez availability;
 - [ ] driving schools;
 - [ ] students i payments;
 - [ ] schedule;
@@ -574,6 +574,16 @@ Fala `courses` przepieta na `executeBffAdapter`:
 - `server/api/courses.post.ts`;
 - `server/api/courses/[id].get.ts`;
 - `server/api/courses/[id].patch.ts`.
+
+Fala `instructors` bez availability przepieta na `executeBffAdapter`:
+
+- `server/api/instructors.get.ts`;
+- `server/api/instructors/[id].get.ts`;
+- `server/api/instructors/[id].patch.ts`;
+- `server/api/instructors/[id].delete.ts`.
+
+Poza zakresem tej fali zostaja endpointy
+`server/api/instructors/[id]/availability/**`.
 
 ### Sugerowane commity
 

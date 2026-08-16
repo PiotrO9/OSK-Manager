@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamInstructorsPatch } from '~~/server/utils/instructors/instructorsBff';
 import { bffMockInstructorsPatch } from '~~/server/utils/instructors/instructorsMockBff';
 import {
@@ -91,13 +92,13 @@ export default defineEventHandler(async (event) => {
     const rawBody = await readBody(event);
     const patch = stripInstructorPatchBody(rawBody);
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamInstructorsPatch(event, upstreamBase, id, patch),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamInstructorsPatch(event, upstream, id, patch);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockInstructorsPatch(id, patch);
+            return bffMockInstructorsPatch(id, patch);
+        },
+    });
 });

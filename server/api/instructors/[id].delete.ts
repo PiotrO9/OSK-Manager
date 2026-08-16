@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamInstructorsDelete } from '~~/server/utils/instructors/instructorsBff';
 import { bffMockInstructorsDelete } from '~~/server/utils/instructors/instructorsMockBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
@@ -8,13 +9,13 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator instruktora.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamInstructorsDelete(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamInstructorsDelete(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockInstructorsDelete(id);
+            return bffMockInstructorsDelete(id);
+        },
+    });
 });
