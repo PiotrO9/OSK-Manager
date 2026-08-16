@@ -1205,9 +1205,9 @@ publicznego API `useAuthSession`.
 - [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
-- [ ] Przepiac konsumentow.
-- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
-- [ ] Uruchomic test domeny i lint.
+- [x] Przepiac konsumentow.
+- [x] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [x] Uruchomic test domeny i lint.
 
 #### Odpowiedzialnosci obecnego pliku
 
@@ -1287,6 +1287,18 @@ Bezposredni konsumenci znalezieni przez `rg`:
   akcje `login`, `logout`, `patchProfile` i `checkSession`.
 - Publiczny wrapper `useAuthSession` zachowal dotychczasowe nazwy zwracanych pol
   i funkcji oraz re-export typow.
+
+#### Wynik zamkniecia pilota
+
+- Konsumenci pozostaja podpieci do `useAuthSession`, bo to stabilna publiczna
+  fasada sesji dla stron, middleware i composables domenowych.
+- `authSessionApi.ts`, `authSessionMapper.ts`, `demoAuthSession.ts` i
+  `authRole.ts` sa szczegolami wewnetrznymi domeny auth; nie przepinano
+  konsumentow na nizsze warstwy.
+- Wrapper nie zostal usuniety, bo nadal koordynuje stan Nuxt, retry refresh,
+  czyszczenie sesji i publiczne akcje sesji.
+- Weryfikacja pilota: `npx vitest run app/composables/auth/useAuthSession.test.ts app/utils/auth/authSessionApi.test.ts app/utils/auth/authSessionMapper.test.ts app/utils/auth/authRole.test.ts app/utils/auth/demoAuthSession.test.ts app/composables/auth/useAuthReturnTo.test.ts`
+  oraz `npm run lint`.
 
 ### Kryterium zakonczenia
 
