@@ -2042,7 +2042,7 @@ juz czesciowo wyniesiona do
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
-- [ ] Nie mutowac propsow w dziecku.
+- [x] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
@@ -2117,6 +2117,12 @@ ten sam porzadek.
 Dodano `CourseCreateFormActions.vue` z typowanymi propsami `schoolId`,
 `isSaving` i `isBlocked`. Komponent nie emituje zdarzen, bo submit pozostaje
 natywnym `type="submit"` obslugiwanym przez formularz rodzica.
+
+#### Brak Mutacji Propsow
+
+`CourseCreateFormActions.vue` nie mutuje propsow i nie tworzy lokalnej kopii
+stanu submitu. Stan `isSaving` i `isBlocked` plynie jednokierunkowo z
+`CourseCreateForm.vue`.
 
 ### Kryterium zakonczenia
 
