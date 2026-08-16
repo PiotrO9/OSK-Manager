@@ -6,7 +6,13 @@ import {
 } from '~~/server/utils/validation/requestValidation';
 import { z } from 'zod';
 
-export type CourseCreateKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+export const COURSE_CREATE_KINDS = [
+    'THEORY_GROUP',
+    'PRACTICAL',
+    'EXTRA',
+] as const;
+
+export type CourseCreateKind = (typeof COURSE_CREATE_KINDS)[number];
 
 export interface BffCourseCreateBody {
     schoolId: string;
@@ -56,9 +62,7 @@ export function courseCreateBodyToUpstreamRecord(
 }
 
 function isCourseCreateKind(value: string): value is CourseCreateKind {
-    return (
-        value === 'THEORY_GROUP' || value === 'PRACTICAL' || value === 'EXTRA'
-    );
+    return COURSE_CREATE_KINDS.includes(value as CourseCreateKind);
 }
 
 function parseTotalHours(body: Record<string, unknown>): number | null {
