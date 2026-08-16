@@ -1760,7 +1760,7 @@ podzialem odpowiedzialnosci.
 #### Todo pilota
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
-- [ ] Zdefiniowac mape komponentow przed edycja.
+- [x] Zdefiniowac mape komponentow przed edycja.
 - [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
@@ -1808,6 +1808,21 @@ podzialem odpowiedzialnosci.
 | Mobile cards        | Renderuje karty mobilne i akcje managera                     | Kandydat na `VehiclesListMobileCards`                        |
 | Manager status grid | Renderuje szybka zmiane statusow dla wszystkich pojazdow     | Najmniejszy bezpieczny pierwszy krok implementacyjny         |
 | Delete dialog       | Spina open state przez `vehiclePendingDelete !== null`       | Zostawic na pozniej, bo dotyka akcji delete i error handling |
+
+#### Mapa Komponentow Przed Edycja
+
+| Element                        | Docelowa odpowiedzialnosc                                | Wejscie                               | Wyjscie                   |
+| ------------------------------ | -------------------------------------------------------- | ------------------------------------- | ------------------------- |
+| `VehiclesListPanel.vue`        | publiczna fasada panelu i kompozycja sekcji              | props ze strony                       | emity do strony           |
+| `VehicleManagerStatusGrid.vue` | desktopowa szybka kontrola statusow pojazdow             | `vehicles`, `statusUpdatingVehicleId` | `statusChange`            |
+| `VehiclesListDesktopTable.vue` | tabela desktop z akcjami i statusem                      | vehicles, manager flags, route ctx    | akcje row-level           |
+| `VehiclesListMobileCards.vue`  | karty mobilne z akcjami i kontrola statusu managera      | vehicles, manager flags, route ctx    | akcje card-level          |
+| `VehiclesListModeTabs.vue`     | taby `Lista` / `Status` dla managera                     | active panel                          | `tabSelect`, `tabKeydown` |
+| `VehicleDeleteDialog`          | potwierdzenie usuniecia; zostaje istniejacym komponentem | pending vehicle, loading              | close/cancel/confirm      |
+
+Pierwszy implementacyjny krok: wydzielic tylko
+`VehicleManagerStatusGrid.vue`, bo izoluje jedna sekcje UI, zachowuje kontrakt
+`VehiclesListPanel.vue` i nie dotyka powtarzajacych sie akcji desktop/mobile.
 
 ### Kryterium zakonczenia
 
