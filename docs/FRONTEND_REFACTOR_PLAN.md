@@ -1910,7 +1910,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
-- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
@@ -1997,6 +1997,12 @@ sa przekazywane jednokierunkowo do sekcji prezentacyjnej.
 otwieranie i zamykanie dialogu jest publicznym kontraktem dwukierunkowym.
 `ManagerEventStudentPickerCapacitySummary.vue` dostaje zwykle propsy i nie
 wprowadza dodatkowego modelu.
+
+#### Computed Dla Listy
+
+Lista kursantow w template uzywa `filteredStudents`; filtrowanie aktywnych,
+wykluczonych i dopasowanych do `searchQuery` pozostaje w `computed`, bez
+inline `filter` ani `sort` w markupie.
 
 ### Kryterium zakonczenia
 
