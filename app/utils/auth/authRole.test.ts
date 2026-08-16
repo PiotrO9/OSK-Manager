@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { isAuthRole, normalizeAuthRole } from './authRole';
+import {
+    canAccessRole,
+    hasManagerAccess,
+    hasManagerOrInstructorAccess,
+    hasStudentOrInstructorAccess,
+    isAuthRole,
+    normalizeAuthRole,
+} from './authRole';
 
 describe('normalizeAuthRole', () => {
     it('normalizes known auth roles', () => {
@@ -23,5 +30,32 @@ describe('isAuthRole', () => {
     it('checks a normalized role against a concrete role', () => {
         expect(isAuthRole(' student ', 'STUDENT')).toBe(true);
         expect(isAuthRole(' student ', 'MANAGER')).toBe(false);
+    });
+});
+
+describe('auth role access groups', () => {
+    it('treats ADMIN as manager access', () => {
+        expect(hasManagerAccess('ADMIN')).toBe(true);
+        expect(hasManagerAccess('manager')).toBe(true);
+        expect(hasManagerAccess('INSTRUCTOR')).toBe(false);
+    });
+
+    it('checks manager or instructor access', () => {
+        expect(hasManagerOrInstructorAccess('admin')).toBe(true);
+        expect(hasManagerOrInstructorAccess('manager')).toBe(true);
+        expect(hasManagerOrInstructorAccess(' instructor ')).toBe(true);
+        expect(hasManagerOrInstructorAccess('student')).toBe(false);
+    });
+
+    it('checks student or instructor access', () => {
+        expect(hasStudentOrInstructorAccess('student')).toBe(true);
+        expect(hasStudentOrInstructorAccess('instructor')).toBe(true);
+        expect(hasStudentOrInstructorAccess('manager')).toBe(false);
+    });
+
+    it('checks custom allowed roles', () => {
+        expect(canAccessRole('demo', ['DEMO'])).toBe(true);
+        expect(canAccessRole('demo', ['STUDENT'])).toBe(false);
+        expect(canAccessRole('owner', ['ADMIN'])).toBe(false);
     });
 });

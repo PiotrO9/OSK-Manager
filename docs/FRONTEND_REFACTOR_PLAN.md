@@ -908,7 +908,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 
 - [x] Zapisac testy obecnego login/refresh/logout przed podzialem.
 - [x] Wyodrebnic czyste funkcje normalizacji roli.
-- [ ] Wprowadzic jedno typowane zrodlo regul dostepu.
+- [x] Wprowadzic jedno typowane zrodlo regul dostepu.
 - [ ] Ujednolicic `manager`, `instructor`, `student` i warianty laczone.
 - [ ] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
 - [ ] Oddzielic dane demo od produkcyjnego przeplywu sesji.
@@ -941,6 +941,17 @@ Data: 2026-08-16.
 - Helper normalizuje whitespace i wielkosc liter oraz odrzuca role spoza
   jawnego zbioru `ADMIN`, `MANAGER`, `INSTRUCTOR`, `STUDENT`, `DEMO`.
 - Dodano testy normalizacji i sprawdzenia konkretnej roli.
+
+### Wynik zrodla regul dostepu
+
+Data: 2026-08-16.
+
+- Rozszerzono `authRole.ts` o typowane grupy dostepu:
+  `MANAGER_ACCESS_ROLES`, `MANAGER_OR_INSTRUCTOR_ACCESS_ROLES` oraz
+  `STUDENT_OR_INSTRUCTOR_ACCESS_ROLES`.
+- Dodano `canAccessRole`, `hasManagerAccess`,
+  `hasManagerOrInstructorAccess` i `hasStudentOrInstructorAccess`.
+- Testy potwierdzaja, ze `ADMIN` ma uprawnienia menedzera.
 
 ## Etap 4: podzial duzych composables
 
