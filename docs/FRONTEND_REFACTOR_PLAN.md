@@ -2023,6 +2023,63 @@ Dodano `eventStudentPickerCapacity.test.ts` dla helpera
 normalizacje liczby miejsc, remaining slots i wariant badge przekazywany do
 `ManagerEventStudentPickerCapacitySummary.vue`.
 
+### Pilot Etapu 5: `CourseCreateForm.vue`
+
+Zakres pilota: odchudzic formularz tworzenia kursu bez zmiany kontraktu
+`CourseCreateForm`, payloadu submitu ani formularza `id="course-create-form"`
+uzywanego przez strone `app/pages/manager/courses/new.vue`.
+
+Realna sciezka komponentu:
+`app/components/manager/courses/CourseCreateForm.vue`. Logika formularza jest
+juz czesciowo wyniesiona do
+`app/composables/courses/useCourseCreateForm.ts`.
+
+#### Todo pilota
+
+- [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
+- [ ] Zdefiniowac mape komponentow przed edycja.
+- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [ ] Uzyc `<script setup lang="ts">`.
+- [ ] Uporzadkowac sekcje jako script, template, style.
+- [ ] Typowac props i emits.
+- [ ] Nie mutowac propsow w dziecku.
+- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [ ] Zachowac stabilne `key` dla list.
+- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+
+#### Sekcje UI
+
+| Sekcja                  | Odpowiedzialnosc                                           |
+| ----------------------- | ---------------------------------------------------------- |
+| Form shell              | `form`, id, submit prevent, ramka i naglowek formularza    |
+| Status messages         | API error, loading contextu OSK, braki konfiguracji szkoly |
+| Basic fields            | nazwa, kategoria, rodzaj kursu, laczna liczba godzin       |
+| Theory fields           | daty teorii, range validation, limit miejsc                |
+| Instructor field        | loading instruktorow, select po kwalifikacji, empty states |
+| Description placeholder | nieaktywne pole opisu jako przyszly kontrakt UI            |
+| Actions                 | anuluj z query `schoolId`, submit z loading/blocked state  |
+
+#### Publiczne API I Konsumenci
+
+- Props: `id`, `schoolId`, `offeredCourseTypes`, `enabledCourseKinds`,
+  `isSchoolContextLoading`, `instructors`, `isInstructorsLoading`, `isSaving`,
+  `apiError`.
+- Emit: `submit(payload: CourseCreatePayload)`.
+- Jedyny runtime consumer: `app/pages/manager/courses/new.vue`; przekazuje
+  `id="course-create-form"` i obsluguje `@submit="handleCourseSubmit"`.
+
+#### Odpowiedzialnosci Skryptu
+
+| Obszar              | Obecna odpowiedzialnosc                                  | Uwagi do podzialu                               |
+| ------------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| Publiczny kontrakt  | props + emit `submit`                                    | Zachowac w komponencie fasady                   |
+| View-model form     | `useCourseCreateForm` zwraca modele, flagi i submit      | Nie mieszac z pierwsza ekstrakcja prezentacyjna |
+| Select options      | `kindOptions`, `qualifiedInstructors`                    | Juz w composable, mozna testowac osobno         |
+| Basic/theory fields | kilka niezaleznych grup markup + walidacja inline errors | Kandydaci na komponenty po akcji formularza     |
+| Actions             | link anulowania i przycisk submit                        | Najmniejszy bezpieczny pierwszy krok UI         |
+
 ### Kryterium zakonczenia
 
 Strony nie zawieraja pelnej implementacji feature, a duzy komponent nie laczy jednoczesnie orkiestracji danych i kilku niezaleznych sekcji prezentacji.
