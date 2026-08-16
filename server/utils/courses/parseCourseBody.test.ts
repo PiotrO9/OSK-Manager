@@ -39,6 +39,34 @@ describe('course body parsers', () => {
             error: 'Pole schoolId jest wymagane i musi być poprawnym identyfikatorem UUID.',
         });
 
+        expect(parseCourseCreateBody({ schoolId: SCHOOL_ID })).toEqual({
+            error: 'Pole name jest wymagane.',
+        });
+
+        expect(
+            parseCourseCreateBody({
+                schoolId: SCHOOL_ID,
+                name: 'Kurs B',
+                category: '',
+                kind: 'THEORY_GROUP',
+                totalHours: 30,
+            }),
+        ).toEqual({
+            error: 'Pole category jest wymagane.',
+        });
+
+        expect(
+            parseCourseCreateBody({
+                schoolId: SCHOOL_ID,
+                name: 'Kurs B',
+                category: 'B',
+                kind: 'PRACTICAL',
+                totalHours: 0,
+            }),
+        ).toEqual({
+            error: 'Pole totalHours jest wymagane i musi być liczbą całkowitą co najmniej 1.',
+        });
+
         expect(
             parseCourseCreateBody({
                 schoolId: SCHOOL_ID,
@@ -70,6 +98,9 @@ describe('course body parsers', () => {
 
     it('keeps existing patch validation errors', () => {
         expect(parseCoursePatchInstructorBody(null)).toEqual({
+            error: 'Nieprawidłowe dane żądania.',
+        });
+        expect(parseCoursePatchInstructorBody('unexpected')).toEqual({
             error: 'Nieprawidłowe dane żądania.',
         });
         expect(

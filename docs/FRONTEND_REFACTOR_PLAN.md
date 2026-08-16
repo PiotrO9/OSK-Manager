@@ -2173,7 +2173,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
 - [x] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
 - [x] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
-- [ ] Dodac testy invalid, missing, null, empty i unexpected shape.
+- [x] Dodac testy invalid, missing, null, empty i unexpected shape.
 
 ### Inwentaryzacja `unknown` I Lokalnych DTO
 
@@ -2268,6 +2268,12 @@ przypisanego do szkoly i kwalifikacji, a nie ponownie ksztalt request body.
 Dodano `courseCreateFormMessages` w `app/utils/courses`, a
 `CourseCreateForm.vue` mapuje flagi walidacji formularza na te stale zamiast
 trzymac komunikaty inline przy kazdym polu.
+
+### Testy Invalid/Missing/Null/Empty
+
+`parseCourseBody.test.ts` pokrywa teraz null body, missing `name`, empty
+`category`, invalid `totalHours`, niedozwolone `capacity`, null/empty
+`instructorId`, invalid UUID oraz unexpected primitive shape dla PATCH.
 
 ### Kryterium zakonczenia
 
