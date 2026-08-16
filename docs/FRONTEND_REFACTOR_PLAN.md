@@ -1419,6 +1419,62 @@ Zwracane API:
 - Weryfikacja pilota: testy domeny student details, pelne `npm run test` oraz
   `npm run lint`.
 
+### Pilot Etapu 4: `useEventsDayPage.ts`
+
+Zakres pilota: `app/composables/events/useEventsDayPage.ts` jako fasada strony
+dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vue`.
+
+#### Todo pilota
+
+- [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
+- [x] Zapisac jego publiczne API i liste konsumentow.
+- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
+- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [ ] Przepiac konsumentow.
+- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [ ] Uruchomic test domeny i lint.
+
+#### Odpowiedzialnosci obecnego pliku
+
+| Obszar                        | Obecna odpowiedzialnosc                                                                 | Uwagi do podzialu                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Kontekst sesji i roli         | Wylicza `isManager` i `schoolId` z `useAuthSession`                                     | Moze zostac w fasadzie albo malym helperze roli/szkoly    |
+| Load wydarzen dnia            | Dla managera pobiera schedule OSK i instruktorow, dla instruktora pobiera `my schedule` | Kandydat na `useEventsDayLoader` z ochrona `loadSeq`      |
+| Stan daty i kalendarza        | Trzyma `selectedDate`, `calendarSelected`, open state i akcje prev/next/today           | Kandydat na maly composable daty dnia                     |
+| Filtry i liczniki             | Trzyma status filter, filtered/sorted events, planned/attention/participant counts      | Czyste mapowania do utility                               |
+| Tryb widoku i viewport        | Trzyma `viewMode`, `isCompactViewport`, resize listener i `effectiveViewMode`           | Kandydat na osobny efekt viewportu                        |
+| Grid managera                 | Buduje kolumny instruktorow, zakres godzin, CSS grid columns i rows                     | Czysty builder + test regresyjny gridu                    |
+| Aktualizacja statusu lokalnie | Podmienia status jednego eventu w `events` po akcji dziecka                             | Moze zostac w stanie eventow lub utility immutable update |
+| Helpery prezentacyjne         | Eksportuje labelki statusow, godziny, typy eventow, uczestnikow i primary/meta text     | Czyste helpery powinny trafic do `utils/events`           |
+
+#### Publiczne API i konsumenci
+
+Bezposredni runtime consumer composable: `app/pages/events/index.vue`.
+`app/components/events/EventsDaySchedulePanel.vue` importuje helpery
+prezentacyjne z tego samego pliku.
+
+Zwracane API:
+
+| Grupa              | Pola/funkcje                                                                                                                                                               | Konsumenci                              |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Stan i load        | `events`, `errorMessage`, `isLoading`, `isSchoolLoading`, `isInstructorsLoading`, `loadEvents`                                                                             | `app/pages/events/index.vue`            |
+| Data i kalendarz   | `selectedDate`, `selectedDateLabel`, `calendarSelected`, `isCalendarOpen`, `handlePrevDay`, `handleNextDay`, `handleTodayClick`, `handleCalendarUpdate`                    | toolbar strony                          |
+| Filtry i statusy   | `selectedStatus`, `filteredEvents`, `sortedFilteredEvents`, `visibleEventsLabel`, `plannedEvents`, `attentionEvents`, `participantTotal`, `handleStatusFilterOptionSelect` | toolbar, summary, list/grid             |
+| Role i tryb widoku | `isManager`, `pageDescription`, `viewMode`, `isCompactViewport`, `effectiveViewMode`                                                                                       | page layout i przelacznik widoku        |
+| Grid managera      | `managerScheduleColumns`, `managerScheduleGridColumns`, `managerScheduleRows`                                                                                              | `EventsDaySchedulePanel.vue` przez page |
+| Akcje lokalne      | `handleStatusChanged`                                                                                                                                                      | aktualizacja po zmianie statusu eventu  |
+
+Eksporty helperow prezentacyjnych uzywane poza composable:
+
+- `statusFilterLabel`, `statusFilterLabelForOption`;
+- `eventIsoToHm`, `displayParticipantCount`, `displayEventPrimary`,
+  `displayEventMeta`, `eventTypeBadgeClasses`, `eventTypeLabel`.
+
 ### Kryterium zakonczenia
 
 Kazdy composable ma jedna opisywalna odpowiedzialnosc, a stan pochodny nie jest synchronizowany watcherami, jezeli moze byc `computed`.
