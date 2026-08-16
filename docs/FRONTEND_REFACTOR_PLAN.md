@@ -2045,7 +2045,7 @@ juz czesciowo wyniesiona do
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
-- [ ] Zachowac stabilne `key` dla list.
+- [x] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
@@ -2135,6 +2135,11 @@ faktycznym kontraktem inputow.
 Template formularza renderuje gotowe `kindOptions` i `qualifiedInstructors`.
 Filtrowanie instruktorow po kwalifikacji oraz lista dozwolonych rodzajow kursu
 pozostaja w `useCourseCreateForm`, bez inline `filter` ani `sort` w markupie.
+
+#### Stabilne Keys
+
+Listy selectow zachowuja stabilne klucze: kategorie uzywaja `t.id`, rodzaje
+kursu uzywaja wartosci `k`, a instruktorzy uzywaja `ins.id`.
 
 ### Kryterium zakonczenia
 
