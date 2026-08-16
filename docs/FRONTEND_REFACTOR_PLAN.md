@@ -1200,11 +1200,11 @@ publicznego API `useAuthSession`.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
-- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
-- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
-- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
-- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
-- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [x] Nie duplikowac stanu pomiedzy nowymi composables.
+- [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [ ] Przepiac konsumentow.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
@@ -1273,6 +1273,20 @@ Bezposredni konsumenci znalezieni przez `rg`:
   konsumentow.
 - Dodano testy utility dla normalizacji danych uzytkownika, OSK, wartosci
   opcjonalnych oraz payloadu profilu.
+
+#### Wynik kontroli granic stanu
+
+- Nie wydzielono `useState('auth_session')` do osobnego utility, bo stan sesji
+  jest granica Nuxt/SSR i powinien pozostac w composable.
+- Nie powstala druga kopia stanu sesji; nowe `authSessionMapper.ts` zwraca
+  tylko czyste obiekty, a `useAuthSession` nadal jako jedyny zapisuje
+  `session.value`.
+- `session` pozostaje mutowalnym refem w publicznym API, bo istniejacy
+  kontrakt i testy opieraja sie na bezposrednim ustawianiu sesji. Flagi
+  pochodne pozostaja `computed`, a mutacje produkcyjne przechodza przez jawne
+  akcje `login`, `logout`, `patchProfile` i `checkSession`.
+- Publiczny wrapper `useAuthSession` zachowal dotychczasowe nazwy zwracanych pol
+  i funkcji oraz re-export typow.
 
 ### Kryterium zakonczenia
 
