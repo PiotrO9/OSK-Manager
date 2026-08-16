@@ -2415,7 +2415,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 
 - [x] Przeniesc domenowe komponenty pojazdow z `components/app` do `components/vehicles`.
 - [x] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
-- [ ] Zachowac jawne importy dla waznych zaleznosci domenowych.
+- [x] Zachowac jawne importy dla waznych zaleznosci domenowych.
 - [ ] Nie dodawac nowych barrel files w domenach.
 - [ ] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
 - [ ] Zaktualizowac `docs/CODEMAP.md`.
@@ -2446,6 +2446,15 @@ szablonach zachowaly te same nazwy komponentow.
 - Nie usuwano potencjalnie martwych dialogow account w tym commicie, bo ten
   punkt byl audytem katalogow, a usuwanie nieuzywanych komponentow wymaga
   osobnej decyzji zakresowej.
+
+### Jawne Importy Domenowe
+
+Route'y `app/pages/vehicles/index.vue`, `app/pages/vehicles/new.vue`,
+`app/pages/vehicles/[id]/index.vue` i `app/pages/vehicles/[id]/edit.vue`
+importuja teraz jawnie kluczowe komponenty z `~/components/vehicles` oraz
+composables `useVehiclesListPage`, `useVehiclesApi` i `useVehicleEditPage`.
+Globalne helpery Nuxt pozostaja auto-importowane zgodnie z dotychczasowa
+konwencja projektu.
 
 ### Kryterium zakonczenia
 

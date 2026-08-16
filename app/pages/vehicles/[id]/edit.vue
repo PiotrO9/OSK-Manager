@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ArrowLeft, Save } from 'lucide-vue-next';
+import VehicleEditPhotoSection from '~/components/vehicles/VehicleEditPhotoSection.vue';
+import VehicleForm from '~/components/vehicles/VehicleForm.vue';
+import { useVehicleEditPage } from '~/composables/vehicles/useVehicleEditPage';
 
 definePageMeta({
     layout: 'app-shell',

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Save } from 'lucide-vue-next';
+import VehicleForm from '~/components/vehicles/VehicleForm.vue';
+import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
 import type { VehicleWritePayload } from '~/types/vehicles/vehicle';
 
 definePageMeta({

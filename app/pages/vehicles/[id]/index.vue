@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router';
+import VehicleDetailsContent from '~/components/vehicles/VehicleDetailsContent.vue';
+import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
 
 definePageMeta({

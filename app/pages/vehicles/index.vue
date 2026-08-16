@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import VehiclesListPanel from '~/components/vehicles/VehiclesListPanel.vue';
+import { useVehiclesListPage } from '~/composables/vehicles/useVehiclesListPage';
+
 definePageMeta({
     layout: 'app-shell',
 });
