@@ -1632,7 +1632,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
 - [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
-- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+- [x] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
 
@@ -1741,6 +1741,13 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   `md:max-w-sm` oraz mobile fallback przez `grid gap-4`.
 - Nie uruchamiano builda ani dev-serverowego smoke testu w tym commicie; zgodnie
   z procesem weryfikacja pozostala na poziomie refaktoru bez zmiany markup/classes.
+
+#### Test Nowej Granicy
+
+- Dodano `useVehicleEditPage.test.ts`, ktory chroni guard braku kontekstu route:
+  bez `schoolId` i `vehicleId` composable nie wywoluje requestow listy,
+  szczegolow, update, uploadu zdjecia ani nawigacji po submit.
+- Test pokrywa nowa granice logiki strony bez dodawania testow SFC mount.
 
 ### Kryterium zakonczenia
 
