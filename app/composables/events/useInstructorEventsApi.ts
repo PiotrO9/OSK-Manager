@@ -61,6 +61,22 @@ function isTheoryEventType(ev: InstructorEvent): boolean {
     return t === 'THEORY';
 }
 
+type EventStudentsPayload =
+    | string[]
+    | Array<Record<string, unknown>>
+    | {
+          data?: unknown;
+          studentUserIds?: unknown;
+          studentIds?: unknown;
+          assignedStudentIds?: unknown;
+          students?: unknown;
+          items?: unknown;
+          participants?: unknown;
+      }
+    | null;
+
+type TheoryEventEligibleStudentsPayload = TheoryEventEligibleStudentsData;
+
 export function useInstructorEventsApi() {
     const isLoading = ref(false);
     const isFetchLoading = ref(false);
@@ -121,7 +137,7 @@ export function useInstructorEventsApi() {
         }
 
         try {
-            const payload = await requestBffData<unknown>(
+            const payload = await requestBffData<EventStudentsPayload>(
                 'GET',
                 `/api/events/${encodeURIComponent(eid)}/students`,
                 {
@@ -260,7 +276,7 @@ export function useInstructorEventsApi() {
                 ? `?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`
                 : '';
 
-        const data = await requestBffData<unknown>(
+        const data = await requestBffData<TheoryEventEligibleStudentsPayload>(
             'GET',
             `/api/events/${encodeURIComponent(eid)}/eligible-students${query}`,
             {
