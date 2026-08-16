@@ -2041,7 +2041,7 @@ juz czesciowo wyniesiona do
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
-- [ ] Typowac props i emits.
+- [x] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
@@ -2111,6 +2111,12 @@ wydzielane w pilocie powinny zachowac ten sam standard SFC.
 `CourseCreateForm.vue` ma sekcje w kolejnosci `<script setup lang="ts">`,
 potem `<template>`, bez lokalnego `<style>`. Nowe komponenty powinny zachowac
 ten sam porzadek.
+
+#### Typowane Props I Emits
+
+Dodano `CourseCreateFormActions.vue` z typowanymi propsami `schoolId`,
+`isSaving` i `isBlocked`. Komponent nie emituje zdarzen, bo submit pozostaje
+natywnym `type="submit"` obslugiwanym przez formularz rodzica.
 
 ### Kryterium zakonczenia
 

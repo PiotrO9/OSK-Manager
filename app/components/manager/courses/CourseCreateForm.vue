@@ -7,8 +7,6 @@ import {
     type CourseKind,
 } from '~/types/courses/course';
 import { formatInstructorDisplayName } from '~/types/instructors/instructor';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '~/components/shadcn/button';
 
 const props = defineProps<{
     id?: string;
@@ -468,35 +466,10 @@ const {
             </div>
         </div>
 
-        <div
-            class="border-border bg-muted/10 flex flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end md:px-5"
-        >
-            <UiButton
-                as-child
-                variant="outline"
-                class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-            >
-                <NuxtLink
-                    :to="{
-                        path: '/manager/courses',
-                        query: { schoolId: props.schoolId },
-                    }"
-                >
-                    Anuluj
-                </NuxtLink>
-            </UiButton>
-            <button
-                type="submit"
-                :class="
-                    cn(
-                        buttonVariants(),
-                        'h-10 rounded-xl px-4 font-semibold shadow-sm',
-                    )
-                "
-                :disabled="isSaving || isFormBlocked"
-            >
-                {{ isSaving ? 'Tworzenie…' : 'Zapisz' }}
-            </button>
-        </div>
+        <CourseCreateFormActions
+            :school-id="props.schoolId"
+            :is-saving="isSaving"
+            :is-blocked="isFormBlocked"
+        />
     </form>
 </template>
