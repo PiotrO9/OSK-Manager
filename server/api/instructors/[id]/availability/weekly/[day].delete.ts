@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffWeeklyDelete } from '~~/server/utils/instructors/availabilityBff';
 import { mockAvailabilityDeleteDay } from '~~/server/utils/instructors/mockAvailabilityStore';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
@@ -28,15 +29,15 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffWeeklyDelete(event, upstreamBase, id, dayOfWeek),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffWeeklyDelete(event, upstream, id, dayOfWeek);
-    }
+            mockAvailabilityDeleteDay(id, dayOfWeek);
 
-    await requireManagerFromCookie(event);
-
-    mockAvailabilityDeleteDay(id, dayOfWeek);
-
-    return { success: true };
+            return { success: true };
+        },
+    });
 });

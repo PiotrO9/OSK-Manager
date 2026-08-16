@@ -540,7 +540,7 @@ Wynik porownania po migracji:
 - [x] schedule;
 - [x] lessons;
 - [x] events;
-- [ ] availability i slots;
+- [x] availability i slots;
 - [ ] uploady `FormData`;
 - [ ] auth i profile jako ostatnie przypadki specjalne.
 
@@ -642,6 +642,14 @@ Fala `events` przepieta na `executeBffAdapter`:
 - `server/api/events/[eventId]/students.post.ts`;
 - `server/api/events/[eventId]/students.put.ts`;
 - `server/api/events/[eventId]/students/[studentUserId].delete.ts`.
+
+Fala `availability i slots` przepieta na `executeBffAdapter`:
+
+- `server/api/instructors/[id]/availability/weekly.get.ts`;
+- `server/api/instructors/[id]/availability/slots.get.ts`;
+- `server/api/instructors/[id]/availability/weekly/[day].put.ts`;
+- `server/api/instructors/[id]/availability/weekly/[day].delete.ts`;
+- `server/api/driving-schools/[id]/availability/slots.get.ts`.
 
 ### Sugerowane commity
 
