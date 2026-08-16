@@ -1614,6 +1614,50 @@ Przed podzialem kazdego SFC nalezy dopisac krotka mape:
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
+### Pilot Etapu 5: `pages/vehicles/[id]/edit.vue`
+
+Zakres pilota: odchudzic strone edycji pojazdu bez zmiany flow zapisu,
+uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
+
+#### Todo pilota
+
+- [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
+- [ ] Zdefiniowac mape komponentow przed edycja.
+- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [ ] Uzyc `<script setup lang="ts">`.
+- [ ] Uporzadkowac sekcje jako script, template, style.
+- [ ] Typowac props i emits.
+- [ ] Nie mutowac propsow w dziecku.
+- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [ ] Zachowac stabilne `key` dla list.
+- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+
+#### Sekcje UI
+
+| Sekcja                  | Odpowiedzialnosc                                                    |
+| ----------------------- | ------------------------------------------------------------------- |
+| Page header             | tytul, meta pojazdu, akcje anuluj/zapisz                            |
+| Invalid route state     | komunikat dla braku `schoolId` albo `vehicleId`                     |
+| List load error         | blad pobrania listy pojazdow z retry                                |
+| Initial loading/empty   | stan bootloadingu i brak pojazdu po liscie/detailu                  |
+| Vehicle form shell      | `VehicleForm` z akcja submit i footerem formularza                  |
+| Photo upload subsection | podglad zdjecia, wybor pliku, tooltip wymagan i blad uploadu/detalu |
+
+#### Odpowiedzialnosci skryptu
+
+| Obszar                  | Obecna odpowiedzialnosc                                                       | Uwagi do podzialu                                                       |
+| ----------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Route context           | Parsuje `schoolId` z query i `vehicleId` z params                             | Kandydat na helper/composable wspolny z create/detail                   |
+| API orchestration       | Uzywa `useVehiclesApi` do listy, detalu, update i uploadu zdjecia             | Kandydat na `useVehicleEditPage`                                        |
+| Lista pojazdow          | Laduje liste dla OSK, aby znalezc podstawowy model formularza                 | Moze zostac w composable strony                                         |
+| Detail pojazdu          | Laduje szczegoly i `photoUrl` niezaleznie od listy                            | Wydzielic razem ze stanem bledu/loadingu detailu                        |
+| View-model naglowka     | Liczy `vehicleTitle`, `headerMeta`, route powrotu i busy state                | Czyste computed w composable albo utility view-model                    |
+| Photo preview lifecycle | Trzyma input ref, plik, object URL, revoke na zmiane route i unmount          | Kandydat na `useVehiclePhotoUploadState`                                |
+| Submit flow             | Waliduje rozmiar pliku, wykonuje update, opcjonalnie upload photo i nawigacje | Kandydat na akcje w `useVehicleEditPage` z testem bledu za duzego pliku |
+| Error states            | Rozdziela `loadError`, `detailLoadError`, `apiError`, `photoUploadError`      | Zachowac jawne komunikaty, nie laczyc bledow w jeden string             |
+
 ### Kryterium zakonczenia
 
 Strony nie zawieraja pelnej implementacji feature, a duzy komponent nie laczy jednoczesnie orkiestracji danych i kilku niezaleznych sekcji prezentacji.
