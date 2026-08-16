@@ -2298,7 +2298,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Dodac testy executora BFF przed masowa migracja.
 - [x] Pokryc auth: login, refresh single-flight, logout, auth failure.
 - [x] Pokryc macierz middleware rol.
-- [ ] Pokryc event edit form i payload.
+- [x] Pokryc event edit form i payload.
 - [ ] Pokryc student details: profil, kursy i platnosci.
 - [ ] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
 - [ ] Pokryc vehicle edit i status availability.
@@ -2325,6 +2325,13 @@ niedostepnego backendu oraz aktualizacji profilu.
 `authRole.test.ts` przechodzi: 8 testow normalizacji rol, grup dostepu oraz
 macierzy `ADMIN`, `MANAGER`, `INSTRUCTOR`, `STUDENT`, `DEMO` dla tras
 manager/instructor/student i wariantow laczonych.
+
+### Event Edit Form
+
+`managerEventEditForm.test.ts`, `useManagerEventEditForm.test.ts` i
+`useManagerEventEditTimePicker.test.ts` przechodza: 6 testow dla snapshotu
+formularza, payloadu PATCH, wykrywania zmian instruktora, parsowania pojemnosci
+oraz synchronizacji lokalnych pol daty/czasu.
 
 ### Kryterium zakonczenia
 
