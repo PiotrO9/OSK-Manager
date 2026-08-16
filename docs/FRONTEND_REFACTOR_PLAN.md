@@ -507,7 +507,7 @@ normalizowac statusow ani komunikatow.
 - [x] Zapisac test zachowania przed migracja.
 - [x] Przepisac endpoint na executor.
 - [x] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
-- [ ] Dopiero po pilocie zaakceptowac publiczne API helpera.
+- [x] Dopiero po pilocie zaakceptowac publiczne API helpera.
 
 Wybrany endpoint pilotazowy: `server/api/ratings/me.get.ts`.
 
@@ -831,13 +831,13 @@ Metryki maja pokazac kierunek zmiany, a nie wymuszac sztuczne limity linii.
 
 Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden plik lub domene.
 
-| Data       | Etap        | Decyzja     | Powod                        | Konsekwencje                          |
-| ---------- | ----------- | ----------- | ---------------------------- | ------------------------------------- |
-| YYYY-MM-DD | numer etapu | krotki opis | dlaczego wybrano ten wariant | co ta decyzja upraszcza lub ogranicza |
+| Data       | Etap   | Decyzja                                                                                       | Powod                                                                                                                   | Konsekwencje                                                                                                            |
+| ---------- | ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-16 | etap 1 | Akceptujemy `executeBffAdapter<T>(event, { upstream, mock })` jako publiczne API migracji BFF | Pilot `server/api/ratings/me.get.ts` zachowal osobna autoryzacje mocka, przekazanie `upstreamBase` i koperty odpowiedzi | Kolejne handlery moga migrowac na executor; walidacja, statusy HTTP, cookies i mapowanie bledow zostaja poza executorem |
 
 ### Todo
 
-- [ ] Zapisac decyzje o publicznym API executora BFF po migracji pilotazowej.
+- [x] Zapisac decyzje o publicznym API executora BFF po migracji pilotazowej.
 - [ ] Zapisac docelowy podzial klienta BFF po zakonczeniu etapu 2.
 - [ ] Zapisac jedno zrodlo regul rol po zakonczeniu etapu 3.
 - [ ] Zapisac przyjete granice komponentow i composables, jezeli stana sie wzorcem dla kolejnych domen.
