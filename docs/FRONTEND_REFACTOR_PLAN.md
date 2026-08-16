@@ -2038,7 +2038,7 @@ juz czesciowo wyniesiona do
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
-- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
@@ -2093,6 +2093,13 @@ juz czesciowo wyniesiona do
 Pierwszy implementacyjny krok: wydzielic tylko
 `CourseCreateFormActions.vue`, bo nie dotyka walidacji, modeli formularza,
 selectow ani payloadu `CourseCreatePayload`.
+
+#### Granica Strony I Formularza
+
+`app/pages/manager/courses/new.vue` pozostaje strona tworzaca kurs i jedynym
+konsumentem `CourseCreateForm`. Formularz zachowuje role publicznej fasady:
+przyjmuje propsy ze strony, uzywa `useCourseCreateForm` i emituje ten sam
+`submit`.
 
 ### Kryterium zakonczenia
 
