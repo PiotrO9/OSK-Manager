@@ -1310,7 +1310,7 @@ publicznego API strony.
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
-- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
@@ -1350,6 +1350,13 @@ Zwracane API:
 | Terminarz          | `scheduleWeekStart`, `scheduleItems`, `scheduleLoading`, `scheduleError`, `studentScheduleRange`, `scheduleOverviewLabel`, `handlePrevScheduleWeek`, `handleNextScheduleWeek`  | `ManagerStudentScheduleSection`, `ManagerStudentOverviewCard`                         |
 | View-model profilu | `studentDisplayName`, `studentInitials`, `studentSubtitle`, `backToListHref`, `notesOverviewLabel`                                                                             | `PageHeader`, `ManagerStudentProfileCard`, `ManagerStudentOverviewCard`, link powrotu |
 | Akcje lokalne      | `handleStudentNotesUpdate`                                                                                                                                                     | `ManagerStudentNotes`                                                                 |
+
+#### Test regresyjny przed podzialem
+
+- Dodano test `useManagerStudentDetailsPage`, ktory blokuje guard braku
+  `schoolId`: composable ustawia czytelny blad, nie wlacza loadingu i nie
+  wywoluje requestow profilu, procesu, platnosci ani terminarza.
+- Test chroni bezpieczna granice przed podzialem loadow na mniejsze composables.
 
 ### Kryterium zakonczenia
 
