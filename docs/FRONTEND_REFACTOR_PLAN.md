@@ -1325,7 +1325,7 @@ publicznego API strony.
 
 - [x] Wyciagnac status procesu do `useManagerStudentProcessStatus`.
 - [x] Wyciagnac platnosci do `useManagerStudentPayments`.
-- [ ] Wyciagnac terminarz tygodniowy do `useManagerStudentSchedule`.
+- [x] Wyciagnac terminarz tygodniowy do `useManagerStudentSchedule`.
 - [ ] Odchudzic fasade `useManagerStudentDetailsPage` do route/profile/meta +
       kompozycji mniejszych composables.
 
@@ -1394,6 +1394,15 @@ Zwracane API:
   ale deleguje ich stan oraz requesty do nowego composable.
 - Dodano testy braku requestu przy niepelnym kontekście oraz poprawnego labela
   liczby platnosci po udanym ladowaniu.
+
+#### Wynik wydzielenia terminarza
+
+- Dodano `useManagerStudentSchedule` dla zakresu tygodnia, listy lekcji,
+  loadingu, bledu, labela overview, requestu schedule oraz akcji prev/next week.
+- `useManagerStudentDetailsPage` zachowuje publiczne pola terminarza, ale
+  deleguje ich stan i requesty do nowego composable.
+- Dodano testy braku requestu bez studenta/szkoly oraz poprawnego requestu dla
+  aktualnego zakresu tygodnia.
 
 ### Kryterium zakonczenia
 

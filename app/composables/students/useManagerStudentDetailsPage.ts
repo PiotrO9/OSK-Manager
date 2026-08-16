@@ -2,15 +2,9 @@ import {
     normalizeStudentDetail,
     type StudentDetail,
 } from '~/types/students/student';
-import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
-    getMonday,
-    weekRangeFromMonday,
-} from '~/utils/date/weeklyCalendarDates';
-import {
-    getStudentCountOverviewLabel,
     getStudentDetailsDisplayName,
     getStudentDetailsInitials,
     getStudentDetailsRouteUserIdString,
@@ -19,6 +13,7 @@ import {
 } from '~/utils/students/studentDetailsPage';
 import { useManagerStudentPayments } from './useManagerStudentPayments';
 import { useManagerStudentProcessStatus } from './useManagerStudentProcessStatus';
+import { useManagerStudentSchedule } from './useManagerStudentSchedule';
 
 export function getRouteUserIdString(rawId: unknown): string {
     return getStudentDetailsRouteUserIdString(rawId);
@@ -38,14 +33,9 @@ function getMissingSchoolIdMessage(): string {
 
 export function useManagerStudentDetailsPage() {
     const route = useRoute();
-    const { fetchScheduleForStudent } = useScheduleApi();
     const student = ref<StudentDetail | null>(null);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const scheduleWeekStart = ref<Date>(getMonday(new Date()));
-    const scheduleItems = ref<ScheduleLessonItem[]>([]);
-    const scheduleLoading = ref(false);
-    const scheduleError = ref<string | null>(null);
 
     const schoolId = computed((): string => {
         const raw = route.query.schoolId;
@@ -86,6 +76,21 @@ export function useManagerStudentDetailsPage() {
         getUserId: () => route.params.userId,
     });
 
+    const {
+        scheduleWeekStart,
+        scheduleItems,
+        scheduleLoading,
+        scheduleError,
+        studentScheduleRange,
+        scheduleOverviewLabel,
+        loadStudentSchedule,
+        handlePrevScheduleWeek,
+        handleNextScheduleWeek,
+    } = useManagerStudentSchedule({
+        student,
+        schoolId,
+    });
+
     const studentDisplayName = computed(() => {
         return getStudentDetailsDisplayName(student.value);
     });
@@ -102,14 +107,6 @@ export function useManagerStudentDetailsPage() {
         return getStudentNotesOverviewLabel(student.value);
     });
 
-    const scheduleOverviewLabel = computed(() => {
-        return getStudentCountOverviewLabel({
-            isLoading: scheduleLoading.value,
-            hasError: Boolean(scheduleError.value),
-            count: scheduleItems.value.length,
-        });
-    });
-
     const backToListHref = computed(() => {
         const sid = schoolId.value;
 
@@ -123,17 +120,12 @@ export function useManagerStudentDetailsPage() {
         };
     });
 
-    const studentScheduleRange = computed(() =>
-        weekRangeFromMonday(scheduleWeekStart.value),
-    );
-
     usePageMeta({
         title: () => studentDisplayName.value,
         description: () => 'Szczegóły kursanta.',
     });
 
     let fetchSeq = 0;
-    let scheduleFetchSeq = 0;
 
     async function loadStudent(rawUserId: unknown): Promise<void> {
         errorMessage.value = null;
@@ -208,52 +200,6 @@ export function useManagerStudentDetailsPage() {
         }
     }
 
-    async function loadStudentSchedule(): Promise<void> {
-        const s = student.value;
-
-        if (!s?.id || !schoolId.value) {
-            scheduleItems.value = [];
-
-            return;
-        }
-
-        const seq = ++scheduleFetchSeq;
-
-        scheduleError.value = null;
-        scheduleLoading.value = true;
-
-        const { dateFrom, dateTo } = studentScheduleRange.value;
-
-        try {
-            const data = await fetchScheduleForStudent(
-                s.id,
-                dateFrom,
-                dateTo,
-                schoolId.value,
-            );
-
-            if (seq !== scheduleFetchSeq) {
-                return;
-            }
-
-            scheduleItems.value = data;
-        } catch (err: unknown) {
-            if (seq !== scheduleFetchSeq) {
-                return;
-            }
-
-            scheduleItems.value = [];
-            scheduleError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać terminarza lekcji.',
-            );
-        } finally {
-            if (seq === scheduleFetchSeq) {
-                scheduleLoading.value = false;
-            }
-        }
-    }
-
     watch(
         () => [route.params.userId, route.query.schoolId] as const,
         async ([userId]) => {
@@ -291,20 +237,6 @@ export function useManagerStudentDetailsPage() {
         }
 
         s.notes = notes;
-    }
-
-    function handlePrevScheduleWeek(): void {
-        const d = new Date(scheduleWeekStart.value);
-
-        d.setDate(d.getDate() - 7);
-        scheduleWeekStart.value = getMonday(d);
-    }
-
-    function handleNextScheduleWeek(): void {
-        const d = new Date(scheduleWeekStart.value);
-
-        d.setDate(d.getDate() + 7);
-        scheduleWeekStart.value = getMonday(d);
     }
 
     return {
