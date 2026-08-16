@@ -33,6 +33,24 @@ Błędy z BFF client: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMe
 
 - Handlery: pliki w `server/api/**` (konwencja Nuxt Nitro).
 - Logika wspólna: domenowe grupy w `server/utils/*/` (`*Bff.ts`, mock adaptery i store).
+- Standard wyboru adaptera: [`executeBffAdapter`](../server/utils/bff/bffAdapterExecutor.ts), który wybiera `mock` albo `upstream` według `NUXT_BFF_ADAPTER` i fallbacku konfiguracji.
+- Parsery body/query trzymaj w `server/utils/<domain>/` albo `server/utils/validation/`, żeby handlery `server/api/**` zostały cienkie. Przykłady: [`parseCourseCreateBody`](../server/utils/courses/parseCourseCreateBody.ts), [`parseCoursePatchInstructorBody`](../server/utils/courses/parseCoursePatchBody.ts), [`parseScheduleMeQuery`](../server/utils/schedule/scheduleQueryValidation.ts), [`parseScheduleManagerQuery`](../server/utils/schedule/scheduleQueryValidation.ts).
+- Testy granic BFF: [`bffAdapterExecutor.test.ts`](../server/utils/bff/bffAdapterExecutor.test.ts), [`requestValidation.test.ts`](../server/utils/validation/requestValidation.test.ts), [`parseCourseBody.test.ts`](../server/utils/courses/parseCourseBody.test.ts), [`scheduleQueryValidation.test.ts`](../server/utils/schedule/scheduleQueryValidation.test.ts).
+
+## Pojazdy (vehicles)
+
+| Operacja               | BFF (Nuxt)                                       | Klient frontu                                                               |
+| ---------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| Lista                  | `GET /api/vehicles?schoolId=...`                 | [`useVehiclesApi.fetchList`](../app/composables/vehicles/useVehiclesApi.ts) |
+| Szczegóły              | `GET /api/vehicles/:id`                          | [`fetchVehicleById`](../app/composables/vehicles/useVehiclesApi.ts)         |
+| Utworzenie             | `POST /api/vehicles`                             | [`createVehicle`](../app/composables/vehicles/useVehiclesApi.ts)            |
+| Edycja danych          | `PATCH /api/vehicles/:id`                        | [`updateVehicle`](../app/composables/vehicles/useVehiclesApi.ts)            |
+| Status dostępności     | `PATCH /api/vehicles/:id/status`                 | [`updateVehicleStatus`](../app/composables/vehicles/useVehiclesApi.ts)      |
+| Zdjęcie                | `POST /api/vehicles/:id/photo`                   | [`uploadVehiclePhoto`](../app/composables/vehicles/useVehiclesApi.ts)       |
+| Domyślny pojazd szkoły | `PATCH /api/driving-schools/:id/default-vehicle` | [`setVehicleAsDefault`](../app/composables/vehicles/useVehiclesApi.ts)      |
+
+`updateVehicleStatus` przyjmuje payload `{ status, unavailableUntil? }`, a
+normalizacja `unavailableUntil` jest po stronie [`vehicle.ts`](../app/types/vehicles/vehicle.ts).
 
 ## Rejestracja instruktora z panelu (MANAGER / ADMIN)
 

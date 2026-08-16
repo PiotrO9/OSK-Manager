@@ -2421,7 +2421,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Zaktualizowac `docs/CODEMAP.md`.
 - [x] Zaktualizowac `docs/ARCHITECTURE.md`.
 - [x] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
-- [ ] Zaktualizowac `docs/API_AND_BFF.md`.
+- [x] Zaktualizowac `docs/API_AND_BFF.md`.
 - [ ] Dodac link do tego planu w `docs/README.md` na czas realizacji.
 - [ ] Po zakonczeniu oznaczyc plan jako wykonany albo usunac go zgodnie z przyjetym procesem.
 
