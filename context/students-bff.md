@@ -1,6 +1,6 @@
 # BFF — kursanci (frontend)
 
-Kontrakty warstwy Nitro dla modułu kursantów w tym repozytorium. Upstream (gdy ustawiony `resolveUpstreamBase`): proxy z `Authorization: Bearer` z ciasteczka `access_token`, jak w pozostałych handlerach BFF.
+Kontrakty warstwy Nitro dla modułu kursantów w tym repozytorium. Tryb `mock/upstream` wybiera wspólny executor BFF (`executeBffAdapter`); wariant upstream proxy przekazuje `Authorization: Bearer` z ciasteczka `access_token`, jak w pozostałych handlerach BFF.
 
 ## Szczegóły kursanta — pole `notes`
 

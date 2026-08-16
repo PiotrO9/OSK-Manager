@@ -29,7 +29,7 @@
 Ta lista jest indeksem calego procesu. Szczegolowe checklisty znajduja sie w kolejnych sekcjach.
 
 - [ ] Etap 0: zapisac baseline i zasady refaktoru
-- [ ] Etap 1: ujednolicic wybor adaptera BFF `mock/upstream`
+- [x] Etap 1: ujednolicic wybor adaptera BFF `mock/upstream`
 - [ ] Etap 2: domknac jedna warstwe transportu po stronie aplikacji
 - [ ] Etap 3: uproscic sesje, autoryzacje i middleware rol
 - [ ] Etap 4: podzielic najwieksze composables na mniejsze odpowiedzialnosci
@@ -688,9 +688,22 @@ Fala `auth i profile` przepieta na `executeBffAdapter`:
 
 ### Kryterium zakonczenia
 
-- Handlery nie implementuja lokalnie wyboru adaptera poza udokumentowanymi wyjatkami.
-- Testy obejmuja oba tryby i przypadki bledne konfiguracji.
-- Nie zmienily sie publiczne URL-e, koperty, statusy ani polityka cookies.
+- [x] Handlery nie implementuja lokalnie wyboru adaptera poza udokumentowanymi wyjatkami.
+- [x] Testy obejmuja oba tryby i przypadki bledne konfiguracji.
+- [x] Nie zmienily sie publiczne URL-e, koperty, statusy ani polityka cookies.
+
+### Wynik Etapu 1
+
+Data: 2026-08-16.
+
+- Wszystkie handlery Nitro z lokalnym wyborem `mock/upstream` zostaly przepiete
+  na `executeBffAdapter`.
+- Stary helper wyboru upstreamu zostal usuniety z kodu po audycie
+  konsumentow.
+- Dokumenty kontekstowe opisujace BFF zostaly zaktualizowane do nowego
+  executora.
+- Weryfikacja koncowa Etapu 1: `npm run test`, `npm run lint`,
+  `npx prettier --check` dla zmienionych dokumentow oraz `git diff --check`.
 
 ## Etap 2: jedna warstwa transportu po stronie aplikacji
 

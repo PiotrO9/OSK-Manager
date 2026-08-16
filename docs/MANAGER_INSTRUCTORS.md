@@ -47,7 +47,7 @@ Typ `WeeklyEntry`: [`instructorAvailability.ts`](../app/types/instructors/instru
 
 - **Strony** (`/manager/instructors/...`): middleware [`manager`](../app/middleware/manager.ts) — tylko role **MANAGER** lub **ADMIN** (stan z `useAuthSession`; rola **DEMO** nie wchodzi w panel).
 - **BFF bez upstreamu:** [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts) — JWT w ciasteczku `access_token`, role **MANAGER** / **ADMIN**.
-- **BFF z upstreamem:** ten sam token w cookie; handlery wołają `resolveUpstreamBase` i proxy przekazuje **`Authorization: Bearer`** do backendu.
+- **BFF z upstreamem:** ten sam token w cookie; wspólny executor BFF (`executeBffAdapter`) wybiera wariant upstream, a proxy przekazuje **`Authorization: Bearer`** do backendu.
 
 ### Upstream i mock (profil + weekly)
 
