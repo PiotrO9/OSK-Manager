@@ -1894,6 +1894,59 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - Zaden z tych komponentow nie ma lokalnego `<style>`, wiec nie dodawano pustej
   sekcji stylow.
 
+### Pilot Etapu 5: `ManagerEventStudentPickerDialog.vue`
+
+Zakres pilota: odchudzic dialog przypisywania kursantow do wydarzenia bez
+zmiany publicznego API konsumenta. Realna sciezka komponentu to
+`app/components/manager/events/ManagerEventStudentPickerDialog.vue`.
+
+#### Todo pilota
+
+- [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
+- [ ] Zdefiniowac mape komponentow przed edycja.
+- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [ ] Uzyc `<script setup lang="ts">`.
+- [ ] Uporzadkowac sekcje jako script, template, style.
+- [ ] Typowac props i emits.
+- [ ] Nie mutowac propsow w dziecku.
+- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [ ] Zachowac stabilne `key` dla list.
+- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+
+#### Sekcje UI
+
+| Sekcja              | Odpowiedzialnosc                                               |
+| ------------------- | -------------------------------------------------------------- |
+| Dialog shell        | `UiDialog`, tytul, opis, footer, close przez `v-model:open`    |
+| Capacity summary    | badge liczby miejsc, remaining slots, alert dla limitu 0       |
+| Search field        | input wyszukiwania kursanta                                    |
+| Loading/error state | skeletony listy, blad pobierania i pusty wynik                 |
+| Student list        | lista checkboxow, disabled state przy osiagnietym limicie      |
+| Submit feedback     | blad submitu, label przycisku, toast sukcesu i emit `assigned` |
+
+#### Publiczne API I Konsumenci
+
+- Props: `eventId`, `capacity`, `schoolId`, opcjonalne
+  `excludeStudentUserIds`.
+- Model: `v-model:open` przez `defineModel<boolean>('open', { required: true })`.
+- Emit: `assigned(result: AssignStudentsToEventResponse)`.
+- Jedyny runtime consumer: `ManagerSchoolWeeklyAvailabilityCalendar.vue`.
+  Obecnie przekazuje `v-model:open`, `event-id`, `capacity`, `school-id`; nie
+  przekazuje `excludeStudentUserIds` i nie nasluchuje `assigned`.
+
+#### Odpowiedzialnosci Skryptu
+
+| Obszar         | Obecna odpowiedzialnosc                                           | Uwagi do podzialu                                      |
+| -------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
+| Load kursantow | Pobiera kursantow po otwarciu, zmianie `schoolId` albo `capacity` | Kandydat na composable po ustabilizowaniu testu        |
+| Search/filter  | Filtruje aktywnych, wyklucza przypisanych i szuka po nazwie/email | Czysta logika do testowalnego helpera                  |
+| Capacity state | Normalizuje limit, liczy remaining i blokuje nadwybor             | Najmniejszy bezpieczny pierwszy krok UI                |
+| Selection      | Trzyma `selectedStudentUserIds`, toggle i przyciecie po limicie   | Kandydat na `useEventStudentPickerSelection`           |
+| Submit flow    | Waliduje eventId, wywoluje assign, toast, emit i close            | Zostawic w dialogu do czasu wydzielenia selection/load |
+| Publiczny open | `defineModel` steruje dialogiem                                   | To prawdziwy kontrakt dwukierunkowy                    |
+
 ### Kryterium zakonczenia
 
 Strony nie zawieraja pelnej implementacji feature, a duzy komponent nie laczy jednoczesnie orkiestracji danych i kilku niezaleznych sekcji prezentacji.
