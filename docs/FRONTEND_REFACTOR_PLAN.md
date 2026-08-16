@@ -906,7 +906,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 
 ### Todo
 
-- [ ] Zapisac testy obecnego login/refresh/logout przed podzialem.
+- [x] Zapisac testy obecnego login/refresh/logout przed podzialem.
 - [ ] Wyodrebnic czyste funkcje normalizacji roli.
 - [ ] Wprowadzic jedno typowane zrodlo regul dostepu.
 - [ ] Ujednolicic `manager`, `instructor`, `student` i warianty laczone.
@@ -921,6 +921,17 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 ### Kryterium zakonczenia
 
 Kazda regula dostepu ma jedno zrodlo prawdy, a publiczne API `useAuthSession` pozostaje male i opisane.
+
+### Wynik testow sesji przed podzialem
+
+Data: 2026-08-16.
+
+- Dodano testy `useAuthSession` dla logowania, refreshu access tokenu,
+  nieudanego refreshu i logoutu.
+- Test logowania chroni obecne zachowanie: po `POST /api/auth/login` composable
+  probuje uzupelnic sesje przez `GET /api/auth/me` i zapisuje wynik w
+  `useState`.
+- Test logoutu chroni czyszczenie stanu sesji po wywolaniu BFF logout.
 
 ## Etap 4: podzial duzych composables
 
