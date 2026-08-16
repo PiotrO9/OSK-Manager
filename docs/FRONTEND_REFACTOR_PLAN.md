@@ -2043,7 +2043,7 @@ juz czesciowo wyniesiona do
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
-- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
@@ -2123,6 +2123,12 @@ natywnym `type="submit"` obslugiwanym przez formularz rodzica.
 `CourseCreateFormActions.vue` nie mutuje propsow i nie tworzy lokalnej kopii
 stanu submitu. Stan `isSaving` i `isBlocked` plynie jednokierunkowo z
 `CourseCreateForm.vue`.
+
+#### V-Model
+
+`CourseCreateFormActions.vue` nie wprowadza `v-model`. Dwukierunkowe modele
+pozostaja tylko na polach formularza w `CourseCreateForm.vue`, gdzie sa
+faktycznym kontraktem inputow.
 
 ### Kryterium zakonczenia
 
