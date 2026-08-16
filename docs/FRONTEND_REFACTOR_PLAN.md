@@ -2416,7 +2416,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Przeniesc domenowe komponenty pojazdow z `components/app` do `components/vehicles`.
 - [x] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
 - [x] Zachowac jawne importy dla waznych zaleznosci domenowych.
-- [ ] Nie dodawac nowych barrel files w domenach.
+- [x] Nie dodawac nowych barrel files w domenach.
 - [ ] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
 - [ ] Zaktualizowac `docs/CODEMAP.md`.
 - [ ] Zaktualizowac `docs/ARCHITECTURE.md`.
@@ -2455,6 +2455,14 @@ importuja teraz jawnie kluczowe komponenty z `~/components/vehicles` oraz
 composables `useVehiclesListPage`, `useVehiclesApi` i `useVehicleEditPage`.
 Globalne helpery Nuxt pozostaja auto-importowane zgodnie z dotychczasowa
 konwencja projektu.
+
+### Barrel Files
+
+Audyt `rg --files` oraz re-exportow `export ... from` potwierdza, ze Etap 8 nie
+dodal `index.ts` w domenach `components/vehicles`, `components/events`,
+`composables`, `utils` ani `types`. Istniejace barrel files pozostaja w
+`components/shadcn`, bo to kod biblioteki UI i jawny wyjatek w zasadach
+katalogow.
 
 ### Kryterium zakonczenia
 
