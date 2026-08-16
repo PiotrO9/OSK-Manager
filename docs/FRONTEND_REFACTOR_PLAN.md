@@ -2164,7 +2164,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 ### Todo
 
 - [x] Zinwentaryzowac `unknown`, szerokie `Record<string, unknown>` i lokalne DTO.
-- [ ] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
+- [x] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
 - [ ] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
 - [ ] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
@@ -2200,6 +2200,27 @@ Stan po Etapie 5:
 Pierwszy praktyczny cel Etapu 6: domena `courses`, bo ma parsery
 `parseCourseCreateBody` / `parseCoursePatchBody`, lokalne typy w
 `app/types/courses/course.ts` i swiezo dodane testy formularza.
+
+### Klasyfikacja Typow: Courses
+
+| Typ / plik                                     | Klasyfikacja                 | Uwagi migracyjne                                                        |
+| ---------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------- |
+| `CourseCreatePayload`                          | API request DTO frontend/BFF | Payload submitu formularza do `POST /api/courses`; trzymac przy granicy |
+| `BffCourseCreateBody`                          | API request DTO server/BFF   | Wynik walidacji `parseCourseCreateBody`; kandydat na wspolny alias      |
+| `CoursePatchInstructorPayload`                 | API request DTO frontend/BFF | Waske body `PATCH /api/courses/:id`                                     |
+| `parseCoursePatchInstructorBody` result        | API request DTO server/BFF   | Obecnie `Record<string, unknown>`; docelowo waski typ patcha            |
+| `CourseKind`, `CourseParticipantStatus`        | model domenowy enum          | Moze pozostac wspolny dla UI i BFF, gdy wartosci pochodza z OpenAPI     |
+| `CourseListItem`, `CourseDetail`               | model domenowy UI            | Znormalizowany model po `normalizeCourseListItem` / detail              |
+| `CurrentUserCourseItem`                        | model domenowy UI            | Znormalizowany model widoku kursow zalogowanego uzytkownika             |
+| `CourseInstructorRef`                          | model domenowy podrekordu    | Wspoldzielony fragment kursu i wyboru instruktora                       |
+| `CourseCreateFormProps`                        | model formularza             | Props composable `useCourseCreateForm`, nie DTO API                     |
+| modele `nameModel`, `categoryModel`, daty itd. | model formularza             | Stan inputow; zostaje w composable, nie w typach API                    |
+| `CourseCreateFormActions` props                | view model komponentu        | `schoolId`, `isSaving`, `isBlocked` jako kontrakt prezentacyjny         |
+
+Zasada dla dalszych commitow Etapu 6: nie mieszac tych kategorii w jednej
+nazwie. Gdy typ opisuje surowa odpowiedz lub request API, dopisac to w nazwie
+albo komentarzu; gdy typ opisuje znormalizowany widok, trzymac go przy domenie
+UI.
 
 ### Kryterium zakonczenia
 
