@@ -205,7 +205,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [x] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
 - [x] Dodac testy wyboru trybu jawnego i fallbacku.
 - [x] Dodac test bledu `upstream` bez URL.
-- [ ] Dodac test, ze callback nieaktywnego adaptera nie jest wykonywany.
+- [x] Dodac test, ze callback nieaktywnego adaptera nie jest wykonywany.
 
 ### Inwentarz `resolveUpstreamBase`
 

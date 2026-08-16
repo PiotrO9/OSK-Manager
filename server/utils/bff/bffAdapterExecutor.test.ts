@@ -101,4 +101,24 @@ describe('executeBffAdapter', () => {
             'NUXT_BFF_ADAPTER=upstream requires NUXT_API_UPSTREAM or NUXT_PUBLIC_API_BASE',
         );
     });
+
+    it('does not execute the inactive adapter callback', async () => {
+        stubRuntimeConfig({
+            bffAdapter: 'upstream',
+            apiUpstream: 'http://localhost:4000',
+        });
+
+        const upstream = vi.fn(() => ({ mode: 'upstream' }));
+        const mock = vi.fn(() => ({ mode: 'mock' }));
+
+        await expect(
+            executeBffAdapter(event, {
+                upstream,
+                mock,
+            }),
+        ).resolves.toEqual({ mode: 'upstream' });
+
+        expect(upstream).toHaveBeenCalledOnce();
+        expect(mock).not.toHaveBeenCalled();
+    });
 });
