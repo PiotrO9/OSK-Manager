@@ -2296,7 +2296,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 ### Todo
 
 - [x] Dodac testy executora BFF przed masowa migracja.
-- [ ] Pokryc auth: login, refresh single-flight, logout, auth failure.
+- [x] Pokryc auth: login, refresh single-flight, logout, auth failure.
 - [ ] Pokryc macierz middleware rol.
 - [ ] Pokryc event edit form i payload.
 - [ ] Pokryc student details: profil, kursy i platnosci.
@@ -2313,6 +2313,12 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 `server/utils/bff/bffAdapterExecutor.test.ts` istnieje po migracji BFF i
 przechodzi: 6 testow dla wyboru `mock` / `upstream`, fallbacku, bledu braku
 URL upstream oraz niewykonywania nieaktywnego callbacka.
+
+### Auth
+
+`useAuthSession.test.ts` i `authSessionApi.test.ts` przechodza: 14 testow dla
+loginu, refresh endpointu bez retry recursion, logoutu, mapowania 401/403,
+niedostepnego backendu oraz aktualizacji profilu.
 
 ### Kryterium zakonczenia
 
