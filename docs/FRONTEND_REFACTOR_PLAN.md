@@ -2482,7 +2482,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 
 - [x] Potwierdzic brak nieplanowanych zmian wizualnych.
 - [x] Potwierdzic brak zmian publicznych kontraktow API.
-- [ ] Uruchomic `npm run test`.
+- [x] Uruchomic `npm run test`.
 - [ ] Uruchomic `npm run lint`.
 - [ ] Nie uruchamiac buildu bez wyraznego polecenia.
 - [ ] Wykonac smoke testy w trybie mock.
@@ -2509,6 +2509,10 @@ modyfikacje istniejacych handlerow, ale nie dodano ani nie usunieto publicznych
 plikow route poza testem `server/api/ratings/me.get.test.ts`; zmiany dotyczyly
 migracji na `executeBffAdapter`, wspolnego transportu, parserow body/query oraz
 normalizacji bez zmiany publicznych URL-i i metod HTTP.
+
+### Finalny Test Run
+
+`npm run test` przechodzi w Etapie 9: 43 pliki testowe i 165 testow.
 
 ### Metryki efektu
 
