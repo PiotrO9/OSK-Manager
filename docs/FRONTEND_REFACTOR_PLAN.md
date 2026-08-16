@@ -2166,7 +2166,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Zinwentaryzowac `unknown`, szerokie `Record<string, unknown>` i lokalne DTO.
 - [x] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
 - [x] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
-- [ ] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
+- [x] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
 - [ ] Ujednolicic normalizatory odpowiedzi i ich testy.
 - [ ] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
