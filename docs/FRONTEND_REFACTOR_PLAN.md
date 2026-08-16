@@ -2413,7 +2413,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 
 ### Todo
 
-- [ ] Przeniesc domenowe komponenty pojazdow z `components/app` do `components/vehicles`.
+- [x] Przeniesc domenowe komponenty pojazdow z `components/app` do `components/vehicles`.
 - [ ] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
 - [ ] Zachowac jawne importy dla waznych zaleznosci domenowych.
 - [ ] Nie dodawac nowych barrel files w domenach.
@@ -2424,6 +2424,15 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [ ] Zaktualizowac `docs/API_AND_BFF.md`.
 - [ ] Dodac link do tego planu w `docs/README.md` na czas realizacji.
 - [ ] Po zakonczeniu oznaczyc plan jako wykonany albo usunac go zgodnie z przyjetym procesem.
+
+### Komponenty Pojazdow
+
+Przeniesiono z `app/components/app` do `app/components/vehicles`:
+`VehicleAvailabilityControl.vue`, `VehicleDeleteDialog.vue`,
+`VehicleDetailsContent.vue`, `VehicleForm.vue`, `VehicleStatusControl.vue` i
+`VehiclesListPanel.vue`. Katalog `~/components/vehicles` zostal dodany do
+auto-importow komponentow Nuxt z `pathPrefix: false`, zeby istniejace uzycia w
+szablonach zachowaly te same nazwy komponentow.
 
 ### Kryterium zakonczenia
 

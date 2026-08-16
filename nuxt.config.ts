@@ -43,6 +43,10 @@ export default defineNuxtConfig({
             pathPrefix: false,
         },
         {
+            path: '~/components/vehicles',
+            pathPrefix: false,
+        },
+        {
             path: '~/components/student',
             pathPrefix: false,
         },
