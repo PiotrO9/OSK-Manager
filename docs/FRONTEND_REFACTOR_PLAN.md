@@ -719,7 +719,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
 - [x] Ujednolicic upload `FormData` bez recznego `Content-Type`.
 - [x] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
-- [ ] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
+- [x] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
 - [ ] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
 - [ ] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
@@ -814,6 +814,16 @@ Data: 2026-08-16.
   oryginalny request.
 - `createBffClient` ma test, ze rownolegle odpowiedzi 401 wspoldziela jeden
   request refreshu (`single-flight`).
+- Weryfikacja punktu: `npx vitest run app/utils/api/bffClient.test.ts`.
+
+### Wynik braku rekurencji refreshu
+
+Data: 2026-08-16.
+
+- `createBffClient` ma test, ze request do sciezki refreshu z 401 nie wykonuje
+  kolejnego refreshu.
+- Warunek zabezpieczajacy jest w centralnym transporcie: `path === refreshPath`
+  blokuje probe ponowienia przez refresh.
 - Weryfikacja punktu: `npx vitest run app/utils/api/bffClient.test.ts`.
 
 ### Kryterium zakonczenia
