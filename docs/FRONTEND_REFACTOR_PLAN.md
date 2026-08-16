@@ -506,7 +506,7 @@ normalizowac statusow ani komunikatow.
 - [x] Wybrac prosty endpoint GET, np. ratings albo vehicles.
 - [x] Zapisac test zachowania przed migracja.
 - [x] Przepisac endpoint na executor.
-- [ ] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
+- [x] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
 - [ ] Dopiero po pilocie zaakceptowac publiczne API helpera.
 
 Wybrany endpoint pilotazowy: `server/api/ratings/me.get.ts`.
@@ -518,6 +518,16 @@ Powod wyboru:
 - mock wymaga `requireInstructorFromCookie(event)` i zwraca
   `bffMockOwnLessonRatingsList()`;
 - endpoint dobrze sprawdza, czy executor zostawia osobna autoryzacje mocka.
+
+Wynik porownania po migracji:
+
+- tryb `upstream`: handler nadal zwraca wynik
+  `bffUpstreamOwnLessonRatingsList(event, upstreamBase)` i nie wywoluje
+  `requireInstructorFromCookie`;
+- tryb `mock`: handler nadal wywoluje `requireInstructorFromCookie(event)`
+  przed `bffMockOwnLessonRatingsList()`;
+- potwierdzone testem `server/api/ratings/me.get.test.ts`;
+- po migracji pelne `npm run test` przechodzi: 14 plikow testowych, 78 testow.
 
 ### Kolejnosc migracji domen
 
