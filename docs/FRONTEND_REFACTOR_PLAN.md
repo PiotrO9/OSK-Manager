@@ -1629,7 +1629,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
-- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
+- [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
@@ -1718,6 +1718,14 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   `VehicleEditPhotoSection.vue` nie ma `v-model` ani `defineModel`.
 - Wybór pliku jest jednokierunkowy: rodzic przekazuje stan podgladu i bledow,
   a dziecko emituje `fileChange`.
+
+#### Computed Zamiast Logiki W Template
+
+- `pages/vehicles/[id]/edit.vue` i `VehicleEditPhotoSection.vue` nie zawieraja
+  filtrowania ani sortowania w template.
+- Stan pochodny strony, taki jak `initialVehicle`, `vehicleTitle`,
+  `headerMeta`, `previewPhotoSrc`, `pendingPhotoFileName`, `isSaveBusy` i route
+  powrotu, jest liczony w `useVehicleEditPage` przez `computed`.
 
 ### Kryterium zakonczenia
 
