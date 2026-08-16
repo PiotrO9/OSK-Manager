@@ -722,7 +722,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
 - [x] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
 - [x] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
-- [ ] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
+- [x] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
 
 ### Inwentarz transportu aplikacji
 
