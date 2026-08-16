@@ -2297,7 +2297,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 
 - [x] Dodac testy executora BFF przed masowa migracja.
 - [x] Pokryc auth: login, refresh single-flight, logout, auth failure.
-- [ ] Pokryc macierz middleware rol.
+- [x] Pokryc macierz middleware rol.
 - [ ] Pokryc event edit form i payload.
 - [ ] Pokryc student details: profil, kursy i platnosci.
 - [ ] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
@@ -2319,6 +2319,12 @@ URL upstream oraz niewykonywania nieaktywnego callbacka.
 `useAuthSession.test.ts` i `authSessionApi.test.ts` przechodza: 14 testow dla
 loginu, refresh endpointu bez retry recursion, logoutu, mapowania 401/403,
 niedostepnego backendu oraz aktualizacji profilu.
+
+### Macierz Rol
+
+`authRole.test.ts` przechodzi: 8 testow normalizacji rol, grup dostepu oraz
+macierzy `ADMIN`, `MANAGER`, `INSTRUCTOR`, `STUDENT`, `DEMO` dla tras
+manager/instructor/student i wariantow laczonych.
 
 ### Kryterium zakonczenia
 
