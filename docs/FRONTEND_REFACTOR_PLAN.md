@@ -1911,7 +1911,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Nie mutowac propsow w dziecku.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
-- [ ] Zachowac stabilne `key` dla list.
+- [x] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
@@ -2003,6 +2003,11 @@ wprowadza dodatkowego modelu.
 Lista kursantow w template uzywa `filteredStudents`; filtrowanie aktywnych,
 wykluczonych i dopasowanych do `searchQuery` pozostaje w `computed`, bez
 inline `filter` ani `sort` w markupie.
+
+#### Stabilne Keys
+
+Lista kursantow zachowuje `:key="student.userId"`, czyli stabilny identyfikator
+uzytkownika zamiast indeksu listy albo obiektu.
 
 ### Kryterium zakonczenia
 
