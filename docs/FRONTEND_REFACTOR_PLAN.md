@@ -713,7 +713,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 
 - [x] Zinwentaryzowac `requestBffData`, `bffFetch`, `useApi`, `useBffApi` i `externalFetch`.
 - [x] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
-- [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
+- [x] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
 - [x] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
 - [x] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
 - [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
@@ -740,8 +740,8 @@ Polecenie bazowe:
 | `useBffClient`         | `app/composables/core/useBffClient.ts`                               | dostep do `$bff` dla kodu wymagajacego niskiego poziomu lub kontroli retry                      |
 | `requestBffData`       | `app/composables/core/useApi.ts`                                     | standard dla endpointow z koperta `{ success: true, data }`; unwrap, fallbackMessage, normalize |
 | `bffFetch`             | `app/composables/core/useApi.ts`                                     | standard dla pelnej koperty, szczegolnie `{ success: true }` bez `data`                         |
-| `externalFetch`        | `app/composables/core/useApi.ts`                                     | jawne zewnetrzne URL-e HTTP; obecnie brak konsumentow poza definicja                            |
-| `useBffApi` / `useApi` | `app/composables/core/useApi.ts`                                     | kompatybilny reaktywny wrapper; obecnie brak konsumentow poza definicja i komentarzem           |
+| `externalFetch`        | `app/composables/core/useApi.ts`                                     | jawne zewnetrzne URL-e HTTP; brak konsumentow; usuniety po audycie                              |
+| `useBffApi` / `useApi` | `app/composables/core/useApi.ts`                                     | kompatybilny reaktywny wrapper; brak konsumentow; usuniety po audycie                           |
 | `resolveBffEndpoint`   | `app/utils/api/bffEndpoint.ts`                                       | kompatybilny helper endpointu uzywany przez plugin `$bff`                                       |
 | surowy `$fetch`        | `app/composables/core/useApi.ts`, `app/plugins/bff-client.ts`, testy | dopuszczony w centralnym transporcie i testach                                                  |
 
@@ -752,9 +752,9 @@ Polecenie bazowe:
 | `requestBffData`          | dominujacy mechanizm w composables domenowych: kursy, pojazdy, kursanci, szkoly, lekcje, eventy, platnosci, konto, manager | zostaje standardem dla odpowiedzi z `data`; kolejne migracje maja ograniczac `unknown` |
 | `bffFetch`                | uzywany punktowo dla `DELETE`/kopert bez `data` w eventach i szczegolach instruktora                                       | zostaje, ale walidacja `{ success: true }` powinna miec jeden helper                   |
 | `$bff`                    | uzywany bezposrednio w `useAuthSession`, bo sesja kontroluje reczny refresh, skip retry i aktualizacje `useState`          | zostaje w Etapie 3; nie migrowac na `requestBffData` bez osobnej zmiany sesji          |
-| `useApi`                  | eksport kompatybilnosciowy bez aktywnych konsumentow domenowych                                                            | kandydat do usuniecia dopiero po potwierdzeniu auto-importow i dokumentacji            |
-| `useBffApi`               | eksport reaktywny bez aktywnych konsumentow domenowych poza wrapperami                                                     | zostawic do czasu decyzji, czy jest potrzebny jako publiczny wzorzec                   |
-| `externalFetch`           | brak aktywnych konsumentow domenowych                                                                                      | kandydat do usuniecia albo zostawienia tylko dla jawnie zewnetrznych integracji        |
+| `useApi`                  | eksport kompatybilnosciowy bez aktywnych konsumentow domenowych                                                            | usuniety po potwierdzeniu braku uzyc                                                   |
+| `useBffApi`               | eksport reaktywny bez aktywnych konsumentow domenowych poza wrapperami                                                     | usuniety po potwierdzeniu braku uzyc                                                   |
+| `externalFetch`           | brak aktywnych konsumentow domenowych                                                                                      | usuniety po potwierdzeniu braku uzyc                                                   |
 | `useRequestFetch`         | wystepuje w pluginie `$bff`, co zachowuje cookies i kontekst SSR dla wewnetrznych wywolan BFF                              | zachowac                                                                               |
 | `ManagerStudentNotes.vue` | komponent sam wywoluje `requestBffData` i normalizuje odpowiedz PATCH                                                      | pierwszy kandydat do przeniesienia requestu do `useStudentsApi`                        |
 
@@ -762,24 +762,25 @@ Polecenie bazowe:
 
 Data: 2026-08-16.
 
-| API                     | Kiedy uzywac                                                                                      | Kiedy nie uzywac                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `requestBffData<T>`     | domyslnie w composables domenowych dla endpointow BFF zwracajacych `{ success: true, data }`      | dla odpowiedzi bez `data`, recznej kontroli refreshu albo zewnetrznych URL-i           |
-| `bffFetch<T>`           | dla pelnej koperty BFF, szczegolnie `{ success: true }` bez `data` i nietypowych statusow         | jako zwyklego zamiennika `requestBffData` przy endpointach z `data`                    |
-| `$bff` / `useBffClient` | tylko gdy kod potrzebuje niskopoziomowej kontroli klienta, np. sesja i reczny `retryUnauthorized` | w komponentach UI i zwyklych composables domenowych                                    |
-| `useBffApi`             | tylko jesli potrzebny jest reaktywny wrapper z `execute`, `data`, `error`, `isLoading`            | dla nowych prostych operacji domenowych, gdzie latwiej utrzymac jawne `async function` |
-| `useApi` / `useApiLazy` | tymczasowa kompatybilnosc ze starszym wzorcem API                                                 | w nowym kodzie; nie rozszerzac uzyc                                                    |
-| `externalFetch`         | wylacznie dla jawnie zewnetrznych absolutnych URL-i HTTP poza BFF                                 | dla wewnetrznych `/api/**`                                                             |
-| surowy `$fetch`         | centralny transport, plugin `$bff`, testy                                                         | kod domenowy, komponenty, strony                                                       |
-| `useRequestFetch`       | plugin `$bff` po stronie SSR, zeby zachowac cookies i kontekst requestu                           | bezposrednio w domenach aplikacji, dopoki nie ma udokumentowanego wyjatku              |
-| `resolveBffEndpoint`    | infrastruktura pluginu `$bff` i kompatybilnosc                                                    | kod domenowy; endpoint ma przechodzic przez `requestBffData`, `bffFetch` albo `$bff`   |
+| API                     | Kiedy uzywac                                                                                      | Kiedy nie uzywac                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `requestBffData<T>`     | domyslnie w composables domenowych dla endpointow BFF zwracajacych `{ success: true, data }`      | dla odpowiedzi bez `data`, recznej kontroli refreshu albo zewnetrznych URL-i         |
+| `bffFetch<T>`           | dla pelnej koperty BFF, szczegolnie `{ success: true }` bez `data` i nietypowych statusow         | jako zwyklego zamiennika `requestBffData` przy endpointach z `data`                  |
+| `$bff` / `useBffClient` | tylko gdy kod potrzebuje niskopoziomowej kontroli klienta, np. sesja i reczny `retryUnauthorized` | w komponentach UI i zwyklych composables domenowych                                  |
+| `useBffApi`             | brak aktywnych uzyc przed czyszczeniem                                                            | usuniety, bo dublowal obecny styl domenowych `async function`                        |
+| `useApi` / `useApiLazy` | brak aktywnych uzyc przed czyszczeniem                                                            | usuniete jako stary kompatybilny wrapper                                             |
+| `externalFetch`         | brak aktywnych uzyc przed czyszczeniem                                                            | usuniety; nowe zewnetrzne integracje wymagaja osobnego, jawnego helpera              |
+| surowy `$fetch`         | centralny transport, plugin `$bff`, testy                                                         | kod domenowy, komponenty, strony                                                     |
+| `useRequestFetch`       | plugin `$bff` po stronie SSR, zeby zachowac cookies i kontekst requestu                           | bezposrednio w domenach aplikacji, dopoki nie ma udokumentowanego wyjatku            |
+| `resolveBffEndpoint`    | infrastruktura pluginu `$bff` i kompatybilnosc                                                    | kod domenowy; endpoint ma przechodzic przez `requestBffData`, `bffFetch` albo `$bff` |
 
 Wniosek migracyjny:
 
 - Standard domenowy: `requestBffData` + typowany `normalize`.
 - Wyjatek domenowy: `bffFetch` tylko dla success-only albo pelnej koperty.
 - Wyjatek infrastrukturalny: `$bff` w sesji do czasu Etapu 3.
-- Kandydaci do redukcji: `useApi`, `useApiLazy`, `useBffApi`, `externalFetch`.
+- Usuniete duplikaty bez konsumentow: `useApi`, `useApiLazy`, `useBffApi`,
+  `useExternalApi`, `externalFetch`.
 - Pierwsza migracja kodu: przeniesienie PATCH notatki kursanta z komponentu
   do `useStudentsApi`.
 
@@ -859,6 +860,18 @@ Data: 2026-08-16.
   normalizator albo ignoruje payload rejestracji.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
+
+### Wynik czyszczenia API transportu
+
+Data: 2026-08-16.
+
+- Usunieto nieuzywane eksporty `useApi`, `useApiLazy`, `useBffApi`,
+  `useExternalApi` i `externalFetch` z `app/composables/core/useApi.ts`.
+- Zostawiono aktywne API transportu: `requestBffData`, `requestBffSuccess`,
+  `bffFetch` oraz niskopoziomowy `$bff` przez `useBffClient`.
+- Dokumentacja `docs/API_AND_BFF.md`, `docs/COMPOSABLES.md` i komentarz
+  `resolveBffEndpoint` zostaly zaktualizowane, aby nie wskazywaly usunietych
+  wrapperow.
 
 ### Kryterium zakonczenia
 

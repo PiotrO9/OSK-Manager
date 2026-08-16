@@ -4,7 +4,7 @@
 
 1. **BFF Nuxt** — te same origin co front: ścieżki `/api/...` obsługiwane przez [server/api/](../server/api/).
 2. **Shared client** — aplikacja kliencka używa [`createBffClient`](../app/utils/api/bffClient.ts), providowanego jako `$bff` w [`app/plugins/bff-client.ts`](../app/plugins/bff-client.ts). Domenowe composables powinny iść przez [`requestBffData`](../app/composables/core/useApi.ts), [`requestBffSuccess`](../app/composables/core/useApi.ts), [`bffFetch`](../app/composables/core/useApi.ts) albo bezpośrednio `useBffClient()` tylko gdy potrzebują niskopoziomowego zachowania.
-3. **`NUXT_PUBLIC_API_BASE`** — bezpośrednio backend (Express itd.), używane tylko dla jawnie zewnętrznych wywołań przez [`externalFetch`](../app/composables/core/useApi.ts). Nowe wewnętrzne wywołania `/api/...` nie powinny omijać BFF.
+3. **`NUXT_PUBLIC_API_BASE`** — używane przez BFF jako fallback upstreamu, gdy `NUXT_API_UPSTREAM` nie jest ustawione. Kod aplikacji nie powinien używać go do omijania BFF.
 
 Adresy BFF rozwiązuje [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts), ale normalny kod domenowy nie powinien wołać go bezpośrednio — robi to plugin `$bff`.
 
@@ -19,16 +19,15 @@ Backend zwraca obiekty z polem `success` i `data` lub `error`. Parsowanie:
 - [unwrapApiSuccessData](../app/utils/api/apiEnvelope.ts) — gdy oczekujesz **`data`** przy `success: true`.
 - [assertBooleanSuccessEnvelope](../app/utils/api/apiEnvelope.ts) — gdy odpowiedź to tylko **`success: true/false`** (np. niektóre PATCH).
 
-Błędy z BFF client / `useApi`: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
+Błędy z BFF client: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
 
 ## `requestBffData` / `$bff` vs surowe `$fetch`
 
 - Standardowe JSON w composables: **`requestBffData(method, path, { fallbackMessage, normalize? })`**. Funkcja unwrapuje kopertę `success/data`, mapuje błędy przez `getApiFetchErrorMessage` i korzysta ze shared `$bff`.
 - Odpowiedzi bez `data`, np. niektóre `DELETE`: **`requestBffSuccess(method, path, { fallbackMessage })`**. Funkcja waliduje `{ success: true }` i mapuje błędy tak samo jak `requestBffData`.
-- Reaktywne wywołania w UI: **`useApi` / `useBffApi`** + `execute()` zostają kompatybilnym wrapperem dla starszego API composable; nie rozszerzamy ich użycia w nowym kodzie domenowym.
 - Pełna koperta albo nietypowy kontrakt: **`bffFetch`** albo `$bff.request`, tylko gdy `requestBffData` / `requestBffSuccess` nie pasują.
 - Upload `FormData`, np. zdjęcie pojazdu i avatar profilu: również **`requestBffData` / `$bff`**. Shared client nie ustawia `Content-Type: application/json` dla `FormData`, żeby przeglądarka mogła dodać multipart boundary.
-- Surowy `$fetch` jest dopuszczalny tylko w centralnej warstwie transportu (`bffClient`, `useApi`/`externalFetch`) albo w testach.
+- Surowy `$fetch` jest dopuszczalny tylko w centralnej warstwie transportu (`bffClient`, fallback w `useApi.ts`, plugin `$bff`) albo w testach.
 
 ## Serwer
 
