@@ -2304,7 +2304,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc vehicle edit i status availability.
 - [x] Pokryc parsery body i query Nitro.
 - [x] Dodawac test regresyjny dla kazdego znalezionego bledu.
-- [ ] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
+- [x] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
 - [ ] Ustalac staly czas i UUID w testach.
 - [ ] Po kazdym etapie uruchomic pelne `npm run test`.
 
@@ -2369,6 +2369,14 @@ zakresow dat schedule oraz manager targetow `instructorId` / `studentId`.
 W trakcie Etapu 7 nie znaleziono nowego bledu produkcyjnego wymagajacego osobnej
 naprawy. Kazda wykryta luka w ochronie regresyjnej zostala domknieta testem w
 tym samym checkpoincie przed odznaczeniem pozycji.
+
+### Brak Sieci I Zegara Systemowego
+
+Audyt `rg` po testach jednostkowych potwierdza, ze wywolania transportu sa
+mockowane przez `fetchImpl`, `vi.stubGlobal('fetch')`, `vi.stubGlobal('$fetch')`
+albo lokalne funkcje `requestBffData` / `requestBffSuccess`. Testy z datami
+uzywaja jawnych dat albo wstrzyknietego `now()`, zamiast odczytu biezacego czasu
+systemowego.
 
 ### Kryterium zakonczenia
 
