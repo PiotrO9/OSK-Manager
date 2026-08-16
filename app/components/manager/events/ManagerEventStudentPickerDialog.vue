@@ -2,6 +2,7 @@
 import type { AssignStudentsToEventResponse } from '~/types/events/event';
 import type { StudentListItem } from '~/types/students/student';
 import { formatStudentDisplayName } from '~/types/students/student';
+import { getEventStudentPickerCapacitySummary } from '~/utils/events/eventStudentPickerCapacity';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 const props = defineProps<{
@@ -33,70 +34,31 @@ const submitError = ref<string | null>(null);
 
 let loadSeq = 0;
 
-const capacityNumber = computed((): number | null => {
-    const c = props.capacity;
-
-    if (c === null || c === undefined) {
-        return null;
-    }
-
-    if (!Number.isFinite(c)) {
-        return null;
-    }
-
-    return Math.max(0, Math.floor(c));
-});
-
 const selectedCount = computed(() => selectedStudentUserIds.value.length);
 
-const isCapacityReached = computed((): boolean => {
-    const cap = capacityNumber.value;
-
-    if (cap === null) {
-        return false;
-    }
-
-    return selectedCount.value >= cap;
-});
-
-const remainingSlots = computed((): number | null => {
-    const cap = capacityNumber.value;
-
-    if (cap === null) {
-        return null;
-    }
-
-    return Math.max(0, cap - selectedCount.value);
-});
-
-const capacityBadgeVariant = computed(
-    (): 'default' | 'secondary' | 'destructive' => {
-        const cap = capacityNumber.value;
-
-        if (cap === null) {
-            return 'secondary';
-        }
-
-        if (cap === 0) {
-            return 'destructive';
-        }
-
-        if (selectedCount.value >= cap) {
-            return 'destructive';
-        }
-
-        return 'secondary';
-    },
+const capacitySummary = computed(() =>
+    getEventStudentPickerCapacitySummary({
+        capacity: props.capacity,
+        selectedCount: selectedCount.value,
+    }),
 );
 
+const capacityNumber = computed(() => capacitySummary.value.capacityNumber);
+
+const isCapacityReached = computed(() => {
+    return capacitySummary.value.isCapacityReached;
+});
+
+const remainingSlots = computed(() => {
+    return capacitySummary.value.remainingSlots;
+});
+
+const capacityBadgeVariant = computed(() => {
+    return capacitySummary.value.badgeVariant;
+});
+
 const capacityBadgeLabel = computed((): string => {
-    const cap = capacityNumber.value;
-
-    if (cap === null) {
-        return `${selectedCount.value} wybrano (bez limitu)`;
-    }
-
-    return `${selectedCount.value} / ${cap} miejsc zajętych`;
+    return capacitySummary.value.badgeLabel;
 });
 
 /** GET /students — limit 1–100 (BFF); przy braku limitu wydarzenia = 100. */

@@ -1913,7 +1913,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
 - [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
-- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+- [x] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
 
@@ -2015,6 +2015,13 @@ Ekstrakcja `ManagerEventStudentPickerCapacitySummary.vue` zachowuje te same
 klasy Tailwind dla badge, remaining slots i alertu limitu 0. Komponent nie
 dodaje wrappera zmieniajacego spacing, wiec desktop/mobile dziedzicza ten sam
 uklad dialogu.
+
+#### Test Granicy
+
+Dodano `eventStudentPickerCapacity.test.ts` dla helpera
+`getEventStudentPickerCapacitySummary`. Test pokrywa brak limitu, limit 0,
+normalizacje liczby miejsc, remaining slots i wariant badge przekazywany do
+`ManagerEventStudentPickerCapacitySummary.vue`.
 
 ### Kryterium zakonczenia
 

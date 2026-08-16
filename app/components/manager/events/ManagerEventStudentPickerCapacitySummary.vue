@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { EventStudentPickerCapacityBadgeVariant } from '~/utils/events/eventStudentPickerCapacity';
+
 defineProps<{
-    badgeVariant: 'default' | 'secondary' | 'destructive';
+    badgeVariant: EventStudentPickerCapacityBadgeVariant;
     badgeLabel: string;
     capacityNumber: number | null;
     remainingSlots: number | null;
