@@ -134,7 +134,7 @@ export function useLessonBookingApi() {
         };
 
         try {
-            await requestBffData<unknown>('POST', '/api/lessons', {
+            await requestBffSuccess('POST', '/api/lessons', {
                 body: payload,
                 fallbackMessage: 'Nie udało się utworzyć rezerwacji.',
             });
