@@ -3,18 +3,19 @@ import {
     mockCoursesGetById,
     mockInstructorQualifiedForCategory,
 } from '~~/server/utils/courses/mockCoursesList';
+import type { BffLessonCreateBody } from './parseLessonCreateBody';
 
-export function bffMockLessonsPost(body: Record<string, unknown>): {
+export function bffMockLessonsPost(body: BffLessonCreateBody): {
     success: true;
     data: unknown;
 } {
-    const course = mockCoursesGetById(String(body.courseId));
+    const course = mockCoursesGetById(body.courseId);
 
     if (
         course &&
         !mockInstructorQualifiedForCategory(
             course.schoolId,
-            String(body.instructorId),
+            body.instructorId,
             course.category,
         )
     ) {
@@ -31,13 +32,13 @@ export function bffMockLessonsPost(body: Record<string, unknown>): {
         data: {
             lesson: {
                 id: randomUUID(),
-                courseId: String(body.courseId),
+                courseId: body.courseId,
                 studentId: randomUUID(),
-                instructorId: String(body.instructorId),
-                vehicleId: String(body.vehicleId ?? ''),
-                lessonType: String(body.lessonType),
-                startTime: String(body.startTime),
-                endTime: String(body.endTime),
+                instructorId: body.instructorId,
+                vehicleId: body.vehicleId,
+                lessonType: body.lessonType,
+                startTime: body.startTime,
+                endTime: body.endTime,
                 status: 'SCHEDULED',
                 createdAt: now,
             },
