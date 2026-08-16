@@ -907,7 +907,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 ### Todo
 
 - [x] Zapisac testy obecnego login/refresh/logout przed podzialem.
-- [ ] Wyodrebnic czyste funkcje normalizacji roli.
+- [x] Wyodrebnic czyste funkcje normalizacji roli.
 - [ ] Wprowadzic jedno typowane zrodlo regul dostepu.
 - [ ] Ujednolicic `manager`, `instructor`, `student` i warianty laczone.
 - [ ] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
@@ -932,6 +932,15 @@ Data: 2026-08-16.
   probuje uzupelnic sesje przez `GET /api/auth/me` i zapisuje wynik w
   `useState`.
 - Test logoutu chroni czyszczenie stanu sesji po wywolaniu BFF logout.
+
+### Wynik normalizacji roli
+
+Data: 2026-08-16.
+
+- Dodano czysty helper `normalizeAuthRole(raw): AuthRole | null`.
+- Helper normalizuje whitespace i wielkosc liter oraz odrzuca role spoza
+  jawnego zbioru `ADMIN`, `MANAGER`, `INSTRUCTOR`, `STUDENT`, `DEMO`.
+- Dodano testy normalizacji i sprawdzenia konkretnej roli.
 
 ## Etap 4: podzial duzych composables
 
