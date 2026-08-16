@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamVehiclesGetById } from '~~/server/utils/vehicles/vehiclesBff';
 
@@ -7,13 +8,13 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator pojazdu.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesGetById(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesGetById(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesGetById(id);
+            return bffMockVehiclesGetById(id);
+        },
+    });
 });

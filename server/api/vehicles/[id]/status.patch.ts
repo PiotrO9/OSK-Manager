@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import type { BffVehicleStatusBody } from '~~/server/utils/vehicles/vehiclesBff';
 import { bffUpstreamVehiclesUpdateStatus } from '~~/server/utils/vehicles/vehiclesBff';
@@ -68,13 +69,13 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesUpdateStatus(event, upstreamBase, id, payload),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesUpdateStatus(event, upstream, id, payload);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesUpdateStatus(id, payload);
+            return bffMockVehiclesUpdateStatus(id, payload);
+        },
+    });
 });

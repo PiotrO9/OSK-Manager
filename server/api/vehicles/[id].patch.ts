@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseVehicleWriteFields } from '~~/server/utils/vehicles/parseVehicleRequestBody';
 import { parseRequiredRouterParam } from '~~/server/utils/validation/requestValidation';
 
@@ -32,27 +33,27 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesUpdate(event, upstreamBase, id, {
+                name: fields.name,
+                registrationNumber: fields.registrationNumber,
+                inspectionDate: fields.inspectionDate,
+                insuranceDate: fields.insuranceDate,
+                modelYear: fields.modelYear,
+                mileageKm: fields.mileageKm,
+            }),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesUpdate(event, upstream, id, {
-            name: fields.name,
-            registrationNumber: fields.registrationNumber,
-            inspectionDate: fields.inspectionDate,
-            insuranceDate: fields.insuranceDate,
-            modelYear: fields.modelYear,
-            mileageKm: fields.mileageKm,
-        });
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesUpdate(id, {
-        name: fields.name,
-        registrationNumber: fields.registrationNumber,
-        inspectionDate: fields.inspectionDate,
-        insuranceDate: fields.insuranceDate,
-        modelYear: fields.modelYear,
-        mileageKm: fields.mileageKm,
+            return bffMockVehiclesUpdate(id, {
+                name: fields.name,
+                registrationNumber: fields.registrationNumber,
+                inspectionDate: fields.inspectionDate,
+                insuranceDate: fields.insuranceDate,
+                modelYear: fields.modelYear,
+                mileageKm: fields.mileageKm,
+            });
+        },
     });
 });

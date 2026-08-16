@@ -532,7 +532,7 @@ Wynik porownania po migracji:
 ### Kolejnosc migracji domen
 
 - [x] ratings i proste endpointy `me`;
-- [ ] vehicles bez uploadu;
+- [x] vehicles bez uploadu;
 - [ ] courses;
 - [ ] instructors bez availability;
 - [ ] driving schools;
@@ -554,6 +554,18 @@ Pierwsza fala migracji domenowej przepieta na `executeBffAdapter`:
 - `server/api/me/courses.get.ts`;
 - `server/api/me/payments.get.ts`;
 - `server/api/schedule/me.get.ts`.
+
+Fala `vehicles` bez uploadu przepieta na `executeBffAdapter`:
+
+- `server/api/vehicles.get.ts`;
+- `server/api/vehicles.post.ts`;
+- `server/api/vehicles/[id].get.ts`;
+- `server/api/vehicles/[id].patch.ts`;
+- `server/api/vehicles/[id].delete.ts`;
+- `server/api/vehicles/[id]/status.patch.ts`.
+
+Poza zakresem tej fali zostaje `server/api/vehicles/[id]/photo.post.ts`,
+bo jest uploadem `FormData`.
 
 ### Sugerowane commity
 

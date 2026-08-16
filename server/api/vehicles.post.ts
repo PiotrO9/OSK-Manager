@@ -1,3 +1,5 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
+
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const schoolId = parseSchoolIdFromBody(body);
@@ -33,29 +35,29 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesCreate(event, upstreamBase, {
+                schoolId,
+                name: fields.name,
+                registrationNumber: fields.registrationNumber,
+                inspectionDate: fields.inspectionDate,
+                insuranceDate: fields.insuranceDate,
+                modelYear: fields.modelYear,
+                mileageKm: fields.mileageKm,
+            }),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesCreate(event, upstream, {
-            schoolId,
-            name: fields.name,
-            registrationNumber: fields.registrationNumber,
-            inspectionDate: fields.inspectionDate,
-            insuranceDate: fields.insuranceDate,
-            modelYear: fields.modelYear,
-            mileageKm: fields.mileageKm,
-        });
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesCreate({
-        schoolId,
-        name: fields.name,
-        registrationNumber: fields.registrationNumber,
-        inspectionDate: fields.inspectionDate,
-        insuranceDate: fields.insuranceDate,
-        modelYear: fields.modelYear,
-        mileageKm: fields.mileageKm,
+            return bffMockVehiclesCreate({
+                schoolId,
+                name: fields.name,
+                registrationNumber: fields.registrationNumber,
+                inspectionDate: fields.inspectionDate,
+                insuranceDate: fields.insuranceDate,
+                modelYear: fields.modelYear,
+                mileageKm: fields.mileageKm,
+            });
+        },
     });
 });
