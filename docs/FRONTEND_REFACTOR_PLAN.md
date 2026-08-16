@@ -1905,7 +1905,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
-- [ ] Uzyc `<script setup lang="ts">`.
+- [x] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
@@ -1967,6 +1967,11 @@ submitu, wyszukiwania ani wyboru kursantow.
 uzywana przez `ManagerSchoolWeeklyAvailabilityCalendar.vue`. Konsument nie
 dostaje nowych propsow, emitow ani zmiany modelu `v-model:open`; refaktor
 przenosi tylko wewnetrzne sekcje prezentacyjne pod ten sam kontrakt.
+
+#### Script Setup
+
+`ManagerEventStudentPickerDialog.vue` juz uzywa `<script setup lang="ts">`.
+Nowe sekcje wydzielane w tym pilocie musza utrzymac ten sam standard SFC.
 
 ### Kryterium zakonczenia
 
