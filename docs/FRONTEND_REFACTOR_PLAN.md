@@ -1075,6 +1075,40 @@ Cel: rozdzielic orkiestracje stron, formularze, dane referencyjne i akcje zapisu
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
 
+### Pilot Etapu 4: `useManagerEventEditForm.ts`
+
+Zakres pilota: pierwszy P0 composable z tabeli, bez zmiany publicznego API
+kontenera `ManagerEventEditContainer.vue`.
+
+#### Todo pilota
+
+- [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
+- [ ] Zapisac jego publiczne API i liste konsumentow.
+- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
+- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [ ] Przepiac konsumentow.
+- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [ ] Uruchomic test domeny i lint.
+
+#### Odpowiedzialnosci obecnego pliku
+
+| Obszar                        | Obecna odpowiedzialnosc                                                              | Uwagi do podzialu                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Stan formularza               | Trzyma refy typu wydarzenia, startu, konca, instruktora, pojazdu, pojemnosci i bledu | Powinien zostac cienkim wrapperem publicznego kontraktu albo malym composable formularza |
+| Pola daty i czasu             | Synchronizuje `datetime-local` z rozbitymi polami daty, godziny i minuty             | Kandydat na osobny helper/composable wyboru czasu                                        |
+| Ograniczenia okien czasowych  | Wylicza dozwolone godziny/minuty i zakres kalendarza na podstawie `freeWindows`      | Logika zalezy od `eventEditFreeWindowsPicker`, ale orkiestracja jest nadal w formularzu  |
+| Korekta niepoprawnego konca   | Watcher pilnuje, aby koniec byl po starcie i sugeruje domyslny koniec                | Stanowy efekt do wydzielenia razem z polami czasu                                        |
+| Prefill z wydarzenia          | Mapuje `InstructorEvent` do pol formularza i czysci blad                             | Czyste mapowanie powinno isc do utility albo malego mappera domenowego                   |
+| Parsowanie pojemnosci         | Normalizuje `capacity` z inputu do liczby, `null` albo `false` dla bledu             | Czysta funkcja do `utils/events`                                                         |
+| Snapshot i dirty state        | Porownuje baseline wydarzenia z aktualnym stanem formularza                          | Czyste snapshoty sa dobrym pierwszym testem regresyjnym                                  |
+| Walidacja slotu po zmianach   | Informuje akcje zapisu, czy start, koniec albo instruktor wymagaja walidacji slotu   | Moze zostac przy snapshotach, bo korzysta z tej samej granicy danych                     |
+| Handlery eventow input/select | Czytaja `Event.target`, aktualizuja refy i commituja lokalny datetime                | To warstwa adaptera UI; nie powinna mieszac sie z czystymi mapperami                     |
+
 ### Kryterium zakonczenia
 
 Kazdy composable ma jedna opisywalna odpowiedzialnosc, a stan pochodny nie jest synchronizowany watcherami, jezeli moze byc `computed`.
