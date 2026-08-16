@@ -1766,7 +1766,7 @@ podzialem odpowiedzialnosci.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
-- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
@@ -1838,6 +1838,12 @@ Pierwszy implementacyjny krok: wydzielic tylko
   `statusUpdatingVehicleId`; renderuje stan i emituje `statusChange`.
 - Wlascicielem stanu aktualizacji statusu pozostaje `useVehiclesListPage`, a
   `VehiclesListPanel.vue` zachowuje role fasady przekazujacej eventy.
+
+#### V-model
+
+- `VehicleManagerStatusGrid.vue` nie uzywa `v-model` ani `defineModel`; status
+  aktualizowanego pojazdu jest przekazywany jako props.
+- Zmiana statusu pozostaje jawnym eventem `statusChange(vehicle, payload)`.
 
 #### Route Meta + Composable + Widok
 
