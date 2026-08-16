@@ -2194,7 +2194,7 @@ Stan po Etapie 5:
 | Transport i koperty BFF         | `app/utils/api/bffClient.ts`, `server/utils/upstream/upstreamRequest.ts`                        | `unknown` dopuszczalne na granicy, ale wynik ma miec typ domenowy |
 | Parsery request body/query      | `server/utils/courses/parseCourseCreateBody.ts`, `server/api/events/index.post.ts`              | Priorytet dla runtime validation i testow invalid/missing         |
 | Normalizatory domenowe          | `app/types/courses/course.ts`, `app/types/students/student.ts`, `app/types/vehicles/vehicle.ts` | Oznaczyc jako API DTO -> domain model                             |
-| Komponenty z route target props | `ManagerCourseDetailHeader.vue`, `ManagerInstructorsListCard.vue`                               | Zawezic `Record<string, unknown>` do typow routingu Nuxt          |
+| Komponenty z route target props | `ManagerCourseDetailHeader.vue`, `ManagerInstructorsListCard.vue`                               | Zrobione: propsy i factory linkow uzywaja `RouteLocationRaw`      |
 | Mocki BFF                       | `server/utils/*MockBff.ts`, `server/utils/*Store.ts`                                            | Zostawic szerzej do czasu ujednolicenia typow odpowiedzi mocka    |
 | Testy                           | `*.test.ts`                                                                                     | Nie optymalizowac mechanicznie; zostawic, gdy sluzy stubom        |
 

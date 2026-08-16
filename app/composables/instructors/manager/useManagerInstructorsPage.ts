@@ -1,3 +1,4 @@
+import type { RouteLocationRaw } from 'vue-router';
 import type { InstructorRegisterPayload } from '~/components/manager/instructors/ManagerInstructorFormDialog.vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
@@ -204,7 +205,9 @@ export function useManagerInstructorsPage() {
         }
     });
 
-    function instructorDetailsTo(instructor: InstructorListItem) {
+    function instructorDetailsTo(
+        instructor: InstructorListItem,
+    ): RouteLocationRaw {
         return {
             path: `/manager/instructors/${instructor.id}`,
             query:

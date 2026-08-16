@@ -1,3 +1,4 @@
+import type { RouteLocationRaw } from 'vue-router';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import {
     instructorHasCourseCategoryQualification,
@@ -78,7 +79,7 @@ export function useManagerCourseDetailPage() {
         return sid && sid.length > 0 ? sid : '';
     });
 
-    const backToCoursesHref = computed(() => {
+    const backToCoursesHref = computed<RouteLocationRaw>(() => {
         if (!effectiveSchoolId.value) {
             return '/manager/courses';
         }
@@ -89,7 +90,7 @@ export function useManagerCourseDetailPage() {
         };
     });
 
-    const createCourseTarget = computed(() => ({
+    const createCourseTarget = computed<RouteLocationRaw>(() => ({
         path: '/manager/courses/new',
         query: effectiveSchoolId.value
             ? { schoolId: effectiveSchoolId.value }
