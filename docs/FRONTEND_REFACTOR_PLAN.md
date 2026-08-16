@@ -503,11 +503,21 @@ normalizowac statusow ani komunikatow.
 
 ### Migracja pilotazowa
 
-- [ ] Wybrac prosty endpoint GET, np. ratings albo vehicles.
+- [x] Wybrac prosty endpoint GET, np. ratings albo vehicles.
 - [ ] Zapisac test zachowania przed migracja.
 - [ ] Przepisac endpoint na executor.
 - [ ] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
 - [ ] Dopiero po pilocie zaakceptowac publiczne API helpera.
+
+Wybrany endpoint pilotazowy: `server/api/ratings/me.get.ts`.
+
+Powod wyboru:
+
+- prosty GET bez route params, query i body;
+- upstream zwraca `bffUpstreamOwnLessonRatingsList(event, upstreamBase)`;
+- mock wymaga `requireInstructorFromCookie(event)` i zwraca
+  `bffMockOwnLessonRatingsList()`;
+- endpoint dobrze sprawdza, czy executor zostawia osobna autoryzacje mocka.
 
 ### Kolejnosc migracji domen
 
