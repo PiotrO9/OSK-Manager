@@ -202,7 +202,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [x] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
 - [x] Nie ukrywac walidacji requestu w executorze.
 - [x] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
-- [ ] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
+- [x] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
 - [ ] Dodac testy wyboru trybu jawnego i fallbacku.
 - [ ] Dodac test bledu `upstream` bez URL.
 - [ ] Dodac test, ze callback nieaktywnego adaptera nie jest wykonywany.
@@ -484,6 +484,22 @@ return executeBffAdapter(event, {
     },
 });
 ```
+
+#### Zasada kontraktu HTTP
+
+Executor nie jest warstwa mapowania odpowiedzi. Migracja handlera na
+`executeBffAdapter` musi zachowac:
+
+- publiczny URL i metode HTTP;
+- statusy ustawiane przez `setResponseStatus`;
+- tresc `statusMessage` i `message` w `createError`;
+- strukture koperty, np. `{ success: true, data }` albo `{ success: true }`;
+- strategie cookies i czyszczenia sesji;
+- kolejnosc walidacji wzgledem wyboru adaptera.
+
+Jezeli handler ma inne statusy dla mocka i upstreamu, roznica zostaje w
+callbackach adapterow albo w handlerze. Executor nie moze domyslnie
+normalizowac statusow ani komunikatow.
 
 ### Migracja pilotazowa
 
