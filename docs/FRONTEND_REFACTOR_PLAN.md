@@ -1909,7 +1909,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
 - [x] Nie mutowac propsow w dziecku.
-- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
 - [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
@@ -1990,6 +1990,13 @@ Komponent nie emituje zdarzen, bo renderuje wylacznie stan pojemnosci.
 `ManagerEventStudentPickerCapacitySummary.vue` nie zapisuje do propsow i nie
 trzyma lokalnej kopii stanu. Wszystkie wartosci pochodza z obliczen rodzica i
 sa przekazywane jednokierunkowo do sekcji prezentacyjnej.
+
+#### V-Model
+
+`v-model:open` pozostaje tylko na `ManagerEventStudentPickerDialog.vue`, bo
+otwieranie i zamykanie dialogu jest publicznym kontraktem dwukierunkowym.
+`ManagerEventStudentPickerCapacitySummary.vue` dostaje zwykle propsy i nie
+wprowadza dodatkowego modelu.
 
 ### Kryterium zakonczenia
 
