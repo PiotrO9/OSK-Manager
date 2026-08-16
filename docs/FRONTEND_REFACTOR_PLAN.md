@@ -1908,7 +1908,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
-- [ ] Nie mutowac propsow w dziecku.
+- [x] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
@@ -1984,6 +1984,12 @@ Wydzielane komponenty powinny zachowac ten sam porzadek.
 Dodano `ManagerEventStudentPickerCapacitySummary.vue` z typowanymi propsami
 `badgeVariant`, `badgeLabel`, `capacityNumber` i `remainingSlots`.
 Komponent nie emituje zdarzen, bo renderuje wylacznie stan pojemnosci.
+
+#### Brak Mutacji Propsow
+
+`ManagerEventStudentPickerCapacitySummary.vue` nie zapisuje do propsow i nie
+trzyma lokalnej kopii stanu. Wszystkie wartosci pochodza z obliczen rodzica i
+sa przekazywane jednokierunkowo do sekcji prezentacyjnej.
 
 ### Kryterium zakonczenia
 
