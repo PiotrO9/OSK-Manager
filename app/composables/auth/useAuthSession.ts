@@ -2,6 +2,7 @@
  * Sesja przez BFF `/api/auth/*`: access + refresh w ciasteczkach httpOnly (ten sam origin co Nuxt).
  * W `useState` trzymane są wyłącznie dane profilu (bez JWT).
  */
+import { createDemoAuthSession } from '~/utils/auth/demoAuthSession';
 
 export interface AuthProfilePatchBody {
     firstName?: string;
@@ -533,15 +534,11 @@ export function useAuthSession() {
     }
 
     function loginDemo(userName: string) {
-        if (!userName) return;
+        const demoSession = createDemoAuthSession(userName);
 
-        session.value = {
-            userId: 'demo',
-            userName,
-            role: 'DEMO',
-            drivingSchools: [],
-            defaultOskId: null,
-        };
+        if (!demoSession) return;
+
+        session.value = demoSession;
     }
 
     return {
