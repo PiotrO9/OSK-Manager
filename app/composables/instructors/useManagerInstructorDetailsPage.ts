@@ -6,12 +6,9 @@ import {
 } from '~/types/instructors/instructor';
 import type { CourseTypeOption } from '~/types/courses/courseType';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
-import {
-    assertBooleanSuccessEnvelope,
-    getApiErrorStatusCode,
-} from '~/utils/api/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { bffFetch, requestBffData } from '../core/useApi';
+import { requestBffData, requestBffSuccess } from '../core/useApi';
 import { usePageMeta } from '../core/usePageMeta';
 
 export function getManagerInstructorRouteString(raw: unknown): string {
@@ -478,12 +475,13 @@ export function useManagerInstructorDetailsPage() {
         isDeleting.value = true;
 
         try {
-            const raw = await bffFetch<unknown>(
+            await requestBffSuccess(
                 'DELETE',
                 `/api/instructors/${encodeURIComponent(id)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć instruktora.',
+                },
             );
-
-            assertBooleanSuccessEnvelope(raw);
 
             addToast({
                 title: 'Instruktor został usunięty',

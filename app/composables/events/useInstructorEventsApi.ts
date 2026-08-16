@@ -1,7 +1,4 @@
-import {
-    assertBooleanSuccessEnvelope,
-    getApiErrorStatusCode,
-} from '~/utils/api/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import {
     extractStudentAttendanceFromEvent,
     extractStudentUserIdsFromEventStudentsPayload,
@@ -301,12 +298,13 @@ export function useInstructorEventsApi() {
         isDeleteLoading.value = true;
 
         try {
-            const raw = await bffFetch<unknown>(
+            await requestBffSuccess(
                 'DELETE',
                 `/api/events/${encodeURIComponent(eid)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć wydarzenia.',
+                },
             );
-
-            assertBooleanSuccessEnvelope(raw);
         } catch (err: unknown) {
             if (getApiErrorStatusCode(err) === 404) {
                 return;

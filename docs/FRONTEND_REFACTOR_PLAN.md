@@ -716,7 +716,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
 - [x] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
 - [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
-- [ ] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
+- [x] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
 - [ ] Ujednolicic upload `FormData` bez recznego `Content-Type`.
 - [ ] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
 - [ ] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
@@ -782,6 +782,17 @@ Wniosek migracyjny:
 - Kandydaci do redukcji: `useApi`, `useApiLazy`, `useBffApi`, `externalFetch`.
 - Pierwsza migracja kodu: przeniesienie PATCH notatki kursanta z komponentu
   do `useStudentsApi`.
+
+### Wynik success-only
+
+Data: 2026-08-16.
+
+- Dodano `requestBffSuccess(method, path, { fallbackMessage, ...options })` dla
+  endpointow BFF zwracajacych `{ success: true }` bez pola `data`.
+- `requestBffSuccess` uzywa wspolnego klienta BFF, waliduje pelna koperte przez
+  `assertBooleanSuccessEnvelope` i mapuje bledy tak samo jak `requestBffData`.
+- Przepieto success-only DELETE w eventach, usuwaniu instruktora oraz usuwaniu
+  dnia dostepnosci instruktora.
 
 ### Kryterium zakonczenia
 

@@ -1,5 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { requestBffData as requestBffDataType } from './useApi';
+import type {
+    requestBffData as requestBffDataType,
+    requestBffSuccess as requestBffSuccessType,
+} from './useApi';
 
 vi.mock('~/utils/api/apiFetchErrorMessage', async () => {
     return await vi.importActual('~/utils/api/apiFetchErrorMessage');
@@ -10,12 +13,13 @@ vi.mock('~/utils/api/apiEnvelope', async () => {
 });
 
 let requestBffData: typeof requestBffDataType;
+let requestBffSuccess: typeof requestBffSuccessType;
+
+beforeAll(async () => {
+    ({ requestBffData, requestBffSuccess } = await import('./useApi'));
+});
 
 describe('requestBffData', () => {
-    beforeAll(async () => {
-        ({ requestBffData } = await import('./useApi'));
-    });
-
     beforeEach(() => {
         vi.unstubAllGlobals();
         vi.stubGlobal('useRequestURL', () => ({
@@ -147,6 +151,67 @@ describe('requestBffData', () => {
         ).rejects.toMatchObject({
             message: 'Could not load data.',
             statusCode: 500,
+            data: {},
+        });
+    });
+});
+
+describe('requestBffSuccess', () => {
+    beforeEach(() => {
+        vi.unstubAllGlobals();
+        vi.stubGlobal('useRequestURL', () => ({
+            origin: 'http://localhost:3000',
+        }));
+    });
+
+    it('accepts success-only BFF envelopes', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({ success: true });
+
+        vi.stubGlobal('$fetch', fetchMock);
+
+        await expect(
+            requestBffSuccess('DELETE', '/api/items/abc', {
+                fallbackMessage: 'Could not delete item.',
+            }),
+        ).resolves.toBeUndefined();
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'http://localhost:3000/api/items/abc',
+            expect.objectContaining({ method: 'DELETE' }),
+        );
+    });
+
+    it('uses success-only envelope errors before fallback message', async () => {
+        vi.stubGlobal(
+            '$fetch',
+            vi.fn().mockResolvedValue({
+                success: false,
+                error: 'Cannot delete item.',
+            }),
+        );
+
+        await expect(
+            requestBffSuccess('DELETE', '/api/items/abc', {
+                fallbackMessage: 'Could not delete item.',
+            }),
+        ).rejects.toThrow('Cannot delete item.');
+    });
+
+    it('preserves HTTP error metadata', async () => {
+        const err = Object.assign(new Error(''), {
+            statusCode: 404,
+            data: {},
+        });
+
+        vi.stubGlobal('$fetch', vi.fn().mockRejectedValue(err));
+
+        await expect(
+            requestBffSuccess('DELETE', '/api/items/abc', {
+                fallbackMessage: 'Could not delete item.',
+            }),
+        ).rejects.toMatchObject({
+            message: 'Could not delete item.',
+            statusCode: 404,
             data: {},
         });
     });

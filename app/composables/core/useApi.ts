@@ -1,5 +1,6 @@
 import { toValue } from 'vue';
 import type { MaybeRefOrGetter } from 'vue';
+import { assertBooleanSuccessEnvelope } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     createBffClient,
@@ -22,6 +23,10 @@ export interface RequestBffDataOptions<T> extends ApiRequestOptions {
     fallbackMessage: string;
     invalidMessage?: string;
     normalize?: (data: unknown) => T | null;
+}
+
+export interface RequestBffSuccessOptions extends ApiRequestOptions {
+    fallbackMessage: string;
 }
 
 export interface ApiResponse<T = unknown> {
@@ -189,6 +194,20 @@ export async function bffFetch<T = unknown>(
         path,
         buildBffRequestOptions(method, options),
     );
+}
+
+export async function requestBffSuccess(
+    method: Method,
+    path: string,
+    options: RequestBffSuccessOptions,
+): Promise<void> {
+    try {
+        const raw = await bffFetch<unknown>(method, path, options);
+
+        assertBooleanSuccessEnvelope(raw);
+    } catch (err) {
+        throw createRequestBffDataError(err, options.fallbackMessage);
+    }
 }
 
 function getActiveBffClient(): BffClient {
