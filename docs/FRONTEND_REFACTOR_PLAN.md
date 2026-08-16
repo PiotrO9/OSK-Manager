@@ -2414,7 +2414,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 ### Todo
 
 - [x] Przeniesc domenowe komponenty pojazdow z `components/app` do `components/vehicles`.
-- [ ] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
+- [x] Sprawdzic niespojny podzial `components/app`, `manager`, `student`, `account`, `events`.
 - [ ] Zachowac jawne importy dla waznych zaleznosci domenowych.
 - [ ] Nie dodawac nowych barrel files w domenach.
 - [ ] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
@@ -2433,6 +2433,19 @@ Przeniesiono z `app/components/app` do `app/components/vehicles`:
 `VehiclesListPanel.vue`. Katalog `~/components/vehicles` zostal dodany do
 auto-importow komponentow Nuxt z `pathPrefix: false`, zeby istniejace uzycia w
 szablonach zachowaly te same nazwy komponentow.
+
+### Audyt Podzialu Komponentow
+
+- `components/app`: po migracji vehicle zostaja komponenty shell/app UI,
+  design-system oraz dwa stare `AccountProfile*FormDialog`, ktorych `rg` nie
+  pokazuje jako runtime consumerow.
+- `components/account`: zawiera uzywane komponenty strony konta; strona
+  `app/pages/account/index.vue` importuje je jawnie.
+- `components/events`, `components/vehicles`, `components/student` i
+  `components/manager/*`: podzial odpowiada domenom albo roli widoku.
+- Nie usuwano potencjalnie martwych dialogow account w tym commicie, bo ten
+  punkt byl audytem katalogow, a usuwanie nieuzywanych komponentow wymaga
+  osobnej decyzji zakresowej.
 
 ### Kryterium zakonczenia
 
