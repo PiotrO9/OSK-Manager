@@ -199,7 +199,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 
 - [x] Zinwentaryzowac handlery korzystajace z `resolveUpstreamBase`.
 - [x] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
-- [ ] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
+- [x] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
 - [ ] Nie ukrywac walidacji requestu w executorze.
 - [ ] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
 - [ ] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
@@ -417,6 +417,25 @@ odpowiedzi.
 - `server/api/instructors/[id]/availability/weekly/[day].delete.ts`
 - `server/api/lessons/[id].get.ts`
 - `server/api/lessons/[lessonId]/rating.get.ts`
+
+### Kontrakt executora BFF
+
+Plik: `server/utils/bff/bffAdapterExecutor.ts`.
+
+Publiczne API:
+
+- `executeBffAdapter<T>(event, { upstream, mock }): Promise<T>`
+- `upstream(context)` dostaje `event`, `mode: 'upstream'` i `upstreamBase`.
+- `mock(context)` dostaje `event` i `mode: 'mock'`.
+
+Granice odpowiedzialnosci:
+
+- executor wybiera aktywny adapter przez `resolveBffAdapter(event)`;
+- executor wykonuje tylko callback aktywnego adaptera;
+- executor nie czyta route params, query ani body;
+- executor nie ustawia statusow HTTP;
+- executor nie parsuje kopert odpowiedzi;
+- executor nie wymusza wspolnej autoryzacji dla mocka i upstreamu.
 
 ### Migracja pilotazowa
 
