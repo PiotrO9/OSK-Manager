@@ -2489,8 +2489,8 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [ ] Wykonac smoke testy w trybie upstream.
 - [ ] Sprawdzic SSR i brak hydration warnings.
 - [ ] Sprawdzic stan working tree.
-- [ ] Zaktualizowac dokumentacje architektury.
-- [ ] Porownac metryki koncowe z baseline.
+- [x] Zaktualizowac dokumentacje architektury.
+- [x] Porownac metryki koncowe z baseline.
 - [ ] Zmergowac feature branch lokalnie do `master` po akceptacji.
 - [ ] Usunac zakonczony branch lokalnie i z remote po potwierdzeniu merge.
 
@@ -2567,15 +2567,81 @@ dzialajacym srodowisku.
 
 Metryki maja pokazac kierunek zmiany, a nie wymuszac sztuczne limity linii.
 
-- [ ] Policzyc handlery nadal wybierajace lokalnie `mock/upstream`.
-- [ ] Policzyc miejsca uzywajace surowego `$fetch` poza centralnym transportem i testami.
-- [ ] Zapisac rozmiar dziesieciu najwiekszych composables przed i po refaktorze.
-- [ ] Zapisac rozmiar dziesieciu najwiekszych stron i komponentow przed i po refaktorze.
-- [ ] Policzyc pliki testowe oraz krytyczne przeplywy posiadajace ochrone regresyjna.
-- [ ] Policzyc pozostale wystapienia `unknown` na zewnetrznych granicach API.
-- [ ] Policzyc stare wrappery i eksporty pozostawione tylko dla kompatybilnosci.
-- [ ] Porownac liczbe requestow dla wybranych krytycznych widokow.
-- [ ] Opisac zmiany jakosciowe, ktorych nie da sie uczciwie wyrazic liczba.
+- [x] Policzyc handlery nadal wybierajace lokalnie `mock/upstream`.
+- [x] Policzyc miejsca uzywajace surowego `$fetch` poza centralnym transportem i testami.
+- [x] Zapisac rozmiar dziesieciu najwiekszych composables przed i po refaktorze.
+- [x] Zapisac rozmiar dziesieciu najwiekszych stron i komponentow przed i po refaktorze.
+- [x] Policzyc pliki testowe oraz krytyczne przeplywy posiadajace ochrone regresyjna.
+- [x] Policzyc pozostale wystapienia `unknown` na zewnetrznych granicach API.
+- [x] Policzyc stare wrappery i eksporty pozostawione tylko dla kompatybilnosci.
+- [x] Porownac liczbe requestow dla wybranych krytycznych widokow.
+- [x] Opisac zmiany jakosciowe, ktorych nie da sie uczciwie wyrazic liczba.
+
+### Finalne Metryki
+
+Porownanie do baseline z Etapu 0:
+
+| Metryka                                    | Baseline                                   | Stan koncowy Etapu 9                                                                       |
+| ------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Testy                                      | 12 plikow / 70 testow                      | 43 pliki / 165 testow                                                                      |
+| Lint                                       | wymagal formatowania 6 plikow              | `npm run lint` przechodzi, tylko warning Node/ESM                                          |
+| Build                                      | nieuruchamiany                             | nieuruchamiany zgodnie z ustaleniem                                                        |
+| Handlery API na `executeBffAdapter`        | lokalny wybor w wielu handlerach           | 71/71 handlerow `server/api` uzywa `executeBffAdapter`                                     |
+| Lokalny wybor `mock/upstream` w handlerach | dziesiatki miejsc                          | 0 plikow `server/api` z `resolveUpstreamBase` / `resolveBffAdapter`                        |
+| Surowy `$fetch` / `fetch` poza testami     | do ograniczenia                            | 4 kontrolowane miejsca w centralnym transporcie/auth                                       |
+| Pliki z `unknown` poza testami             | 156 plikow                                 | 144 pliki                                                                                  |
+| `Record<string, unknown>` poza testami     | 63 pliki                                   | 60 plikow                                                                                  |
+| `requestBffData<unknown>`                  | do ograniczenia                            | 12 miejsc na granicach bez pelnego kontraktu domenowego                                    |
+| Stare wrappery / eksporty kompatybilnosci  | `useApi`, `useBffApi`, re-exporty domenowe | pozostaje `resolveBffEndpoint`; usunieto martwe wrappery transportu i re-export typow auth |
+
+Dziesiec najwiekszych composables po refaktorze:
+
+| Linie | Plik                                                                                |
+| ----- | ----------------------------------------------------------------------------------- |
+| 455   | `app/composables/schedule/useManagerSchoolScheduleCalendar.ts`                      |
+| 431   | `app/composables/instructors/useManagerInstructorDetailsPage.ts`                    |
+| 406   | `app/composables/instructors/manager/useManagerInstructorSchedulePage.ts`           |
+| 390   | `app/composables/instructors/manager/useManagerSchoolWeeklyAvailabilityCalendar.ts` |
+| 390   | `app/composables/events/useManagerEventEditActions.ts`                              |
+| 388   | `app/composables/students/useManagerStudentsPage.ts`                                |
+| 366   | `app/composables/courses/useManagerCourseDetailPage.ts`                             |
+| 362   | `app/composables/account/useAccountPage.ts`                                         |
+| 358   | `app/composables/lessons/useMyLessonsPage.ts`                                       |
+| 357   | `app/composables/events/useManagerEventEditTimePicker.ts`                           |
+
+Dziesiec najwiekszych stron i komponentow po refaktorze:
+
+| Linie | Plik                                                                     |
+| ----- | ------------------------------------------------------------------------ |
+| 481   | `app/components/vehicles/VehiclesListPanel.vue`                          |
+| 457   | `app/components/manager/courses/CourseCreateForm.vue`                    |
+| 445   | `app/components/app/design-system/SectionFormControls.vue`               |
+| 444   | `app/components/manager/courses/ManagerCoursesListPanel.vue`             |
+| 418   | `app/pages/login.vue`                                                    |
+| 412   | `app/components/manager/instructors/ManagerInstructorDetailsContent.vue` |
+| 409   | `app/components/vehicles/VehicleDetailsContent.vue`                      |
+| 397   | `app/components/app/NavTree.vue`                                         |
+| 393   | `app/components/app/design-system/Typography.vue`                        |
+| 393   | `app/pages/my-courses.vue`                                               |
+
+Request-count dla krytycznych widokow zostal porownany statycznie, bo pelny
+upstream smoke jest zablokowany przez niedzialajacy backend testowy. Refaktor
+nie dodal nowych pobran do logowania, listy pojazdow, szczegolow pojazdu,
+edycji pojazdu ani edycji wydarzenia; zmiany przenosily wywolania do
+composables i wspolnego klienta BFF. Dodatkowo sekwencje `fetchSeq` / `loadSeq`
+w kluczowych asynchronicznych widokach zostaly zachowane lub dodane tam, gdzie
+chronia przed nadpisaniem stanu przez spozniona odpowiedz.
+
+Zmiany jakosciowe niemierzalne jedna liczba:
+
+- BFF ma jeden executor wyboru adaptera i wspolny transport upstream.
+- Domenowe composables uzywaja wspolnego klienta BFF zamiast rozproszonych
+  wywolan.
+- Role i sesja maja jedno zrodlo prawdy dla reguly dostepu.
+- Najbardziej ryzykowne przeplywy: auth, event edit, student details, schedule i
+  vehicles maja regresyjne testy jednostkowe.
+- Dokumentacja `CODEMAP`, `ARCHITECTURE`, `COMPONENTS`, `COMPOSABLES` oraz
+  `API_AND_BFF` odpowiada aktualnej strukturze po refaktorze.
 
 ## Dziennik decyzji
 
@@ -2602,7 +2668,7 @@ Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 | ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------- | ------ |
 | REF-001 | etap/plik                                                | krotki opis                                                                             | low/medium/high | miejsce dalszej pracy                                             | open   |
 | REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikuje `CourseKind`, ale server nie importuje obecnie `app/types` | medium          | decyzja o wspolnej warstwie kontraktow przed usunieciem duplikatu | open   |
-| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu        | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL       | open   |
+| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu        | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL      | open   |
 
 ### Todo
 
