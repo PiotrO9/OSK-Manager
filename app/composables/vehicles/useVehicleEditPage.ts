@@ -178,7 +178,7 @@ export function useVehicleEditPage() {
         }
     }
 
-    function handlePhotoFileInputChange() {
+    function handlePhotoFileInputChange(event: Event) {
         photoUploadError.value = null;
 
         if (pendingPhotoObjectUrl.value) {
@@ -186,7 +186,11 @@ export function useVehicleEditPage() {
             pendingPhotoObjectUrl.value = null;
         }
 
-        const input = photoFileInput.value;
+        const input =
+            event.target instanceof HTMLInputElement ? event.target : null;
+
+        photoFileInput.value = input;
+
         const file = input?.files?.[0] ?? null;
 
         pendingPhotoFile.value = file;
@@ -285,7 +289,6 @@ export function useVehicleEditPage() {
         loadError,
         loadList,
         pendingPhotoFileName,
-        photoFileInput,
         photoUploadError,
         previewPhotoSrc,
         schoolId,

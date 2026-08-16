@@ -1626,7 +1626,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
-- [ ] Typowac props i emits.
+- [x] Typowac props i emits.
 - [ ] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
@@ -1696,6 +1696,14 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
   `<script setup lang="ts">`, potem `<template>`.
 - Plik nie ma lokalnego `<style>`, wiec nie dodawano pustej sekcji tylko po to,
   zeby wypelnic schemat.
+
+#### Props I Emits
+
+- Dodano `VehicleEditPhotoSection.vue` z typowanymi propsami dla stanu podgladu
+  zdjecia, loadingu, bledow i nazwy pojazdu.
+- Komponent emituje typowane `fileChange(event: Event)`, a
+  `useVehicleEditPage` przechowuje referencje do inputa pochodzaca z eventu
+  tylko po to, aby po uploadzie lub zmianie route wyczyscic natywny input.
 
 ### Kryterium zakonczenia
 
