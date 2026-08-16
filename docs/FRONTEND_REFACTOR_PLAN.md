@@ -2169,7 +2169,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
 - [x] Ujednolicic normalizatory odpowiedzi i ich testy.
-- [ ] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
+- [x] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
 - [ ] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
 - [ ] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
 - [ ] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
@@ -2240,6 +2240,14 @@ Dodano `app/types/courses/course.test.ts` dla `normalizeCoursesList`,
 opakowania `{ courses }`, `{ data }`, `{ course }`, warianty `type` / `kind`,
 snake_case `school_id` / `total_hours`, `capacity`, clamp `progress` oraz
 odrzucanie niepelnych rekordow.
+
+### Parsery Request Body Courses
+
+Dla biezacego celu Etapu 6 parsery body sa juz poza handlerami Nitro:
+`server/api/courses.post.ts` deleguje do `parseCourseCreateBody`, a
+`server/api/courses/[id].patch.ts` deleguje do
+`parseCoursePatchInstructorBody`. Oba parsery sa w `server/utils/courses`,
+czyli sa testowalne bez uruchamiania handlera HTTP.
 
 ### Kryterium zakonczenia
 
