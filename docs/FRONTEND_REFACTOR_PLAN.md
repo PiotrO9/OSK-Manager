@@ -198,7 +198,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 ### Todo fundamentu
 
 - [x] Zinwentaryzowac handlery korzystajace z `resolveUpstreamBase`.
-- [ ] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
+- [x] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
 - [ ] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
 - [ ] Nie ukrywac walidacji requestu w executorze.
 - [ ] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
@@ -308,6 +308,115 @@ Wynik: 70 handlerow Nitro w `server/api/**` wybiera adapter lokalnie.
 
 - `server/api/events/[eventId]/students.put.ts`
 - `server/api/instructors/[id]/availability/weekly/[day].put.ts`
+
+### Podzial migracyjny handlerow
+
+Data: 2026-08-16.
+
+Ten podzial ustala kolejnosc migracji. Kategorie sa rozlaczne w planie
+wdrozenia, mimo ze technicznie np. upload jest tez mutacja `POST`.
+
+#### 1. Proste GET bez body
+
+Pierwsza fala po pilocie. Priorytet maja handlery bez uploadu, bez sesyjnych
+cookies ustawianych recznie i bez zlozonych statusow odpowiedzi.
+
+- `server/api/ratings/me.get.ts`
+- `server/api/ratings.get.ts`
+- `server/api/course-types.get.ts`
+- `server/api/driving-schools.get.ts`
+- `server/api/driving-schools/default.get.ts`
+- `server/api/courses.get.ts`
+- `server/api/courses/[id].get.ts`
+- `server/api/vehicles.get.ts`
+- `server/api/vehicles/[id].get.ts`
+- `server/api/instructors.get.ts`
+- `server/api/instructors/[id].get.ts`
+- `server/api/instructors/[id]/ratings.get.ts`
+- `server/api/manager/attention-items.get.ts`
+- `server/api/me/courses.get.ts`
+- `server/api/me/payments.get.ts`
+- `server/api/schedule/index.get.ts`
+- `server/api/schedule/me.get.ts`
+- `server/api/students.get.ts`
+- `server/api/students/[userId]/index.get.ts`
+- `server/api/students/[userId]/process-status.get.ts`
+- `server/api/students/[userId]/payments.get.ts`
+- `server/api/students/[userId]/events.get.ts`
+
+#### 2. Mutacje bez uploadu i bez auth
+
+Druga fala. Handler zostaje odpowiedzialny za `params`, `query`, `body`,
+walidacje i status odpowiedzi; executor ma tylko wybrac aktywny adapter.
+
+- `server/api/courses.post.ts`
+- `server/api/courses/[id].patch.ts`
+- `server/api/driving-schools.post.ts`
+- `server/api/driving-schools/[id].patch.ts`
+- `server/api/driving-schools/[id].delete.ts`
+- `server/api/driving-schools/[id]/default-vehicle.patch.ts`
+- `server/api/driving-schools/[id]/set-default.patch.ts`
+- `server/api/instructors/[id].patch.ts`
+- `server/api/instructors/[id].delete.ts`
+- `server/api/lessons.post.ts`
+- `server/api/lessons/[id].patch.ts`
+- `server/api/lessons/[lessonId]/cancel.patch.ts`
+- `server/api/lessons/[lessonId]/rating.post.ts`
+- `server/api/lessons/me.post.ts`
+- `server/api/students/[userId]/courses.post.ts`
+- `server/api/students/[userId]/index.patch.ts`
+- `server/api/students/[userId]/payments.post.ts`
+- `server/api/students/[userId]/payments/[paymentId].patch.ts`
+- `server/api/students/[userId]/payments/[paymentId]/mark-paid.patch.ts`
+- `server/api/students/[userId]/payments/[paymentId]/mark-unpaid.patch.ts`
+- `server/api/vehicles.post.ts`
+- `server/api/vehicles/[id].patch.ts`
+- `server/api/vehicles/[id].delete.ts`
+- `server/api/vehicles/[id]/status.patch.ts`
+
+#### 3. Uploady `FormData`
+
+Osobna fala, bo nie wolno popsuc przekazywania multipart body ani recznie
+ustawiac `Content-Type`.
+
+- `server/api/auth/profile/avatar.post.ts`
+- `server/api/vehicles/[id]/photo.post.ts`
+
+#### 4. Auth, profil i sesja
+
+Ostatnia fala. Te handlery ustawiaja albo czyszcza cookies, zaleza od tokenow
+i maja najwieksze ryzyko regresji logowania.
+
+- `server/api/auth/login.post.ts`
+- `server/api/auth/logout.post.ts`
+- `server/api/auth/me.get.ts`
+- `server/api/auth/profile/index.patch.ts`
+- `server/api/auth/refresh.post.ts`
+- `server/api/auth/register.post.ts`
+
+#### 5. Przypadki specjalne domenowe
+
+Migracja po prostych GET i zwyklych mutacjach, bo te endpointy lacza zakresy
+dat, sloty, wiele identyfikatorow, zapis list albo rozbudowane mapowanie
+odpowiedzi.
+
+- `server/api/driving-schools/[id]/availability/slots.get.ts`
+- `server/api/driving-schools/[id]/schedule.get.ts`
+- `server/api/events/index.post.ts`
+- `server/api/events/[eventId]/eligible-students.get.ts`
+- `server/api/events/[eventId]/index.get.ts`
+- `server/api/events/[eventId]/index.patch.ts`
+- `server/api/events/[eventId]/index.delete.ts`
+- `server/api/events/[eventId]/students.get.ts`
+- `server/api/events/[eventId]/students.post.ts`
+- `server/api/events/[eventId]/students.put.ts`
+- `server/api/events/[eventId]/students/[studentUserId].delete.ts`
+- `server/api/instructors/[id]/availability/slots.get.ts`
+- `server/api/instructors/[id]/availability/weekly.get.ts`
+- `server/api/instructors/[id]/availability/weekly/[day].put.ts`
+- `server/api/instructors/[id]/availability/weekly/[day].delete.ts`
+- `server/api/lessons/[id].get.ts`
+- `server/api/lessons/[lessonId]/rating.get.ts`
 
 ### Migracja pilotazowa
 
