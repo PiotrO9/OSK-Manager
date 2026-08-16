@@ -11,7 +11,7 @@ import {
     PROFILE_NAME_MAX_LEN,
     type RoleBadgePresentation,
 } from '~/composables/account/useAccountPage';
-import type { AuthSession } from '~/composables/auth/useAuthSession';
+import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
 defineProps<{
     accountPkkNumber: string;

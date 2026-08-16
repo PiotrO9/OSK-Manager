@@ -6,7 +6,6 @@ import { createDemoAuthSession } from '~/utils/auth/demoAuthSession';
 import {
     buildAuthProfilePatchPayload,
     createAuthSessionFromBackendUser,
-    type AuthDrivingSchoolSummary,
     type AuthProfilePatchBody,
     type AuthSession,
 } from '~/utils/auth/authSessionMapper';
@@ -17,8 +16,6 @@ import {
     requestAuthProfilePatch,
     requestAuthRefresh,
 } from '~/utils/auth/authSessionApi';
-
-export type { AuthDrivingSchoolSummary, AuthProfilePatchBody, AuthSession };
 
 function getFetchStatusCode(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
