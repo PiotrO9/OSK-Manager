@@ -1912,7 +1912,7 @@ zmiany publicznego API konsumenta. Realna sciezka komponentu to
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
-- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
@@ -2008,6 +2008,13 @@ inline `filter` ani `sort` w markupie.
 
 Lista kursantow zachowuje `:key="student.userId"`, czyli stabilny identyfikator
 uzytkownika zamiast indeksu listy albo obiektu.
+
+#### Responsive Markup
+
+Ekstrakcja `ManagerEventStudentPickerCapacitySummary.vue` zachowuje te same
+klasy Tailwind dla badge, remaining slots i alertu limitu 0. Komponent nie
+dodaje wrappera zmieniajacego spacing, wiec desktop/mobile dziedzicza ten sam
+uklad dialogu.
 
 ### Kryterium zakonczenia
 
