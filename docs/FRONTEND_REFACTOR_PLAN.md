@@ -1084,7 +1084,7 @@ kontenera `ManagerEventEditContainer.vue`.
 
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
-- [ ] Dodac test najwazniejszego zachowania przed podzialem.
+- [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
@@ -1132,6 +1132,15 @@ Zwracane API:
 
 Bezposredni konsument znaleziony przez `rg`: `app/components/manager/events/ManagerEventEditContainer.vue`.
 Pozostale composables korzystaja z danych formularza posrednio przez ten kontener.
+
+#### Test regresyjny przed podzialem
+
+- Dodano test `useManagerEventEditForm`, ktory blokuje kontrakt snapshotow:
+  `applyPrefill(event)` ustawia formularz jako niedirty wzgledem
+  `baselineSnapshot`, a zmiana instruktora wlacza dirty state i wymaga ponownej
+  walidacji slotu.
+- Test nie sprawdza konkretnej lokalnej godziny, dzieki czemu nie zalezy od
+  strefy czasowej srodowiska testowego.
 
 ### Kryterium zakonczenia
 
