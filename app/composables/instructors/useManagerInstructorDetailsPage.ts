@@ -55,15 +55,23 @@ export function areSameManagerInstructorCourseTypeIds(
     return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
+export interface ManagerInstructorPatch {
+    firstName?: string;
+    lastName?: string;
+    qualifications?: string;
+    qualifiedCourseTypeIds?: string[];
+    experienceYears?: number;
+}
+
 export function buildManagerInstructorDirtyPatch(
     form: InstructorEditFormModel | null,
     base: InstructorEditFormModel | null,
-): Record<string, unknown> | null {
+): ManagerInstructorPatch | null {
     if (!form || !base) {
         return null;
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: ManagerInstructorPatch = {};
 
     if (form.firstName.trim() !== base.firstName.trim()) {
         patch.firstName = form.firstName.trim();
@@ -96,7 +104,7 @@ export function buildManagerInstructorDirtyPatch(
 }
 
 export function validateManagerInstructorPatch(
-    patch: Record<string, unknown>,
+    patch: ManagerInstructorPatch,
 ): string | null {
     if (typeof patch.firstName === 'string' && !patch.firstName.trim()) {
         return 'Imię nie może być puste.';
