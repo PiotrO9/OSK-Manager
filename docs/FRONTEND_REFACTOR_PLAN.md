@@ -2481,7 +2481,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 ### Todo
 
 - [x] Potwierdzic brak nieplanowanych zmian wizualnych.
-- [ ] Potwierdzic brak zmian publicznych kontraktow API.
+- [x] Potwierdzic brak zmian publicznych kontraktow API.
 - [ ] Uruchomic `npm run test`.
 - [ ] Uruchomic `npm run lint`.
 - [ ] Nie uruchamiac buildu bez wyraznego polecenia.
@@ -2501,6 +2501,14 @@ ani publicznych mediach. Zmiany `.vue` wynikaja z ekstrakcji komponentow,
 przeniesien katalogow i jawnych importow; Etap 8 przeniosl komponenty vehicle
 jako renames bez zmian tresci, a piloty SFC zachowaly dotychczasowe props/emits,
 klasy Tailwind i strukture UI.
+
+### Audyt Kontraktow API
+
+`app/types/generated/api.ts` nie zostal zmieniony. `server/api/**` ma
+modyfikacje istniejacych handlerow, ale nie dodano ani nie usunieto publicznych
+plikow route poza testem `server/api/ratings/me.get.test.ts`; zmiany dotyczyly
+migracji na `executeBffAdapter`, wspolnego transportu, parserow body/query oraz
+normalizacji bez zmiany publicznych URL-i i metod HTTP.
 
 ### Metryki efektu
 
