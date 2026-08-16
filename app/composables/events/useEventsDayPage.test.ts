@@ -1,3 +1,4 @@
+import { parseDate } from '@internationalized/date';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, ref } from 'vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
@@ -100,7 +101,7 @@ describe('useEventsDayPage', () => {
         const { useEventsDayPage } = await import('./useEventsDayPage');
         const page = useEventsDayPage();
 
-        page.selectedDate.value = '2026-08-16';
+        page.handleCalendarUpdate(parseDate('2026-08-16'));
         await page.loadEvents();
 
         expect(fetchSchoolSchedule).toHaveBeenCalledWith(

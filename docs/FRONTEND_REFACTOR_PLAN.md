@@ -1432,7 +1432,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [x] Nie duplikowac stanu pomiedzy nowymi composables.
-- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [ ] Przepiac konsumentow.
@@ -1511,6 +1511,17 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
   `selectedDateLabel` sa zdefiniowane tylko w `useEventsDayDateSelection`.
 - `useEventsDayPage.ts` przechowuje referencje z tego composable i uzywa ich w
   loaderze oraz zwracanym API bez tworzenia drugiego, synchronizowanego stanu.
+
+#### Readonly state
+
+- `useEventsDayDateSelection` zwraca `selectedDate` jako readonly ref, bo zmiana
+  daty ma isc przez jawne akcje `handlePrevDay`, `handleNextDay`,
+  `handleTodayClick` i `handleCalendarUpdate`.
+- `isCalendarOpen` zostaje writable, poniewaz `app/pages/events/index.vue`
+  uzywa go jako `v-model:open` dla popovera; zamrozenie tego pola byloby
+  zmiana kontraktu UI.
+- Test `useEventsDayPage` przestal zapisywac do `selectedDate.value` i ustawia
+  date przez `handleCalendarUpdate`.
 
 ### Kryterium zakonczenia
 

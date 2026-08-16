@@ -1,6 +1,6 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { parseDate } from '@internationalized/date';
-import { computed, ref } from 'vue';
+import { computed, readonly, ref } from 'vue';
 import { toDate } from 'reka-ui/date';
 import { formatDateOnly } from '~/utils/date/weeklyCalendarDates';
 
@@ -98,7 +98,7 @@ export function useEventsDayDateSelection(
         handlePrevDay,
         handleTodayClick,
         isCalendarOpen,
-        selectedDate,
+        selectedDate: readonly(selectedDate),
         selectedDateLabel,
     };
 }
