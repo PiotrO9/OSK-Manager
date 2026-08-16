@@ -2302,7 +2302,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc student details: profil, kursy i platnosci.
 - [x] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
 - [x] Pokryc vehicle edit i status availability.
-- [ ] Pokryc parsery body i query Nitro.
+- [x] Pokryc parsery body i query Nitro.
 - [ ] Dodawac test regresyjny dla kazdego znalezionego bledu.
 - [ ] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
 - [ ] Ustalac staly czas i UUID w testach.
@@ -2356,6 +2356,13 @@ wyswietlania wydarzen dnia.
 przechodza: 11 testow dla guardow formularza edycji, payloadu zapisu pojazdu,
 payloadu tymczasowej niedostepnosci, labeli availability, normalizacji
 `unavailableUntil` oraz podsumowania statusow listy.
+
+### Nitro Body I Query Parsers
+
+`requestValidation.test.ts`, `parseCourseBody.test.ts` i
+`scheduleQueryValidation.test.ts` przechodza: 18 testow dla UUID w query i
+route params, pozytywnych intow, `schoolId` z body, create/patch course body,
+zakresow dat schedule oraz manager targetow `instructorId` / `studentId`.
 
 ### Kryterium zakonczenia
 
