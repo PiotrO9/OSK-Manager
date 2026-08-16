@@ -2170,7 +2170,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
 - [x] Ujednolicic normalizatory odpowiedzi i ich testy.
 - [x] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
-- [ ] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
+- [x] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
 - [ ] Nie walidowac ponownie wewnetrznych, juz typowanych danych bez potrzeby.
 - [ ] Ujednolicic komunikaty walidacji i mapowanie bledow pol formularza.
 - [ ] Dodac testy invalid, missing, null, empty i unexpected shape.
@@ -2248,6 +2248,13 @@ Dla biezacego celu Etapu 6 parsery body sa juz poza handlerami Nitro:
 `server/api/courses/[id].patch.ts` deleguje do
 `parseCoursePatchInstructorBody`. Oba parsery sa w `server/utils/courses`,
 czyli sa testowalne bez uruchamiania handlera HTTP.
+
+### Zod Na Granicy Courses
+
+`parseCourseCreateBody` i `parseCoursePatchInstructorBody` uzywaja Zod jako
+minimalnego guardu rekordu na zewnetrznej granicy request body. Dotychczasowa
+walidacja pol i komunikaty bledow zostaly zachowane, a
+`parseCourseBody.test.ts` blokuje regresje dla create i patch.
 
 ### Kryterium zakonczenia
 

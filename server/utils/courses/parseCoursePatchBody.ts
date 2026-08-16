@@ -1,4 +1,9 @@
 import { isUuid } from '~~/server/utils/validation/requestValidation';
+import { z } from 'zod';
+
+const coursePatchRecordSchema = z.custom<Record<string, unknown>>(
+    (value) => value !== null && typeof value === 'object',
+);
 
 /**
  * Parsuje body PATCH `/courses/:id` — tylko `instructorId` (MVP).
@@ -7,11 +12,13 @@ import { isUuid } from '~~/server/utils/validation/requestValidation';
 export function parseCoursePatchInstructorBody(
     body: unknown,
 ): { record: Record<string, unknown> } | { error: string } {
-    if (body === null || typeof body !== 'object') {
+    const recordResult = coursePatchRecordSchema.safeParse(body);
+
+    if (!recordResult.success) {
         return { error: 'Nieprawidłowe dane żądania.' };
     }
 
-    const o = body as Record<string, unknown>;
+    const o = recordResult.data;
 
     if (!('instructorId' in o)) {
         return { record: {} };

@@ -4,6 +4,7 @@ import {
     readTrimmedBodyString,
     parseSchoolIdFromBody,
 } from '~~/server/utils/validation/requestValidation';
+import { z } from 'zod';
 
 export type CourseCreateKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
 
@@ -18,6 +19,10 @@ export interface BffCourseCreateBody {
     theoryStartDate?: string | null;
     theoryEndDate?: string | null;
 }
+
+const courseCreateRecordSchema = z.custom<Record<string, unknown>>(
+    (value) => value !== null && typeof value === 'object',
+);
 
 /** Serializacja do JSON dla upstreamu (bez `undefined`). */
 export function courseCreateBodyToUpstreamRecord(
@@ -143,11 +148,13 @@ export function parseCourseCreateBody(body: unknown):
         };
     }
 
-    if (!body || typeof body !== 'object') {
+    const recordResult = courseCreateRecordSchema.safeParse(body);
+
+    if (!recordResult.success) {
         return { error: 'Nieprawidłowe dane żądania.' };
     }
 
-    const o = body as Record<string, unknown>;
+    const o = recordResult.data;
     const name = readTrimmedBodyString(o, 'name');
     const category = readTrimmedBodyString(o, 'category');
 
