@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 import { bffAggregateSchoolSchedule } from '~~/server/utils/schedule/schoolScheduleBff';
 import { getValidatedSlotsDateRangeQuery } from '~~/server/utils/instructors/slotsDateRangeValidation';
@@ -25,22 +26,22 @@ export default defineEventHandler(async (event) => {
         query as Record<string, unknown>,
     );
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffAggregateSchoolSchedule(
+                event,
+                upstreamBase,
+                id,
+                dateFromRaw,
+                dateToRaw,
+            ),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffAggregateSchoolSchedule(
-            event,
-            upstream,
-            id,
-            dateFromRaw,
-            dateToRaw,
-        );
-    }
-
-    await requireManagerFromCookie(event);
-
-    return {
-        success: true,
-        data: { items: [] },
-    };
+            return {
+                success: true,
+                data: { items: [] },
+            };
+        },
+    });
 });

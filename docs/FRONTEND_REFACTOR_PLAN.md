@@ -537,7 +537,7 @@ Wynik porownania po migracji:
 - [x] instructors bez availability;
 - [x] driving schools;
 - [x] students i payments;
-- [ ] schedule;
+- [x] schedule;
 - [ ] lessons;
 - [ ] events;
 - [ ] availability i slots;
@@ -614,6 +614,12 @@ Fala `students i payments` przepieta na `executeBffAdapter`:
 - `server/api/students/[userId]/payments/[paymentId].patch.ts`;
 - `server/api/students/[userId]/payments/[paymentId]/mark-paid.patch.ts`;
 - `server/api/students/[userId]/payments/[paymentId]/mark-unpaid.patch.ts`.
+
+Fala `schedule` przepieta na `executeBffAdapter`:
+
+- `server/api/schedule/index.get.ts`;
+- `server/api/schedule/me.get.ts`;
+- `server/api/driving-schools/[id]/schedule.get.ts`.
 
 ### Sugerowane commity
 
