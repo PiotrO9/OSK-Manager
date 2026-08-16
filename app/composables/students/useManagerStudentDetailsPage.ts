@@ -16,17 +16,18 @@ import {
     getMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
+import {
+    getStudentCountOverviewLabel,
+    getStudentDetailsDisplayName,
+    getStudentDetailsInitials,
+    getStudentDetailsRouteUserIdString,
+    getStudentDetailsSubtitle,
+    getStudentNotesOverviewLabel,
+    getStudentProcessOverviewLabel,
+} from '~/utils/students/studentDetailsPage';
 
 export function getRouteUserIdString(rawId: unknown): string {
-    if (typeof rawId === 'string') {
-        return rawId.trim();
-    }
-
-    if (Array.isArray(rawId)) {
-        return String(rawId[0] ?? '').trim();
-    }
-
-    return '';
+    return getStudentDetailsRouteUserIdString(rawId);
 }
 
 function getNotFoundMessage(): string {
@@ -91,44 +92,15 @@ export function useManagerStudentDetailsPage() {
     const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
 
     const studentDisplayName = computed(() => {
-        const s = student.value;
-
-        if (!s) {
-            return 'Kursant';
-        }
-
-        const name = [s.firstName, s.lastName]
-            .map((part) => part.trim())
-            .filter((part) => part.length > 0)
-            .join(' ');
-
-        return name.length > 0 ? name : 'Kursant';
+        return getStudentDetailsDisplayName(student.value);
     });
 
     const studentInitials = computed(() => {
-        const s = student.value;
-
-        if (!s) {
-            return 'K';
-        }
-
-        const first = s.firstName.trim().charAt(0);
-        const last = s.lastName.trim().charAt(0);
-        const initials = `${first}${last}`.trim();
-
-        return initials.length > 0 ? initials.toUpperCase() : 'K';
+        return getStudentDetailsInitials(student.value);
     });
 
-    const primaryCourse = computed(() => student.value?.courses[0] ?? null);
-
     const studentSubtitle = computed(() => {
-        const category = primaryCourse.value?.category?.trim();
-
-        if (category) {
-            return `Kursant - Kat. ${category}`;
-        }
-
-        return 'Kursant';
+        return getStudentDetailsSubtitle(student.value);
     });
 
     const processCompletedCount = computed(
@@ -136,51 +108,32 @@ export function useManagerStudentDetailsPage() {
     );
 
     const processOverviewLabel = computed(() => {
-        const total = processStatusSteps.value.length;
-
-        if (processStatusLoading.value) {
-            return 'Wczytywanie';
-        }
-
-        if (processStatusError.value) {
-            return 'Błąd';
-        }
-
-        if (total === 0) {
-            return 'Brak kroków';
-        }
-
-        return `${processCompletedCount.value}/${total}`;
+        return getStudentProcessOverviewLabel({
+            isLoading: processStatusLoading.value,
+            hasError: Boolean(processStatusError.value),
+            total: processStatusSteps.value.length,
+            completed: processCompletedCount.value,
+        });
     });
 
     const notesOverviewLabel = computed(() => {
-        const notes = student.value?.notes?.trim();
-
-        return notes && notes.length > 0 ? 'Dodano' : 'Brak notatki';
+        return getStudentNotesOverviewLabel(student.value);
     });
 
     const paymentsOverviewLabel = computed(() => {
-        if (paymentsLoading.value) {
-            return 'Wczytywanie';
-        }
-
-        if (paymentsError.value) {
-            return 'Błąd';
-        }
-
-        return `${payments.value.length}`;
+        return getStudentCountOverviewLabel({
+            isLoading: paymentsLoading.value,
+            hasError: Boolean(paymentsError.value),
+            count: payments.value.length,
+        });
     });
 
     const scheduleOverviewLabel = computed(() => {
-        if (scheduleLoading.value) {
-            return 'Wczytywanie';
-        }
-
-        if (scheduleError.value) {
-            return 'Błąd';
-        }
-
-        return `${scheduleItems.value.length}`;
+        return getStudentCountOverviewLabel({
+            isLoading: scheduleLoading.value,
+            hasError: Boolean(scheduleError.value),
+            count: scheduleItems.value.length,
+        });
     });
 
     const backToListHref = computed(() => {

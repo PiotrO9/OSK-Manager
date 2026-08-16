@@ -1311,7 +1311,7 @@ publicznego API strony.
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
-- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
@@ -1357,6 +1357,15 @@ Zwracane API:
   `schoolId`: composable ustawia czytelny blad, nie wlacza loadingu i nie
   wywoluje requestow profilu, procesu, platnosci ani terminarza.
 - Test chroni bezpieczna granice przed podzialem loadow na mniejsze composables.
+
+#### Wynik wydzielenia czystych mapowan
+
+- Dodano `app/utils/students/studentDetailsPage.ts` dla parsowania route user id
+  oraz view-model labeli profilu, notatek, procesu, platnosci i terminarza.
+- `useManagerStudentDetailsPage` zachowuje eksport `getRouteUserIdString`, ale
+  deleguje go do utility domenowego.
+- Dodano testy utility dla route user id, display name, inicjalow, subtitle oraz
+  overview labeli.
 
 ### Kryterium zakonczenia
 
