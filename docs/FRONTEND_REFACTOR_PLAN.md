@@ -197,7 +197,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 
 ### Todo fundamentu
 
-- [ ] Zinwentaryzowac handlery korzystajace z `resolveUpstreamBase`.
+- [x] Zinwentaryzowac handlery korzystajace z `resolveUpstreamBase`.
 - [ ] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
 - [ ] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
 - [ ] Nie ukrywac walidacji requestu w executorze.
@@ -206,6 +206,108 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [ ] Dodac testy wyboru trybu jawnego i fallbacku.
 - [ ] Dodac test bledu `upstream` bez URL.
 - [ ] Dodac test, ze callback nieaktywnego adaptera nie jest wykonywany.
+
+### Inwentarz `resolveUpstreamBase`
+
+Data: 2026-08-16.
+
+Polecenie: `rg -l "resolveUpstreamBase" server/api`.
+
+Wynik: 70 handlerow Nitro w `server/api/**` wybiera adapter lokalnie.
+
+| Metoda | Liczba |
+| ------ | -----: |
+| GET    |     32 |
+| POST   |     16 |
+| PATCH  |     15 |
+| DELETE |      6 |
+| PUT    |      2 |
+
+#### GET
+
+- `server/api/auth/me.get.ts`
+- `server/api/course-types.get.ts`
+- `server/api/courses.get.ts`
+- `server/api/courses/[id].get.ts`
+- `server/api/driving-schools.get.ts`
+- `server/api/driving-schools/[id]/availability/slots.get.ts`
+- `server/api/driving-schools/[id]/schedule.get.ts`
+- `server/api/driving-schools/default.get.ts`
+- `server/api/events/[eventId]/eligible-students.get.ts`
+- `server/api/events/[eventId]/index.get.ts`
+- `server/api/events/[eventId]/students.get.ts`
+- `server/api/instructors.get.ts`
+- `server/api/instructors/[id].get.ts`
+- `server/api/instructors/[id]/availability/slots.get.ts`
+- `server/api/instructors/[id]/availability/weekly.get.ts`
+- `server/api/instructors/[id]/ratings.get.ts`
+- `server/api/lessons/[id].get.ts`
+- `server/api/lessons/[lessonId]/rating.get.ts`
+- `server/api/manager/attention-items.get.ts`
+- `server/api/me/courses.get.ts`
+- `server/api/me/payments.get.ts`
+- `server/api/ratings.get.ts`
+- `server/api/ratings/me.get.ts`
+- `server/api/schedule/index.get.ts`
+- `server/api/schedule/me.get.ts`
+- `server/api/students.get.ts`
+- `server/api/students/[userId]/events.get.ts`
+- `server/api/students/[userId]/index.get.ts`
+- `server/api/students/[userId]/payments.get.ts`
+- `server/api/students/[userId]/process-status.get.ts`
+- `server/api/vehicles.get.ts`
+- `server/api/vehicles/[id].get.ts`
+
+#### POST
+
+- `server/api/auth/login.post.ts`
+- `server/api/auth/logout.post.ts`
+- `server/api/auth/profile/avatar.post.ts`
+- `server/api/auth/refresh.post.ts`
+- `server/api/auth/register.post.ts`
+- `server/api/courses.post.ts`
+- `server/api/driving-schools.post.ts`
+- `server/api/events/[eventId]/students.post.ts`
+- `server/api/events/index.post.ts`
+- `server/api/lessons.post.ts`
+- `server/api/lessons/[lessonId]/rating.post.ts`
+- `server/api/lessons/me.post.ts`
+- `server/api/students/[userId]/courses.post.ts`
+- `server/api/students/[userId]/payments.post.ts`
+- `server/api/vehicles.post.ts`
+- `server/api/vehicles/[id]/photo.post.ts`
+
+#### PATCH
+
+- `server/api/auth/profile/index.patch.ts`
+- `server/api/courses/[id].patch.ts`
+- `server/api/driving-schools/[id].patch.ts`
+- `server/api/driving-schools/[id]/default-vehicle.patch.ts`
+- `server/api/driving-schools/[id]/set-default.patch.ts`
+- `server/api/events/[eventId]/index.patch.ts`
+- `server/api/instructors/[id].patch.ts`
+- `server/api/lessons/[id].patch.ts`
+- `server/api/lessons/[lessonId]/cancel.patch.ts`
+- `server/api/students/[userId]/index.patch.ts`
+- `server/api/students/[userId]/payments/[paymentId].patch.ts`
+- `server/api/students/[userId]/payments/[paymentId]/mark-paid.patch.ts`
+- `server/api/students/[userId]/payments/[paymentId]/mark-unpaid.patch.ts`
+- `server/api/vehicles/[id].patch.ts`
+- `server/api/vehicles/[id]/status.patch.ts`
+
+#### DELETE
+
+- `server/api/driving-schools/[id].delete.ts`
+- `server/api/events/[eventId]/index.delete.ts`
+- `server/api/events/[eventId]/students/[studentUserId].delete.ts`
+- `server/api/instructors/[id].delete.ts`
+- `server/api/instructors/[id]/availability/weekly/[day].delete.ts`
+- `server/api/vehicles/[id].delete.ts`
+
+#### PUT
+
+- `server/api/events/[eventId]/students.put.ts`
+- `server/api/instructors/[id]/availability/weekly/[day].put.ts`
 
 ### Migracja pilotazowa
 
