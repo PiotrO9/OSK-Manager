@@ -2480,7 +2480,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 
 ### Todo
 
-- [ ] Potwierdzic brak nieplanowanych zmian wizualnych.
+- [x] Potwierdzic brak nieplanowanych zmian wizualnych.
 - [ ] Potwierdzic brak zmian publicznych kontraktow API.
 - [ ] Uruchomic `npm run test`.
 - [ ] Uruchomic `npm run lint`.
@@ -2493,6 +2493,14 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [ ] Porownac metryki koncowe z baseline.
 - [ ] Zmergowac feature branch lokalnie do `master` po akceptacji.
 - [ ] Usunac zakonczony branch lokalnie i z remote po potwierdzeniu merge.
+
+### Audyt Wizualny Kodu
+
+`git diff master...HEAD` nie pokazuje zmian w globalnych plikach CSS, assetach
+ani publicznych mediach. Zmiany `.vue` wynikaja z ekstrakcji komponentow,
+przeniesien katalogow i jawnych importow; Etap 8 przeniosl komponenty vehicle
+jako renames bez zmian tresci, a piloty SFC zachowaly dotychczasowe props/emits,
+klasy Tailwind i strukture UI.
 
 ### Metryki efektu
 
