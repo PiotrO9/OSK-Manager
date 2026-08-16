@@ -2046,7 +2046,7 @@ juz czesciowo wyniesiona do
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
-- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
@@ -2140,6 +2140,12 @@ pozostaja w `useCourseCreateForm`, bez inline `filter` ani `sort` w markupie.
 
 Listy selectow zachowuja stabilne klucze: kategorie uzywaja `t.id`, rodzaje
 kursu uzywaja wartosci `k`, a instruktorzy uzywaja `ins.id`.
+
+#### Responsive Markup
+
+`CourseCreateFormActions.vue` zachowuje klasy stopki formularza:
+`flex-col-reverse` na mobile oraz `sm:flex-row sm:justify-end` na szerszych
+ekranach. Przyciski zachowuja te same klasy wysokosci, paddingu i shadow.
 
 ### Kryterium zakonczenia
 
