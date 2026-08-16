@@ -1199,7 +1199,7 @@ publicznego API `useAuthSession`.
 - [x] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
-- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
+- [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
@@ -1264,6 +1264,15 @@ Bezposredni konsumenci znalezieni przez `rg`:
   aktualizacja `session` po odpowiedzi BFF.
 - Test chroni najwazniejszy czysty fragment do wydzielenia: builder payloadu
   PATCH profilu oraz mapper odpowiedzi usera do sesji.
+
+#### Wynik wydzielenia czystych mapowan
+
+- Dodano `app/utils/auth/authSessionMapper.ts` dla typow sesji, mappera
+  `BackendUserResponse -> AuthSession` oraz buildera payloadu PATCH profilu.
+- `useAuthSession` re-exportuje publiczne typy, zeby nie zmieniac importow
+  konsumentow.
+- Dodano testy utility dla normalizacji danych uzytkownika, OSK, wartosci
+  opcjonalnych oraz payloadu profilu.
 
 ### Kryterium zakonczenia
 
