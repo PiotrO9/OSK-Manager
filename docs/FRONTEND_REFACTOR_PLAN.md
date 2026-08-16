@@ -1313,20 +1313,20 @@ publicznego API strony.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
-- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
-- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
-- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
-- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
-- [ ] Przepiac konsumentow.
-- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
-- [ ] Uruchomic test domeny i lint.
+- [x] Nie duplikowac stanu pomiedzy nowymi composables.
+- [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [x] Przepiac konsumentow.
+- [x] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- [x] Uruchomic test domeny i lint.
 
 #### Dodatkowy podzial pilota
 
 - [x] Wyciagnac status procesu do `useManagerStudentProcessStatus`.
 - [x] Wyciagnac platnosci do `useManagerStudentPayments`.
 - [x] Wyciagnac terminarz tygodniowy do `useManagerStudentSchedule`.
-- [ ] Odchudzic fasade `useManagerStudentDetailsPage` do route/profile/meta +
+- [x] Odchudzic fasade `useManagerStudentDetailsPage` do route/profile/meta +
       kompozycji mniejszych composables.
 
 #### Odpowiedzialnosci obecnego pliku
@@ -1403,6 +1403,21 @@ Zwracane API:
   deleguje ich stan i requesty do nowego composable.
 - Dodano testy braku requestu bez studenta/szkoly oraz poprawnego requestu dla
   aktualnego zakresu tygodnia.
+
+#### Wynik zamkniecia pilota
+
+- `useManagerStudentDetailsPage` zostal odchudzony do route contextu, loadu
+  profilu kursanta, page meta, aktualizacji notatek oraz kompozycji mniejszych
+  composables.
+- Stan procesu, platnosci i terminarza nie jest duplikowany w fasadzie; kazdy
+  obszar ma jednego wlasciciela stanu.
+- Publiczne refy pozostaja mutowalne tam, gdzie obecna strona i komponenty
+  oczekuja takiego kontraktu; mutacje domenowe przechodza przez jawne akcje.
+- Bezposredni konsument `app/pages/manager/students/[userId].vue` pozostaje
+  podpiety do fasady `useManagerStudentDetailsPage`.
+- Wrapper nie zostal usuniety, bo nadal jest publicznym kontraktem strony.
+- Weryfikacja pilota: testy domeny student details, pelne `npm run test` oraz
+  `npm run lint`.
 
 ### Kryterium zakonczenia
 
