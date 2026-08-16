@@ -1622,7 +1622,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 #### Todo pilota
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
-- [ ] Zdefiniowac mape komponentow przed edycja.
+- [x] Zdefiniowac mape komponentow przed edycja.
 - [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
@@ -1657,6 +1657,21 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 | Photo preview lifecycle | Trzyma input ref, plik, object URL, revoke na zmiane route i unmount          | Kandydat na `useVehiclePhotoUploadState`                                |
 | Submit flow             | Waliduje rozmiar pliku, wykonuje update, opcjonalnie upload photo i nawigacje | Kandydat na akcje w `useVehicleEditPage` z testem bledu za duzego pliku |
 | Error states            | Rozdziela `loadError`, `detailLoadError`, `apiError`, `photoUploadError`      | Zachowac jawne komunikaty, nie laczyc bledow w jeden string             |
+
+#### Mapa komponentow przed edycja
+
+| Element                        | Docelowa odpowiedzialnosc                                          | Wejscie                                  | Wyjscie                        |
+| ------------------------------ | ------------------------------------------------------------------ | ---------------------------------------- | ------------------------------ |
+| `pages/vehicles/[id]/edit.vue` | route meta, wywolanie `useVehicleEditPage`, kompozycja widoku      | route/query                              | props do sekcji i akcje submit |
+| `useVehicleEditPage`           | load list/detail, submit update/upload, view-model i bledy strony  | `route`, `useVehiclesApi`, `navigateTo`  | stan strony i akcje            |
+| `VehicleEditPhotoSection.vue`  | podglad zdjecia, wybor pliku, tooltip wymagan, blad detail/uploadu | photo src, file name, loading/error/busy | `file-change` albo input ref   |
+| `VehicleForm`                  | pola formularza i walidacja danych pojazdu                         | initial vehicle, saving, api error       | `submit(payload)`              |
+| `ActionGroup` footer           | akcje anuluj/zapisz w stopce formularza                            | route powrotu, busy state, form id       | submit przez `form` attribute  |
+
+Pierwszy implementacyjny krok: wydzielic `VehicleEditPhotoSection.vue`, bo to
+najbardziej samodzielna sekcja UI i nie wymaga zmiany kontraktu `VehicleForm`.
+`useVehicleEditPage` zostaje kolejnym krokiem, gdy sekcja zdjecia bedzie juz
+odseparowana.
 
 ### Kryterium zakonczenia
 
