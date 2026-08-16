@@ -2358,9 +2358,10 @@ Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden pli
 
 Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
-| ID      | Znaleziono w | Problem     | Ryzyko          | Proponowany etap lub branch | Status |
-| ------- | ------------ | ----------- | --------------- | --------------------------- | ------ |
-| REF-001 | etap/plik    | krotki opis | low/medium/high | miejsce dalszej pracy       | open   |
+| ID      | Znaleziono w                                             | Problem                                                                                 | Ryzyko          | Proponowany etap lub branch                                       | Status |
+| ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------- | ------ |
+| REF-001 | etap/plik                                                | krotki opis                                                                             | low/medium/high | miejsce dalszej pracy                                             | open   |
+| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikuje `CourseKind`, ale server nie importuje obecnie `app/types` | medium          | decyzja o wspolnej warstwie kontraktow przed usunieciem duplikatu | open   |
 
 ### Todo
 
