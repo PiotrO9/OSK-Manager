@@ -541,7 +541,7 @@ Wynik porownania po migracji:
 - [x] lessons;
 - [x] events;
 - [x] availability i slots;
-- [ ] uploady `FormData`;
+- [x] uploady `FormData`;
 - [ ] auth i profile jako ostatnie przypadki specjalne.
 
 Pierwsza fala migracji domenowej przepieta na `executeBffAdapter`:
@@ -650,6 +650,14 @@ Fala `availability i slots` przepieta na `executeBffAdapter`:
 - `server/api/instructors/[id]/availability/weekly/[day].put.ts`;
 - `server/api/instructors/[id]/availability/weekly/[day].delete.ts`;
 - `server/api/driving-schools/[id]/availability/slots.get.ts`.
+
+Fala uploadow `FormData` przepieta na `executeBffAdapter`:
+
+- `server/api/vehicles/[id]/photo.post.ts`;
+- `server/api/auth/profile/avatar.post.ts`.
+
+Zasada zachowana: `readMultipartFormData` zostaje w handlerze, a Blob dla
+upstreamu powstaje dopiero w callbacku `upstream`.
 
 ### Sugerowane commity
 

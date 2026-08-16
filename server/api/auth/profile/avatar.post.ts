@@ -1,4 +1,5 @@
 import { readMultipartFormData } from 'h3';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamProfileAvatarUpload } from '~~/server/utils/auth/authUpstreamBff';
 import { mockUserAvatarSetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 import { requireAuthUserIdFromCookie } from '~~/server/utils/auth/requireAuthFromCookie';
@@ -17,26 +18,27 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => {
+            const mime = filePart.type || 'application/octet-stream';
+            const blob = new Blob([filePart.data], { type: mime });
 
-    if (upstream) {
-        const mime = filePart.type || 'application/octet-stream';
-        const blob = new Blob([filePart.data], { type: mime });
+            return bffUpstreamProfileAvatarUpload(
+                event,
+                upstreamBase,
+                blob,
+                filePart.filename || 'upload.jpg',
+            );
+        },
+        mock: async () => {
+            const userId = await requireAuthUserIdFromCookie(event);
 
-        return bffUpstreamProfileAvatarUpload(
-            event,
-            upstream,
-            blob,
-            filePart.filename || 'upload.jpg',
-        );
-    }
+            mockUserAvatarSetUrl(userId, MOCK_AVATAR_PLACEHOLDER);
 
-    const userId = await requireAuthUserIdFromCookie(event);
-
-    mockUserAvatarSetUrl(userId, MOCK_AVATAR_PLACEHOLDER);
-
-    return {
-        success: true,
-        data: { photoUrl: MOCK_AVATAR_PLACEHOLDER },
-    };
+            return {
+                success: true,
+                data: { photoUrl: MOCK_AVATAR_PLACEHOLDER },
+            };
+        },
+    });
 });
