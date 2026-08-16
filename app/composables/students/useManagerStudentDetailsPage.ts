@@ -31,6 +31,8 @@ function getMissingSchoolIdMessage(): string {
     return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
 }
 
+type StudentDetailData = StudentDetail | null;
+
 export function useManagerStudentDetailsPage() {
     const route = useRoute();
     const student = ref<StudentDetail | null>(null);
@@ -155,7 +157,7 @@ export function useManagerStudentDetailsPage() {
 
         try {
             const qs = new URLSearchParams({ schoolId: schoolId.value });
-            const data = await requestBffData<unknown>(
+            const data = await requestBffData<StudentDetailData>(
                 'GET',
                 `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
                 {

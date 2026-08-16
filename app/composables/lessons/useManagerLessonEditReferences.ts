@@ -20,6 +20,9 @@ interface UseManagerLessonEditReferencesOptions {
     fetchInstructorsList: (schoolId: string) => Promise<InstructorListItem[]>;
 }
 
+type InstructorFallbackData = Record<string, unknown>;
+type StudentFallbackData = StudentDetail | null;
+
 function formatInstructorDisplayName(item: InstructorListItem): string {
     const parts = [item.firstName, item.lastName]
         .map((part) => part.trim())
@@ -171,7 +174,7 @@ export function useManagerLessonEditReferences(
         }
 
         try {
-            const data = await requestBffData<unknown>(
+            const data = await requestBffData<InstructorFallbackData>(
                 'GET',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
@@ -217,7 +220,7 @@ export function useManagerLessonEditReferences(
 
         try {
             const qs = new URLSearchParams({ schoolId });
-            const data = await requestBffData<unknown>(
+            const data = await requestBffData<StudentFallbackData>(
                 'GET',
                 `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
                 {
