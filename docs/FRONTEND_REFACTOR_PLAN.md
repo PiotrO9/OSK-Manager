@@ -2487,7 +2487,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [x] Nie uruchamiac buildu bez wyraznego polecenia.
 - [x] Wykonac smoke testy w trybie mock.
 - [ ] Wykonac smoke testy w trybie upstream.
-- [ ] Sprawdzic SSR i brak hydration warnings.
+- [x] Sprawdzic SSR i brak hydration warnings.
 - [x] Sprawdzic stan working tree.
 - [x] Zaktualizowac dokumentacje architektury.
 - [x] Porownac metryki koncowe z baseline.
@@ -2557,11 +2557,14 @@ upstreamu.
 ### SSR I Hydration
 
 SSR zostal potwierdzony przez fetch `/login` w trybach `mock` i `upstream`.
-Nie oznaczono jeszcze pelnej kontroli hydration warnings, bo obecny projekt nie
-ma skonfigurowanego runnera `@playwright/test`, a Playwright CLI screenshot nie
-udostepnia przechwytywania konsoli przegladarki. Ten punkt wymaga albo dodania
-minimalnego smoke runnera przegladarkowego, albo recznej kontroli konsoli w
-dzialajacym srodowisku.
+Dodatkowo wykonano smoke przez headless Chromium i Chrome DevTools Protocol bez
+dodawania zaleznosci do projektu:
+
+- `NUXT_BFF_ADAPTER=mock npm run dev -- --host 127.0.0.1 --port 3026`;
+- Chromium z remote debugging na porcie `9333`;
+- wejscie na `/login` przez CDP zwrocilo tekst logowania;
+- przechwycone `Runtime.consoleAPICalled` oraz `Log.entryAdded` nie zawieraly
+  console errors ani warningow `hydration` / `mismatch`.
 
 ### Stan Working Tree
 
@@ -2569,8 +2572,8 @@ Po commitach `refactor: remove auth type auto import collision`,
 `docs: record smoke test results` i `docs: record final refactor metrics`
 `git status --short --branch` pokazuje czysty branch
 `refactor/03-bff-adapters...origin/refactor/03-bff-adapters`. Porty uzywane do
-dev-serverowych smoke testow (`3012`, `3014`-`3025`) nie maja aktywnych
-listenerow.
+dev-serverowych smoke testow (`3012`, `3014`-`3026`, `9333`) nie maja
+aktywnych listenerow.
 
 ### Metryki efektu
 
