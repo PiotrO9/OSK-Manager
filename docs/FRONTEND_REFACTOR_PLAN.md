@@ -915,7 +915,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Rozdzielic transport sesji od reaktywnego stanu sesji.
 - [x] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
 - [x] Dodac test macierzy rola -> dozwolona trasa.
-- [ ] Dodac test powrotu na pierwotna trase po logowaniu.
+- [x] Dodac test powrotu na pierwotna trase po logowaniu.
 - [ ] Dodac test zachowania przy 401, 403 i niedostepnym backendzie.
 
 ### Kryterium zakonczenia
@@ -1006,6 +1006,15 @@ Data: 2026-08-16.
 - Dodano test macierzy roli dla wariantow tras: `manager`, `instructor`,
   `student`, `manager-or-instructor` oraz `student-or-instructor`.
 - Macierz dokumentuje, ze `DEMO` nie ma dostepu do chronionych tras rol.
+
+### Wynik powrotu po logowaniu
+
+Data: 2026-08-16.
+
+- Dodano test kontraktu `useAuthReturnTo`: bezpieczna sciezka powrotu zapisuje
+  sie w cookie, jest konsumowana jednokrotnie po logowaniu i potem znika.
+- Dodano test odrzucania zewnetrznych oraz protokolowo wzglednych redirectow,
+  lacznie z czyszczeniem potencjalnie zmodyfikowanej wartosci cookie.
 
 ## Etap 4: podzial duzych composables
 
