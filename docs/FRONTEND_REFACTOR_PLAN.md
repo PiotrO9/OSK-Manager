@@ -721,7 +721,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Potwierdzic pojedynczy retry po 401 i single-flight refresh.
 - [x] Potwierdzic, ze refresh nie moze rekurencyjnie wywolac samego siebie.
 - [x] Zachowac `useRequestFetch` w SSR dla wewnetrznych wywolan Nuxt.
-- [ ] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
+- [x] Ograniczyc surowy `$fetch` do centralnego transportu i testow.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md` po ustabilizowaniu API.
 
 ### Inwentarz transportu aplikacji
@@ -836,6 +836,17 @@ Data: 2026-08-16.
   potwierdzil, ze `useRequestFetch` nie jest rozproszone po domenach aplikacji.
 - Wewnetrzne wywolania BFF zachowuja kontekst SSR i cookies przez centralny
   plugin.
+
+### Wynik surowego `$fetch`
+
+Data: 2026-08-16.
+
+- Audyt `rg -n "useRequestFetch|\$fetch|resolveBffEndpoint|createBffClient" app`
+  potwierdzil, ze surowy `$fetch` w `app` wystepuje tylko w centralnym
+  transporcie, pluginie `$bff` i testach.
+- Domenowe composables, komponenty i strony maja uzywac `requestBffData`,
+  `requestBffSuccess`, `bffFetch` albo jawnego `$bff` tylko w uzasadnionym
+  wyjatku infrastrukturalnym.
 
 ### Kryterium zakonczenia
 
