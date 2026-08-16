@@ -1627,7 +1627,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Uzyc `<script setup lang="ts">`.
 - [x] Uporzadkowac sekcje jako script, template, style.
 - [x] Typowac props i emits.
-- [ ] Nie mutowac propsow w dziecku.
+- [x] Nie mutowac propsow w dziecku.
 - [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [ ] Zachowac stabilne `key` dla list.
@@ -1704,6 +1704,13 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
 - Komponent emituje typowane `fileChange(event: Event)`, a
   `useVehicleEditPage` przechowuje referencje do inputa pochodzaca z eventu
   tylko po to, aby po uploadzie lub zmianie route wyczyscic natywny input.
+
+#### Brak Mutacji Propsow
+
+- `VehicleEditPhotoSection.vue` nie mutuje zadnego propsa; zmiana pliku idzie
+  przez emit `fileChange`.
+- Wlascicielem stanu pliku, object URL, nazwy pliku i bledow pozostaje
+  `useVehicleEditPage`.
 
 ### Kryterium zakonczenia
 
