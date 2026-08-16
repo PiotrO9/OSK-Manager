@@ -1631,7 +1631,7 @@ uploadu zdjecia ani publicznego kontraktu `VehicleForm`.
 - [x] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
 - [x] Przeniesc filtrowanie i sortowanie z template do `computed`.
 - [x] Zachowac stabilne `key` dla list.
-- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
+- [x] Sprawdzic desktop i mobile bez zmiany wizualnej.
 - [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
 
 #### Sekcje UI
@@ -1732,6 +1732,15 @@ kroku najbezpieczniejsza sekcja UI do wydzielenia to
 - Pilot `pages/vehicles/[id]/edit.vue` nie zawiera `v-for`, wiec refaktor nie
   wprowadzil ani nie zmienil kluczy list.
 - Nowy `VehicleEditPhotoSection.vue` renderuje pojedyncza sekcje bez kolekcji.
+
+#### Desktop I Mobile
+
+- Sprawdzono kodowo, ze `VehicleEditPhotoSection.vue` zachowuje dotychczasowe
+  klasy layoutu sekcji zdjecia, w tym responsywny grid
+  `md:grid-cols-[minmax(0,18rem)_minmax(0,24rem)]`, `md:items-start`,
+  `md:max-w-sm` oraz mobile fallback przez `grid gap-4`.
+- Nie uruchamiano builda ani dev-serverowego smoke testu w tym commicie; zgodnie
+  z procesem weryfikacja pozostala na poziomie refaktoru bez zmiany markup/classes.
 
 ### Kryterium zakonczenia
 
