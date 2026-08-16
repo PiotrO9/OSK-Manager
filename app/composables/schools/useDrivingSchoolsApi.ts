@@ -25,6 +25,8 @@ export type FetchDefaultDrivingSchoolOutcome =
     | { outcome: 'not_configured' }
     | { outcome: 'unreadable' };
 
+type DefaultDrivingSchoolData = DrivingSchool | null | undefined;
+
 export function useDrivingSchoolsApi() {
     const isListLoading = ref(false);
     const isDefaultLoading = ref(false);
@@ -57,7 +59,7 @@ export function useDrivingSchoolsApi() {
     async function fetchDefaultDrivingSchool(): Promise<FetchDefaultDrivingSchoolOutcome> {
         return await runWithLoading(isDefaultLoading, async () => {
             try {
-                const data = await requestBffData<unknown>(
+                const data = await requestBffData<DefaultDrivingSchoolData>(
                     'GET',
                     '/api/driving-schools/default',
                     {

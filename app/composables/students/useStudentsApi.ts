@@ -28,6 +28,10 @@ export interface UpdateStudentNotesParams {
     notes: string | null;
 }
 
+interface StudentNotesPatchData {
+    notes?: unknown;
+}
+
 function normalizeCourseParticipant(
     data: unknown,
 ): CourseParticipantDto | null {
@@ -149,7 +153,7 @@ export function useStudentsApi() {
             throw new Error('Brak identyfikatora kursanta.');
         }
 
-        const data = await requestBffData<unknown>(
+        const data = await requestBffData<StudentNotesPatchData>(
             'PATCH',
             `/api/students/${encodeURIComponent(userId)}`,
             {
