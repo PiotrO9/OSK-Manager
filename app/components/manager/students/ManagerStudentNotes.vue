@@ -21,28 +21,7 @@ const isSaving = ref(false);
 const saveError = ref<string | null>(null);
 
 const sectionHeadingId = 'student-notes-heading';
-
-function readNotesFromPatchData(data: unknown): string | null | undefined {
-    if (data === null || typeof data !== 'object') {
-        return undefined;
-    }
-
-    const o = data as Record<string, unknown>;
-
-    if (!('notes' in o)) {
-        return undefined;
-    }
-
-    const v = o.notes;
-
-    if (v === null || v === undefined) {
-        return null;
-    }
-
-    const s = String(v).trim();
-
-    return s.length > 0 ? s : null;
-}
+const { updateNotes } = useStudentsApi();
 
 function getDisplayNotes(): string {
     const n = props.initialNotes;
@@ -98,22 +77,10 @@ async function handleSaveNotes() {
     saveError.value = null;
 
     try {
-        const data = await requestBffData<unknown>(
-            'PATCH',
-            `/api/students/${encodeURIComponent(uid)}`,
-            {
-                body: { notes: notesPayload },
-                fallbackMessage: 'Nie udało się zapisać notatki.',
-            },
-        );
-
-        const saved = readNotesFromPatchData(data);
-
-        if (saved === undefined) {
-            throw new Error(
-                'Nieprawidłowa odpowiedź serwera po zapisie notatki.',
-            );
-        }
+        const saved = await updateNotes({
+            userId: uid,
+            notes: notesPayload,
+        });
 
         emit('update:notes', saved);
         isEditing.value = false;

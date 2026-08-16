@@ -23,6 +23,11 @@ export interface StudentProcessStatusParams {
     schoolId: string;
 }
 
+export interface UpdateStudentNotesParams {
+    userId: string;
+    notes: string | null;
+}
+
 function normalizeCourseParticipant(
     data: unknown,
 ): CourseParticipantDto | null {
@@ -64,6 +69,28 @@ function buildStudentsListPath(params: StudentsListQuery): string {
     }
 
     return `/api/students?${qs.toString()}`;
+}
+
+function readNotesFromPatchData(data: unknown): string | null | undefined {
+    if (data === null || typeof data !== 'object') {
+        return undefined;
+    }
+
+    const record = data as Record<string, unknown>;
+
+    if (!('notes' in record)) {
+        return undefined;
+    }
+
+    const notes = record.notes;
+
+    if (notes === null || notes === undefined) {
+        return null;
+    }
+
+    const normalized = String(notes).trim();
+
+    return normalized.length > 0 ? normalized : null;
 }
 
 export function useStudentsApi() {
@@ -113,6 +140,35 @@ export function useStudentsApi() {
         );
     }
 
+    async function updateNotes(
+        params: UpdateStudentNotesParams,
+    ): Promise<string | null> {
+        const userId = params.userId.trim();
+
+        if (!userId) {
+            throw new Error('Brak identyfikatora kursanta.');
+        }
+
+        const data = await requestBffData<unknown>(
+            'PATCH',
+            `/api/students/${encodeURIComponent(userId)}`,
+            {
+                body: { notes: params.notes },
+                fallbackMessage: 'Nie udało się zapisać notatki.',
+            },
+        );
+
+        const saved = readNotesFromPatchData(data);
+
+        if (saved === undefined) {
+            throw new Error(
+                'Nieprawidłowa odpowiedź serwera po zapisie notatki.',
+            );
+        }
+
+        return saved;
+    }
+
     async function fetchProcessStatus(
         params: StudentProcessStatusParams,
     ): Promise<StudentProcessStatus> {
@@ -142,6 +198,7 @@ export function useStudentsApi() {
         isListLoading: readonly(isListLoading),
         fetchList,
         assignToCourse,
+        updateNotes,
         fetchProcessStatus,
     };
 }

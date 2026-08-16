@@ -714,7 +714,7 @@ Cel: wszystkie domenowe wywolania BFF maja jeden przewidywalny mechanizm obslugi
 - [x] Zinwentaryzowac `requestBffData`, `bffFetch`, `useApi`, `useBffApi` i `externalFetch`.
 - [x] Spisac przypadki, w ktorych kazda funkcja jest potrzebna.
 - [ ] Usunac martwe lub dublujace API dopiero po migracji konsumentow.
-- [ ] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
+- [x] Przeniesc wywolanie BFF z `ManagerStudentNotes.vue` do composable domenowego.
 - [ ] Zastapic `unknown` typami odpowiedzi tam, gdzie kontrakt jest znany.
 - [ ] Ujednolicic obsluge odpowiedzi `{ success: true }` bez `data`.
 - [ ] Ujednolicic upload `FormData` bez recznego `Content-Type`.
