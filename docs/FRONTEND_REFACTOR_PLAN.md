@@ -1761,7 +1761,7 @@ podzialem odpowiedzialnosci.
 
 - [x] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [x] Zdefiniowac mape komponentow przed edycja.
-- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
+- [x] Pozostawic strone jako route meta + composable + kompozycje widoku.
 - [ ] Uzyc `<script setup lang="ts">`.
 - [ ] Uporzadkowac sekcje jako script, template, style.
 - [ ] Typowac props i emits.
@@ -1831,6 +1831,13 @@ Pierwszy implementacyjny krok: wydzielic tylko
 - Komponent emituje typowane `statusChange(vehicle, payload)`, a
   `VehiclesListPanel.vue` przekazuje ten event dalej bez zmiany publicznego API
   strony `app/pages/vehicles/index.vue`.
+
+#### Route Meta + Composable + Widok
+
+- `app/pages/vehicles/index.vue` pozostaje cienka: trzyma `definePageMeta`,
+  `usePageMeta`, wywoluje `useVehiclesListPage` i sklada `VehiclesListPanel`.
+- Ekstrakcja `VehicleManagerStatusGrid.vue` nie zmienila propsow ani emitow,
+  ktore strona przekazuje do `VehiclesListPanel.vue`.
 
 ### Kryterium zakonczenia
 
