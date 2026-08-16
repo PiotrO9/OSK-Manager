@@ -2303,7 +2303,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
 - [x] Pokryc vehicle edit i status availability.
 - [x] Pokryc parsery body i query Nitro.
-- [ ] Dodawac test regresyjny dla kazdego znalezionego bledu.
+- [x] Dodawac test regresyjny dla kazdego znalezionego bledu.
 - [ ] Nie uzalezniac testow jednostkowych od sieci ani zegara systemowego.
 - [ ] Ustalac staly czas i UUID w testach.
 - [ ] Po kazdym etapie uruchomic pelne `npm run test`.
@@ -2363,6 +2363,12 @@ payloadu tymczasowej niedostepnosci, labeli availability, normalizacji
 `scheduleQueryValidation.test.ts` przechodza: 18 testow dla UUID w query i
 route params, pozytywnych intow, `schoolId` z body, create/patch course body,
 zakresow dat schedule oraz manager targetow `instructorId` / `studentId`.
+
+### Zasada Regresji Dla Bledow
+
+W trakcie Etapu 7 nie znaleziono nowego bledu produkcyjnego wymagajacego osobnej
+naprawy. Kazda wykryta luka w ochronie regresyjnej zostala domknieta testem w
+tym samym checkpoincie przed odznaczeniem pozycji.
 
 ### Kryterium zakonczenia
 
