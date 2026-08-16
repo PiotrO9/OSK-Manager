@@ -7,6 +7,10 @@ import {
     type UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
 
+type StudentPaymentActionPayload =
+    | CreateStudentPaymentPayload
+    | UpdateStudentPaymentPayload;
+
 export function usePaymentsApi() {
     async function fetchMyPayments(): Promise<StudentPaymentItem[]> {
         return await requestBffData<StudentPaymentItem[]>(
@@ -83,7 +87,7 @@ export function usePaymentsApi() {
             userId,
             schoolId,
             `/payments/${encodeURIComponent(paymentId.trim())}/mark-paid`,
-            {},
+            undefined,
             'Nie udało się oznaczyć płatności jako opłaconej.',
         );
     }
@@ -98,7 +102,7 @@ export function usePaymentsApi() {
             userId,
             schoolId,
             `/payments/${encodeURIComponent(paymentId.trim())}/mark-unpaid`,
-            {},
+            undefined,
             'Nie udało się oznaczyć płatności jako nieopłaconej.',
         );
     }
@@ -108,7 +112,7 @@ export function usePaymentsApi() {
         userId: string,
         schoolId: string,
         pathSuffix: string,
-        payload: Record<string, unknown>,
+        payload: StudentPaymentActionPayload | undefined,
         fallbackMessage: string,
     ): Promise<StudentPaymentsPayload> {
         const uid = userId.trim();
@@ -122,7 +126,7 @@ export function usePaymentsApi() {
             method,
             `/api/students/${encodeURIComponent(uid)}${pathSuffix}`,
             {
-                body: { ...payload, schoolId: sid },
+                body: { ...(payload ?? {}), schoolId: sid },
                 fallbackMessage,
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
             },

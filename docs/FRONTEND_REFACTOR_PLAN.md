@@ -2601,7 +2601,7 @@ Porownanie do baseline z Etapu 0:
 | Lokalny wybor `mock/upstream` w handlerach | dziesiatki miejsc                          | 0 plikow `server/api` z `resolveUpstreamBase` / `resolveBffAdapter`                        |
 | Surowy `$fetch` / `fetch` poza testami     | do ograniczenia                            | 4 kontrolowane miejsca w centralnym transporcie/auth                                       |
 | Pliki z `unknown` poza testami             | 156 plikow                                 | 144 pliki                                                                                  |
-| `Record<string, unknown>` poza testami     | 63 pliki                                   | 60 plikow                                                                                  |
+| `Record<string, unknown>` poza testami     | 63 pliki                                   | 57 plikow po zawezeniu linkow routingu, patcha kursu i helpera platnosci                   |
 | `requestBffData<unknown>`                  | do ograniczenia                            | 0 miejsc w kodzie produkcyjnym                                                             |
 | Stare wrappery / eksporty kompatybilnosci  | `useApi`, `useBffApi`, re-exporty domenowe | pozostaje `resolveBffEndpoint`; usunieto martwe wrappery transportu i re-export typow auth |
 
