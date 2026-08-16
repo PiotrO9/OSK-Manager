@@ -1,7 +1,6 @@
 import {
     normalizeStudentDetail,
     type StudentDetail,
-    type StudentProcessStatus,
 } from '~/types/students/student';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import type {
@@ -23,8 +22,8 @@ import {
     getStudentDetailsRouteUserIdString,
     getStudentDetailsSubtitle,
     getStudentNotesOverviewLabel,
-    getStudentProcessOverviewLabel,
 } from '~/utils/students/studentDetailsPage';
+import { useManagerStudentProcessStatus } from './useManagerStudentProcessStatus';
 
 export function getRouteUserIdString(rawId: unknown): string {
     return getStudentDetailsRouteUserIdString(rawId);
@@ -45,7 +44,6 @@ function getMissingSchoolIdMessage(): string {
 export function useManagerStudentDetailsPage() {
     const route = useRoute();
     const { fetchScheduleForStudent } = useScheduleApi();
-    const { fetchProcessStatus } = useStudentsApi();
     const {
         createStudentPayment,
         fetchStudentPayments,
@@ -57,9 +55,6 @@ export function useManagerStudentDetailsPage() {
     const student = ref<StudentDetail | null>(null);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const processStatus = ref<StudentProcessStatus | null>(null);
-    const processStatusLoading = ref(false);
-    const processStatusError = ref<string | null>(null);
     const payments = ref<StudentPaymentItem[]>([]);
     const paymentsSummary = ref<StudentPaymentsSummary>({
         paidAmount: '0.00',
@@ -89,7 +84,15 @@ export function useManagerStudentDetailsPage() {
         return s.trim();
     });
 
-    const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
+    const {
+        processStatusSteps,
+        processStatusLoading,
+        processStatusError,
+        processOverviewLabel,
+        loadStudentProcessStatus,
+    } = useManagerStudentProcessStatus({
+        schoolId,
+    });
 
     const studentDisplayName = computed(() => {
         return getStudentDetailsDisplayName(student.value);
@@ -101,19 +104,6 @@ export function useManagerStudentDetailsPage() {
 
     const studentSubtitle = computed(() => {
         return getStudentDetailsSubtitle(student.value);
-    });
-
-    const processCompletedCount = computed(
-        () => processStatusSteps.value.filter((step) => step.completed).length,
-    );
-
-    const processOverviewLabel = computed(() => {
-        return getStudentProcessOverviewLabel({
-            isLoading: processStatusLoading.value,
-            hasError: Boolean(processStatusError.value),
-            total: processStatusSteps.value.length,
-            completed: processCompletedCount.value,
-        });
     });
 
     const notesOverviewLabel = computed(() => {
@@ -159,7 +149,6 @@ export function useManagerStudentDetailsPage() {
     });
 
     let fetchSeq = 0;
-    let processStatusFetchSeq = 0;
     let paymentsFetchSeq = 0;
     let scheduleFetchSeq = 0;
 
@@ -232,50 +221,6 @@ export function useManagerStudentDetailsPage() {
         } finally {
             if (seq === fetchSeq) {
                 isLoading.value = false;
-            }
-        }
-    }
-
-    async function loadStudentProcessStatus(rawUserId: unknown): Promise<void> {
-        const userId = getRouteUserIdString(rawUserId);
-
-        processStatus.value = null;
-        processStatusError.value = null;
-
-        if (!userId || !schoolId.value) {
-            processStatusLoading.value = false;
-
-            return;
-        }
-
-        const seq = ++processStatusFetchSeq;
-
-        processStatusLoading.value = true;
-
-        try {
-            const status = await fetchProcessStatus({
-                userId,
-                schoolId: schoolId.value,
-            });
-
-            if (seq !== processStatusFetchSeq) {
-                return;
-            }
-
-            processStatus.value = status;
-        } catch (err: unknown) {
-            if (seq !== processStatusFetchSeq) {
-                return;
-            }
-
-            processStatus.value = null;
-            processStatusError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać statusu procesu kursanta.',
-            );
-        } finally {
-            if (seq === processStatusFetchSeq) {
-                processStatusLoading.value = false;
             }
         }
     }

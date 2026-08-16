@@ -1312,7 +1312,7 @@ publicznego API strony.
 - [x] Zapisac jego publiczne API i liste konsumentow.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
-- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
 - [ ] Nie duplikowac stanu pomiedzy nowymi composables.
 - [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
@@ -1366,6 +1366,16 @@ Zwracane API:
   deleguje go do utility domenowego.
 - Dodano testy utility dla route user id, display name, inicjalow, subtitle oraz
   overview labeli.
+
+#### Wynik wydzielenia statusu procesu
+
+- Dodano `useManagerStudentProcessStatus` dla stanu procesu kursanta, loadingu,
+  bledu, labela overview oraz sekwencji chroniacej przed starszymi
+  odpowiedziami.
+- `useManagerStudentDetailsPage` zachowuje publiczne pola procesu, ale deleguje
+  ich stan i load do nowego composable.
+- Dodano testy braku requestu przy niepelnym kontekście oraz poprawnego labela
+  `completed/total`.
 
 ### Kryterium zakonczenia
 
