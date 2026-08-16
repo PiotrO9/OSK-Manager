@@ -3,6 +3,14 @@
  * W `useState` trzymane są wyłącznie dane profilu (bez JWT).
  */
 import { createDemoAuthSession } from '~/utils/auth/demoAuthSession';
+import {
+    requestAuthLogin,
+    requestAuthLogout,
+    requestAuthMe,
+    requestAuthProfilePatch,
+    requestAuthRefresh,
+    type BackendUserResponse,
+} from '~/utils/auth/authSessionApi';
 
 export interface AuthProfilePatchBody {
     firstName?: string;
@@ -35,27 +43,6 @@ export interface AuthSession {
     drivingSchools: AuthDrivingSchoolSummary[];
     /** Domyślna OSK właściciela — sens dla `MANAGER`; inne role: `null`. */
     defaultOskId: string | null;
-}
-
-const AUTH_PATH = '/api/auth';
-
-/**
- * `GET /auth/me` (whitelist) oraz ewentualny starszy kształt z `POST /auth/login` na BE.
- */
-interface BackendUserResponse {
-    id: string;
-    email: string;
-    role: string;
-    name?: string;
-    avatarUrl?: string | null;
-    firstName?: string;
-    lastName?: string;
-    phone?: string | null;
-    bio?: string | null;
-    profileUpdatedAt?: string | null;
-    pkkNumber?: string | null;
-    drivingSchools?: unknown;
-    defaultOskId?: string | null;
 }
 
 interface SessionUserPayload {
@@ -253,11 +240,7 @@ export function useAuthSession() {
 
     async function refreshAccessToken(): Promise<boolean> {
         try {
-            await bff.requestData<object>(`${AUTH_PATH}/refresh`, {
-                method: 'POST',
-                auth: 'none',
-                retryUnauthorized: false,
-            });
+            await requestAuthRefresh(bff);
 
             return true;
         } catch {
@@ -266,16 +249,10 @@ export function useAuthSession() {
     }
 
     async function loadMeIntoSession(): Promise<boolean> {
-        const meData = await bff.requestData<{ user: BackendUserResponse }>(
-            `${AUTH_PATH}/me`,
-            {
-                method: 'GET',
-                retryUnauthorized: false,
-            },
-        );
+        const user = await requestAuthMe(bff);
 
         session.value = createSessionFromUser(
-            normalizeBackendUserToSessionPayload(meData.user),
+            normalizeBackendUserToSessionPayload(user),
         );
 
         return true;
@@ -331,21 +308,14 @@ export function useAuthSession() {
         }
 
         async function doPatch(): Promise<void> {
-            const data = await bff.requestData<{ user: BackendUserResponse }>(
-                `${AUTH_PATH}/profile`,
-                {
-                    method: 'PATCH',
-                    body: payload,
-                    retryUnauthorized: false,
-                },
-            );
+            const user = await requestAuthProfilePatch(bff, payload);
 
-            if (!data.user) {
+            if (!user) {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
             session.value = createSessionFromUser(
-                normalizeBackendUserToSessionPayload(data.user),
+                normalizeBackendUserToSessionPayload(user),
             );
         }
 
@@ -461,22 +431,14 @@ export function useAuthSession() {
         }
 
         try {
-            const body = await bff.requestData<{ user: BackendUserResponse }>(
-                `${AUTH_PATH}/login`,
-                {
-                    method: 'POST',
-                    auth: 'none',
-                    retryUnauthorized: false,
-                    body: { email, password },
-                },
-            );
+            const user = await requestAuthLogin(bff, email, password);
 
-            if (!body.user) {
+            if (!user) {
                 throw new Error('Nieprawidłowa odpowiedź serwera');
             }
 
             session.value = createSessionFromUser(
-                normalizeBackendUserToSessionPayload(body.user),
+                normalizeBackendUserToSessionPayload(user),
             );
 
             try {
@@ -521,11 +483,7 @@ export function useAuthSession() {
 
     async function logout(): Promise<void> {
         try {
-            await bff.request(`${AUTH_PATH}/logout`, {
-                method: 'POST',
-                auth: 'none',
-                retryUnauthorized: false,
-            });
+            await requestAuthLogout(bff);
         } catch (error) {
             console.error(error);
         }

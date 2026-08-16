@@ -912,7 +912,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Ujednolicic `manager`, `instructor`, `student` i warianty laczone.
 - [x] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
 - [x] Oddzielic dane demo od produkcyjnego przeplywu sesji.
-- [ ] Rozdzielic transport sesji od reaktywnego stanu sesji.
+- [x] Rozdzielic transport sesji od reaktywnego stanu sesji.
 - [ ] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
 - [ ] Dodac test macierzy rola -> dozwolona trasa.
 - [ ] Dodac test powrotu na pierwotna trase po logowaniu.
@@ -978,6 +978,18 @@ Data: 2026-08-16.
 - `useAuthSession.loginDemo` zachowuje publiczne API, ale nie trzyma juz danych
   demo inline w produkcyjnym composable.
 - Dodano testy dla poprawnej sesji demo i pustej nazwy.
+
+### Wynik transportu sesji
+
+Data: 2026-08-16.
+
+- Wywolania BFF `/api/auth/login`, `/api/auth/me`, `/api/auth/refresh`,
+  `/api/auth/profile` i `/api/auth/logout` zostaly przeniesione do
+  `authSessionApi.ts`.
+- `useAuthSession` pozostaje wlascicielem `useState`, computed oraz decyzji
+  kiedy czyscic lub uzupelniac sesje.
+- Dodano testy kontraktu transportu auth oraz zachowano testy publicznych flow
+  `useAuthSession`.
 
 ## Etap 4: podzial duzych composables
 
