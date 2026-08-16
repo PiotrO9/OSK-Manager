@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffLessonsPost } from '~~/server/utils/lessons/lessonsBff';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 
@@ -104,19 +105,24 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: async ({ upstreamBase }) => {
+            const result = await bffLessonsPost(
+                event,
+                upstreamBase,
+                parsed.body,
+            );
 
-    if (upstream) {
-        const result = await bffLessonsPost(event, upstream, parsed.body);
+            setResponseStatus(event, 201);
 
-        setResponseStatus(event, 201);
+            return result;
+        },
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-        return result;
-    }
+            setResponseStatus(event, 201);
 
-    await requireManagerFromCookie(event);
-
-    setResponseStatus(event, 201);
-
-    return bffMockLessonsPost(parsed.body);
+            return bffMockLessonsPost(parsed.body);
+        },
+    });
 });

@@ -538,7 +538,7 @@ Wynik porownania po migracji:
 - [x] driving schools;
 - [x] students i payments;
 - [x] schedule;
-- [ ] lessons;
+- [x] lessons;
 - [ ] events;
 - [ ] availability i slots;
 - [ ] uploady `FormData`;
@@ -620,6 +620,16 @@ Fala `schedule` przepieta na `executeBffAdapter`:
 - `server/api/schedule/index.get.ts`;
 - `server/api/schedule/me.get.ts`;
 - `server/api/driving-schools/[id]/schedule.get.ts`.
+
+Fala `lessons` przepieta na `executeBffAdapter`:
+
+- `server/api/lessons.post.ts`;
+- `server/api/lessons/me.post.ts`;
+- `server/api/lessons/[id].get.ts`;
+- `server/api/lessons/[id].patch.ts`;
+- `server/api/lessons/[lessonId]/cancel.patch.ts`;
+- `server/api/lessons/[lessonId]/rating.get.ts`;
+- `server/api/lessons/[lessonId]/rating.post.ts`.
 
 ### Sugerowane commity
 

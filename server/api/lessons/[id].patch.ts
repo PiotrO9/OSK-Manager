@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffLessonsPatch } from '~~/server/utils/lessons/lessonsBff';
 import {
     isUuid,
@@ -104,37 +105,37 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffLessonsPatch(event, upstreamBase, lessonId, parsed.body),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffLessonsPatch(event, upstream, lessonId, parsed.body);
-    }
+            const now = new Date().toISOString();
+            const b = parsed.body;
 
-    await requireManagerFromCookie(event);
-
-    const now = new Date().toISOString();
-    const b = parsed.body;
-
-    return {
-        success: true,
-        data: {
-            lesson: {
-                id: lessonId,
-                courseId: '00000000-0000-4000-8000-000000000001',
-                studentId: '00000000-0000-4000-8000-000000000002',
-                instructorId:
-                    (b.instructorId as string | undefined) ??
-                    '00000000-0000-4000-8000-000000000003',
-                vehicleId:
-                    b.vehicleId !== undefined
-                        ? (b.vehicleId as string | null)
-                        : '00000000-0000-4000-8000-000000000004',
-                lessonType: 'PRACTICE',
-                startTime: (b.startTime as string | undefined) ?? now,
-                endTime: (b.endTime as string | undefined) ?? now,
-                status: 'SCHEDULED',
-                createdAt: now,
-            },
+            return {
+                success: true,
+                data: {
+                    lesson: {
+                        id: lessonId,
+                        courseId: '00000000-0000-4000-8000-000000000001',
+                        studentId: '00000000-0000-4000-8000-000000000002',
+                        instructorId:
+                            (b.instructorId as string | undefined) ??
+                            '00000000-0000-4000-8000-000000000003',
+                        vehicleId:
+                            b.vehicleId !== undefined
+                                ? (b.vehicleId as string | null)
+                                : '00000000-0000-4000-8000-000000000004',
+                        lessonType: 'PRACTICE',
+                        startTime: (b.startTime as string | undefined) ?? now,
+                        endTime: (b.endTime as string | undefined) ?? now,
+                        status: 'SCHEDULED',
+                        createdAt: now,
+                    },
+                },
+            };
         },
-    };
+    });
 });

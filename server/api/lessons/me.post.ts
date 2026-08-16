@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffOwnLessonPost } from '~~/server/utils/lessons/lessonsBff';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
@@ -104,37 +105,42 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: async ({ upstreamBase }) => {
+            const result = await bffOwnLessonPost(
+                event,
+                upstreamBase,
+                parsed.body,
+            );
 
-    if (upstream) {
-        const result = await bffOwnLessonPost(event, upstream, parsed.body);
+            setResponseStatus(event, 201);
 
-        setResponseStatus(event, 201);
-
-        return result;
-    }
-
-    await requireStudentFromCookie(event);
-
-    const now = new Date().toISOString();
-
-    setResponseStatus(event, 201);
-
-    return {
-        success: true,
-        data: {
-            lesson: {
-                id: randomUUID(),
-                courseId: parsed.body.courseId,
-                studentId: randomUUID(),
-                instructorId: parsed.body.instructorId,
-                vehicleId: randomUUID(),
-                lessonType: 'PRACTICE',
-                startTime: parsed.body.startTime,
-                endTime: parsed.body.endTime,
-                status: 'SCHEDULED',
-                createdAt: now,
-            },
+            return result;
         },
-    };
+        mock: async () => {
+            await requireStudentFromCookie(event);
+
+            const now = new Date().toISOString();
+
+            setResponseStatus(event, 201);
+
+            return {
+                success: true,
+                data: {
+                    lesson: {
+                        id: randomUUID(),
+                        courseId: parsed.body.courseId,
+                        studentId: randomUUID(),
+                        instructorId: parsed.body.instructorId,
+                        vehicleId: randomUUID(),
+                        lessonType: 'PRACTICE',
+                        startTime: parsed.body.startTime,
+                        endTime: parsed.body.endTime,
+                        status: 'SCHEDULED',
+                        createdAt: now,
+                    },
+                },
+            };
+        },
+    });
 });
