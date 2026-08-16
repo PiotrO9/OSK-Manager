@@ -201,7 +201,7 @@ Cel: usunac powtarzany wybor `mock/upstream` z handlerow Nitro, zachowujac rozne
 - [x] Podzielic handlery na: GET, mutacje, uploady, auth i przypadki specjalne.
 - [x] Zaprojektowac typowany executor przyjmujacy callback `upstream` i `mock`.
 - [x] Nie ukrywac walidacji requestu w executorze.
-- [ ] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
+- [x] Pozostawic mozliwosc innej autoryzacji dla mocka i upstreamu.
 - [ ] Zachowac obecne statusy HTTP, komunikaty bledow i format kopert.
 - [ ] Dodac testy wyboru trybu jawnego i fallbacku.
 - [ ] Dodac test bledu `upstream` bez URL.
@@ -456,6 +456,34 @@ Niedozwolone w executorze:
 - odczyt body;
 - normalizacja DTO domenowych;
 - mapowanie bledow walidacji requestu.
+
+#### Zasada autoryzacji adapterow
+
+Executor nie wykonuje `requireManagerFromCookie`,
+`requireInstructorFromCookie`, `requireStudentFromCookie` ani innych kontroli
+roli.
+
+Powod:
+
+- upstream przechodzi przez `upstreamRequest`, ktory wymaga tokenu dostepu,
+  chyba ze wywolanie jawnie ustawi `auth: false`;
+- mock musi zachowac dotychczasowe role per endpoint, np. `ratings/me` wymaga
+  instruktora, a `driving-schools/default` wymaga managera;
+- auth i refresh maja wlasna polityke cookies i nie moga odziedziczyc
+  domyslnej autoryzacji mutacji domenowych.
+
+Wzorzec migracji:
+
+```ts
+return executeBffAdapter(event, {
+    upstream: ({ upstreamBase }) => bffUpstreamDomain(event, upstreamBase),
+    mock: async () => {
+        await requireExpectedRoleFromCookie(event);
+
+        return bffMockDomain();
+    },
+});
+```
 
 ### Migracja pilotazowa
 
