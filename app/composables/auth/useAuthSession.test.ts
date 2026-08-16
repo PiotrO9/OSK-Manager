@@ -130,4 +130,19 @@ describe('useAuthSession', () => {
         });
         expect(auth.session.value).toBeNull();
     });
+
+    it('keeps session state in the shared auth_session useState key', async () => {
+        const { useAuthSession } = await import('./useAuthSession');
+        const first = useAuthSession();
+        const second = useAuthSession();
+
+        first.loginDemo('Demo User');
+
+        expect(second.session.value).toMatchObject({
+            userId: 'demo',
+            userName: 'Demo User',
+            role: 'DEMO',
+        });
+        expect(state.has('auth_session')).toBe(true);
+    });
 });

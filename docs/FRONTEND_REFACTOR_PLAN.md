@@ -913,7 +913,7 @@ Cel: zmniejszyc zasieg zmian w `useAuthSession.ts` i usunac rozbieznosci kontrol
 - [x] Zachowac `ADMIN` jako jawnie udokumentowany wariant uprawnien menedzera.
 - [x] Oddzielic dane demo od produkcyjnego przeplywu sesji.
 - [x] Rozdzielic transport sesji od reaktywnego stanu sesji.
-- [ ] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
+- [x] Zachowac stan przez `useState`, aby nie wyciekal pomiedzy requestami SSR.
 - [ ] Dodac test macierzy rola -> dozwolona trasa.
 - [ ] Dodac test powrotu na pierwotna trase po logowaniu.
 - [ ] Dodac test zachowania przy 401, 403 i niedostepnym backendzie.
@@ -990,6 +990,14 @@ Data: 2026-08-16.
   kiedy czyscic lub uzupelniac sesje.
 - Dodano testy kontraktu transportu auth oraz zachowano testy publicznych flow
   `useAuthSession`.
+
+### Wynik stanu sesji
+
+Data: 2026-08-16.
+
+- `useAuthSession` nadal trzyma dane profilu w `useState('auth_session')`.
+- Dodano test, ze wiele wywolan `useAuthSession()` wspoldzieli ten sam stan
+  sesji zamiast tworzyc lokalny `ref`.
 
 ## Etap 4: podzial duzych composables
 
