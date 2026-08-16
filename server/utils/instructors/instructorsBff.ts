@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3';
+import type { BffInstructorPatchBody } from './parseInstructorPatchBody';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
 export async function bffUpstreamInstructorsList(
@@ -38,7 +39,7 @@ export async function bffUpstreamInstructorsPatch(
     event: H3Event,
     upstreamBase: string,
     id: string,
-    body: Record<string, unknown>,
+    body: BffInstructorPatchBody,
 ): Promise<{ success: true; data: unknown }> {
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: `/instructors/${encodeURIComponent(id)}`,

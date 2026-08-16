@@ -875,6 +875,9 @@ Data: 2026-08-16.
 - Parser managerskiego `POST /lessons` zostal przeniesiony z handlera do
   `server/utils/lessons/parseLessonCreateBody.ts`; upstream i mock przyjmuja
   teraz jawny `BffLessonCreateBody`.
+- Parser `PATCH /instructors/:id` zostal przeniesiony z handlera do
+  `server/utils/instructors/parseInstructorPatchBody.ts`; upstream i mock
+  przyjmuja teraz jawny `BffInstructorPatchBody`.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 
