@@ -23,6 +23,19 @@ async function loadHandler(): Promise<(event: H3Event) => Promise<unknown>> {
     return module.default as (event: H3Event) => Promise<unknown>;
 }
 
+function stubRuntimeConfig(config: {
+    bffAdapter: 'mock' | 'upstream';
+    apiUpstream?: string;
+}): void {
+    vi.stubGlobal('useRuntimeConfig', () => ({
+        bffAdapter: config.bffAdapter,
+        apiUpstream: config.apiUpstream,
+        public: {
+            apiBase: undefined,
+        },
+    }));
+}
+
 describe('GET /api/ratings/me', () => {
     const event = {} as H3Event;
 
@@ -36,11 +49,13 @@ describe('GET /api/ratings/me', () => {
             success: true,
             data: { ratings: [{ id: 'rating-1' }] },
         };
-        const resolveUpstreamBase = vi.fn(() => 'http://localhost:4000');
         const requireInstructorFromCookie = vi.fn();
 
         bffMocks.upstreamRatingsList.mockResolvedValue(upstreamResult);
-        vi.stubGlobal('resolveUpstreamBase', resolveUpstreamBase);
+        stubRuntimeConfig({
+            bffAdapter: 'upstream',
+            apiUpstream: 'http://localhost:4000',
+        });
         vi.stubGlobal(
             'requireInstructorFromCookie',
             requireInstructorFromCookie,
@@ -49,7 +64,6 @@ describe('GET /api/ratings/me', () => {
         const handler = await loadHandler();
 
         await expect(handler(event)).resolves.toBe(upstreamResult);
-        expect(resolveUpstreamBase).toHaveBeenCalledWith(event);
         expect(bffMocks.upstreamRatingsList).toHaveBeenCalledWith(
             event,
             'http://localhost:4000',
@@ -63,11 +77,10 @@ describe('GET /api/ratings/me', () => {
             success: true,
             data: { ratings: [{ id: 'mock-rating-1' }] },
         };
-        const resolveUpstreamBase = vi.fn(() => '');
         const requireInstructorFromCookie = vi.fn();
 
         bffMocks.mockRatingsList.mockReturnValue(mockResult);
-        vi.stubGlobal('resolveUpstreamBase', resolveUpstreamBase);
+        stubRuntimeConfig({ bffAdapter: 'mock' });
         vi.stubGlobal(
             'requireInstructorFromCookie',
             requireInstructorFromCookie,
@@ -76,7 +89,6 @@ describe('GET /api/ratings/me', () => {
         const handler = await loadHandler();
 
         await expect(handler(event)).resolves.toBe(mockResult);
-        expect(resolveUpstreamBase).toHaveBeenCalledWith(event);
         expect(requireInstructorFromCookie).toHaveBeenCalledWith(event);
         expect(bffMocks.mockRatingsList).toHaveBeenCalledOnce();
         expect(bffMocks.upstreamRatingsList).not.toHaveBeenCalled();

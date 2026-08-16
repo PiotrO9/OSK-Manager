@@ -505,7 +505,7 @@ normalizowac statusow ani komunikatow.
 
 - [x] Wybrac prosty endpoint GET, np. ratings albo vehicles.
 - [x] Zapisac test zachowania przed migracja.
-- [ ] Przepisac endpoint na executor.
+- [x] Przepisac endpoint na executor.
 - [ ] Porownac odpowiedz w `mock` i `upstream` z zachowaniem sprzed zmiany.
 - [ ] Dopiero po pilocie zaakceptowac publiczne API helpera.
 
