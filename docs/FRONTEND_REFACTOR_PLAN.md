@@ -2485,7 +2485,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [x] Uruchomic `npm run test`.
 - [x] Uruchomic `npm run lint`.
 - [x] Nie uruchamiac buildu bez wyraznego polecenia.
-- [ ] Wykonac smoke testy w trybie mock.
+- [x] Wykonac smoke testy w trybie mock.
 - [ ] Wykonac smoke testy w trybie upstream.
 - [ ] Sprawdzic SSR i brak hydration warnings.
 - [ ] Sprawdzic stan working tree.
@@ -2522,6 +2522,46 @@ normalizacji bez zmiany publicznych URL-i i metod HTTP.
 ### Build
 
 Zgodnie z ustaleniem nie uruchamiano `npm run build` w Etapie 9.
+
+### Smoke Test Mock
+
+Tryb `mock` zostal sprawdzony bez builda na dev serverze Nuxt:
+
+- `NUXT_BFF_ADAPTER=mock npm run dev -- --host 127.0.0.1 --port 3023`;
+- SSR fetch `/login` zwrocil `200`, HTML zawieral tekst logowania oraz payload
+  Nuxt;
+- Playwright CLI wykonal screenshot `/login`, a obraz potwierdzil wyrenderowany
+  formularz logowania.
+
+Podczas pierwszego startu smoke wykryto warningi Nuxta o zdublowanych
+auto-importach typow auth. Zostaly usuniete w commicie
+`refactor: remove auth type auto import collision`; ponowny start dev servera
+nie pokazal tych warningow.
+
+### Smoke Test Upstream
+
+Tryb `upstream` zostal sprawdzony czesciowo bez builda:
+
+- `.env` zawiera ustawiony klucz `NUXT_PUBLIC_API_BASE`;
+- `NUXT_BFF_ADAPTER=upstream npm run dev -- --host 127.0.0.1 --port 3025`
+  startuje aplikacje bez warningow auto-importow;
+- SSR fetch `/login` zwrocil `200`, HTML zawieral tekst logowania oraz payload
+  Nuxt.
+
+Pelny upstream smoke przez BFF jest zablokowany przez srodowisko: kontrolowany
+POST `/api/auth/login` z niepoprawnymi danymi zwrocil `502` z komunikatem
+polaczenia/konfiguracji upstream. Do domkniecia potrzebny jest dzialajacy
+backend pod adresem z `NUXT_PUBLIC_API_BASE` albo aktualny URL testowego
+upstreamu.
+
+### SSR I Hydration
+
+SSR zostal potwierdzony przez fetch `/login` w trybach `mock` i `upstream`.
+Nie oznaczono jeszcze pelnej kontroli hydration warnings, bo obecny projekt nie
+ma skonfigurowanego runnera `@playwright/test`, a Playwright CLI screenshot nie
+udostepnia przechwytywania konsoli przegladarki. Ten punkt wymaga albo dodania
+minimalnego smoke runnera przegladarkowego, albo recznej kontroli konsoli w
+dzialajacym srodowisku.
 
 ### Metryki efektu
 
@@ -2562,6 +2602,7 @@ Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 | ------- | -------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------- | ----------------------------------------------------------------- | ------ |
 | REF-001 | etap/plik                                                | krotki opis                                                                             | low/medium/high | miejsce dalszej pracy                                             | open   |
 | REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikuje `CourseKind`, ale server nie importuje obecnie `app/types` | medium          | decyzja o wspolnej warstwie kontraktow przed usunieciem duplikatu | open   |
+| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu        | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL       | open   |
 
 ### Todo
 
