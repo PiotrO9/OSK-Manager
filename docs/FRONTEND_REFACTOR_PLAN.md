@@ -1324,7 +1324,7 @@ publicznego API strony.
 #### Dodatkowy podzial pilota
 
 - [x] Wyciagnac status procesu do `useManagerStudentProcessStatus`.
-- [ ] Wyciagnac platnosci do `useManagerStudentPayments`.
+- [x] Wyciagnac platnosci do `useManagerStudentPayments`.
 - [ ] Wyciagnac terminarz tygodniowy do `useManagerStudentSchedule`.
 - [ ] Odchudzic fasade `useManagerStudentDetailsPage` do route/profile/meta +
       kompozycji mniejszych composables.
@@ -1384,6 +1384,16 @@ Zwracane API:
   ich stan i load do nowego composable.
 - Dodano testy braku requestu przy niepelnym kontekście oraz poprawnego labela
   `completed/total`.
+
+#### Wynik wydzielenia platnosci
+
+- Dodano `useManagerStudentPayments` dla listy platnosci, summary, loadingu,
+  bledu, saving/action error, labela overview oraz mutacji create/update/mark
+  paid/mark unpaid.
+- `useManagerStudentDetailsPage` zachowuje publiczne pola i akcje platnosci,
+  ale deleguje ich stan oraz requesty do nowego composable.
+- Dodano testy braku requestu przy niepelnym kontekście oraz poprawnego labela
+  liczby platnosci po udanym ladowaniu.
 
 ### Kryterium zakonczenia
 

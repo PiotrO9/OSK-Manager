@@ -3,12 +3,6 @@ import {
     type StudentDetail,
 } from '~/types/students/student';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import type {
-    CreateStudentPaymentPayload,
-    StudentPaymentItem,
-    StudentPaymentsSummary,
-    UpdateStudentPaymentPayload,
-} from '~/types/payments/payment';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
@@ -23,6 +17,7 @@ import {
     getStudentDetailsSubtitle,
     getStudentNotesOverviewLabel,
 } from '~/utils/students/studentDetailsPage';
+import { useManagerStudentPayments } from './useManagerStudentPayments';
 import { useManagerStudentProcessStatus } from './useManagerStudentProcessStatus';
 
 export function getRouteUserIdString(rawId: unknown): string {
@@ -44,30 +39,9 @@ function getMissingSchoolIdMessage(): string {
 export function useManagerStudentDetailsPage() {
     const route = useRoute();
     const { fetchScheduleForStudent } = useScheduleApi();
-    const {
-        createStudentPayment,
-        fetchStudentPayments,
-        markStudentPaymentPaid,
-        markStudentPaymentUnpaid,
-        updateStudentPayment,
-    } = usePaymentsApi();
-
     const student = ref<StudentDetail | null>(null);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const payments = ref<StudentPaymentItem[]>([]);
-    const paymentsSummary = ref<StudentPaymentsSummary>({
-        paidAmount: '0.00',
-        unpaidAmount: '0.00',
-        overdueAmount: '0.00',
-        overdueCount: 0,
-        nextDueDate: null,
-        currency: 'PLN',
-    });
-    const paymentsLoading = ref(false);
-    const paymentsError = ref<string | null>(null);
-    const paymentsSaving = ref(false);
-    const paymentsActionError = ref<string | null>(null);
     const scheduleWeekStart = ref<Date>(getMonday(new Date()));
     const scheduleItems = ref<ScheduleLessonItem[]>([]);
     const scheduleLoading = ref(false);
@@ -94,6 +68,24 @@ export function useManagerStudentDetailsPage() {
         schoolId,
     });
 
+    const {
+        payments,
+        paymentsSummary,
+        paymentsLoading,
+        paymentsError,
+        paymentsSaving,
+        paymentsActionError,
+        paymentsOverviewLabel,
+        loadStudentPayments,
+        handleCreateStudentPayment,
+        handleUpdateStudentPayment,
+        handleMarkStudentPaymentPaid,
+        handleMarkStudentPaymentUnpaid,
+    } = useManagerStudentPayments({
+        schoolId,
+        getUserId: () => route.params.userId,
+    });
+
     const studentDisplayName = computed(() => {
         return getStudentDetailsDisplayName(student.value);
     });
@@ -108,14 +100,6 @@ export function useManagerStudentDetailsPage() {
 
     const notesOverviewLabel = computed(() => {
         return getStudentNotesOverviewLabel(student.value);
-    });
-
-    const paymentsOverviewLabel = computed(() => {
-        return getStudentCountOverviewLabel({
-            isLoading: paymentsLoading.value,
-            hasError: Boolean(paymentsError.value),
-            count: payments.value.length,
-        });
     });
 
     const scheduleOverviewLabel = computed(() => {
@@ -149,7 +133,6 @@ export function useManagerStudentDetailsPage() {
     });
 
     let fetchSeq = 0;
-    let paymentsFetchSeq = 0;
     let scheduleFetchSeq = 0;
 
     async function loadStudent(rawUserId: unknown): Promise<void> {
@@ -221,56 +204,6 @@ export function useManagerStudentDetailsPage() {
         } finally {
             if (seq === fetchSeq) {
                 isLoading.value = false;
-            }
-        }
-    }
-
-    async function loadStudentPayments(rawUserId: unknown): Promise<void> {
-        const userId = getRouteUserIdString(rawUserId);
-
-        payments.value = [];
-        paymentsError.value = null;
-
-        if (!userId || !schoolId.value) {
-            paymentsLoading.value = false;
-
-            return;
-        }
-
-        const seq = ++paymentsFetchSeq;
-
-        paymentsLoading.value = true;
-
-        try {
-            const data = await fetchStudentPayments(userId, schoolId.value);
-
-            if (seq !== paymentsFetchSeq) {
-                return;
-            }
-
-            payments.value = data.payments;
-            paymentsSummary.value = data.summary;
-        } catch (err: unknown) {
-            if (seq !== paymentsFetchSeq) {
-                return;
-            }
-
-            payments.value = [];
-            paymentsSummary.value = {
-                paidAmount: '0.00',
-                unpaidAmount: '0.00',
-                overdueAmount: '0.00',
-                overdueCount: 0,
-                nextDueDate: null,
-                currency: 'PLN',
-            };
-            paymentsError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać opłat kursanta.',
-            );
-        } finally {
-            if (seq === paymentsFetchSeq) {
-                paymentsLoading.value = false;
             }
         }
     }
@@ -372,84 +305,6 @@ export function useManagerStudentDetailsPage() {
 
         d.setDate(d.getDate() + 7);
         scheduleWeekStart.value = getMonday(d);
-    }
-
-    async function handleCreateStudentPayment(
-        payload: CreateStudentPaymentPayload,
-    ): Promise<void> {
-        await handleStudentPaymentAction(() =>
-            createStudentPayment(
-                getRouteUserIdString(route.params.userId),
-                schoolId.value,
-                payload,
-            ),
-        );
-    }
-
-    async function handleUpdateStudentPayment(
-        paymentId: string,
-        payload: UpdateStudentPaymentPayload,
-    ): Promise<void> {
-        await handleStudentPaymentAction(() =>
-            updateStudentPayment(
-                getRouteUserIdString(route.params.userId),
-                schoolId.value,
-                paymentId,
-                payload,
-            ),
-        );
-    }
-
-    async function handleMarkStudentPaymentPaid(
-        paymentId: string,
-    ): Promise<void> {
-        await handleStudentPaymentAction(() =>
-            markStudentPaymentPaid(
-                getRouteUserIdString(route.params.userId),
-                schoolId.value,
-                paymentId,
-            ),
-        );
-    }
-
-    async function handleMarkStudentPaymentUnpaid(
-        paymentId: string,
-    ): Promise<void> {
-        await handleStudentPaymentAction(() =>
-            markStudentPaymentUnpaid(
-                getRouteUserIdString(route.params.userId),
-                schoolId.value,
-                paymentId,
-            ),
-        );
-    }
-
-    async function handleStudentPaymentAction(
-        action: () => ReturnType<typeof createStudentPayment>,
-    ): Promise<void> {
-        paymentsActionError.value = null;
-
-        if (!schoolId.value) {
-            paymentsActionError.value = getMissingSchoolIdMessage();
-
-            return;
-        }
-
-        paymentsSaving.value = true;
-
-        try {
-            const data = await action();
-
-            payments.value = data.payments;
-            paymentsSummary.value = data.summary;
-        } catch (err: unknown) {
-            paymentsActionError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się zapisać płatności kursanta.',
-            );
-        } finally {
-            paymentsSaving.value = false;
-        }
     }
 
     return {
