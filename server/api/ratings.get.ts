@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamLessonRatingsList } from '~~/server/utils/ratings/lessonRatingsBff';
 import { bffMockLessonRatingsList } from '~~/server/utils/ratings/ratingsMockBff';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
@@ -40,16 +41,16 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamLessonRatingsList(event, upstreamBase),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamLessonRatingsList(event, upstream);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockLessonRatingsList({
-        schoolId,
-        ...(instructorId ? { instructorId } : {}),
+            return bffMockLessonRatingsList({
+                schoolId,
+                ...(instructorId ? { instructorId } : {}),
+            });
+        },
     });
 });

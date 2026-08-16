@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffScheduleMeGet } from '~~/server/utils/schedule/scheduleBff';
 import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
 import { requireStudentOrInstructorFromCookie } from '~~/server/utils/auth/requireStudentOrInstructorFromCookie';
@@ -10,16 +11,16 @@ export default defineEventHandler(async (event) => {
         dateTo: q.dateTo,
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffScheduleMeGet(event, upstreamBase, params.toString()),
+        mock: async () => {
+            await requireStudentOrInstructorFromCookie(event);
 
-    if (upstream) {
-        return bffScheduleMeGet(event, upstream, params.toString());
-    }
-
-    await requireStudentOrInstructorFromCookie(event);
-
-    return {
-        success: true,
-        data: { items: [] },
-    };
+            return {
+                success: true,
+                data: { items: [] },
+            };
+        },
+    });
 });

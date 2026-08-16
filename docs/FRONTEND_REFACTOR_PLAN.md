@@ -531,7 +531,7 @@ Wynik porownania po migracji:
 
 ### Kolejnosc migracji domen
 
-- [ ] ratings i proste endpointy `me`;
+- [x] ratings i proste endpointy `me`;
 - [ ] vehicles bez uploadu;
 - [ ] courses;
 - [ ] instructors bez availability;
@@ -543,6 +543,17 @@ Wynik porownania po migracji:
 - [ ] availability i slots;
 - [ ] uploady `FormData`;
 - [ ] auth i profile jako ostatnie przypadki specjalne.
+
+Pierwsza fala migracji domenowej przepieta na `executeBffAdapter`:
+
+- `server/api/ratings/me.get.ts`;
+- `server/api/ratings.get.ts`;
+- `server/api/instructors/[id]/ratings.get.ts`;
+- `server/api/lessons/[lessonId]/rating.get.ts`;
+- `server/api/lessons/[lessonId]/rating.post.ts`;
+- `server/api/me/courses.get.ts`;
+- `server/api/me/payments.get.ts`;
+- `server/api/schedule/me.get.ts`.
 
 ### Sugerowane commity
 

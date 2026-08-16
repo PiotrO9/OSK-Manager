@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffLessonRatingGet } from '~~/server/utils/lessons/lessonsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
@@ -8,18 +9,18 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidlowy identyfikator lekcji.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffLessonRatingGet(event, upstreamBase, lessonId),
+        mock: async () => {
+            await requireStudentFromCookie(event);
 
-    if (upstream) {
-        return bffLessonRatingGet(event, upstream, lessonId);
-    }
-
-    await requireStudentFromCookie(event);
-
-    return {
-        success: true,
-        data: {
-            rating: null,
+            return {
+                success: true,
+                data: {
+                    rating: null,
+                },
+            };
         },
-    };
+    });
 });

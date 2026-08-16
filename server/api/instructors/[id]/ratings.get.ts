@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamInstructorLessonRatingsList } from '~~/server/utils/ratings/lessonRatingsBff';
 import { bffMockLessonRatingsList } from '~~/server/utils/ratings/ratingsMockBff';
 import {
@@ -14,13 +15,14 @@ export default defineEventHandler(async (event) => {
         required: 'Parametr schoolId jest wymagany.',
         invalid: 'Parametr schoolId musi byc poprawnym UUID.',
     });
-    const upstream = resolveUpstreamBase(event);
 
-    if (upstream) {
-        return bffUpstreamInstructorLessonRatingsList(event, upstream, id);
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamInstructorLessonRatingsList(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    await requireManagerFromCookie(event);
-
-    return bffMockLessonRatingsList({ schoolId, instructorId: id });
+            return bffMockLessonRatingsList({ schoolId, instructorId: id });
+        },
+    });
 });

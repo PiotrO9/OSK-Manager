@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffLessonRatingPost } from '~~/server/utils/lessons/lessonsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
@@ -63,36 +64,37 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
-
-    if (upstream) {
-        const result = await bffLessonRatingPost(
-            event,
-            upstream,
-            lessonId,
-            parsed.body,
-        );
-
-        setResponseStatus(event, 201);
-
-        return result;
-    }
-
-    await requireStudentFromCookie(event);
-
-    setResponseStatus(event, 201);
-
-    return {
-        success: true,
-        data: {
-            rating: {
-                id: randomUUID(),
+    return executeBffAdapter(event, {
+        upstream: async ({ upstreamBase }) => {
+            const result = await bffLessonRatingPost(
+                event,
+                upstreamBase,
                 lessonId,
-                instructorId: randomUUID(),
-                rating: parsed.body.rating,
-                comment: parsed.body.comment,
-                createdAt: new Date().toISOString(),
-            },
+                parsed.body,
+            );
+
+            setResponseStatus(event, 201);
+
+            return result;
         },
-    };
+        mock: async () => {
+            await requireStudentFromCookie(event);
+
+            setResponseStatus(event, 201);
+
+            return {
+                success: true,
+                data: {
+                    rating: {
+                        id: randomUUID(),
+                        lessonId,
+                        instructorId: randomUUID(),
+                        rating: parsed.body.rating,
+                        comment: parsed.body.comment,
+                        createdAt: new Date().toISOString(),
+                    },
+                },
+            };
+        },
+    });
 });
