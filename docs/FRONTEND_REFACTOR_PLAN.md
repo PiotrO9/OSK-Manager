@@ -1087,10 +1087,10 @@ kontenera `ManagerEventEditContainer.vue`.
 - [x] Dodac test najwazniejszego zachowania przed podzialem.
 - [x] Wyciagnac czyste mapowania do `utils/<domain>`.
 - [x] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
-- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
-- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
-- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
-- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- [x] Nie duplikowac stanu pomiedzy nowymi composables.
+- [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
 - [ ] Przepiac konsumentow.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
@@ -1161,6 +1161,20 @@ Pozostale composables korzystaja z danych formularza posrednio przez ten kontene
   stan i efekty do nowego composable.
 - Dodano testy hydratacji rozbitych pol czasu oraz automatycznego przesuniecia
   konca, gdy nie jest pozniej niz start.
+
+#### Wynik kontroli granic stanu
+
+- `useManagerEventEditForm` nie kopiuje stanu czasu; przekazuje te same refy
+  `formStartLocal` i `formEndLocal` do `useManagerEventEditTimePicker`.
+- Publiczne pola formularza pozostaja mutowalnymi refami, bo obecny kontrakt
+  kontenera i `v-model` zakladaja bezposrednia edycje stanu formularza. Nowe
+  pola pochodne pozostaja `computed`, a mutacje czasu przechodza przez jawne
+  handlery.
+- `useManagerEventEditForm` i `useManagerEventEditTimePicker` przyjmuja jeden
+  obiekt wejscia zamiast listy opcjonalnych argumentow.
+- Wrapper `useManagerEventEditForm` zachowuje dotychczasowe nazwy zwracanych pol
+  i funkcji, dzieki czemu `ManagerEventEditContainer.vue` nie wymagal migracji w
+  tym kroku.
 
 ### Kryterium zakonczenia
 
