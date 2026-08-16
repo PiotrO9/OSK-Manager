@@ -4,6 +4,7 @@ import {
     type UpstreamRequestOptions,
 } from '~~/server/utils/upstream/upstreamRequest';
 import type { BffLessonPatchBody } from './parseLessonPatchBody';
+import type { BffOwnLessonCreateBody } from './parseOwnLessonBody';
 
 const INVALID_JSON = 'Nieprawidłowa odpowiedź serwera (niepoprawny JSON).';
 const HTML_ERROR =
@@ -85,7 +86,7 @@ export async function bffLessonsPost(
 export async function bffOwnLessonPost(
     event: H3Event,
     upstreamBase: string,
-    body: Record<string, unknown>,
+    body: BffOwnLessonCreateBody,
 ): Promise<{ success: true; data: { lesson: LessonCreateResponse } }> {
     const data = await lessonDataRequest<{ lesson: LessonCreateResponse }>(
         event,

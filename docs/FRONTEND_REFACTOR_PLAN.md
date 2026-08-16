@@ -869,6 +869,9 @@ Data: 2026-08-16.
 - Parser `PATCH /events/:eventId` zostal przeniesiony z handlera do
   `server/utils/events/parseEventPatchBody.ts`; adapter upstream przyjmuje
   teraz waski `BffEventPatchBody`, a mock nie wymaga rzutowania pol.
+- Parser `POST /lessons/me` zostal przeniesiony z handlera do
+  `server/utils/lessons/parseOwnLessonBody.ts`; adapter upstream przyjmuje
+  teraz jawny `BffOwnLessonCreateBody`.
 - Nie zamieniano `unknown` na pozornie mocniejsze typy tam, gdzie nie ma jeszcze
   runtime walidacji lub wygenerowany kontrakt nie jest lokalnie uzywany.
 
