@@ -1435,7 +1435,7 @@ dziennego widoku wydarzen, bez zmiany publicznego API `app/pages/events/index.vu
 - [x] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
 - [x] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
 - [x] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
-- [ ] Przepiac konsumentow.
+- [x] Przepiac konsumentow.
 - [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
 - [ ] Uruchomic test domeny i lint.
 
@@ -1538,6 +1538,14 @@ Eksporty helperow prezentacyjnych uzywane poza composable:
 - `EventsDaySchedulePanel.vue` i `app/pages/events/index.vue` nie wymagaly
   jeszcze zmian importow ani propsow, dzieki czemu migracja pozostaje
   kompatybilna.
+
+#### Przepiecie konsumentow
+
+- `EventsDaySchedulePanel.vue` importuje helpery prezentacyjne i typ filtra
+  statusu bezposrednio z `app/utils/events/eventsDayPage.ts`.
+- Z `useEventsDayPage.ts` panel nadal importuje tylko typy powiazane z
+  kontraktem fasady strony: `EventsDayViewMode`, `InstructorScheduleColumn` i
+  `InstructorScheduleRow`.
 
 ### Kryterium zakonczenia
 

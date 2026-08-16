@@ -1,20 +1,22 @@
 <script setup lang="ts">
 import EventsStatusFilter from '~/components/events/EventsStatusFilter.vue';
 import EventsViewModeToggle from '~/components/events/EventsViewModeToggle.vue';
+import type {
+    EventsDayViewMode,
+    InstructorScheduleColumn,
+    InstructorScheduleRow,
+} from '~/composables/events/useEventsDayPage';
 import {
+    EVENTS_DAY_STATUS_FILTER_OPTIONS,
     displayEventMeta,
     displayEventPrimary,
     displayParticipantCount,
+    eventIsoToHm,
     eventTypeBadgeClasses,
     eventTypeLabel,
-    EVENTS_DAY_STATUS_FILTER_OPTIONS,
-    eventIsoToHm,
     statusFilterLabelForOption,
     type EventsDayStatusFilterOption,
-    type EventsDayViewMode,
-    type InstructorScheduleColumn,
-    type InstructorScheduleRow,
-} from '~/composables/events/useEventsDayPage';
+} from '~/utils/events/eventsDayPage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     instructorEventStatusBadgeVariant,
