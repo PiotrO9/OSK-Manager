@@ -2165,7 +2165,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 
 - [x] Zinwentaryzowac `unknown`, szerokie `Record<string, unknown>` i lokalne DTO.
 - [x] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
-- [ ] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
+- [x] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
 - [ ] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
 - [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
 - [ ] Ujednolicic normalizatory odpowiedzi i ich testy.
@@ -2221,6 +2221,17 @@ Zasada dla dalszych commitow Etapu 6: nie mieszac tych kategorii w jednej
 nazwie. Gdy typ opisuje surowa odpowiedz lub request API, dopisac to w nazwie
 albo komentarzu; gdy typ opisuje znormalizowany widok, trzymac go przy domenie
 UI.
+
+### Alias OpenAPI Dla Events
+
+Jedyny bezposredni import `~/types/generated/api` poza plikiem wygenerowanym
+byl w `useInstructorEventsApi.ts`. Zostal przeniesiony do waskiego aliasu
+`app/types/events/instructorEventApi.ts`, ktory eksportuje tylko:
+`InstructorEventCreateApiData`, `InstructorEventGetApiData` i
+`InstructorEventPatchApiData`.
+
+Zasada: komponenty i composables importuja typy domenowe albo waskie aliasy
+API; `generated/api.ts` zostaje szczegolem implementacji przy granicy typow.
 
 ### Kryterium zakonczenia
 

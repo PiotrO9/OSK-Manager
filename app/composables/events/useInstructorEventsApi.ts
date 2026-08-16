@@ -9,22 +9,13 @@ import type {
     PatchInstructorEventPayload,
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
-import type { paths } from '~/types/generated/api';
+import type {
+    InstructorEventCreateApiData,
+    InstructorEventGetApiData,
+    InstructorEventPatchApiData,
+} from '~/types/events/instructorEventApi';
 import { normalizeInstructorEventFromApi } from '~/utils/events/instructorEventNormalize';
 import { normalizeTheoryEventEligibleStudents } from '~/utils/events/theoryEventEligibleStudents';
-
-type ApiSuccessData<T> = T extends { success: true; data: infer Data }
-    ? Data
-    : never;
-type EventCreateResponse =
-    paths['/events']['post']['responses'][201]['content']['application/json'];
-type EventGetResponse =
-    paths['/events/{id}']['get']['responses'][200]['content']['application/json'];
-type EventPatchResponse =
-    paths['/events/{id}']['patch']['responses'][200]['content']['application/json'];
-type EventCreateApiData = ApiSuccessData<EventCreateResponse>;
-type EventGetApiData = ApiSuccessData<EventGetResponse>;
-type EventPatchApiData = ApiSuccessData<EventPatchResponse>;
 
 function buildPatchRequestBody(
     payload: PatchInstructorEventPayload,
@@ -101,7 +92,7 @@ export function useInstructorEventsApi() {
                 body.courseId = payload.courseId.trim();
             }
 
-            const data = await requestBffData<EventCreateApiData>(
+            const data = await requestBffData<InstructorEventCreateApiData>(
                 'POST',
                 '/api/events',
                 {
@@ -169,7 +160,7 @@ export function useInstructorEventsApi() {
         try {
             const query =
                 options?.includeSlots === true ? '?includeSlots=true' : '';
-            const data = await requestBffData<EventGetApiData>(
+            const data = await requestBffData<InstructorEventGetApiData>(
                 'GET',
                 `/api/events/${encodeURIComponent(eid)}${query}`,
                 {
@@ -233,7 +224,7 @@ export function useInstructorEventsApi() {
         try {
             const body = buildPatchRequestBody(payload);
 
-            const data = await requestBffData<EventPatchApiData>(
+            const data = await requestBffData<InstructorEventPatchApiData>(
                 'PATCH',
                 `/api/events/${encodeURIComponent(eid)}`,
                 {
