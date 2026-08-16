@@ -2300,7 +2300,7 @@ Cel: podnosic pokrycie wedlug ryzyka, a nie wedlug samej liczby linii.
 - [x] Pokryc macierz middleware rol.
 - [x] Pokryc event edit form i payload.
 - [x] Pokryc student details: profil, kursy i platnosci.
-- [ ] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
+- [x] Pokryc schedule: zakres tygodnia i mapowanie wydarzen.
 - [ ] Pokryc vehicle edit i status availability.
 - [ ] Pokryc parsery body i query Nitro.
 - [ ] Dodawac test regresyjny dla kazdego znalezionego bledu.
@@ -2340,6 +2340,14 @@ oraz synchronizacji lokalnych pol daty/czasu.
 przechodza: 8 testow dla normalizacji profilu kursanta, przypisanych kursow,
 statusow kursow, labeli widoku szczegolow, guardu braku `schoolId` oraz
 ladowania platnosci z overview.
+
+### Schedule
+
+`weeklyCalendarDates.test.ts`, `useScheduleApi.test.ts`,
+`useManagerStudentSchedule.test.ts` i `eventsDayPage.test.ts` przechodza: 10
+testow dla zakresu poniedzialek-niedziela, siedmiu dni kalendarza, mapowania
+`items` z BFF, sciezek schedule managera, guardow pustych identyfikatorow oraz
+wyswietlania wydarzen dnia.
 
 ### Kryterium zakonczenia
 
