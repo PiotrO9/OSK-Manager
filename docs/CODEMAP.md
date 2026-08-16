@@ -6,20 +6,24 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 
 | Ścieżka                                                                   | Rola                                                                                                                         |
 | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, lista pojazdów, design system sekcje).                                       |
+| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, `NavTree`) i sekcje demo/design-system.                                      |
 | [app/components/app/design-system/](../app/components/app/design-system/) | Sekcje showcase (`Section*`), `EmblaCarousel`, `AppLoader`.                                                                  |
 | [app/components/shadcn/](../app/components/shadcn/)                       | Komponenty shadcn-vue (prefiks `Ui*` w szablonie).                                                                           |
+| [app/components/account/](../app/components/account/)                     | Komponenty strony konta użytkownika.                                                                                         |
+| [app/components/events/](../app/components/events/)                       | Komponenty dziennego widoku wydarzeń.                                                                                        |
 | [app/components/manager/](../app/components/manager/)                     | Formularze i siatki modułu managera OSK.                                                                                     |
+| [app/components/student/](../app/components/student/)                     | Komponenty widoków kursanta: lekcje, płatności, oceny.                                                                       |
+| [app/components/vehicles/](../app/components/vehicles/)                   | Komponenty domeny pojazdów: lista, formularz, szczegóły, status dostępności i zdjęcie.                                       |
 | [app/composables/](../app/composables/)                                   | Logika wielokrotnego użytku (`useApi`, `useAuthSession`, `useVehiclesApi`, …).                                               |
 | [app/utils/](../app/utils/)                                               | Funkcje czyste: `apiEnvelope`, `bffEndpoint`, `availabilityTimeline` (oś 6:00–22:00 dla UI dostępności), `date`, `keyboard`. |
 | [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).                                                   |
 | [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                                                            |
-| [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                    |
+| [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                 |
 
 ## Pojazdy i szkoły (OSK)
 
 - Strony: [app/pages/vehicles/](../app/pages/vehicles/), [app/pages/manager/osk/](../app/pages/manager/osk/).
-- Composable strony listy: [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+- Composable strony listy: [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/vehicles/VehiclesListPanel.vue).
 - API klient: [useVehiclesApi.ts](../app/composables/vehicles/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/schools/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
 - Typy: [vehicle.ts](../app/types/vehicles/vehicle.ts), [drivingSchool.ts](../app/types/schools/drivingSchool.ts).
 

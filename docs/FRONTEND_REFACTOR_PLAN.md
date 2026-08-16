@@ -2418,7 +2418,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Zachowac jawne importy dla waznych zaleznosci domenowych.
 - [x] Nie dodawac nowych barrel files w domenach.
 - [x] Zweryfikowac, czy szerokie `imports.dirs` nie maskuje kolizji nazw.
-- [ ] Zaktualizowac `docs/CODEMAP.md`.
+- [x] Zaktualizowac `docs/CODEMAP.md`.
 - [ ] Zaktualizowac `docs/ARCHITECTURE.md`.
 - [ ] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
 - [ ] Zaktualizowac `docs/API_AND_BFF.md`.
