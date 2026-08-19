@@ -58,8 +58,9 @@ audytow; nie sa juz osobnymi dashboardami postepu.
 ### Aktywne zadania do zamkniecia brancha
 
 - [ ] Rozstrzygnac `REF-003`: uruchomic pelny smoke
-      `NUXT_BFF_ADAPTER=upstream` z dzialajacym backendiem albo zapisac decyzje,
-      ze bez aktualnego upstreamu zamykamy branch z tym blockerem.
+      `NUXT_BFF_ADAPTER=upstream` z dzialajacym backendiem i dostepnym Supabase
+      albo zapisac decyzje, ze bez dostepu DNS/Supabase zamykamy branch z tym
+      blockerem.
 - [ ] Po decyzji o `REF-003` uruchomic finalne kontrole uzgodnione dla zamkniecia
       brancha: `npm run test`, `npm run lint`, bez `npm run build`, chyba ze
       zostanie wydane osobne polecenie.
@@ -97,8 +98,9 @@ zanim zaczniemy kolejny duzy refactor frontu.
 
 - [x] `REF-002`: duplikat `CourseCreateKind` / `CourseKind` zostal rozwiazany
       przez wspolny kontrakt `shared/contracts/courses.ts`.
-- [ ] `REF-003`: pelny smoke `NUXT_BFF_ADAPTER=upstream` jest zablokowany przez
-      brak dzialajacego backendu albo aktualnego URL upstreamu.
+- [ ] `REF-003`: lokalny backend i frontend startuja, ale pelny smoke
+      `NUXT_BFF_ADAPTER=upstream` jest zablokowany przez brak dostepu DNS do
+      Supabase z backendu.
 
 ### Jak czytac reszte dokumentu
 
@@ -2645,11 +2647,28 @@ Tryb `upstream` zostal sprawdzony czesciowo bez builda:
 - SSR fetch `/login` zwrocil `200`, HTML zawieral tekst logowania oraz payload
   Nuxt.
 
-Pelny upstream smoke przez BFF jest zablokowany przez srodowisko: kontrolowany
-POST `/api/auth/login` z niepoprawnymi danymi zwrocil `502` z komunikatem
-polaczenia/konfiguracji upstream. Do domkniecia potrzebny jest dzialajacy
-backend pod adresem z `NUXT_PUBLIC_API_BASE` albo aktualny URL testowego
-upstreamu.
+Ponowna proba z lokalnym backendiem:
+
+- `npm run dev` w `D:\CODE\OSK-Manager\BE` uruchomil backend na
+  `http://localhost:3001`;
+- `GET http://127.0.0.1:3001/test` zwrocil `200`;
+- `GET http://127.0.0.1:3001/openapi.json` zwrocil `200`;
+- frontend zostal uruchomiony z
+  `NUXT_BFF_ADAPTER=upstream`,
+  `NUXT_PUBLIC_API_BASE=http://127.0.0.1:3001` i
+  `NUXT_API_UPSTREAM=http://127.0.0.1:3001`;
+- `GET http://127.0.0.1:3025/login` zwrocil `200` i wyrenderowal formularz
+  logowania;
+- `GET http://127.0.0.1:3025/api/course-types` zwrocil oczekiwane `401` bez
+  tokena, co potwierdza przejscie przez FE BFF do lokalnego backendu;
+- kontrolowany `POST http://127.0.0.1:3025/api/auth/login` z niepoprawnymi
+  danymi zwrocil `401`, ale backend zalogowal `getaddrinfo ENOTFOUND` dla hosta
+  Supabase podczas `signInWithPassword`.
+
+Wniosek: polaczenie FE -> Nitro BFF -> lokalny backend dziala. Pelny upstream
+smoke logowania pozostaje zablokowany przez brak dostepu DNS/Supabase z procesu
+backendu. Do domkniecia `REF-003` potrzebny jest dzialajacy dostep backendu do
+Supabase albo decyzja, ze branch zamykamy z tym blockerem srodowiskowym.
 
 ### SSR I Hydration
 
@@ -2772,11 +2791,11 @@ Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden pli
 
 Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
-| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko          | Proponowany etap lub branch                                  | Status |
-| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------ | ------ |
-| REF-001 | etap/plik                                                | krotki opis                                                                                                                                           | low/medium/high | miejsce dalszej pracy                                        | open   |
-| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium          | commit: `refactor: share course kind contract`               | done   |
-| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` nie przechodzi bez dzialajacego backendu                                                                      | medium          | uruchomic backend testowy albo ustawic aktualny upstream URL | open   |
+| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko          | Proponowany etap lub branch                                                           | Status |
+| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- | ------ |
+| REF-001 | etap/plik                                                | krotki opis                                                                                                                                           | low/medium/high | miejsce dalszej pracy                                                                 | open   |
+| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium          | commit: `refactor: share course kind contract`                                        | done   |
+| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` dochodzi do lokalnego backendu, ale backend nie moze rozwiazac hosta Supabase (`ENOTFOUND`) podczas logowania | medium          | zapewnic backendowi dostep DNS/Supabase albo zamknac branch z blockerem srodowiskowym | open   |
 
 ### Todo
 
