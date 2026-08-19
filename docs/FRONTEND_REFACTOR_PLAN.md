@@ -52,19 +52,18 @@ audytow; nie sa juz osobnymi dashboardami postepu.
       przeplywow.
 - [x] Etap 8: struktura katalogow i dokumentacja zostaly zaktualizowane,
       wlacznie z opisem `shared/contracts`.
-- [ ] Etap 9: koncowy audyt jest czesciowo wykonany; pozostaje pelny upstream
-      smoke oraz operacje konczace branch.
+- [ ] Etap 9: koncowy audyt jest prawie wykonany; upstream smoke oraz finalne
+      testy/lint przeszly, pozostaja operacje konczace branch.
 
 ### Aktywne zadania do zamkniecia brancha
 
-- [ ] Rozstrzygnac `REF-003`: uruchomic pelny smoke
-      `NUXT_BFF_ADAPTER=upstream` z dzialajacym backendiem i dostepnym Supabase
-      albo zapisac decyzje, ze bez dostepu DNS/Supabase zamykamy branch z tym
-      blockerem.
-- [ ] Po decyzji o `REF-003` uruchomic finalne kontrole uzgodnione dla zamkniecia
-      brancha: `npm run test`, `npm run lint`, bez `npm run build`, chyba ze
-      zostanie wydane osobne polecenie.
-- [ ] Zaktualizowac status Etapu 9 i Definition of Done po finalnych kontrolach.
+- [x] Rozstrzygnac `REF-003`: po wznowieniu Supabase pelny smoke
+      `NUXT_BFF_ADAPTER=upstream` przeszedl infrastrukturalnie z lokalnym
+      backendiem.
+- [x] Uruchomic finalne kontrole uzgodnione dla zamkniecia brancha:
+      `npm run test`, `npm run lint`, bez `npm run build`, chyba ze zostanie
+      wydane osobne polecenie.
+- [x] Zaktualizowac status Etapu 9 i Definition of Done po finalnych kontrolach.
 - [ ] Zmergowac `refactor/03-bff-adapters` do `master` po akceptacji.
 - [ ] Po potwierdzonym merge usunac zakonczony branch lokalnie i z remote.
 - [ ] Oznaczyc ten plan jako zakonczony albo przeniesc go do dokumentacji
@@ -98,9 +97,10 @@ zanim zaczniemy kolejny duzy refactor frontu.
 
 - [x] `REF-002`: duplikat `CourseCreateKind` / `CourseKind` zostal rozwiazany
       przez wspolny kontrakt `shared/contracts/courses.ts`.
-- [ ] `REF-003`: lokalny backend i frontend startuja, ale pelny smoke
-      `NUXT_BFF_ADAPTER=upstream` jest zablokowany przez brak dostepu DNS do
-      Supabase z backendu.
+- [x] `REF-003`: po wznowieniu Supabase smoke `NUXT_BFF_ADAPTER=upstream`
+      przeszedl: FE renderuje `/login`, FE BFF laczy sie z lokalnym backendiem,
+      a kontrolowany login zwraca normalne `Invalid login credentials` zamiast
+      bledu DNS.
 
 ### Jak czytac reszte dokumentu
 
@@ -2585,7 +2585,7 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [x] Uruchomic `npm run lint`.
 - [x] Nie uruchamiac buildu bez wyraznego polecenia.
 - [x] Wykonac smoke testy w trybie mock.
-- [ ] Wykonac smoke testy w trybie upstream.
+- [x] Wykonac smoke testy w trybie upstream.
 - [x] Sprawdzic SSR i brak hydration warnings.
 - [x] Sprawdzic stan working tree.
 - [x] Zaktualizowac dokumentacje architektury.
@@ -2611,12 +2611,18 @@ normalizacji bez zmiany publicznych URL-i i metod HTTP.
 
 ### Finalny Test Run
 
-`npm run test` przechodzi w Etapie 9: 46 plikow testowych i 168 testow.
+`npm run test` przechodzi w Etapie 9.
+
+- Wczesniejszy finalny run: 46 plikow testowych i 168 testow.
+- Run po zamknieciu `REF-003`: 54 pliki testowe i 191 testow.
 
 ### Finalny Lint
 
 `npm run lint` przechodzi. Polecenie wypisuje ostrzezenie Node/ESM dla
 `@stylistic/eslint-plugin`, ale ESLint konczy sie kodem 0.
+
+Po zamknieciu `REF-003` ponowny `npm run lint` nadal przechodzi z tym samym
+ostrzezeniem Node/ESM.
 
 ### Build
 
@@ -2665,10 +2671,20 @@ Ponowna proba z lokalnym backendiem:
   danymi zwrocil `401`, ale backend zalogowal `getaddrinfo ENOTFOUND` dla hosta
   Supabase podczas `signInWithPassword`.
 
-Wniosek: polaczenie FE -> Nitro BFF -> lokalny backend dziala. Pelny upstream
-smoke logowania pozostaje zablokowany przez brak dostepu DNS/Supabase z procesu
-backendu. Do domkniecia `REF-003` potrzebny jest dzialajacy dostep backendu do
-Supabase albo decyzja, ze branch zamykamy z tym blockerem srodowiskowym.
+Po wznowieniu Supabase wykonano ponowna probe:
+
+- bezposredni `POST http://127.0.0.1:3001/auth/login` z niepoprawnymi danymi
+  zwrocil `401` i `Invalid login credentials`, bez `ENOTFOUND`;
+- `GET http://127.0.0.1:3025/login` zwrocil `200` i wyrenderowal formularz
+  logowania;
+- `POST http://127.0.0.1:3025/api/auth/login` z niepoprawnymi danymi zwrocil
+  `401` i `Invalid login credentials`;
+- `GET http://127.0.0.1:3025/api/course-types` zwrocil oczekiwane `401` bez
+  tokena.
+
+Wniosek: poprzedni blocker `REF-003` wynikal z niedostepnego/zapauzowanego
+Supabase. Po wznowieniu uslugi pelna sciezka FE -> Nitro BFF -> lokalny backend
+-> Supabase przechodzi infrastrukturalnie.
 
 ### SSR I Hydration
 
@@ -2750,13 +2766,12 @@ Dziesiec najwiekszych stron i komponentow po refaktorze:
 | 393   | `app/components/app/design-system/Typography.vue`                        |
 | 393   | `app/pages/my-courses.vue`                                               |
 
-Request-count dla krytycznych widokow zostal porownany statycznie, bo pelny
-upstream smoke jest zablokowany przez niedzialajacy backend testowy. Refaktor
-nie dodal nowych pobran do logowania, listy pojazdow, szczegolow pojazdu,
-edycji pojazdu ani edycji wydarzenia; zmiany przenosily wywolania do
-composables i wspolnego klienta BFF. Dodatkowo sekwencje `fetchSeq` / `loadSeq`
-w kluczowych asynchronicznych widokach zostaly zachowane lub dodane tam, gdzie
-chronia przed nadpisaniem stanu przez spozniona odpowiedz.
+Request-count dla krytycznych widokow zostal porownany statycznie. Refaktor nie
+dodal nowych pobran do logowania, listy pojazdow, szczegolow pojazdu, edycji
+pojazdu ani edycji wydarzenia; zmiany przenosily wywolania do composables i
+wspolnego klienta BFF. Dodatkowo sekwencje `fetchSeq` / `loadSeq` w kluczowych
+asynchronicznych widokach zostaly zachowane lub dodane tam, gdzie chronia przed
+nadpisaniem stanu przez spozniona odpowiedz.
 
 Zmiany jakosciowe niemierzalne jedna liczba:
 
@@ -2791,11 +2806,11 @@ Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden pli
 
 Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
-| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko          | Proponowany etap lub branch                                                           | Status |
-| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------- | ------ |
-| REF-001 | etap/plik                                                | krotki opis                                                                                                                                           | low/medium/high | miejsce dalszej pracy                                                                 | open   |
-| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium          | commit: `refactor: share course kind contract`                                        | done   |
-| REF-003 | Etap 9 / upstream smoke                                  | Pelny smoke `NUXT_BFF_ADAPTER=upstream` dochodzi do lokalnego backendu, ale backend nie moze rozwiazac hosta Supabase (`ENOTFOUND`) podczas logowania | medium          | zapewnic backendowi dostep DNS/Supabase albo zamknac branch z blockerem srodowiskowym | open   |
+| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko          | Proponowany etap lub branch                    | Status |
+| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------- | ------ |
+| REF-001 | etap/plik                                                | krotki opis                                                                                                                                           | low/medium/high | miejsce dalszej pracy                          | open   |
+| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium          | commit: `refactor: share course kind contract` | done   |
+| REF-003 | Etap 9 / upstream smoke                                  | Po wznowieniu Supabase pelny smoke `NUXT_BFF_ADAPTER=upstream` przechodzi infrastrukturalnie; login z blednymi danymi zwraca normalne `401`           | medium          | commit: `docs: close upstream smoke blocker`   | done   |
 
 ### Todo
 
