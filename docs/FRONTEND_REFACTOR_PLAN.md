@@ -24,22 +24,90 @@
 - Raport koncowy musi wymieniac nierozwiazane blockery, wykonane proby i decyzje potrzebne do ich domkniecia.
 - Subagenci moga pomagac w analizie, weryfikacji i rozdzielnych zakresach pracy, ale glowny watek odpowiada za integracje, finalna weryfikacje, commit i push.
 
-## Glowna lista postepu
+## Jedna lista kontrolna refaktoru
 
-Ta lista jest indeksem calego procesu. Szczegolowe checklisty znajduja sie w kolejnych sekcjach.
+Ta sekcja jest jedynym miejscem do oceny aktualnego stanu refaktoru. Checklisty
+w dalszych sekcjach sa notatkami wykonawczymi dla konkretnych etapow, pilotow i
+audytow; nie sa juz osobnymi dashboardami postepu.
 
-- [ ] Etap 0: zapisac baseline i zasady refaktoru
-- [x] Etap 1: ujednolicic wybor adaptera BFF `mock/upstream`
-- [x] Etap 2: domknac jedna warstwe transportu po stronie aplikacji
-- [x] Etap 3: uproscic sesje, autoryzacje i middleware rol
-- [ ] Etap 4: podzielic najwieksze composables na mniejsze odpowiedzialnosci
-- [ ] Etap 5: odchudzic duze strony i komponenty Vue
-- [ ] Etap 6: uporzadkowac typy, walidacje i normalizacje danych
-- [x] Etap 7: rozbudowac siatke testow regresyjnych
-- [ ] Etap 8: ujednolicic strukture katalogow i dokumentacje
-- [ ] Etap 9: wykonac koncowy audyt i zamknac refaktor
-- [ ] Prowadzic kontrole przekrojowe przez wszystkie etapy
-- [ ] Aktualizowac dziennik decyzji i liste problemow odroczonych
+### Status ogolny
+
+- [x] Baseline, zasady pracy i krytyczne smoke scenariusze sa zapisane.
+- [x] Etap 1: wybor adaptera BFF `mock/upstream` jest ujednolicony przez
+      `executeBffAdapter`.
+- [x] Etap 2: aplikacja uzywa jednej warstwy transportu BFF po stronie klienta.
+- [x] Etap 3: sesja, role i middleware maja jedno zrodlo prawdy.
+- [x] Etap 4/P0: najwazniejsze P0 composables zostaly rozbite albo domkniete
+      jako fasady z mniejszymi odpowiedzialnosciami:
+      `useManagerEventEditForm`, `useAuthSession`,
+      `useManagerStudentDetailsPage`, `useEventsDayPage`.
+- [x] Etap 5/P0: najwazniejsze P0 strony i komponenty Vue zostaly odchudzone
+      bez zmiany publicznych kontraktow:
+      `pages/vehicles/[id]/edit.vue`, `VehiclesListPanel.vue`,
+      `ManagerEventStudentPickerDialog.vue`, `CourseCreateForm.vue`.
+- [x] Etap 6: typy, walidacje i normalizatory zostaly uporzadkowane w zakresie
+      zaplanowanym dla tej iteracji; `REF-002` zostal domkniety przez
+      `shared/contracts/courses.ts`.
+- [x] Etap 7: siatka testow regresyjnych zostala rozszerzona dla ryzykownych
+      przeplywow.
+- [x] Etap 8: struktura katalogow i dokumentacja zostaly zaktualizowane,
+      wlacznie z opisem `shared/contracts`.
+- [ ] Etap 9: koncowy audyt jest czesciowo wykonany; pozostaje pelny upstream
+      smoke oraz operacje konczace branch.
+
+### Aktywne zadania do zamkniecia brancha
+
+- [ ] Rozstrzygnac `REF-003`: uruchomic pelny smoke
+      `NUXT_BFF_ADAPTER=upstream` z dzialajacym backendiem albo zapisac decyzje,
+      ze bez aktualnego upstreamu zamykamy branch z tym blockerem.
+- [ ] Po decyzji o `REF-003` uruchomic finalne kontrole uzgodnione dla zamkniecia
+      brancha: `npm run test`, `npm run lint`, bez `npm run build`, chyba ze
+      zostanie wydane osobne polecenie.
+- [ ] Zaktualizowac status Etapu 9 i Definition of Done po finalnych kontrolach.
+- [ ] Zmergowac `refactor/03-bff-adapters` do `master` po akceptacji.
+- [ ] Po potwierdzonym merge usunac zakonczony branch lokalnie i z remote.
+- [ ] Oznaczyc ten plan jako zakonczony albo przeniesc go do dokumentacji
+      historycznej zgodnie z decyzja koncowa.
+
+### Otwarte decyzje zakresowe
+
+Te punkty nie blokuja zamkniecia aktualnego brancha, ale trzeba je rozstrzygnac,
+zanim zaczniemy kolejny duzy refactor frontu.
+
+- [ ] Etap 4/P1-P2: zdecydowac, czy kontynuujemy rozbijanie kolejnych
+      composables na tym samym kierunku, czy zostawiamy je jako osobny przyszly
+      refactor. Kandydaci z planu: `useManagerSchoolScheduleCalendar`,
+      `useManagerInstructorDetailsPage`, `useManagerInstructorSchedulePage`,
+      `useManagerEventEditActions`, `useManagerStudentsPage`, `useAccountPage`,
+      `useManagerCourseDetailPage`, `useMyLessonsPage`.
+- [ ] Etap 5/P1-P2: zdecydowac, czy kontynuujemy odchudzanie kolejnych duzych
+      SFC, czy zamykamy obecny branch po P0. Kandydaci z planu:
+      `ManagerCoursesListPanel.vue`, `pages/login.vue`, `NavTree.vue`,
+      `ManagerTheoryEventCreateDialog.vue`, `VehicleDetailsContent.vue`,
+      `ManagerInstructorDetailsContent.vue`, `pages/my-courses.vue`,
+      `ManagerInstructorFormDialog.vue`.
+- [ ] Dziennik decyzji: dopisac docelowy podzial klienta BFF po Etapie 2, jezeli
+      chcemy zachowac go jako jawna decyzje architektoniczna.
+- [ ] Dziennik decyzji: dopisac przyjete granice komponentow i composables,
+      jezeli P0 piloty maja byc wzorcem dla kolejnych domen.
+- [ ] Usunac placeholder `REF-001` z problemow odroczonych albo zamienic go na
+      realny problem, jesli byl zostawiony celowo.
+
+### Stan blockerow
+
+- [x] `REF-002`: duplikat `CourseCreateKind` / `CourseKind` zostal rozwiazany
+      przez wspolny kontrakt `shared/contracts/courses.ts`.
+- [ ] `REF-003`: pelny smoke `NUXT_BFF_ADAPTER=upstream` jest zablokowany przez
+      brak dzialajacego backendu albo aktualnego URL upstreamu.
+
+### Jak czytac reszte dokumentu
+
+- Sekcje `Etap 0`-`Etap 9` zawieraja szczegoly wykonania, wyniki, uzasadnienia i
+  historyczne checklisty pilotow.
+- Checkboxy w tych sekcjach pomagaly prowadzic konkretne commity, ale aktualny
+  status oceniamy z listy powyzej.
+- Nowe zadania dopisujemy najpierw do tej listy kontrolnej, a dopiero potem do
+  szczegolowej sekcji, jezeli wymaga ona dodatkowego kontekstu.
 
 ## Dlaczego te miejsca sa priorytetem
 
@@ -75,6 +143,9 @@ Najwieksze pliki nie sa automatycznie bledne. Sa jedynie sygnalem do sprawdzenia
 ## Kontrole przekrojowe
 
 Te punkty obowiazuja podczas kazdego etapu. Nie stanowia osobnej migracji i nie powinny rozszerzac zakresu aktualnego brancha bez uzasadnienia.
+
+Nie sa dashboardem postepu; aktualny stan refaktoru oceniamy w sekcji "Jedna
+lista kontrolna refaktoru".
 
 ### Martwy kod
 
@@ -1082,6 +1153,9 @@ Cel: rozdzielic orkiestracje stron, formularze, dane referencyjne i akcje zapisu
 
 ### Checklist dla kazdego composable
 
+Checklist pomocnicza dla pojedynczego commitu/pilota. Aktualny stan Etapu 4
+jest podsumowany w sekcji "Jedna lista kontrolna refaktoru".
+
 - [ ] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
 - [ ] Zapisac jego publiczne API i liste konsumentow.
 - [ ] Dodac test najwazniejszego zachowania przed podzialem.
@@ -1620,6 +1694,9 @@ Przed podzialem kazdego SFC nalezy dopisac krotka mape:
 | list/item              | renderuje kolekcje lub rekord     | elementy              | select/edit/delete   |
 
 ### Checklist dla kazdego SFC
+
+Checklist pomocnicza dla pojedynczego commitu/pilota. Aktualny stan Etapu 5
+jest podsumowany w sekcji "Jedna lista kontrolna refaktoru".
 
 - [ ] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
 - [ ] Zdefiniowac mape komponentow przed edycja.
@@ -2726,6 +2803,8 @@ Planowana kolejnosc moze zostac skorygowana po wynikach testow, ale nie nalezy p
 ## Szablon realizacji pojedynczego zadania
 
 Skopiuj te punkty do opisu pracy nad kazdym kolejnym elementem:
+
+To jest szablon roboczy, nie lista postepu calego refaktoru.
 
 - [ ] Okreslone obecne zachowanie i konsumenci.
 - [ ] Zapisany test regresyjny lub powod, dla ktorego nie jest potrzebny.
