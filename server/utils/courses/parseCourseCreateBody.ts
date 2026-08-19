@@ -4,21 +4,14 @@ import {
     readTrimmedBodyString,
     parseSchoolIdFromBody,
 } from '~~/server/utils/validation/requestValidation';
+import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
 import { z } from 'zod';
-
-export const COURSE_CREATE_KINDS = [
-    'THEORY_GROUP',
-    'PRACTICAL',
-    'EXTRA',
-] as const;
-
-export type CourseCreateKind = (typeof COURSE_CREATE_KINDS)[number];
 
 export interface BffCourseCreateBody {
     schoolId: string;
     name: string;
     category: string;
-    kind: CourseCreateKind;
+    kind: CourseKind;
     totalHours: number;
     capacity?: number | null;
     instructorId?: string | null;
@@ -59,10 +52,6 @@ export function courseCreateBodyToUpstreamRecord(
     }
 
     return o;
-}
-
-function isCourseCreateKind(value: string): value is CourseCreateKind {
-    return COURSE_CREATE_KINDS.includes(value as CourseCreateKind);
 }
 
 function parseTotalHours(body: Record<string, unknown>): number | null {
@@ -172,7 +161,7 @@ export function parseCourseCreateBody(body: unknown):
 
     const kindRaw = readTrimmedBodyString(o, 'kind');
 
-    if (!kindRaw || !isCourseCreateKind(kindRaw)) {
+    if (!kindRaw || !isCourseKind(kindRaw)) {
         return {
             error: 'Pole kind musi być THEORY_GROUP, PRACTICAL lub EXTRA.',
         };

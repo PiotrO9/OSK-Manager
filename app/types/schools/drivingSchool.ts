@@ -1,4 +1,4 @@
-import type { CourseKind } from '~/types/courses/course';
+import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
 
 /** Element `offeredCourseTypes` z GET `/driving-schools` (ustawienia OSK). */
 export interface OfferedCourseType {
@@ -18,12 +18,6 @@ export interface DrivingSchool {
     offeredCourseTypes?: OfferedCourseType[];
     /** Dozwolone `kind` przy tworzeniu kursu (`POST /courses`). */
     enabledCourseKinds?: CourseKind[];
-}
-
-function isCourseKind(value: string): value is CourseKind {
-    return (
-        value === 'THEORY_GROUP' || value === 'PRACTICAL' || value === 'EXTRA'
-    );
 }
 
 function normalizeOfferedCourseType(item: unknown): OfferedCourseType | null {
