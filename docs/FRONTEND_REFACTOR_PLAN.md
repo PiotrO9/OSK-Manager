@@ -4,8 +4,8 @@
 
 - Repozytorium: `FE/OSK-Manager-FE`
 - Stos: Nuxt 4, Vue 3, TypeScript, Nitro, Vitest, Tailwind CSS, shadcn-vue
-- Aktualny branch roboczy: `refactor/03-bff-adapters`
-- Status refaktoru: domkniety merytorycznie, gotowy do merge do `master`
+- Branch roboczy: `refactor/03-bff-adapters` zostal zmergowany do `master` i usuniety lokalnie oraz z remote
+- Status refaktoru: zakonczony
 - Cel: poprawa architektury i testowalnosci bez zmiany zachowania aplikacji
 - Poza zakresem: redesign UI, nowe funkcje biznesowe i zmiany kontraktow backendu
 - Sposob pracy: jeden branch roboczy, male commity, bez Pull Requestow
@@ -66,8 +66,8 @@ audytow; nie sa juz osobnymi dashboardami postepu.
       wydane osobne polecenie.
 - [x] Zaktualizowac status Etapu 9 i Definition of Done po finalnych kontrolach.
 - [x] Oznaczyc ten plan jako zakonczony.
-- [ ] Zmergowac `refactor/03-bff-adapters` do `master`.
-- [ ] Po potwierdzonym merge usunac zakonczony branch lokalnie i z remote.
+- [x] Zmergowac `refactor/03-bff-adapters` do `master`.
+- [x] Po potwierdzonym merge usunac zakonczony branch lokalnie i z remote.
 
 ### Decyzje poza zakresem tego brancha
 
@@ -2585,8 +2585,8 @@ Nowa osoba potrafi przejsc od route do komponentu, composable, typu i endpointu 
 - [x] Sprawdzic stan working tree.
 - [x] Zaktualizowac dokumentacje architektury.
 - [x] Porownac metryki koncowe z baseline.
-- [ ] Zmergowac feature branch lokalnie do `master` po akceptacji.
-- [ ] Usunac zakonczony branch lokalnie i z remote po potwierdzeniu merge.
+- [x] Zmergowac feature branch lokalnie do `master` po akceptacji.
+- [x] Usunac zakonczony branch lokalnie i z remote po potwierdzeniu merge.
 
 ### Audyt Wizualny Kodu
 
