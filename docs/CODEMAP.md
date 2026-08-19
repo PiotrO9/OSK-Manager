@@ -19,6 +19,26 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 | [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).                                                   |
 | [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                                                            |
 | [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                 |
+| [shared/contracts/](../shared/contracts/)                                 | Małe kontrakty domenowe współdzielone przez `app/` i `server/`, bez zależności od UI, Nuxt runtime ani BFF adapterów.        |
+
+## Shared contracts
+
+`shared/contracts/` jest używane wtedy, gdy frontend i BFF muszą korzystać z
+tej samej wartości domenowej albo tego samego małego typu. Przykładem jest
+[courses.ts](../shared/contracts/courses.ts), czyli jedno źródło prawdy dla
+`COURSE_KINDS`, `CourseKind` i `isCourseKind`.
+
+Zasada zależności:
+
+- `app/` może importować z `shared/`;
+- `server/` może importować z `shared/`;
+- `shared/` nie importuje z `app/`, `server/`, Vue, Nuxt runtime ani klientów
+  HTTP.
+
+Jeżeli kod dotyczy prezentacji, np. etykiety `Teoria (grupa)`, zostaje w
+`app/types` albo przy komponencie. Jeżeli kod dotyczy obsługi requestu,
+upstreamu albo mocka BFF, zostaje w `server/`. Do `shared/` trafia tylko
+kontrakt, który naprawdę ma być identyczny po obu stronach.
 
 ## Pojazdy i szkoły (OSK)
 
