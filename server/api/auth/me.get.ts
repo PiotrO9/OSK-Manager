@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 
 const SECRET = new TextEncoder().encode(
@@ -6,86 +7,85 @@ const SECRET = new TextEncoder().encode(
 );
 
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => bffUpstreamMe(event, upstreamBase),
+        mock: async () => {
+            const accessToken = getCookie(event, 'access_token');
 
-    if (upstream) {
-        return bffUpstreamMe(event, upstream);
-    }
+            if (!accessToken) {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Brak tokena dostępu',
+                });
+            }
 
-    const accessToken = getCookie(event, 'access_token');
+            try {
+                const { payload } = await jwtVerify(accessToken, SECRET);
 
-    if (!accessToken) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
+                const userId = String(payload.userId ?? '');
+                const email = String(payload.email ?? '');
+                const firstName = String(payload.firstName ?? '');
+                const lastName = String(payload.lastName ?? '');
+                const role = String(payload.role ?? 'STUDENT');
 
-    try {
-        const { payload } = await jwtVerify(accessToken, SECRET);
+                if (!userId || !email) {
+                    throw createError({
+                        statusCode: 401,
+                        message: 'Nieprawidłowy token',
+                    });
+                }
 
-        const userId = String(payload.userId ?? '');
-        const email = String(payload.email ?? '');
-        const firstName = String(payload.firstName ?? '');
-        const lastName = String(payload.lastName ?? '');
-        const role = String(payload.role ?? 'STUDENT');
+                const nameFromParts = [firstName, lastName]
+                    .map((s) => s.trim())
+                    .filter((s) => s.length > 0)
+                    .join(' ')
+                    .trim();
 
-        if (!userId || !email) {
-            throw createError({
-                statusCode: 401,
-                message: 'Nieprawidłowy token',
-            });
-        }
+                const avatarFromMock = mockUserAvatarGetUrl(userId);
 
-        const nameFromParts = [firstName, lastName]
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0)
-            .join(' ')
-            .trim();
+                return {
+                    success: true,
+                    data: {
+                        user: {
+                            id: userId,
+                            name: nameFromParts || email,
+                            firstName: firstName || '',
+                            lastName: lastName || '',
+                            email,
+                            phone: null as string | null,
+                            bio: null as string | null,
+                            profileUpdatedAt: null as string | null,
+                            pkkNumber:
+                                role.trim().toUpperCase() === 'STUDENT'
+                                    ? (null as string | null)
+                                    : undefined,
+                            avatarUrl: avatarFromMock,
+                            role,
+                            drivingSchools: [],
+                            defaultOskId: null as string | null,
+                        },
+                    },
+                };
+            } catch (err: unknown) {
+                deleteCookie(event, 'access_token', { path: '/' });
+                const code =
+                    err && typeof err === 'object' && 'code' in err
+                        ? String((err as { code: unknown }).code)
+                        : '';
 
-        const avatarFromMock = mockUserAvatarGetUrl(userId);
+                /*
+                 * Wygasły access: zostaw refresh — klient wywoła POST /api/auth/refresh.
+                 * Zły podpis itd.: czyść oba.
+                 */
+                if (code !== 'ERR_JWT_EXPIRED') {
+                    deleteCookie(event, 'refresh_token', { path: '/' });
+                }
 
-        return {
-            success: true,
-            data: {
-                user: {
-                    id: userId,
-                    name: nameFromParts || email,
-                    firstName: firstName || '',
-                    lastName: lastName || '',
-                    email,
-                    phone: null as string | null,
-                    bio: null as string | null,
-                    profileUpdatedAt: null as string | null,
-                    pkkNumber:
-                        role.trim().toUpperCase() === 'STUDENT'
-                            ? (null as string | null)
-                            : undefined,
-                    avatarUrl: avatarFromMock,
-                    role,
-                    drivingSchools: [],
-                    defaultOskId: null as string | null,
-                },
-            },
-        };
-    } catch (err: unknown) {
-        deleteCookie(event, 'access_token', { path: '/' });
-        const code =
-            err && typeof err === 'object' && 'code' in err
-                ? String((err as { code: unknown }).code)
-                : '';
-
-        /*
-         * Wygasły access: zostaw refresh — klient wywoła POST /api/auth/refresh.
-         * Zły podpis itd.: czyść oba.
-         */
-        if (code !== 'ERR_JWT_EXPIRED') {
-            deleteCookie(event, 'refresh_token', { path: '/' });
-        }
-
-        throw createError({
-            statusCode: 401,
-            message: 'Nieprawidłowy lub wygasły token',
-        });
-    }
+                throw createError({
+                    statusCode: 401,
+                    message: 'Nieprawidłowy lub wygasły token',
+                });
+            }
+        },
+    });
 });

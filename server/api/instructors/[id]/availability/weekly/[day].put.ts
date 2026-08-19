@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffWeeklyPut } from '~~/server/utils/instructors/availabilityBff';
 import { mockAvailabilityUpsertDay } from '~~/server/utils/instructors/mockAvailabilityStore';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
@@ -66,21 +67,26 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffWeeklyPut(event, upstreamBase, id, dayOfWeek, {
+                startTime,
+                endTime,
+            }),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffWeeklyPut(event, upstream, id, dayOfWeek, {
-            startTime,
-            endTime,
-        });
-    }
+            const entry = mockAvailabilityUpsertDay(
+                id,
+                dayOfWeek,
+                startTime,
+                endTime,
+            );
 
-    await requireManagerFromCookie(event);
-
-    const entry = mockAvailabilityUpsertDay(id, dayOfWeek, startTime, endTime);
-
-    return {
-        success: true,
-        data: { entry },
-    };
+            return {
+                success: true,
+                data: { entry },
+            };
+        },
+    });
 });

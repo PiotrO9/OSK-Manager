@@ -3,6 +3,7 @@ import {
     MOCK_DEFAULT_OFFERED_COURSE_TYPES,
     type MockDrivingSchoolOfferedType,
 } from '~~/server/utils/schools/mockDrivingSchoolsStore';
+import type { BffInstructorPatchBody } from './parseInstructorPatchBody';
 
 export interface MockInstructorListRow {
     id: string;
@@ -229,7 +230,7 @@ export function mockInstructorsGetById(
  */
 export function mockInstructorsPatchById(
     id: string,
-    patch: Record<string, unknown>,
+    patch: BffInstructorPatchBody,
 ): MockInstructorDetailPayload | null {
     const row = findRowById(id);
 

@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamMyPaymentsList } from '~~/server/utils/payments/paymentsBff';
 
 const SECRET = new TextEncoder().encode(
@@ -41,33 +42,33 @@ function mockMyPaymentsPayload(role: string) {
 }
 
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamMyPaymentsList(event, upstreamBase),
+        mock: async () => {
+            const accessToken = getCookie(event, 'access_token');
 
-    if (upstream) {
-        return bffUpstreamMyPaymentsList(event, upstream);
-    }
+            if (!accessToken) {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Brak tokena dostępu',
+                });
+            }
 
-    const accessToken = getCookie(event, 'access_token');
+            try {
+                const { payload } = await jwtVerify(accessToken, SECRET);
+                const role = String(payload.role ?? '');
 
-    if (!accessToken) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    try {
-        const { payload } = await jwtVerify(accessToken, SECRET);
-        const role = String(payload.role ?? '');
-
-        return {
-            success: true,
-            data: mockMyPaymentsPayload(role),
-        };
-    } catch {
-        throw createError({
-            statusCode: 401,
-            message: 'Nieprawidłowy lub wygasły token',
-        });
-    }
+                return {
+                    success: true,
+                    data: mockMyPaymentsPayload(role),
+                };
+            } catch {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Nieprawidłowy lub wygasły token',
+                });
+            }
+        },
+    });
 });

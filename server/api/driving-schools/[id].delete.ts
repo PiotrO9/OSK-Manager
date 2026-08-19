@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamDrivingSchoolsDelete } from '~~/server/utils/schools/drivingSchoolsBff';
 import { bffMockDrivingSchoolsDelete } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
@@ -8,13 +9,13 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, message: 'Brak ID szkoły' });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamDrivingSchoolsDelete(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamDrivingSchoolsDelete(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockDrivingSchoolsDelete(id);
+            return bffMockDrivingSchoolsDelete(id);
+        },
+    });
 });

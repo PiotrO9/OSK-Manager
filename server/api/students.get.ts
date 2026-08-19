@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
     parsePositiveIntQuery,
@@ -42,18 +43,18 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamStudentsList(event, upstreamBase, {
+                schoolId,
+                page,
+                limit,
+                courseId,
+            }),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamStudentsList(event, upstream, {
-            schoolId,
-            page,
-            limit,
-            courseId,
-        });
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockStudentsList({ schoolId, page, limit, courseId });
+            return bffMockStudentsList({ schoolId, page, limit, courseId });
+        },
+    });
 });

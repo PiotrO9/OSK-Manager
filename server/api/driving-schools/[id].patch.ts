@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsBff';
 import { bffMockDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
@@ -35,13 +36,14 @@ export default defineEventHandler(async (event) => {
         city: readNullableTrimmedString(body?.city),
         address: readNullableTrimmedString(body?.address),
     };
-    const upstream = resolveUpstreamBase(event);
 
-    if (upstream) {
-        return bffUpstreamDrivingSchoolsUpdate(event, upstream, id, payload);
-    }
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamDrivingSchoolsUpdate(event, upstreamBase, id, payload),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    await requireManagerFromCookie(event);
-
-    return bffMockDrivingSchoolsUpdate(id, payload);
+            return bffMockDrivingSchoolsUpdate(id, payload);
+        },
+    });
 });

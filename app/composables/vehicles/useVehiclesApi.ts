@@ -118,7 +118,7 @@ export function useVehiclesApi() {
 
         try {
             await runWithLoading(isDeleteLoading, () =>
-                requestBffData<unknown>(
+                requestBffSuccess(
                     'DELETE',
                     `/api/vehicles/${encodeURIComponent(vehicleId)}`,
                     {
@@ -142,7 +142,7 @@ export function useVehiclesApi() {
         const sid = schoolId.trim();
 
         await runWithLoading(isSetDefaultLoading, () =>
-            requestBffData<unknown>(
+            requestBffSuccess(
                 'PATCH',
                 `/api/driving-schools/${encodeURIComponent(sid)}/default-vehicle`,
                 {

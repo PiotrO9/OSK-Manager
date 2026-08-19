@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     bffMockManagerAttentionItems,
     bffUpstreamManagerAttentionItems,
@@ -21,13 +22,13 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamManagerAttentionItems(event, upstreamBase, schoolId),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamManagerAttentionItems(event, upstream, schoolId);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockManagerAttentionItems(schoolId);
+            return bffMockManagerAttentionItems(schoolId);
+        },
+    });
 });

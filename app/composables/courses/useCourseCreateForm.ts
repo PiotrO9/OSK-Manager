@@ -1,7 +1,8 @@
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import type { CourseCreatePayload, CourseKind } from '~/types/courses/course';
+import type { CourseCreatePayload } from '~/types/courses/course';
 import { instructorHasCourseCategoryQualification } from '~/types/instructors/instructor';
+import { COURSE_KINDS, type CourseKind } from '~~/shared/contracts/courses';
 
 export interface CourseCreateFormProps {
     schoolId: string;
@@ -14,7 +15,7 @@ export interface CourseCreateFormProps {
     apiError: string | null;
 }
 
-const ALL_KINDS: CourseKind[] = ['THEORY_GROUP', 'PRACTICAL', 'EXTRA'];
+const ALL_KINDS: readonly CourseKind[] = COURSE_KINDS;
 
 function numericFieldInputToTrimmedString(
     raw: string | number | null | undefined,

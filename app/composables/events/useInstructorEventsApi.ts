@@ -1,7 +1,4 @@
-import {
-    assertBooleanSuccessEnvelope,
-    getApiErrorStatusCode,
-} from '~/utils/api/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import {
     extractStudentAttendanceFromEvent,
     extractStudentUserIdsFromEventStudentsPayload,
@@ -12,27 +9,38 @@ import type {
     PatchInstructorEventPayload,
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
-import type { paths } from '~/types/generated/api';
+import type {
+    InstructorEventCreateApiData,
+    InstructorEventGetApiData,
+    InstructorEventPatchApiData,
+} from '~/types/events/instructorEventApi';
 import { normalizeInstructorEventFromApi } from '~/utils/events/instructorEventNormalize';
 import { normalizeTheoryEventEligibleStudents } from '~/utils/events/theoryEventEligibleStudents';
 
-type ApiSuccessData<T> = T extends { success: true; data: infer Data }
-    ? Data
-    : never;
-type EventCreateResponse =
-    paths['/events']['post']['responses'][201]['content']['application/json'];
-type EventGetResponse =
-    paths['/events/{id}']['get']['responses'][200]['content']['application/json'];
-type EventPatchResponse =
-    paths['/events/{id}']['patch']['responses'][200]['content']['application/json'];
-type EventCreateApiData = ApiSuccessData<EventCreateResponse>;
-type EventGetApiData = ApiSuccessData<EventGetResponse>;
-type EventPatchApiData = ApiSuccessData<EventPatchResponse>;
+interface InstructorEventCreateRequestBody {
+    instructorId: string;
+    type: CreateInstructorEventPayload['type'];
+    startTime: string;
+    endTime: string;
+    vehicleId?: string;
+    capacity?: number;
+    courseId?: string;
+}
+
+type InstructorEventPatchRequestBody = Partial<{
+    instructorId: string;
+    type: PatchInstructorEventPayload['type'];
+    startTime: string;
+    endTime: string;
+    vehicleId: string | null;
+    capacity: number | null;
+    status: NonNullable<PatchInstructorEventPayload['status']>;
+}>;
 
 function buildPatchRequestBody(
     payload: PatchInstructorEventPayload,
-): Record<string, unknown> {
-    const body: Record<string, unknown> = {};
+): InstructorEventPatchRequestBody {
+    const body: InstructorEventPatchRequestBody = {};
 
     if (payload.instructorId !== undefined) {
         body.instructorId = payload.instructorId.trim();
@@ -73,6 +81,22 @@ function isTheoryEventType(ev: InstructorEvent): boolean {
     return t === 'THEORY';
 }
 
+type EventStudentsPayload =
+    | string[]
+    | Array<Record<string, unknown>>
+    | {
+          data?: unknown;
+          studentUserIds?: unknown;
+          studentIds?: unknown;
+          assignedStudentIds?: unknown;
+          students?: unknown;
+          items?: unknown;
+          participants?: unknown;
+      }
+    | null;
+
+type TheoryEventEligibleStudentsPayload = TheoryEventEligibleStudentsData;
+
 export function useInstructorEventsApi() {
     const isLoading = ref(false);
     const isFetchLoading = ref(false);
@@ -85,7 +109,7 @@ export function useInstructorEventsApi() {
         isLoading.value = true;
 
         try {
-            const body: Record<string, unknown> = {
+            const body: InstructorEventCreateRequestBody = {
                 instructorId: payload.instructorId.trim(),
                 type: payload.type,
                 startTime: payload.startTime.trim(),
@@ -104,7 +128,7 @@ export function useInstructorEventsApi() {
                 body.courseId = payload.courseId.trim();
             }
 
-            const data = await requestBffData<EventCreateApiData>(
+            const data = await requestBffData<InstructorEventCreateApiData>(
                 'POST',
                 '/api/events',
                 {
@@ -133,7 +157,7 @@ export function useInstructorEventsApi() {
         }
 
         try {
-            const payload = await requestBffData<unknown>(
+            const payload = await requestBffData<EventStudentsPayload>(
                 'GET',
                 `/api/events/${encodeURIComponent(eid)}/students`,
                 {
@@ -172,7 +196,7 @@ export function useInstructorEventsApi() {
         try {
             const query =
                 options?.includeSlots === true ? '?includeSlots=true' : '';
-            const data = await requestBffData<EventGetApiData>(
+            const data = await requestBffData<InstructorEventGetApiData>(
                 'GET',
                 `/api/events/${encodeURIComponent(eid)}${query}`,
                 {
@@ -236,7 +260,7 @@ export function useInstructorEventsApi() {
         try {
             const body = buildPatchRequestBody(payload);
 
-            const data = await requestBffData<EventPatchApiData>(
+            const data = await requestBffData<InstructorEventPatchApiData>(
                 'PATCH',
                 `/api/events/${encodeURIComponent(eid)}`,
                 {
@@ -272,7 +296,7 @@ export function useInstructorEventsApi() {
                 ? `?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`
                 : '';
 
-        const data = await requestBffData<unknown>(
+        const data = await requestBffData<TheoryEventEligibleStudentsPayload>(
             'GET',
             `/api/events/${encodeURIComponent(eid)}/eligible-students${query}`,
             {
@@ -301,12 +325,13 @@ export function useInstructorEventsApi() {
         isDeleteLoading.value = true;
 
         try {
-            const raw = await bffFetch<unknown>(
+            await requestBffSuccess(
                 'DELETE',
                 `/api/events/${encodeURIComponent(eid)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć wydarzenia.',
+                },
             );
-
-            assertBooleanSuccessEnvelope(raw);
         } catch (err: unknown) {
             if (getApiErrorStatusCode(err) === 404) {
                 return;

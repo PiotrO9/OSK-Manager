@@ -101,12 +101,6 @@ export function resolveBffAdapter(event: H3Event): BffAdapter {
     });
 }
 
-export function resolveUpstreamBase(event: H3Event): string {
-    const adapter = resolveBffAdapter(event);
-
-    return adapter.mode === 'upstream' ? adapter.upstreamBase : '';
-}
-
 type ProfilePatchPayload = Record<string, string | null | undefined>;
 
 export async function bffUpstreamLogin(

@@ -2,8 +2,9 @@ import {
     normalizeCourseTypeOption,
     type CourseTypeOption,
 } from '~/types/courses/courseType';
+import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
 
-export type CourseKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+export type { CourseKind } from '~~/shared/contracts/courses';
 export type CourseParticipantStatus = 'ACTIVE' | 'FINISHED';
 
 /** Body POST `/api/courses` (BFF → BE) — pola opcjonalne wg `kind`. */
@@ -78,12 +79,6 @@ export function formatCourseParticipantStatusLabel(
     status: CourseParticipantStatus,
 ): string {
     return COURSE_PARTICIPANT_STATUS_LABELS[status] ?? status;
-}
-
-function isCourseKind(value: string): value is CourseKind {
-    return (
-        value === 'THEORY_GROUP' || value === 'PRACTICAL' || value === 'EXTRA'
-    );
 }
 
 function isCourseParticipantStatus(

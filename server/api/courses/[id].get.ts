@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamCoursesGetById } from '~~/server/utils/courses/coursesBff';
 import { bffMockCoursesGetById } from '~~/server/utils/courses/coursesMockBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
@@ -8,13 +9,13 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator kursu.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamCoursesGetById(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamCoursesGetById(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockCoursesGetById(id);
+            return bffMockCoursesGetById(id);
+        },
+    });
 });

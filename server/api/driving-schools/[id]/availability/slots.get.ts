@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 import { bffSchoolSlotsGet } from '~~/server/utils/instructors/availabilityBff';
 import { applyMockSchoolSlotFilters } from '~~/server/utils/schedule/mockSchoolSlotFilters';
@@ -28,29 +29,33 @@ export default defineEventHandler(async (event) => {
     const query = getQuery(event);
     const { dateFromRaw, dateToRaw } = getValidatedSlotsDateRangeQuery(query);
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => {
+            const queryString = buildQueryStringFromGetQuery(query);
 
-    if (upstream) {
-        const queryString = buildQueryStringFromGetQuery(query);
-
-        return bffSchoolSlotsGet(event, upstream, id, queryString);
-    }
-
-    await requireManagerFromCookie(event);
-
-    const { slots: rawSlots } = mockGenerateSchoolSlots(
-        id,
-        dateFromRaw,
-        dateToRaw,
-    );
-
-    const { slots, total } = applyMockSchoolSlotFilters(rawSlots, query);
-
-    return {
-        success: true,
-        data: {
-            slots,
-            total,
+            return bffSchoolSlotsGet(event, upstreamBase, id, queryString);
         },
-    };
+        mock: async () => {
+            await requireManagerFromCookie(event);
+
+            const { slots: rawSlots } = mockGenerateSchoolSlots(
+                id,
+                dateFromRaw,
+                dateToRaw,
+            );
+
+            const { slots, total } = applyMockSchoolSlotFilters(
+                rawSlots,
+                query,
+            );
+
+            return {
+                success: true,
+                data: {
+                    slots,
+                    total,
+                },
+            };
+        },
+    });
 });

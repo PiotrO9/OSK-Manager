@@ -4,6 +4,7 @@ import {
     mockInstructorsListPayload,
     mockInstructorsPatchById,
 } from '~~/server/utils/instructors/mockInstructorsList';
+import type { BffInstructorPatchBody } from './parseInstructorPatchBody';
 
 function dataSuccess(data: unknown): { success: true; data: unknown } {
     return { success: true, data };
@@ -34,7 +35,7 @@ export function bffMockInstructorsGetById(id: string): {
 
 export function bffMockInstructorsPatch(
     id: string,
-    patch: Record<string, unknown>,
+    patch: BffInstructorPatchBody,
 ): { success: true; data: unknown } {
     const updated = mockInstructorsPatchById(id, patch);
 

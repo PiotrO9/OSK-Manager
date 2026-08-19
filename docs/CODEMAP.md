@@ -6,20 +6,44 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 
 | Ścieżka                                                                   | Rola                                                                                                                         |
 | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, lista pojazdów, design system sekcje).                                       |
+| [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, `NavTree`) i sekcje demo/design-system.                                      |
 | [app/components/app/design-system/](../app/components/app/design-system/) | Sekcje showcase (`Section*`), `EmblaCarousel`, `AppLoader`.                                                                  |
 | [app/components/shadcn/](../app/components/shadcn/)                       | Komponenty shadcn-vue (prefiks `Ui*` w szablonie).                                                                           |
+| [app/components/account/](../app/components/account/)                     | Komponenty strony konta użytkownika.                                                                                         |
+| [app/components/events/](../app/components/events/)                       | Komponenty dziennego widoku wydarzeń.                                                                                        |
 | [app/components/manager/](../app/components/manager/)                     | Formularze i siatki modułu managera OSK.                                                                                     |
+| [app/components/student/](../app/components/student/)                     | Komponenty widoków kursanta: lekcje, płatności, oceny.                                                                       |
+| [app/components/vehicles/](../app/components/vehicles/)                   | Komponenty domeny pojazdów: lista, formularz, szczegóły, status dostępności i zdjęcie.                                       |
 | [app/composables/](../app/composables/)                                   | Logika wielokrotnego użytku (`useApi`, `useAuthSession`, `useVehiclesApi`, …).                                               |
 | [app/utils/](../app/utils/)                                               | Funkcje czyste: `apiEnvelope`, `bffEndpoint`, `availabilityTimeline` (oś 6:00–22:00 dla UI dostępności), `date`, `keyboard`. |
 | [app/types/](../app/types/)                                               | Typy domenowe i normalizatory (`vehicle`, `drivingSchool`, `demoMenubar`).                                                   |
 | [server/api/](../server/api/)                                             | Endpointy Nuxt BFF (proxy/mocks).                                                                                            |
-| [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                    |
+| [server/utils/](../server/utils/)                                         | Domenowe grupy BFF, mock adaptery, walidacja requestow i transport upstream.                                                 |
+| [shared/contracts/](../shared/contracts/)                                 | Małe kontrakty domenowe współdzielone przez `app/` i `server/`, bez zależności od UI, Nuxt runtime ani BFF adapterów.        |
+
+## Shared contracts
+
+`shared/contracts/` jest używane wtedy, gdy frontend i BFF muszą korzystać z
+tej samej wartości domenowej albo tego samego małego typu. Przykładem jest
+[courses.ts](../shared/contracts/courses.ts), czyli jedno źródło prawdy dla
+`COURSE_KINDS`, `CourseKind` i `isCourseKind`.
+
+Zasada zależności:
+
+- `app/` może importować z `shared/`;
+- `server/` może importować z `shared/`;
+- `shared/` nie importuje z `app/`, `server/`, Vue, Nuxt runtime ani klientów
+  HTTP.
+
+Jeżeli kod dotyczy prezentacji, np. etykiety `Teoria (grupa)`, zostaje w
+`app/types` albo przy komponencie. Jeżeli kod dotyczy obsługi requestu,
+upstreamu albo mocka BFF, zostaje w `server/`. Do `shared/` trafia tylko
+kontrakt, który naprawdę ma być identyczny po obu stronach.
 
 ## Pojazdy i szkoły (OSK)
 
 - Strony: [app/pages/vehicles/](../app/pages/vehicles/), [app/pages/manager/osk/](../app/pages/manager/osk/).
-- Composable strony listy: [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+- Composable strony listy: [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts); panel: [VehiclesListPanel.vue](../app/components/vehicles/VehiclesListPanel.vue).
 - API klient: [useVehiclesApi.ts](../app/composables/vehicles/useVehiclesApi.ts), [useDrivingSchoolsApi.ts](../app/composables/schools/useDrivingSchoolsApi.ts) (`fetchDefaultDrivingSchool` dla domyślnej szkoły).
 - Typy: [vehicle.ts](../app/types/vehicles/vehicle.ts), [drivingSchool.ts](../app/types/schools/drivingSchool.ts).
 

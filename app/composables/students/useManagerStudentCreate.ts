@@ -37,7 +37,7 @@ export function useManagerStudentCreate() {
         isSaving.value = true;
 
         try {
-            await requestBffData<unknown>('POST', '/api/auth/register', {
+            await requestBffSuccess('POST', '/api/auth/register', {
                 body: {
                     role: 'STUDENT',
                     email: payload.email,

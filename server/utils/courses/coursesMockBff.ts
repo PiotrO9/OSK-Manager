@@ -7,6 +7,7 @@ import {
 } from '~~/server/utils/courses/mockCoursesList';
 import { mockInstructorBelongsToSchool } from '~~/server/utils/instructors/mockInstructorsList';
 import type { BffCourseCreateBody } from './parseCourseCreateBody';
+import type { BffCoursePatchInstructorBody } from './parseCoursePatchBody';
 
 function dataSuccess(data: unknown): { success: true; data: unknown } {
     return { success: true, data };
@@ -92,7 +93,7 @@ export function bffMockCoursesCreate(body: BffCourseCreateBody): {
 
 export function bffMockCoursesPatch(
     id: string,
-    record: Record<string, unknown>,
+    record: BffCoursePatchInstructorBody,
 ): { success: true; data: unknown } {
     if (!('instructorId' in record)) {
         return bffMockCoursesGetById(id);

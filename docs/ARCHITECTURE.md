@@ -7,9 +7,13 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 ```
 ├── app/
 │   ├── components/
-│   │   ├── app/           # UI aplikacji, ToastStack, NavTree, VehiclesListPanel, design-system/
+│   │   ├── app/           # shell UI aplikacji, ToastStack, NavTree, design-system/
+│   │   ├── account/       # komponenty strony konta
+│   │   ├── events/        # dzienny widok wydarzeń
+│   │   ├── manager/       # moduł managera OSK
 │   │   ├── shadcn/        # shadcn-vue (prefiks Ui*)
-│   │   └── manager/       # moduł managera OSK
+│   │   ├── student/       # widoki kursanta
+│   │   └── vehicles/      # lista, formularze i statusy pojazdów
 │   ├── composables/
 │   ├── layouts/
 │   ├── middleware/        # auth.global.ts, manager.ts
@@ -21,6 +25,8 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 ├── server/
 │   ├── api/               # BFF Nitro
 │   └── utils/
+├── shared/
+│   └── contracts/         # czyste kontrakty wspólne dla app/ i server/
 ├── i18n/locales/          # pliki JSON (moduł i18n opcjonalny — patrz niżej)
 ├── docs/
 └── nuxt.config.ts
@@ -63,9 +69,40 @@ Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 ## Configuration (`nuxt.config.ts`)
 
 - **Modules:** `@nuxt/eslint`, `@nuxt/icon`, `@nuxtjs/seo`, `shadcn-nuxt`.
-- **Components:** `~/components/app`, `~/components/app/design-system`, `~/components/shadcn`, `~/components/manager` (bez prefiksu ścieżki).
-- **Imports:** `app/composables`, `app/utils` (auto-import).
+- **Components:** `~/components/app`, `~/components/app/design-system`, `~/components/shadcn`, `~/components/manager`, `~/components/vehicles`, `~/components/student` (bez prefiksu ścieżki).
+- **Imports:** `app/composables`, `app/composables/**`, `app/utils`, `app/utils/**` (auto-import); ważne zależności domenowe w route'ach importujemy jawnie.
 - **Runtime:** `apiUpstream`, `public.apiBase`, `public.siteUrl`, `public.demoMockLogin`.
+
+## Shared Contracts
+
+`shared/` jest neutralną warstwą dla kodu, który musi być używany zarówno przez
+frontend `app/`, jak i przez BFF `server/`. Nie jest to katalog na dowolny
+„wspólny kod”; trzymamy tam tylko małe, stabilne kontrakty domenowe bez
+zależności od UI, Nuxt runtime i transportu HTTP.
+
+Najważniejszy podkatalog to `shared/contracts/`. Przykład:
+`shared/contracts/courses.ts` eksportuje `COURSE_KINDS`, `CourseKind` oraz
+`isCourseKind`. Dzięki temu formularz kursu, normalizatory frontendu i parser
+`server/utils/courses/parseCourseCreateBody.ts` używają tej samej listy wartości,
+bez tworzenia osobnych typów `CourseKind` / `CourseCreateKind`.
+
+Dozwolony kierunek importów:
+
+- `app/` -> `shared/`
+- `server/` -> `shared/`
+
+Niedozwolony kierunek importów:
+
+- `shared/` -> `app/`
+- `shared/` -> `server/`
+- `shared/` -> runtime Nuxt/Vue
+
+Do `shared/contracts/` pasują enum-like wartości domenowe, typy wyprowadzone z
+tych wartości, małe guardy runtime i ewentualnie bardzo wąskie DTO wspólne dla
+`app/` oraz `server/`. Nie pasują tam komponenty Vue, composables, adaptery BFF,
+klienci API, labelki UI ani formatowanie tekstu dla widoku. Dlatego
+`CourseKind` jest w `shared`, ale `formatCourseKindLabel()` zostaje w
+`app/types/courses/course.ts`.
 
 ## Conventions
 

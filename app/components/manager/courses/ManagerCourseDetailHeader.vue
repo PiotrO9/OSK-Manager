@@ -1,11 +1,12 @@
 ﻿<script setup lang="ts">
 import { ArrowLeft, Plus } from 'lucide-vue-next';
+import type { RouteLocationRaw } from 'vue-router';
 
 defineProps<{
     title: string;
     description: string;
-    backToCoursesHref: string | Record<string, unknown>;
-    createCourseTarget: Record<string, unknown>;
+    backToCoursesHref: RouteLocationRaw;
+    createCourseTarget: RouteLocationRaw;
 }>();
 </script>
 

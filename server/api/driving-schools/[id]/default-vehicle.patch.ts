@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/schools/drivingSchoolsBff';
 import { bffMockDrivingSchoolsSetDefaultVehicle } from '~~/server/utils/schools/drivingSchoolsMockBff';
 
@@ -27,18 +28,18 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamDrivingSchoolsSetDefaultVehicle(
+                event,
+                upstreamBase,
+                schoolId,
+                vehicleId,
+            ),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamDrivingSchoolsSetDefaultVehicle(
-            event,
-            upstream,
-            schoolId,
-            vehicleId,
-        );
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockDrivingSchoolsSetDefaultVehicle(schoolId, vehicleId);
+            return bffMockDrivingSchoolsSetDefaultVehicle(schoolId, vehicleId);
+        },
+    });
 });

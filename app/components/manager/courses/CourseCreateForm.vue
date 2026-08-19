@@ -7,8 +7,7 @@ import {
     type CourseKind,
 } from '~/types/courses/course';
 import { formatInstructorDisplayName } from '~/types/instructors/instructor';
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '~/components/shadcn/button';
+import { courseCreateFormMessages } from '~/utils/courses/courseCreateFormMessages';
 
 const props = defineProps<{
     id?: string;
@@ -54,6 +53,8 @@ const {
     theoryStartModel,
     totalHoursModel,
 } = useCourseCreateForm(props, (payload) => emit('submit', payload));
+
+const formMessages = courseCreateFormMessages;
 </script>
 
 <template>
@@ -147,7 +148,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Nazwa jest wymagana.
+                        {{ formMessages.nameRequired }}
                     </p>
                 </div>
 
@@ -216,8 +217,8 @@ const {
                     >
                         {{
                             hasOfferedCategoryList
-                                ? 'Wybierz kategorię z oferty szkoły.'
-                                : 'Podaj kod kategorii.'
+                                ? formMessages.categoryRequiredFromOffer
+                                : formMessages.categoryRequiredManual
                         }}
                     </p>
                 </div>
@@ -258,7 +259,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Wybierz rodzaj kursu.
+                        {{ formMessages.kindRequired }}
                     </p>
                 </div>
 
@@ -290,7 +291,7 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Podaj liczbę całkowitą co najmniej 1.
+                        {{ formMessages.totalHoursInvalid }}
                     </p>
                 </div>
 
@@ -345,20 +346,19 @@ const {
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        <span v-if="showTheoryStartRequired"
-                            >Data rozpoczęcia jest wymagana.</span
-                        >
-                        <span v-else-if="showTheoryEndRequired"
-                            >Data zakończenia jest wymagana.</span
-                        >
+                        <span v-if="showTheoryStartRequired">{{
+                            formMessages.theoryStartRequired
+                        }}</span>
+                        <span v-else-if="showTheoryEndRequired">{{
+                            formMessages.theoryEndRequired
+                        }}</span>
                     </p>
                     <p
                         v-else-if="showTheoryRangeInvalid"
                         class="text-destructive text-sm"
                         role="alert"
                     >
-                        Data zakończenia nie może być wcześniejsza niż data
-                        rozpoczęcia.
+                        {{ formMessages.theoryRangeInvalid }}
                     </p>
 
                     <div class="space-y-2">
@@ -390,7 +390,7 @@ const {
                             class="text-destructive text-sm"
                             role="alert"
                         >
-                            Podaj liczbę całkowitą od 0 lub zostaw puste.
+                            {{ formMessages.capacityInvalid }}
                         </p>
                     </div>
                 </template>
@@ -468,35 +468,10 @@ const {
             </div>
         </div>
 
-        <div
-            class="border-border bg-muted/10 flex flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end md:px-5"
-        >
-            <UiButton
-                as-child
-                variant="outline"
-                class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-            >
-                <NuxtLink
-                    :to="{
-                        path: '/manager/courses',
-                        query: { schoolId: props.schoolId },
-                    }"
-                >
-                    Anuluj
-                </NuxtLink>
-            </UiButton>
-            <button
-                type="submit"
-                :class="
-                    cn(
-                        buttonVariants(),
-                        'h-10 rounded-xl px-4 font-semibold shadow-sm',
-                    )
-                "
-                :disabled="isSaving || isFormBlocked"
-            >
-                {{ isSaving ? 'Tworzenie…' : 'Zapisz' }}
-            </button>
-        </div>
+        <CourseCreateFormActions
+            :school-id="props.schoolId"
+            :is-saving="isSaving"
+            :is-blocked="isFormBlocked"
+        />
     </form>
 </template>

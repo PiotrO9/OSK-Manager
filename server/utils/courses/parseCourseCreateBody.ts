@@ -4,20 +4,24 @@ import {
     readTrimmedBodyString,
     parseSchoolIdFromBody,
 } from '~~/server/utils/validation/requestValidation';
-
-export type CourseCreateKind = 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
+import { z } from 'zod';
 
 export interface BffCourseCreateBody {
     schoolId: string;
     name: string;
     category: string;
-    kind: CourseCreateKind;
+    kind: CourseKind;
     totalHours: number;
     capacity?: number | null;
     instructorId?: string | null;
     theoryStartDate?: string | null;
     theoryEndDate?: string | null;
 }
+
+const courseCreateRecordSchema = z.custom<Record<string, unknown>>(
+    (value) => value !== null && typeof value === 'object',
+);
 
 /** Serializacja do JSON dla upstreamu (bez `undefined`). */
 export function courseCreateBodyToUpstreamRecord(
@@ -48,12 +52,6 @@ export function courseCreateBodyToUpstreamRecord(
     }
 
     return o;
-}
-
-function isCourseCreateKind(value: string): value is CourseCreateKind {
-    return (
-        value === 'THEORY_GROUP' || value === 'PRACTICAL' || value === 'EXTRA'
-    );
 }
 
 function parseTotalHours(body: Record<string, unknown>): number | null {
@@ -143,11 +141,13 @@ export function parseCourseCreateBody(body: unknown):
         };
     }
 
-    if (!body || typeof body !== 'object') {
+    const recordResult = courseCreateRecordSchema.safeParse(body);
+
+    if (!recordResult.success) {
         return { error: 'Nieprawidłowe dane żądania.' };
     }
 
-    const o = body as Record<string, unknown>;
+    const o = recordResult.data;
     const name = readTrimmedBodyString(o, 'name');
     const category = readTrimmedBodyString(o, 'category');
 
@@ -161,7 +161,7 @@ export function parseCourseCreateBody(body: unknown):
 
     const kindRaw = readTrimmedBodyString(o, 'kind');
 
-    if (!kindRaw || !isCourseCreateKind(kindRaw)) {
+    if (!kindRaw || !isCourseKind(kindRaw)) {
         return {
             error: 'Pole kind musi być THEORY_GROUP, PRACTICAL lub EXTRA.',
         };

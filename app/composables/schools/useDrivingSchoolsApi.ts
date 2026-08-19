@@ -4,7 +4,7 @@ import {
     normalizeDrivingSchoolsList,
     type DrivingSchool,
 } from '~/types/schools/drivingSchool';
-import { requestBffData } from '../core/useApi';
+import { requestBffData, requestBffSuccess } from '../core/useApi';
 
 export interface CreateDrivingSchoolBody {
     name: string;
@@ -24,6 +24,8 @@ export type FetchDefaultDrivingSchoolOutcome =
     | { outcome: 'empty_response' }
     | { outcome: 'not_configured' }
     | { outcome: 'unreadable' };
+
+type DefaultDrivingSchoolData = DrivingSchool | null | undefined;
 
 export function useDrivingSchoolsApi() {
     const isListLoading = ref(false);
@@ -57,7 +59,7 @@ export function useDrivingSchoolsApi() {
     async function fetchDefaultDrivingSchool(): Promise<FetchDefaultDrivingSchoolOutcome> {
         return await runWithLoading(isDefaultLoading, async () => {
             try {
-                const data = await requestBffData<unknown>(
+                const data = await requestBffData<DefaultDrivingSchoolData>(
                     'GET',
                     '/api/driving-schools/default',
                     {
@@ -108,7 +110,7 @@ export function useDrivingSchoolsApi() {
         const schoolId = id.trim();
 
         await runWithLoading(isDeleteLoading, () =>
-            requestBffData<unknown>(
+            requestBffSuccess(
                 'DELETE',
                 `/api/driving-schools/${encodeURIComponent(schoolId)}`,
                 {
@@ -142,7 +144,7 @@ export function useDrivingSchoolsApi() {
         const schoolId = id.trim();
 
         await runWithLoading(isSetDefaultLoading, async () => {
-            await requestBffData<unknown>(
+            await requestBffSuccess(
                 'PATCH',
                 `/api/driving-schools/${encodeURIComponent(schoolId)}/set-default`,
                 {

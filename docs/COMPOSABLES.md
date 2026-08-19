@@ -26,29 +26,43 @@ Authentication state and actions.
 
 ---
 
-## useApi
+## requestBffData
 
-HTTP client with auth retry on 401.
+BFF helper for endpoints returning `{ success: true, data }`.
 
 ```ts
-useApi<T>(method, url, options?) → { data, error, isLoading, execute }
+requestBffData<T>(method, path, { fallbackMessage, normalize? }) → Promise<T>
 ```
 
-| Param     | Type                                              | Description                              |
-| --------- | ------------------------------------------------- | ---------------------------------------- |
-| `method`  | `'GET' \| 'POST' \| 'PUT' \| 'DELETE' \| 'PATCH'` | HTTP method                              |
-| `url`     | `string \| () => string`                          | Path or full URL (relative uses apiBase) |
-| `options` | `{ body?, headers?, skipAuth? }`                  | Optional                                 |
-
-**Returns:** `{ data, error, isLoading, execute }` — all reactive. Call `execute()` to run.
-
-**Behavior:** On 401, tries `refreshAccessToken`, retries request, or redirects to `/login`.
+Use it inside domain composables for normal JSON BFF requests. It unwraps
+`data`, maps transport errors and can run a local response normalizer.
 
 ---
 
-## useApiLazy
+## requestBffSuccess
 
-Same as `useApi` but calls `execute()` on `onMounted`.
+BFF helper for endpoints returning only `{ success: true }`.
+
+```ts
+requestBffSuccess(method, path, { fallbackMessage }) → Promise<void>
+```
+
+Use it for success-only mutations such as selected `DELETE` / `PATCH`
+endpoints. It validates the envelope and maps errors through the same transport
+path as `requestBffData`.
+
+---
+
+## bffFetch
+
+Low-level BFF helper for full-envelope or special-case responses.
+
+```ts
+bffFetch<T>(method, path, options?) → Promise<T>
+```
+
+Prefer `requestBffData` or `requestBffSuccess` unless the caller really needs
+the raw BFF envelope.
 
 ---
 
@@ -185,13 +199,28 @@ Operacje na szkołach jazdy (BFF `/api/driving-schools/...`). W BFF: [API_AND_BF
 
 ## useVehiclesApi
 
-Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`; upload zdjęcia przez shared BFF client (`requestBffData` + `FormData`).
+Lista, szczegóły, tworzenie, edycja, usuwanie pojazdów; `setVehicleAsDefault`;
+zmiana statusu dostępności; upload zdjęcia przez shared BFF client
+(`requestBffData` + `FormData`). Testy: `useVehiclesApi.test.ts` i
+normalizatory w `types/vehicles/vehicle.test.ts`.
 
 ---
 
 ## useVehiclesListPage
 
-Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie `schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie, ustawianie domyślnego pojazdu. Widok: [VehiclesListPanel.vue](../app/components/app/VehiclesListPanel.vue).
+Logika strony [vehicles/index](../app/pages/vehicles/index.vue): rozwiązanie
+`schoolId` (query / manager / domyślna OSK), ładowanie listy, usuwanie,
+ustawianie domyślnego pojazdu i zmiana statusu. Widok:
+[VehiclesListPanel.vue](../app/components/vehicles/VehiclesListPanel.vue).
+
+---
+
+## useVehicleEditPage
+
+Logika strony [vehicles/[id]/edit](../app/pages/vehicles/[id]/edit.vue):
+kontekst route/school, ładowanie listy i szczegółów pojazdu, submit formularza
+oraz upload zdjęcia. Formularz: [VehicleForm.vue](../app/components/vehicles/VehicleForm.vue), sekcja zdjęcia:
+[VehicleEditPhotoSection.vue](../app/components/vehicles/VehicleEditPhotoSection.vue).
 
 ---
 

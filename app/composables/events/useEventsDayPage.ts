@@ -1,23 +1,18 @@
-import type { CalendarDate, DateValue } from '@internationalized/date';
-import { parseDate } from '@internationalized/date';
-import { toDate } from 'reka-ui/date';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
 } from '~/types/instructors/instructor';
-import type { EventStatusCode } from '~/types/events/instructorEvent';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { normalizeInstructorEventStatus } from '~/utils/events/instructorEventStatusDisplay';
 import {
-    INSTRUCTOR_EVENT_STATUS_LABELS,
-    INSTRUCTOR_EVENT_STATUS_OPTIONS,
-    normalizeInstructorEventStatus,
-} from '~/utils/events/instructorEventStatusDisplay';
-import { formatDateOnly } from '~/utils/date/weeklyCalendarDates';
+    displayEventsDayInstructorName,
+    type EventsDayStatusFilterOption,
+} from '~/utils/events/eventsDayPage';
+import { useEventsDayDateSelection } from './useEventsDayDateSelection';
 
 export type EventsDayViewMode = 'grid' | 'list';
-export type EventsDayStatusFilterOption = 'ALL' | EventStatusCode;
 
 export interface InstructorScheduleColumn {
     id: string;
@@ -35,9 +30,6 @@ export interface InstructorScheduleRow {
         events: ScheduleLessonItem[];
     }[];
 }
-
-export const EVENTS_DAY_STATUS_FILTER_OPTIONS: readonly EventsDayStatusFilterOption[] =
-    ['ALL', ...INSTRUCTOR_EVENT_STATUS_OPTIONS];
 
 export function useEventsDayPage() {
     const { session } = useAuthSession();
@@ -65,16 +57,19 @@ export function useEventsDayPage() {
     const errorMessage = ref<string | null>(null);
     const events = ref<ScheduleLessonItem[]>([]);
     const instructors = ref<InstructorListItem[]>([]);
-
-    const selectedDate = ref<string>(formatDateOnly(new Date()));
+    const {
+        calendarSelected,
+        handleCalendarUpdate,
+        handleNextDay,
+        handlePrevDay,
+        handleTodayClick,
+        isCalendarOpen,
+        selectedDate,
+        selectedDateLabel,
+    } = useEventsDayDateSelection();
     const selectedStatus = ref<EventsDayStatusFilterOption>('ALL');
-    const isCalendarOpen = ref(false);
     const viewMode = ref<EventsDayViewMode>('grid');
     const isCompactViewport = ref(false);
-
-    const calendarSelected = computed<CalendarDate>(() =>
-        parseDate(selectedDate.value),
-    );
 
     const filteredEvents = computed(() =>
         events.value.filter(
@@ -128,39 +123,6 @@ export function useEventsDayPage() {
         return `${filteredEvents.value.length} z ${events.value.length}`;
     });
 
-    const selectedDateLabel = computed(() => {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        if (Number.isNaN(d.getTime())) {
-            return selectedDate.value;
-        }
-
-        const today = formatDateOnly(new Date());
-        const yesterday = formatDateOnly(new Date(Date.now() - 86_400_000));
-        const tomorrow = formatDateOnly(new Date(Date.now() + 86_400_000));
-
-        const label = new Intl.DateTimeFormat('pl-PL', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        }).format(d);
-
-        if (selectedDate.value === today) {
-            return `Dzisiaj - ${label}`;
-        }
-
-        if (selectedDate.value === yesterday) {
-            return `Wczoraj - ${label}`;
-        }
-
-        if (selectedDate.value === tomorrow) {
-            return `Jutro - ${label}`;
-        }
-
-        return label;
-    });
-
     const effectiveViewMode = computed<EventsDayViewMode>(() =>
         isManager.value && !isCompactViewport.value ? viewMode.value : 'list',
     );
@@ -197,7 +159,7 @@ export function useEventsDayPage() {
 
         for (const event of sortedFilteredEvents.value) {
             const id = event.instructor?.id?.trim() || 'without-instructor';
-            const fallbackName = displayInstructorName(event);
+            const fallbackName = displayEventsDayInstructorName(event);
             const existing = columns.get(id);
 
             if (existing) {
@@ -332,41 +294,6 @@ export function useEventsDayPage() {
         }
     }
 
-    function handlePrevDay(): void {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        d.setDate(d.getDate() - 1);
-        selectedDate.value = formatDateOnly(d);
-    }
-
-    function handleNextDay(): void {
-        const d = new Date(`${selectedDate.value}T00:00:00`);
-
-        d.setDate(d.getDate() + 1);
-        selectedDate.value = formatDateOnly(d);
-    }
-
-    function handleTodayClick(): void {
-        selectedDate.value = formatDateOnly(new Date());
-    }
-
-    function handleCalendarUpdate(
-        val: DateValue | DateValue[] | undefined,
-    ): void {
-        if (val === undefined) {
-            return;
-        }
-
-        const single = Array.isArray(val) ? val[0] : val;
-
-        if (!single) {
-            return;
-        }
-
-        selectedDate.value = formatDateOnly(toDate(single));
-        isCalendarOpen.value = false;
-    }
-
     function handleStatusFilterOptionSelect(opt: string): void {
         selectedStatus.value = opt as EventsDayStatusFilterOption;
     }
@@ -447,32 +374,6 @@ export function useEventsDayPage() {
     };
 }
 
-export function statusFilterLabel(opt: EventsDayStatusFilterOption): string {
-    if (opt === 'ALL') {
-        return 'Wszystkie';
-    }
-
-    return INSTRUCTOR_EVENT_STATUS_LABELS[opt];
-}
-
-export function statusFilterLabelForOption(opt: string): string {
-    return statusFilterLabel(opt as EventsDayStatusFilterOption);
-}
-
-export function eventIsoToHm(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    }).format(d);
-}
-
 function hourFromIso(iso: string): number | null {
     const d = new Date(iso);
 
@@ -497,92 +398,4 @@ function initialsForName(name: string): string {
         .slice(0, 2)
         .map((part) => part[0]?.toUpperCase() ?? '')
         .join('');
-}
-
-function displayInstructorName(item: ScheduleLessonItem): string {
-    const ins = item.instructor;
-
-    if (!ins) {
-        return '-';
-    }
-
-    return `${ins.firstName} ${ins.lastName}`.trim() || '-';
-}
-
-export function displayParticipantCount(item: ScheduleLessonItem): string {
-    if (typeof item.participantCount === 'number') {
-        const cap =
-            typeof item.capacity === 'number' ? `/${item.capacity}` : '';
-
-        return `${item.participantCount}${cap}`;
-    }
-
-    if (typeof item.capacity === 'number') {
-        return `0/${item.capacity}`;
-    }
-
-    return '-';
-}
-
-export function displayEventPrimary(
-    item: ScheduleLessonItem,
-    isManager: boolean,
-): string {
-    const time = eventIsoToHm(item.startTime);
-    const type = eventTypeLabel(item.type);
-
-    if (!isManager) {
-        return `${time} Â· ${type}`;
-    }
-
-    const instructor = displayInstructorName(item);
-
-    return instructor === '-'
-        ? `${time} Â· ${type}`
-        : `${time} Â· ${type} Â· ${instructor}`;
-}
-
-export function displayEventMeta(item: ScheduleLessonItem): string {
-    const parts = [
-        `${eventIsoToHm(item.startTime)}-${eventIsoToHm(item.endTime)}`,
-        `${displayParticipantCount(item)} kursantów`,
-    ];
-
-    if (item.vehicle?.name || item.vehicle?.registrationNumber) {
-        parts.push(
-            [item.vehicle.name, item.vehicle.registrationNumber]
-                .filter(Boolean)
-                .join(' Â· '),
-        );
-    }
-
-    return parts.join(' Â· ');
-}
-
-export function eventTypeBadgeClasses(type: string): string {
-    const t = String(type).trim().toUpperCase();
-
-    if (t === 'THEORY') {
-        return 'border-violet-500/40 bg-violet-500/15 text-violet-800 dark:text-violet-200';
-    }
-
-    if (t === 'DRIVE' || t === 'PRACTICE') {
-        return 'border-emerald-500/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200';
-    }
-
-    return '';
-}
-
-export function eventTypeLabel(type: string): string {
-    const t = String(type).trim().toUpperCase();
-
-    if (t === 'THEORY') {
-        return 'Teoria';
-    }
-
-    if (t === 'DRIVE' || t === 'PRACTICE') {
-        return 'Jazda praktyczna';
-    }
-
-    return type;
 }

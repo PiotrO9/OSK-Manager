@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     parseRequiredUuidQuery,
     readQueryString,
@@ -26,13 +27,13 @@ export default defineEventHandler(async (event) => {
             ? { startTime, endTime }
             : undefined;
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesList(event, upstreamBase, schoolId, timeFilter),
+        mock: async () => {
+            await requireAuthenticatedFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesList(event, upstream, schoolId, timeFilter);
-    }
-
-    await requireAuthenticatedFromCookie(event);
-
-    return bffMockVehiclesList(schoolId);
+            return bffMockVehiclesList(schoolId);
+        },
+    });
 });

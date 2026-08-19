@@ -1,4 +1,5 @@
 import { readMultipartFormData } from 'h3';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehicles/vehiclesBff';
 
@@ -18,22 +19,23 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => {
+            const mime = filePart.type || 'application/octet-stream';
+            const blob = new Blob([filePart.data], { type: mime });
 
-    if (upstream) {
-        const mime = filePart.type || 'application/octet-stream';
-        const blob = new Blob([filePart.data], { type: mime });
+            return bffUpstreamVehiclesUploadPhoto(
+                event,
+                upstreamBase,
+                id,
+                blob,
+                filePart.filename || 'upload.jpg',
+            );
+        },
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-        return bffUpstreamVehiclesUploadPhoto(
-            event,
-            upstream,
-            id,
-            blob,
-            filePart.filename || 'upload.jpg',
-        );
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesUploadPhoto(id);
+            return bffMockVehiclesUploadPhoto(id);
+        },
+    });
 });

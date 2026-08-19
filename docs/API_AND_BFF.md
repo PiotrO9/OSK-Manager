@@ -3,8 +3,8 @@
 ## Klient BFF i bazowe URL
 
 1. **BFF Nuxt** — te same origin co front: ścieżki `/api/...` obsługiwane przez [server/api/](../server/api/).
-2. **Shared client** — aplikacja kliencka używa [`createBffClient`](../app/utils/api/bffClient.ts), providowanego jako `$bff` w [`app/plugins/bff-client.ts`](../app/plugins/bff-client.ts). Domenowe composables powinny iść przez [`requestBffData`](../app/composables/core/useApi.ts), [`bffFetch`](../app/composables/core/useApi.ts) albo bezpośrednio `useBffClient()` tylko gdy potrzebują niskopoziomowego zachowania.
-3. **`NUXT_PUBLIC_API_BASE`** — bezpośrednio backend (Express itd.), używane tylko dla jawnie zewnętrznych wywołań przez [`externalFetch`](../app/composables/core/useApi.ts). Nowe wewnętrzne wywołania `/api/...` nie powinny omijać BFF.
+2. **Shared client** — aplikacja kliencka używa [`createBffClient`](../app/utils/api/bffClient.ts), providowanego jako `$bff` w [`app/plugins/bff-client.ts`](../app/plugins/bff-client.ts). Domenowe composables powinny iść przez [`requestBffData`](../app/composables/core/useApi.ts), [`requestBffSuccess`](../app/composables/core/useApi.ts), [`bffFetch`](../app/composables/core/useApi.ts) albo bezpośrednio `useBffClient()` tylko gdy potrzebują niskopoziomowego zachowania.
+3. **`NUXT_PUBLIC_API_BASE`** — używane przez BFF jako fallback upstreamu, gdy `NUXT_API_UPSTREAM` nie jest ustawione. Kod aplikacji nie powinien używać go do omijania BFF.
 
 Adresy BFF rozwiązuje [`resolveBffEndpoint`](../app/utils/api/bffEndpoint.ts), ale normalny kod domenowy nie powinien wołać go bezpośrednio — robi to plugin `$bff`.
 
@@ -19,20 +19,38 @@ Backend zwraca obiekty z polem `success` i `data` lub `error`. Parsowanie:
 - [unwrapApiSuccessData](../app/utils/api/apiEnvelope.ts) — gdy oczekujesz **`data`** przy `success: true`.
 - [assertBooleanSuccessEnvelope](../app/utils/api/apiEnvelope.ts) — gdy odpowiedź to tylko **`success: true/false`** (np. niektóre PATCH).
 
-Błędy z BFF client / `useApi`: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
+Błędy z BFF client: [getApiFetchErrorMessage](../app/utils/api/apiFetchErrorMessage.ts), [getApiErrorStatusCode](../app/utils/api/apiEnvelope.ts).
 
 ## `requestBffData` / `$bff` vs surowe `$fetch`
 
 - Standardowe JSON w composables: **`requestBffData(method, path, { fallbackMessage, normalize? })`**. Funkcja unwrapuje kopertę `success/data`, mapuje błędy przez `getApiFetchErrorMessage` i korzysta ze shared `$bff`.
-- Reaktywne wywołania w UI: **`useApi` / `useBffApi`** + `execute()` zostają kompatybilnym wrapperem dla starszego API composable.
-- Odpowiedzi bez `data`, np. niektóre `DELETE`: **`bffFetch`** albo `$bff.request`, a potem jawna walidacja koperty, jeśli endpoint jej wymaga.
+- Odpowiedzi bez `data`, np. niektóre `DELETE`: **`requestBffSuccess(method, path, { fallbackMessage })`**. Funkcja waliduje `{ success: true }` i mapuje błędy tak samo jak `requestBffData`.
+- Pełna koperta albo nietypowy kontrakt: **`bffFetch`** albo `$bff.request`, tylko gdy `requestBffData` / `requestBffSuccess` nie pasują.
 - Upload `FormData`, np. zdjęcie pojazdu i avatar profilu: również **`requestBffData` / `$bff`**. Shared client nie ustawia `Content-Type: application/json` dla `FormData`, żeby przeglądarka mogła dodać multipart boundary.
-- Surowy `$fetch` jest dopuszczalny tylko w centralnej warstwie transportu (`bffClient`, `useApi`/`externalFetch`) albo w testach.
+- Surowy `$fetch` jest dopuszczalny tylko w centralnej warstwie transportu (`bffClient`, fallback w `useApi.ts`, plugin `$bff`) albo w testach.
 
 ## Serwer
 
 - Handlery: pliki w `server/api/**` (konwencja Nuxt Nitro).
 - Logika wspólna: domenowe grupy w `server/utils/*/` (`*Bff.ts`, mock adaptery i store).
+- Standard wyboru adaptera: [`executeBffAdapter`](../server/utils/bff/bffAdapterExecutor.ts), który wybiera `mock` albo `upstream` według `NUXT_BFF_ADAPTER` i fallbacku konfiguracji.
+- Parsery body/query trzymaj w `server/utils/<domain>/` albo `server/utils/validation/`, żeby handlery `server/api/**` zostały cienkie. Przykłady: [`parseCourseCreateBody`](../server/utils/courses/parseCourseCreateBody.ts), [`parseCoursePatchInstructorBody`](../server/utils/courses/parseCoursePatchBody.ts), [`parseScheduleMeQuery`](../server/utils/schedule/scheduleQueryValidation.ts), [`parseScheduleManagerQuery`](../server/utils/schedule/scheduleQueryValidation.ts).
+- Testy granic BFF: [`bffAdapterExecutor.test.ts`](../server/utils/bff/bffAdapterExecutor.test.ts), [`requestValidation.test.ts`](../server/utils/validation/requestValidation.test.ts), [`parseCourseBody.test.ts`](../server/utils/courses/parseCourseBody.test.ts), [`scheduleQueryValidation.test.ts`](../server/utils/schedule/scheduleQueryValidation.test.ts).
+
+## Pojazdy (vehicles)
+
+| Operacja               | BFF (Nuxt)                                       | Klient frontu                                                               |
+| ---------------------- | ------------------------------------------------ | --------------------------------------------------------------------------- |
+| Lista                  | `GET /api/vehicles?schoolId=...`                 | [`useVehiclesApi.fetchList`](../app/composables/vehicles/useVehiclesApi.ts) |
+| Szczegóły              | `GET /api/vehicles/:id`                          | [`fetchVehicleById`](../app/composables/vehicles/useVehiclesApi.ts)         |
+| Utworzenie             | `POST /api/vehicles`                             | [`createVehicle`](../app/composables/vehicles/useVehiclesApi.ts)            |
+| Edycja danych          | `PATCH /api/vehicles/:id`                        | [`updateVehicle`](../app/composables/vehicles/useVehiclesApi.ts)            |
+| Status dostępności     | `PATCH /api/vehicles/:id/status`                 | [`updateVehicleStatus`](../app/composables/vehicles/useVehiclesApi.ts)      |
+| Zdjęcie                | `POST /api/vehicles/:id/photo`                   | [`uploadVehiclePhoto`](../app/composables/vehicles/useVehiclesApi.ts)       |
+| Domyślny pojazd szkoły | `PATCH /api/driving-schools/:id/default-vehicle` | [`setVehicleAsDefault`](../app/composables/vehicles/useVehiclesApi.ts)      |
+
+`updateVehicleStatus` przyjmuje payload `{ status, unavailableUntil? }`, a
+normalizacja `unavailableUntil` jest po stronie [`vehicle.ts`](../app/types/vehicles/vehicle.ts).
 
 ## Rejestracja instruktora z panelu (MANAGER / ADMIN)
 
@@ -61,4 +79,4 @@ Pełny opis: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md) (tabele BFF, koper
 
 **`dayOfWeek`:** `0` = niedziela … `6` = sobota (jak `Date.getUTCDay()`). **`:id`:** profil instruktora (ten sam identyfikator co w liście instruktorów).
 
-Z klienta: [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts), które używa `requestBffData`; `DELETE` bez `data` nie wymaga ręcznego `$fetch`. Przy **upstreamie:** [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts). W **mocku:** [`mockAvailabilityStore.ts`](../server/utils/instructors/mockAvailabilityStore.ts) po [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts).
+Z klienta: [`useInstructorAvailabilityApi`](../app/composables/instructors/useInstructorAvailabilityApi.ts), które używa `requestBffData` dla `GET` / `PUT` oraz `requestBffSuccess` dla `DELETE` bez `data`; nie wymaga ręcznego `$fetch`. Przy **upstreamie:** [`availabilityBff.ts`](../server/utils/instructors/availabilityBff.ts). W **mocku:** [`mockAvailabilityStore.ts`](../server/utils/instructors/mockAvailabilityStore.ts) po [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts).

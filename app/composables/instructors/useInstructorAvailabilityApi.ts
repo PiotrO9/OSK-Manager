@@ -88,7 +88,7 @@ export function useInstructorAvailabilityApi(
         isSaving.value = true;
 
         try {
-            await requestBffData<unknown>(
+            await requestBffSuccess(
                 'DELETE',
                 `${buildWeeklyBasePath(id)}/${dayOfWeek}`,
                 {

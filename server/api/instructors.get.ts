@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamInstructorsList } from '~~/server/utils/instructors/instructorsBff';
 import { bffMockInstructorsList } from '~~/server/utils/instructors/instructorsMockBff';
 import { parseRequiredUuidQuery } from '~~/server/utils/validation/requestValidation';
@@ -8,13 +9,13 @@ export default defineEventHandler(async (event) => {
         invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamInstructorsList(event, upstreamBase, schoolId),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamInstructorsList(event, upstream, schoolId);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockInstructorsList(schoolId);
+            return bffMockInstructorsList(schoolId);
+        },
+    });
 });

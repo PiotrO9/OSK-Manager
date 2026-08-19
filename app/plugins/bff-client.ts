@@ -1,4 +1,4 @@
-import type { AuthSession } from '~/composables/auth/useAuthSession';
+import type { AuthSession } from '~/utils/auth/authSessionMapper';
 import {
     createBffClient,
     type BffClient,

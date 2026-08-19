@@ -1,6 +1,6 @@
 # BFF — terminarz lekcji i eventy instruktora (frontend)
 
-Kontrakty warstwy Nitro. Upstream (gdy ustawiony `resolveUpstreamBase` / `NUXT_API_UPSTREAM`): proxy z nagłówkiem `Authorization: Bearer` z ciasteczka `access_token`, jak w pozostałych handlerach BFF.
+Kontrakty warstwy Nitro. Tryb `mock/upstream` wybiera wspólny executor BFF (`executeBffAdapter`); wariant upstream proxy przekazuje nagłówek `Authorization: Bearer` z ciasteczka `access_token`, jak w pozostałych handlerach BFF.
 
 Szczegóły domenowe backendu (osobne repo): plik `context/events-schedule-api.md` w projekcie API.
 

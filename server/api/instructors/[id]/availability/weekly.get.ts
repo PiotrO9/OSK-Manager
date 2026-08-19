@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffWeeklyGet } from '~~/server/utils/instructors/availabilityBff';
 import { mockAvailabilityGetWeekly } from '~~/server/utils/instructors/mockAvailabilityStore';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
@@ -8,18 +9,17 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator instruktora.',
     });
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) => bffWeeklyGet(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffWeeklyGet(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return {
-        success: true,
-        data: {
-            weekly: mockAvailabilityGetWeekly(id),
+            return {
+                success: true,
+                data: {
+                    weekly: mockAvailabilityGetWeekly(id),
+                },
+            };
         },
-    };
+    });
 });

@@ -20,13 +20,30 @@ Kontener toastów. Używaj **`useAppToast().addToast()`**. Renderowany w [app.vu
 
 Drzewo nawigacji (ARIA tree), eksport typu `NavTreeItem` ze [NavTree.vue](../app/components/app/NavTree.vue).
 
-### VehiclesListPanel
-
-Lista/karty pojazdów + taby managera — używana ze [useVehiclesListPage](../app/composables/vehicles/useVehiclesListPage.ts).
-
 ### AppDemoNavigationMenubar, AppDemoMenubarContent
 
 Demo paska menu (shadcn `UiMenubar*`), typ elementów: [demoMenubar.ts](../app/types/demo/demoMenubar.ts).
+
+## Account (`app/components/account/`)
+
+Komponenty strony konta: `AccountPageHeader` i `AccountProfileCard`. Strona
+[account/index.vue](../app/pages/account/index.vue) importuje je jawnie.
+
+## Events (`app/components/events/`)
+
+Komponenty dziennego widoku wydarzeń: nawigacja dnia, podsumowanie, panel
+schedule, filtr statusu i przełącznik trybu widoku.
+
+## Vehicles (`app/components/vehicles/`)
+
+Komponenty domeny pojazdów:
+
+- **VehiclesListPanel** — lista/karty pojazdów + taby managera, używana z [useVehiclesListPage](../app/composables/vehicles/useVehiclesListPage.ts).
+- **VehicleForm** — formularz create/edit pojazdu.
+- **VehicleDetailsContent** — widok szczegółów pojazdu.
+- **VehicleAvailabilityControl**, **VehicleStatusControl**, **VehicleManagerStatusGrid** — status dostępności i szybkie akcje managera.
+- **VehicleEditPhotoSection** — sekcja zdjęcia w edycji pojazdu.
+- **VehicleDeleteDialog** — potwierdzenie usunięcia.
 
 ## Design system (`app/components/app/design-system/`)
 

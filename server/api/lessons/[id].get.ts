@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffLessonsGet } from '~~/server/utils/lessons/lessonsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
@@ -7,14 +8,14 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator lekcji.',
     });
 
-    const upstream = resolveUpstreamBase(event);
-
-    if (upstream) {
-        return bffLessonsGet(event, upstream, lessonId);
-    }
-
-    throw createError({
-        statusCode: 404,
-        statusMessage: 'Lekcja nie istnieje (tryb demo).',
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffLessonsGet(event, upstreamBase, lessonId),
+        mock: () => {
+            throw createError({
+                statusCode: 404,
+                statusMessage: 'Lekcja nie istnieje (tryb demo).',
+            });
+        },
     });
 });

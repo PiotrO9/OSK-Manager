@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3';
 import { jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
 import { bffUpstreamStudentEvents } from '~~/server/utils/students/studentsBff';
@@ -92,21 +93,21 @@ export default defineEventHandler(async (event) => {
         getQuery(event) as Record<string, unknown>,
     );
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamStudentEvents(
+                event,
+                upstreamBase,
+                studentUserId,
+                queryString,
+            ),
+        mock: async () => {
+            await assertMockStudentOwnsEventsRoute(event, studentUserId);
 
-    if (upstream) {
-        return bffUpstreamStudentEvents(
-            event,
-            upstream,
-            studentUserId,
-            queryString,
-        );
-    }
-
-    await assertMockStudentOwnsEventsRoute(event, studentUserId);
-
-    return {
-        success: true,
-        data: { items: [] as unknown[] },
-    };
+            return {
+                success: true,
+                data: { items: [] as unknown[] },
+            };
+        },
+    });
 });

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Mail } from 'lucide-vue-next';
+import type { RouteLocationRaw } from 'vue-router';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,
@@ -16,7 +17,7 @@ defineProps<{
     instructorsLoadError: string | null;
     visibleInstructorsLabel: string;
     qualificationFilterLabel: string;
-    instructorDetailsTo: (instructor: InstructorListItem) => unknown;
+    instructorDetailsTo: (instructor: InstructorListItem) => RouteLocationRaw;
     instructorQualificationLabel: (instructor: InstructorListItem) => string;
     instructorInitials: (instructor: InstructorListItem) => string;
 }>();

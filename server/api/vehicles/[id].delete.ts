@@ -1,3 +1,4 @@
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamVehiclesDelete } from '~~/server/utils/vehicles/vehiclesBff';
 
@@ -8,13 +9,13 @@ export default defineEventHandler(async (event) => {
         'Brak identyfikatora pojazdu.',
     );
 
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamVehiclesDelete(event, upstreamBase, id),
+        mock: async () => {
+            await requireManagerFromCookie(event);
 
-    if (upstream) {
-        return bffUpstreamVehiclesDelete(event, upstream, id);
-    }
-
-    await requireManagerFromCookie(event);
-
-    return bffMockVehiclesDelete(id);
+            return bffMockVehiclesDelete(id);
+        },
+    });
 });

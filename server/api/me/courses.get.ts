@@ -1,4 +1,5 @@
 import { jwtVerify } from 'jose';
+import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamMyCoursesList } from '~~/server/utils/courses/coursesBff';
 
 const SECRET = new TextEncoder().encode(
@@ -45,33 +46,33 @@ function mockMyCoursesPayload(role: string): {
 }
 
 export default defineEventHandler(async (event) => {
-    const upstream = resolveUpstreamBase(event);
+    return executeBffAdapter(event, {
+        upstream: ({ upstreamBase }) =>
+            bffUpstreamMyCoursesList(event, upstreamBase),
+        mock: async () => {
+            const accessToken = getCookie(event, 'access_token');
 
-    if (upstream) {
-        return bffUpstreamMyCoursesList(event, upstream);
-    }
+            if (!accessToken) {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Brak tokena dostępu',
+                });
+            }
 
-    const accessToken = getCookie(event, 'access_token');
+            try {
+                const { payload } = await jwtVerify(accessToken, SECRET);
+                const role = String(payload.role ?? '');
 
-    if (!accessToken) {
-        throw createError({
-            statusCode: 401,
-            message: 'Brak tokena dostępu',
-        });
-    }
-
-    try {
-        const { payload } = await jwtVerify(accessToken, SECRET);
-        const role = String(payload.role ?? '');
-
-        return {
-            success: true,
-            data: mockMyCoursesPayload(role),
-        };
-    } catch {
-        throw createError({
-            statusCode: 401,
-            message: 'Nieprawidłowy lub wygasły token',
-        });
-    }
+                return {
+                    success: true,
+                    data: mockMyCoursesPayload(role),
+                };
+            } catch {
+                throw createError({
+                    statusCode: 401,
+                    message: 'Nieprawidłowy lub wygasły token',
+                });
+            }
+        },
+    });
 });

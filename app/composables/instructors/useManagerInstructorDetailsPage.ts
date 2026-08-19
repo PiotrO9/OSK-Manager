@@ -6,12 +6,9 @@ import {
 } from '~/types/instructors/instructor';
 import type { CourseTypeOption } from '~/types/courses/courseType';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
-import {
-    assertBooleanSuccessEnvelope,
-    getApiErrorStatusCode,
-} from '~/utils/api/apiEnvelope';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { bffFetch, requestBffData } from '../core/useApi';
+import { requestBffData, requestBffSuccess } from '../core/useApi';
 import { usePageMeta } from '../core/usePageMeta';
 
 export function getManagerInstructorRouteString(raw: unknown): string {
@@ -58,15 +55,23 @@ export function areSameManagerInstructorCourseTypeIds(
     return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
+export interface ManagerInstructorPatch {
+    firstName?: string;
+    lastName?: string;
+    qualifications?: string;
+    qualifiedCourseTypeIds?: string[];
+    experienceYears?: number;
+}
+
 export function buildManagerInstructorDirtyPatch(
     form: InstructorEditFormModel | null,
     base: InstructorEditFormModel | null,
-): Record<string, unknown> | null {
+): ManagerInstructorPatch | null {
     if (!form || !base) {
         return null;
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: ManagerInstructorPatch = {};
 
     if (form.firstName.trim() !== base.firstName.trim()) {
         patch.firstName = form.firstName.trim();
@@ -99,7 +104,7 @@ export function buildManagerInstructorDirtyPatch(
 }
 
 export function validateManagerInstructorPatch(
-    patch: Record<string, unknown>,
+    patch: ManagerInstructorPatch,
 ): string | null {
     if (typeof patch.firstName === 'string' && !patch.firstName.trim()) {
         return 'Imię nie może być puste.';
@@ -193,6 +198,8 @@ function getInstructorDeleteErrorMessage(err: unknown): string {
     return getApiFetchErrorMessage(err, 'Nie udało się usunąć instruktora.');
 }
 
+type InstructorDetailData = InstructorDetail | null;
+
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
     const { addToast } = useAppToast();
@@ -256,7 +263,7 @@ export function useManagerInstructorDetailsPage() {
         editBaseline.value = null;
 
         try {
-            const data = await requestBffData<unknown>(
+            const data = await requestBffData<InstructorDetailData>(
                 'GET',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
@@ -411,7 +418,7 @@ export function useManagerInstructorDetailsPage() {
         isSubmitting.value = true;
 
         try {
-            const updated = await requestBffData<unknown>(
+            const updated = await requestBffData<InstructorDetailData>(
                 'PATCH',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
@@ -478,12 +485,13 @@ export function useManagerInstructorDetailsPage() {
         isDeleting.value = true;
 
         try {
-            const raw = await bffFetch<unknown>(
+            await requestBffSuccess(
                 'DELETE',
                 `/api/instructors/${encodeURIComponent(id)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć instruktora.',
+                },
             );
-
-            assertBooleanSuccessEnvelope(raw);
 
             addToast({
                 title: 'Instruktor został usunięty',

@@ -123,7 +123,7 @@ export function useLessonBookingApi() {
         isCreating.value = true;
         modalError.value = null;
 
-        const payload: Record<string, unknown> = {
+        const payload: CreateLessonBody = {
             courseId: body.courseId.trim(),
             studentId: body.studentId.trim(),
             instructorId: body.instructorId.trim(),
@@ -134,7 +134,7 @@ export function useLessonBookingApi() {
         };
 
         try {
-            await requestBffData<unknown>('POST', '/api/lessons', {
+            await requestBffSuccess('POST', '/api/lessons', {
                 body: payload,
                 fallbackMessage: 'Nie udało się utworzyć rezerwacji.',
             });
