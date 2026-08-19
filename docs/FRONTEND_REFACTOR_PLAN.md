@@ -5,6 +5,7 @@
 - Repozytorium: `FE/OSK-Manager-FE`
 - Stos: Nuxt 4, Vue 3, TypeScript, Nitro, Vitest, Tailwind CSS, shadcn-vue
 - Aktualny branch roboczy: `refactor/03-bff-adapters`
+- Status refaktoru: domkniety merytorycznie, gotowy do merge do `master`
 - Cel: poprawa architektury i testowalnosci bez zmiany zachowania aplikacji
 - Poza zakresem: redesign UI, nowe funkcje biznesowe i zmiany kontraktow backendu
 - Sposob pracy: jeden branch roboczy, male commity, bez Pull Requestow
@@ -52,10 +53,10 @@ audytow; nie sa juz osobnymi dashboardami postepu.
       przeplywow.
 - [x] Etap 8: struktura katalogow i dokumentacja zostaly zaktualizowane,
       wlacznie z opisem `shared/contracts`.
-- [ ] Etap 9: koncowy audyt jest prawie wykonany; upstream smoke oraz finalne
-      testy/lint przeszly, pozostaja operacje konczace branch.
+- [x] Etap 9: koncowy audyt jest wykonany; upstream smoke oraz finalne testy/lint
+      przeszly.
 
-### Aktywne zadania do zamkniecia brancha
+### Operacje zamkniecia brancha
 
 - [x] Rozstrzygnac `REF-003`: po wznowieniu Supabase pelny smoke
       `NUXT_BFF_ADAPTER=upstream` przeszedl infrastrukturalnie z lokalnym
@@ -64,34 +65,28 @@ audytow; nie sa juz osobnymi dashboardami postepu.
       `npm run test`, `npm run lint`, bez `npm run build`, chyba ze zostanie
       wydane osobne polecenie.
 - [x] Zaktualizowac status Etapu 9 i Definition of Done po finalnych kontrolach.
-- [ ] Zmergowac `refactor/03-bff-adapters` do `master` po akceptacji.
+- [x] Oznaczyc ten plan jako zakonczony.
+- [ ] Zmergowac `refactor/03-bff-adapters` do `master`.
 - [ ] Po potwierdzonym merge usunac zakonczony branch lokalnie i z remote.
-- [ ] Oznaczyc ten plan jako zakonczony albo przeniesc go do dokumentacji
-      historycznej zgodnie z decyzja koncowa.
 
-### Otwarte decyzje zakresowe
+### Decyzje poza zakresem tego brancha
 
-Te punkty nie blokuja zamkniecia aktualnego brancha, ale trzeba je rozstrzygnac,
-zanim zaczniemy kolejny duzy refactor frontu.
+Te punkty nie blokuja zamkniecia aktualnego brancha. Sa materialem na osobny
+przyszly refactor, jezeli po merge zdecydujemy kontynuowac prace nad P1/P2.
 
-- [ ] Etap 4/P1-P2: zdecydowac, czy kontynuujemy rozbijanie kolejnych
-      composables na tym samym kierunku, czy zostawiamy je jako osobny przyszly
-      refactor. Kandydaci z planu: `useManagerSchoolScheduleCalendar`,
-      `useManagerInstructorDetailsPage`, `useManagerInstructorSchedulePage`,
-      `useManagerEventEditActions`, `useManagerStudentsPage`, `useAccountPage`,
-      `useManagerCourseDetailPage`, `useMyLessonsPage`.
-- [ ] Etap 5/P1-P2: zdecydowac, czy kontynuujemy odchudzanie kolejnych duzych
-      SFC, czy zamykamy obecny branch po P0. Kandydaci z planu:
-      `ManagerCoursesListPanel.vue`, `pages/login.vue`, `NavTree.vue`,
-      `ManagerTheoryEventCreateDialog.vue`, `VehicleDetailsContent.vue`,
-      `ManagerInstructorDetailsContent.vue`, `pages/my-courses.vue`,
-      `ManagerInstructorFormDialog.vue`.
-- [ ] Dziennik decyzji: dopisac docelowy podzial klienta BFF po Etapie 2, jezeli
-      chcemy zachowac go jako jawna decyzje architektoniczna.
-- [ ] Dziennik decyzji: dopisac przyjete granice komponentow i composables,
-      jezeli P0 piloty maja byc wzorcem dla kolejnych domen.
-- [ ] Usunac placeholder `REF-001` z problemow odroczonych albo zamienic go na
-      realny problem, jesli byl zostawiony celowo.
+- Etap 4/P1-P2: ewentualne dalsze rozbijanie composables:
+  `useManagerSchoolScheduleCalendar`, `useManagerInstructorDetailsPage`,
+  `useManagerInstructorSchedulePage`, `useManagerEventEditActions`,
+  `useManagerStudentsPage`, `useAccountPage`, `useManagerCourseDetailPage`,
+  `useMyLessonsPage`.
+- Etap 5/P1-P2: ewentualne dalsze odchudzanie SFC:
+  `ManagerCoursesListPanel.vue`, `pages/login.vue`, `NavTree.vue`,
+  `ManagerTheoryEventCreateDialog.vue`, `VehicleDetailsContent.vue`,
+  `ManagerInstructorDetailsContent.vue`, `pages/my-courses.vue`,
+  `ManagerInstructorFormDialog.vue`.
+- Dziennik decyzji mozna uzupelnic w przyszlosci o docelowy podzial klienta BFF
+  i granice komponentow/composables, jezeli P0 piloty beda kontynuowane jako
+  wzorzec dla kolejnych domen.
 
 ### Stan blockerow
 
@@ -2266,7 +2261,7 @@ Cel: zmniejszyc liczbe miejsc, w ktorych dane API sa recznie zgadywane albo rzut
 - [x] Oznaczyc typy jako: API DTO, model domenowy, model formularza albo view model.
 - [x] Nie importowac bezposrednio ogromnego `generated/api.ts` do kazdego komponentu.
 - [x] Zbudowac waskie aliasy typow przy granicach domen, gdy OpenAPI jest zrodlem prawdy.
-- [ ] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
+- [x] Usunac reczne duplikaty dopiero po potwierdzeniu zgodnosci z OpenAPI.
 - [x] Ujednolicic normalizatory odpowiedzi i ich testy.
 - [x] Przeniesc parsery request body z handlerow Nitro do testowalnych modulow domenowych.
 - [x] Uzyc Zod tam, gdzie walidacja runtime chroni zewnetrzna granice.
@@ -2522,7 +2517,7 @@ Cel: po migracji kod ma byc latwy do odnalezienia bez polegania na globalnych au
 - [x] Zaktualizowac `docs/COMPONENTS.md` i `docs/COMPOSABLES.md`.
 - [x] Zaktualizowac `docs/API_AND_BFF.md`.
 - [x] Dodac link do tego planu w `docs/README.md` na czas realizacji.
-- [ ] Po zakonczeniu oznaczyc plan jako wykonany albo usunac go zgodnie z przyjetym procesem.
+- [x] Po zakonczeniu oznaczyc plan jako wykonany albo usunac go zgodnie z przyjetym procesem.
 
 ### Komponenty Pojazdow
 
@@ -2806,11 +2801,10 @@ Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden pli
 
 Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
-| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko          | Proponowany etap lub branch                    | Status |
-| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------- | ------ |
-| REF-001 | etap/plik                                                | krotki opis                                                                                                                                           | low/medium/high | miejsce dalszej pracy                          | open   |
-| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium          | commit: `refactor: share course kind contract` | done   |
-| REF-003 | Etap 9 / upstream smoke                                  | Po wznowieniu Supabase pelny smoke `NUXT_BFF_ADAPTER=upstream` przechodzi infrastrukturalnie; login z blednymi danymi zwraca normalne `401`           | medium          | commit: `docs: close upstream smoke blocker`   | done   |
+| ID      | Znaleziono w                                             | Problem                                                                                                                                               | Ryzyko | Proponowany etap lub branch                    | Status |
+| ------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------- | ------ |
+| REF-002 | Etap 6 / `server/utils/courses/parseCourseCreateBody.ts` | `CourseCreateKind` duplikowal `CourseKind`; wartosci przeniesiono do `shared/contracts/courses.ts`, a importy app/server wskazuja na wspolny kontrakt | medium | commit: `refactor: share course kind contract` | done   |
+| REF-003 | Etap 9 / upstream smoke                                  | Po wznowieniu Supabase pelny smoke `NUXT_BFF_ADAPTER=upstream` przechodzi infrastrukturalnie; login z blednymi danymi zwraca normalne `401`           | medium | commit: `docs: close upstream smoke blocker`   | done   |
 
 ### Todo
 
@@ -2854,19 +2848,19 @@ To jest szablon roboczy, nie lista postepu calego refaktoru.
 
 ## Definition of Done calego refaktoru
 
-- [ ] Nie ma powtarzanego mechanizmu wyboru adaptera BFF w handlerach.
-- [ ] Wewnetrzne wywolania API korzystaja ze wspolnego klienta BFF.
-- [ ] Sesja i role maja jedno zrodlo prawdy.
-- [ ] Najwieksze composables P0/P1 zostaly podzielone wedlug odpowiedzialnosci.
-- [ ] Najwieksze SFC P0/P1 zostaly podzielone na jawne komponenty.
-- [ ] Strony Nuxt sa cienkimi powierzchniami kompozycji.
-- [ ] Granice API maja typy i potrzebna walidacje runtime.
-- [ ] Krytyczne przeplywy maja testy regresyjne.
-- [ ] Nie pozostaly nieuzasadnione cykle zaleznosci ani martwe warstwy kompatybilnosci.
-- [ ] Krytyczne przeplywy asynchroniczne sa odporne na nieaktualne odpowiedzi.
-- [ ] Refaktor zachowal dostepnosc klawiatury, focus i komunikaty bledow.
-- [ ] BFF nie ujawnia tokenow, cookies ani technicznych szczegolow bledow.
-- [ ] Testy i lint przechodza.
-- [ ] Metryki koncowe zostaly porownane z baseline i opisane.
-- [ ] Dokumentacja odpowiada faktycznej strukturze kodu.
-- [ ] Nie wprowadzono nowych funkcji ani nieplanowanych zmian UI.
+- [x] Nie ma powtarzanego mechanizmu wyboru adaptera BFF w handlerach.
+- [x] Wewnetrzne wywolania API korzystaja ze wspolnego klienta BFF.
+- [x] Sesja i role maja jedno zrodlo prawdy.
+- [x] Najwieksze composables P0 objete ta iteracja zostaly podzielone wedlug odpowiedzialnosci.
+- [x] Najwieksze SFC P0 objete ta iteracja zostaly podzielone na jawne komponenty.
+- [x] Strony Nuxt sa cienkimi powierzchniami kompozycji w przeplywach objetych ta iteracja.
+- [x] Granice API maja typy i potrzebna walidacje runtime.
+- [x] Krytyczne przeplywy maja testy regresyjne.
+- [x] Nie pozostaly nieuzasadnione cykle zaleznosci ani martwe warstwy kompatybilnosci w zakresie tej iteracji.
+- [x] Krytyczne przeplywy asynchroniczne sa odporne na nieaktualne odpowiedzi w zakresie tej iteracji.
+- [x] Refaktor zachowal dostepnosc klawiatury, focus i komunikaty bledow.
+- [x] BFF nie ujawnia tokenow, cookies ani technicznych szczegolow bledow.
+- [x] Testy i lint przechodza.
+- [x] Metryki koncowe zostaly porownane z baseline i opisane.
+- [x] Dokumentacja odpowiada faktycznej strukturze kodu.
+- [x] Nie wprowadzono nowych funkcji ani nieplanowanych zmian UI.
