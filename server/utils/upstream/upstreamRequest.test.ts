@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { H3Event } from 'h3';
 import {
+    cookieBaseOptions,
     parseBackendEnvelopeFromResponseText,
     parseRefreshFromSetCookieLines,
     upstreamRequest,
@@ -105,6 +106,15 @@ describe('parseBackendEnvelopeFromResponseText', () => {
 });
 
 describe('upstreamRequest', () => {
+    it('allows disabling secure cookies for HTTP homelab deployments', () => {
+        vi.stubEnv('NODE_ENV', 'production');
+        vi.stubEnv('NUXT_COOKIE_SECURE', 'false');
+
+        expect(cookieBaseOptions().secure).toBe(false);
+
+        vi.unstubAllEnvs();
+    });
+
     it('adds bearer auth and unwraps success data', async () => {
         const { event } = mockEvent();
         const fetchImpl: typeof fetch = vi.fn(

@@ -39,10 +39,20 @@ export interface UpstreamRequestResult<T = unknown> {
     data: T | undefined;
 }
 
+function resolveCookieSecure(): boolean {
+    const override = process.env.NUXT_COOKIE_SECURE?.trim().toLowerCase();
+
+    if (override === 'true') return true;
+
+    if (override === 'false') return false;
+
+    return process.env.NODE_ENV === 'production';
+}
+
 export function cookieBaseOptions() {
     return {
         httpOnly: true as const,
-        secure: process.env.NODE_ENV === 'production',
+        secure: resolveCookieSecure(),
         sameSite: 'strict' as const,
         path: '/' as const,
     };
