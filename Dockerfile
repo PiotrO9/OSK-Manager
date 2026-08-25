@@ -1,5 +1,7 @@
 FROM node:22.23-bookworm-slim AS build
 
+RUN npm install -g npm@11.6.0
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
