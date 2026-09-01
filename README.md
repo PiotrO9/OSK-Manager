@@ -60,6 +60,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | `npm run format`   | Format code with Prettier |
 | `npm run test`     | Run Vitest                |
 
+## Homelab Deployment
+
+Pushes to `master` run the frontend CI workflow. When CI passes, it triggers the homelab deployment workflow in the deploy repository.
+
 ## License
 
 MIT
