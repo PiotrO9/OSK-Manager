@@ -8,8 +8,15 @@ import {
     formatCourseKindLabel,
     type CourseDetail,
 } from '~/types/courses/course';
-import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import {
+    buildCourseOverviewItems,
+    buildCourseRelatedItems,
+    formatCourseInstructorName,
+    getRouteIdString,
+    readSchoolIdFromQuery,
+    resolveCourseDetailError,
+} from '~/utils/courses/managerCourseDetailPage';
 import { usePageMeta } from '../core/usePageMeta';
 
 export const MANAGER_COURSE_NO_INSTRUCTOR_VALUE = '__no_instructor__';
@@ -57,14 +64,7 @@ export function useManagerCourseDetailPage() {
     });
 
     const schoolIdFromQuery = computed(() => {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
-
-        if (typeof s !== 'string') {
-            return '';
-        }
-
-        return s.trim();
+        return readSchoolIdFromQuery(route.query.schoolId);
     });
 
     const effectiveSchoolId = computed(() => {
@@ -154,26 +154,7 @@ export function useManagerCourseDetailPage() {
             return [];
         }
 
-        return [
-            {
-                label: 'Godziny kursu',
-                description: `${course.value.totalHours} h lacznie`,
-                badge: `${course.value.totalHours} h`,
-                tone: 'info',
-            },
-            {
-                label: 'Typ kursu',
-                description: 'Rodzaj zajec i organizacji kursu.',
-                badge: formatCourseKindLabel(course.value.type),
-                tone: 'neutral',
-            },
-            {
-                label: 'Limit miejsc',
-                description: 'Maksymalna liczba uczestnikow.',
-                badge: formatCapacityText(course.value.capacity),
-                tone: course.value.capacity === null ? 'neutral' : 'success',
-            },
-        ];
+        return buildCourseOverviewItems(course.value);
     });
 
     const relatedItems = computed<ManagerCourseInfoItem[]>(() => {
@@ -181,23 +162,11 @@ export function useManagerCourseDetailPage() {
             return [];
         }
 
-        return [
-            {
-                label: 'Instruktor',
-                description: 'Przypisanie edytowane w panelu obok.',
-                badge: formatInstructorName(course.value),
-            },
-            {
-                label: 'Kategoria',
-                description: 'Zachowana w konfiguracji kursu.',
-                badge: courseCategoryLabel.value,
-            },
-            {
-                label: 'OSK',
-                description: 'Kontekst pobrany z linku lub danych kursu.',
-                badge: effectiveSchoolId.value ? 'Powiazane' : 'Brak ID',
-            },
-        ];
+        return buildCourseRelatedItems({
+            course: course.value,
+            courseCategoryLabel: courseCategoryLabel.value,
+            effectiveSchoolId: effectiveSchoolId.value,
+        });
     });
 
     usePageMeta({
@@ -205,59 +174,8 @@ export function useManagerCourseDetailPage() {
         description: () => 'Dane kursu i przypisanie instruktora.',
     });
 
-    function getRouteIdString(rawId: unknown): string {
-        if (typeof rawId === 'string') {
-            return rawId.trim();
-        }
-
-        if (Array.isArray(rawId)) {
-            return String(rawId[0] ?? '').trim();
-        }
-
-        return '';
-    }
-
-    function resolveCourseDetailError(err: unknown): string {
-        const status = getApiErrorStatusCode(err);
-
-        if (status === 403) {
-            return 'Brak dost�pu do szczeg��w tego kursu.';
-        }
-
-        if (status === 404) {
-            return 'Nie znaleziono kursu.';
-        }
-
-        if (status !== undefined && status >= 500) {
-            return 'Serwer jest chwilowo niedost�pny. Spr�buj ponownie.';
-        }
-
-        if (err instanceof Error && err.message.trim().length > 0) {
-            return err.message.trim();
-        }
-
-        return getApiFetchErrorMessage(
-            err,
-            'Nie uda�o si� wczyta� danych kursu.',
-        );
-    }
-
-    function formatCapacityText(capacity: number | null): string {
-        if (capacity === null) {
-            return 'Brak limitu';
-        }
-
-        return String(capacity);
-    }
-
     function formatInstructorName(c: CourseDetail): string {
-        const name = c.instructor?.name?.trim();
-
-        if (name && name.length > 0) {
-            return name;
-        }
-
-        return 'Brak instruktora';
+        return formatCourseInstructorName(c);
     }
 
     function applySelectionFromCourse() {
