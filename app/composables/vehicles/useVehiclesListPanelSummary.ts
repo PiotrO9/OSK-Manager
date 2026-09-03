@@ -1,9 +1,12 @@
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import {
-    vehicleAvailabilityLabel,
-    vehicleAvailabilityTone,
-} from '~/utils/vehicles/availability';
+    displayVehicleText,
+    formatVehicleMeta,
+    formatVehicleOptionalDate,
+    vehicleStatusLabel,
+    vehicleStatusTone,
+} from '~/utils/vehicles/display';
 
 export interface VehiclesListPanelSummaryProps {
     activePanel: VehiclesListPanelId;
@@ -77,8 +80,8 @@ export function useVehiclesListPanelSummary(
     return {
         activePanelLabel,
         createVehicleTarget,
-        displayText,
-        formatOptionalDate,
+        displayText: displayVehicleText,
+        formatOptionalDate: formatVehicleOptionalDate,
         formatVehicleMeta,
         resultsLabel,
         summaryItems,
@@ -87,34 +90,6 @@ export function useVehiclesListPanelSummary(
     };
 }
 
-function displayText(value: string): string {
-    const t = value.trim();
-
-    return t.length > 0 ? t : '-';
-}
-
 function isVehicleAvailable(vehicle: Vehicle): boolean {
     return vehicle.status !== 'UNAVAILABLE';
-}
-
-function formatOptionalDate(value: string | null): string {
-    return value ?? 'Brak terminu';
-}
-
-function formatVehicleMeta(vehicle: Vehicle): string {
-    const year = vehicle.modelYear != null ? String(vehicle.modelYear) : null;
-    const mileage =
-        vehicle.mileageKm != null
-            ? `${new Intl.NumberFormat('pl-PL').format(vehicle.mileageKm)} km`
-            : null;
-
-    return [year, mileage].filter(Boolean).join(' - ') || 'Brak metadanych';
-}
-
-function vehicleStatusLabel(vehicle: Vehicle): string {
-    return vehicleAvailabilityLabel(vehicle);
-}
-
-function vehicleStatusTone(vehicle: Vehicle): 'success' | 'warning' {
-    return vehicleAvailabilityTone(vehicle);
 }
