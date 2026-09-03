@@ -1,5 +1,4 @@
 import type { DateValue } from '@internationalized/date';
-import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
@@ -14,6 +13,13 @@ import {
     countScheduleInstructors,
     formatEarliestScheduleStartLabel,
 } from '~/utils/schedule/managerSchoolScheduleCalendarLayout';
+import {
+    buildManagerSchoolScheduleWeekDays,
+    formatManagerSchoolScheduleCompactWeekRangeLabel,
+    formatManagerSchoolScheduleWeekRangeLabel,
+    resolveManagerSchoolScheduleCalendarWeekStart,
+    shiftManagerSchoolScheduleWeek,
+} from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import {
@@ -21,7 +27,6 @@ import {
     isScheduleManagerItemEditable,
 } from '~/utils/schedule/scheduleManagerEditNavigation';
 import {
-    formatDateOnly,
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
@@ -101,73 +106,17 @@ export function useManagerSchoolScheduleCalendar(
         Array.from({ length: 12 }, (_, i) => BASE_HOUR + i),
     );
 
-    const weekDays = computed(() => {
-        const out: {
-            date: Date;
-            dateStr: string;
-            header: string;
-            isToday: boolean;
-        }[] = [];
+    const weekDays = computed(() =>
+        buildManagerSchoolScheduleWeekDays(activeWeekStart.value),
+    );
 
-        const start = new Date(
-            activeWeekStart.value.getFullYear(),
-            activeWeekStart.value.getMonth(),
-            activeWeekStart.value.getDate(),
-        );
-        const todayStr = formatDateOnly(new Date());
+    const weekRangeLabel = computed(() =>
+        formatManagerSchoolScheduleWeekRangeLabel(activeWeekStart.value),
+    );
 
-        for (let i = 0; i < 7; i += 1) {
-            const d = new Date(
-                start.getFullYear(),
-                start.getMonth(),
-                start.getDate() + i,
-            );
-            const dateStr = formatDateOnly(d);
-
-            out.push({
-                date: d,
-                dateStr,
-                header: d.toLocaleDateString('pl-PL', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'numeric',
-                }),
-                isToday: dateStr === todayStr,
-            });
-        }
-
-        return out;
-    });
-
-    const weekRangeLabel = computed(() => {
-        const ws = activeWeekStart.value;
-        const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
-        const opts: Intl.DateTimeFormatOptions = {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        };
-
-        return `${ws.toLocaleDateString('pl-PL', opts)} - ${end.toLocaleDateString('pl-PL', opts)}`;
-    });
-
-    const compactWeekRangeLabel = computed(() => {
-        const ws = activeWeekStart.value;
-        const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
-        const startDay = ws.toLocaleDateString('pl-PL', { day: 'numeric' });
-        const endDay = end.toLocaleDateString('pl-PL', { day: 'numeric' });
-        const startMonth = ws.toLocaleDateString('pl-PL', { month: 'long' });
-        const endMonth = end.toLocaleDateString('pl-PL', { month: 'long' });
-
-        if (
-            ws.getMonth() === end.getMonth() &&
-            ws.getFullYear() === end.getFullYear()
-        ) {
-            return `${startDay}-${endDay} ${endMonth}`;
-        }
-
-        return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
-    });
+    const compactWeekRangeLabel = computed(() =>
+        formatManagerSchoolScheduleCompactWeekRangeLabel(activeWeekStart.value),
+    );
 
     const itemsByDate = computed(() =>
         buildScheduleItemsByDate(displayItems.value),
@@ -271,41 +220,25 @@ export function useManagerSchoolScheduleCalendar(
     }
 
     function handlePrevWeek(): void {
-        const d = new Date(activeWeekStart.value);
-
-        d.setDate(d.getDate() - 7);
-        commitWeekMonday(d);
+        commitWeekMonday(
+            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'prev'),
+        );
     }
 
     function handleNextWeek(): void {
-        const d = new Date(activeWeekStart.value);
-
-        d.setDate(d.getDate() + 7);
-        commitWeekMonday(d);
+        commitWeekMonday(
+            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'next'),
+        );
     }
 
     function handleCalendarUpdate(
         value: DateValue | DateValue[] | undefined,
     ): void {
-        if (value === undefined) {
+        const monday = resolveManagerSchoolScheduleCalendarWeekStart(value);
+
+        if (!monday) {
             return;
         }
-
-        const arr = Array.isArray(value) ? value : [value];
-
-        if (arr.length === 0) {
-            return;
-        }
-
-        let anchor = arr[0]!;
-
-        for (const v of arr) {
-            if (toDate(v).getTime() > toDate(anchor).getTime()) {
-                anchor = v;
-            }
-        }
-
-        const monday = getMonday(toDate(anchor));
 
         commitWeekMonday(monday);
         isCalendarOpen.value = false;
