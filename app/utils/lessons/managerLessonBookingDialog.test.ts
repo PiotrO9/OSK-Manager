@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
-    buildLessonBookingSubmitBody,
-    filterLessonBookingAvailableInstructors,
-    filterLessonBookingCourses,
-    readLessonBookingFetchStatusCode,
-} from './useManagerLessonBookingDialog';
+    buildManagerLessonBookingSubmitBody,
+    filterManagerLessonBookingAvailableInstructors,
+    filterManagerLessonBookingCourses,
+    readManagerLessonBookingFetchStatusCode,
+} from '~/utils/lessons/managerLessonBookingDialog';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type {
     LessonBookingSlotContext,
@@ -33,7 +33,7 @@ const practicalCourse: StudentCourseWithKind = {
 describe('manager lesson booking dialog helpers', () => {
     it('filters booking courses to practical, extra, and unknown kind', () => {
         expect(
-            filterLessonBookingCourses([
+            filterManagerLessonBookingCourses([
                 practicalCourse,
                 { ...practicalCourse, id: 'course-2', kind: 'EXTRA' },
                 { ...practicalCourse, id: 'course-3', kind: null },
@@ -65,7 +65,7 @@ describe('manager lesson booking dialog helpers', () => {
         ];
 
         expect(
-            filterLessonBookingAvailableInstructors({
+            filterManagerLessonBookingAvailableInstructors({
                 slotCtx,
                 selectedCourse: practicalCourse,
                 schoolInstructors,
@@ -77,7 +77,7 @@ describe('manager lesson booking dialog helpers', () => {
 
     it('builds the lesson create payload from selected ids and slot context', () => {
         expect(
-            buildLessonBookingSubmitBody({
+            buildManagerLessonBookingSubmitBody({
                 slotCtx,
                 studentUserId: 'student-1',
                 courseId: 'course-1',
@@ -97,9 +97,11 @@ describe('manager lesson booking dialog helpers', () => {
     });
 
     it('extracts conflict status code from fetch-like errors', () => {
-        expect(readLessonBookingFetchStatusCode({ statusCode: 409 })).toBe(409);
         expect(
-            readLessonBookingFetchStatusCode(new Error('x')),
+            readManagerLessonBookingFetchStatusCode({ statusCode: 409 }),
+        ).toBe(409);
+        expect(
+            readManagerLessonBookingFetchStatusCode(new Error('x')),
         ).toBeUndefined();
     });
 });

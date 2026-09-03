@@ -2,7 +2,6 @@ import type { Ref } from 'vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type {
-    CreateLessonBody,
     LessonBookingInstructorOption,
     LessonBookingSlotContext,
     StudentCourseWithKind,
@@ -10,159 +9,19 @@ import type {
 import type { StudentListItem } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
+import {
+    buildManagerLessonBookingSubmitBody,
+    filterManagerLessonBookingAvailableInstructors,
+    filterManagerLessonBookingCourses,
+    formatManagerLessonBookingSlotWhenLabel,
+    readManagerLessonBookingFetchStatusCode,
+} from '~/utils/lessons/managerLessonBookingDialog';
 
 interface UseManagerLessonBookingDialogOptions {
     open: Ref<boolean>;
     slotCtx: Readonly<Ref<LessonBookingSlotContext | null>>;
     schoolCourses: Readonly<Ref<readonly CourseListItem[]>>;
     emitBooked: () => void;
-}
-
-function instructorHasCategoryQualification(
-    instructor: InstructorListItem,
-    categoryCode: string,
-): boolean {
-    const code = categoryCode.trim();
-
-    if (!code) {
-        return false;
-    }
-
-    return (instructor.qualifiedCourseTypes ?? []).some(
-        (courseType) => courseType.code.trim() === code,
-    );
-}
-
-export function filterLessonBookingCourses(
-    courses: readonly StudentCourseWithKind[],
-): StudentCourseWithKind[] {
-    return courses.filter((course) => {
-        if (course.kind === null) {
-            return true;
-        }
-
-        return course.kind === 'PRACTICAL' || course.kind === 'EXTRA';
-    });
-}
-
-export function filterLessonBookingAvailableInstructors(params: {
-    slotCtx: LessonBookingSlotContext | null;
-    selectedCourse: StudentCourseWithKind | null;
-    schoolInstructors: readonly InstructorListItem[];
-}): LessonBookingInstructorOption[] {
-    const { slotCtx, selectedCourse, schoolInstructors } = params;
-
-    if (!slotCtx) {
-        return [];
-    }
-
-    if (!selectedCourse) {
-        return slotCtx.availableInstructors;
-    }
-
-    const qualifiedIds = new Set(
-        schoolInstructors
-            .filter((instructor) =>
-                instructorHasCategoryQualification(
-                    instructor,
-                    selectedCourse.category,
-                ),
-            )
-            .map((instructor) => instructor.id),
-    );
-
-    return slotCtx.availableInstructors.filter((instructor) =>
-        qualifiedIds.has(instructor.id),
-    );
-}
-
-export function formatLessonBookingSlotWhenLabel(
-    slotCtx: LessonBookingSlotContext | null,
-): string {
-    if (!slotCtx) {
-        return '';
-    }
-
-    const date = new Date(`${slotCtx.date}T12:00:00`);
-
-    if (Number.isNaN(date.getTime())) {
-        return `${slotCtx.date}, ${slotCtx.startTime}–${slotCtx.endTime}`;
-    }
-
-    const dateStr = date.toLocaleDateString('pl-PL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-
-    return `${dateStr}, ${slotCtx.startTime}–${slotCtx.endTime}`;
-}
-
-export function readLessonBookingFetchStatusCode(
-    err: unknown,
-): number | undefined {
-    if (err !== null && typeof err === 'object' && 'statusCode' in err) {
-        const code = (err as { statusCode: unknown }).statusCode;
-
-        if (typeof code === 'number') {
-            return code;
-        }
-    }
-
-    return undefined;
-}
-
-export function buildLessonBookingSubmitBody(params: {
-    slotCtx: LessonBookingSlotContext | null;
-    studentUserId: string;
-    courseId: string;
-    instructorId: string;
-    vehicleId: string;
-}): { ok: true; body: CreateLessonBody } | { ok: false; error: string } {
-    const ctx = params.slotCtx;
-
-    if (!ctx) {
-        return { ok: false, error: 'Brak kontekstu slotu.' };
-    }
-
-    const studentUserId = params.studentUserId.trim();
-    const courseId = params.courseId.trim();
-    const instructorId = params.instructorId.trim();
-    const vehicleId = params.vehicleId.trim();
-
-    if (!studentUserId) {
-        return { ok: false, error: 'Wybierz kursanta.' };
-    }
-
-    if (!courseId) {
-        return { ok: false, error: 'Wybierz kurs.' };
-    }
-
-    if (!instructorId) {
-        return { ok: false, error: 'Wybierz instruktora.' };
-    }
-
-    if (!vehicleId) {
-        return {
-            ok: false,
-            error: 'Wybierz pojazd dla jazdy praktycznej.',
-        };
-    }
-
-    return {
-        ok: true,
-        body: {
-            courseId,
-            studentId: studentUserId,
-            instructorId,
-            startTime: buildSlotIsoUTC(ctx.date, ctx.startTime),
-            endTime: buildSlotIsoUTC(ctx.date, ctx.endTime),
-            lessonType: 'PRACTICE',
-            vehicleId,
-        },
-    };
 }
 
 export function useManagerLessonBookingDialog(
@@ -192,7 +51,7 @@ export function useManagerLessonBookingDialog(
     const loadCoursesError = ref<string | null>(null);
 
     const filteredCourses = computed(() =>
-        filterLessonBookingCourses(studentCourses.value),
+        filterManagerLessonBookingCourses(studentCourses.value),
     );
 
     const selectedCourse = computed((): StudentCourseWithKind | null => {
@@ -209,7 +68,7 @@ export function useManagerLessonBookingDialog(
     });
 
     const filteredAvailableInstructors = computed(() =>
-        filterLessonBookingAvailableInstructors({
+        filterManagerLessonBookingAvailableInstructors({
             slotCtx: options.slotCtx.value,
             selectedCourse: selectedCourse.value,
             schoolInstructors: schoolInstructors.value,
@@ -243,7 +102,7 @@ export function useManagerLessonBookingDialog(
     });
 
     const slotWhenLabel = computed(() =>
-        formatLessonBookingSlotWhenLabel(options.slotCtx.value),
+        formatManagerLessonBookingSlotWhenLabel(options.slotCtx.value),
     );
 
     let loadSeq = 0;
@@ -338,7 +197,7 @@ export function useManagerLessonBookingDialog(
     async function handleSubmit(): Promise<void> {
         formError.value = null;
 
-        const result = buildLessonBookingSubmitBody({
+        const result = buildManagerLessonBookingSubmitBody({
             slotCtx: options.slotCtx.value,
             studentUserId: selectedStudentUserId.value,
             courseId: selectedCourseId.value,
@@ -364,7 +223,7 @@ export function useManagerLessonBookingDialog(
             options.emitBooked();
             options.open.value = false;
         } catch (err: unknown) {
-            const code = readLessonBookingFetchStatusCode(err);
+            const code = readManagerLessonBookingFetchStatusCode(err);
 
             if (code === 409) {
                 formError.value =
