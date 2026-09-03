@@ -2,7 +2,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { getLocalTimeZone } from '@internationalized/date';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
     dateValueToIsoDateString,
@@ -49,7 +49,7 @@ const emit = defineEmits<{
 
 const isOpen = ref(false);
 
-const calendarSelected = ref<CalendarDate | undefined>(undefined);
+const calendarSelected = shallowRef<CalendarDate | undefined>(undefined);
 
 function syncCalendarFromModel(): void {
     calendarSelected.value = isoDateStringToCalendarDate(props.modelValue);

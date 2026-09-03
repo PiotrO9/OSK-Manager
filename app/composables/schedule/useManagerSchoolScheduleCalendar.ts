@@ -43,13 +43,19 @@ export interface ManagerSchoolScheduleCalendarProps {
     studentRatingSelectionEnabled?: boolean;
 }
 
+type ManagerSchoolScheduleCalendarResolvedProps = Required<
+    Omit<ManagerSchoolScheduleCalendarProps, 'weekStart'>
+> & {
+    weekStart?: Date;
+};
+
 interface ManagerSchoolScheduleCalendarEmit {
     'update:weekStart': [value: Date];
     'lesson-selected': [lesson: ScheduleLessonItem];
 }
 
 export function useManagerSchoolScheduleCalendar(
-    props: Readonly<Required<ManagerSchoolScheduleCalendarProps>>,
+    props: Readonly<ManagerSchoolScheduleCalendarResolvedProps>,
     emit: <K extends keyof ManagerSchoolScheduleCalendarEmit>(
         event: K,
         ...args: ManagerSchoolScheduleCalendarEmit[K]
@@ -59,7 +65,7 @@ export function useManagerSchoolScheduleCalendar(
     const internalItems = ref<ScheduleLessonItem[]>([]);
     const errorMessage = ref<string | null>(null);
     const isCalendarOpen = ref(false);
-    const calendarSelected = ref<DateValue[]>(
+    const calendarSelected = shallowRef<DateValue[]>(
         weekCalendarDatesFromMonday(getMonday(new Date())),
     );
 

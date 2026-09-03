@@ -48,7 +48,7 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
     const errorMessage = ref<string | null>(null);
     const isCalendarOpen = ref(false);
 
-    const calendarSelected = ref<CalendarDate[]>(
+    const calendarSelected = shallowRef<CalendarDate[]>(
         weekCalendarDatesFromMonday(getMonday(new Date())),
     );
 

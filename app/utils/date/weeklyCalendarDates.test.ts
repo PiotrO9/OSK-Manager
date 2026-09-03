@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+    buildDatetimeLocal,
+    dateValueToIsoDateString,
     formatDateOnly,
+    formatDatetimeLocalPl,
     getMonday,
+    isoDateStringToCalendarDate,
+    parseDatetimeLocalParts,
     weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from './weeklyCalendarDates';
@@ -29,5 +34,36 @@ describe('weekly calendar date helpers', () => {
             '2026-09-05',
             '2026-09-06',
         ]);
+    });
+
+    it('round-trips ISO date strings through calendar values for UI payloads', () => {
+        const calendarDate = isoDateStringToCalendarDate('2026-09-03');
+
+        if (!calendarDate) {
+            throw new Error('Expected valid calendar date');
+        }
+
+        expect(calendarDate.toString()).toBe('2026-09-03');
+        expect(dateValueToIsoDateString(calendarDate)).toBe('2026-09-03');
+    });
+
+    it('round-trips datetime-local values through parsed form parts', () => {
+        const parsed = parseDatetimeLocalParts('2026-09-03T09:30');
+
+        if (!parsed) {
+            throw new Error('Expected valid datetime-local parts');
+        }
+
+        expect(parsed).toMatchObject({
+            hour: 9,
+            minute: 30,
+        });
+        expect(parsed.date.toString()).toBe('2026-09-03');
+        expect(
+            buildDatetimeLocal(parsed.date, parsed.hour, parsed.minute),
+        ).toBe('2026-09-03T09:30');
+        expect(formatDatetimeLocalPl('2026-09-03T09:30')).toBe(
+            '03.09.2026 09:30',
+        );
     });
 });

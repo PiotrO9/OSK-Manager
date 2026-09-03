@@ -2,7 +2,7 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { Calendar as CalendarIcon } from 'lucide-vue-next';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
     buildDatetimeLocal,
@@ -73,7 +73,7 @@ const DEFAULT_MINUTE_OPTIONS: number[] = Array.from(
 
 const isOpen = ref(false);
 
-const calendarSelected = ref<CalendarDate | undefined>(undefined);
+const calendarSelected = shallowRef<CalendarDate | undefined>(undefined);
 const hour = ref(9);
 const minute = ref(0);
 

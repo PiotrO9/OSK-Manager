@@ -173,7 +173,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     const slots = ref<SchoolAvailabilitySlot[]>([]);
     const errorMessage = ref<string | null>(null);
     const isCalendarOpen = ref(false);
-    const calendarSelected = ref<CalendarDate[]>(
+    const calendarSelected = shallowRef<CalendarDate[]>(
         weekCalendarDatesFromMonday(getMonday(new Date())),
     );
     const { fetchSlots, isLoading } = useSchoolAvailabilitySlotsApi();
