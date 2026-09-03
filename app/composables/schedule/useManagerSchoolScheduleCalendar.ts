@@ -1,19 +1,25 @@
 import type { DateValue } from '@internationalized/date';
-import { toDate } from 'reka-ui/date';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useManagerSchoolScheduleCalendarData } from '~/composables/schedule/useManagerSchoolScheduleCalendarData';
 import {
     ariaSummaryForLesson,
     BASE_HOUR,
     GRID_HEIGHT_PX,
-    isoToDateStr,
-    isoToHm,
-    lessonDurationMinutes,
-    PX_PER_MINUTE,
-    SAME_START_TILE_GAP_PX,
-    SLOT_END_GUTTER_PX,
-    slotTopPx,
 } from '~/utils/schedule/managerScheduleCalendarUtils';
+import {
+    buildScheduleItemsByDate,
+    calculateSameStartTileHeightPx,
+    calculateScheduleBlockTopPx,
+    countScheduleInstructors,
+    formatEarliestScheduleStartLabel,
+} from '~/utils/schedule/managerSchoolScheduleCalendarLayout';
+import {
+    buildManagerSchoolScheduleWeekDays,
+    formatManagerSchoolScheduleCompactWeekRangeLabel,
+    formatManagerSchoolScheduleWeekRangeLabel,
+    resolveManagerSchoolScheduleCalendarWeekStart,
+    shiftManagerSchoolScheduleWeek,
+} from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import {
@@ -21,12 +27,10 @@ import {
     isScheduleManagerItemEditable,
 } from '~/utils/schedule/scheduleManagerEditNavigation';
 import {
-    formatDateOnly,
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
     weekCalendarDatesFromMonday,
-    weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
 
 export interface ManagerSchoolScheduleCalendarProps {
@@ -62,16 +66,16 @@ export function useManagerSchoolScheduleCalendar(
     ) => void,
 ) {
     const localWeekStart = ref<Date>(getMonday(new Date()));
-    const internalItems = ref<ScheduleLessonItem[]>([]);
-    const errorMessage = ref<string | null>(null);
     const isCalendarOpen = ref(false);
     const calendarSelected = shallowRef<DateValue[]>(
         weekCalendarDatesFromMonday(getMonday(new Date())),
     );
-
-    const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
-
-    let fetchSeq = 0;
+    const { errorMessage, internalItems, isLoading, loadWeek } =
+        useManagerSchoolScheduleCalendarData({
+            schoolId: () => props.schoolId,
+            weekStart: localWeekStart,
+            disabled: () => props.parentSchedule,
+        });
 
     const calendarSelectedModel = computed<DateValue[]>(
         () => calendarSelected.value as unknown as DateValue[],
@@ -101,272 +105,47 @@ export function useManagerSchoolScheduleCalendar(
         Array.from({ length: 12 }, (_, i) => BASE_HOUR + i),
     );
 
-    const weekDays = computed(() => {
-        const out: {
-            date: Date;
-            dateStr: string;
-            header: string;
-            isToday: boolean;
-        }[] = [];
+    const weekDays = computed(() =>
+        buildManagerSchoolScheduleWeekDays(activeWeekStart.value),
+    );
 
-        const start = new Date(
-            activeWeekStart.value.getFullYear(),
-            activeWeekStart.value.getMonth(),
-            activeWeekStart.value.getDate(),
-        );
-        const todayStr = formatDateOnly(new Date());
+    const weekRangeLabel = computed(() =>
+        formatManagerSchoolScheduleWeekRangeLabel(activeWeekStart.value),
+    );
 
-        for (let i = 0; i < 7; i += 1) {
-            const d = new Date(
-                start.getFullYear(),
-                start.getMonth(),
-                start.getDate() + i,
-            );
-            const dateStr = formatDateOnly(d);
+    const compactWeekRangeLabel = computed(() =>
+        formatManagerSchoolScheduleCompactWeekRangeLabel(activeWeekStart.value),
+    );
 
-            out.push({
-                date: d,
-                dateStr,
-                header: d.toLocaleDateString('pl-PL', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'numeric',
-                }),
-                isToday: dateStr === todayStr,
-            });
-        }
+    const itemsByDate = computed(() =>
+        buildScheduleItemsByDate(displayItems.value),
+    );
 
-        return out;
-    });
+    const scheduleInstructorCount = computed(() =>
+        countScheduleInstructors(displayItems.value),
+    );
 
-    const weekRangeLabel = computed(() => {
-        const ws = activeWeekStart.value;
-        const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
-        const opts: Intl.DateTimeFormatOptions = {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        };
-
-        return `${ws.toLocaleDateString('pl-PL', opts)} - ${end.toLocaleDateString('pl-PL', opts)}`;
-    });
-
-    const compactWeekRangeLabel = computed(() => {
-        const ws = activeWeekStart.value;
-        const end = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
-        const startDay = ws.toLocaleDateString('pl-PL', { day: 'numeric' });
-        const endDay = end.toLocaleDateString('pl-PL', { day: 'numeric' });
-        const startMonth = ws.toLocaleDateString('pl-PL', { month: 'long' });
-        const endMonth = end.toLocaleDateString('pl-PL', { month: 'long' });
-
-        if (
-            ws.getMonth() === end.getMonth() &&
-            ws.getFullYear() === end.getFullYear()
-        ) {
-            return `${startDay}-${endDay} ${endMonth}`;
-        }
-
-        return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
-    });
-
-    const itemsByDate = computed(() => {
-        const map = new Map<string, ScheduleLessonItem[]>();
-
-        for (const it of displayItems.value) {
-            const ds = isoToDateStr(it.startTime);
-
-            if (!ds) {
-                continue;
-            }
-
-            if (!map.has(ds)) {
-                map.set(ds, []);
-            }
-
-            map.get(ds)!.push(it);
-        }
-
-        for (const arr of map.values()) {
-            arr.sort((a, b) => a.startTime.localeCompare(b.startTime));
-        }
-
-        return map;
-    });
-
-    const scheduleInstructorCount = computed(() => {
-        const ids = new Set<string>();
-        const names = new Set<string>();
-
-        for (const item of displayItems.value) {
-            const instructor = item.instructor;
-
-            if (!instructor) {
-                continue;
-            }
-
-            if (instructor.id.trim()) {
-                ids.add(instructor.id);
-                continue;
-            }
-
-            const name =
-                `${instructor.firstName} ${instructor.lastName}`.trim();
-
-            if (name) {
-                names.add(name);
-            }
-        }
-
-        return ids.size + names.size;
-    });
-
-    const earliestStartLabel = computed(() => {
-        const times = displayItems.value
-            .map((item) => new Date(item.startTime))
-            .filter((date) => !Number.isNaN(date.getTime()))
-            .sort((a, b) => a.getTime() - b.getTime());
-
-        if (times.length === 0) {
-            return '--:--';
-        }
-
-        return `${String(times[0]!.getHours()).padStart(2, '0')}:${String(
-            times[0]!.getMinutes(),
-        ).padStart(2, '0')}`;
-    });
+    const earliestStartLabel = computed(() =>
+        formatEarliestScheduleStartLabel(displayItems.value),
+    );
 
     function lessonsForDate(dateStr: string): ScheduleLessonItem[] {
         return itemsByDate.value.get(dateStr) ?? [];
-    }
-
-    function sameStartSorted(
-        item: ScheduleLessonItem,
-        dateStr: string,
-    ): ScheduleLessonItem[] {
-        const list = lessonsForDate(dateStr);
-        const hm = isoToHm(item.startTime);
-        const same = list.filter((x) => isoToHm(x.startTime) === hm);
-
-        same.sort((a, b) => a.id.localeCompare(b.id));
-
-        return same;
-    }
-
-    function sameStartGroupDurationMinutes(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        let maxMin = 1;
-
-        for (const s of same) {
-            maxMin = Math.max(maxMin, lessonDurationMinutes(s));
-        }
-
-        return maxMin;
-    }
-
-    function sameStartSlotInnerPx(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        return Math.max(
-            0,
-            sameStartGroupDurationMinutes(lesson, dateStr) * PX_PER_MINUTE -
-                SLOT_END_GUTTER_PX,
-        );
-    }
-
-    function sameStartTileHeightPx(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        const inner = sameStartSlotInnerPx(lesson, dateStr);
-        const n = Math.max(1, same.length);
-
-        if (n === 1) {
-            return Math.max(1, inner);
-        }
-
-        return Math.max(1, (inner - (n - 1) * SAME_START_TILE_GAP_PX) / n);
     }
 
     function lessonBlockTopPx(
         lesson: ScheduleLessonItem,
         dateStr: string,
     ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        const h = sameStartTileHeightPx(lesson, dateStr);
-        const idx = same.findIndex((x) => x.id === lesson.id);
-
-        if (idx < 0) {
-            return slotTopPx(isoToHm(lesson.startTime));
-        }
-
-        return (
-            slotTopPx(isoToHm(lesson.startTime)) +
-            idx * (h + SAME_START_TILE_GAP_PX)
-        );
+        return calculateScheduleBlockTopPx(lesson, lessonsForDate(dateStr));
     }
 
     function lessonBlockHeightPx(
         lesson: ScheduleLessonItem,
         dateStr: string,
     ): number {
-        return sameStartTileHeightPx(lesson, dateStr);
+        return calculateSameStartTileHeightPx(lesson, lessonsForDate(dateStr));
     }
-
-    async function loadWeek(): Promise<void> {
-        if (props.parentSchedule) {
-            return;
-        }
-
-        const sid = props.schoolId.trim();
-
-        if (!sid) {
-            internalItems.value = [];
-            errorMessage.value = null;
-
-            return;
-        }
-
-        const seq = ++fetchSeq;
-
-        errorMessage.value = null;
-
-        const { dateFrom, dateTo } = weekRangeFromMonday(localWeekStart.value);
-
-        try {
-            const data = await fetchSchoolSchedule(sid, dateFrom, dateTo);
-
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            internalItems.value = data;
-        } catch (err: unknown) {
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            internalItems.value = [];
-            errorMessage.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać harmonogramu lekcji.',
-            );
-        }
-    }
-
-    watch(
-        [localWeekStart, () => props.schoolId],
-        () => {
-            if (!props.parentSchedule) {
-                void loadWeek();
-            }
-        },
-        { immediate: true },
-    );
 
     watch(
         activeWeekStart,
@@ -389,41 +168,25 @@ export function useManagerSchoolScheduleCalendar(
     }
 
     function handlePrevWeek(): void {
-        const d = new Date(activeWeekStart.value);
-
-        d.setDate(d.getDate() - 7);
-        commitWeekMonday(d);
+        commitWeekMonday(
+            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'prev'),
+        );
     }
 
     function handleNextWeek(): void {
-        const d = new Date(activeWeekStart.value);
-
-        d.setDate(d.getDate() + 7);
-        commitWeekMonday(d);
+        commitWeekMonday(
+            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'next'),
+        );
     }
 
     function handleCalendarUpdate(
         value: DateValue | DateValue[] | undefined,
     ): void {
-        if (value === undefined) {
+        const monday = resolveManagerSchoolScheduleCalendarWeekStart(value);
+
+        if (!monday) {
             return;
         }
-
-        const arr = Array.isArray(value) ? value : [value];
-
-        if (arr.length === 0) {
-            return;
-        }
-
-        let anchor = arr[0]!;
-
-        for (const v of arr) {
-            if (toDate(v).getTime() > toDate(anchor).getTime()) {
-                anchor = v;
-            }
-        }
-
-        const monday = getMonday(toDate(anchor));
 
         commitWeekMonday(monday);
         isCalendarOpen.value = false;
