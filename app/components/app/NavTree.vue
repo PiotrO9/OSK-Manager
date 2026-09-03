@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { InjectionKey } from 'vue';
-
-export interface NavTreeItem {
-    id: string;
-    label: string;
-    icon?: string;
-    href?: string;
-    children?: NavTreeItem[];
-    badge?: string;
-}
+import type { InjectionKey, Ref } from 'vue';
+import {
+    findNavTreeItemById,
+    findNavTreeParentItem,
+    flattenVisibleNavTreeItems,
+    getNavTreeIndentClass,
+    isNavTreeItemInSubtree,
+    type NavTreeItem,
+} from '~/utils/navigation/navTree';
 
 interface NavTreeContext {
     expandedIds: Ref<Set<string>>;
@@ -54,7 +53,10 @@ const activeId = injectedCtx?.activeId ?? toRef(props, 'activeId');
 const rootItems = injectedCtx?.rootItems ?? toRef(props, 'items');
 
 const effectiveFocusedId = computed(() => {
-    const visible = flattenVisible(rootItems.value, expandedIds.value);
+    const visible = flattenVisibleNavTreeItems(
+        rootItems.value,
+        expandedIds.value,
+    );
     const isFocusedVisible = visible.some((i) => i.id === focusedId.value);
 
     return isFocusedVisible
@@ -85,7 +87,10 @@ if (isRoot) {
     watch(
         () => expandedIds.value,
         (newExpanded) => {
-            const visible = flattenVisible(rootItems.value, newExpanded);
+            const visible = flattenVisibleNavTreeItems(
+                rootItems.value,
+                newExpanded,
+            );
             const isFocusedVisible = visible.some(
                 (i) => i.id === focusedId.value,
             );
@@ -101,18 +106,6 @@ function isExpanded(id: string): boolean {
     return expandedIds.value.has(id);
 }
 
-function isInSubtree(items: NavTreeItem[], targetId: string): boolean {
-    for (const item of items) {
-        if (item.id === targetId) return true;
-
-        if (item.children?.length && isInSubtree(item.children, targetId)) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 function toggleExpand(id: string): void {
     const next = new Set(expandedIds.value);
     const wasExpanded = next.has(id);
@@ -126,30 +119,15 @@ function toggleExpand(id: string): void {
     expandedIds.value = next;
 
     if (wasExpanded) {
-        const item = findItemById(rootItems.value, id);
+        const item = findNavTreeItemById(rootItems.value, id);
 
         if (
             item?.children?.length &&
-            isInSubtree(item.children, focusedId.value)
+            isNavTreeItemInSubtree(item.children, focusedId.value)
         ) {
             focusedId.value = id;
         }
     }
-}
-
-function findItemById(
-    items: NavTreeItem[],
-    targetId: string,
-): NavTreeItem | undefined {
-    for (const item of items) {
-        if (item.id === targetId) return item;
-
-        const found = findItemById(item.children ?? [], targetId);
-
-        if (found) return found;
-    }
-
-    return undefined;
 }
 
 function handleItemClick(item: NavTreeItem): void {
@@ -176,42 +154,6 @@ function focusItemById(id: string): void {
     });
 }
 
-function flattenVisible(
-    items: NavTreeItem[],
-    expanded: Set<string>,
-): NavTreeItem[] {
-    const result: NavTreeItem[] = [];
-
-    for (const item of items) {
-        result.push(item);
-
-        if (item.children?.length && expanded.has(item.id)) {
-            result.push(...flattenVisible(item.children, expanded));
-        }
-    }
-
-    return result;
-}
-
-function findParentItem(
-    allItems: NavTreeItem[],
-    targetId: string,
-): NavTreeItem | undefined {
-    for (const item of allItems) {
-        if (!item.children?.length) continue;
-
-        for (const child of item.children) {
-            if (child.id === targetId) return item;
-        }
-
-        const found = findParentItem(item.children, targetId);
-
-        if (found) return found;
-    }
-
-    return undefined;
-}
-
 function handleRootFocusIn(event: FocusEvent): void {
     const target = event.target as HTMLElement | null;
     const id = target?.getAttribute?.('data-navtree-id');
@@ -222,7 +164,10 @@ function handleRootFocusIn(event: FocusEvent): void {
 }
 
 function handleRootKeyDown(event: KeyboardEvent): void {
-    const visible = flattenVisible(rootItems.value, expandedIds.value);
+    const visible = flattenVisibleNavTreeItems(
+        rootItems.value,
+        expandedIds.value,
+    );
     const idx = visible.findIndex((i) => i.id === focusedId.value);
 
     if (idx === -1) return;
@@ -270,7 +215,10 @@ function handleRootKeyDown(event: KeyboardEvent): void {
             if (current.children?.length && expandedIds.value.has(current.id)) {
                 toggleExpand(current.id);
             } else {
-                const parent = findParentItem(rootItems.value, current.id);
+                const parent = findNavTreeParentItem(
+                    rootItems.value,
+                    current.id,
+                );
 
                 if (parent) {
                     focusItemById(parent.id);
@@ -331,18 +279,6 @@ function handleRootKeyDown(event: KeyboardEvent): void {
         }
     }
 }
-
-const indentClasses: Record<number, string> = {
-    0: 'pl-3',
-    1: 'pl-7',
-    2: 'pl-11',
-    3: 'pl-15',
-    4: 'pl-19',
-};
-
-function getIndentClass(depth: number): string {
-    return indentClasses[depth] ?? 'pl-23';
-}
 </script>
 
 <template>
@@ -369,7 +305,7 @@ function getIndentClass(depth: number): string {
                     :aria-current="activeId === item.id ? 'page' : undefined"
                     :class="[
                         'group flex w-full cursor-pointer items-center gap-2 rounded-lg py-2 pr-3 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sky-400',
-                        getIndentClass(depth),
+                        getNavTreeIndentClass(depth),
                         activeId === item.id
                             ? 'bg-sky-500/10 font-semibold text-sky-600 dark:bg-sky-500/15 dark:text-sky-400'
                             : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
@@ -435,7 +371,7 @@ function getIndentClass(depth: number): string {
                 :aria-current="activeId === item.id ? 'page' : undefined"
                 :class="[
                     'group flex w-full cursor-pointer items-center gap-2 rounded-lg py-2 pr-3 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sky-400',
-                    getIndentClass(depth),
+                    getNavTreeIndentClass(depth),
                     activeId === item.id
                         ? 'bg-sky-500/10 font-semibold text-sky-600 dark:bg-sky-500/15 dark:text-sky-400'
                         : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
