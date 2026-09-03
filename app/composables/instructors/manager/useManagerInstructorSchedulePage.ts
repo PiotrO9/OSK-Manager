@@ -6,67 +6,16 @@ import {
     getMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
+import { localDatetimeToIso } from '~/utils/events/managerEventEditForm';
+import {
+    buildManagerInstructorScheduleBackHref,
+    formatManagerInstructorScheduleRangeLabel,
+    formatManagerInstructorScheduleWeekCompact,
+    getManagerInstructorScheduleInstructorId,
+    getManagerInstructorScheduleSchoolId,
+} from '~/utils/instructors/managerInstructorSchedulePage';
 
 export type ManagerInstructorEventType = 'THEORY' | 'DRIVE';
-
-function formatScheduleRangeLabel(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-    }).format(d);
-}
-
-function formatWeekRangeCompact(monday: Date): string {
-    const start = new Date(
-        monday.getFullYear(),
-        monday.getMonth(),
-        monday.getDate(),
-    );
-    const end = new Date(
-        monday.getFullYear(),
-        monday.getMonth(),
-        monday.getDate() + 6,
-    );
-    const startDay = new Intl.DateTimeFormat('pl-PL', {
-        day: 'numeric',
-    }).format(start);
-    const endLabel = new Intl.DateTimeFormat('pl-PL', {
-        day: 'numeric',
-        month: 'long',
-    }).format(end);
-
-    return `${startDay}-${endLabel}`;
-}
-
-function localDatetimeToIso(local: string): string | null {
-    const t = local.trim();
-
-    if (!t) {
-        return null;
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return null;
-    }
-
-    return d.toISOString();
-}
-
-export function formatManagerInstructorScheduleWeekLabel(d: Date): string {
-    return new Intl.DateTimeFormat('pl-PL', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    }).format(d);
-}
 
 export function useManagerInstructorSchedulePage() {
     const route = useRoute();
@@ -81,33 +30,12 @@ export function useManagerInstructorSchedulePage() {
     const { fetchList: fetchVehiclesList } = useVehiclesApi();
     const { fetchList: fetchCoursesList } = useCoursesApi();
 
-    function getInstructorId(): string {
-        const raw = route.params.id;
-
-        if (typeof raw === 'string') {
-            return raw.trim();
-        }
-
-        if (Array.isArray(raw)) {
-            return String(raw[0] ?? '').trim();
-        }
-
-        return '';
-    }
-
-    function readSchoolIdFromQuery(): string {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
-
-        if (typeof s !== 'string') {
-            return '';
-        }
-
-        return s.trim();
-    }
-
-    const instructorId = computed(getInstructorId);
-    const schoolId = computed(readSchoolIdFromQuery);
+    const instructorId = computed(() =>
+        getManagerInstructorScheduleInstructorId(route),
+    );
+    const schoolId = computed(() =>
+        getManagerInstructorScheduleSchoolId(route),
+    );
 
     const weekStart = ref<Date>(getMonday(new Date()));
     const items = ref<ScheduleLessonItem[]>([]);
@@ -145,7 +73,7 @@ export function useManagerInstructorSchedulePage() {
                 .length,
     );
     const scheduleWeekLabel = computed(() =>
-        formatWeekRangeCompact(weekStart.value),
+        formatManagerInstructorScheduleWeekCompact(weekStart.value),
     );
     const scheduleResultLabel = computed(() => {
         if (isScheduleLoading.value) {
@@ -167,7 +95,7 @@ export function useManagerInstructorSchedulePage() {
             return 'Brak';
         }
 
-        return formatScheduleRangeLabel(item.startTime);
+        return formatManagerInstructorScheduleRangeLabel(item.startTime);
     });
 
     const pendingDeleteTimeLabel = computed(() => {
@@ -177,7 +105,7 @@ export function useManagerInstructorSchedulePage() {
             return '';
         }
 
-        return `${formatScheduleRangeLabel(item.startTime)} - ${formatScheduleRangeLabel(item.endTime)}`;
+        return `${formatManagerInstructorScheduleRangeLabel(item.startTime)} - ${formatManagerInstructorScheduleRangeLabel(item.endTime)}`;
     });
 
     let scheduleSeq = 0;
@@ -445,21 +373,10 @@ export function useManagerInstructorSchedulePage() {
     }
 
     const backHref = computed(() => {
-        const id = instructorId.value;
-        const sid = schoolId.value;
-
-        if (!id) {
-            return '/manager/instructors';
-        }
-
-        if (sid) {
-            return {
-                path: `/manager/instructors/${id}`,
-                query: { schoolId: sid },
-            };
-        }
-
-        return `/manager/instructors/${id}`;
+        return buildManagerInstructorScheduleBackHref(
+            instructorId.value,
+            schoolId.value,
+        );
     });
 
     return {
