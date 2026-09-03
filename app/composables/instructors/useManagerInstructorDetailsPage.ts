@@ -3,15 +3,13 @@ import {
     normalizeInstructorDetailForEdit,
     type InstructorDetail,
 } from '~/types/instructors/instructor';
-import type { CourseTypeOption } from '~/types/courses/courseType';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useManagerInstructorDetailsCourseTypes } from './useManagerInstructorDetailsCourseTypes';
 import { useManagerInstructorDetailsData } from './useManagerInstructorDetailsData';
 import {
     buildManagerInstructorDirtyPatch,
     displayManagerInstructorText,
     getManagerInstructorDeleteErrorMessage,
-    getManagerInstructorGenericCourseTypesErrorMessage,
     getManagerInstructorGenericSaveErrorMessage,
     getManagerInstructorRouteString,
     getManagerInstructorSaveErrorMessage,
@@ -25,10 +23,6 @@ type InstructorDetailData = InstructorDetail | null;
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
     const { addToast } = useAppToast();
-    const {
-        fetchList: fetchCourseTypesList,
-        isListLoading: isCourseTypesLoading,
-    } = useCourseTypesApi();
     const { fetchInstructorRatings } = useLessonRatingsListApi();
 
     const {
@@ -39,8 +33,12 @@ export function useManagerInstructorDetailsPage() {
         isLoading,
         loadInstructor,
     } = useManagerInstructorDetailsData();
-    const courseTypes = ref<CourseTypeOption[]>([]);
-    const courseTypesError = ref<string | null>(null);
+    const {
+        courseTypes,
+        courseTypesError,
+        isCourseTypesLoading,
+        loadCourseTypes,
+    } = useManagerInstructorDetailsCourseTypes();
     const isSubmitting = ref(false);
     const submitError = ref<string | null>(null);
     const isEditDialogOpen = ref(false);
@@ -62,20 +60,6 @@ export function useManagerInstructorDetailsPage() {
         title: () => instructor.value?.name?.trim() || 'Instruktor',
         description: () => 'Szczegóły instruktora.',
     });
-
-    async function loadCourseTypes(): Promise<void> {
-        courseTypesError.value = null;
-
-        try {
-            courseTypes.value = await fetchCourseTypesList();
-        } catch (err: unknown) {
-            courseTypes.value = [];
-            courseTypesError.value = getApiFetchErrorMessage(
-                err,
-                getManagerInstructorGenericCourseTypesErrorMessage(),
-            );
-        }
-    }
 
     async function loadRatingSummary(rawId: unknown): Promise<void> {
         const id = getManagerInstructorRouteString(rawId);
