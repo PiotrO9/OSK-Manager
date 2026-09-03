@@ -12,6 +12,7 @@ import {
 } from '~/composables/events/managerEventEditErrors';
 import { useManagerEventEditActionLabels } from './useManagerEventEditActionLabels';
 import { useManagerEventEditDeleteAction } from './useManagerEventEditDeleteAction';
+import { useManagerEventEditParticipantsSave } from './useManagerEventEditParticipantsSave';
 
 type FetchEventById = (
     id: string,
@@ -88,6 +89,22 @@ export function useManagerEventEditActions(input: {
         isDeleteLoading,
         deleteInstructorEvent,
         addToast,
+    });
+    const { replaceDirtyParticipants } = useManagerEventEditParticipantsSave({
+        loadedEvent: input.loadedEvent,
+        formStartLocal: input.formStartLocal,
+        formEndLocal: input.formEndLocal,
+        formError: input.formError,
+        draftTheoryStudentUserIds: input.draftTheoryStudentUserIds,
+        replaceStudentsOnEvent,
+        fetchEventById: input.fetchEventById,
+        applyPrefill: input.applyPrefill,
+        syncFreeWindowsFromEvent: input.syncFreeWindowsFromEvent,
+        resetStudentDraftFromEvent: input.resetStudentDraftFromEvent,
+        refreshEligibleForCurrentTime: input.refreshEligibleForCurrentTime,
+        loadTheoryEligibleStudents: input.loadTheoryEligibleStudents,
+        sortedStudentIds: input.sortedStudentIds,
+        localDatetimeToIso: input.localDatetimeToIso,
     });
 
     function handleCancel(): void {
@@ -208,71 +225,6 @@ export function useManagerEventEditActions(input: {
                 if (date) {
                     await input.refreshFreeWindowsFromSlots(date);
                 }
-            }
-
-            input.formError.value = message;
-
-            return false;
-        }
-    }
-
-    async function reloadAfterParticipantConflict(id: string): Promise<void> {
-        const event = await input.fetchEventById(id, { includeSlots: true });
-
-        input.loadedEvent.value = event;
-        input.applyPrefill(event);
-        input.syncFreeWindowsFromEvent(event);
-
-        const startIso = input.localDatetimeToIso(input.formStartLocal.value);
-        const endIso = input.localDatetimeToIso(input.formEndLocal.value);
-
-        input.resetStudentDraftFromEvent(event);
-
-        if (
-            event.courseId?.trim() &&
-            startIso &&
-            endIso &&
-            String(event.type ?? '')
-                .trim()
-                .toUpperCase() === 'THEORY'
-        ) {
-            await input.refreshEligibleForCurrentTime();
-
-            return;
-        }
-
-        await input.loadTheoryEligibleStudents();
-    }
-
-    async function replaceDirtyParticipants(
-        id: string,
-        shouldRefreshSlotsAfterPatch: boolean,
-    ): Promise<boolean> {
-        try {
-            await replaceStudentsOnEvent(
-                id,
-                input.sortedStudentIds(input.draftTheoryStudentUserIds.value),
-            );
-
-            return true;
-        } catch (err: unknown) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się zapisać listy kursantów.',
-            );
-
-            if (getManagerEventEditErrorStatusCode(err) === 409) {
-                try {
-                    await reloadAfterParticipantConflict(id);
-                } catch {
-                    /* message below */
-                }
-
-                input.formError.value = shouldRefreshSlotsAfterPatch
-                    ? 'Zmiany bloku zapisane, ale lista uczestników wymaga korekty — zdejmij lub zmień kursantów z kolizją grafiku i zapisz ponownie.'
-                    : message;
-
-                return false;
             }
 
             input.formError.value = message;
