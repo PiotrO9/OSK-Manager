@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import type { ManagerSchoolScheduleCalendarBlockActions } from '~/types/schedule/managerSchoolScheduleCalendarComponents';
 import type { ManagerSchoolScheduleWeekDay } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
 
 const props = defineProps<{
-    blockAccessibilityLabel: (lesson: ScheduleLessonItem) => string;
-    blockIsClickable: (lesson: ScheduleLessonItem) => boolean;
+    blockActions: ManagerSchoolScheduleCalendarBlockActions;
     day: ManagerSchoolScheduleWeekDay;
     displayError: string | null;
     displayLoading: boolean;
@@ -14,7 +14,6 @@ const props = defineProps<{
         lesson: ScheduleLessonItem,
         dateStr: string,
     ) => number;
-    lessonBlockInteractiveClasses: (lesson: ScheduleLessonItem) => string;
     lessonBlockTopPx: (lesson: ScheduleLessonItem, dateStr: string) => number;
     lessons: ScheduleLessonItem[];
     practicePrimaryLine: 'student' | 'instructor';
@@ -67,9 +66,13 @@ function emitBlockKeydown(
                     :lesson="lesson"
                     :top-px="lessonBlockTopPx(lesson, props.day.dateStr)"
                     :height-px="lessonBlockHeightPx(lesson, props.day.dateStr)"
-                    :accessibility-label="blockAccessibilityLabel(lesson)"
-                    :interactive-classes="lessonBlockInteractiveClasses(lesson)"
-                    :is-clickable="blockIsClickable(lesson)"
+                    :accessibility-label="
+                        blockActions.blockAccessibilityLabel(lesson)
+                    "
+                    :interactive-classes="
+                        blockActions.lessonBlockInteractiveClasses(lesson)
+                    "
+                    :is-clickable="blockActions.blockIsClickable(lesson)"
                     :practice-primary-line="practicePrimaryLine"
                     @select="emit('blockSelect', $event)"
                     @keydown="emitBlockKeydown"
