@@ -1,28 +1,16 @@
-import {
-    normalizeInstructorDetail,
-    normalizeInstructorDetailForEdit,
-    type InstructorDetail,
-} from '~/types/instructors/instructor';
 import { useManagerInstructorDetailsCourseTypes } from './useManagerInstructorDetailsCourseTypes';
 import { useManagerInstructorDetailsData } from './useManagerInstructorDetailsData';
 import { useManagerInstructorDetailsDelete } from './useManagerInstructorDetailsDelete';
+import { useManagerInstructorDetailsEdit } from './useManagerInstructorDetailsEdit';
 import { useManagerInstructorDetailsRatingSummary } from './useManagerInstructorDetailsRatingSummary';
 import {
-    buildManagerInstructorDirtyPatch,
     displayManagerInstructorText,
-    getManagerInstructorGenericSaveErrorMessage,
     getManagerInstructorRouteString,
-    getManagerInstructorSaveErrorMessage,
-    validateManagerInstructorPatch,
 } from '~/utils/instructors/managerInstructorDetailsPage';
-import { requestBffData } from '../core/useApi';
 import { usePageMeta } from '../core/usePageMeta';
-
-type InstructorDetailData = InstructorDetail | null;
 
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
-    const { addToast } = useAppToast();
 
     const {
         editBaseline,
@@ -38,9 +26,18 @@ export function useManagerInstructorDetailsPage() {
         isCourseTypesLoading,
         loadCourseTypes,
     } = useManagerInstructorDetailsCourseTypes();
-    const isSubmitting = ref(false);
-    const submitError = ref<string | null>(null);
-    const isEditDialogOpen = ref(false);
+    const {
+        isSubmitting,
+        submitError,
+        isEditDialogOpen,
+        resetEditState,
+        handleEnterEdit,
+        handleSubmitEdit,
+    } = useManagerInstructorDetailsEdit({
+        instructor,
+        editForm,
+        editBaseline,
+    });
     const {
         isDeleteDialogOpen,
         isDeleting,
@@ -69,8 +66,7 @@ export function useManagerInstructorDetailsPage() {
     watch(
         () => route.params.id,
         async (id) => {
-            submitError.value = null;
-            isEditDialogOpen.value = false;
+            resetEditState();
             isDeleteDialogOpen.value = false;
             await Promise.all([
                 loadInstructor(id),
@@ -80,96 +76,6 @@ export function useManagerInstructorDetailsPage() {
         },
         { immediate: true },
     );
-
-    watch(isEditDialogOpen, (open) => {
-        if (open) {
-            return;
-        }
-
-        submitError.value = null;
-
-        if (editBaseline.value && editForm.value) {
-            editForm.value = { ...editBaseline.value };
-        }
-    });
-
-    function handleEnterEdit(): void {
-        submitError.value = null;
-
-        if (editBaseline.value) {
-            editForm.value = { ...editBaseline.value };
-        }
-
-        isEditDialogOpen.value = true;
-    }
-
-    async function handleSubmitEdit(): Promise<void> {
-        submitError.value = null;
-
-        const patch = buildManagerInstructorDirtyPatch(
-            editForm.value,
-            editBaseline.value,
-        );
-
-        if (!patch) {
-            isEditDialogOpen.value = false;
-
-            return;
-        }
-
-        const validationMessage = validateManagerInstructorPatch(patch);
-
-        if (validationMessage) {
-            submitError.value = validationMessage;
-
-            return;
-        }
-
-        const id = getManagerInstructorRouteString(route.params.id);
-
-        if (!id) {
-            return;
-        }
-
-        isSubmitting.value = true;
-
-        try {
-            const updated = await requestBffData<InstructorDetailData>(
-                'PATCH',
-                `/api/instructors/${encodeURIComponent(id)}`,
-                {
-                    body: patch,
-                    fallbackMessage:
-                        getManagerInstructorGenericSaveErrorMessage(),
-                },
-            );
-            const normalized = normalizeInstructorDetail(updated);
-            const forEdit = normalizeInstructorDetailForEdit(updated);
-
-            if (!normalized || !forEdit) {
-                submitError.value =
-                    'Nieprawidłowa odpowiedź serwera po zapisie. Spróbuj ponownie.';
-
-                return;
-            }
-
-            instructor.value = normalized;
-            editForm.value = { ...forEdit };
-            editBaseline.value = { ...forEdit };
-
-            addToast({
-                title: 'Zapisano zmiany',
-                description: 'Dane instruktora zostały zaktualizowane.',
-                variant: 'success',
-            });
-
-            isEditDialogOpen.value = false;
-        } catch (err: unknown) {
-            submitError.value = getManagerInstructorSaveErrorMessage(err);
-        } finally {
-            isSubmitting.value = false;
-        }
-    }
 
     return {
         route,
