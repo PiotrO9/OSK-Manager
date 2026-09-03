@@ -2,12 +2,9 @@ import {
     formatCourseKindLabel,
     type CourseDetail,
 } from '~/types/courses/course';
-import {
-    formatCourseInstructorName,
-    getRouteIdString,
-    resolveCourseDetailError,
-} from '~/utils/courses/managerCourseDetailPage';
+import { formatCourseInstructorName } from '~/utils/courses/managerCourseDetailPage';
 import { usePageMeta } from '../core/usePageMeta';
+import { useManagerCourseDetailData } from './useManagerCourseDetailData';
 import { useManagerCourseDetailPresentation } from './useManagerCourseDetailPresentation';
 import {
     MANAGER_COURSE_NO_INSTRUCTOR_VALUE,
@@ -28,9 +25,9 @@ export function useManagerCourseDetailPage() {
         useCoursesApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
-    const course = ref<CourseDetail | null>(null);
-    const loadError = shallowRef<string | null>(null);
-    let fetchSeq = 0;
+    const { course, loadError, loadCourse } = useManagerCourseDetailData({
+        fetchById,
+    });
 
     const {
         effectiveSchoolId,
@@ -79,46 +76,13 @@ export function useManagerCourseDetailPage() {
         addToast,
     });
 
-    async function loadCourse(rawId: unknown) {
-        loadError.value = null;
-
-        const id = getRouteIdString(rawId);
-
-        if (!id) {
-            course.value = null;
-            loadError.value = 'Nie znaleziono kursu.';
-
-            return;
-        }
-
-        const seq = ++fetchSeq;
-
-        course.value = null;
-        resetInstructorSelection();
-
-        try {
-            const data = await fetchById(id);
-
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            course.value = data;
-            syncInstructorSelectionFromCourse();
-        } catch (err: unknown) {
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            course.value = null;
-            loadError.value = resolveCourseDetailError(err);
-        }
-    }
-
     watch(
         () => route.params.id,
         async (id) => {
-            await loadCourse(id);
+            await loadCourse(id, {
+                beforeLoad: resetInstructorSelection,
+                afterLoad: syncInstructorSelectionFromCourse,
+            });
         },
         { immediate: true },
     );
