@@ -1,9 +1,9 @@
-import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import {
     readQueryTruthyFlag,
     readUuidQueryValue,
 } from '~/utils/students/managerStudentsPage';
 import { useManagerStudentCourseAssignment } from './useManagerStudentCourseAssignment';
+import { useManagerStudentRegistration } from './useManagerStudentRegistration';
 import { useManagerStudentsData } from './useManagerStudentsData';
 
 export interface StudentsPagePagination {
@@ -13,14 +13,6 @@ export interface StudentsPagePagination {
 
 export function useManagerStudentsPage() {
     const route = useRoute();
-    const { addToast } = useAppToast();
-    const {
-        isSaving: isFormSaving,
-        apiError,
-        createStudent,
-        clearCreateError,
-        resolveStudentRegisterError,
-    } = useManagerStudentCreate();
 
     const {
         schools,
@@ -47,8 +39,6 @@ export function useManagerStudentsPage() {
         loadStudents,
     } = useManagerStudentsData();
 
-    const formDialogOpen = ref(false);
-
     const openRegisterFormFromQuery = computed((): boolean => {
         return readQueryTruthyFlag(route.query.register);
     });
@@ -69,6 +59,25 @@ export function useManagerStudentsPage() {
         activeSchoolId,
         courses,
         isCoursesLoading,
+        loadCoursesForFilter,
+        loadStudents,
+    });
+
+    const {
+        formDialogOpen,
+        isFormSaving,
+        apiError,
+        openInitialRegisterForm,
+        handleOpenCreateDialog,
+        handleFormDialogOpenChange,
+        handleStudentSubmit,
+    } = useManagerStudentRegistration({
+        schools,
+        isSchoolsLoading,
+        activeSchoolId,
+        activeCourseId,
+        currentPage,
+        loadSchools,
         loadCoursesForFilter,
         loadStudents,
     });
@@ -112,66 +121,12 @@ export function useManagerStudentsPage() {
         void loadStudents();
     }
 
-    function handleOpenCreateDialog() {
-        clearCreateError();
-        formDialogOpen.value = true;
-
-        if (schools.value.length === 0 && !isSchoolsLoading.value) {
-            loadSchools();
-        }
-    }
-
-    function handleFormDialogOpenChange(open: boolean) {
-        formDialogOpen.value = open;
-
-        if (!open) {
-            clearCreateError();
-        }
-    }
-
-    async function handleStudentSubmit(payload: StudentRegisterPayload) {
-        if (isFormSaving.value) return;
-
-        try {
-            await createStudent(payload);
-
-            addToast({
-                title: 'Kursant został utworzony',
-                variant: 'success',
-            });
-
-            formDialogOpen.value = false;
-
-            if (schools.value.some((s) => s.id === payload.schoolId)) {
-                activeSchoolId.value = payload.schoolId;
-            }
-
-            activeCourseId.value = '';
-            currentPage.value = 1;
-
-            if (activeSchoolId.value) {
-                await Promise.all([loadCoursesForFilter(), loadStudents()]);
-            }
-
-            await navigateTo('/manager/students', { replace: true });
-        } catch (err) {
-            const message = resolveStudentRegisterError(err);
-
-            addToast({
-                title: 'Nie udało się utworzyć konta',
-                description: message,
-                variant: 'error',
-            });
-        }
-    }
-
     onMounted(async () => {
         await loadSchools();
         activeSchoolId.value = resolveInitialActiveSchoolId();
 
         if (openRegisterFormFromQuery.value) {
-            clearCreateError();
-            formDialogOpen.value = true;
+            openInitialRegisterForm();
         }
 
         if (activeSchoolId.value) {
