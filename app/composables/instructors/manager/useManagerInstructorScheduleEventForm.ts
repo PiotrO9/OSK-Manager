@@ -13,11 +13,8 @@ export function useManagerInstructorScheduleEventForm({
     reloadSchedule,
 }: UseManagerInstructorScheduleEventFormOptions) {
     const { addToast } = useAppToast();
-    const {
-        createInstructorEvent,
-        isLoading: isEventSaving,
-        isDeleteLoading: isEventDeleteLoading,
-    } = useInstructorEventsApi();
+    const { createInstructorEvent, isLoading: isEventSaving } =
+        useInstructorEventsApi();
 
     const eventType = ref<ManagerInstructorEventType>('THEORY');
     const eventStartLocal = ref('');
@@ -116,7 +113,6 @@ export function useManagerInstructorScheduleEventForm({
         eventCourseId,
         eventFormError,
         isEventSaving,
-        isEventDeleteLoading,
         handleFocusEventForm,
         handleSubmitEvent,
     };
