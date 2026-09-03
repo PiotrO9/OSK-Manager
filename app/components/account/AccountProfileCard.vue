@@ -6,11 +6,11 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/shadcn/tooltip';
+import type { RoleBadgePresentation } from '~/composables/account/useAccountPage';
 import {
     PROFILE_BIO_MAX_LEN,
     PROFILE_NAME_MAX_LEN,
-    type RoleBadgePresentation,
-} from '~/composables/account/useAccountPage';
+} from '~/utils/account/accountProfileEdit';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
 defineProps<{

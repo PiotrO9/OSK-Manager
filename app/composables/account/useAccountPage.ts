@@ -1,10 +1,6 @@
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { useAppToast } from '../core/useAppToast';
 import { useAuthSession } from '../auth/useAuthSession';
 import { useAccountAvatarUpload } from './useAccountAvatarUpload';
-
-export const PROFILE_NAME_MAX_LEN = 100;
-export const PROFILE_BIO_MAX_LEN = 2000;
+import { useAccountInlineProfileEdit } from './useAccountInlineProfileEdit';
 
 export type RoleBadgeVariant =
     | 'default'
@@ -21,37 +17,8 @@ export interface RoleBadgePresentation {
 export function useAccountPage() {
     const { session, refreshProfileFromServer, patchProfile } =
         useAuthSession();
-    const { addToast } = useAppToast();
-
-    const canEditProfileNames = computed(() =>
-        roleAllowsProfileNames(session.value?.role),
-    );
-    const canEditPhoneAndBio = computed(() =>
-        roleAllowsPhoneAndBio(session.value?.role),
-    );
-
-    const editFirstName = ref('');
-    const editLastName = ref('');
-    const profileNamesError = ref('');
-    const isProfileNamesSaving = ref(false);
-
-    const editPhone = ref('');
-    const editBio = ref('');
-    const profileContactError = ref('');
-    const isProfileContactSaving = ref(false);
 
     const isDemoSession = computed(() => session.value?.userId === 'demo');
-    const inlineProfileEditing = ref(false);
-
-    const canEditInlineProfile = computed(
-        () =>
-            Boolean(session.value && !isDemoSession.value) &&
-            (canEditProfileNames.value || canEditPhoneAndBio.value),
-    );
-
-    const isInlineProfileSaving = computed(
-        () => isProfileNamesSaving.value || isProfileContactSaving.value,
-    );
 
     const displayName = computed(() => session.value?.userName ?? 'Użytkownik');
 
@@ -100,140 +67,25 @@ export function useAccountPage() {
         isDemoSession,
         refreshProfileFromServer,
     });
-
-    function syncNameFormFromSession() {
-        const s = session.value;
-
-        if (!s || !roleAllowsProfileNames(s.role)) return;
-
-        editFirstName.value = s.firstName ?? '';
-        editLastName.value = s.lastName ?? '';
-    }
-
-    function syncContactFormFromSession() {
-        const s = session.value;
-
-        if (!s || !roleAllowsPhoneAndBio(s.role)) return;
-
-        editPhone.value =
-            s.phone === null || s.phone === undefined ? '' : String(s.phone);
-
-        editBio.value =
-            s.bio === null || s.bio === undefined ? '' : String(s.bio);
-    }
-
-    function handleStartInlineProfileEdit() {
-        if (!canEditInlineProfile.value) return;
-
-        profileNamesError.value = '';
-        profileContactError.value = '';
-        syncNameFormFromSession();
-        syncContactFormFromSession();
-        inlineProfileEditing.value = true;
-    }
-
-    function handleCancelInlineProfileEdit() {
-        profileNamesError.value = '';
-        profileContactError.value = '';
-        syncNameFormFromSession();
-        syncContactFormFromSession();
-        inlineProfileEditing.value = false;
-    }
-
-    async function handleInlineProfileSubmit() {
-        if (!canEditInlineProfile.value || isInlineProfileSaving.value) return;
-
-        profileNamesError.value = '';
-        profileContactError.value = '';
-
-        const payload: {
-            firstName?: string;
-            lastName?: string;
-            phone?: string | null;
-            bio?: string | null;
-        } = {};
-
-        if (canEditProfileNames.value) {
-            const first = editFirstName.value.trim();
-            const last = editLastName.value.trim();
-
-            if (!first) {
-                profileNamesError.value = 'Imię jest wymagane.';
-
-                return;
-            }
-
-            if (!last) {
-                profileNamesError.value = 'Nazwisko jest wymagane.';
-
-                return;
-            }
-
-            if (
-                first.length > PROFILE_NAME_MAX_LEN ||
-                last.length > PROFILE_NAME_MAX_LEN
-            ) {
-                profileNamesError.value = `Każde pole może mieć co najwyżej ${PROFILE_NAME_MAX_LEN} znaków.`;
-
-                return;
-            }
-
-            payload.firstName = first;
-            payload.lastName = last;
-        }
-
-        if (canEditPhoneAndBio.value) {
-            const phone = editPhone.value.trim();
-            const bio = editBio.value.trim();
-
-            if (bio.length > PROFILE_BIO_MAX_LEN) {
-                profileContactError.value = `Opis może mieć co najwyżej ${PROFILE_BIO_MAX_LEN} znaków.`;
-
-                return;
-            }
-
-            payload.phone = phone.length > 0 ? phone : null;
-            payload.bio = bio.length > 0 ? bio : null;
-        }
-
-        isProfileNamesSaving.value = canEditProfileNames.value;
-        isProfileContactSaving.value = canEditPhoneAndBio.value;
-
-        try {
-            await patchProfile(payload);
-            inlineProfileEditing.value = false;
-
-            addToast({
-                variant: 'success',
-                title: 'Profil zaktualizowany',
-            });
-        } catch (err: unknown) {
-            addToast({
-                variant: 'error',
-                title: 'Nie zapisano zmian',
-                description: getApiFetchErrorMessage(err, 'Spróbuj ponownie.'),
-            });
-        } finally {
-            isProfileNamesSaving.value = false;
-            isProfileContactSaving.value = false;
-        }
-    }
-
-    watch(
-        () => session.value?.userId,
-        () => {
-            syncNameFormFromSession();
-            syncContactFormFromSession();
-        },
-        { immediate: true },
-    );
-
-    watch(canEditProfileNames, (ok) => {
-        if (ok) syncNameFormFromSession();
-    });
-
-    watch(canEditPhoneAndBio, (ok) => {
-        if (ok) syncContactFormFromSession();
+    const {
+        canEditInlineProfile,
+        canEditPhoneAndBio,
+        canEditProfileNames,
+        editBio,
+        editFirstName,
+        editLastName,
+        editPhone,
+        handleCancelInlineProfileEdit,
+        handleInlineProfileSubmit,
+        handleStartInlineProfileEdit,
+        inlineProfileEditing,
+        isInlineProfileSaving,
+        profileContactError,
+        profileNamesError,
+    } = useAccountInlineProfileEdit({
+        session,
+        isDemoSession,
+        patchProfile,
     });
 
     return {
@@ -322,22 +174,6 @@ function getRoleBadgePresentation(
                 class: 'border-zinc-500/55 bg-zinc-600 px-2.5 py-1 font-semibold text-white shadow-sm dark:bg-zinc-600',
             };
     }
-}
-
-function roleAllowsProfileNames(role: string | undefined): boolean {
-    if (!role) return false;
-
-    const r = role.trim().toUpperCase();
-
-    return r === 'MANAGER' || r === 'ADMIN';
-}
-
-function roleAllowsPhoneAndBio(role: string | undefined): boolean {
-    if (!role) return false;
-
-    const r = role.trim().toUpperCase();
-
-    return r === 'STUDENT' || r === 'INSTRUCTOR';
 }
 
 function hasPkkNumber(value: string | null | undefined): value is string {
