@@ -1,8 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffOwnLessonPost } from '~~/server/utils/lessons/lessonsBff';
+import {
+    bffOwnLessonPost,
+    type LessonCreateResponse,
+} from '~~/server/utils/lessons/lessonsBff';
 import { parseOwnLessonBody } from '~~/server/utils/lessons/parseOwnLessonBody';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
+
+interface OwnLessonCreateResponse {
+    success: true;
+    data: { lesson: LessonCreateResponse };
+}
 
 export default defineEventHandler(async (event) => {
     const rawBody = await readBody(event);
@@ -15,7 +23,7 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<OwnLessonCreateResponse>(event, {
         upstream: async ({ upstreamBase }) => {
             const result = await bffOwnLessonPost(
                 event,

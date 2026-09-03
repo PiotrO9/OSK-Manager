@@ -1,13 +1,21 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
-import { bffUpstreamProfilePatch } from '~~/server/utils/auth/authUpstreamBff';
+import {
+    bffUpstreamProfilePatch,
+    type BffAuthUserResponse,
+} from '~~/server/utils/auth/authUpstreamBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
 
 const NAME_MAX_LEN = 100;
+
+interface ProfilePatchResponse {
+    success: true;
+    data: { user: BffAuthUserResponse };
+}
 
 function roleAllowsProfileNames(roleRaw: string): boolean {
     const r = roleRaw.trim().toUpperCase();
@@ -147,7 +155,7 @@ export default defineEventHandler(async (event) => {
         Object.prototype.hasOwnProperty.call(patch, 'firstName') ||
         Object.prototype.hasOwnProperty.call(patch, 'lastName');
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<ProfilePatchResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffUpstreamProfilePatch(event, upstreamBase, patch),
         mock: async () => {

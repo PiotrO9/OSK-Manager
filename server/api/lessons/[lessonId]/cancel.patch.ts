@@ -1,8 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffOwnLessonCancel } from '~~/server/utils/lessons/lessonsBff';
+import {
+    bffOwnLessonCancel,
+    type LessonCreateResponse,
+} from '~~/server/utils/lessons/lessonsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
+
+interface LessonCancelResponse {
+    success: true;
+    data: { lesson: LessonCreateResponse };
+}
 
 export default defineEventHandler(async (event) => {
     const lessonId = parseRequiredUuidRouterParam(event, 'lessonId', {
@@ -10,7 +18,7 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidlowy identyfikator lekcji.',
     });
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<LessonCancelResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffOwnLessonCancel(event, upstreamBase, lessonId),
         mock: async () => {

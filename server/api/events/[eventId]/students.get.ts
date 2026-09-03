@@ -1,6 +1,14 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventStudentsGet } from '~~/server/utils/events/eventsBff';
+import {
+    bffEventStudentsGet,
+    type EventStudentsReplaceResponse,
+} from '~~/server/utils/events/eventsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+
+interface EventStudentsGetResponse {
+    success: true;
+    data: EventStudentsReplaceResponse;
+}
 
 export default defineEventHandler(async (event) => {
     const eventId = parseRequiredUuidRouterParam(event, 'eventId', {
@@ -8,7 +16,7 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator wydarzenia.',
     });
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<EventStudentsGetResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffEventStudentsGet(event, upstreamBase, eventId),
         mock: async () => {

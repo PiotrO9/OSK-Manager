@@ -103,6 +103,22 @@ export function resolveBffAdapter(event: H3Event): BffAdapter {
 
 type ProfilePatchPayload = Record<string, string | null | undefined>;
 
+export interface BffAuthUserResponse {
+    id: string;
+    name: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string | null;
+    bio: string | null;
+    profileUpdatedAt: string | null;
+    pkkNumber?: string | null;
+    avatarUrl: string | null;
+    role: string;
+    drivingSchools?: unknown[];
+    defaultOskId?: string | null;
+}
+
 export async function bffUpstreamLogin(
     event: H3Event,
     upstreamBase: string,
@@ -173,8 +189,8 @@ export async function bffUpstreamRefresh(
 export async function bffUpstreamMe(
     event: H3Event,
     upstreamBase: string,
-): Promise<{ success: true; data: { user: unknown } }> {
-    const { data } = await upstreamRequest<{ user: unknown }>(
+): Promise<{ success: true; data: { user: BffAuthUserResponse } }> {
+    const { data } = await upstreamRequest<{ user: BffAuthUserResponse }>(
         event,
         upstreamBase,
         {
@@ -203,8 +219,8 @@ export async function bffUpstreamProfilePatch(
     event: H3Event,
     upstreamBase: string,
     body: ProfilePatchPayload,
-): Promise<{ success: true; data: { user: unknown } }> {
-    const { data } = await upstreamRequest<{ user?: unknown }>(
+): Promise<{ success: true; data: { user: BffAuthUserResponse } }> {
+    const { data } = await upstreamRequest<{ user?: BffAuthUserResponse }>(
         event,
         upstreamBase,
         {

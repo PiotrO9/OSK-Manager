@@ -36,7 +36,7 @@ export async function bffSchoolSlotsGet(
     queryString: string,
 ): Promise<{
     success: true;
-    data: { slots: SchoolSlotsEntryResponse[]; total?: number };
+    data: { slots: SchoolSlotsEntryResponse[]; total: number };
 }> {
     const suffix = queryString.trim();
     const { data } = await upstreamRequest<{

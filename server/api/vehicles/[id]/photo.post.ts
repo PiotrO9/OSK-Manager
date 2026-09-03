@@ -3,6 +3,14 @@ import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamVehiclesUploadPhoto } from '~~/server/utils/vehicles/vehiclesBff';
 
+function blobPartFromBuffer(buffer: Buffer): Uint8Array<ArrayBuffer> {
+    const bytes = new Uint8Array(buffer.byteLength);
+
+    bytes.set(buffer);
+
+    return bytes;
+}
+
 export default defineEventHandler(async (event) => {
     const id = parseRequiredUuidRouterParam(event, 'id', {
         required: 'Brak identyfikatora pojazdu.',
@@ -22,7 +30,9 @@ export default defineEventHandler(async (event) => {
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) => {
             const mime = filePart.type || 'application/octet-stream';
-            const blob = new Blob([filePart.data], { type: mime });
+            const blob = new Blob([blobPartFromBuffer(filePart.data)], {
+                type: mime,
+            });
 
             return bffUpstreamVehiclesUploadPhoto(
                 event,

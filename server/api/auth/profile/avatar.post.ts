@@ -7,6 +7,14 @@ import { requireAuthUserIdFromCookie } from '~~/server/utils/auth/requireAuthFro
 const MOCK_AVATAR_PLACEHOLDER =
     'https://placehold.co/256x256/png?text=Avatar+OK';
 
+function blobPartFromBuffer(buffer: Buffer): Uint8Array<ArrayBuffer> {
+    const bytes = new Uint8Array(buffer.byteLength);
+
+    bytes.set(buffer);
+
+    return bytes;
+}
+
 export default defineEventHandler(async (event) => {
     const parts = await readMultipartFormData(event);
     const filePart = parts?.find((p) => p.name === 'file');
@@ -21,7 +29,9 @@ export default defineEventHandler(async (event) => {
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) => {
             const mime = filePart.type || 'application/octet-stream';
-            const blob = new Blob([filePart.data], { type: mime });
+            const blob = new Blob([blobPartFromBuffer(filePart.data)], {
+                type: mime,
+            });
 
             return bffUpstreamProfileAvatarUpload(
                 event,

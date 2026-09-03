@@ -1,5 +1,16 @@
 <script setup lang="ts">
-const { locale, locales, setLocale } = useI18n();
+type SupportedLocaleCode = 'pl' | 'en';
+
+interface SupportedLocale {
+    code: SupportedLocaleCode;
+    name: string;
+}
+
+const locale = useState<SupportedLocaleCode>('app-locale', () => 'pl');
+const locales: SupportedLocale[] = [
+    { code: 'pl', name: 'Polski' },
+    { code: 'en', name: 'English' },
+];
 
 const isOpen = ref(false);
 const triggerRef = ref<HTMLButtonElement | null>(null);
@@ -15,7 +26,7 @@ function getFlagSrc(localeCode: string): string {
 }
 
 const currentLocale = computed(() =>
-    locales.value.find((loc) => loc.code === locale.value),
+    locales.find((loc) => loc.code === locale.value),
 );
 
 const currentLocaleName = computed(
@@ -24,13 +35,19 @@ const currentLocaleName = computed(
 );
 
 function handleLocaleChange(newLocale: string) {
+    if (newLocale !== 'pl' && newLocale !== 'en') {
+        closeDropdown();
+
+        return;
+    }
+
     if (locale.value === newLocale) {
         closeDropdown();
 
         return;
     }
 
-    setLocale(newLocale as typeof locale.value);
+    locale.value = newLocale;
     closeDropdown();
 }
 

@@ -1,8 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffLessonRatingPost } from '~~/server/utils/lessons/lessonsBff';
+import {
+    bffLessonRatingPost,
+    type LessonRatingResponse,
+} from '~~/server/utils/lessons/lessonsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { requireStudentFromCookie } from '~~/server/utils/auth/requireStudentFromCookie';
+
+interface LessonRatingPostResponse {
+    success: true;
+    data: { rating: LessonRatingResponse };
+}
 
 function validateRatingBody(raw: unknown):
     | {
@@ -64,7 +72,7 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<LessonRatingPostResponse>(event, {
         upstream: async ({ upstreamBase }) => {
             const result = await bffLessonRatingPost(
                 event,

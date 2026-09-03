@@ -1,7 +1,15 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventsPatch } from '~~/server/utils/events/eventsBff';
+import {
+    bffEventsPatch,
+    type InstructorEventResponse,
+} from '~~/server/utils/events/eventsBff';
 import { parseEventPatchBody } from '~~/server/utils/events/parseEventPatchBody';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+
+interface EventPatchResponse {
+    success: true;
+    data: { event: InstructorEventResponse };
+}
 
 export default defineEventHandler(async (event) => {
     const eventId = parseRequiredUuidRouterParam(event, 'eventId', {
@@ -19,7 +27,7 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<EventPatchResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffEventsPatch(event, upstreamBase, eventId, parsed.body),
         mock: async () => {

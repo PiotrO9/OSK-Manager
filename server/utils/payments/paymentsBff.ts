@@ -1,19 +1,42 @@
 import type { H3Event } from 'h3';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
+export interface MyPaymentResponse {
+    id: string;
+    courseId: string;
+    courseName: string;
+    paymentPlanId: string;
+    amount: string;
+    currency: string;
+    status: string;
+    date: string | null;
+    dueDate: string | null;
+    paidAt: string | null;
+}
+
+export interface MyPaymentsPayload {
+    payments: MyPaymentResponse[];
+}
+
 export async function bffUpstreamMyPaymentsList(
     event: H3Event,
     upstreamBase: string,
-): Promise<{ success: true; data: unknown }> {
-    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
-        path: '/me/payments',
-        method: 'GET',
-        fallbackError: 'Nie udało się pobrać listy opłat użytkownika',
-    });
+): Promise<{ success: true; data: MyPaymentsPayload }> {
+    const { data } = await upstreamRequest<MyPaymentsPayload>(
+        event,
+        upstreamBase,
+        {
+            path: '/me/payments',
+            method: 'GET',
+            fallbackError: 'Nie udało się pobrać listy opłat użytkownika',
+        },
+    );
 
     return {
         success: true,
-        data,
+        data: {
+            payments: Array.isArray(data?.payments) ? data.payments : [],
+        },
     };
 }
 

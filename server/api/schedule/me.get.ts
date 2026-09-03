@@ -1,7 +1,15 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffScheduleMeGet } from '~~/server/utils/schedule/scheduleBff';
+import {
+    bffScheduleMeGet,
+    type ScheduleItemResponse,
+} from '~~/server/utils/schedule/scheduleBff';
 import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
 import { requireStudentOrInstructorFromCookie } from '~~/server/utils/auth/requireStudentOrInstructorFromCookie';
+
+interface ScheduleResponse {
+    success: true;
+    data: { items: ScheduleItemResponse[] };
+}
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
@@ -11,7 +19,7 @@ export default defineEventHandler(async (event) => {
         dateTo: q.dateTo,
     });
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<ScheduleResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffScheduleMeGet(event, upstreamBase, params.toString()),
         mock: async () => {

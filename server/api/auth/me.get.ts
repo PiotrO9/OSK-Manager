@@ -1,13 +1,19 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
+import type { BffAuthUserResponse } from '~~/server/utils/auth/authUpstreamBff';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
 
+interface AuthMeResponse {
+    success: true;
+    data: { user: BffAuthUserResponse };
+}
+
 export default defineEventHandler(async (event) => {
-    return executeBffAdapter(event, {
+    return executeBffAdapter<AuthMeResponse>(event, {
         upstream: ({ upstreamBase }) => bffUpstreamMe(event, upstreamBase),
         mock: async () => {
             const accessToken = getCookie(event, 'access_token');

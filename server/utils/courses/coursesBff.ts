@@ -2,6 +2,20 @@ import type { H3Event } from 'h3';
 import type { BffCoursePatchInstructorBody } from './parseCoursePatchBody';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
+export interface MyCourseResponse {
+    id: string;
+    schoolId: string;
+    name: string;
+    status: 'ACTIVE' | 'FINISHED';
+    type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
+    totalHours: number;
+    progress: number;
+}
+
+export interface MyCoursesPayload {
+    courses: MyCourseResponse[];
+}
+
 export async function bffUpstreamCoursesList(
     event: H3Event,
     upstreamBase: string,
@@ -22,15 +36,21 @@ export async function bffUpstreamCoursesList(
 export async function bffUpstreamMyCoursesList(
     event: H3Event,
     upstreamBase: string,
-): Promise<{ success: true; data: unknown }> {
-    const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
-        path: '/me/courses',
-        fallbackError: 'Nie udało się pobrać listy kursów użytkownika',
-    });
+): Promise<{ success: true; data: MyCoursesPayload }> {
+    const { data } = await upstreamRequest<MyCoursesPayload>(
+        event,
+        upstreamBase,
+        {
+            path: '/me/courses',
+            fallbackError: 'Nie udało się pobrać listy kursów użytkownika',
+        },
+    );
 
     return {
         success: true,
-        data,
+        data: {
+            courses: Array.isArray(data?.courses) ? data.courses : [],
+        },
     };
 }
 

@@ -1,12 +1,20 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffUpstreamMyPaymentsList } from '~~/server/utils/payments/paymentsBff';
+import {
+    bffUpstreamMyPaymentsList,
+    type MyPaymentsPayload,
+} from '~~/server/utils/payments/paymentsBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
 
-function mockMyPaymentsPayload(role: string) {
+interface MyPaymentsResponse {
+    success: true;
+    data: MyPaymentsPayload;
+}
+
+function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
     if (role.trim().toUpperCase() !== 'STUDENT') {
         return { payments: [] };
     }
@@ -42,7 +50,7 @@ function mockMyPaymentsPayload(role: string) {
 }
 
 export default defineEventHandler(async (event) => {
-    return executeBffAdapter(event, {
+    return executeBffAdapter<MyPaymentsResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffUpstreamMyPaymentsList(event, upstreamBase),
         mock: async () => {

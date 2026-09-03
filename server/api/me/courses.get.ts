@@ -1,22 +1,20 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffUpstreamMyCoursesList } from '~~/server/utils/courses/coursesBff';
+import {
+    bffUpstreamMyCoursesList,
+    type MyCoursesPayload,
+} from '~~/server/utils/courses/coursesBff';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
 
-function mockMyCoursesPayload(role: string): {
-    courses: Array<{
-        id: string;
-        schoolId: string;
-        name: string;
-        status: 'ACTIVE' | 'FINISHED';
-        type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
-        totalHours: number;
-        progress: number;
-    }>;
-} {
+interface MyCoursesResponse {
+    success: true;
+    data: MyCoursesPayload;
+}
+
+function mockMyCoursesPayload(role: string): MyCoursesPayload {
     if (role.trim().toUpperCase() !== 'STUDENT') {
         return { courses: [] };
     }
@@ -46,7 +44,7 @@ function mockMyCoursesPayload(role: string): {
 }
 
 export default defineEventHandler(async (event) => {
-    return executeBffAdapter(event, {
+    return executeBffAdapter<MyCoursesResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffUpstreamMyCoursesList(event, upstreamBase),
         mock: async () => {

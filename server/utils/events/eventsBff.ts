@@ -158,14 +158,23 @@ export async function bffEventStudentsGet(
     event: H3Event,
     upstreamBase: string,
     eventId: string,
-): Promise<{ success: true; data: unknown }> {
-    const data = await eventDataRequest<unknown>(event, upstreamBase, {
-        path: `/events/${encodeURIComponent(eventId)}/students`,
-        method: 'GET',
-        fallbackError: 'Nie udało się pobrać kursantów wydarzenia',
-    });
+): Promise<{ success: true; data: EventStudentsReplaceResponse }> {
+    const data = await eventDataRequest<{ studentUserIds?: unknown }>(
+        event,
+        upstreamBase,
+        {
+            path: `/events/${encodeURIComponent(eventId)}/students`,
+            method: 'GET',
+            fallbackError: 'Nie udało się pobrać kursantów wydarzenia',
+        },
+    );
 
-    return { success: true, data };
+    return {
+        success: true,
+        data: {
+            studentUserIds: normalizeStudentUserIds(data?.studentUserIds),
+        },
+    };
 }
 
 export async function bffEventEligibleStudentsGet(

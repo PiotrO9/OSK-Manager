@@ -5,6 +5,11 @@ import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/request
 import { parseScheduleMeQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
 import { bffUpstreamStudentEvents } from '~~/server/utils/students/studentsBff';
 
+interface StudentEventsResponse {
+    success: true;
+    data: { items: unknown[] };
+}
+
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',
 );
@@ -93,14 +98,23 @@ export default defineEventHandler(async (event) => {
         getQuery(event) as Record<string, unknown>,
     );
 
-    return executeBffAdapter(event, {
-        upstream: ({ upstreamBase }) =>
-            bffUpstreamStudentEvents(
+    return executeBffAdapter<StudentEventsResponse>(event, {
+        upstream: async ({ upstreamBase }) => {
+            const result = await bffUpstreamStudentEvents(
                 event,
                 upstreamBase,
                 studentUserId,
                 queryString,
-            ),
+            );
+            const data = result.data as { items?: unknown[] } | undefined;
+
+            return {
+                success: true,
+                data: {
+                    items: Array.isArray(data?.items) ? data.items : [],
+                },
+            };
+        },
         mock: async () => {
             await assertMockStudentOwnsEventsRoute(event, studentUserId);
 

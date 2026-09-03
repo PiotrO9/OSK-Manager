@@ -1,6 +1,14 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffScheduleManagerGet } from '~~/server/utils/schedule/scheduleBff';
+import {
+    bffScheduleManagerGet,
+    type ScheduleItemResponse,
+} from '~~/server/utils/schedule/scheduleBff';
 import { parseScheduleManagerQuery } from '~~/server/utils/schedule/scheduleQueryValidation';
+
+interface ScheduleResponse {
+    success: true;
+    data: { items: ScheduleItemResponse[] };
+}
 
 export default defineEventHandler(async (event) => {
     const query = getQuery(event);
@@ -18,7 +26,7 @@ export default defineEventHandler(async (event) => {
         params.set('schoolId', q.schoolId!);
     }
 
-    return executeBffAdapter(event, {
+    return executeBffAdapter<ScheduleResponse>(event, {
         upstream: ({ upstreamBase }) =>
             bffScheduleManagerGet(event, upstreamBase, params.toString()),
         mock: async () => {
