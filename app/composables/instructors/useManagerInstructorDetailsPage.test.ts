@@ -3,7 +3,7 @@ import type { InstructorEditFormModel } from '~/types/instructors/instructor';
 import {
     buildManagerInstructorDirtyPatch,
     validateManagerInstructorPatch,
-} from './useManagerInstructorDetailsPage';
+} from '~/utils/instructors/managerInstructorDetailsPage';
 
 const baseInstructorForm: InstructorEditFormModel = {
     id: 'instructor-1',
