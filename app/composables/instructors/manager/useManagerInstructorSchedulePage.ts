@@ -1,7 +1,5 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import type { CourseListItem } from '~/types/courses/course';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import type { Vehicle } from '~/types/vehicles/vehicle';
 import {
     getMonday,
     weekRangeFromMonday,
@@ -14,6 +12,7 @@ import {
     getManagerInstructorScheduleInstructorId,
     getManagerInstructorScheduleSchoolId,
 } from '~/utils/instructors/managerInstructorSchedulePage';
+import { useManagerInstructorScheduleResources } from './useManagerInstructorScheduleResources';
 
 export type ManagerInstructorEventType = 'THEORY' | 'DRIVE';
 
@@ -27,9 +26,6 @@ export function useManagerInstructorSchedulePage() {
         isLoading: isEventSaving,
         isDeleteLoading: isEventDeleteLoading,
     } = useInstructorEventsApi();
-    const { fetchList: fetchVehiclesList } = useVehiclesApi();
-    const { fetchList: fetchCoursesList } = useCoursesApi();
-
     const instructorId = computed(() =>
         getManagerInstructorScheduleInstructorId(route),
     );
@@ -42,13 +38,15 @@ export function useManagerInstructorSchedulePage() {
     const isScheduleLoading = ref(false);
     const scheduleError = ref<string | null>(null);
 
-    const vehicles = ref<Vehicle[]>([]);
-    const vehiclesError = ref<string | null>(null);
-    const isVehiclesLoading = ref(false);
-
-    const courses = ref<CourseListItem[]>([]);
-    const coursesError = ref<string | null>(null);
-    const isCoursesLoading = ref(false);
+    const {
+        vehicles,
+        vehiclesError,
+        isVehiclesLoading,
+        courses,
+        coursesError,
+        isCoursesLoading,
+        loadResources,
+    } = useManagerInstructorScheduleResources({ schoolId });
 
     const eventType = ref<ManagerInstructorEventType>('THEORY');
     const eventStartLocal = ref('');
@@ -151,54 +149,6 @@ export function useManagerInstructorSchedulePage() {
         }
     }
 
-    async function loadVehicles(): Promise<void> {
-        const sid = schoolId.value;
-
-        vehiclesError.value = null;
-        vehicles.value = [];
-
-        if (!sid) {
-            return;
-        }
-
-        isVehiclesLoading.value = true;
-
-        try {
-            vehicles.value = await fetchVehiclesList(sid);
-        } catch (err: unknown) {
-            vehiclesError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać listy pojazdów.',
-            );
-        } finally {
-            isVehiclesLoading.value = false;
-        }
-    }
-
-    async function loadCourses(): Promise<void> {
-        const sid = schoolId.value;
-
-        coursesError.value = null;
-        courses.value = [];
-
-        if (!sid) {
-            return;
-        }
-
-        isCoursesLoading.value = true;
-
-        try {
-            courses.value = await fetchCoursesList(sid);
-        } catch (err: unknown) {
-            coursesError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać listy kursów.',
-            );
-        } finally {
-            isCoursesLoading.value = false;
-        }
-    }
-
     watch(
         [range, instructorId],
         () => {
@@ -210,8 +160,7 @@ export function useManagerInstructorSchedulePage() {
     watch(
         schoolId,
         () => {
-            void loadVehicles();
-            void loadCourses();
+            void loadResources();
         },
         { immediate: true },
     );
