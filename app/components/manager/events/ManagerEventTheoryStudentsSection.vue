@@ -10,9 +10,9 @@ import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEl
 defineProps<{
     loadedEvent: InstructorEvent;
     linkedCourseLabel: string | null;
-    theoryCapacitySummary: string;
+    theoryCapacitySummary: string | null;
     formCapacityInput: string | number;
-    parseCapacity: (value: string | number) => number | null;
+    parseCapacity: (value: unknown) => number | null | false;
     studentAttendanceKnown: boolean;
     theoryEligibleNoCourse: boolean;
     isTheoryEligibleLoading: boolean;

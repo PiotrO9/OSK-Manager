@@ -27,9 +27,13 @@ const createPaymentPlanId = ref('');
 const createAmount = ref('');
 const createDueDate = ref('');
 const createMethod = ref('');
-const editState = reactive<Record<string, { dueDate: string; method: string }>>(
-    {},
-);
+
+interface PaymentEditState {
+    dueDate: string;
+    method: string;
+}
+
+const editState = reactive<Record<string, PaymentEditState>>({});
 
 const paymentPlanOptions = computed(() => {
     const seen = new Set<string>();
@@ -78,6 +82,16 @@ const canCreatePayment = computed(
         createPaymentPlanId.value.length > 0 &&
         createAmount.value.trim().length > 0 &&
         !props.isSaving,
+);
+
+const paymentEditRows = computed(() =>
+    props.payments.map((payment) => ({
+        payment,
+        state: editState[payment.id] ?? {
+            dueDate: toDateInput(payment.dueDate),
+            method: payment.method ?? '',
+        },
+    })),
 );
 
 function toDateInput(value: string | null): string {
@@ -281,7 +295,7 @@ function handleUpdate(paymentId: string): void {
 
         <div v-if="props.payments.length > 0" class="mb-4 space-y-3">
             <article
-                v-for="payment in props.payments"
+                v-for="{ payment, state } in paymentEditRows"
                 :key="payment.id"
                 class="border-border rounded-xl border p-3"
             >
@@ -297,14 +311,14 @@ function handleUpdate(paymentId: string): void {
                         </p>
                     </div>
                     <input
-                        v-model="editState[payment.id].dueDate"
+                        v-model="state.dueDate"
                         class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
                         type="date"
                         :disabled="props.isSaving"
                         aria-label="Termin płatności"
                     />
                     <input
-                        v-model="editState[payment.id].method"
+                        v-model="state.method"
                         class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
                         placeholder="Metoda"
                         :disabled="props.isSaving"

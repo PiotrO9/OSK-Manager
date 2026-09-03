@@ -421,7 +421,7 @@ function roleAllowsPhoneAndBio(role: string | undefined): boolean {
     return r === 'STUDENT' || r === 'INSTRUCTOR';
 }
 
-function hasPkkNumber(value: string | null | undefined): boolean {
+function hasPkkNumber(value: string | null | undefined): value is string {
     return typeof value === 'string' && value.trim().length > 0;
 }
 

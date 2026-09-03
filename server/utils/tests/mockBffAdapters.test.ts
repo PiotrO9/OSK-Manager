@@ -20,6 +20,10 @@ describe('mock BFF adapters', () => {
             bffMockVehiclesList('school-temp').data as Array<{ id: string }>
         )[0];
 
+        if (!vehicle) {
+            throw new Error('Expected mock vehicle for school-temp');
+        }
+
         expect(
             bffMockVehiclesUpdateStatus(vehicle.id, {
                 status: 'UNAVAILABLE',

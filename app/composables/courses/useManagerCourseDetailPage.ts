@@ -102,7 +102,7 @@ export function useManagerCourseDetailPage() {
     );
 
     const courseCategoryLabel = computed(() => {
-        const category = course.value?.courseType?.label?.trim();
+        const category = course.value?.courseType?.name?.trim();
 
         if (category) {
             return category;

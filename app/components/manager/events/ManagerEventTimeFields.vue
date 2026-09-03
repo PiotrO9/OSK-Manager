@@ -10,8 +10,8 @@ defineProps<{
     startMinuteOptions: number[];
     endHourOptions: number[];
     endMinuteOptions: number[];
-    minDate: string | null;
-    maxDate: string | null;
+    minDate?: string | null;
+    maxDate?: string | null;
     isSaving: boolean;
 }>();
 

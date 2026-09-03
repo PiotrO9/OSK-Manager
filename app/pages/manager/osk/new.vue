@@ -13,7 +13,7 @@ usePageMeta({
 });
 
 const redirectDelayMs = 1400;
-let redirectTimer: ReturnType<typeof window.setTimeout> | undefined;
+let redirectTimer: number | undefined;
 
 function goToOskList() {
     void navigateTo('/manager/osk', { replace: true });

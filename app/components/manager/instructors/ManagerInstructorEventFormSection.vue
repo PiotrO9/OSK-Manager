@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CalendarDays, Clock, Layers3, Plus } from 'lucide-vue-next';
+import type { RouteLocationRaw } from 'vue-router';
 import type { CourseListItem } from '~/types/courses/course';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { ManagerInstructorEventType } from '~/composables/instructors/manager/useManagerInstructorSchedulePage';
@@ -14,7 +15,7 @@ defineProps<{
     isVehiclesLoading: boolean;
     isEventSaving: boolean;
     eventFormError: string | null;
-    backHref: unknown;
+    backHref: RouteLocationRaw;
 }>();
 
 const emit = defineEmits<{

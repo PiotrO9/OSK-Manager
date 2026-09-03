@@ -50,7 +50,10 @@ describe('useVehicleEditPage', () => {
         await page.handleVehicleSubmit({
             name: 'Toyota Yaris',
             registrationNumber: 'KR12345',
-            status: 'AVAILABLE',
+            inspectionDate: null,
+            insuranceDate: null,
+            modelYear: null,
+            mileageKm: null,
         });
 
         expect(page.schoolId.value).toBeNull();
