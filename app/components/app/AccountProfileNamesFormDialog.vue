@@ -32,6 +32,10 @@ function handlePointerDownOutside(event: Event) {
         event.preventDefault();
     }
 }
+
+function toTextInputValue(value: string | number): string {
+    return String(value);
+}
 </script>
 
 <template>
@@ -67,7 +71,9 @@ function handlePointerDownOutside(event: Event) {
                                 : undefined
                         "
                         :disabled="isSaving"
-                        @update:model-value="emit('update:firstName', $event)"
+                        @update:model-value="
+                            emit('update:firstName', toTextInputValue($event))
+                        "
                     />
                 </div>
                 <div class="space-y-2">
@@ -86,7 +92,9 @@ function handlePointerDownOutside(event: Event) {
                                 : undefined
                         "
                         :disabled="isSaving"
-                        @update:model-value="emit('update:lastName', $event)"
+                        @update:model-value="
+                            emit('update:lastName', toTextInputValue($event))
+                        "
                     />
                 </div>
                 <p

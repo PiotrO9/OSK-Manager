@@ -7,7 +7,7 @@ const props = withDefaults(
         status: VehicleStatus;
         disabled?: boolean;
         busy?: boolean;
-        ariaLabel: string;
+        controlLabel: string;
     }>(),
     {
         disabled: false,
@@ -59,7 +59,7 @@ function handleCheckedChange(checked: boolean) {
                 class="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-300"
                 :model-value="isActive"
                 :disabled="isDisabled"
-                :aria-label="props.ariaLabel"
+                :aria-label="props.controlLabel"
                 :aria-busy="props.busy"
                 :aria-describedby="props.busy ? busyTextId : undefined"
                 @update:model-value="handleCheckedChange"

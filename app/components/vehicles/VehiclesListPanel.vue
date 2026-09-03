@@ -384,7 +384,7 @@ const {
                                     statusUpdatingVehicleId === vehicle.id
                                 "
                                 :busy="statusUpdatingVehicleId === vehicle.id"
-                                :aria-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                                :control-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
                                 @status-change="
                                     emit('statusChange', vehicle, $event)
                                 "

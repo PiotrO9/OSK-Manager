@@ -13,7 +13,7 @@ const props = withDefaults(
         disabled?: boolean;
         busy?: boolean;
         idPrefix: string;
-        ariaLabel: string;
+        controlLabel: string;
     }>(),
     {
         disabled: false,
@@ -138,7 +138,7 @@ function handleCustomDateUpdate(value: string) {
             :status="vehicle.status"
             :disabled="isDisabled"
             :busy="busy"
-            :aria-label="ariaLabel"
+            :control-label="controlLabel"
             @status-change="handleBaseStatusChange"
         />
 

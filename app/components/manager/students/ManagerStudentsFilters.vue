@@ -21,13 +21,21 @@ const emit = defineEmits<{
     courseChange: [];
 }>();
 
-function handleSchoolUpdate(value: string) {
-    emit('update:activeSchoolId', value);
+function toSelectId(value: unknown): string {
+    return typeof value === 'string' ? value : '';
+}
+
+function handleSchoolUpdate(value: unknown) {
+    const id = toSelectId(value);
+
+    if (!id) return;
+
+    emit('update:activeSchoolId', id);
     emit('schoolChange');
 }
 
-function handleCourseUpdate(value: string) {
-    emit('update:activeCourseId', value);
+function handleCourseUpdate(value: unknown) {
+    emit('update:activeCourseId', toSelectId(value));
     emit('courseChange');
 }
 </script>

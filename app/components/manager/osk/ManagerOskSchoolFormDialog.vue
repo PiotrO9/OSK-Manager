@@ -52,6 +52,10 @@ function handlePointerDownOutside(event: Event) {
         event.preventDefault();
     }
 }
+
+function toTextInputValue(value: string | number): string {
+    return String(value);
+}
 </script>
 
 <template>
@@ -83,7 +87,9 @@ function handlePointerDownOutside(event: Event) {
                         aria-required="true"
                         aria-label="Nazwa szkoły jazdy"
                         :disabled="isSaving"
-                        @update:model-value="emit('update:name', $event)"
+                        @update:model-value="
+                            emit('update:name', toTextInputValue($event))
+                        "
                     />
                 </div>
                 <div class="space-y-2">
@@ -103,7 +109,9 @@ function handlePointerDownOutside(event: Event) {
                         "
                         aria-label="Miasto"
                         :disabled="isSaving"
-                        @update:model-value="emit('update:city', $event)"
+                        @update:model-value="
+                            emit('update:city', toTextInputValue($event))
+                        "
                     />
                 </div>
                 <div class="space-y-2">
@@ -123,7 +131,9 @@ function handlePointerDownOutside(event: Event) {
                         "
                         aria-label="Adres"
                         :disabled="isSaving"
-                        @update:model-value="emit('update:address', $event)"
+                        @update:model-value="
+                            emit('update:address', toTextInputValue($event))
+                        "
                     />
                 </div>
 

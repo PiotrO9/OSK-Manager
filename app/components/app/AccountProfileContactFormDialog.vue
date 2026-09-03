@@ -34,6 +34,10 @@ function handlePointerDownOutside(event: Event) {
         event.preventDefault();
     }
 }
+
+function toTextInputValue(value: string | number): string {
+    return String(value);
+}
 </script>
 
 <template>
@@ -70,7 +74,9 @@ function handlePointerDownOutside(event: Event) {
                                 : undefined
                         "
                         :disabled="isSaving"
-                        @update:model-value="emit('update:phone', $event)"
+                        @update:model-value="
+                            emit('update:phone', toTextInputValue($event))
+                        "
                     />
                 </div>
                 <div class="space-y-2">
@@ -88,7 +94,9 @@ function handlePointerDownOutside(event: Event) {
                                 : undefined
                         "
                         :disabled="isSaving"
-                        @update:model-value="emit('update:bio', $event)"
+                        @update:model-value="
+                            emit('update:bio', toTextInputValue($event))
+                        "
                     />
                     <p class="text-muted-foreground text-xs">
                         {{ bioLength }} / {{ bioMaxLen }}
