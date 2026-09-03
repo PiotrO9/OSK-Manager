@@ -5,6 +5,7 @@ import {
 } from '~/utils/date/weeklyCalendarDates';
 import type { SummaryStripItem } from '~/components/app/ui/types';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { useMyLessonsCancellation } from './useMyLessonsCancellation';
 import { useMyLessonsRatings } from './useMyLessonsRatings';
 
 export type MyLessonsScheduleView = 'calendar' | 'list';
@@ -12,24 +13,17 @@ export type MyLessonsScheduleView = 'calendar' | 'list';
 export function useMyLessonsPage() {
     const { session } = useAuthSession();
     const { fetchMySchedule } = useScheduleApi();
-    const { cancelOwnLesson, isCancelling } = useStudentLessonCancellationApi();
-    const { addToast } = useAppToast();
 
     const weekStart = ref<Date>(getMonday(new Date()));
     const items = ref<ScheduleLessonItem[]>([]);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const pendingCancelLesson = ref<ScheduleLessonItem | null>(null);
     const scheduleView = ref<MyLessonsScheduleView>('list');
 
     const range = computed(() => weekRangeFromMonday(weekStart.value));
 
     const isStudent = computed(
         () => session.value?.role?.trim().toUpperCase() === 'STUDENT',
-    );
-
-    const cancellingLessonId = computed(() =>
-        isCancelling.value ? (pendingCancelLesson.value?.id ?? null) : null,
     );
 
     const pageDescription = computed(() =>
@@ -113,21 +107,6 @@ export function useMyLessonsPage() {
         ];
     });
 
-    const isCancelDialogOpen = computed({
-        get: () => pendingCancelLesson.value !== null,
-        set: (open: boolean) => {
-            if (!open && !isCancelling.value) {
-                pendingCancelLesson.value = null;
-            }
-        },
-    });
-
-    const pendingCancelLessonLabel = computed(() =>
-        pendingCancelLesson.value
-            ? formatLessonTimeRange(pendingCancelLesson.value)
-            : '',
-    );
-
     let loadSeq = 0;
 
     const {
@@ -140,6 +119,20 @@ export function useMyLessonsPage() {
     } = useMyLessonsRatings({
         isStudent,
         items,
+    });
+
+    const {
+        cancellingLessonId,
+        clearPendingCancelLesson,
+        handleCancelDialogOpenChange,
+        handleCancelLessonRequested,
+        handleConfirmCancelLesson,
+        isCancelDialogOpen,
+        isCancelling,
+        pendingCancelLessonLabel,
+    } = useMyLessonsCancellation({
+        isStudent,
+        loadWeek,
     });
 
     async function loadWeek(): Promise<void> {
@@ -189,53 +182,6 @@ export function useMyLessonsPage() {
 
         d.setDate(d.getDate() + 7);
         weekStart.value = getMonday(d);
-    }
-
-    function handleCancelLessonRequested(lesson: ScheduleLessonItem): void {
-        if (!isStudent.value || !isScheduledPracticeLesson(lesson)) {
-            return;
-        }
-
-        pendingCancelLesson.value = lesson;
-    }
-
-    function handleCancelDialogOpenChange(open: boolean): void {
-        isCancelDialogOpen.value = open;
-    }
-
-    async function handleConfirmCancelLesson(): Promise<void> {
-        const lesson = pendingCancelLesson.value;
-
-        if (!lesson || isCancelling.value) {
-            return;
-        }
-
-        try {
-            await cancelOwnLesson(lesson.id);
-            pendingCancelLesson.value = null;
-
-            addToast({
-                title: 'Rezerwacja zostala anulowana',
-                variant: 'success',
-            });
-
-            await loadWeek();
-        } catch (err: unknown) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się anulować rezerwacji.',
-            );
-
-            addToast({
-                title: 'Nie udało się anulować rezerwacji',
-                description: message,
-                variant: 'error',
-            });
-        }
-    }
-
-    function clearPendingCancelLesson(): void {
-        pendingCancelLesson.value = null;
     }
 
     watch(
@@ -296,14 +242,6 @@ function dateKeyFromIso(iso: string): string {
     return dateKeyFromDate(d);
 }
 
-function isScheduledPracticeLesson(lesson: ScheduleLessonItem): boolean {
-    return (
-        lesson.kind === 'lesson' &&
-        lesson.type.trim().toUpperCase() === 'PRACTICE' &&
-        lesson.status.trim().toUpperCase() === 'SCHEDULED'
-    );
-}
-
 export function formatWeekLabel(d: Date): string {
     return new Intl.DateTimeFormat('pl-PL', {
         day: 'numeric',
@@ -323,21 +261,4 @@ function formatCompactDate(iso: string): string {
         day: 'numeric',
         month: 'long',
     }).format(d);
-}
-
-function formatIsoLocal(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-    }).format(d);
-}
-
-function formatLessonTimeRange(lesson: ScheduleLessonItem): string {
-    return `${formatIsoLocal(lesson.startTime)} - ${formatIsoLocal(lesson.endTime)}`;
 }
