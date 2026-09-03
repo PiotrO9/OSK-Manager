@@ -1,5 +1,3 @@
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     getMonday,
     weekRangeFromMonday,
@@ -11,6 +9,7 @@ import {
     getManagerInstructorScheduleInstructorId,
     getManagerInstructorScheduleSchoolId,
 } from '~/utils/instructors/managerInstructorSchedulePage';
+import { useManagerInstructorScheduleData } from './useManagerInstructorScheduleData';
 import { useManagerInstructorScheduleEventForm } from './useManagerInstructorScheduleEventForm';
 import { useManagerInstructorScheduleDelete } from './useManagerInstructorScheduleDelete';
 import { useManagerInstructorScheduleResources } from './useManagerInstructorScheduleResources';
@@ -19,7 +18,6 @@ export type ManagerInstructorEventType = 'THEORY' | 'DRIVE';
 
 export function useManagerInstructorSchedulePage() {
     const route = useRoute();
-    const { fetchScheduleForInstructor } = useScheduleApi();
     const instructorId = computed(() =>
         getManagerInstructorScheduleInstructorId(route),
     );
@@ -28,9 +26,12 @@ export function useManagerInstructorSchedulePage() {
     );
 
     const weekStart = ref<Date>(getMonday(new Date()));
-    const items = ref<ScheduleLessonItem[]>([]);
-    const isScheduleLoading = ref(false);
-    const scheduleError = ref<string | null>(null);
+    const range = computed(() => weekRangeFromMonday(weekStart.value));
+    const { items, isScheduleLoading, scheduleError, loadSchedule } =
+        useManagerInstructorScheduleData({
+            instructorId,
+            range,
+        });
 
     const {
         vehicles,
@@ -42,7 +43,6 @@ export function useManagerInstructorSchedulePage() {
         loadResources,
     } = useManagerInstructorScheduleResources({ schoolId });
 
-    const range = computed(() => weekRangeFromMonday(weekStart.value));
     const scheduleItemsCount = computed(() => items.value.length);
     const lessonItemsCount = computed(
         () =>
@@ -79,49 +79,6 @@ export function useManagerInstructorSchedulePage() {
 
         return formatManagerInstructorScheduleRangeLabel(item.startTime);
     });
-
-    let scheduleSeq = 0;
-
-    async function loadSchedule(): Promise<void> {
-        const id = instructorId.value;
-
-        if (!id) {
-            items.value = [];
-
-            return;
-        }
-
-        const seq = ++scheduleSeq;
-
-        scheduleError.value = null;
-        isScheduleLoading.value = true;
-
-        const { dateFrom, dateTo } = range.value;
-
-        try {
-            const data = await fetchScheduleForInstructor(id, dateFrom, dateTo);
-
-            if (seq !== scheduleSeq) {
-                return;
-            }
-
-            items.value = data;
-        } catch (err: unknown) {
-            if (seq !== scheduleSeq) {
-                return;
-            }
-
-            items.value = [];
-            scheduleError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać terminarza lekcji.',
-            );
-        } finally {
-            if (seq === scheduleSeq) {
-                isScheduleLoading.value = false;
-            }
-        }
-    }
 
     const {
         eventType,
