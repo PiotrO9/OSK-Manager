@@ -5,17 +5,17 @@ import {
 } from '~/types/instructors/instructor';
 import { useManagerInstructorDetailsCourseTypes } from './useManagerInstructorDetailsCourseTypes';
 import { useManagerInstructorDetailsData } from './useManagerInstructorDetailsData';
+import { useManagerInstructorDetailsDelete } from './useManagerInstructorDetailsDelete';
 import { useManagerInstructorDetailsRatingSummary } from './useManagerInstructorDetailsRatingSummary';
 import {
     buildManagerInstructorDirtyPatch,
     displayManagerInstructorText,
-    getManagerInstructorDeleteErrorMessage,
     getManagerInstructorGenericSaveErrorMessage,
     getManagerInstructorRouteString,
     getManagerInstructorSaveErrorMessage,
     validateManagerInstructorPatch,
 } from '~/utils/instructors/managerInstructorDetailsPage';
-import { requestBffData, requestBffSuccess } from '../core/useApi';
+import { requestBffData } from '../core/useApi';
 import { usePageMeta } from '../core/usePageMeta';
 
 type InstructorDetailData = InstructorDetail | null;
@@ -41,8 +41,17 @@ export function useManagerInstructorDetailsPage() {
     const isSubmitting = ref(false);
     const submitError = ref<string | null>(null);
     const isEditDialogOpen = ref(false);
-    const isDeleteDialogOpen = ref(false);
-    const isDeleting = ref(false);
+    const {
+        isDeleteDialogOpen,
+        isDeleting,
+        handleOpenDeleteDialog,
+        handleDeleteDialogCancel,
+        handleDeleteDialogOpenChange,
+        handleDeleteDialogConfirm,
+    } = useManagerInstructorDetailsDelete({
+        isSubmitting,
+        isEditDialogOpen,
+    });
     const { ratingSummary, isRatingSummaryLoading, loadRatingSummary } =
         useManagerInstructorDetailsRatingSummary();
 
@@ -160,69 +169,6 @@ export function useManagerInstructorDetailsPage() {
         } finally {
             isSubmitting.value = false;
         }
-    }
-
-    function handleOpenDeleteDialog(): void {
-        if (isDeleting.value || isSubmitting.value) {
-            return;
-        }
-
-        isEditDialogOpen.value = false;
-        isDeleteDialogOpen.value = true;
-    }
-
-    function handleDeleteDialogCancel(): void {
-        isDeleteDialogOpen.value = false;
-    }
-
-    function handleDeleteDialogOpenChange(open: boolean): void {
-        isDeleteDialogOpen.value = open;
-    }
-
-    async function runDeleteInstructor(): Promise<void> {
-        if (isDeleting.value) {
-            return;
-        }
-
-        const id = getManagerInstructorRouteString(route.params.id);
-
-        if (!id) {
-            return;
-        }
-
-        isDeleting.value = true;
-
-        try {
-            await requestBffSuccess(
-                'DELETE',
-                `/api/instructors/${encodeURIComponent(id)}`,
-                {
-                    fallbackMessage: 'Nie udało się usunąć instruktora.',
-                },
-            );
-
-            addToast({
-                title: 'Instruktor został usunięty',
-                variant: 'success',
-            });
-
-            isEditDialogOpen.value = false;
-
-            await navigateTo('/manager/instructors');
-        } catch (err: unknown) {
-            addToast({
-                title: 'Nie udało się usunąć instruktora',
-                description: getManagerInstructorDeleteErrorMessage(err),
-                variant: 'error',
-            });
-        } finally {
-            isDeleting.value = false;
-        }
-    }
-
-    async function handleDeleteDialogConfirm(): Promise<void> {
-        isDeleteDialogOpen.value = false;
-        await runDeleteInstructor();
     }
 
     return {
