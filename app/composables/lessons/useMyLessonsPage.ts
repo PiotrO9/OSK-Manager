@@ -5,13 +5,13 @@ import {
 } from '~/utils/date/weeklyCalendarDates';
 import type { SummaryStripItem } from '~/components/app/ui/types';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { useMyLessonsRatings } from './useMyLessonsRatings';
 
 export type MyLessonsScheduleView = 'calendar' | 'list';
 
 export function useMyLessonsPage() {
     const { session } = useAuthSession();
     const { fetchMySchedule } = useScheduleApi();
-    const { createLessonRating, fetchLessonRating } = useLessonRatingsApi();
     const { cancelOwnLesson, isCancelling } = useStudentLessonCancellationApi();
     const { addToast } = useAppToast();
 
@@ -19,10 +19,6 @@ export function useMyLessonsPage() {
     const items = ref<ScheduleLessonItem[]>([]);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const selectedRatingLessonId = ref<string | null>(null);
-    const isRatingRefreshing = ref(false);
-    const isRatingSubmitting = ref(false);
-    const ratingErrorMessage = ref<string | null>(null);
     const pendingCancelLesson = ref<ScheduleLessonItem | null>(null);
     const scheduleView = ref<MyLessonsScheduleView>('list');
 
@@ -133,7 +129,18 @@ export function useMyLessonsPage() {
     );
 
     let loadSeq = 0;
-    let ratingFetchSeq = 0;
+
+    const {
+        handleRatingLessonSelected,
+        handleRatingSubmit,
+        isRatingRefreshing,
+        isRatingSubmitting,
+        ratingErrorMessage,
+        selectedRatingLessonId,
+    } = useMyLessonsRatings({
+        isStudent,
+        items,
+    });
 
     async function loadWeek(): Promise<void> {
         const seq = ++loadSeq;
@@ -182,92 +189,6 @@ export function useMyLessonsPage() {
 
         d.setDate(d.getDate() + 7);
         weekStart.value = getMonday(d);
-    }
-
-    async function handleRatingLessonSelected(
-        lesson: ScheduleLessonItem,
-    ): Promise<void> {
-        selectedRatingLessonId.value = lesson.id;
-        ratingErrorMessage.value = null;
-
-        const seq = ++ratingFetchSeq;
-
-        if (!isStudent.value || !isCompletedPracticeLesson(lesson)) {
-            isRatingRefreshing.value = false;
-
-            return;
-        }
-
-        isRatingRefreshing.value = true;
-
-        try {
-            const rating = await fetchLessonRating(lesson.id);
-
-            if (seq !== ratingFetchSeq) {
-                return;
-            }
-
-            items.value = items.value.map((item) =>
-                item.id === lesson.id ? { ...item, rating } : item,
-            );
-        } catch (err: unknown) {
-            if (seq !== ratingFetchSeq) {
-                return;
-            }
-
-            ratingErrorMessage.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się odświeżyć opinii.',
-            );
-        } finally {
-            if (seq === ratingFetchSeq) {
-                isRatingRefreshing.value = false;
-            }
-        }
-    }
-
-    async function handleRatingSubmit(payload: {
-        lesson: ScheduleLessonItem;
-        rating: number;
-        comment: string | null;
-    }): Promise<void> {
-        if (isRatingSubmitting.value) {
-            return;
-        }
-
-        isRatingSubmitting.value = true;
-        ratingErrorMessage.value = null;
-
-        try {
-            const rating = await createLessonRating(payload.lesson.id, {
-                rating: payload.rating,
-                comment: payload.comment,
-            });
-
-            items.value = items.value.map((item) =>
-                item.id === payload.lesson.id ? { ...item, rating } : item,
-            );
-            selectedRatingLessonId.value = payload.lesson.id;
-
-            addToast({
-                title: 'Opinia zostala dodana',
-                variant: 'success',
-            });
-        } catch (err: unknown) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się dodać opinii.',
-            );
-
-            ratingErrorMessage.value = message;
-            addToast({
-                title: 'Nie udało się dodać opinii',
-                description: message,
-                variant: 'error',
-            });
-        } finally {
-            isRatingSubmitting.value = false;
-        }
     }
 
     function handleCancelLessonRequested(lesson: ScheduleLessonItem): void {
@@ -373,14 +294,6 @@ function dateKeyFromIso(iso: string): string {
     }
 
     return dateKeyFromDate(d);
-}
-
-function isCompletedPracticeLesson(lesson: ScheduleLessonItem): boolean {
-    return (
-        lesson.kind === 'lesson' &&
-        lesson.type.trim().toUpperCase() === 'PRACTICE' &&
-        lesson.status.trim().toUpperCase() === 'COMPLETED'
-    );
 }
 
 function isScheduledPracticeLesson(lesson: ScheduleLessonItem): boolean {
