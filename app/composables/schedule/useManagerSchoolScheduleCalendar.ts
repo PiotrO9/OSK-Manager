@@ -1,6 +1,6 @@
 import type { DateValue } from '@internationalized/date';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useManagerSchoolScheduleCalendarData } from '~/composables/schedule/useManagerSchoolScheduleCalendarData';
 import {
     ariaSummaryForLesson,
     BASE_HOUR,
@@ -31,7 +31,6 @@ import {
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
     weekCalendarDatesFromMonday,
-    weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
 
 export interface ManagerSchoolScheduleCalendarProps {
@@ -67,16 +66,16 @@ export function useManagerSchoolScheduleCalendar(
     ) => void,
 ) {
     const localWeekStart = ref<Date>(getMonday(new Date()));
-    const internalItems = ref<ScheduleLessonItem[]>([]);
-    const errorMessage = ref<string | null>(null);
     const isCalendarOpen = ref(false);
     const calendarSelected = shallowRef<DateValue[]>(
         weekCalendarDatesFromMonday(getMonday(new Date())),
     );
-
-    const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
-
-    let fetchSeq = 0;
+    const { errorMessage, internalItems, isLoading, loadWeek } =
+        useManagerSchoolScheduleCalendarData({
+            schoolId: () => props.schoolId,
+            weekStart: localWeekStart,
+            disabled: () => props.parentSchedule,
+        });
 
     const calendarSelectedModel = computed<DateValue[]>(
         () => calendarSelected.value as unknown as DateValue[],
@@ -147,57 +146,6 @@ export function useManagerSchoolScheduleCalendar(
     ): number {
         return calculateSameStartTileHeightPx(lesson, lessonsForDate(dateStr));
     }
-
-    async function loadWeek(): Promise<void> {
-        if (props.parentSchedule) {
-            return;
-        }
-
-        const sid = props.schoolId.trim();
-
-        if (!sid) {
-            internalItems.value = [];
-            errorMessage.value = null;
-
-            return;
-        }
-
-        const seq = ++fetchSeq;
-
-        errorMessage.value = null;
-
-        const { dateFrom, dateTo } = weekRangeFromMonday(localWeekStart.value);
-
-        try {
-            const data = await fetchSchoolSchedule(sid, dateFrom, dateTo);
-
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            internalItems.value = data;
-        } catch (err: unknown) {
-            if (seq !== fetchSeq) {
-                return;
-            }
-
-            internalItems.value = [];
-            errorMessage.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać harmonogramu lekcji.',
-            );
-        }
-    }
-
-    watch(
-        [localWeekStart, () => props.schoolId],
-        () => {
-            if (!props.parentSchedule) {
-                void loadWeek();
-            }
-        },
-        { immediate: true },
-    );
 
     watch(
         activeWeekStart,
