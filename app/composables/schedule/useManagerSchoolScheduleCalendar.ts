@@ -6,14 +6,14 @@ import {
     ariaSummaryForLesson,
     BASE_HOUR,
     GRID_HEIGHT_PX,
-    isoToDateStr,
-    isoToHm,
-    lessonDurationMinutes,
-    PX_PER_MINUTE,
-    SAME_START_TILE_GAP_PX,
-    SLOT_END_GUTTER_PX,
-    slotTopPx,
 } from '~/utils/schedule/managerScheduleCalendarUtils';
+import {
+    buildScheduleItemsByDate,
+    calculateSameStartTileHeightPx,
+    calculateScheduleBlockTopPx,
+    countScheduleInstructors,
+    formatEarliestScheduleStartLabel,
+} from '~/utils/schedule/managerSchoolScheduleCalendarLayout';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import {
@@ -169,152 +169,34 @@ export function useManagerSchoolScheduleCalendar(
         return `${startDay} ${startMonth} - ${endDay} ${endMonth}`;
     });
 
-    const itemsByDate = computed(() => {
-        const map = new Map<string, ScheduleLessonItem[]>();
+    const itemsByDate = computed(() =>
+        buildScheduleItemsByDate(displayItems.value),
+    );
 
-        for (const it of displayItems.value) {
-            const ds = isoToDateStr(it.startTime);
+    const scheduleInstructorCount = computed(() =>
+        countScheduleInstructors(displayItems.value),
+    );
 
-            if (!ds) {
-                continue;
-            }
-
-            if (!map.has(ds)) {
-                map.set(ds, []);
-            }
-
-            map.get(ds)!.push(it);
-        }
-
-        for (const arr of map.values()) {
-            arr.sort((a, b) => a.startTime.localeCompare(b.startTime));
-        }
-
-        return map;
-    });
-
-    const scheduleInstructorCount = computed(() => {
-        const ids = new Set<string>();
-        const names = new Set<string>();
-
-        for (const item of displayItems.value) {
-            const instructor = item.instructor;
-
-            if (!instructor) {
-                continue;
-            }
-
-            if (instructor.id.trim()) {
-                ids.add(instructor.id);
-                continue;
-            }
-
-            const name =
-                `${instructor.firstName} ${instructor.lastName}`.trim();
-
-            if (name) {
-                names.add(name);
-            }
-        }
-
-        return ids.size + names.size;
-    });
-
-    const earliestStartLabel = computed(() => {
-        const times = displayItems.value
-            .map((item) => new Date(item.startTime))
-            .filter((date) => !Number.isNaN(date.getTime()))
-            .sort((a, b) => a.getTime() - b.getTime());
-
-        if (times.length === 0) {
-            return '--:--';
-        }
-
-        return `${String(times[0]!.getHours()).padStart(2, '0')}:${String(
-            times[0]!.getMinutes(),
-        ).padStart(2, '0')}`;
-    });
+    const earliestStartLabel = computed(() =>
+        formatEarliestScheduleStartLabel(displayItems.value),
+    );
 
     function lessonsForDate(dateStr: string): ScheduleLessonItem[] {
         return itemsByDate.value.get(dateStr) ?? [];
-    }
-
-    function sameStartSorted(
-        item: ScheduleLessonItem,
-        dateStr: string,
-    ): ScheduleLessonItem[] {
-        const list = lessonsForDate(dateStr);
-        const hm = isoToHm(item.startTime);
-        const same = list.filter((x) => isoToHm(x.startTime) === hm);
-
-        same.sort((a, b) => a.id.localeCompare(b.id));
-
-        return same;
-    }
-
-    function sameStartGroupDurationMinutes(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        let maxMin = 1;
-
-        for (const s of same) {
-            maxMin = Math.max(maxMin, lessonDurationMinutes(s));
-        }
-
-        return maxMin;
-    }
-
-    function sameStartSlotInnerPx(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        return Math.max(
-            0,
-            sameStartGroupDurationMinutes(lesson, dateStr) * PX_PER_MINUTE -
-                SLOT_END_GUTTER_PX,
-        );
-    }
-
-    function sameStartTileHeightPx(
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        const inner = sameStartSlotInnerPx(lesson, dateStr);
-        const n = Math.max(1, same.length);
-
-        if (n === 1) {
-            return Math.max(1, inner);
-        }
-
-        return Math.max(1, (inner - (n - 1) * SAME_START_TILE_GAP_PX) / n);
     }
 
     function lessonBlockTopPx(
         lesson: ScheduleLessonItem,
         dateStr: string,
     ): number {
-        const same = sameStartSorted(lesson, dateStr);
-        const h = sameStartTileHeightPx(lesson, dateStr);
-        const idx = same.findIndex((x) => x.id === lesson.id);
-
-        if (idx < 0) {
-            return slotTopPx(isoToHm(lesson.startTime));
-        }
-
-        return (
-            slotTopPx(isoToHm(lesson.startTime)) +
-            idx * (h + SAME_START_TILE_GAP_PX)
-        );
+        return calculateScheduleBlockTopPx(lesson, lessonsForDate(dateStr));
     }
 
     function lessonBlockHeightPx(
         lesson: ScheduleLessonItem,
         dateStr: string,
     ): number {
-        return sameStartTileHeightPx(lesson, dateStr);
+        return calculateSameStartTileHeightPx(lesson, lessonsForDate(dateStr));
     }
 
     async function loadWeek(): Promise<void> {
