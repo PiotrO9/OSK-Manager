@@ -1,11 +1,7 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { normalizeBffPhotoUrl } from '~/utils/api/bffPhotoUpload';
 import { useAppToast } from '../core/useAppToast';
 import { useAuthSession } from '../auth/useAuthSession';
-import { requestBffData } from '../core/useApi';
-
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
-const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+import { useAccountAvatarUpload } from './useAccountAvatarUpload';
 
 export const PROFILE_NAME_MAX_LEN = 100;
 export const PROFILE_BIO_MAX_LEN = 2000;
@@ -57,10 +53,6 @@ export function useAccountPage() {
         () => isProfileNamesSaving.value || isProfileContactSaving.value,
     );
 
-    const avatarFileInputRef = ref<HTMLInputElement | null>(null);
-    const isAvatarUploadLoading = ref(false);
-    const avatarImageFailed = ref(false);
-
     const displayName = computed(() => session.value?.userName ?? 'Użytkownik');
 
     const sessionRoleBadge = computed(() =>
@@ -95,9 +87,19 @@ export function useAccountPage() {
         return raw.trim();
     });
 
-    const showAvatarImage = computed(
-        () => Boolean(avatarSrc.value) && !avatarImageFailed.value,
-    );
+    const {
+        avatarFileInputRef,
+        handleAvatarFileChange,
+        handleAvatarImageError,
+        handleChooseAvatarClick,
+        handleChooseAvatarKeyDown,
+        isAvatarUploadLoading,
+        showAvatarImage,
+    } = useAccountAvatarUpload({
+        avatarSrc,
+        isDemoSession,
+        refreshProfileFromServer,
+    });
 
     function syncNameFormFromSession() {
         const s = session.value;
@@ -217,85 +219,6 @@ export function useAccountPage() {
         }
     }
 
-    function handleAvatarImageError() {
-        avatarImageFailed.value = true;
-    }
-
-    function handleChooseAvatarClick() {
-        if (isDemoSession.value || isAvatarUploadLoading.value) return;
-
-        avatarFileInputRef.value?.click();
-    }
-
-    function handleChooseAvatarKeyDown(event: KeyboardEvent) {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-
-        event.preventDefault();
-        handleChooseAvatarClick();
-    }
-
-    async function handleAvatarFileChange(event: Event) {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0] ?? null;
-
-        input.value = '';
-
-        if (!file || isDemoSession.value) return;
-
-        if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
-            addToast({
-                variant: 'error',
-                title: 'Nieobsługiwany format',
-                description: 'Dozwolone: JPEG, PNG, WebP.',
-            });
-
-            return;
-        }
-
-        if (file.size > MAX_AVATAR_BYTES) {
-            addToast({
-                variant: 'error',
-                title: 'Plik za duży',
-                description: 'Maksymalny rozmiar avatara to 5 MB.',
-            });
-
-            return;
-        }
-
-        isAvatarUploadLoading.value = true;
-
-        try {
-            const body = new FormData();
-
-            body.append('file', file, file.name);
-
-            await requestBffData<string>('POST', '/api/auth/profile/avatar', {
-                body,
-                fallbackMessage: 'Upload nie powiódł się.',
-                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                normalize: normalizeBffPhotoUrl,
-            });
-
-            await refreshProfileFromServer();
-
-            addToast({
-                variant: 'success',
-                title: 'Avatar zaktualizowany',
-            });
-        } catch (err: unknown) {
-            addToast({
-                variant: 'error',
-                title: 'Upload nie powiódł się',
-                description: getApiFetchErrorMessage(
-                    err,
-                    'Spróbuj ponownie później.',
-                ),
-            });
-        } finally {
-            isAvatarUploadLoading.value = false;
-        }
-    }
-
     watch(
         () => session.value?.userId,
         () => {
@@ -311,10 +234,6 @@ export function useAccountPage() {
 
     watch(canEditPhoneAndBio, (ok) => {
         if (ok) syncContactFormFromSession();
-    });
-
-    watch(avatarSrc, () => {
-        avatarImageFailed.value = false;
     });
 
     return {
