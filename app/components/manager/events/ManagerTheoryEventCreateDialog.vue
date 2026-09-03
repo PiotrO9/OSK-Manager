@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import type { CourseListItem } from '~/types/courses/course';
 import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
-import {
-    instructorHasCourseCategoryQualification,
-    type InstructorListItem,
-} from '~/types/instructors/instructor';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
 
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;
@@ -20,247 +13,29 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { required: true });
 
-const { createInstructorEvent, isLoading } = useInstructorEventsApi();
-const { fetchList: fetchCoursesList } = useCoursesApi();
-const { fetchList: fetchInstructorsList } = useInstructorsApi();
-
 const DESCRIPTION_ID = 'theory-event-create-desc';
-
-const selectedInstructorId = ref('');
-const theoryCourses = ref<CourseListItem[]>([]);
-const schoolInstructors = ref<InstructorListItem[]>([]);
-const isCoursesLoading = ref(false);
-const coursesLoadError = ref<string | null>(null);
-/** Puste = bez powiązania z kursem (POST bez courseId). */
-const selectedCourseId = ref('');
-/** `type="number"` + v-model może dać `number` lub `string`. */
-const capacityInput = ref<string | number>('');
-const formError = ref<string | null>(null);
-
-const selectedCourse = computed((): CourseListItem | null => {
-    const courseId = selectedCourseId.value.trim();
-
-    if (!courseId) {
-        return null;
-    }
-
-    return theoryCourses.value.find((course) => course.id === courseId) ?? null;
-});
-
-const filteredAvailableInstructors = computed(() => {
-    const ctx = props.slotCtx;
-
-    if (!ctx) {
-        return [];
-    }
-
-    const course = selectedCourse.value;
-
-    if (!course) {
-        return ctx.availableInstructors;
-    }
-
-    const categoryCode = course.courseType?.code?.trim() || course.category;
-    const qualifiedIds = new Set(
-        schoolInstructors.value
-            .filter((instructor) =>
-                instructorHasCourseCategoryQualification(
-                    instructor,
-                    categoryCode,
-                ),
-            )
-            .map((instructor) => instructor.id),
-    );
-
-    return ctx.availableInstructors.filter((instructor) =>
-        qualifiedIds.has(instructor.id),
-    );
-});
-
-const slotWhenLabel = computed((): string => {
-    const s = props.slotCtx;
-
-    if (!s) {
-        return '';
-    }
-
-    const d = new Date(`${s.date}T12:00:00`);
-
-    if (Number.isNaN(d.getTime())) {
-        return `${s.date}, ${s.startTime}–${s.endTime}`;
-    }
-
-    const dateStr = d.toLocaleDateString('pl-PL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-    });
-
-    return `${dateStr}, ${s.startTime}–${s.endTime}`;
-});
 
 const numberInputClass =
     'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
-
-watch(
-    [open, () => props.slotCtx],
-    ([isOpen, ctx]) => {
-        if (!isOpen || !ctx) {
-            return;
-        }
-
-        formError.value = null;
-        capacityInput.value = '';
-        selectedCourseId.value = '';
-        selectedInstructorId.value =
-            ctx.availableInstructors.length === 1
-                ? (ctx.availableInstructors[0]?.id ?? '')
-                : '';
-    },
-    { flush: 'post' },
-);
-
-watch(
-    [open, () => props.schoolId.trim()],
-    async ([isOpen, sid]) => {
-        theoryCourses.value = [];
-        schoolInstructors.value = [];
-        coursesLoadError.value = null;
-
-        if (!isOpen || !sid) {
-            return;
-        }
-
-        isCoursesLoading.value = true;
-
-        try {
-            const [courses, instructors] = await Promise.all([
-                fetchCoursesList(sid),
-                fetchInstructorsList(sid).catch(() => []),
-            ]);
-
-            theoryCourses.value = courses;
-            schoolInstructors.value = instructors;
-        } catch (err: unknown) {
-            coursesLoadError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać listy kursów.',
-            );
-        } finally {
-            isCoursesLoading.value = false;
-        }
-    },
-    { flush: 'post' },
-);
-
-watch([selectedCourse, filteredAvailableInstructors], ([course, items]) => {
-    if (!course) {
-        return;
-    }
-
-    const selected = selectedInstructorId.value.trim();
-
-    if (selected && items.some((item) => item.id === selected)) {
-        return;
-    }
-
-    selectedInstructorId.value = items.length === 1 ? items[0]!.id : '';
+const {
+    capacityInput,
+    coursesLoadError,
+    filteredAvailableInstructors,
+    formError,
+    handleClose,
+    handleSubmit,
+    isCoursesLoading,
+    isLoading,
+    selectedCourseId,
+    selectedInstructorId,
+    slotWhenLabel,
+    theoryCourses,
+} = useManagerTheoryEventCreateDialog({
+    open,
+    schoolId: toRef(props, 'schoolId'),
+    slotCtx: toRef(props, 'slotCtx'),
+    emitCreated: (payload) => emit('created', payload),
 });
-
-function parseCapacity(raw: unknown): number | null | false {
-    if (raw === null || raw === undefined) {
-        return null;
-    }
-
-    if (typeof raw === 'number') {
-        if (!Number.isFinite(raw)) {
-            return null;
-        }
-
-        if (raw < 0) {
-            return false;
-        }
-
-        return Math.trunc(raw);
-    }
-
-    const t = String(raw).trim();
-
-    if (t === '') {
-        return null;
-    }
-
-    const n = Number.parseInt(t, 10);
-
-    if (!Number.isFinite(n) || n < 0) {
-        return false;
-    }
-
-    return n;
-}
-
-function handleClose(): void {
-    open.value = false;
-}
-
-async function handleSubmit(): Promise<void> {
-    formError.value = null;
-
-    const ctx = props.slotCtx;
-
-    if (!ctx) {
-        formError.value = 'Brak kontekstu slotu.';
-
-        return;
-    }
-
-    const instructorId = selectedInstructorId.value.trim();
-
-    if (!instructorId) {
-        formError.value = 'Wybierz instruktora.';
-
-        return;
-    }
-
-    const capParsed = parseCapacity(capacityInput.value);
-
-    if (capParsed === false) {
-        formError.value =
-            'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).';
-
-        return;
-    }
-
-    const startIso = buildSlotIsoUTC(ctx.date, ctx.startTime);
-    const endIso = buildSlotIsoUTC(ctx.date, ctx.endTime);
-
-    try {
-        const cid = selectedCourseId.value.trim();
-
-        const event = await createInstructorEvent({
-            instructorId,
-            type: 'THEORY',
-            startTime: startIso,
-            endTime: endIso,
-            capacity: capParsed,
-            ...(cid ? { courseId: cid } : {}),
-        });
-
-        const cap =
-            event.capacity !== undefined && event.capacity !== null
-                ? event.capacity
-                : capParsed;
-
-        emit('created', { eventId: event.id, capacity: cap });
-        open.value = false;
-    } catch (err: unknown) {
-        formError.value = getApiFetchErrorMessage(
-            err,
-            'Nie udało się utworzyć bloku teorii.',
-        );
-    }
-}
 </script>
 
 <template>
