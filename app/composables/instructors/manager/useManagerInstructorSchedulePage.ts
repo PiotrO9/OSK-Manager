@@ -12,15 +12,14 @@ import {
     getManagerInstructorScheduleSchoolId,
 } from '~/utils/instructors/managerInstructorSchedulePage';
 import { useManagerInstructorScheduleEventForm } from './useManagerInstructorScheduleEventForm';
+import { useManagerInstructorScheduleDelete } from './useManagerInstructorScheduleDelete';
 import { useManagerInstructorScheduleResources } from './useManagerInstructorScheduleResources';
 
 export type ManagerInstructorEventType = 'THEORY' | 'DRIVE';
 
 export function useManagerInstructorSchedulePage() {
     const route = useRoute();
-    const { addToast } = useAppToast();
     const { fetchScheduleForInstructor } = useScheduleApi();
-    const { deleteInstructorEvent } = useInstructorEventsApi();
     const instructorId = computed(() =>
         getManagerInstructorScheduleInstructorId(route),
     );
@@ -42,9 +41,6 @@ export function useManagerInstructorSchedulePage() {
         isCoursesLoading,
         loadResources,
     } = useManagerInstructorScheduleResources({ schoolId });
-
-    const deleteDialogOpen = ref(false);
-    const pendingDeleteItem = ref<ScheduleLessonItem | null>(null);
 
     const range = computed(() => weekRangeFromMonday(weekStart.value));
     const scheduleItemsCount = computed(() => items.value.length);
@@ -82,16 +78,6 @@ export function useManagerInstructorSchedulePage() {
         }
 
         return formatManagerInstructorScheduleRangeLabel(item.startTime);
-    });
-
-    const pendingDeleteTimeLabel = computed(() => {
-        const item = pendingDeleteItem.value;
-
-        if (!item) {
-            return '';
-        }
-
-        return `${formatManagerInstructorScheduleRangeLabel(item.startTime)} - ${formatManagerInstructorScheduleRangeLabel(item.endTime)}`;
     });
 
     let scheduleSeq = 0;
@@ -145,13 +131,20 @@ export function useManagerInstructorSchedulePage() {
         eventCourseId,
         eventFormError,
         isEventSaving,
-        isEventDeleteLoading,
         handleFocusEventForm,
         handleSubmitEvent,
     } = useManagerInstructorScheduleEventForm({
         instructorId,
         reloadSchedule: loadSchedule,
     });
+    const {
+        deleteDialogOpen,
+        pendingDeleteTimeLabel,
+        isEventDeleteLoading,
+        handleRequestDelete,
+        handleDeleteDialogCancel,
+        handleDeleteDialogConfirm,
+    } = useManagerInstructorScheduleDelete({ items });
 
     watch(
         [range, instructorId],
@@ -203,48 +196,6 @@ export function useManagerInstructorSchedulePage() {
 
         copy[idx] = { ...row, status: payload.status };
         items.value = copy;
-    }
-
-    function handleRequestDelete(item: ScheduleLessonItem): void {
-        pendingDeleteItem.value = item;
-        deleteDialogOpen.value = true;
-    }
-
-    function handleDeleteDialogCancel(): void {
-        deleteDialogOpen.value = false;
-        pendingDeleteItem.value = null;
-    }
-
-    async function handleDeleteDialogConfirm(): Promise<void> {
-        const item = pendingDeleteItem.value;
-
-        if (!item) {
-            return;
-        }
-
-        const removedId = item.id;
-
-        try {
-            await deleteInstructorEvent(removedId);
-
-            addToast({
-                title: 'Usunieto blok czasu',
-                description: 'Blok zostal usuniety z harmonogramu.',
-                variant: 'success',
-            });
-
-            items.value = items.value.filter((i) => i.id !== removedId);
-            handleDeleteDialogCancel();
-        } catch (err: unknown) {
-            addToast({
-                title: 'Nie udało się usunąć bloku',
-                description: getApiFetchErrorMessage(
-                    err,
-                    'Spróbuj ponownie lub odśwież stronę.',
-                ),
-                variant: 'error',
-            });
-        }
     }
 
     const backHref = computed(() => {
