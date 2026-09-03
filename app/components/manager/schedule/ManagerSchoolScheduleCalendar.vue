@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import type {
+    ManagerSchoolScheduleCalendarBlockActions,
+    ManagerSchoolScheduleCalendarGridLayout,
+    ManagerSchoolScheduleCalendarGridState,
+} from '~/types/schedule/managerSchoolScheduleCalendarComponents';
 import { useManagerSchoolScheduleCalendar } from '~/composables/schedule/useManagerSchoolScheduleCalendar';
 
 const props = withDefaults(
@@ -76,6 +81,38 @@ const {
     weekRangeLabel,
 } = useManagerSchoolScheduleCalendar(props, emit);
 
+const calendarGridState = computed<ManagerSchoolScheduleCalendarGridState>(
+    () => ({
+        baseHour: BASE_HOUR,
+        displayError: displayError.value,
+        displayLoading: displayLoading.value,
+        emptyDayMessage: props.emptyDayMessage,
+        eventEditEnabled: props.eventEditEnabled,
+        practicePrimaryLine: props.practicePrimaryLine,
+        scheduleCountBadgeLabel: props.scheduleCountBadgeLabel,
+        scheduleItemsCount: displayItems.value.length,
+        weekDays: weekDays.value,
+        weekRangeLabel: weekRangeLabel.value,
+    }),
+);
+
+const calendarGridLayout = computed<ManagerSchoolScheduleCalendarGridLayout>(
+    () => ({
+        gridHeightPx: GRID_HEIGHT_PX,
+        hourLabels: hourLabels.value,
+        lessonBlockHeightPx,
+        lessonBlockTopPx,
+        lessonsForDate,
+    }),
+);
+
+const calendarBlockActions =
+    computed<ManagerSchoolScheduleCalendarBlockActions>(() => ({
+        blockAccessibilityLabel,
+        blockIsClickable,
+        lessonBlockInteractiveClasses,
+    }));
+
 defineExpose({
     reloadWeek: loadWeek,
 });
@@ -117,26 +154,9 @@ defineExpose({
             />
 
             <ManagerSchoolScheduleCalendarGrid
-                :base-hour="BASE_HOUR"
-                :display-error="displayError"
-                :display-loading="displayLoading"
-                :empty-day-message="emptyDayMessage"
-                :event-edit-enabled="eventEditEnabled"
-                :grid-height-px="GRID_HEIGHT_PX"
-                :hour-labels="hourLabels"
-                :lesson-block-height-px="lessonBlockHeightPx"
-                :lesson-block-interactive-classes="
-                    lessonBlockInteractiveClasses
-                "
-                :lesson-block-top-px="lessonBlockTopPx"
-                :block-accessibility-label="blockAccessibilityLabel"
-                :block-is-clickable="blockIsClickable"
-                :lessons-for-date="lessonsForDate"
-                :practice-primary-line="practicePrimaryLine"
-                :schedule-count-badge-label="scheduleCountBadgeLabel"
-                :schedule-items-count="displayItems.length"
-                :week-days="weekDays"
-                :week-range-label="weekRangeLabel"
+                :state="calendarGridState"
+                :layout="calendarGridLayout"
+                :block-actions="calendarBlockActions"
                 @block-select="handleScheduleBlockClick"
                 @block-keydown="handleScheduleBlockKeydown"
             />

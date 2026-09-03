@@ -1,29 +1,15 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import type { ManagerSchoolScheduleWeekDay } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
+import type {
+    ManagerSchoolScheduleCalendarBlockActions,
+    ManagerSchoolScheduleCalendarGridLayout,
+    ManagerSchoolScheduleCalendarGridState,
+} from '~/types/schedule/managerSchoolScheduleCalendarComponents';
 
 defineProps<{
-    baseHour: number;
-    displayError: string | null;
-    displayLoading: boolean;
-    emptyDayMessage: string;
-    eventEditEnabled: boolean;
-    gridHeightPx: number;
-    hourLabels: number[];
-    lessonBlockHeightPx: (
-        lesson: ScheduleLessonItem,
-        dateStr: string,
-    ) => number;
-    lessonBlockInteractiveClasses: (lesson: ScheduleLessonItem) => string;
-    lessonBlockTopPx: (lesson: ScheduleLessonItem, dateStr: string) => number;
-    blockAccessibilityLabel: (lesson: ScheduleLessonItem) => string;
-    blockIsClickable: (lesson: ScheduleLessonItem) => boolean;
-    lessonsForDate: (dateStr: string) => ScheduleLessonItem[];
-    practicePrimaryLine: 'student' | 'instructor';
-    scheduleCountBadgeLabel: string;
-    scheduleItemsCount: number;
-    weekDays: ManagerSchoolScheduleWeekDay[];
-    weekRangeLabel: string;
+    blockActions: ManagerSchoolScheduleCalendarBlockActions;
+    layout: ManagerSchoolScheduleCalendarGridLayout;
+    state: ManagerSchoolScheduleCalendarGridState;
 }>();
 
 const emit = defineEmits<{
@@ -42,9 +28,9 @@ function emitBlockKeydown(
 <template>
     <div class="border-border relative overflow-x-auto rounded-2xl border">
         <div class="sr-only" role="status">
-            <span>Oś godzin: {{ baseHour }}:00–19:00</span>
+            <span>Oś godzin: {{ state.baseHour }}:00–19:00</span>
             <span
-                v-if="eventEditEnabled"
+                v-if="state.eventEditEnabled"
                 class="text-foreground border-border border-l pl-2"
             >
                 Blok czasu lub jazda praktyczna: kliknij lub Enter, aby
@@ -67,17 +53,18 @@ function emitBlockKeydown(
                     <span>teoria</span>
                 </span>
             </span>
-            <UiBadge v-if="displayLoading" variant="secondary">
+            <UiBadge v-if="state.displayLoading" variant="secondary">
                 Ładowanie…
             </UiBadge>
-            <UiBadge v-else-if="!displayError" variant="outline">
-                {{ scheduleCountBadgeLabel }}: {{ scheduleItemsCount }}
+            <UiBadge v-else-if="!state.displayError" variant="outline">
+                {{ state.scheduleCountBadgeLabel }}:
+                {{ state.scheduleItemsCount }}
             </UiBadge>
         </div>
 
         <div class="relative min-w-[720px]">
             <div
-                v-if="displayLoading"
+                v-if="state.displayLoading"
                 class="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
                 role="status"
                 aria-live="polite"
@@ -92,31 +79,27 @@ function emitBlockKeydown(
             <div
                 class="flex"
                 role="grid"
-                :aria-label="`Harmonogram lekcji, ${weekRangeLabel}`"
+                :aria-label="`Harmonogram lekcji, ${state.weekRangeLabel}`"
             >
                 <ManagerScheduleHourGutter
-                    :hour-labels="hourLabels"
-                    :grid-height-px="gridHeightPx"
+                    :hour-labels="layout.hourLabels"
+                    :grid-height-px="layout.gridHeightPx"
                 />
 
                 <div class="grid min-w-0 flex-1 grid-cols-7">
                     <ManagerSchoolScheduleCalendarDayColumn
-                        v-for="day in weekDays"
+                        v-for="day in state.weekDays"
                         :key="day.dateStr"
-                        :block-accessibility-label="blockAccessibilityLabel"
-                        :block-is-clickable="blockIsClickable"
+                        :block-actions="blockActions"
                         :day="day"
-                        :display-error="displayError"
-                        :display-loading="displayLoading"
-                        :empty-day-message="emptyDayMessage"
-                        :grid-height-px="gridHeightPx"
-                        :lesson-block-height-px="lessonBlockHeightPx"
-                        :lesson-block-interactive-classes="
-                            lessonBlockInteractiveClasses
-                        "
-                        :lesson-block-top-px="lessonBlockTopPx"
-                        :lessons="lessonsForDate(day.dateStr)"
-                        :practice-primary-line="practicePrimaryLine"
+                        :display-error="state.displayError"
+                        :display-loading="state.displayLoading"
+                        :empty-day-message="state.emptyDayMessage"
+                        :grid-height-px="layout.gridHeightPx"
+                        :lesson-block-height-px="layout.lessonBlockHeightPx"
+                        :lesson-block-top-px="layout.lessonBlockTopPx"
+                        :lessons="layout.lessonsForDate(day.dateStr)"
+                        :practice-primary-line="state.practicePrimaryLine"
                         @block-select="emit('blockSelect', $event)"
                         @block-keydown="emitBlockKeydown"
                     />
