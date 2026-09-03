@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
-import {
-    formatCourseKindLabel,
-    type CourseCreatePayload,
-    type CourseKind,
-} from '~/types/courses/course';
-import { formatInstructorDisplayName } from '~/types/instructors/instructor';
-import { courseCreateFormMessages } from '~/utils/courses/courseCreateFormMessages';
+import type { CourseCreatePayload, CourseKind } from '~/types/courses/course';
 
 const props = defineProps<{
     id?: string;
@@ -54,7 +48,7 @@ const {
     totalHoursModel,
 } = useCourseCreateForm(props, (payload) => emit('submit', payload));
 
-const formMessages = courseCreateFormMessages;
+const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
 </script>
 
 <template>
@@ -124,337 +118,41 @@ const formMessages = courseCreateFormMessages;
             </p>
 
             <div class="grid gap-4 lg:grid-cols-2">
-                <div class="space-y-2">
-                    <UiLabel for="course-create-name">Nazwa kursu</UiLabel>
-                    <UiInput
-                        id="course-create-name"
-                        v-model="nameModel"
-                        type="text"
-                        name="name"
-                        autocomplete="off"
-                        required
-                        :aria-invalid="showNameRequired"
-                        :aria-describedby="
-                            showNameRequired
-                                ? 'course-create-name-error'
-                                : undefined
-                        "
-                        :disabled="isSaving || isFormBlocked"
-                        class="bg-background h-10 rounded-xl"
-                    />
-                    <p
-                        v-if="showNameRequired"
-                        id="course-create-name-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ formMessages.nameRequired }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="course-create-category">{{
-                        hasOfferedCategoryList
-                            ? 'Kategoria (oferta OSK)'
-                            : 'Kategoria (kod, np. B)'
-                    }}</UiLabel>
-                    <UiSelect
-                        v-if="hasOfferedCategoryList"
-                        v-model="categoryModel"
-                        :disabled="isSaving || isFormBlocked"
-                    >
-                        <UiSelectTrigger
-                            id="course-create-category"
-                            class="bg-background h-10 w-full rounded-xl"
-                            :aria-invalid="showCategoryRequired"
-                            :aria-describedby="
-                                showCategoryRequired
-                                    ? 'course-create-category-error'
-                                    : undefined
-                            "
-                        >
-                            <UiSelectValue placeholder="Wybierz kategorię" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="t in offeredCourseTypes"
-                                    :key="t.id"
-                                    :value="t.code"
-                                >
-                                    {{ t.code
-                                    }}{{
-                                        t.name && t.name !== t.code
-                                            ? ` — ${t.name}`
-                                            : ''
-                                    }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                    <UiInput
-                        v-else
-                        id="course-create-category"
-                        v-model="categoryModel"
-                        type="text"
-                        name="category"
-                        autocomplete="off"
-                        placeholder="Np. B, CE"
-                        :disabled="isSaving || isFormBlocked"
-                        :aria-invalid="showCategoryRequired"
-                        :aria-describedby="
-                            showCategoryRequired
-                                ? 'course-create-category-error'
-                                : undefined
-                        "
-                        class="bg-background h-10 rounded-xl"
-                    />
-                    <p
-                        v-if="showCategoryRequired"
-                        id="course-create-category-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{
-                            hasOfferedCategoryList
-                                ? formMessages.categoryRequiredFromOffer
-                                : formMessages.categoryRequiredManual
-                        }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="course-create-kind">Rodzaj kursu</UiLabel>
-                    <UiSelect
-                        v-model="kindModel"
-                        :disabled="isSaving || isFormBlocked"
-                    >
-                        <UiSelectTrigger
-                            id="course-create-kind"
-                            class="bg-background h-10 w-full rounded-xl"
-                            :aria-invalid="showKindRequired"
-                            :aria-describedby="
-                                showKindRequired
-                                    ? 'course-create-kind-error'
-                                    : undefined
-                            "
-                        >
-                            <UiSelectValue placeholder="Rodzaj kursu" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="k in kindOptions"
-                                    :key="k"
-                                    :value="k"
-                                >
-                                    {{ formatCourseKindLabel(k) }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                    <p
-                        v-if="showKindRequired"
-                        id="course-create-kind-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ formMessages.kindRequired }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="course-create-hours"
-                        >Łączna liczba godzin</UiLabel
-                    >
-                    <UiInput
-                        id="course-create-hours"
-                        v-model="totalHoursModel"
-                        type="number"
-                        name="totalHours"
-                        inputmode="numeric"
-                        min="1"
-                        step="1"
-                        autocomplete="off"
-                        :aria-invalid="showTotalHoursInvalid"
-                        :aria-describedby="
-                            showTotalHoursInvalid
-                                ? 'course-create-hours-error'
-                                : undefined
-                        "
-                        :disabled="isSaving || isFormBlocked"
-                        class="bg-background h-10 rounded-xl"
-                    />
-                    <p
-                        v-if="showTotalHoursInvalid"
-                        id="course-create-hours-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ formMessages.totalHoursInvalid }}
-                    </p>
-                </div>
+                <CourseCreateBasicFields
+                    v-model:name="nameModel"
+                    v-model:category="categoryModel"
+                    v-model:kind="kindModel"
+                    v-model:total-hours="totalHoursModel"
+                    :offered-course-types="props.offeredCourseTypes"
+                    :has-offered-category-list="hasOfferedCategoryList"
+                    :kind-options="kindOptions"
+                    :is-disabled="isDisabled"
+                    :show-name-required="showNameRequired"
+                    :show-category-required="showCategoryRequired"
+                    :show-kind-required="showKindRequired"
+                    :show-total-hours-invalid="showTotalHoursInvalid"
+                />
 
                 <template v-if="isTheoryKind">
-                    <div class="space-y-2">
-                        <UiLabel for="course-create-theory-start"
-                            >Data rozpoczęcia teorii</UiLabel
-                        >
-                        <UiDatePicker
-                            id="course-create-theory-start"
-                            v-model="theoryStartModel"
-                            :disabled="isSaving || isFormBlocked"
-                            trigger-class="h-10 w-full rounded-xl bg-background"
-                            placeholder="Wybierz datę rozpoczęcia"
-                            :aria-invalid="
-                                showTheoryStartRequired ||
-                                showTheoryRangeInvalid
-                            "
-                            :aria-describedby="
-                                showTheoryStartRequired ||
-                                showTheoryRangeInvalid
-                                    ? 'course-create-theory-error'
-                                    : undefined
-                            "
-                        />
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel for="course-create-theory-end"
-                            >Data zakończenia teorii</UiLabel
-                        >
-                        <UiDatePicker
-                            id="course-create-theory-end"
-                            v-model="theoryEndModel"
-                            :disabled="isSaving || isFormBlocked"
-                            trigger-class="h-10 w-full rounded-xl bg-background"
-                            placeholder="Wybierz datę zakończenia"
-                            :aria-invalid="
-                                showTheoryEndRequired || showTheoryRangeInvalid
-                            "
-                            :aria-describedby="
-                                showTheoryEndRequired || showTheoryRangeInvalid
-                                    ? 'course-create-theory-error'
-                                    : undefined
-                            "
-                        />
-                    </div>
-
-                    <p
-                        v-if="showTheoryStartRequired || showTheoryEndRequired"
-                        id="course-create-theory-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        <span v-if="showTheoryStartRequired">{{
-                            formMessages.theoryStartRequired
-                        }}</span>
-                        <span v-else-if="showTheoryEndRequired">{{
-                            formMessages.theoryEndRequired
-                        }}</span>
-                    </p>
-                    <p
-                        v-else-if="showTheoryRangeInvalid"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ formMessages.theoryRangeInvalid }}
-                    </p>
-
-                    <div class="space-y-2">
-                        <UiLabel for="course-create-capacity"
-                            >Limit miejsc (opcjonalnie — puste = brak
-                            limitu)</UiLabel
-                        >
-                        <UiInput
-                            id="course-create-capacity"
-                            v-model="capacityModel"
-                            type="number"
-                            name="capacity"
-                            inputmode="numeric"
-                            min="0"
-                            step="1"
-                            autocomplete="off"
-                            :aria-invalid="showCapacityInvalid"
-                            :aria-describedby="
-                                showCapacityInvalid
-                                    ? 'course-create-capacity-error'
-                                    : undefined
-                            "
-                            :disabled="isSaving || isFormBlocked"
-                            class="bg-background h-10 rounded-xl"
-                        />
-                        <p
-                            v-if="showCapacityInvalid"
-                            id="course-create-capacity-error"
-                            class="text-destructive text-sm"
-                            role="alert"
-                        >
-                            {{ formMessages.capacityInvalid }}
-                        </p>
-                    </div>
+                    <CourseCreateTheoryFields
+                        v-model:theory-start="theoryStartModel"
+                        v-model:theory-end="theoryEndModel"
+                        v-model:capacity="capacityModel"
+                        :is-disabled="isDisabled"
+                        :show-theory-start-required="showTheoryStartRequired"
+                        :show-theory-end-required="showTheoryEndRequired"
+                        :show-theory-range-invalid="showTheoryRangeInvalid"
+                        :show-capacity-invalid="showCapacityInvalid"
+                    />
                 </template>
 
-                <div class="space-y-2">
-                    <UiLabel for="course-create-instructor"
-                        >Instruktor (opcjonalnie)</UiLabel
-                    >
-                    <p
-                        v-if="isInstructorsLoading"
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Wczytywanie listy instruktorów…
-                    </p>
-                    <UiSelect
-                        v-else
-                        v-model="instructorIdModel"
-                        :disabled="isSaving || isFormBlocked"
-                    >
-                        <UiSelectTrigger
-                            id="course-create-instructor"
-                            class="bg-background h-10 w-full rounded-xl"
-                            aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
-                        >
-                            <UiSelectValue placeholder="— Brak instruktora —" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="ins in qualifiedInstructors"
-                                    :key="ins.id"
-                                    :value="ins.id"
-                                >
-                                    {{ formatInstructorDisplayName(ins)
-                                    }}{{
-                                        ins.email && ins.email.length > 0
-                                            ? ` (${ins.email})`
-                                            : ''
-                                    }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                    <p
-                        v-if="!isInstructorsLoading && instructors.length === 0"
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Brak instruktorów przypisanych do tej szkoły — możesz
-                        utworzyć kurs bez instruktora.
-                    </p>
-                    <p
-                        v-else-if="
-                            !isInstructorsLoading &&
-                            qualifiedInstructors.length === 0
-                        "
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Brak instruktorów z uprawnieniem do wybranej kategorii -
-                        możesz utworzyć kurs bez instruktora.
-                    </p>
-                </div>
+                <CourseCreateInstructorField
+                    v-model:instructor-id="instructorIdModel"
+                    :instructors="props.instructors"
+                    :qualified-instructors="qualifiedInstructors"
+                    :is-instructors-loading="props.isInstructorsLoading"
+                    :is-disabled="isDisabled"
+                />
             </div>
 
             <div class="space-y-2">
