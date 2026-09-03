@@ -11,6 +11,7 @@ import {
     isPatchParticipantConflict,
 } from '~/composables/events/managerEventEditErrors';
 import { useManagerEventEditActionLabels } from './useManagerEventEditActionLabels';
+import { useManagerEventEditDeleteAction } from './useManagerEventEditDeleteAction';
 
 type FetchEventById = (
     id: string,
@@ -60,7 +61,6 @@ export function useManagerEventEditActions(input: {
     const { replaceStudentsOnEvent, isReplacing } = useEventApi();
     const { addToast } = useAppToast();
 
-    const deleteDialogOpen = ref(false);
     const isFormDirty = computed(
         () =>
             input.isFormFieldsDirty.value || input.isTheoryStudentsDirty.value,
@@ -75,6 +75,20 @@ export function useManagerEventEditActions(input: {
             formEndLocal: input.formEndLocal,
             formInstructorId: input.formInstructorId,
         });
+
+    const {
+        deleteDialogOpen,
+        isDeleteLoading: deleteActionLoading,
+        handleOpenDeleteDialog,
+        handleDeleteDialogCancel,
+        handleDeleteDialogConfirm,
+    } = useManagerEventEditDeleteAction({
+        eventId: input.eventId,
+        scheduleBackHref,
+        isDeleteLoading,
+        deleteInstructorEvent,
+        addToast,
+    });
 
     function handleCancel(): void {
         void navigateTo(scheduleBackHref.value);
@@ -342,44 +356,6 @@ export function useManagerEventEditActions(input: {
         await navigateTo(scheduleBackHref.value);
     }
 
-    function handleOpenDeleteDialog(): void {
-        deleteDialogOpen.value = true;
-    }
-
-    function handleDeleteDialogCancel(): void {
-        deleteDialogOpen.value = false;
-    }
-
-    async function handleDeleteDialogConfirm(): Promise<void> {
-        const id = input.eventId.value.trim();
-
-        if (!id) {
-            return;
-        }
-
-        try {
-            await deleteInstructorEvent(id);
-
-            addToast({
-                title: 'Usunięto blok czasu',
-                description: 'Blok został usunięty z harmonogramu.',
-                variant: 'success',
-            });
-
-            deleteDialogOpen.value = false;
-            await navigateTo(scheduleBackHref.value);
-        } catch (err: unknown) {
-            addToast({
-                title: 'Nie udało się usunąć wydarzenia',
-                description: getApiFetchErrorMessage(
-                    err,
-                    'Spróbuj ponownie lub wróć do terminarza.',
-                ),
-                variant: 'error',
-            });
-        }
-    }
-
     function handleEventStatusPatched(status: string): void {
         const event = input.loadedEvent.value;
 
@@ -397,7 +373,7 @@ export function useManagerEventEditActions(input: {
         isFormDirty,
         isSaving,
         isUpdateLoading,
-        isDeleteLoading,
+        isDeleteLoading: deleteActionLoading,
         isReplacing,
         scheduleBackHref,
         handleCancel,
