@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NavTreeItem } from '~/components/app/NavTree.vue';
+import type { NavTreeItem } from '~/utils/navigation/navTree';
 
 const { addToast } = useAppToast();
 
