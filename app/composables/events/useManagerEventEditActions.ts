@@ -10,6 +10,7 @@ import {
     getManagerEventEditErrorStatusCode,
     isPatchParticipantConflict,
 } from '~/composables/events/managerEventEditErrors';
+import { useManagerEventEditActionLabels } from './useManagerEventEditActionLabels';
 
 type FetchEventById = (
     id: string,
@@ -66,89 +67,14 @@ export function useManagerEventEditActions(input: {
     );
     const isSaving = computed(() => isUpdateLoading.value || isReplacing.value);
 
-    const scheduleBackHref = computed(() => {
-        const instructorId =
-            input.formInstructorId.value.trim() ||
-            input.loadedEvent.value?.instructorId?.trim();
-        const schoolId = input.schoolId.value;
-
-        if (!instructorId) {
-            return '/manager/instructors';
-        }
-
-        if (schoolId) {
-            return {
-                path: `/manager/instructors/${instructorId}/schedule`,
-                query: { schoolId },
-            };
-        }
-
-        return `/manager/instructors/${instructorId}/schedule`;
-    });
-
-    const deleteDialogTimeLabel = computed(() => {
-        const startRaw = input.formStartLocal.value.trim();
-        const endRaw = input.formEndLocal.value.trim();
-
-        if (!startRaw || !endRaw) {
-            return '';
-        }
-
-        const start = new Date(startRaw);
-        const end = new Date(endRaw);
-
-        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-            return '';
-        }
-
-        const formatter = new Intl.DateTimeFormat('pl-PL', {
-            dateStyle: 'short',
-            timeStyle: 'short',
+    const { scheduleBackHref, deleteDialogTimeLabel, headerDateRangeLabel } =
+        useManagerEventEditActionLabels({
+            schoolId: input.schoolId,
+            loadedEvent: input.loadedEvent,
+            formStartLocal: input.formStartLocal,
+            formEndLocal: input.formEndLocal,
+            formInstructorId: input.formInstructorId,
         });
-
-        return `${formatter.format(start)} — ${formatter.format(end)}`;
-    });
-
-    const headerDateRangeLabel = computed(() => {
-        const startRaw = input.formStartLocal.value.trim();
-        const endRaw = input.formEndLocal.value.trim();
-
-        if (!startRaw || !endRaw) {
-            return 'Termin';
-        }
-
-        const start = new Date(startRaw);
-        const end = new Date(endRaw);
-
-        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-            return 'Termin';
-        }
-
-        const sameDay = start.toDateString() === end.toDateString();
-        const sameMonth =
-            start.getFullYear() === end.getFullYear() &&
-            start.getMonth() === end.getMonth();
-        const dayFormatter = new Intl.DateTimeFormat('pl-PL', {
-            day: '2-digit',
-        });
-        const monthFormatter = new Intl.DateTimeFormat('pl-PL', {
-            month: 'long',
-        });
-        const compactFormatter = new Intl.DateTimeFormat('pl-PL', {
-            day: '2-digit',
-            month: 'short',
-        });
-
-        if (sameDay) {
-            return `${dayFormatter.format(start)} ${monthFormatter.format(start)}`;
-        }
-
-        if (sameMonth) {
-            return `${dayFormatter.format(start)}-${dayFormatter.format(end)} ${monthFormatter.format(end)}`;
-        }
-
-        return `${compactFormatter.format(start)} - ${compactFormatter.format(end)}`;
-    });
 
     function handleCancel(): void {
         void navigateTo(scheduleBackHref.value);
