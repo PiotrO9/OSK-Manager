@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import type { AssignStudentsToEventResponse } from '~/types/events/event';
 import type { StudentListItem } from '~/types/students/student';
-import { formatStudentDisplayName } from '~/types/students/student';
 import { getEventStudentPickerCapacitySummary } from '~/utils/events/eventStudentPickerCapacity';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import {
+    filterEventStudentPickerStudents,
+    getEventStudentPickerExcludedUserIds,
+    getEventStudentPickerStudentsFetchLimit,
+    isEventStudentPickerRowSelectionBlocked,
+} from '~/utils/events/eventStudentPickerStudents';
 
 const props = defineProps<{
     eventId: string;
@@ -63,64 +68,27 @@ const capacityBadgeLabel = computed((): string => {
 
 /** GET /students — limit 1–100 (BFF); przy braku limitu wydarzenia = 100. */
 const studentsFetchLimit = computed((): number => {
-    const cap = capacityNumber.value;
-
-    if (cap === null) {
-        return 100;
-    }
-
-    return Math.min(100, Math.max(1, cap));
+    return getEventStudentPickerStudentsFetchLimit(capacityNumber.value);
 });
 
 const excludedUserIdSet = computed((): Set<string> => {
-    const raw = props.excludeStudentUserIds ?? [];
-    const out = new Set<string>();
-
-    for (const id of raw) {
-        const t = id.trim();
-
-        if (t) {
-            out.add(t);
-        }
-    }
-
-    return out;
+    return getEventStudentPickerExcludedUserIds(props.excludeStudentUserIds);
 });
 
 const filteredStudents = computed((): StudentListItem[] => {
-    const q = searchQuery.value.trim().toLowerCase();
-    const ex = excludedUserIdSet.value;
-
-    return students.value.filter((s) => {
-        if (ex.has(s.userId.trim())) {
-            return false;
-        }
-
-        if (!s.isActive) {
-            return false;
-        }
-
-        if (!q) {
-            return true;
-        }
-
-        const name = formatStudentDisplayName(s).toLowerCase();
-        const email = s.email.toLowerCase();
-
-        return name.includes(q) || email.includes(q);
+    return filterEventStudentPickerStudents({
+        students: students.value,
+        query: searchQuery.value,
+        excludedUserIds: excludedUserIdSet.value,
     });
 });
 
-function isStudentSelected(userId: string): boolean {
-    return selectedStudentUserIds.value.includes(userId);
-}
-
 function isRowSelectionBlocked(userId: string): boolean {
-    if (!isCapacityReached.value) {
-        return false;
-    }
-
-    return !isStudentSelected(userId);
+    return isEventStudentPickerRowSelectionBlocked({
+        userId,
+        selectedUserIds: selectedStudentUserIds.value,
+        isCapacityReached: isCapacityReached.value,
+    });
 }
 
 function handleToggleStudent(userId: string): void {
@@ -271,9 +239,6 @@ async function handleSubmit(): Promise<void> {
     }
 }
 
-const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
-
 const isSubmitDisabled = computed((): boolean => {
     if (isAssigning.value) {
         return true;
@@ -329,113 +294,21 @@ const primarySubmitLabel = computed((): string => {
             />
 
             <div v-if="capacityNumber !== 0" class="space-y-3">
-                <div class="space-y-2">
-                    <label
-                        class="text-sm leading-none font-medium"
-                        for="event-student-picker-search"
-                    >
-                        Szukaj kursanta
-                    </label>
-                    <input
-                        id="event-student-picker-search"
-                        v-model="searchQuery"
-                        type="search"
-                        autocomplete="off"
-                        :disabled="isAssigning"
-                        :class="fieldClass"
-                        placeholder="Imię, nazwisko lub e-mail…"
-                        aria-label="Filtruj listę kursantów"
-                    />
-                </div>
+                <ManagerEventStudentPickerSearch
+                    v-model:query="searchQuery"
+                    :disabled="isAssigning"
+                />
 
-                <div
-                    v-if="isListLoading"
-                    class="space-y-2"
-                    role="status"
-                    aria-live="polite"
-                >
-                    <UiSkeleton class="h-9 w-full" />
-                    <UiSkeleton class="h-9 w-full" />
-                    <UiSkeleton class="h-9 w-full" />
-                </div>
-
-                <p
-                    v-else-if="loadError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    {{ loadError }}
-                </p>
-
-                <template v-else>
-                    <ul
-                        class="border-input max-h-64 overflow-y-auto rounded-md border p-2"
-                        role="listbox"
-                        aria-label="Lista kursantów do wyboru"
-                        aria-multiselectable="true"
-                    >
-                        <li
-                            v-for="student in filteredStudents"
-                            :key="student.userId"
-                            class="hover:bg-muted/50 flex items-start gap-2 rounded-sm px-2 py-1.5"
-                            role="option"
-                            :aria-selected="isStudentSelected(student.userId)"
-                            :aria-disabled="
-                                isRowSelectionBlocked(student.userId)
-                            "
-                        >
-                            <input
-                                :id="`event-student-cb-${student.userId}`"
-                                type="checkbox"
-                                class="accent-primary mt-0.5 size-4 shrink-0"
-                                :checked="isStudentSelected(student.userId)"
-                                :disabled="
-                                    isAssigning ||
-                                    isRowSelectionBlocked(student.userId)
-                                "
-                                :aria-label="`Wybierz kursanta ${formatStudentDisplayName(student)}`"
-                                @change="handleToggleStudent(student.userId)"
-                            />
-                            <label
-                                class="min-w-0 flex-1 cursor-pointer text-sm leading-snug"
-                                :for="`event-student-cb-${student.userId}`"
-                            >
-                                <span class="font-medium">{{
-                                    formatStudentDisplayName(student)
-                                }}</span>
-                                <span
-                                    class="text-muted-foreground block truncate text-xs"
-                                    >{{ student.email }}</span
-                                >
-                            </label>
-                        </li>
-                    </ul>
-
-                    <p
-                        v-if="
-                            !isListLoading &&
-                            !loadError &&
-                            filteredStudents.length === 0
-                        "
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Brak aktywnych kursantów pasujących do wyszukiwania.
-                    </p>
-
-                    <p
-                        v-if="
-                            isCapacityReached &&
-                            capacityNumber !== null &&
-                            capacityNumber > 0
-                        "
-                        class="text-muted-foreground text-xs"
-                        role="status"
-                    >
-                        Limit miejsc osiągnięty — odznacz kursanta, aby wybrać
-                        innego.
-                    </p>
-                </template>
+                <ManagerEventStudentPickerList
+                    :students="filteredStudents"
+                    :selected-student-user-ids="selectedStudentUserIds"
+                    :is-loading="isListLoading"
+                    :is-assigning="isAssigning"
+                    :is-capacity-reached="isCapacityReached"
+                    :capacity-number="capacityNumber"
+                    :load-error="loadError"
+                    @toggle-student="handleToggleStudent"
+                />
             </div>
 
             <p v-if="submitError" class="text-destructive text-sm" role="alert">
