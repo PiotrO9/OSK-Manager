@@ -1,35 +1,30 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import {
-    formatInstructorDisplayName,
-    type InstructorListItem,
-} from '~/types/instructors/instructor';
+import type { InstructorListItem } from '~/types/instructors/instructor';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
-import { normalizeInstructorEventStatus } from '~/utils/events/instructorEventStatusDisplay';
-import {
-    displayEventsDayInstructorName,
-    type EventsDayStatusFilterOption,
-} from '~/utils/events/eventsDayPage';
+import type { EventsDayStatusFilterOption } from '~/utils/events/eventsDayPage';
 import { useEventsDayDateSelection } from './useEventsDayDateSelection';
+import {
+    getEventsDayAttentionEvents,
+    getEventsDayEffectiveViewMode,
+    getEventsDayFilteredEvents,
+    getEventsDayIsManager,
+    getEventsDayManagerScheduleColumns,
+    getEventsDayManagerScheduleRows,
+    getEventsDayPageDescription,
+    getEventsDayParticipantTotal,
+    getEventsDayPlannedEventsCount,
+    getEventsDayScheduleHourRange,
+    getEventsDaySortedEvents,
+    getEventsDayVisibleEventsLabel,
+    type EventsDayGridInstructorColumn,
+    type EventsDayGridInstructorRow,
+    type EventsDayGridViewMode,
+} from '~/utils/events/eventsDayScheduleGrid';
 
-export type EventsDayViewMode = 'grid' | 'list';
-
-export interface InstructorScheduleColumn {
-    id: string;
-    name: string;
-    initials: string;
-    events: ScheduleLessonItem[];
-}
-
-export interface InstructorScheduleRow {
-    hour: number;
-    label: string;
-    cells: {
-        key: string;
-        columnId: string;
-        events: ScheduleLessonItem[];
-    }[];
-}
+export type EventsDayViewMode = EventsDayGridViewMode;
+export type InstructorScheduleColumn = EventsDayGridInstructorColumn;
+export type InstructorScheduleRow = EventsDayGridInstructorRow;
 
 export function useEventsDayPage() {
     const { session } = useAuthSession();
@@ -42,9 +37,7 @@ export function useEventsDayPage() {
     } = useInstructorsApi();
 
     const isManager = computed(() => {
-        const r = session.value?.role?.trim().toUpperCase();
-
-        return r === 'MANAGER' || r === 'ADMIN';
+        return getEventsDayIsManager(session.value?.role);
     });
 
     const schoolId = computed((): string => {
@@ -72,134 +65,63 @@ export function useEventsDayPage() {
     const isCompactViewport = ref(false);
 
     const filteredEvents = computed(() =>
-        events.value.filter(
-            (e) =>
-                selectedStatus.value === 'ALL' ||
-                e.status === selectedStatus.value,
-        ),
-    );
-
-    const attentionEvents = computed(() =>
-        events.value.filter((event) => {
-            const status = normalizeInstructorEventStatus(event.status);
-
-            return status === 'NO_SHOW' || status === 'CANCELLED';
+        getEventsDayFilteredEvents({
+            events: events.value,
+            selectedStatus: selectedStatus.value,
         }),
     );
 
-    const plannedEvents = computed(
-        () =>
-            events.value.filter(
-                (event) =>
-                    normalizeInstructorEventStatus(event.status) === 'PLANNED',
-            ).length,
+    const attentionEvents = computed(() =>
+        getEventsDayAttentionEvents(events.value),
+    );
+
+    const plannedEvents = computed(() =>
+        getEventsDayPlannedEventsCount(events.value),
     );
 
     const participantTotal = computed(() =>
-        events.value.reduce((sum, event) => {
-            if (typeof event.participantCount === 'number') {
-                return sum + event.participantCount;
-            }
-
-            if (Array.isArray(event.students)) {
-                return sum + event.students.length;
-            }
-
-            return sum;
-        }, 0),
+        getEventsDayParticipantTotal(events.value),
     );
 
     const pageDescription = computed(() =>
-        isManager.value
-            ? 'Dzienne lekcje, teoria i bloki czasu instruktorów.'
-            : 'Twoje bloki czasu w wybranym dniu.',
+        getEventsDayPageDescription(isManager.value),
     );
 
     const visibleEventsLabel = computed(() => {
-        if (filteredEvents.value.length === events.value.length) {
-            return `${filteredEvents.value.length}`;
-        }
-
-        return `${filteredEvents.value.length} z ${events.value.length}`;
+        return getEventsDayVisibleEventsLabel({
+            visibleCount: filteredEvents.value.length,
+            totalCount: events.value.length,
+        });
     });
 
     const effectiveViewMode = computed<EventsDayViewMode>(() =>
-        isManager.value && !isCompactViewport.value ? viewMode.value : 'list',
+        getEventsDayEffectiveViewMode({
+            isManager: isManager.value,
+            isCompactViewport: isCompactViewport.value,
+            viewMode: viewMode.value,
+        }),
     );
 
     const sortedFilteredEvents = computed(() =>
-        [...filteredEvents.value].sort(
-            (a, b) =>
-                new Date(a.startTime).getTime() -
-                new Date(b.startTime).getTime(),
-        ),
+        getEventsDaySortedEvents(filteredEvents.value),
     );
 
     const managerScheduleColumns = computed<InstructorScheduleColumn[]>(() => {
-        if (!isManager.value) {
-            return [];
-        }
-
-        const columns = new Map<string, InstructorScheduleColumn>();
-
-        for (const instructor of instructors.value) {
-            const userId = instructor.userId?.trim();
-            const id = userId || instructor.id;
-            const name = formatInstructorDisplayName(instructor);
-            const column = {
-                id,
-                name,
-                initials: initialsForName(name),
-                events: [],
-            };
-
-            columns.set(id, column);
-            columns.set(instructor.id, column);
-        }
-
-        for (const event of sortedFilteredEvents.value) {
-            const id = event.instructor?.id?.trim() || 'without-instructor';
-            const fallbackName = displayEventsDayInstructorName(event);
-            const existing = columns.get(id);
-
-            if (existing) {
-                existing.events.push(event);
-                continue;
-            }
-
-            columns.set(id, {
-                id,
-                name:
-                    fallbackName === '-'
-                        ? 'Bez przypisanego instruktora'
-                        : fallbackName,
-                initials:
-                    fallbackName === '-' ? '?' : initialsForName(fallbackName),
-                events: [event],
-            });
-        }
-
-        return Array.from(
-            new Map(
-                columns.values().map((column) => [column.id, column]),
-            ).values(),
-        ).sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+        return getEventsDayManagerScheduleColumns({
+            isManager: isManager.value,
+            instructors: instructors.value,
+            events: sortedFilteredEvents.value,
+        });
     });
 
     const scheduleStartHour = computed(() => {
-        const starts = sortedFilteredEvents.value
-            .map((event) => hourFromIso(event.startTime))
-            .filter((hour): hour is number => hour !== null);
-
-        return Math.min(7, ...starts);
+        return getEventsDayScheduleHourRange(sortedFilteredEvents.value)
+            .startHour;
     });
 
     const scheduleEndHour = computed(() => {
-        const ends = sortedFilteredEvents.value
-            .map((event) => hourFromIso(event.endTime))
-            .filter((hour): hour is number => hour !== null);
-
-        return Math.max(18, ...ends);
+        return getEventsDayScheduleHourRange(sortedFilteredEvents.value)
+            .endHour;
     });
 
     const managerScheduleGridColumns = computed(() => {
@@ -209,27 +131,11 @@ export function useEventsDayPage() {
     });
 
     const managerScheduleRows = computed<InstructorScheduleRow[]>(() => {
-        const rows: InstructorScheduleRow[] = [];
-
-        for (
-            let hour = scheduleStartHour.value;
-            hour <= scheduleEndHour.value;
-            hour += 1
-        ) {
-            rows.push({
-                hour,
-                label: `${String(hour).padStart(2, '0')}:00`,
-                cells: managerScheduleColumns.value.map((column) => ({
-                    key: `${column.id}-${hour}`,
-                    columnId: column.id,
-                    events: column.events.filter(
-                        (event) => hourFromIso(event.startTime) === hour,
-                    ),
-                })),
-            });
-        }
-
-        return rows;
+        return getEventsDayManagerScheduleRows({
+            columns: managerScheduleColumns.value,
+            startHour: scheduleStartHour.value,
+            endHour: scheduleEndHour.value,
+        });
     });
 
     let loadSeq = 0;
@@ -372,30 +278,4 @@ export function useEventsDayPage() {
         viewMode,
         visibleEventsLabel,
     };
-}
-
-function hourFromIso(iso: string): number | null {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return null;
-    }
-
-    return d.getHours();
-}
-
-function initialsForName(name: string): string {
-    const parts = name
-        .split(/\s+/)
-        .map((part) => part.trim())
-        .filter((part) => part.length > 0);
-
-    if (parts.length === 0) {
-        return '?';
-    }
-
-    return parts
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? '')
-        .join('');
 }
