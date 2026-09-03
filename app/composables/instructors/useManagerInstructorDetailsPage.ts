@@ -3,9 +3,9 @@ import {
     normalizeInstructorDetailForEdit,
     type InstructorDetail,
 } from '~/types/instructors/instructor';
-import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 import { useManagerInstructorDetailsCourseTypes } from './useManagerInstructorDetailsCourseTypes';
 import { useManagerInstructorDetailsData } from './useManagerInstructorDetailsData';
+import { useManagerInstructorDetailsRatingSummary } from './useManagerInstructorDetailsRatingSummary';
 import {
     buildManagerInstructorDirtyPatch,
     displayManagerInstructorText,
@@ -23,7 +23,6 @@ type InstructorDetailData = InstructorDetail | null;
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
     const { addToast } = useAppToast();
-    const { fetchInstructorRatings } = useLessonRatingsListApi();
 
     const {
         editBaseline,
@@ -44,11 +43,8 @@ export function useManagerInstructorDetailsPage() {
     const isEditDialogOpen = ref(false);
     const isDeleteDialogOpen = ref(false);
     const isDeleting = ref(false);
-    const ratingSummary = ref<LessonRatingsSummary>({
-        averageRating: null,
-        totalCount: 0,
-    });
-    const isRatingSummaryLoading = ref(false);
+    const { ratingSummary, isRatingSummaryLoading, loadRatingSummary } =
+        useManagerInstructorDetailsRatingSummary();
 
     const instructorSubpageQuery = computed((): Record<string, string> => {
         const schoolId = getManagerInstructorRouteString(route.query.schoolId);
@@ -60,33 +56,6 @@ export function useManagerInstructorDetailsPage() {
         title: () => instructor.value?.name?.trim() || 'Instruktor',
         description: () => 'Szczegóły instruktora.',
     });
-
-    async function loadRatingSummary(rawId: unknown): Promise<void> {
-        const id = getManagerInstructorRouteString(rawId);
-        const schoolId = getManagerInstructorRouteString(route.query.schoolId);
-
-        ratingSummary.value = { averageRating: null, totalCount: 0 };
-
-        if (!id || !schoolId) {
-            return;
-        }
-
-        isRatingSummaryLoading.value = true;
-
-        try {
-            const payload = await fetchInstructorRatings(id, {
-                schoolId,
-                period: 'all',
-                limit: 1,
-            });
-
-            ratingSummary.value = payload.summary;
-        } catch {
-            ratingSummary.value = { averageRating: null, totalCount: 0 };
-        } finally {
-            isRatingSummaryLoading.value = false;
-        }
-    }
 
     watch(
         () => route.params.id,
