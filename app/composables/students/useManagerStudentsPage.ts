@@ -1,13 +1,9 @@
 import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import {
-    formatStudentDisplayName,
-    type StudentListItem,
-} from '~/types/students/student';
-import {
     readQueryTruthyFlag,
     readUuidQueryValue,
-    resolveAssignToCourseError,
 } from '~/utils/students/managerStudentsPage';
+import { useManagerStudentCourseAssignment } from './useManagerStudentCourseAssignment';
 import { useManagerStudentsData } from './useManagerStudentsData';
 
 export interface StudentsPagePagination {
@@ -17,7 +13,6 @@ export interface StudentsPagePagination {
 
 export function useManagerStudentsPage() {
     const route = useRoute();
-    const { assignToCourse } = useStudentsApi();
     const { addToast } = useAppToast();
     const {
         isSaving: isFormSaving,
@@ -54,11 +49,6 @@ export function useManagerStudentsPage() {
 
     const formDialogOpen = ref(false);
 
-    const assignDialogOpen = ref(false);
-    const assignTargetStudent = ref<StudentListItem | null>(null);
-    const isAssignSaving = ref(false);
-    const assignApiError = ref<string | null>(null);
-
     const openRegisterFormFromQuery = computed((): boolean => {
         return readQueryTruthyFlag(route.query.register);
     });
@@ -67,14 +57,20 @@ export function useManagerStudentsPage() {
         return readUuidQueryValue(route.query.schoolId);
     });
 
-    const assignTargetDisplayName = computed(() => {
-        const s = assignTargetStudent.value;
-
-        if (!s) {
-            return '';
-        }
-
-        return formatStudentDisplayName(s);
+    const {
+        assignDialogOpen,
+        assignTargetDisplayName,
+        isAssignSaving,
+        assignApiError,
+        handleOpenAssignCourse,
+        handleAssignDialogOpenChange,
+        handleAssignCourseSubmit,
+    } = useManagerStudentCourseAssignment({
+        activeSchoolId,
+        courses,
+        isCoursesLoading,
+        loadCoursesForFilter,
+        loadStudents,
     });
 
     function resolveInitialActiveSchoolId(): string {
@@ -130,66 +126,6 @@ export function useManagerStudentsPage() {
 
         if (!open) {
             clearCreateError();
-        }
-    }
-
-    function handleOpenAssignCourse(student: StudentListItem) {
-        assignTargetStudent.value = student;
-        assignApiError.value = null;
-        assignDialogOpen.value = true;
-
-        if (!activeSchoolId.value.trim()) {
-            return;
-        }
-
-        if (courses.value.length === 0 && !isCoursesLoading.value) {
-            void loadCoursesForFilter();
-        }
-    }
-
-    function handleAssignDialogOpenChange(open: boolean) {
-        assignDialogOpen.value = open;
-
-        if (!open) {
-            assignTargetStudent.value = null;
-            assignApiError.value = null;
-        }
-    }
-
-    async function handleAssignCourseSubmit(courseId: string) {
-        const student = assignTargetStudent.value;
-
-        if (!student || isAssignSaving.value) {
-            return;
-        }
-
-        assignApiError.value = null;
-        isAssignSaving.value = true;
-
-        try {
-            await assignToCourse({ userId: student.userId, courseId });
-
-            addToast({
-                title: 'Kursant zapisany na kurs',
-                variant: 'success',
-            });
-
-            assignDialogOpen.value = false;
-            assignTargetStudent.value = null;
-
-            await loadStudents();
-        } catch (err) {
-            const message = resolveAssignToCourseError(err);
-
-            assignApiError.value = message;
-
-            addToast({
-                title: 'Nie udało się zapisać na kurs',
-                description: message,
-                variant: 'error',
-            });
-        } finally {
-            isAssignSaving.value = false;
         }
     }
 
