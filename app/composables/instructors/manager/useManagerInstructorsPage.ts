@@ -1,5 +1,5 @@
 import type { RouteLocationRaw } from 'vue-router';
-import type { InstructorRegisterPayload } from '~/components/manager/instructors/ManagerInstructorFormDialog.vue';
+import type { InstructorRegisterPayload } from './useManagerInstructorFormDialog';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';

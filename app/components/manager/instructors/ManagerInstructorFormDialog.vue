@@ -1,14 +1,8 @@
 <script setup lang="ts">
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { InstructorRegisterPayload } from '~/composables/instructors/manager/useManagerInstructorFormDialog';
 
-export interface InstructorRegisterPayload {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    licenseNumber: string;
-    schoolId: string;
-}
+export type { InstructorRegisterPayload } from '~/composables/instructors/manager/useManagerInstructorFormDialog';
 
 interface Props {
     open: boolean;
@@ -29,88 +23,16 @@ const emit = defineEmits<{
 
 const DESCRIPTION_ID = 'instructor-form-dialog-desc';
 
-const emailModel = ref('');
-const passwordModel = ref('');
-const firstNameModel = ref('');
-const lastNameModel = ref('');
-const licenseNumberModel = ref('');
-const schoolIdModel = ref('');
-
-const showEmailRequired = ref(false);
-const showEmailInvalid = ref(false);
-const showPasswordRequired = ref(false);
-const showPasswordTooShort = ref(false);
-const showFirstRequired = ref(false);
-const showLastRequired = ref(false);
-const showLicenseRequired = ref(false);
-const showSchoolRequired = ref(false);
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_MIN = 6;
-const UUID_RE =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isUuid(value: string): boolean {
-    return UUID_RE.test(value.trim());
-}
-
-function applyDefaultSchoolId() {
-    const pre = props.prefillSchoolId;
-
-    if (pre && isUuid(pre)) {
-        const exists = props.schools.some((s) => s.id === pre);
-
-        if (exists) {
-            schoolIdModel.value = pre;
-
-            return;
-        }
-    }
-
-    if (props.schools.length === 1) {
-        const only = props.schools[0];
-
-        if (only) schoolIdModel.value = only.id;
-    }
-}
-
-function resetValidationAndFields() {
-    emailModel.value = '';
-    passwordModel.value = '';
-    firstNameModel.value = '';
-    lastNameModel.value = '';
-    licenseNumberModel.value = '';
-    schoolIdModel.value = '';
-    showEmailRequired.value = false;
-    showEmailInvalid.value = false;
-    showPasswordRequired.value = false;
-    showPasswordTooShort.value = false;
-    showFirstRequired.value = false;
-    showLastRequired.value = false;
-    showLicenseRequired.value = false;
-    showSchoolRequired.value = false;
-}
-
-watch(
-    () => props.open,
-    (open) => {
-        if (!open) return;
-
-        resetValidationAndFields();
-        applyDefaultSchoolId();
-    },
-);
-
-watch(
-    () => props.isSchoolsLoading,
-    (loading) => {
-        if (!props.open || loading) return;
-
-        if (schoolIdModel.value !== '') return;
-
-        applyDefaultSchoolId();
-    },
-);
+const {
+    emailModel,
+    firstNameModel,
+    lastNameModel,
+    licenseNumberModel,
+    passwordModel,
+    schoolIdModel,
+    validation,
+    validate,
+} = useManagerInstructorFormDialog(props);
 
 function handleOpenChange(open: boolean) {
     emit('update:open', open);
@@ -121,46 +43,13 @@ function handleCancel() {
 }
 
 function handleFormSubmit() {
-    if (props.isSaving) return;
+    const payload = validate();
 
-    const email = emailModel.value.trim();
-    const password = passwordModel.value;
-    const firstName = firstNameModel.value.trim();
-    const lastName = lastNameModel.value.trim();
-    const license = licenseNumberModel.value.trim();
-    const schoolId = schoolIdModel.value.trim();
-
-    showEmailRequired.value = email.length === 0;
-    showEmailInvalid.value = email.length > 0 && !EMAIL_RE.test(email);
-    showPasswordRequired.value = password.length === 0;
-    showPasswordTooShort.value =
-        password.length > 0 && password.length < PASSWORD_MIN;
-    showFirstRequired.value = firstName.length === 0;
-    showLastRequired.value = lastName.length === 0;
-    showLicenseRequired.value = license.length === 0;
-    showSchoolRequired.value = !schoolId || !isUuid(schoolId);
-
-    if (
-        showEmailRequired.value ||
-        showEmailInvalid.value ||
-        showPasswordRequired.value ||
-        showPasswordTooShort.value ||
-        showFirstRequired.value ||
-        showLastRequired.value ||
-        showLicenseRequired.value ||
-        showSchoolRequired.value
-    ) {
+    if (!payload) {
         return;
     }
 
-    emit('submit', {
-        email,
-        password,
-        firstName,
-        lastName,
-        licenseNumber: license,
-        schoolId,
-    });
+    emit('submit', payload);
 }
 </script>
 
@@ -220,9 +109,9 @@ function handleFormSubmit() {
                         <UiSelectTrigger
                             id="instructor-dialog-school"
                             class="w-full"
-                            :aria-invalid="showSchoolRequired"
+                            :aria-invalid="validation.showSchoolRequired"
                             :aria-describedby="
-                                showSchoolRequired
+                                validation.showSchoolRequired
                                     ? 'instructor-dialog-school-error'
                                     : undefined
                             "
@@ -244,7 +133,7 @@ function handleFormSubmit() {
                         </UiSelectContent>
                     </UiSelect>
                     <p
-                        v-if="showSchoolRequired"
+                        v-if="validation.showSchoolRequired"
                         id="instructor-dialog-school-error"
                         class="text-destructive text-sm"
                         role="alert"
@@ -261,22 +150,29 @@ function handleFormSubmit() {
                         type="email"
                         name="email"
                         autocomplete="email"
-                        :aria-invalid="showEmailRequired || showEmailInvalid"
+                        :aria-invalid="
+                            validation.showEmailRequired ||
+                            validation.showEmailInvalid
+                        "
                         :aria-describedby="
-                            showEmailRequired || showEmailInvalid
+                            validation.showEmailRequired ||
+                            validation.showEmailInvalid
                                 ? 'instructor-dialog-email-error'
                                 : undefined
                         "
                         :disabled="isSaving"
                     />
                     <p
-                        v-if="showEmailRequired || showEmailInvalid"
+                        v-if="
+                            validation.showEmailRequired ||
+                            validation.showEmailInvalid
+                        "
                         id="instructor-dialog-email-error"
                         class="text-destructive text-sm"
                         role="alert"
                     >
                         {{
-                            showEmailRequired
+                            validation.showEmailRequired
                                 ? 'E-mail jest wymagany.'
                                 : 'Podaj poprawny adres e-mail.'
                         }}
@@ -292,25 +188,30 @@ function handleFormSubmit() {
                         name="password"
                         autocomplete="new-password"
                         :aria-invalid="
-                            showPasswordRequired || showPasswordTooShort
+                            validation.showPasswordRequired ||
+                            validation.showPasswordTooShort
                         "
                         :aria-describedby="
-                            showPasswordRequired || showPasswordTooShort
+                            validation.showPasswordRequired ||
+                            validation.showPasswordTooShort
                                 ? 'instructor-dialog-password-error'
                                 : undefined
                         "
                         :disabled="isSaving"
                     />
                     <p
-                        v-if="showPasswordRequired || showPasswordTooShort"
+                        v-if="
+                            validation.showPasswordRequired ||
+                            validation.showPasswordTooShort
+                        "
                         id="instructor-dialog-password-error"
                         class="text-destructive text-sm"
                         role="alert"
                     >
                         {{
-                            showPasswordRequired
+                            validation.showPasswordRequired
                                 ? 'Hasło jest wymagane.'
-                                : `Minimum ${PASSWORD_MIN} znaków.`
+                                : `Minimum ${MANAGER_INSTRUCTOR_PASSWORD_MIN} znaków.`
                         }}
                     </p>
                 </div>
@@ -323,16 +224,16 @@ function handleFormSubmit() {
                         type="text"
                         name="firstName"
                         autocomplete="given-name"
-                        :aria-invalid="showFirstRequired"
+                        :aria-invalid="validation.showFirstRequired"
                         :aria-describedby="
-                            showFirstRequired
+                            validation.showFirstRequired
                                 ? 'instructor-dialog-first-name-error'
                                 : undefined
                         "
                         :disabled="isSaving"
                     />
                     <p
-                        v-if="showFirstRequired"
+                        v-if="validation.showFirstRequired"
                         id="instructor-dialog-first-name-error"
                         class="text-destructive text-sm"
                         role="alert"
@@ -351,16 +252,16 @@ function handleFormSubmit() {
                         type="text"
                         name="lastName"
                         autocomplete="family-name"
-                        :aria-invalid="showLastRequired"
+                        :aria-invalid="validation.showLastRequired"
                         :aria-describedby="
-                            showLastRequired
+                            validation.showLastRequired
                                 ? 'instructor-dialog-last-name-error'
                                 : undefined
                         "
                         :disabled="isSaving"
                     />
                     <p
-                        v-if="showLastRequired"
+                        v-if="validation.showLastRequired"
                         id="instructor-dialog-last-name-error"
                         class="text-destructive text-sm"
                         role="alert"
@@ -379,16 +280,16 @@ function handleFormSubmit() {
                         type="text"
                         name="licenseNumber"
                         autocomplete="off"
-                        :aria-invalid="showLicenseRequired"
+                        :aria-invalid="validation.showLicenseRequired"
                         :aria-describedby="
-                            showLicenseRequired
+                            validation.showLicenseRequired
                                 ? 'instructor-dialog-license-error'
                                 : undefined
                         "
                         :disabled="isSaving"
                     />
                     <p
-                        v-if="showLicenseRequired"
+                        v-if="validation.showLicenseRequired"
                         id="instructor-dialog-license-error"
                         class="text-destructive text-sm"
                         role="alert"
