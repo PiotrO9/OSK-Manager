@@ -1,10 +1,7 @@
-import {
-    readQueryTruthyFlag,
-    readUuidQueryValue,
-} from '~/utils/students/managerStudentsPage';
 import { useManagerStudentCourseAssignment } from './useManagerStudentCourseAssignment';
 import { useManagerStudentRegistration } from './useManagerStudentRegistration';
 import { useManagerStudentsListActions } from './useManagerStudentsListActions';
+import { useManagerStudentsPageInit } from './useManagerStudentsPageInit';
 import { useManagerStudentsData } from './useManagerStudentsData';
 
 export interface StudentsPagePagination {
@@ -13,8 +10,6 @@ export interface StudentsPagePagination {
 }
 
 export function useManagerStudentsPage() {
-    const route = useRoute();
-
     const {
         schools,
         schoolsLoadError,
@@ -39,14 +34,6 @@ export function useManagerStudentsPage() {
         loadCoursesForFilter,
         loadStudents,
     } = useManagerStudentsData();
-
-    const openRegisterFormFromQuery = computed((): boolean => {
-        return readQueryTruthyFlag(route.query.register);
-    });
-
-    const prefillSchoolId = computed((): string | null => {
-        return readUuidQueryValue(route.query.schoolId);
-    });
 
     const {
         assignDialogOpen,
@@ -98,27 +85,13 @@ export function useManagerStudentsPage() {
         loadStudents,
     });
 
-    function resolveInitialActiveSchoolId(): string {
-        const pre = prefillSchoolId.value;
-
-        if (pre && schools.value.some((s) => s.id === pre)) {
-            return pre;
-        }
-
-        return schools.value[0]?.id ?? '';
-    }
-
-    onMounted(async () => {
-        await loadSchools();
-        activeSchoolId.value = resolveInitialActiveSchoolId();
-
-        if (openRegisterFormFromQuery.value) {
-            openInitialRegisterForm();
-        }
-
-        if (activeSchoolId.value) {
-            await Promise.all([loadCoursesForFilter(), loadStudents()]);
-        }
+    const { prefillSchoolId } = useManagerStudentsPageInit({
+        schools,
+        activeSchoolId,
+        loadSchools,
+        loadCoursesForFilter,
+        loadStudents,
+        openInitialRegisterForm,
     });
 
     return {
