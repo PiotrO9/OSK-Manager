@@ -4,6 +4,7 @@ import {
 } from '~/utils/students/managerStudentsPage';
 import { useManagerStudentCourseAssignment } from './useManagerStudentCourseAssignment';
 import { useManagerStudentRegistration } from './useManagerStudentRegistration';
+import { useManagerStudentsListActions } from './useManagerStudentsListActions';
 import { useManagerStudentsData } from './useManagerStudentsData';
 
 export interface StudentsPagePagination {
@@ -82,6 +83,21 @@ export function useManagerStudentsPage() {
         loadStudents,
     });
 
+    const {
+        handleActiveSchoolChange,
+        handleCourseFilterChange,
+        handlePrevPage,
+        handleNextPage,
+    } = useManagerStudentsListActions({
+        activeCourseId,
+        currentPage,
+        studentsPagination,
+        isStudentsLoading,
+        studentsLoadError,
+        loadCoursesForFilter,
+        loadStudents,
+    });
+
     function resolveInitialActiveSchoolId(): string {
         const pre = prefillSchoolId.value;
 
@@ -90,35 +106,6 @@ export function useManagerStudentsPage() {
         }
 
         return schools.value[0]?.id ?? '';
-    }
-
-    async function handleActiveSchoolChange() {
-        activeCourseId.value = '';
-        currentPage.value = 1;
-        studentsLoadError.value = null;
-
-        await Promise.all([loadCoursesForFilter(), loadStudents()]);
-    }
-
-    async function handleCourseFilterChange() {
-        currentPage.value = 1;
-        await loadStudents();
-    }
-
-    function handlePrevPage() {
-        if (currentPage.value <= 1 || isStudentsLoading.value) return;
-
-        currentPage.value -= 1;
-        void loadStudents();
-    }
-
-    function handleNextPage() {
-        const max = studentsPagination.value?.totalPages ?? 0;
-
-        if (currentPage.value >= max || isStudentsLoading.value) return;
-
-        currentPage.value += 1;
-        void loadStudents();
     }
 
     onMounted(async () => {
