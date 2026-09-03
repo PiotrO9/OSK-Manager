@@ -19,6 +19,7 @@ const vehicle: Vehicle = {
     name: 'Toyota Yaris',
     registrationNumber: 'WA12345',
     status: 'ACTIVE',
+    unavailableUntil: null,
     isDefault: false,
     inspectionDate: null,
     insuranceDate: null,

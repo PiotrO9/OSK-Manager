@@ -2,7 +2,6 @@ import type { Ref } from 'vue';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
 import {
-    formatStudentDisplayName,
     normalizeStudentDetail,
     type StudentDetail,
 } from '~/types/students/student';
@@ -25,6 +24,14 @@ type StudentFallbackData = StudentDetail | null;
 
 function formatInstructorDisplayName(item: InstructorListItem): string {
     const parts = [item.firstName, item.lastName]
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0);
+
+    return parts.length > 0 ? parts.join(' ') : '—';
+}
+
+function formatStudentDetailDisplayName(student: StudentDetail): string {
+    const parts = [student.firstName, student.lastName]
         .map((part) => part.trim())
         .filter((part) => part.length > 0);
 
@@ -114,6 +121,7 @@ export function buildManagerLessonVehiclesForSelect(params: {
         name: fallback?.name ?? 'Aktualny pojazd',
         registrationNumber: fallback?.registrationNumber ?? '—',
         status: fallback?.status ?? 'ACTIVE',
+        unavailableUntil: fallback?.unavailableUntil ?? null,
         isDefault: fallback?.isDefault ?? false,
         inspectionDate: fallback?.inspectionDate ?? null,
         insuranceDate: fallback?.insuranceDate ?? null,
@@ -230,7 +238,8 @@ export function useManagerLessonEditReferences(
             const detail: StudentDetail | null = normalizeStudentDetail(data);
 
             if (detail) {
-                studentDisplayName.value = formatStudentDisplayName(detail);
+                studentDisplayName.value =
+                    formatStudentDetailDisplayName(detail);
 
                 return;
             }

@@ -57,6 +57,7 @@ export function useManagerEventEditActions(input: {
         isDeleteLoading,
     } = useInstructorEventsApi();
     const { replaceStudentsOnEvent, isReplacing } = useEventApi();
+    const { addToast } = useAppToast();
 
     const deleteDialogOpen = ref(false);
     const isFormDirty = computed(

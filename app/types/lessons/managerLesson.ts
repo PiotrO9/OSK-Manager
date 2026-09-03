@@ -1,5 +1,5 @@
-import type { InstructorListItem } from './instructor';
-import type { Vehicle } from './vehicle';
+import type { InstructorListItem } from '~/types/instructors/instructor';
+import type { Vehicle } from '~/types/vehicles/vehicle';
 
 /** Lekcja z GET/PATCH /lessons/:id (BFF → upstream). */
 export interface ManagerLessonDetail {
