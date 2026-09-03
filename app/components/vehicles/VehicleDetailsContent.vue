@@ -1,22 +1,7 @@
 <script setup lang="ts">
-import {
-    ArrowLeft,
-    CalendarCheck,
-    Car,
-    Gauge,
-    ListChecks,
-    Pencil,
-    ShieldCheck,
-    Wrench,
-} from 'lucide-vue-next';
+import { ArrowLeft, Gauge, Pencil, Wrench } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
-import type { StatusTone } from '~/components/app/ui/types';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
-import {
-    vehicleAvailabilityDescription,
-    vehicleAvailabilityLabel,
-    vehicleAvailabilityTone,
-} from '~/utils/vehicles/availability';
 
 const props = defineProps<{
     vehicle: VehicleDetail;
@@ -24,170 +9,20 @@ const props = defineProps<{
     editHref: RouteLocationRaw;
 }>();
 
-function displayText(value: string): string {
-    const trimmed = value.trim();
-
-    return trimmed.length > 0 ? trimmed : '--';
-}
-
-function displayOptional(value: string | number | null): string {
-    if (value === null) return '--';
-
-    if (typeof value === 'number') {
-        return new Intl.NumberFormat('pl-PL').format(value);
-    }
-
-    const trimmed = value.trim();
-
-    return trimmed.length > 0 ? trimmed : '--';
-}
-
-function displayDate(value: string | null): string {
-    if (!value) return '--';
-
-    const date = new Date(`${value}T00:00:00Z`);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC',
-    }).format(date);
-}
-
-const vehicleTitle = computed(() => displayText(props.vehicle.name));
-
-const vehicleInitials = computed(() => {
-    const source =
-        props.vehicle.name.trim() || props.vehicle.registrationNumber.trim();
-    const initials = source
-        .split(/\s+/)
-        .filter((part) => part.length > 0)
-        .slice(0, 2)
-        .map((part) => part.charAt(0))
-        .join('');
-
-    return initials.length > 0 ? initials.toUpperCase() : 'PO';
+const {
+    activityItems,
+    availability,
+    overviewItems,
+    profileRows,
+    registrationNumberLabel,
+    relatedItems,
+    vehicleInitials,
+    vehicleTitle,
+} = useVehicleDetailsPresentation({
+    vehicle: toRef(props, 'vehicle'),
+    backToListHref: toRef(props, 'backToListHref'),
+    editHref: toRef(props, 'editHref'),
 });
-
-const availability = computed(() => {
-    if (props.vehicle.status === 'UNAVAILABLE') {
-        return {
-            label: vehicleAvailabilityLabel(props.vehicle),
-            tone: vehicleAvailabilityTone(props.vehicle) as StatusTone,
-            description: vehicleAvailabilityDescription(props.vehicle),
-        };
-    }
-
-    return {
-        label: vehicleAvailabilityLabel(props.vehicle),
-        tone: vehicleAvailabilityTone(props.vehicle) as StatusTone,
-        description: vehicleAvailabilityDescription(props.vehicle),
-    };
-});
-
-const overviewItems = computed(() => [
-    {
-        label: 'Status techniczny',
-        description:
-            props.vehicle.inspectionDate || props.vehicle.insuranceDate
-                ? 'Przeglad i OC sa zapisane w danych pojazdu.'
-                : 'Brak dat przegladu lub OC w danych pojazdu.',
-        badge:
-            props.vehicle.inspectionDate && props.vehicle.insuranceDate
-                ? 'OK'
-                : 'Uzupelnij',
-        tone:
-            props.vehicle.inspectionDate && props.vehicle.insuranceDate
-                ? ('success' as StatusTone)
-                : ('warning' as StatusTone),
-        icon: ShieldCheck,
-    },
-    {
-        label: 'Dostepnosc',
-        description: availability.value.description,
-        badge: availability.value.label,
-        tone: availability.value.tone,
-        icon: CalendarCheck,
-    },
-    {
-        label: 'Domyślny pojazd',
-        description: props.vehicle.isDefault
-            ? 'Ten pojazd jest domyslny dla OSK.'
-            : 'Domyślny pojazd można ustawić z listy pojazdów.',
-        badge: props.vehicle.isDefault ? 'Tak' : 'Nie',
-        tone: props.vehicle.isDefault
-            ? ('info' as StatusTone)
-            : ('neutral' as StatusTone),
-        icon: Car,
-    },
-]);
-
-const profileRows = computed(() => [
-    { label: 'Status', value: availability.value.label },
-    {
-        label: 'Rejestracja',
-        value: displayText(props.vehicle.registrationNumber),
-    },
-    { label: 'Rocznik', value: displayOptional(props.vehicle.modelYear) },
-    {
-        label: 'Przebieg',
-        value:
-            props.vehicle.mileageKm === null
-                ? '--'
-                : `${displayOptional(props.vehicle.mileageKm)} km`,
-    },
-]);
-
-const activityItems = computed(() => [
-    {
-        label: 'Data przegladu',
-        description: displayDate(props.vehicle.inspectionDate),
-        badge: props.vehicle.inspectionDate ? 'Zapisana' : 'Brak',
-        tone: props.vehicle.inspectionDate
-            ? ('success' as StatusTone)
-            : ('warning' as StatusTone),
-    },
-    {
-        label: 'Data ubezpieczenia',
-        description: displayDate(props.vehicle.insuranceDate),
-        badge: props.vehicle.insuranceDate ? 'Zapisana' : 'Brak',
-        tone: props.vehicle.insuranceDate
-            ? ('success' as StatusTone)
-            : ('warning' as StatusTone),
-    },
-    {
-        label: 'Dane eksploatacyjne',
-        description: `Rocznik: ${displayOptional(props.vehicle.modelYear)}; przebieg: ${
-            props.vehicle.mileageKm === null
-                ? '--'
-                : `${displayOptional(props.vehicle.mileageKm)} km`
-        }`,
-        badge: 'Widoczne',
-        tone: 'neutral' as StatusTone,
-    },
-]);
-
-const relatedItems = computed(() => [
-    {
-        label: 'Edycja danych',
-        description: 'Formularz edycji zachowuje pola pojazdu i zdjecie.',
-        to: props.editHref,
-        badge: 'Dostepna',
-        icon: Pencil,
-    },
-    {
-        label: 'Lista pojazdów',
-        description: 'Status, domyslnosc i usuwanie zostaja w panelu listy.',
-        to: props.backToListHref,
-        badge: 'Widoczna',
-        icon: ListChecks,
-    },
-]);
 </script>
 
 <template>
@@ -255,11 +90,7 @@ const relatedItems = computed(() => [
                                     "
                                 >
                                     -
-                                    {{
-                                        displayText(
-                                            props.vehicle.registrationNumber,
-                                        )
-                                    }}
+                                    {{ registrationNumberLabel }}
                                 </span>
                             </p>
                         </div>
