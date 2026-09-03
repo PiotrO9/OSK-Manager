@@ -46,15 +46,15 @@ Bez `NUXT_PUBLIC_SITE_URL` moduły SEO mogą ostrzegać o niepełnej konfiguracj
 
 ## Main Routes
 
-| Route                  | Description                         |
-| ---------------------- | ----------------------------------- |
-| `/`                    | Pulpit aplikacji                    |
-| `/login`               | Logowanie                           |
-| `/vehicles`            | Pojazdy                             |
-| `/manager/osk`         | Zarządzanie OSK                     |
-| `/manager/instructors` | Instruktorzy                        |
-| `/manager/courses`     | Kursy                               |
-| `/manager/schedule`    | Harmonogram OSK                     |
-| `/my-courses`          | Kursy zalogowanego kursanta         |
-| `/my-lessons`          | Lekcje zalogowanego kursanta        |
-| `/my-payments`         | Płatności zalogowanego kursanta     |
+| Route                  | Description                     |
+| ---------------------- | ------------------------------- |
+| `/`                    | Pulpit aplikacji                |
+| `/login`               | Logowanie                       |
+| `/vehicles`            | Pojazdy                         |
+| `/manager/osk`         | Zarządzanie OSK                 |
+| `/manager/instructors` | Instruktorzy                    |
+| `/manager/courses`     | Kursy                           |
+| `/manager/schedule`    | Harmonogram OSK                 |
+| `/my-courses`          | Kursy zalogowanego kursanta     |
+| `/my-lessons`          | Lekcje zalogowanego kursanta    |
+| `/my-payments`         | Płatności zalogowanego kursanta |

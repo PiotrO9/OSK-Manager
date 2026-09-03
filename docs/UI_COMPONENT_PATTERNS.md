@@ -39,22 +39,22 @@ Preferuj nazwy opisujace wzorce, np. `PageHeader`, `FilterBar`, `DataTableShell`
 
 Stosuj ponizsze mapowanie jako punkt startowy. Konkretna implementacja moze sie roznic, ale odstepstwo powinno miec powod.
 
-| Typ widoku | Rekomendowane wzorce |
-| --- | --- |
-| Pulpit managera | `PageHeader`, `SummaryStrip`, `ScheduleLayout`, `EntitySummaryCard` |
-| Lista kursantow | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup` |
-| Szczegoly kursanta | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `DataTableShell`, `StatusBadge` |
-| Lista instruktorow | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup` |
-| Szczegoly instruktora | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `ScheduleLayout`, `StatusBadge` |
-| Harmonogram managera | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState` |
-| Moje lekcje | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState` |
-| Rezerwacja lekcji | `PageHeader`, `FilterBar`, `ScheduleLayout`, `EmptyState`, `LoadingState` |
-| Kursy | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup` |
-| Pojazdy | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup` |
-| Platnosci | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge` |
-| Opinie | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge` |
-| Konto | `PageHeader`, `DetailLayout`, `FormSection`, `EntitySummaryCard` |
-| Formularz tworzenia lub edycji | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
+| Typ widoku                     | Rekomendowane wzorce                                                               |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| Pulpit managera                | `PageHeader`, `SummaryStrip`, `ScheduleLayout`, `EntitySummaryCard`                |
+| Lista kursantow                | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
+| Szczegoly kursanta             | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `DataTableShell`, `StatusBadge` |
+| Lista instruktorow             | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
+| Szczegoly instruktora          | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `ScheduleLayout`, `StatusBadge` |
+| Harmonogram managera           | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`           |
+| Moje lekcje                    | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`                        |
+| Rezerwacja lekcji              | `PageHeader`, `FilterBar`, `ScheduleLayout`, `EmptyState`, `LoadingState`          |
+| Kursy                          | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
+| Pojazdy                        | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`  |
+| Platnosci                      | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge`         |
+| Opinie                         | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`                         |
+| Konto                          | `PageHeader`, `DetailLayout`, `FormSection`, `EntitySummaryCard`                   |
+| Formularz tworzenia lub edycji | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                           |
 
 ## PageHeader
 

@@ -44,72 +44,72 @@ Priorytety:
 
 Foundation nie powinien byc osobnym wielkim refactorem. Komponenty maja powstawac przy pierwszych realnych widokach, glownie przy `manager/students/index.vue`.
 
-| Element | Priorytet | Wzorce | Uwagi |
-| --- | --- | --- | --- |
-| Shared page structure | P0 | `PageHeader` | Wspolny naglowek dla list, szczegolow, harmonogramow i formularzy. |
-| Shared status display | P0 | `StatusBadge` | Jedno miejsce dla statusow: aktywny, nieaktywny, zaplanowany, zakonczony, anulowany, oplacony, zalegly. |
-| Shared states | P0 | `EmptyState`, `LoadingState`, `ErrorState` | Stany powinny byc stabilne layoutowo i spojne wizualnie. |
-| Shared list shell | P0 | `FilterBar`, `DataTableShell`, `ActionGroup` | Pierwsze uzycie przy liscie kursantow. |
+| Element               | Priorytet | Wzorce                                       | Uwagi                                                                                                   |
+| --------------------- | --------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Shared page structure | P0        | `PageHeader`                                 | Wspolny naglowek dla list, szczegolow, harmonogramow i formularzy.                                      |
+| Shared status display | P0        | `StatusBadge`                                | Jedno miejsce dla statusow: aktywny, nieaktywny, zaplanowany, zakonczony, anulowany, oplacony, zalegly. |
+| Shared states         | P0        | `EmptyState`, `LoadingState`, `ErrorState`   | Stany powinny byc stabilne layoutowo i spojne wizualnie.                                                |
+| Shared list shell     | P0        | `FilterBar`, `DataTableShell`, `ActionGroup` | Pierwsze uzycie przy liscie kursantow.                                                                  |
 
 ## Etap 2: Manager Core
 
 Najpierw przerobic rdzen pracy managera. Te widoki zdefiniuja wiekszosc wzorcow uzywanych dalej.
 
-| Kolejnosc | Widok | Rola | Typ | Priorytet | Wzorce |
-| --- | --- | --- | --- | --- | --- |
-| 1 | `app/pages/manager/students/index.vue` | manager | list | P0 | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState`, `LoadingState`, `ErrorState` |
-| 2 | `app/pages/manager/students/[userId].vue` | manager | details | P1 | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `DataTableShell`, `StatusBadge`, `EmptyState`, `LoadingState`, `ErrorState` |
-| 3 | `app/pages/manager/instructors/index.vue` | manager | list | P1 | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState`, `LoadingState`, `ErrorState` |
-| 4 | `app/pages/manager/instructors/[id]/index.vue` | manager | details | P1 | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `ScheduleLayout`, `StatusBadge`, `ActionGroup` |
-| 5 | `app/pages/manager/schedule/index.vue` | manager | schedule | P1 | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `LoadingState`, `ErrorState` |
+| Kolejnosc | Widok                                          | Rola    | Typ      | Priorytet | Wzorce                                                                                                                         |
+| --------- | ---------------------------------------------- | ------- | -------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1         | `app/pages/manager/students/index.vue`         | manager | list     | P0        | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState`, `LoadingState`, `ErrorState`          |
+| 2         | `app/pages/manager/students/[userId].vue`      | manager | details  | P1        | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `DataTableShell`, `StatusBadge`, `EmptyState`, `LoadingState`, `ErrorState` |
+| 3         | `app/pages/manager/instructors/index.vue`      | manager | list     | P1        | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState`, `LoadingState`, `ErrorState`          |
+| 4         | `app/pages/manager/instructors/[id]/index.vue` | manager | details  | P1        | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `ScheduleLayout`, `StatusBadge`, `ActionGroup`                              |
+| 5         | `app/pages/manager/schedule/index.vue`         | manager | schedule | P1        | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `LoadingState`, `ErrorState`                         |
 
 ## Etap 3: Operational Views
 
 Po Manager Core przeniesc styl i komponenty na pozostale widoki operacyjne.
 
-| Widok | Rola | Typ | Priorytet | Wzorce |
-| --- | --- | --- | --- | --- |
-| `app/pages/manager/courses/index.vue` | manager | list | P2 | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState` |
-| `app/pages/manager/courses/[id].vue` | manager | details | P2 | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `StatusBadge`, `FormSection`, `ActionGroup` |
-| `app/pages/manager/courses/new.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
-| `app/pages/vehicles/index.vue` | manager | list | P2 | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`, `EmptyState` |
-| `app/pages/vehicles/[id]/index.vue` | manager | details | P2 | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup` |
-| `app/pages/vehicles/[id]/edit.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
-| `app/pages/vehicles/new.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
-| `app/pages/manager/osk/index.vue` | manager | list | P2 | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`, `EmptyState` |
-| `app/pages/manager/osk/new.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
-| `app/pages/manager/reviews/index.vue` | manager | list | P2 | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge`, `EmptyState` |
-| `app/pages/events/index.vue` | manager/instructor | schedule | P2 | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup` |
-| `app/pages/manager/events/[id]/edit.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
-| `app/pages/manager/lessons/[id]/edit.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `EntitySummaryCard`, `ActionGroup`, `ErrorState` |
-| `app/pages/manager/instructors/[id]/availability.vue` | manager | schedule | P2 | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup` |
-| `app/pages/manager/instructors/[id]/schedule.vue` | manager | schedule | P2 | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `ActionGroup`, `EmptyState` |
-| `app/pages/manager/instructors/[id]/slots.vue` | manager | schedule | P2 | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `LoadingState` |
-| `app/pages/manager/instructors/new.vue` | manager | form | P2 | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState` |
+| Widok                                                 | Rola               | Typ      | Priorytet | Wzorce                                                                                          |
+| ----------------------------------------------------- | ------------------ | -------- | --------- | ----------------------------------------------------------------------------------------------- |
+| `app/pages/manager/courses/index.vue`                 | manager            | list     | P2        | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`, `EmptyState`         |
+| `app/pages/manager/courses/[id].vue`                  | manager            | details  | P2        | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `StatusBadge`, `FormSection`, `ActionGroup`  |
+| `app/pages/manager/courses/new.vue`                   | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
+| `app/pages/vehicles/index.vue`                        | manager            | list     | P2        | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`, `EmptyState` |
+| `app/pages/vehicles/[id]/index.vue`                   | manager            | details  | P2        | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`                 |
+| `app/pages/vehicles/[id]/edit.vue`                    | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
+| `app/pages/vehicles/new.vue`                          | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
+| `app/pages/manager/osk/index.vue`                     | manager            | list     | P2        | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`, `EmptyState` |
+| `app/pages/manager/osk/new.vue`                       | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
+| `app/pages/manager/reviews/index.vue`                 | manager            | list     | P2        | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge`, `EmptyState`        |
+| `app/pages/events/index.vue`                          | manager/instructor | schedule | P2        | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup`         |
+| `app/pages/manager/events/[id]/edit.vue`              | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
+| `app/pages/manager/lessons/[id]/edit.vue`             | manager            | form     | P2        | `PageHeader`, `FormSection`, `EntitySummaryCard`, `ActionGroup`, `ErrorState`                   |
+| `app/pages/manager/instructors/[id]/availability.vue` | manager            | schedule | P2        | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup`                      |
+| `app/pages/manager/instructors/[id]/schedule.vue`     | manager            | schedule | P2        | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `ActionGroup`, `EmptyState`                      |
+| `app/pages/manager/instructors/[id]/slots.vue`        | manager            | schedule | P2        | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `LoadingState`                     |
+| `app/pages/manager/instructors/new.vue`               | manager            | form     | P2        | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                                        |
 
 ## Etap 4: Student/Instructor Views
 
 Te widoki maja korzystac z komponentow wypracowanych w etapach 1-3, ale z mniejsza gestoscia niz widoki managera.
 
-| Widok | Rola | Typ | Priorytet | Wzorce |
-| --- | --- | --- | --- | --- |
-| `app/pages/my-lessons.vue` | student/instructor | schedule | P2 | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup` |
-| `app/pages/book-lesson.vue` | student | booking | P2 | `PageHeader`, `FilterBar`, `ScheduleLayout`, `EmptyState`, `LoadingState`, `ErrorState` |
-| `app/pages/my-courses.vue` | student/instructor | list | P2 | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `EmptyState` |
-| `app/pages/my-payments.vue` | student | list | P2 | `PageHeader`, `SummaryStrip`, `DataTableShell`, `StatusBadge`, `EmptyState` |
-| `app/pages/my-reviews.vue` | instructor | list | P2 | `PageHeader`, `DataTableShell`, `StatusBadge`, `EmptyState` |
+| Widok                       | Rola               | Typ      | Priorytet | Wzorce                                                                                  |
+| --------------------------- | ------------------ | -------- | --------- | --------------------------------------------------------------------------------------- |
+| `app/pages/my-lessons.vue`  | student/instructor | schedule | P2        | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`, `ActionGroup`              |
+| `app/pages/book-lesson.vue` | student            | booking  | P2        | `PageHeader`, `FilterBar`, `ScheduleLayout`, `EmptyState`, `LoadingState`, `ErrorState` |
+| `app/pages/my-courses.vue`  | student/instructor | list     | P2        | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `EmptyState`        |
+| `app/pages/my-payments.vue` | student            | list     | P2        | `PageHeader`, `SummaryStrip`, `DataTableShell`, `StatusBadge`, `EmptyState`             |
+| `app/pages/my-reviews.vue`  | instructor         | list     | P2        | `PageHeader`, `DataTableShell`, `StatusBadge`, `EmptyState`                             |
 
 ## Etap 5: Shared/Polish
 
 Na koncu dopracowac widoki wspolne, shell i obszary pomocnicze.
 
-| Widok | Rola | Typ | Priorytet | Wzorce |
-| --- | --- | --- | --- | --- |
-| `app/pages/index.vue` | shared | dashboard | P2 | `PageHeader`, `SummaryStrip`, `ScheduleLayout`, `EntitySummaryCard`, `EmptyState` |
-| `app/pages/account/index.vue` | shared | account | P3 | `PageHeader`, `DetailLayout`, `FormSection`, `EntitySummaryCard`, `ActionGroup` |
-| `app/pages/login.vue` | public | auth | P3 | `FormSection`, `ErrorState`, `ActionGroup` |
-| `app/pages/design-system.vue` | internal | dev | P3 | Dokumentacja nowych komponentow UI po ich wdrozeniu. |
-| `app/layouts/app-shell.vue` | shared | shell | P3 | Sprawdzic dopiero po wdrozeniu foundation i kilku widokow. |
+| Widok                         | Rola     | Typ       | Priorytet | Wzorce                                                                            |
+| ----------------------------- | -------- | --------- | --------- | --------------------------------------------------------------------------------- |
+| `app/pages/index.vue`         | shared   | dashboard | P2        | `PageHeader`, `SummaryStrip`, `ScheduleLayout`, `EntitySummaryCard`, `EmptyState` |
+| `app/pages/account/index.vue` | shared   | account   | P3        | `PageHeader`, `DetailLayout`, `FormSection`, `EntitySummaryCard`, `ActionGroup`   |
+| `app/pages/login.vue`         | public   | auth      | P3        | `FormSection`, `ErrorState`, `ActionGroup`                                        |
+| `app/pages/design-system.vue` | internal | dev       | P3        | Dokumentacja nowych komponentow UI po ich wdrozeniu.                              |
+| `app/layouts/app-shell.vue`   | shared   | shell     | P3        | Sprawdzic dopiero po wdrozeniu foundation i kilku widokow.                        |
 
 ## Pokrycie `app/pages`
 

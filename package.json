@@ -31,6 +31,7 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier . --write",
         "format:check": "prettier . --check",
+        "typecheck": "nuxi typecheck",
         "test": "vitest run",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare"
