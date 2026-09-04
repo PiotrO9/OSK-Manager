@@ -3,10 +3,8 @@ import { toDate } from 'reka-ui/date';
 import { useCoursesApi } from '~/composables/courses/useCoursesApi';
 import { useSchoolAvailabilitySlotsApi } from '~/composables/schools/useSchoolAvailabilitySlotsApi';
 import type { CourseListItem } from '~/types/courses/course';
-import type { SchoolAvailabilitySlotsQueryFilters } from '~/types/schools/schoolAvailabilityFilters';
 import type {
     LessonBookingAggregatedSlot,
-    LessonBookingInstructorOption,
     LessonBookingSlotContext,
 } from '~/types/lessons/lessonBooking';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
@@ -19,128 +17,15 @@ import {
     weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
-
-const BASE_HOUR = 7;
-const END_HOUR = 19;
-const GRID_HEIGHT_PX = (END_HOUR - BASE_HOUR) * 60;
-const PX_PER_MINUTE = 1;
-
-function buildFiltersPayload(): SchoolAvailabilitySlotsQueryFilters {
-    return {
-        limit: 500,
-        sort: 'startTime',
-    };
-}
-
-function timeToMinutes(time: string): number | null {
-    const parts = time.trim().split(':').map(Number);
-
-    if (parts.length < 2) {
-        return null;
-    }
-
-    const h = parts[0];
-    const m = parts[1];
-
-    if (
-        h === undefined ||
-        m === undefined ||
-        !Number.isFinite(h) ||
-        !Number.isFinite(m)
-    ) {
-        return null;
-    }
-
-    return h * 60 + m;
-}
-
-function isSlotInsideTimeline(slot: LessonBookingAggregatedSlot): boolean {
-    const startMin = timeToMinutes(slot.startTime);
-    const endMin = timeToMinutes(slot.endTime);
-    const baseMin = BASE_HOUR * 60;
-    const endBoundaryMin = END_HOUR * 60;
-
-    if (startMin === null || endMin === null) {
-        return false;
-    }
-
-    return startMin >= baseMin && endMin <= endBoundaryMin && endMin > startMin;
-}
-
-function slotTopPx(startTime: string): number {
-    const startMin = timeToMinutes(startTime);
-
-    if (startMin === null) {
-        return 0;
-    }
-
-    const baseMin = BASE_HOUR * 60;
-
-    return (startMin - baseMin) * PX_PER_MINUTE;
-}
-
-function buildAggregatedSlots(
-    raw: readonly SchoolAvailabilitySlot[],
-): LessonBookingAggregatedSlot[] {
-    const byKey = new Map<string, LessonBookingInstructorOption[]>();
-
-    for (const s of raw) {
-        const key = `${s.date}|${s.startTime}|${s.endTime}`;
-        const opt: LessonBookingInstructorOption = {
-            id: s.instructorId,
-            firstName: s.instructorFirstName,
-            lastName: s.instructorLastName,
-        };
-
-        const prev = byKey.get(key);
-
-        if (prev) {
-            if (!prev.some((x) => x.id === opt.id)) {
-                prev.push(opt);
-            }
-        } else {
-            byKey.set(key, [opt]);
-        }
-    }
-
-    const out: LessonBookingAggregatedSlot[] = [];
-
-    for (const [key, availableInstructors] of byKey) {
-        const parts = key.split('|');
-        const date = parts[0] ?? '';
-        const startTime = parts[1] ?? '';
-        const endTime = parts[2] ?? '';
-
-        if (!date || !startTime || !endTime) {
-            continue;
-        }
-
-        availableInstructors.sort((a, b) =>
-            `${a.lastName} ${a.firstName}`.localeCompare(
-                `${b.lastName} ${b.firstName}`,
-                'pl',
-            ),
-        );
-
-        out.push({
-            date,
-            startTime,
-            endTime,
-            instructorCount: availableInstructors.length,
-            availableInstructors,
-        });
-    }
-
-    return out.sort((a, b) => {
-        const byDate = a.date.localeCompare(b.date);
-
-        if (byDate !== 0) {
-            return byDate;
-        }
-
-        return a.startTime.localeCompare(b.startTime);
-    });
-}
+import {
+    buildSchoolAvailabilityAggregatedSlots,
+    buildSchoolAvailabilityCalendarFiltersPayload,
+    getSchoolAvailabilitySlotTopPx,
+    isSchoolAvailabilitySlotInsideTimeline,
+    MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
+    MANAGER_SCHOOL_AVAILABILITY_END_HOUR,
+    MANAGER_SCHOOL_AVAILABILITY_GRID_HEIGHT_PX,
+} from '~/utils/schools/managerSchoolWeeklyAvailabilityCalendar';
 
 export function useManagerSchoolWeeklyAvailabilityCalendar(
     schoolId: () => string,
@@ -181,7 +66,14 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     let fetchSeq = 0;
 
     const hourLabels = computed(() =>
-        Array.from({ length: 12 }, (_, i) => BASE_HOUR + i),
+        Array.from(
+            {
+                length:
+                    MANAGER_SCHOOL_AVAILABILITY_END_HOUR -
+                    MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
+            },
+            (_, i) => MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR + i,
+        ),
     );
 
     const weekDays = computed(() => {
@@ -240,7 +132,9 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     });
 
     const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
-        buildAggregatedSlots(slots.value).filter(isSlotInsideTimeline),
+        buildSchoolAvailabilityAggregatedSlots(slots.value).filter(
+            isSchoolAvailabilitySlotInsideTimeline,
+        ),
     );
 
     const aggregatedSlotsByDate = computed(() => {
@@ -340,7 +234,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
                 sid,
                 dateFrom,
                 dateTo,
-                buildFiltersPayload(),
+                buildSchoolAvailabilityCalendarFiltersPayload(),
             );
 
             if (seq !== fetchSeq) {
@@ -441,9 +335,9 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     }
 
     return {
-        BASE_HOUR,
-        END_HOUR,
-        GRID_HEIGHT_PX,
+        BASE_HOUR: MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
+        END_HOUR: MANAGER_SCHOOL_AVAILABILITY_END_HOUR,
+        GRID_HEIGHT_PX: MANAGER_SCHOOL_AVAILABILITY_GRID_HEIGHT_PX,
         WEEK_PICKER_CALENDAR_MIN,
         WEEK_PICKER_CALENDAR_MAX,
         isSlotChoiceOpen,
@@ -462,7 +356,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         weekRangeLabel,
         aggregatedSlotsFlat,
         aggregatedSlotsForDate,
-        slotTopPx,
+        slotTopPx: getSchoolAvailabilitySlotTopPx,
         handleSlotClick,
         handlePickLessonFromChoice,
         handlePickTheoryFromChoice,
