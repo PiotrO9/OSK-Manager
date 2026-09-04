@@ -1,9 +1,19 @@
+import type { DateValue } from '@internationalized/date';
+import { toDate } from 'reka-ui/date';
 import type {
     LessonBookingAggregatedSlot,
     LessonBookingInstructorOption,
 } from '~/types/lessons/lessonBooking';
 import type { SchoolAvailabilitySlotsQueryFilters } from '~/types/schools/schoolAvailabilityFilters';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
+import { formatDateOnly, getMonday } from '~/utils/date/weeklyCalendarDates';
+
+export interface ManagerSchoolAvailabilityWeekDay {
+    date: Date;
+    dateStr: string;
+    header: string;
+    isToday: boolean;
+}
 
 export const MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR = 7;
 export const MANAGER_SCHOOL_AVAILABILITY_END_HOUR = 19;
@@ -18,6 +28,82 @@ export function buildSchoolAvailabilityCalendarFiltersPayload(): SchoolAvailabil
         limit: 500,
         sort: 'startTime',
     };
+}
+
+export function buildSchoolAvailabilityWeekDays(
+    weekStart: Date,
+    today = new Date(),
+): ManagerSchoolAvailabilityWeekDay[] {
+    const out: ManagerSchoolAvailabilityWeekDay[] = [];
+    const start = new Date(
+        weekStart.getFullYear(),
+        weekStart.getMonth(),
+        weekStart.getDate(),
+    );
+    const todayStr = formatDateOnly(today);
+
+    for (let i = 0; i < 7; i += 1) {
+        const date = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + i,
+        );
+        const dateStr = formatDateOnly(date);
+
+        out.push({
+            date,
+            dateStr,
+            header: date.toLocaleDateString('pl-PL', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'numeric',
+            }),
+            isToday: dateStr === todayStr,
+        });
+    }
+
+    return out;
+}
+
+export function formatSchoolAvailabilityWeekRangeLabel(
+    weekStart: Date,
+): string {
+    const end = new Date(
+        weekStart.getFullYear(),
+        weekStart.getMonth(),
+        weekStart.getDate() + 6,
+    );
+    const opts: Intl.DateTimeFormatOptions = {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    };
+
+    return `${weekStart.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
+}
+
+export function getSchoolAvailabilitySelectedWeekMonday(
+    value: DateValue | DateValue[] | undefined,
+): Date | null {
+    if (value === undefined) {
+        return null;
+    }
+
+    const selectedValues = Array.isArray(value) ? value : [value];
+
+    if (selectedValues.length === 0) {
+        return null;
+    }
+
+    let anchor = selectedValues[0]!;
+
+    for (const selectedValue of selectedValues) {
+        if (toDate(selectedValue).getTime() > toDate(anchor).getTime()) {
+            anchor = selectedValue;
+        }
+    }
+
+    return getMonday(toDate(anchor));
 }
 
 export function schoolAvailabilityTimeToMinutes(time: string): number | null {
