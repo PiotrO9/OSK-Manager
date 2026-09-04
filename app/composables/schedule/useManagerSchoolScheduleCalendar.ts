@@ -2,7 +2,6 @@ import type { DateValue } from '@internationalized/date';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { useManagerSchoolScheduleCalendarData } from '~/composables/schedule/useManagerSchoolScheduleCalendarData';
 import {
-    ariaSummaryForLesson,
     BASE_HOUR,
     GRID_HEIGHT_PX,
 } from '~/utils/schedule/managerScheduleCalendarUtils';
@@ -20,12 +19,13 @@ import {
     resolveManagerSchoolScheduleCalendarWeekStart,
     shiftManagerSchoolScheduleWeek,
 } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
-import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
-import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { buildScheduleManagerItemEditRoute } from '~/utils/schedule/scheduleManagerEditNavigation';
 import {
-    buildScheduleManagerItemEditRoute,
-    isScheduleManagerItemEditable,
-} from '~/utils/schedule/scheduleManagerEditNavigation';
+    getManagerSchoolScheduleBlockAccessibilityLabel,
+    getManagerSchoolScheduleBlockInteractiveClasses,
+    isManagerSchoolScheduleBlockClickable,
+    isStudentRatingSelectableScheduleLesson,
+} from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 import {
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
@@ -212,49 +212,32 @@ export function useManagerSchoolScheduleCalendar(
     function isStudentRatingSelectableLesson(
         lesson: ScheduleLessonItem,
     ): boolean {
-        return (
-            props.studentRatingSelectionEnabled &&
-            lesson.kind === 'lesson' &&
-            lesson.type.trim().toUpperCase() === 'PRACTICE' &&
-            lesson.status.trim().toUpperCase() === 'COMPLETED'
+        return isStudentRatingSelectableScheduleLesson(
+            lesson,
+            props.studentRatingSelectionEnabled,
         );
     }
 
     function blockIsClickable(lesson: ScheduleLessonItem): boolean {
-        return (
-            isScheduleManagerItemEditable(props.eventEditEnabled, lesson) ||
-            isStudentRatingSelectableLesson(lesson)
-        );
+        return isManagerSchoolScheduleBlockClickable(lesson, {
+            eventEditEnabled: props.eventEditEnabled,
+            studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+        });
     }
 
     function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
-        const base = ariaSummaryForLesson(lesson, props.practicePrimaryLine);
-
-        if (isStudentRatingSelectableLesson(lesson)) {
-            return `${base}. Naciśnij Enter lub Spację, aby otworzyć opinię.`;
-        }
-
-        if (!props.eventEditEnabled) {
-            return base;
-        }
-
-        if (isScheduleInstructorEvent(lesson)) {
-            return `${base}. Naciśnij Enter lub Spację, aby edytować blok czasu.`;
-        }
-
-        if (isScheduleBookedPracticalLesson(lesson)) {
-            return `${base}. Naciśnij Enter lub Spację, aby edytować jazdę praktyczną.`;
-        }
-
-        return base;
+        return getManagerSchoolScheduleBlockAccessibilityLabel(lesson, {
+            eventEditEnabled: props.eventEditEnabled,
+            studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+            practicePrimaryLine: props.practicePrimaryLine,
+        });
     }
 
     function lessonBlockInteractiveClasses(lesson: ScheduleLessonItem): string {
-        if (!blockIsClickable(lesson)) {
-            return '';
-        }
-
-        return 'cursor-pointer hover:brightness-[0.97] focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none dark:hover:brightness-[1.08]';
+        return getManagerSchoolScheduleBlockInteractiveClasses(lesson, {
+            eventEditEnabled: props.eventEditEnabled,
+            studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+        });
     }
 
     function handleScheduleBlockClick(lesson: ScheduleLessonItem): void {
