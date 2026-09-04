@@ -3,7 +3,7 @@ import {
     buildManagerLessonInstructorsForSelect,
     buildManagerLessonVehiclesForSelect,
     parseInstructorListItemFromApi,
-} from './useManagerLessonEditReferences';
+} from '~/utils/lessons/managerLessonEditReferences';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 
