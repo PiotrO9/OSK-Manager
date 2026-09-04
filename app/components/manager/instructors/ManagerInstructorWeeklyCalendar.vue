@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-    CalendarDays,
-    ChevronLeft,
-    ChevronRight,
-    Clock3,
-    SlidersHorizontal,
-} from 'lucide-vue-next';
+import { Clock3 } from 'lucide-vue-next';
 
 const props = withDefaults(
     defineProps<{
@@ -52,157 +46,28 @@ const {
                 : 'overflow-hidden rounded-2xl shadow-sm'
         "
     >
-        <UiCardHeader
+        <ManagerInstructorWeeklyCalendarHeader
             v-if="!props.compact"
-            class="border-border flex flex-col gap-4 border-b p-4 md:flex-row md:items-center md:justify-between md:p-5"
-        >
-            <div class="flex min-w-0 gap-3">
-                <div
-                    class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700"
-                    aria-hidden="true"
-                >
-                    <CalendarDays class="size-5" />
-                </div>
-
-                <div class="min-w-0">
-                    <UiCardTitle class="text-xl font-extrabold">
-                        Wolne sloty instruktora
-                    </UiCardTitle>
-                    <UiCardDescription class="mt-1">
-                        Kalendarz dostępnych okien do rezerwacji jazd.
-                    </UiCardDescription>
-                </div>
-            </div>
-
-            <div
-                class="flex min-w-0 flex-wrap items-center gap-2"
-                role="toolbar"
-                aria-label="Nawigacja tygodnia kalendarza slotów"
-            >
-                <UiPopover v-model:open="isCalendarOpen">
-                    <UiPopoverTrigger>
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                            :disabled="isLoading"
-                            aria-label="Wybierz tydzien w kalendarzu"
-                        >
-                            <CalendarDays
-                                class="mr-2 size-4"
-                                aria-hidden="true"
-                            />
-                            {{ weekRangeCompactLabel }}
-                        </UiButton>
-                    </UiPopoverTrigger>
-                    <UiPopoverContent class="w-auto p-0" align="end">
-                        <UiCalendar
-                            multiple
-                            fixed-weeks
-                            :week-starts-on="1"
-                            :min-value="WEEK_PICKER_CALENDAR_MIN"
-                            :max-value="WEEK_PICKER_CALENDAR_MAX"
-                            :disable-days-outside-current-view="false"
-                            :model-value="calendarSelected"
-                            locale="pl-PL"
-                            @update:model-value="handleCalendarUpdate"
-                        />
-                    </UiPopoverContent>
-                </UiPopover>
-
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    aria-label="Poprzedni tydzien"
-                    :disabled="isLoading"
-                    @click="handlePrevWeek"
-                    @keydown="handleKeyDownWeekNav($event, 'prev')"
-                >
-                    <ChevronLeft class="mr-2 size-4" aria-hidden="true" />
-                    Poprzedni
-                </UiButton>
-
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    aria-label="Nastepny tydzien"
-                    :disabled="isLoading"
-                    @click="handleNextWeek"
-                    @keydown="handleKeyDownWeekNav($event, 'next')"
-                >
-                    Nastepny
-                    <ChevronRight class="ml-2 size-4" aria-hidden="true" />
-                </UiButton>
-            </div>
-        </UiCardHeader>
+            v-model:is-calendar-open="isCalendarOpen"
+            :is-loading="isLoading"
+            :calendar-selected="calendarSelected"
+            :week-range-compact-label="weekRangeCompactLabel"
+            :calendar-min="WEEK_PICKER_CALENDAR_MIN"
+            :calendar-max="WEEK_PICKER_CALENDAR_MAX"
+            @calendar-update="handleCalendarUpdate"
+            @prev-week="handlePrevWeek"
+            @next-week="handleNextWeek"
+            @key-down-week-nav="handleKeyDownWeekNav"
+        />
 
         <UiCardContent class="p-0">
-            <div
+            <ManagerInstructorWeeklyCalendarOverview
                 v-if="!props.compact"
-                class="border-border border-b p-4 md:p-5"
-            >
-                <div class="grid gap-3 md:grid-cols-[1fr_auto] md:items-center">
-                    <div
-                        class="border-border bg-background flex min-w-0 flex-wrap items-center gap-2 rounded-xl border px-3 py-2"
-                        role="status"
-                        aria-live="polite"
-                    >
-                        <span
-                            class="text-foreground flex items-center gap-2 text-sm font-semibold"
-                        >
-                            <SlidersHorizontal
-                                class="size-4 text-sky-700"
-                                aria-hidden="true"
-                            />
-                            Filtry zapytania API
-                        </span>
-                        <StatusBadge
-                            label="Ten instruktor"
-                            tone="info"
-                            subtle
-                        />
-                        <StatusBadge
-                            :label="`${BASE_HOUR}:00-${END_HOUR}:00`"
-                            tone="neutral"
-                            subtle
-                        />
-                        <StatusBadge
-                            label="Sortuj: godzina"
-                            tone="neutral"
-                            subtle
-                        />
-                    </div>
-
-                    <div
-                        class="border-border bg-background grid grid-cols-3 overflow-hidden rounded-xl border"
-                    >
-                        <div class="border-border border-r px-3 py-2">
-                            <p class="text-muted-foreground text-xs">
-                                Okna w tygodniu
-                            </p>
-                            <p class="text-foreground text-lg font-extrabold">
-                                {{ totalSlots }}
-                            </p>
-                        </div>
-                        <div class="border-border border-r px-3 py-2">
-                            <p class="text-muted-foreground text-xs">
-                                Najblizszy slot
-                            </p>
-                            <p class="text-foreground text-lg font-extrabold">
-                                {{ earliestSlotLabel }}
-                            </p>
-                        </div>
-                        <div class="px-3 py-2">
-                            <p class="text-muted-foreground text-xs">Zakres</p>
-                            <p class="text-foreground text-lg font-extrabold">
-                                60 min
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                :base-hour="BASE_HOUR"
+                :end-hour="END_HOUR"
+                :total-slots="totalSlots"
+                :earliest-slot-label="earliestSlotLabel"
+            />
 
             <ErrorState
                 v-if="errorMessage"
