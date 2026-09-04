@@ -7,7 +7,10 @@ import {
 import { useInstructorAvailabilityApi } from '~/composables/instructors/useInstructorAvailabilityApi';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { useAppToast } from '~/composables/core/useAppToast';
-import { getAvailabilityTimelineBarStyle } from '~/utils/schedule/availabilityTimeline';
+import {
+    getInstructorAvailabilityDraftTimelineBar,
+    validateInstructorAvailabilityRow,
+} from '~/utils/instructors/managerInstructorAvailabilityEditor';
 
 const props = defineProps<{
     instructorId: string;
@@ -21,9 +24,6 @@ const rows = ref<WeeklyDayFormRow[]>(buildEmptyWeekRows());
 const loadError = ref<string | null>(null);
 const isSavingRow = ref<Record<number, boolean>>({});
 const rowError = ref<Record<number, string | null>>({});
-
-const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 min-w-0 rounded-lg border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 
 function setRowSaving(dayOfWeek: number, value: boolean): void {
     isSavingRow.value = { ...isSavingRow.value, [dayOfWeek]: value };
@@ -41,71 +41,19 @@ function getRowError(dayOfWeek: number): string | null {
     return rowError.value[dayOfWeek] ?? null;
 }
 
-function getDraftTimelineBar(row: WeeklyDayFormRow) {
-    if (!row.enabled) {
-        return null;
-    }
-
-    return getAvailabilityTimelineBarStyle(row.startTime, row.endTime);
-}
-
 const rowsWithDraftBars = computed(() =>
     rows.value.map((row) => ({
         row,
-        draftBar: getDraftTimelineBar(row),
+        draftBar: getInstructorAvailabilityDraftTimelineBar(row),
     })),
 );
 
-function getAvailabilityLabel(row: WeeklyDayFormRow): string {
-    if (!row.enabled) {
-        return 'Brak dostępności';
-    }
-
-    return `${row.startTime}-${row.endTime}`;
+function updateRowStartTime(row: WeeklyDayFormRow, value: string): void {
+    row.startTime = value;
 }
 
-function getStatusLabel(row: WeeklyDayFormRow): string {
-    if (!row.enabled) {
-        return 'wyłączony';
-    }
-
-    if (row.endTime <= '15:00') {
-        return 'krócej';
-    }
-
-    return 'aktywny';
-}
-
-function getStatusClass(row: WeeklyDayFormRow): string {
-    if (!row.enabled) {
-        return 'bg-slate-100 text-slate-500 ring-slate-200';
-    }
-
-    if (row.endTime <= '15:00') {
-        return 'bg-amber-50 text-amber-700 ring-amber-100';
-    }
-
-    return 'bg-emerald-50 text-emerald-700 ring-emerald-100';
-}
-
-function validateRow(row: WeeklyDayFormRow): string | null {
-    if (!row.enabled) {
-        return null;
-    }
-
-    if (!row.startTime) {
-        return 'Podaj godzinę rozpoczęcia.';
-    }
-
-    if (!row.endTime) {
-        return 'Podaj godzinę zakończenia.';
-    }
-
-    if (row.startTime >= row.endTime) {
-        return 'Godzina rozpoczęcia musi być wcześniejsza niż zakończenia.';
-    }
-
-    return null;
+function updateRowEndTime(row: WeeklyDayFormRow, value: string): void {
+    row.endTime = value;
 }
 
 async function loadData(): Promise<void> {
@@ -173,7 +121,7 @@ async function handleToggleDay(row: WeeklyDayFormRow): Promise<void> {
 async function handleSaveRow(row: WeeklyDayFormRow): Promise<void> {
     setRowError(row.dayOfWeek, null);
 
-    const validationError = validateRow(row);
+    const validationError = validateInstructorAvailabilityRow(row);
 
     if (validationError) {
         setRowError(row.dayOfWeek, validationError);
@@ -236,137 +184,18 @@ onMounted(loadData);
                 role="list"
                 aria-label="Tygodniowa dostępność instruktora"
             >
-                <article
+                <ManagerInstructorAvailabilityDayRow
                     v-for="item in rowsWithDraftBars"
                     :key="item.row.dayOfWeek"
-                    class="border-border/80 bg-background rounded-xl border p-3 shadow-xs"
-                    role="listitem"
-                >
-                    <div
-                        class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                        <div class="min-w-0 space-y-1">
-                            <div class="flex items-center gap-2">
-                                <UiSwitch
-                                    :id="`availability-toggle-${item.row.dayOfWeek}`"
-                                    :checked="item.row.enabled"
-                                    :disabled="isRowSaving(item.row.dayOfWeek)"
-                                    :aria-label="`Włącz dostępność: ${item.row.label}`"
-                                    @update:checked="handleToggleDay(item.row)"
-                                />
-                                <label
-                                    :for="`availability-toggle-${item.row.dayOfWeek}`"
-                                    class="text-foreground cursor-pointer text-sm font-bold select-none"
-                                >
-                                    {{ item.row.label }}
-                                </label>
-                            </div>
-                            <p
-                                class="text-muted-foreground pl-11 text-xs tabular-nums"
-                            >
-                                {{ getAvailabilityLabel(item.row) }}
-                            </p>
-                        </div>
-
-                        <span
-                            class="inline-flex h-7 w-fit items-center rounded-full px-3 text-xs font-bold ring-1"
-                            :class="getStatusClass(item.row)"
-                        >
-                            {{ getStatusLabel(item.row) }}
-                        </span>
-                    </div>
-
-                    <div class="mt-3 space-y-3">
-                        <div
-                            class="bg-muted/50 border-border/60 relative h-2.5 w-full overflow-hidden rounded-full border"
-                            aria-hidden="true"
-                        >
-                            <div
-                                v-if="item.draftBar"
-                                class="bg-primary absolute top-0.5 bottom-0.5 rounded-full transition-[left,width] duration-150 ease-out"
-                                :style="{
-                                    left: item.draftBar.leftPct + '%',
-                                    width: item.draftBar.widthPct + '%',
-                                }"
-                            />
-                        </div>
-
-                        <div
-                            class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-                        >
-                            <label class="min-w-0 space-y-1">
-                                <span
-                                    class="text-muted-foreground text-[11px] font-medium"
-                                >
-                                    Od
-                                </span>
-                                <input
-                                    :id="`availability-start-${item.row.dayOfWeek}`"
-                                    v-model="item.row.startTime"
-                                    type="time"
-                                    :disabled="
-                                        !item.row.enabled ||
-                                        isRowSaving(item.row.dayOfWeek)
-                                    "
-                                    :aria-label="`Godzina rozpoczęcia - ${item.row.label}`"
-                                    :class="[fieldClass, 'w-full']"
-                                />
-                            </label>
-
-                            <label class="min-w-0 space-y-1">
-                                <span
-                                    class="text-muted-foreground text-[11px] font-medium"
-                                >
-                                    Do
-                                </span>
-                                <input
-                                    :id="`availability-end-${item.row.dayOfWeek}`"
-                                    v-model="item.row.endTime"
-                                    type="time"
-                                    :disabled="
-                                        !item.row.enabled ||
-                                        isRowSaving(item.row.dayOfWeek)
-                                    "
-                                    :aria-label="`Godzina zakończenia - ${item.row.label}`"
-                                    :class="[fieldClass, 'w-full']"
-                                />
-                            </label>
-
-                            <UiButton
-                                v-if="item.row.enabled"
-                                type="button"
-                                size="sm"
-                                class="self-end rounded-lg"
-                                :disabled="isRowSaving(item.row.dayOfWeek)"
-                                :aria-busy="isRowSaving(item.row.dayOfWeek)"
-                                :aria-label="`Zapisz dostępność: ${item.row.label}`"
-                                @click="handleSaveRow(item.row)"
-                            >
-                                {{
-                                    isRowSaving(item.row.dayOfWeek)
-                                        ? 'Zapisywanie...'
-                                        : 'Zapisz'
-                                }}
-                            </UiButton>
-
-                            <span
-                                v-else
-                                class="text-muted-foreground self-end pb-2 text-xs italic"
-                            >
-                                Wyłączone
-                            </span>
-                        </div>
-
-                        <p
-                            v-if="getRowError(item.row.dayOfWeek)"
-                            class="text-destructive text-xs"
-                            role="alert"
-                            aria-live="polite"
-                        >
-                            {{ getRowError(item.row.dayOfWeek) }}
-                        </p>
-                    </div>
-                </article>
+                    :row="item.row"
+                    :draft-bar="item.draftBar"
+                    :is-saving="isRowSaving(item.row.dayOfWeek)"
+                    :error="getRowError(item.row.dayOfWeek)"
+                    @toggle-day="handleToggleDay(item.row)"
+                    @save-row="handleSaveRow(item.row)"
+                    @update-start-time="updateRowStartTime(item.row, $event)"
+                    @update-end-time="updateRowEndTime(item.row, $event)"
+                />
             </div>
 
             <p class="text-muted-foreground text-xs">
