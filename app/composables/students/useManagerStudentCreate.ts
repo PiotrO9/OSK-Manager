@@ -1,6 +1,6 @@
-import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import type { StudentRegisterPayload } from '~/utils/students/managerStudentFormDialog';
 
 const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta kursanta.';
 
