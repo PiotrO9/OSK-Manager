@@ -5,6 +5,11 @@ import {
     type CourseTypeOption,
 } from '~/types/courses/courseType';
 import type { InstructorEditFormModel } from '~/types/instructors/instructor';
+import {
+    buildInstructorEditCourseTypeRows,
+    parseInstructorExperienceYearsInput,
+    updateInstructorCourseTypeSelection,
+} from '~/utils/instructors/managerInstructorEditDialog';
 
 const props = defineProps<{
     isSubmitting: boolean;
@@ -36,53 +41,21 @@ function handleFormSubmit(): void {
 
 function handleExperienceYearsInput(event: Event): void {
     const el = event.target as HTMLInputElement;
-    const t = el.value.trim();
     const f = form.value;
 
     if (!f) {
         return;
     }
 
-    if (t === '') {
-        f.experienceYears = 0;
-
-        return;
-    }
-
-    const n = Number.parseInt(t, 10);
-
-    f.experienceYears = Number.isNaN(n) ? 0 : n;
+    f.experienceYears = parseInstructorExperienceYearsInput(el.value);
 }
 
-function normalizeCourseTypeIds(ids: string[]): string[] {
-    const out: string[] = [];
-
-    for (const raw of ids) {
-        const id = raw.trim();
-
-        if (id && !out.includes(id)) {
-            out.push(id);
-        }
-    }
-
-    return out;
-}
-
-const courseTypeRows = computed(() => {
-    const rows = props.courseTypes.map((item) => ({
-        item,
-        isUnavailable: false,
-    }));
-    const knownIds = new Set(rows.map((row) => row.item.id));
-
-    for (const item of props.selectedQualifiedCourseTypes) {
-        if (!knownIds.has(item.id)) {
-            rows.push({ item, isUnavailable: true });
-        }
-    }
-
-    return rows;
-});
+const courseTypeRows = computed(() =>
+    buildInstructorEditCourseTypeRows(
+        props.courseTypes,
+        props.selectedQualifiedCourseTypes,
+    ),
+);
 
 const isCourseTypesSelectionBlocked = computed(
     () =>
@@ -105,17 +78,11 @@ function handleCourseTypeCheckedChange(
         return;
     }
 
-    const current = normalizeCourseTypeIds(f.qualifiedCourseTypeIds);
-
-    if (checked === true) {
-        f.qualifiedCourseTypeIds = current.includes(id)
-            ? current
-            : [...current, id];
-
-        return;
-    }
-
-    f.qualifiedCourseTypeIds = current.filter((item) => item !== id);
+    f.qualifiedCourseTypeIds = updateInstructorCourseTypeSelection(
+        f.qualifiedCourseTypeIds,
+        id,
+        checked,
+    );
 }
 
 const fieldClass =
