@@ -5,7 +5,6 @@ import {
     getEmptyStudentFormValidationState,
     hasStudentFormValidationErrors,
     resolveDefaultStudentSchoolId,
-    STUDENT_PASSWORD_MIN_LENGTH,
     validateStudentFormDraft,
     type StudentRegisterPayload,
 } from '~/utils/students/managerStudentFormDialog';
@@ -36,14 +35,6 @@ const lastNameModel = ref('');
 const schoolIdModel = ref('');
 
 const validation = reactive(getEmptyStudentFormValidationState());
-
-const showEmailRequired = computed(() => validation.showEmailRequired);
-const showEmailInvalid = computed(() => validation.showEmailInvalid);
-const showPasswordRequired = computed(() => validation.showPasswordRequired);
-const showPasswordTooShort = computed(() => validation.showPasswordTooShort);
-const showFirstRequired = computed(() => validation.showFirstRequired);
-const showLastRequired = computed(() => validation.showLastRequired);
-const showSchoolRequired = computed(() => validation.showSchoolRequired);
 
 function applyDefaultSchoolId() {
     schoolIdModel.value = resolveDefaultStudentSchoolId(
@@ -159,158 +150,16 @@ function handleFormSubmit() {
                     {{ apiError }}
                 </p>
 
-                <div class="space-y-2">
-                    <UiLabel for="student-dialog-school">Szkoła jazdy</UiLabel>
-                    <UiSelect v-model="schoolIdModel" :disabled="isSaving">
-                        <UiSelectTrigger
-                            id="student-dialog-school"
-                            class="w-full"
-                            :aria-invalid="showSchoolRequired"
-                            :aria-describedby="
-                                showSchoolRequired
-                                    ? 'student-dialog-school-error'
-                                    : undefined
-                            "
-                            aria-label="Wybierz szkołę jazdy dla kursanta"
-                        >
-                            <UiSelectValue placeholder="— Wybierz OSK —" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="s in schools"
-                                    :key="s.id"
-                                    :value="s.id"
-                                >
-                                    {{ s.name
-                                    }}{{ s.city ? ` (${s.city})` : '' }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
-                    <p
-                        v-if="showSchoolRequired"
-                        id="student-dialog-school-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        Wybierz szkołę jazdy.
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="student-dialog-email">E-mail</UiLabel>
-                    <UiInput
-                        id="student-dialog-email"
-                        v-model="emailModel"
-                        type="email"
-                        name="email"
-                        autocomplete="email"
-                        :aria-invalid="showEmailRequired || showEmailInvalid"
-                        :aria-describedby="
-                            showEmailRequired || showEmailInvalid
-                                ? 'student-dialog-email-error'
-                                : undefined
-                        "
-                        :disabled="isSaving"
-                    />
-                    <p
-                        v-if="showEmailRequired || showEmailInvalid"
-                        id="student-dialog-email-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{
-                            showEmailRequired
-                                ? 'E-mail jest wymagany.'
-                                : 'Podaj poprawny adres e-mail.'
-                        }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="student-dialog-password">Hasło</UiLabel>
-                    <UiInput
-                        id="student-dialog-password"
-                        v-model="passwordModel"
-                        type="password"
-                        name="password"
-                        autocomplete="new-password"
-                        :aria-invalid="
-                            showPasswordRequired || showPasswordTooShort
-                        "
-                        :aria-describedby="
-                            showPasswordRequired || showPasswordTooShort
-                                ? 'student-dialog-password-error'
-                                : undefined
-                        "
-                        :disabled="isSaving"
-                    />
-                    <p
-                        v-if="showPasswordRequired || showPasswordTooShort"
-                        id="student-dialog-password-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{
-                            showPasswordRequired
-                                ? 'Hasło jest wymagane.'
-                                : `Minimum ${STUDENT_PASSWORD_MIN_LENGTH} znaków.`
-                        }}
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="student-dialog-first-name">Imię</UiLabel>
-                    <UiInput
-                        id="student-dialog-first-name"
-                        v-model="firstNameModel"
-                        type="text"
-                        name="firstName"
-                        autocomplete="given-name"
-                        :aria-invalid="showFirstRequired"
-                        :aria-describedby="
-                            showFirstRequired
-                                ? 'student-dialog-first-name-error'
-                                : undefined
-                        "
-                        :disabled="isSaving"
-                    />
-                    <p
-                        v-if="showFirstRequired"
-                        id="student-dialog-first-name-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        Imię jest wymagane.
-                    </p>
-                </div>
-
-                <div class="space-y-2">
-                    <UiLabel for="student-dialog-last-name">Nazwisko</UiLabel>
-                    <UiInput
-                        id="student-dialog-last-name"
-                        v-model="lastNameModel"
-                        type="text"
-                        name="lastName"
-                        autocomplete="family-name"
-                        :aria-invalid="showLastRequired"
-                        :aria-describedby="
-                            showLastRequired
-                                ? 'student-dialog-last-name-error'
-                                : undefined
-                        "
-                        :disabled="isSaving"
-                    />
-                    <p
-                        v-if="showLastRequired"
-                        id="student-dialog-last-name-error"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        Nazwisko jest wymagane.
-                    </p>
-                </div>
+                <ManagerStudentFormFields
+                    v-model:email="emailModel"
+                    v-model:password="passwordModel"
+                    v-model:first-name="firstNameModel"
+                    v-model:last-name="lastNameModel"
+                    v-model:school-id="schoolIdModel"
+                    :schools="schools"
+                    :is-saving="isSaving"
+                    :validation="validation"
+                />
 
                 <UiDialogFooter class="gap-2 sm:gap-2">
                     <UiButton
