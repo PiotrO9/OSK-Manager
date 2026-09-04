@@ -1,57 +1,18 @@
-import type { RouteLocationRaw } from 'vue-router';
 import type { InstructorRegisterPayload } from './useManagerInstructorFormDialog';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { requestBffSuccess } from '../../core/useApi';
-
-const REGISTER_GENERIC_FALLBACK = 'Nie udało się utworzyć konta instruktora.';
-const UUID_RE =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isUuid(value: string): boolean {
-    return UUID_RE.test(value.trim());
-}
-
-function resolveInstructorRegisterError(err: unknown): string {
-    const status = getApiErrorStatusCode(err);
-
-    if (status === 403) {
-        return 'Brak uprawnień do tej operacji.';
-    }
-
-    if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
-    }
-
-    if (status === 400 || status === 409) {
-        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane lub konflikt.');
-    }
-
-    return getApiFetchErrorMessage(err, REGISTER_GENERIC_FALLBACK);
-}
-
-function resolveInstructorsListError(err: unknown): string {
-    const status = getApiErrorStatusCode(err);
-
-    if (status === 403) {
-        return 'Brak dostępu do listy instruktorów dla wybranej szkoły.';
-    }
-
-    if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
-    }
-
-    if (err instanceof Error && err.message.trim().length > 0) {
-        return err.message.trim();
-    }
-
-    return getApiFetchErrorMessage(
-        err,
-        'Nie udało się pobrać listy instruktorów.',
-    );
-}
+import {
+    buildInstructorDetailsRoute,
+    formatQualificationFilterLabel,
+    formatVisibleInstructorsLabel,
+    INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
+    instructorInitials,
+    instructorQualificationLabel,
+    isInstructorSchoolIdUuid,
+    resolveInstructorRegisterError,
+    resolveInstructorsListError,
+} from '~/utils/instructors/managerInstructorsPage';
 
 export function useManagerInstructorsPage() {
     const route = useRoute();
@@ -80,7 +41,7 @@ export function useManagerInstructorsPage() {
 
         const t = s.trim();
 
-        if (!isUuid(t)) return null;
+        if (!isInstructorSchoolIdUuid(t)) return null;
 
         return t;
     });
@@ -116,27 +77,13 @@ export function useManagerInstructorsPage() {
         return codes.size;
     });
 
-    const visibleInstructorsLabel = computed(() => {
-        const count = instructors.value.length;
+    const visibleInstructorsLabel = computed(() =>
+        formatVisibleInstructorsLabel(instructors.value.length),
+    );
 
-        if (count === 1) {
-            return '1 wynik';
-        }
-
-        if (count >= 2 && count <= 4) {
-            return `${count} wyniki`;
-        }
-
-        return `${count} wyników`;
-    });
-
-    const qualificationFilterLabel = computed(() => {
-        if (uniqueQualificationCodesCount.value === 0) {
-            return 'Kwalifikacje: brak danych';
-        }
-
-        return 'Kwalifikacje: wszystkie';
-    });
+    const qualificationFilterLabel = computed(() =>
+        formatQualificationFilterLabel(uniqueQualificationCodesCount.value),
+    );
 
     function resolveInitialActiveSchoolId(): string {
         const pre = prefillSchoolId.value;
@@ -205,43 +152,8 @@ export function useManagerInstructorsPage() {
         }
     });
 
-    function instructorDetailsTo(
-        instructor: InstructorListItem,
-    ): RouteLocationRaw {
-        return {
-            path: `/manager/instructors/${instructor.id}`,
-            query:
-                activeSchoolId.value.trim().length > 0
-                    ? {
-                          schoolId: activeSchoolId.value.trim(),
-                      }
-                    : {},
-        };
-    }
-
-    function instructorQualificationLabel(
-        instructor: InstructorListItem,
-    ): string {
-        const labels = (instructor.qualifiedCourseTypes ?? [])
-            .map(
-                (courseType) =>
-                    courseType.code.trim() || courseType.name.trim(),
-            )
-            .filter((label) => label.length > 0);
-
-        if (labels.length === 0) {
-            return 'Brak kwalifikacji';
-        }
-
-        return labels.join(', ');
-    }
-
-    function instructorInitials(instructor: InstructorListItem): string {
-        const first = instructor.firstName.trim().charAt(0);
-        const last = instructor.lastName.trim().charAt(0);
-        const initials = `${first}${last}`.trim();
-
-        return initials.length > 0 ? initials.toUpperCase() : 'IN';
+    function instructorDetailsTo(instructor: InstructorListItem) {
+        return buildInstructorDetailsRoute(instructor, activeSchoolId.value);
     }
 
     function handleOpenCreateDialog() {
@@ -278,7 +190,7 @@ export function useManagerInstructorsPage() {
                     licenseNumber: payload.licenseNumber,
                     schoolId: payload.schoolId,
                 },
-                fallbackMessage: REGISTER_GENERIC_FALLBACK,
+                fallbackMessage: INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
             });
 
             addToast({
