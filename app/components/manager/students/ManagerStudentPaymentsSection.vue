@@ -6,6 +6,16 @@ import type {
     StudentPaymentsSummary,
     UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
+import {
+    buildCreateStudentPaymentPayload,
+    buildStudentPaymentEditState,
+    buildStudentPaymentPlanOptions,
+    buildUpdateStudentPaymentPayload,
+    canCreateStudentPayment,
+    formatStudentPaymentAmount,
+    formatStudentPaymentDate,
+    type StudentPaymentEditState,
+} from '~/utils/students/managerStudentPaymentsSection';
 
 const props = defineProps<{
     payments: readonly StudentPaymentItem[];
@@ -28,31 +38,11 @@ const createAmount = ref('');
 const createDueDate = ref('');
 const createMethod = ref('');
 
-interface PaymentEditState {
-    dueDate: string;
-    method: string;
-}
+const editState = reactive<Record<string, StudentPaymentEditState>>({});
 
-const editState = reactive<Record<string, PaymentEditState>>({});
-
-const paymentPlanOptions = computed(() => {
-    const seen = new Set<string>();
-    const options: Array<{ id: string; label: string }> = [];
-
-    for (const payment of props.payments) {
-        if (seen.has(payment.paymentPlanId)) {
-            continue;
-        }
-
-        seen.add(payment.paymentPlanId);
-        options.push({
-            id: payment.paymentPlanId,
-            label: payment.courseName,
-        });
-    }
-
-    return options;
-});
+const paymentPlanOptions = computed(() =>
+    buildStudentPaymentPlanOptions(props.payments),
+);
 
 watch(
     paymentPlanOptions,
@@ -68,83 +58,41 @@ watch(
     () => props.payments,
     (payments) => {
         for (const payment of payments) {
-            editState[payment.id] = {
-                dueDate: toDateInput(payment.dueDate),
-                method: payment.method ?? '',
-            };
+            editState[payment.id] = buildStudentPaymentEditState(payment);
         }
     },
     { immediate: true },
 );
 
-const canCreatePayment = computed(
-    () =>
-        createPaymentPlanId.value.length > 0 &&
-        createAmount.value.trim().length > 0 &&
-        !props.isSaving,
+const canCreatePayment = computed(() =>
+    canCreateStudentPayment(
+        createPaymentPlanId.value,
+        createAmount.value,
+        props.isSaving,
+    ),
 );
 
 const paymentEditRows = computed(() =>
     props.payments.map((payment) => ({
         payment,
-        state: editState[payment.id] ?? {
-            dueDate: toDateInput(payment.dueDate),
-            method: payment.method ?? '',
-        },
+        state: editState[payment.id] ?? buildStudentPaymentEditState(payment),
     })),
 );
-
-function toDateInput(value: string | null): string {
-    if (!value) {
-        return '';
-    }
-
-    return value.slice(0, 10);
-}
-
-function formatAmount(amount: string, currency: string): string {
-    const numeric = Number.parseFloat(amount.replace(',', '.'));
-
-    if (!Number.isFinite(numeric)) {
-        return `${amount} ${currency}`.trim();
-    }
-
-    return new Intl.NumberFormat('pl-PL', {
-        style: 'currency',
-        currency: currency || 'PLN',
-        maximumFractionDigits: numeric % 1 === 0 ? 0 : 2,
-    }).format(numeric);
-}
-
-function formatDate(value: string | null): string {
-    if (!value) {
-        return '-';
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    }).format(date);
-}
 
 function handleCreate(): void {
     if (!canCreatePayment.value) {
         return;
     }
 
-    emit('create', {
-        paymentPlanId: createPaymentPlanId.value,
-        amount: createAmount.value.trim().replace(',', '.'),
-        dueDate: createDueDate.value || null,
-        method: createMethod.value.trim() || null,
-    });
+    emit(
+        'create',
+        buildCreateStudentPaymentPayload({
+            paymentPlanId: createPaymentPlanId.value,
+            amount: createAmount.value,
+            dueDate: createDueDate.value,
+            method: createMethod.value,
+        }),
+    );
 
     createAmount.value = '';
     createDueDate.value = '';
@@ -158,10 +106,7 @@ function handleUpdate(paymentId: string): void {
         return;
     }
 
-    emit('update', paymentId, {
-        dueDate: state.dueDate || null,
-        method: state.method.trim() || null,
-    });
+    emit('update', paymentId, buildUpdateStudentPaymentPayload(state));
 }
 </script>
 
@@ -193,7 +138,7 @@ function handleUpdate(paymentId: string): void {
                 <p class="text-muted-foreground text-xs">Opłacone</p>
                 <p class="text-foreground mt-1 font-semibold tabular-nums">
                     {{
-                        formatAmount(
+                        formatStudentPaymentAmount(
                             props.summary.paidAmount,
                             props.summary.currency,
                         )
@@ -204,7 +149,7 @@ function handleUpdate(paymentId: string): void {
                 <p class="text-muted-foreground text-xs">Do zapłaty</p>
                 <p class="text-foreground mt-1 font-semibold tabular-nums">
                     {{
-                        formatAmount(
+                        formatStudentPaymentAmount(
                             props.summary.unpaidAmount,
                             props.summary.currency,
                         )
@@ -215,7 +160,7 @@ function handleUpdate(paymentId: string): void {
                 <p class="text-muted-foreground text-xs">Po terminie</p>
                 <p class="text-foreground mt-1 font-semibold tabular-nums">
                     {{
-                        formatAmount(
+                        formatStudentPaymentAmount(
                             props.summary.overdueAmount,
                             props.summary.currency,
                         )
@@ -225,7 +170,7 @@ function handleUpdate(paymentId: string): void {
             <div class="bg-muted/30 rounded-lg px-3 py-2">
                 <p class="text-muted-foreground text-xs">Następny termin</p>
                 <p class="text-foreground mt-1 font-semibold">
-                    {{ formatDate(props.summary.nextDueDate) }}
+                    {{ formatStudentPaymentDate(props.summary.nextDueDate) }}
                 </p>
             </div>
         </div>
@@ -307,7 +252,12 @@ function handleUpdate(paymentId: string): void {
                             {{ payment.courseName }}
                         </p>
                         <p class="text-muted-foreground text-xs">
-                            {{ formatAmount(payment.amount, payment.currency) }}
+                            {{
+                                formatStudentPaymentAmount(
+                                    payment.amount,
+                                    payment.currency,
+                                )
+                            }}
                         </p>
                     </div>
                     <input
