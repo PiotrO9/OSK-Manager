@@ -9,6 +9,11 @@ import {
     getEventStudentPickerStudentsFetchLimit,
     isEventStudentPickerRowSelectionBlocked,
 } from '~/utils/events/eventStudentPickerStudents';
+import {
+    getAssignStudentsToEventSuccessDescription,
+    getEventStudentPickerPrimarySubmitLabel,
+    isEventStudentPickerSubmitDisabled,
+} from '~/utils/events/eventStudentPickerSubmit';
 
 const props = defineProps<{
     eventId: string;
@@ -217,15 +222,9 @@ async function handleSubmit(): Promise<void> {
             selectedStudentUserIds.value,
         );
 
-        const parts: string[] = [`Dopisano: ${result.assigned}.`];
-
-        if (result.skipped > 0) {
-            parts.push(`Pominięto już zapisanych: ${result.skipped}.`);
-        }
-
         addToast({
             title: 'Kursanci przypisani',
-            description: parts.join(' '),
+            description: getAssignStudentsToEventSuccessDescription(result),
             variant: 'success',
         });
 
@@ -240,31 +239,17 @@ async function handleSubmit(): Promise<void> {
 }
 
 const isSubmitDisabled = computed((): boolean => {
-    if (isAssigning.value) {
-        return true;
-    }
-
-    const cap = capacityNumber.value;
-
-    if (cap === 0) {
-        return true;
-    }
-
-    return false;
+    return isEventStudentPickerSubmitDisabled({
+        isAssigning: isAssigning.value,
+        capacityNumber: capacityNumber.value,
+    });
 });
 
 const primarySubmitLabel = computed((): string => {
-    if (isAssigning.value) {
-        return 'Zapisywanie…';
-    }
-
-    const n = selectedCount.value;
-
-    if (n === 0) {
-        return 'Kontynuuj bez kursantów';
-    }
-
-    return `Zapisz (${n}) kursantów`;
+    return getEventStudentPickerPrimarySubmitLabel({
+        isAssigning: isAssigning.value,
+        selectedCount: selectedCount.value,
+    });
 });
 </script>
 
