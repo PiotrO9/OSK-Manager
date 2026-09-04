@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-
-export interface StudentRegisterPayload {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    schoolId: string;
-}
+import {
+    buildStudentRegisterPayload,
+    getEmptyStudentFormValidationState,
+    hasStudentFormValidationErrors,
+    resolveDefaultStudentSchoolId,
+    STUDENT_PASSWORD_MIN_LENGTH,
+    validateStudentFormDraft,
+    type StudentRegisterPayload,
+} from '~/utils/students/managerStudentFormDialog';
 
 interface Props {
     open: boolean;
@@ -34,41 +35,21 @@ const firstNameModel = ref('');
 const lastNameModel = ref('');
 const schoolIdModel = ref('');
 
-const showEmailRequired = ref(false);
-const showEmailInvalid = ref(false);
-const showPasswordRequired = ref(false);
-const showPasswordTooShort = ref(false);
-const showFirstRequired = ref(false);
-const showLastRequired = ref(false);
-const showSchoolRequired = ref(false);
+const validation = reactive(getEmptyStudentFormValidationState());
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_MIN = 6;
-const UUID_RE =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-function isUuid(value: string): boolean {
-    return UUID_RE.test(value.trim());
-}
+const showEmailRequired = computed(() => validation.showEmailRequired);
+const showEmailInvalid = computed(() => validation.showEmailInvalid);
+const showPasswordRequired = computed(() => validation.showPasswordRequired);
+const showPasswordTooShort = computed(() => validation.showPasswordTooShort);
+const showFirstRequired = computed(() => validation.showFirstRequired);
+const showLastRequired = computed(() => validation.showLastRequired);
+const showSchoolRequired = computed(() => validation.showSchoolRequired);
 
 function applyDefaultSchoolId() {
-    const pre = props.prefillSchoolId;
-
-    if (pre && isUuid(pre)) {
-        const exists = props.schools.some((s) => s.id === pre);
-
-        if (exists) {
-            schoolIdModel.value = pre;
-
-            return;
-        }
-    }
-
-    if (props.schools.length === 1) {
-        const only = props.schools[0];
-
-        if (only) schoolIdModel.value = only.id;
-    }
+    schoolIdModel.value = resolveDefaultStudentSchoolId(
+        props.schools,
+        props.prefillSchoolId,
+    );
 }
 
 function resetValidationAndFields() {
@@ -77,13 +58,7 @@ function resetValidationAndFields() {
     firstNameModel.value = '';
     lastNameModel.value = '';
     schoolIdModel.value = '';
-    showEmailRequired.value = false;
-    showEmailInvalid.value = false;
-    showPasswordRequired.value = false;
-    showPasswordTooShort.value = false;
-    showFirstRequired.value = false;
-    showLastRequired.value = false;
-    showSchoolRequired.value = false;
+    Object.assign(validation, getEmptyStudentFormValidationState());
 }
 
 watch(
@@ -118,40 +93,21 @@ function handleCancel() {
 function handleFormSubmit() {
     if (props.isSaving) return;
 
-    const email = emailModel.value.trim();
-    const password = passwordModel.value;
-    const firstName = firstNameModel.value.trim();
-    const lastName = lastNameModel.value.trim();
-    const schoolId = schoolIdModel.value.trim();
+    const draft = {
+        email: emailModel.value,
+        password: passwordModel.value,
+        firstName: firstNameModel.value,
+        lastName: lastNameModel.value,
+        schoolId: schoolIdModel.value,
+    };
 
-    showEmailRequired.value = email.length === 0;
-    showEmailInvalid.value = email.length > 0 && !EMAIL_RE.test(email);
-    showPasswordRequired.value = password.length === 0;
-    showPasswordTooShort.value =
-        password.length > 0 && password.length < PASSWORD_MIN;
-    showFirstRequired.value = firstName.length === 0;
-    showLastRequired.value = lastName.length === 0;
-    showSchoolRequired.value = !schoolId || !isUuid(schoolId);
+    Object.assign(validation, validateStudentFormDraft(draft));
 
-    if (
-        showEmailRequired.value ||
-        showEmailInvalid.value ||
-        showPasswordRequired.value ||
-        showPasswordTooShort.value ||
-        showFirstRequired.value ||
-        showLastRequired.value ||
-        showSchoolRequired.value
-    ) {
+    if (hasStudentFormValidationErrors(validation)) {
         return;
     }
 
-    emit('submit', {
-        email,
-        password,
-        firstName,
-        lastName,
-        schoolId,
-    });
+    emit('submit', buildStudentRegisterPayload(draft));
 }
 </script>
 
@@ -299,7 +255,7 @@ function handleFormSubmit() {
                         {{
                             showPasswordRequired
                                 ? 'Hasło jest wymagane.'
-                                : `Minimum ${PASSWORD_MIN} znaków.`
+                                : `Minimum ${STUDENT_PASSWORD_MIN_LENGTH} znaków.`
                         }}
                     </p>
                 </div>

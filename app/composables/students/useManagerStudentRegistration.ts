@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
-import type { StudentRegisterPayload } from '~/components/manager/students/ManagerStudentFormDialog.vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { StudentRegisterPayload } from '~/utils/students/managerStudentFormDialog';
 import { useManagerStudentCreate } from './useManagerStudentCreate';
 
 interface UseManagerStudentRegistrationOptions {
