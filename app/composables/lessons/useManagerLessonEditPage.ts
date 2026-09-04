@@ -1,7 +1,12 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
-import type { HeaderMetaItem, StatusTone } from '~/components/app/ui/types';
+import {
+    buildManagerLessonHeaderMeta,
+    formatManagerLessonDateRangeLabel,
+    getManagerLessonStatusLabel,
+    getManagerLessonStatusTone,
+} from '~/utils/lessons/managerLessonEditPresentation';
 
 const FORM_ID = 'manager-lesson-edit-form';
 
@@ -111,90 +116,26 @@ export function useManagerLessonEditPage() {
         return '/manager/schedule';
     });
 
-    const lessonStatusLabelMap: Record<string, string> = {
-        SCHEDULED: 'Zaplanowana',
-        COMPLETED: 'Zakonczona',
-        CANCELLED: 'Anulowana',
-        CANCELED: 'Anulowana',
-    };
-
-    const lessonStatusToneMap: Record<string, StatusTone> = {
-        SCHEDULED: 'info',
-        COMPLETED: 'success',
-        CANCELLED: 'danger',
-        CANCELED: 'danger',
-    };
-
-    const lessonStatusLabel = computed((): string => {
-        const status = loadedLesson.value?.status.trim() ?? '';
-
-        if (!status) {
-            return '-';
-        }
-
-        return lessonStatusLabelMap[status] ?? status;
-    });
-
-    const lessonStatusTone = computed(
-        (): StatusTone =>
-            lessonStatusToneMap[loadedLesson.value?.status.trim() ?? ''] ??
-            'neutral',
+    const lessonStatusLabel = computed(() =>
+        getManagerLessonStatusLabel(loadedLesson.value?.status),
+    );
+    const lessonStatusTone = computed(() =>
+        getManagerLessonStatusTone(loadedLesson.value?.status),
     );
 
-    function formatDateRangeLabel(startIso?: string, endIso?: string): string {
-        const start = startIso ? new Date(startIso) : null;
-        const end = endIso ? new Date(endIso) : null;
-
-        if (
-            !start ||
-            !end ||
-            Number.isNaN(start.getTime()) ||
-            Number.isNaN(end.getTime())
-        ) {
-            return 'Termin lekcji';
-        }
-
-        const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
-            day: '2-digit',
-            month: 'long',
-        });
-        const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-
-        return `${dateFormatter.format(start)}, ${timeFormatter.format(start)}-${timeFormatter.format(end)}`;
-    }
-
     const lessonDateLabel = computed(() =>
-        formatDateRangeLabel(
+        formatManagerLessonDateRangeLabel(
             loadedLesson.value?.startTime,
             loadedLesson.value?.endTime,
         ),
     );
 
-    const lessonHeaderMeta = computed<HeaderMetaItem[]>(() => {
-        const lesson = loadedLesson.value;
-
-        if (!lesson) {
-            return [];
-        }
-
-        return [
-            {
-                label: 'Kursant',
-                value:
-                    studentDisplayName.value ??
-                    `${lesson.studentId.slice(0, 8)}...`,
-                tone: 'neutral',
-            },
-            {
-                label: 'Status',
-                value: lessonStatusLabel.value,
-                tone: lessonStatusTone.value,
-            },
-        ];
-    });
+    const lessonHeaderMeta = computed(() =>
+        buildManagerLessonHeaderMeta(
+            loadedLesson.value,
+            studentDisplayName.value,
+        ),
+    );
 
     async function loadLesson(): Promise<void> {
         const id = lessonId.value;
