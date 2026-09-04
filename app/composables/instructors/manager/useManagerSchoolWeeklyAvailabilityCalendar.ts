@@ -1,5 +1,4 @@
 import type { CalendarDate, DateValue } from '@internationalized/date';
-import { toDate } from 'reka-ui/date';
 import { useCoursesApi } from '~/composables/courses/useCoursesApi';
 import { useSchoolAvailabilitySlotsApi } from '~/composables/schools/useSchoolAvailabilitySlotsApi';
 import type { CourseListItem } from '~/types/courses/course';
@@ -10,7 +9,6 @@ import type {
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
-    formatDateOnly,
     getMonday,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
@@ -20,6 +18,9 @@ import {
 import {
     buildSchoolAvailabilityAggregatedSlots,
     buildSchoolAvailabilityCalendarFiltersPayload,
+    buildSchoolAvailabilityWeekDays,
+    formatSchoolAvailabilityWeekRangeLabel,
+    getSchoolAvailabilitySelectedWeekMonday,
     getSchoolAvailabilitySlotTopPx,
     isSchoolAvailabilitySlotInsideTimeline,
     MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
@@ -76,60 +77,13 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         ),
     );
 
-    const weekDays = computed(() => {
-        const out: {
-            date: Date;
-            dateStr: string;
-            header: string;
-            isToday: boolean;
-        }[] = [];
+    const weekDays = computed(() =>
+        buildSchoolAvailabilityWeekDays(weekStart.value),
+    );
 
-        const start = new Date(
-            weekStart.value.getFullYear(),
-            weekStart.value.getMonth(),
-            weekStart.value.getDate(),
-        );
-
-        const todayStr = formatDateOnly(new Date());
-
-        for (let i = 0; i < 7; i += 1) {
-            const d = new Date(
-                start.getFullYear(),
-                start.getMonth(),
-                start.getDate() + i,
-            );
-            const dateStr = formatDateOnly(d);
-
-            out.push({
-                date: d,
-                dateStr,
-                header: d.toLocaleDateString('pl-PL', {
-                    weekday: 'short',
-                    day: 'numeric',
-                    month: 'numeric',
-                }),
-                isToday: dateStr === todayStr,
-            });
-        }
-
-        return out;
-    });
-
-    const weekRangeLabel = computed(() => {
-        const end = new Date(
-            weekStart.value.getFullYear(),
-            weekStart.value.getMonth(),
-            weekStart.value.getDate() + 6,
-        );
-
-        const opts: Intl.DateTimeFormatOptions = {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        };
-
-        return `${weekStart.value.toLocaleDateString('pl-PL', opts)} – ${end.toLocaleDateString('pl-PL', opts)}`;
-    });
+    const weekRangeLabel = computed(() =>
+        formatSchoolAvailabilityWeekRangeLabel(weekStart.value),
+    );
 
     const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
         buildSchoolAvailabilityAggregatedSlots(slots.value).filter(
@@ -292,25 +246,11 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     function handleCalendarUpdate(
         value: DateValue | DateValue[] | undefined,
     ): void {
-        if (value === undefined) {
+        const monday = getSchoolAvailabilitySelectedWeekMonday(value);
+
+        if (monday === null) {
             return;
         }
-
-        const arr = Array.isArray(value) ? value : [value];
-
-        if (arr.length === 0) {
-            return;
-        }
-
-        let anchor = arr[0]!;
-
-        for (const v of arr) {
-            if (toDate(v).getTime() > toDate(anchor).getTime()) {
-                anchor = v;
-            }
-        }
-
-        const monday = getMonday(toDate(anchor));
 
         weekStart.value = monday;
         calendarSelected.value = weekCalendarDatesFromMonday(monday);

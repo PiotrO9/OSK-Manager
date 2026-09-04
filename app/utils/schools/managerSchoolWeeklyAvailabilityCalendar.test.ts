@@ -1,9 +1,13 @@
+import { CalendarDate } from '@internationalized/date';
 import { describe, expect, it } from 'vitest';
 import type { LessonBookingAggregatedSlot } from '~/types/lessons/lessonBooking';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 import {
     buildSchoolAvailabilityAggregatedSlots,
     buildSchoolAvailabilityCalendarFiltersPayload,
+    buildSchoolAvailabilityWeekDays,
+    formatSchoolAvailabilityWeekRangeLabel,
+    getSchoolAvailabilitySelectedWeekMonday,
     getSchoolAvailabilitySlotTopPx,
     isSchoolAvailabilitySlotInsideTimeline,
     schoolAvailabilityTimeToMinutes,
@@ -44,6 +48,43 @@ describe('manager school weekly availability calendar utilities', () => {
             limit: 500,
             sort: 'startTime',
         });
+    });
+
+    it('builds calendar week days with stable date strings and today marker', () => {
+        expect(
+            buildSchoolAvailabilityWeekDays(
+                new Date(2026, 8, 7),
+                new Date(2026, 8, 9),
+            ).map((day) => ({
+                dateStr: day.dateStr,
+                isToday: day.isToday,
+            })),
+        ).toEqual([
+            { dateStr: '2026-09-07', isToday: false },
+            { dateStr: '2026-09-08', isToday: false },
+            { dateStr: '2026-09-09', isToday: true },
+            { dateStr: '2026-09-10', isToday: false },
+            { dateStr: '2026-09-11', isToday: false },
+            { dateStr: '2026-09-12', isToday: false },
+            { dateStr: '2026-09-13', isToday: false },
+        ]);
+    });
+
+    it('formats the selected week range label', () => {
+        expect(
+            formatSchoolAvailabilityWeekRangeLabel(new Date(2026, 8, 7)),
+        ).toBe('7 września 2026 – 13 września 2026');
+    });
+
+    it('picks the monday for the latest selected calendar date', () => {
+        expect(getSchoolAvailabilitySelectedWeekMonday(undefined)).toBeNull();
+        expect(getSchoolAvailabilitySelectedWeekMonday([])).toBeNull();
+        expect(
+            getSchoolAvailabilitySelectedWeekMonday([
+                new CalendarDate(2026, 9, 8),
+                new CalendarDate(2026, 9, 10),
+            ]),
+        ).toEqual(new Date(2026, 8, 7));
     });
 
     it('converts valid time strings to minutes and rejects invalid values', () => {
