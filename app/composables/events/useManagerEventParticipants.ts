@@ -6,6 +6,19 @@ import type {
 } from '~/types/events/instructorEvent';
 import type { StudentListItem } from '~/types/students/student';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import {
+    formatManagerEventTheoryCapacitySummary,
+    getManagerEventCanonicalParticipantUserId,
+    getManagerEventCapacityLimitError,
+    isManagerEventEligibleRowInteractive,
+    isManagerEventTheoryEvent,
+    isManagerEventTheoryRowChecked,
+    isManagerEventTheoryStudentsDirty,
+    managerEventDraftIdBelongsToStudentRow,
+    readManagerEventStudentUserIds,
+    resolveManagerEventCapacityForStudentPicker,
+    sortManagerEventParticipantIds,
+} from '~/utils/events/managerEventParticipants';
 
 type FetchTheoryEligibleStudents = (
     eventId: string,
@@ -34,65 +47,17 @@ export function useManagerEventParticipants(input: {
     let eligibleDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     let eligibleSeq = 0;
 
-    function sortedStudentIds(ids: string[]): string[] {
-        return [...ids]
-            .map((s) => s.trim())
-            .filter(Boolean)
-            .sort();
-    }
-
-    function draftIdBelongsToStudentRow(
-        row: StudentListItem,
-        assignedId: string,
-    ): boolean {
-        const t = assignedId.trim();
-
-        if (!t) {
-            return false;
-        }
-
-        if (t === row.userId.trim()) {
-            return true;
-        }
-
-        const pid = row.id?.trim();
-
-        return Boolean(pid && t === pid);
-    }
-
     function isTheoryRowChecked(s: StudentListItem): boolean {
-        for (const raw of draftTheoryStudentUserIds.value) {
-            if (draftIdBelongsToStudentRow(s, raw)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    function getCanonicalParticipantUserIdForRow(s: StudentListItem): string {
-        return s.userId.trim() || s.id.trim();
+        return isManagerEventTheoryRowChecked({
+            row: s,
+            draftIds: draftTheoryStudentUserIds.value,
+        });
     }
 
     const theoryCapacitySummary = computed((): string | null => {
-        const d = theoryEligibleData.value;
-
-        if (!d) {
-            return null;
-        }
-
-        const { limit, used, remaining } = d.capacity;
-
-        if (limit === null) {
-            return `Miejsca na evencie: ${used} (bez limitu)`;
-        }
-
-        const rem =
-            remaining === null
-                ? '---'
-                : String(Math.max(0, Math.trunc(remaining)));
-
-        return `Miejsca: ${used} / ${limit} (wolnych: ${rem})`;
+        return formatManagerEventTheoryCapacitySummary(
+            theoryEligibleData.value,
+        );
     });
 
     const studentAttendanceKnown = computed(
@@ -102,34 +67,20 @@ export function useManagerEventParticipants(input: {
     const isTheoryStudentsDirty = computed((): boolean => {
         const ev = input.loadedEvent.value;
 
-        if (
-            !ev ||
-            String(ev.type ?? '')
-                .trim()
-                .toUpperCase() !== 'THEORY'
-        ) {
-            return false;
-        }
-
-        return (
-            JSON.stringify(
-                sortedStudentIds(draftTheoryStudentUserIds.value),
-            ) !== JSON.stringify(theoryStudentsBaseline.value)
-        );
+        return isManagerEventTheoryStudentsDirty({
+            event: ev,
+            draftIds: draftTheoryStudentUserIds.value,
+            baselineIds: theoryStudentsBaseline.value,
+        });
     });
 
     const capacityForStudentPicker = computed((): number | null => {
         const parsed = input.parseCapacity(input.formCapacityInput.value);
 
-        if (parsed === false) {
-            return input.loadedEvent.value?.capacity ?? null;
-        }
-
-        if (parsed !== null) {
-            return parsed;
-        }
-
-        return input.loadedEvent.value?.capacity ?? null;
+        return resolveManagerEventCapacityForStudentPicker({
+            parsedCapacity: parsed,
+            eventCapacity: input.loadedEvent.value?.capacity,
+        });
     });
 
     async function loadTheoryEligibleStudents(): Promise<void> {
@@ -140,13 +91,7 @@ export function useManagerEventParticipants(input: {
         const id = input.eventId.value.trim();
         const ev = input.loadedEvent.value;
 
-        if (
-            !id ||
-            !ev ||
-            String(ev.type ?? '')
-                .trim()
-                .toUpperCase() !== 'THEORY'
-        ) {
+        if (!id || !ev || !isManagerEventTheoryEvent(ev)) {
             return;
         }
 
@@ -180,12 +125,9 @@ export function useManagerEventParticipants(input: {
             return;
         }
 
-        const ids = ev.studentUserIds;
-        const arr = Array.isArray(ids)
-            ? ids.map((x) => String(x).trim()).filter(Boolean)
-            : [];
+        const arr = readManagerEventStudentUserIds(ev);
 
-        theoryStudentsBaseline.value = sortedStudentIds(arr);
+        theoryStudentsBaseline.value = sortManagerEventParticipantIds(arr);
         draftTheoryStudentUserIds.value = [...arr];
     }
 
@@ -211,7 +153,7 @@ export function useManagerEventParticipants(input: {
     function isTheoryEligibleRowInteractive(
         row: TheoryEventEligibleStudentRow,
     ): boolean {
-        return row.isAssignedToEvent || row.canAssign;
+        return isManagerEventEligibleRowInteractive(row);
     }
 
     function handleToggleTheoryStudent(
@@ -222,14 +164,15 @@ export function useManagerEventParticipants(input: {
 
         const cap = capacityForStudentPicker.value;
 
-        if (
-            next &&
-            cap !== null &&
-            !isTheoryRowChecked(s) &&
-            draftTheoryStudentUserIds.value.length >= Math.trunc(cap)
-        ) {
-            theoryStudentsError.value =
-                'Osiągnięto limit miejsc - odznacz kogoś lub zwiększ limit w danych bloku.';
+        const capacityError = getManagerEventCapacityLimitError({
+            nextChecked: next,
+            capacity: cap,
+            isAlreadyChecked: isTheoryRowChecked(s),
+            draftCount: draftTheoryStudentUserIds.value.length,
+        });
+
+        if (capacityError) {
+            theoryStudentsError.value = capacityError;
 
             return;
         }
@@ -239,7 +182,7 @@ export function useManagerEventParticipants(input: {
                 return;
             }
 
-            const canonical = getCanonicalParticipantUserIdForRow(s);
+            const canonical = getManagerEventCanonicalParticipantUserId(s);
 
             if (!canonical) {
                 return;
@@ -255,7 +198,7 @@ export function useManagerEventParticipants(input: {
 
         draftTheoryStudentUserIds.value =
             draftTheoryStudentUserIds.value.filter(
-                (id) => !draftIdBelongsToStudentRow(s, id),
+                (id) => !managerEventDraftIdBelongsToStudentRow(s, id),
             );
     }
 
@@ -263,9 +206,11 @@ export function useManagerEventParticipants(input: {
         () =>
             [
                 input.loadedEvent.value?.id ?? '',
-                String(input.loadedEvent.value?.type ?? '')
-                    .trim()
-                    .toUpperCase(),
+                isManagerEventTheoryEvent(input.loadedEvent.value)
+                    ? 'THEORY'
+                    : String(input.loadedEvent.value?.type ?? '')
+                          .trim()
+                          .toUpperCase(),
                 input.loadedEvent.value?.courseId?.trim() ?? '',
             ] as const,
         () => {
@@ -282,12 +227,12 @@ export function useManagerEventParticipants(input: {
                 return null;
             }
 
-            const ids = ev.studentUserIds;
-            const arr = Array.isArray(ids)
-                ? ids.map((x) => String(x).trim()).filter(Boolean)
-                : [];
+            const arr = readManagerEventStudentUserIds(ev);
 
-            return [ev.id, sortedStudentIds(arr).join(',')] as const;
+            return [
+                ev.id,
+                sortManagerEventParticipantIds(arr).join(','),
+            ] as const;
         },
         () => {
             resetStudentDraftFromEvent(input.loadedEvent.value);
@@ -299,13 +244,7 @@ export function useManagerEventParticipants(input: {
         const ev = input.loadedEvent.value;
         const id = input.eventId.value.trim();
 
-        if (
-            !id ||
-            !ev?.courseId?.trim() ||
-            String(ev.type ?? '')
-                .trim()
-                .toUpperCase() !== 'THEORY'
-        ) {
+        if (!id || !ev?.courseId?.trim() || !isManagerEventTheoryEvent(ev)) {
             return;
         }
 
@@ -366,7 +305,7 @@ export function useManagerEventParticipants(input: {
         studentAttendanceKnown,
         isTheoryStudentsDirty,
         capacityForStudentPicker,
-        sortedStudentIds,
+        sortedStudentIds: sortManagerEventParticipantIds,
         isTheoryRowChecked,
         isTheoryEligibleRowInteractive,
         handleToggleTheoryStudent,
