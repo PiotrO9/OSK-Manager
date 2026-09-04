@@ -11,6 +11,14 @@ import {
     labelForInstructorEventStatusRaw,
     normalizeInstructorEventStatus,
 } from '~/utils/events/instructorEventStatusDisplay';
+import {
+    displaySchedulePerson,
+    displayScheduleVehicle,
+    formatScheduleLessonDateTime,
+    isStudentCancellableScheduleLesson,
+    labelForScheduleLessonStatus,
+    labelForScheduleLessonType,
+} from '~/utils/schedule/managerScheduleLessonTable';
 
 const props = withDefaults(
     defineProps<{
@@ -93,9 +101,7 @@ function handleRequestCancelLessonClick(item: ScheduleLessonItem): void {
 function isStudentCancellableLesson(item: ScheduleLessonItem): boolean {
     return (
         props.studentLessonCancelEnabled &&
-        item.kind === 'lesson' &&
-        item.type.trim().toUpperCase() === 'PRACTICE' &&
-        item.status.trim().toUpperCase() === 'SCHEDULED'
+        isStudentCancellableScheduleLesson(item)
     );
 }
 
@@ -113,84 +119,6 @@ function rowTitle(item: ScheduleLessonItem): string | undefined {
     }
 
     return undefined;
-}
-
-function formatIsoLocal(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-    }).format(d);
-}
-
-function displayPerson(
-    p: { firstName: string; lastName: string } | undefined,
-): string {
-    if (!p) {
-        return '—';
-    }
-
-    const s = `${p.firstName} ${p.lastName}`.trim();
-
-    return s.length > 0 ? s : '—';
-}
-
-function displayVehicle(
-    v: { name: string; registrationNumber: string } | undefined,
-): string {
-    if (!v) {
-        return '—';
-    }
-
-    const name = v.name.trim();
-    const reg = v.registrationNumber.trim();
-
-    if (name && reg) {
-        return `${name} (${reg})`;
-    }
-
-    return name || reg || '—';
-}
-
-function labelForLessonType(rawType: string): string {
-    const normalized = rawType.trim().toUpperCase();
-
-    if (normalized === 'PRACTICE') {
-        return 'Jazda praktyczna';
-    }
-
-    if (normalized === 'THEORY') {
-        return 'Teoria';
-    }
-
-    return rawType.trim() || '—';
-}
-
-function labelForLessonStatus(rawStatus: string): string {
-    const normalized = rawStatus.trim().toUpperCase();
-
-    if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
-        return 'Zaplanowana';
-    }
-
-    if (normalized === 'COMPLETED' || normalized === 'FINISHED') {
-        return 'Zrealizowana';
-    }
-
-    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
-        return 'Anulowana';
-    }
-
-    if (normalized === 'NO_SHOW') {
-        return 'Nie stawil sie';
-    }
-
-    return rawStatus.trim() || '—';
 }
 </script>
 
@@ -259,13 +187,13 @@ function labelForLessonStatus(rawStatus: string): string {
                     @keydown="handleRowKeydown($event, item)"
                 >
                     <td class="px-4 py-3 whitespace-nowrap">
-                        {{ formatIsoLocal(item.startTime) }}
+                        {{ formatScheduleLessonDateTime(item.startTime) }}
                     </td>
                     <td class="px-4 py-3 whitespace-nowrap">
-                        {{ formatIsoLocal(item.endTime) }}
+                        {{ formatScheduleLessonDateTime(item.endTime) }}
                     </td>
                     <td class="px-4 py-3">
-                        {{ labelForLessonType(item.type) }}
+                        {{ labelForScheduleLessonType(item.type) }}
                     </td>
                     <td class="px-4 py-3 align-top" @click.stop>
                         <ManagerEventStatusSelect
@@ -290,17 +218,17 @@ function labelForLessonStatus(rawStatus: string): string {
                             {{ labelForInstructorEventStatusRaw(item.status) }}
                         </UiBadge>
                         <span v-else>{{
-                            labelForLessonStatus(item.status)
+                            labelForScheduleLessonStatus(item.status)
                         }}</span>
                     </td>
                     <td class="px-4 py-3">
-                        {{ displayPerson(item.instructor) }}
+                        {{ displaySchedulePerson(item.instructor) }}
                     </td>
                     <td class="px-4 py-3">
-                        {{ displayPerson(item.student) }}
+                        {{ displaySchedulePerson(item.student) }}
                     </td>
                     <td class="px-4 py-3">
-                        {{ displayVehicle(item.vehicle) }}
+                        {{ displayScheduleVehicle(item.vehicle) }}
                     </td>
                     <td
                         v-if="hasActionsColumn"
@@ -313,7 +241,7 @@ function labelForLessonStatus(rawStatus: string): string {
                             variant="destructive"
                             size="sm"
                             class="shrink-0"
-                            :aria-label="`Usuń blok czasu ${formatIsoLocal(item.startTime)} — ${formatIsoLocal(item.endTime)}`"
+                            :aria-label="`Usuń blok czasu ${formatScheduleLessonDateTime(item.startTime)} — ${formatScheduleLessonDateTime(item.endTime)}`"
                             @click="handleRequestDeleteClick(item)"
                         >
                             Usuń
@@ -326,7 +254,7 @@ function labelForLessonStatus(rawStatus: string): string {
                             class="shrink-0"
                             :disabled="props.cancellingLessonId === item.id"
                             :aria-busy="props.cancellingLessonId === item.id"
-                            :aria-label="`Anuluj rezerwację ${formatIsoLocal(item.startTime)} - ${formatIsoLocal(item.endTime)}`"
+                            :aria-label="`Anuluj rezerwację ${formatScheduleLessonDateTime(item.startTime)} - ${formatScheduleLessonDateTime(item.endTime)}`"
                             @click="handleRequestCancelLessonClick(item)"
                         >
                             {{
