@@ -1,12 +1,15 @@
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-import { normalizeInstructorsList } from '~/types/instructors/instructor';
-import { normalizeStudentListPage } from '~/types/students/student';
 import {
     getOskClearDefaultBlockedMessage,
     isOskDefaultSwitchLocked,
 } from '~/utils/schools/drivingSchoolRules';
 import { toastFormZodError } from '~/utils/forms/formToast';
 import { oskFormSchema } from '~/utils/forms/oskFormSchema';
+import {
+    buildManagerOskCreateBody,
+    buildManagerOskUpdateBody,
+    countManagerOskDefaultSchools,
+} from '~/utils/schools/managerOskPage';
 
 export function useManagerOskPage() {
     const toast = useAppToast();
@@ -24,9 +27,6 @@ export function useManagerOskPage() {
 
     const schools = ref<DrivingSchool[]>([]);
     const loadError = ref<string | null>(null);
-    const statsError = ref<string | null>(null);
-    const instructorCount = ref<number | null>(null);
-    const studentCount = ref<number | null>(null);
     const deletingId = ref<string | null>(null);
     const confirmTarget = ref<DrivingSchool | null>(null);
 
@@ -39,7 +39,14 @@ export function useManagerOskPage() {
     const editTarget = ref<DrivingSchool | null>(null);
 
     const isLocalCreateSaving = ref(false);
-    const isStatsLoading = ref(false);
+    const {
+        statsError,
+        instructorCount,
+        studentCount,
+        isStatsLoading,
+        loadSchoolStats,
+        clearSchoolStats,
+    } = useManagerOskStats();
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
     const isEditSaving = computed(
@@ -52,83 +59,9 @@ export function useManagerOskPage() {
     const isDefaultSwitchLocked = computed(() =>
         isOskDefaultSwitchLocked(schools.value, editTarget.value),
     );
-    const defaultSchoolCount = computed(
-        () =>
-            schools.value.filter((school) => school.isDefault === true).length,
+    const defaultSchoolCount = computed(() =>
+        countManagerOskDefaultSchools(schools.value),
     );
-
-    async function fetchInstructorCount(schoolId: string): Promise<number> {
-        return await requestBffData<number>(
-            'GET',
-            `/api/instructors?schoolId=${encodeURIComponent(schoolId)}`,
-            {
-                fallbackMessage: 'Nie udało się pobrać liczby instruktorów.',
-                normalize: (data) => normalizeInstructorsList(data).length,
-            },
-        );
-    }
-
-    async function fetchStudentCount(schoolId: string): Promise<number> {
-        const qs = new URLSearchParams({
-            schoolId,
-            page: '1',
-            limit: '1',
-        });
-
-        return await requestBffData<number>(
-            'GET',
-            `/api/students?${qs.toString()}`,
-            {
-                fallbackMessage: 'Nie udało się pobrać liczby kursantów.',
-                normalize: (data) => normalizeStudentListPage(data)?.total ?? 0,
-            },
-        );
-    }
-
-    async function loadSchoolStats(list: DrivingSchool[]) {
-        statsError.value = null;
-
-        if (list.length === 0) {
-            instructorCount.value = 0;
-            studentCount.value = 0;
-
-            return;
-        }
-
-        isStatsLoading.value = true;
-
-        try {
-            const [instructorResults, studentResults] = await Promise.all([
-                Promise.allSettled(
-                    list.map((school) => fetchInstructorCount(school.id)),
-                ),
-                Promise.allSettled(
-                    list.map((school) => fetchStudentCount(school.id)),
-                ),
-            ]);
-
-            const hasRejected = [...instructorResults, ...studentResults].some(
-                (result) => result.status === 'rejected',
-            );
-
-            instructorCount.value = instructorResults.reduce(
-                (sum, result) =>
-                    result.status === 'fulfilled' ? sum + result.value : sum,
-                0,
-            );
-            studentCount.value = studentResults.reduce(
-                (sum, result) =>
-                    result.status === 'fulfilled' ? sum + result.value : sum,
-                0,
-            );
-
-            if (hasRejected) {
-                statsError.value = 'Część statystyk OSK nie została wczytana.';
-            }
-        } finally {
-            isStatsLoading.value = false;
-        }
-    }
 
     async function loadSchools() {
         loadError.value = null;
@@ -137,8 +70,7 @@ export function useManagerOskPage() {
             schools.value = await fetchList();
             await loadSchoolStats(schools.value);
         } catch (err) {
-            instructorCount.value = null;
-            studentCount.value = null;
+            clearSchoolStats();
             loadError.value =
                 err instanceof Error
                     ? err.message
@@ -242,9 +174,6 @@ export function useManagerOskPage() {
             return;
         }
 
-        const cityTrim = parsed.data.city?.trim();
-        const addressTrim = parsed.data.address?.trim();
-
         if (formDialogMode.value === 'edit') {
             const school = editTarget.value;
 
@@ -264,9 +193,7 @@ export function useManagerOskPage() {
 
             try {
                 await update(school.id, {
-                    name: parsed.data.name,
-                    city: cityTrim ?? null,
-                    address: addressTrim ?? null,
+                    ...buildManagerOskUpdateBody(parsed.data),
                 });
 
                 if (formAsDefault.value) {
@@ -300,11 +227,7 @@ export function useManagerOskPage() {
         isLocalCreateSaving.value = true;
 
         try {
-            await create({
-                name: parsed.data.name,
-                ...(cityTrim ? { city: cityTrim } : {}),
-                ...(addressTrim ? { address: addressTrim } : {}),
-            });
+            await create(buildManagerOskCreateBody(parsed.data));
 
             await loadSchools();
 
