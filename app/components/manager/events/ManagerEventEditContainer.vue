@@ -226,113 +226,50 @@ const {
         </template>
 
         <template v-else-if="loadedEvent">
-            <FormSection
-                title="Edytuj wydarzenie"
-                description="Formularz podzielony na logiczne sekcje, bez zmiany walidacji i flow."
-            >
-                <div class="mb-4 flex justify-end">
-                    <UiBadge
-                        variant="outline"
-                        class="rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
-                    >
-                        FormSection
-                    </UiBadge>
-                </div>
-
-                <div class="mb-5 max-w-sm space-y-2">
-                    <p class="text-muted-foreground text-xs">
-                        Status wydarzenia
-                    </p>
-                    <ManagerEventStatusSelect
-                        :event-id="loadedEvent.id"
-                        :status="loadedEvent.status"
-                        @update:status="handleEventStatusPatched"
-                    />
-                </div>
-
-                <form
-                    id="event-edit-form"
-                    class="space-y-5"
-                    aria-label="Formularz edycji wydarzenia"
-                    :aria-busy="isSaving"
-                    @submit.prevent="handleSubmit"
-                >
-                    <ManagerEventResourceFields
-                        v-model:instructor-id="formInstructorId"
-                        v-model:vehicle-id="formVehicleId"
-                        :event-type="formType"
-                        :school-id="schoolId"
-                        :instructors="qualifiedInstructorsForEvent"
-                        :instructor-select-label="instructorSelectLabel"
-                        :is-instructors-loading="isInstructorsLoading"
-                        :instructors-error="instructorsError"
-                        :vehicles="vehicles"
-                        :is-vehicles-loading="isVehiclesLoading"
-                        :vehicles-error="vehiclesError"
-                        :is-saving="isSaving"
-                    />
-                    <ManagerEventTimeFields
-                        :start-date="formStartDate"
-                        :start-hour="formStartHour"
-                        :start-minute="formStartMinute"
-                        :end-date="formEndDate"
-                        :end-hour="formEndHour"
-                        :end-minute="formEndMinute"
-                        :start-hour-options="startHourOptionsResolved"
-                        :start-minute-options="startMinuteOptionsResolved"
-                        :end-hour-options="endHourOptionsResolved"
-                        :end-minute-options="endMinuteOptionsResolved"
-                        :min-date="pickerMinDate"
-                        :max-date="pickerMaxDate"
-                        :is-saving="isSaving"
-                        @start-date-change="handleStartDateChange"
-                        @start-hour-change="handleStartHourChange"
-                        @start-minute-change="handleStartMinuteChange"
-                        @end-date-change="handleEndDateChange"
-                        @end-hour-change="handleEndHourChange"
-                        @end-minute-change="handleEndMinuteChange"
-                    />
-
-                    <p
-                        v-if="isSlotsLoading"
-                        class="text-muted-foreground text-xs"
-                        role="status"
-                    >
-                        Aktualizacja dostępnych okien grafiku...
-                    </p>
-                    <p
-                        v-if="freeWindowsUnavailable"
-                        class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
-                        role="alert"
-                    >
-                        Instruktor nie ma dostępności w tym dniu - zmień datę
-                        lub instruktora, aby wybrać godziny bloku.
-                    </p>
-
-                    <p
-                        v-if="formError"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ formError }}
-                    </p>
-
-                    <ManagerEventEditActions
-                        :is-saving="isSaving"
-                        :is-delete-loading="isDeleteLoading"
-                        :is-form-dirty="isFormDirty"
-                        @cancel="handleCancel"
-                    />
-                </form>
-
-                <template #footer>
-                    <ManagerEventDeleteAction
-                        :is-saving="isSaving"
-                        :is-delete-loading="isDeleteLoading"
-                        @delete="handleOpenDeleteDialog"
-                    />
-                </template>
-            </FormSection>
+            <ManagerEventEditFormSection
+                v-model:instructor-id="formInstructorId"
+                v-model:vehicle-id="formVehicleId"
+                :event-id="loadedEvent.id"
+                :event-status="loadedEvent.status"
+                :form-type="formType"
+                :school-id="schoolId"
+                :header-date-range-label="headerDateRangeLabel"
+                :form-error="formError"
+                :is-slots-loading="isSlotsLoading"
+                :free-windows-unavailable="freeWindowsUnavailable"
+                :is-saving="isSaving"
+                :is-delete-loading="isDeleteLoading"
+                :is-form-dirty="isFormDirty"
+                :instructors="qualifiedInstructorsForEvent"
+                :instructor-select-label="instructorSelectLabel"
+                :is-instructors-loading="isInstructorsLoading"
+                :instructors-error="instructorsError"
+                :vehicles="vehicles"
+                :is-vehicles-loading="isVehiclesLoading"
+                :vehicles-error="vehiclesError"
+                :start-date="formStartDate"
+                :start-hour="formStartHour"
+                :start-minute="formStartMinute"
+                :end-date="formEndDate"
+                :end-hour="formEndHour"
+                :end-minute="formEndMinute"
+                :start-hour-options="startHourOptionsResolved"
+                :start-minute-options="startMinuteOptionsResolved"
+                :end-hour-options="endHourOptionsResolved"
+                :end-minute-options="endMinuteOptionsResolved"
+                :min-date="pickerMinDate"
+                :max-date="pickerMaxDate"
+                @submit="handleSubmit"
+                @cancel="handleCancel"
+                @delete="handleOpenDeleteDialog"
+                @status-patched="handleEventStatusPatched"
+                @start-date-change="handleStartDateChange"
+                @start-hour-change="handleStartHourChange"
+                @start-minute-change="handleStartMinuteChange"
+                @end-date-change="handleEndDateChange"
+                @end-hour-change="handleEndHourChange"
+                @end-minute-change="handleEndMinuteChange"
+            />
 
             <ManagerEventTheoryStudentsSection
                 v-if="formType === 'THEORY'"
