@@ -6,7 +6,7 @@ import {
 } from '~~/server/utils/upstream/upstreamCookies';
 import { parseBackendEnvelopeFromResponseText } from '~~/server/utils/upstream/upstreamEnvelope';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
-import { bffUpstreamRefresh } from '~~/server/utils/auth/authUpstreamBff';
+import { bffUpstreamRefresh } from '~~/server/utils/auth/authUpstreamSession';
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
     return new Response(JSON.stringify(body), {

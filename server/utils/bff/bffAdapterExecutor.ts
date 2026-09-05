@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3';
-import { resolveBffAdapter } from '~~/server/utils/auth/authUpstreamBff';
+import { resolveBffAdapter } from '~~/server/utils/auth/authBffAdapter';
 
 export interface BffAdapterUpstreamContext {
     event: H3Event;

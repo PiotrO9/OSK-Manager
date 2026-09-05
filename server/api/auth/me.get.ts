@@ -1,6 +1,6 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import type { BffAuthUserResponse } from '~~/server/utils/auth/authUpstreamBff';
+import type { BffAuthUserResponse } from '~~/server/utils/auth/authTypes';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 
 const SECRET = new TextEncoder().encode(
