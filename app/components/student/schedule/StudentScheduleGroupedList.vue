@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { BookOpen, Car } from 'lucide-vue-next';
-import type { StatusTone } from '~/components/app/ui/types';
-import type {
-    ScheduleLessonItem,
-    SchedulePersonRef,
-} from '~/types/schedule/schedule';
-
-interface ScheduleDayGroup {
-    date: string;
-    label: string;
-    items: ScheduleLessonItem[];
-}
+import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import {
+    buildStudentScheduleDayGroups,
+    displayStudentScheduleTimeRange,
+    formatStudentScheduleTime,
+    getStudentScheduleItemDescription,
+    getStudentScheduleItemTitle,
+    getStudentScheduleStatusLabel,
+    getStudentScheduleStatusTone,
+    isStudentScheduleCancellableLesson,
+    isStudentScheduleTheoryItem,
+} from '~/utils/schedule/studentScheduleGroupedList';
 
 const props = withDefaults(
     defineProps<{
@@ -34,178 +35,13 @@ const emit = defineEmits<{
     'request-cancel-lesson': [item: ScheduleLessonItem];
 }>();
 
-const groups = computed<ScheduleDayGroup[]>(() => {
-    const map = new Map<string, ScheduleLessonItem[]>();
-
-    for (const item of props.items) {
-        const dateKey = dateKeyFromIso(item.startTime);
-        const groupItems = map.get(dateKey) ?? [];
-
-        groupItems.push(item);
-        map.set(dateKey, groupItems);
-    }
-
-    return [...map.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, items]) => ({
-            date,
-            label: formatDateLabel(date),
-            items: [...items].sort((a, b) =>
-                a.startTime.localeCompare(b.startTime),
-            ),
-        }));
-});
-
-function dateKeyFromIso(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso.slice(0, 10);
-    }
-
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function formatDateLabel(dateKey: string): string {
-    const d = new Date(`${dateKey}T00:00:00`);
-
-    if (Number.isNaN(d.getTime())) {
-        return dateKey;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-    }).format(d);
-}
-
-function formatTime(iso: string): string {
-    const d = new Date(iso);
-
-    if (Number.isNaN(d.getTime())) {
-        return iso;
-    }
-
-    return new Intl.DateTimeFormat('pl-PL', {
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(d);
-}
-
-function displayTimeRange(item: ScheduleLessonItem): string {
-    return `${formatTime(item.startTime)} - ${formatTime(item.endTime)}`;
-}
-
-function isTheory(item: ScheduleLessonItem): boolean {
-    return item.type.trim().toUpperCase() === 'THEORY';
-}
-
-function isPractice(item: ScheduleLessonItem): boolean {
-    return item.type.trim().toUpperCase() === 'PRACTICE';
-}
-
-function eventTypeLabel(item: ScheduleLessonItem): string {
-    if (isTheory(item)) {
-        return 'Teoria';
-    }
-
-    if (isPractice(item)) {
-        return 'Jazda praktyczna';
-    }
-
-    return item.type;
-}
-
-function statusLabel(raw: string): string {
-    const normalized = raw.trim().toUpperCase();
-
-    if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
-        return 'Plan';
-    }
-
-    if (normalized === 'COMPLETED' || normalized === 'DONE') {
-        return 'Zakończone';
-    }
-
-    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
-        return 'Anulowane';
-    }
-
-    if (normalized === 'NO_SHOW') {
-        return 'Nieobecnosc';
-    }
-
-    return raw;
-}
-
-function statusTone(raw: string): StatusTone {
-    const normalized = raw.trim().toUpperCase();
-
-    if (normalized === 'SCHEDULED' || normalized === 'PLANNED') {
-        return 'info';
-    }
-
-    if (normalized === 'COMPLETED' || normalized === 'DONE') {
-        return 'success';
-    }
-
-    if (normalized === 'CANCELLED' || normalized === 'CANCELED') {
-        return 'danger';
-    }
-
-    if (normalized === 'NO_SHOW') {
-        return 'warning';
-    }
-
-    return 'neutral';
-}
-
-function displayPerson(person: SchedulePersonRef | undefined): string {
-    if (!person) {
-        return '';
-    }
-
-    return `${person.firstName} ${person.lastName}`.trim();
-}
-
-function itemTitle(item: ScheduleLessonItem): string {
-    const person = displayPerson(item.instructor);
-
-    if (person) {
-        return `${eventTypeLabel(item)} - ${person}`;
-    }
-
-    return eventTypeLabel(item);
-}
-
-function itemDescription(item: ScheduleLessonItem): string {
-    const parts: string[] = [];
-
-    if (item.vehicle && isPractice(item)) {
-        const name = item.vehicle.name.trim();
-        const reg = item.vehicle.registrationNumber.trim();
-        const vehicle = name && reg ? `${name} (${reg})` : name || reg;
-
-        if (vehicle) {
-            parts.push(vehicle);
-        }
-    } else if (isTheory(item) && item.participantCount != null) {
-        parts.push(`${item.participantCount} uczestnikow`);
-    } else {
-        parts.push('Sala lub pojazd przypisany');
-    }
-
-    return parts.join(' - ');
-}
+const groups = computed(() => buildStudentScheduleDayGroups(props.items));
 
 function isStudentCancellableLesson(item: ScheduleLessonItem): boolean {
-    return (
-        props.studentLessonCancelEnabled &&
-        item.kind === 'lesson' &&
-        isPractice(item) &&
-        item.status.trim().toUpperCase() === 'SCHEDULED'
-    );
+    return isStudentScheduleCancellableLesson({
+        item,
+        studentLessonCancelEnabled: props.studentLessonCancelEnabled,
+    });
 }
 
 function handleCancelClick(item: ScheduleLessonItem): void {
@@ -248,14 +84,14 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                             <span
                                 class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border"
                                 :class="
-                                    isTheory(item)
+                                    isStudentScheduleTheoryItem(item)
                                         ? 'border-violet-200 bg-violet-50 text-violet-700'
                                         : 'border-sky-200 bg-sky-50 text-sky-700'
                                 "
                                 aria-hidden="true"
                             >
                                 <BookOpen
-                                    v-if="isTheory(item)"
+                                    v-if="isStudentScheduleTheoryItem(item)"
                                     class="size-4"
                                 />
                                 <Car v-else class="size-4" />
@@ -268,24 +104,39 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                                     <p
                                         class="text-foreground text-sm leading-5 font-bold"
                                     >
-                                        {{ formatTime(item.startTime) }} -
-                                        {{ itemTitle(item) }}
+                                        {{
+                                            formatStudentScheduleTime(
+                                                item.startTime,
+                                            )
+                                        }}
+                                        -
+                                        {{ getStudentScheduleItemTitle(item) }}
                                     </p>
                                     <StatusBadge
-                                        :label="statusLabel(item.status)"
-                                        :tone="statusTone(item.status)"
+                                        :label="
+                                            getStudentScheduleStatusLabel(
+                                                item.status,
+                                            )
+                                        "
+                                        :tone="
+                                            getStudentScheduleStatusTone(
+                                                item.status,
+                                            )
+                                        "
                                         subtle
                                     />
                                 </div>
                                 <p
                                     class="text-muted-foreground mt-1 text-sm leading-5"
                                 >
-                                    {{ itemDescription(item) }}
+                                    {{
+                                        getStudentScheduleItemDescription(item)
+                                    }}
                                 </p>
                                 <p
                                     class="text-muted-foreground mt-1 text-xs tabular-nums"
                                 >
-                                    {{ displayTimeRange(item) }}
+                                    {{ displayStudentScheduleTimeRange(item) }}
                                 </p>
                             </div>
                         </div>
@@ -298,7 +149,7 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                             class="shrink-0"
                             :disabled="cancellingLessonId === item.id"
                             :aria-busy="cancellingLessonId === item.id"
-                            :aria-label="`Anuluj rezerwację ${displayTimeRange(item)}`"
+                            :aria-label="`Anuluj rezerwację ${displayStudentScheduleTimeRange(item)}`"
                             @click="handleCancelClick(item)"
                         >
                             {{
