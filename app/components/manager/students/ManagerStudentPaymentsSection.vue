@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, CreditCard, Plus, Save, X } from 'lucide-vue-next';
+import { Check, CreditCard, Save, X } from 'lucide-vue-next';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
@@ -13,7 +13,6 @@ import {
     buildUpdateStudentPaymentPayload,
     canCreateStudentPayment,
     formatStudentPaymentAmount,
-    formatStudentPaymentDate,
     type StudentPaymentEditState,
 } from '~/utils/students/managerStudentPaymentsSection';
 
@@ -133,96 +132,18 @@ function handleUpdate(paymentId: string): void {
             />
         </div>
 
-        <div class="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div class="bg-muted/30 rounded-lg px-3 py-2">
-                <p class="text-muted-foreground text-xs">Opłacone</p>
-                <p class="text-foreground mt-1 font-semibold tabular-nums">
-                    {{
-                        formatStudentPaymentAmount(
-                            props.summary.paidAmount,
-                            props.summary.currency,
-                        )
-                    }}
-                </p>
-            </div>
-            <div class="bg-muted/30 rounded-lg px-3 py-2">
-                <p class="text-muted-foreground text-xs">Do zapłaty</p>
-                <p class="text-foreground mt-1 font-semibold tabular-nums">
-                    {{
-                        formatStudentPaymentAmount(
-                            props.summary.unpaidAmount,
-                            props.summary.currency,
-                        )
-                    }}
-                </p>
-            </div>
-            <div class="bg-muted/30 rounded-lg px-3 py-2">
-                <p class="text-muted-foreground text-xs">Po terminie</p>
-                <p class="text-foreground mt-1 font-semibold tabular-nums">
-                    {{
-                        formatStudentPaymentAmount(
-                            props.summary.overdueAmount,
-                            props.summary.currency,
-                        )
-                    }}
-                </p>
-            </div>
-            <div class="bg-muted/30 rounded-lg px-3 py-2">
-                <p class="text-muted-foreground text-xs">Następny termin</p>
-                <p class="text-foreground mt-1 font-semibold">
-                    {{ formatStudentPaymentDate(props.summary.nextDueDate) }}
-                </p>
-            </div>
-        </div>
+        <ManagerStudentPaymentsSummaryGrid :summary="props.summary" />
 
-        <form
-            class="border-border bg-background/70 mb-4 grid gap-3 rounded-xl border p-3 lg:grid-cols-[minmax(0,1.5fr)_120px_150px_150px_auto]"
-            @submit.prevent="handleCreate"
-        >
-            <select
-                v-model="createPaymentPlanId"
-                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-                :disabled="paymentPlanOptions.length === 0 || props.isSaving"
-                aria-label="Plan płatności"
-            >
-                <option value="" disabled>Plan płatności</option>
-                <option
-                    v-for="option in paymentPlanOptions"
-                    :key="option.id"
-                    :value="option.id"
-                >
-                    {{ option.label }}
-                </option>
-            </select>
-            <input
-                v-model="createAmount"
-                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-                inputmode="decimal"
-                placeholder="Kwota"
-                :disabled="props.isSaving"
-            />
-            <input
-                v-model="createDueDate"
-                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-                type="date"
-                :disabled="props.isSaving"
-                aria-label="Termin płatności"
-            />
-            <input
-                v-model="createMethod"
-                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-                placeholder="Metoda"
-                :disabled="props.isSaving"
-            />
-            <UiButton
-                type="submit"
-                class="h-10 rounded-lg px-3"
-                :disabled="!canCreatePayment"
-            >
-                <Plus class="mr-2 size-4" aria-hidden="true" />
-                Dodaj
-            </UiButton>
-        </form>
+        <ManagerStudentPaymentCreateForm
+            v-model:amount="createAmount"
+            v-model:due-date="createDueDate"
+            v-model:method="createMethod"
+            v-model:payment-plan-id="createPaymentPlanId"
+            :can-create-payment="canCreatePayment"
+            :is-saving="props.isSaving"
+            :payment-plan-options="paymentPlanOptions"
+            @create="handleCreate"
+        />
 
         <p
             v-if="props.actionError"
