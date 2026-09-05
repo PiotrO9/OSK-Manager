@@ -74,10 +74,6 @@ const MODEL_YEAR_MIN = 1900;
 const MODEL_YEAR_MAX = 2100;
 const MILEAGE_KM_MAX = 99_999_999;
 
-function formatPlInt(n: number): string {
-    return new Intl.NumberFormat('pl-PL').format(n);
-}
-
 function numericFieldInputToTrimmedString(
     raw: string | number | null | undefined,
 ): string {
@@ -162,149 +158,22 @@ function handleSubmit() {
             {{ apiError }}
         </p>
 
-        <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-                <UiLabel for="vehicle-name">Nazwa</UiLabel>
-                <UiInput
-                    id="vehicle-name"
-                    v-model="nameModel"
-                    type="text"
-                    name="name"
-                    autocomplete="off"
-                    :aria-invalid="showNameRequired"
-                    :aria-describedby="
-                        showNameRequired ? 'vehicle-name-error' : undefined
-                    "
-                    :disabled="isSaving"
-                />
-                <p
-                    v-if="showNameRequired"
-                    id="vehicle-name-error"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    Nazwa jest wymagana.
-                </p>
-            </div>
-
-            <div class="space-y-2">
-                <UiLabel for="vehicle-registration"
-                    >Numer rejestracyjny</UiLabel
-                >
-                <UiInput
-                    id="vehicle-registration"
-                    v-model="registrationNumberModel"
-                    type="text"
-                    name="registrationNumber"
-                    autocomplete="off"
-                    :aria-invalid="showRegistrationRequired"
-                    :aria-describedby="
-                        showRegistrationRequired
-                            ? 'vehicle-registration-error'
-                            : undefined
-                    "
-                    :disabled="isSaving"
-                />
-                <p
-                    v-if="showRegistrationRequired"
-                    id="vehicle-registration-error"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    Numer rejestracyjny jest wymagany.
-                </p>
-            </div>
-
-            <div class="space-y-2">
-                <UiLabel for="vehicle-inspection">Data przegladu</UiLabel>
-                <UiDatePicker
-                    id="vehicle-inspection"
-                    v-model="inspectionDateModel"
-                    :disabled="isSaving"
-                    placeholder="Data przegladu (opcjonalnie)"
-                    clearable
-                />
-            </div>
-
-            <div class="space-y-2">
-                <UiLabel for="vehicle-insurance">Data ubezpieczenia</UiLabel>
-                <UiDatePicker
-                    id="vehicle-insurance"
-                    v-model="insuranceDateModel"
-                    :disabled="isSaving"
-                    placeholder="Data ubezpieczenia (opcjonalnie)"
-                    clearable
-                />
-            </div>
-
-            <div class="space-y-2">
-                <UiLabel for="vehicle-model-year"
-                    >Rocznik (opcjonalnie)</UiLabel
-                >
-                <UiInput
-                    id="vehicle-model-year"
-                    v-model="modelYearModel"
-                    type="number"
-                    name="modelYear"
-                    inputmode="numeric"
-                    autocomplete="off"
-                    :min="MODEL_YEAR_MIN"
-                    :max="MODEL_YEAR_MAX"
-                    step="1"
-                    :aria-invalid="showModelYearInvalid"
-                    :aria-describedby="
-                        showModelYearInvalid
-                            ? 'vehicle-model-year-error'
-                            : undefined
-                    "
-                    :disabled="isSaving"
-                />
-                <p
-                    v-if="showModelYearInvalid"
-                    id="vehicle-model-year-error"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    Podaj rocznik z zakresu {{ MODEL_YEAR_MIN }}-{{
-                        MODEL_YEAR_MAX
-                    }}
-                    lub zostaw puste.
-                </p>
-            </div>
-
-            <div class="space-y-2">
-                <UiLabel for="vehicle-mileage">
-                    Przebieg (km, opcjonalnie)
-                </UiLabel>
-                <UiInput
-                    id="vehicle-mileage"
-                    v-model="mileageKmModel"
-                    type="number"
-                    name="mileageKm"
-                    inputmode="numeric"
-                    autocomplete="off"
-                    min="0"
-                    :max="MILEAGE_KM_MAX"
-                    step="1"
-                    :aria-invalid="showMileageKmInvalid"
-                    :aria-describedby="
-                        showMileageKmInvalid
-                            ? 'vehicle-mileage-error'
-                            : undefined
-                    "
-                    :disabled="isSaving"
-                />
-                <p
-                    v-if="showMileageKmInvalid"
-                    id="vehicle-mileage-error"
-                    class="text-destructive text-sm"
-                    role="alert"
-                >
-                    Podaj przebieg od 0 do {{ formatPlInt(MILEAGE_KM_MAX) }} km
-                    lub zostaw puste.
-                </p>
-            </div>
-        </div>
+        <VehicleFormFields
+            v-model:name="nameModel"
+            v-model:registration-number="registrationNumberModel"
+            v-model:inspection-date="inspectionDateModel"
+            v-model:insurance-date="insuranceDateModel"
+            v-model:model-year="modelYearModel"
+            v-model:mileage-km="mileageKmModel"
+            :is-saving="isSaving"
+            :show-name-required="showNameRequired"
+            :show-registration-required="showRegistrationRequired"
+            :show-model-year-invalid="showModelYearInvalid"
+            :show-mileage-km-invalid="showMileageKmInvalid"
+            :model-year-min="MODEL_YEAR_MIN"
+            :model-year-max="MODEL_YEAR_MAX"
+            :mileage-km-max="MILEAGE_KM_MAX"
+        />
 
         <div v-if="slots.afterFields" class="space-y-4 pt-1">
             <slot name="afterFields" />
