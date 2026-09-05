@@ -1,8 +1,6 @@
 import { createError, getQuery, type H3Event } from 'h3';
-import {
-    upstreamRequest,
-    type UpstreamRequestOptions,
-} from '~~/server/utils/upstream/upstreamRequest';
+import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
+import type { UpstreamRequestOptions } from '~~/server/utils/upstream/upstreamTypes';
 import type { BffEventPatchBody } from './parseEventPatchBody';
 
 const EVENT_HTML_ERROR =

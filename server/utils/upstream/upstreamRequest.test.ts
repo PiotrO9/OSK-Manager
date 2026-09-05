@@ -2,10 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import type { H3Event } from 'h3';
 import {
     cookieBaseOptions,
-    parseBackendEnvelopeFromResponseText,
     parseRefreshFromSetCookieLines,
-    upstreamRequest,
-} from '~~/server/utils/upstream/upstreamRequest';
+} from '~~/server/utils/upstream/upstreamCookies';
+import { parseBackendEnvelopeFromResponseText } from '~~/server/utils/upstream/upstreamEnvelope';
+import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 import { bffUpstreamRefresh } from '~~/server/utils/auth/authUpstreamBff';
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {

@@ -3,7 +3,7 @@ import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     clearSessionCookies,
     setAccessTokenCookie,
-} from '~~/server/utils/upstream/upstreamRequest';
+} from '~~/server/utils/upstream/upstreamCookies';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

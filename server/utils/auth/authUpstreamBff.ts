@@ -10,8 +10,8 @@ import {
     clearSessionCookies,
     setAccessTokenCookie,
     syncRefreshCookieFromResponse,
-    upstreamRequest,
-} from '~~/server/utils/upstream/upstreamRequest';
+} from '~~/server/utils/upstream/upstreamCookies';
+import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
 export type BffAdapter =
     | { mode: 'upstream'; upstreamBase: string }
