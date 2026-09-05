@@ -1,4 +1,3 @@
-import type { InjectionKey, Ref } from 'vue';
 import {
     findNavTreeItemById,
     findNavTreeParentItem,
@@ -6,15 +5,11 @@ import {
     isNavTreeItemInSubtree,
     type NavTreeItem,
 } from '~/utils/navigation/navTree';
-
-interface NavTreeContext {
-    expandedIds: Ref<Set<string>>;
-    focusedId: Ref<string>;
-    activeId: Ref<string>;
-    rootEl: Ref<HTMLElement | null>;
-    rootItems: Ref<NavTreeItem[]>;
-    emitSelect: (item: NavTreeItem) => void;
-}
+import {
+    NAV_TREE_KEY,
+    type NavTreeContext,
+    type UseNavTreeControllerEmit,
+} from './navTreeControllerContext';
 
 interface UseNavTreeControllerProps {
     items: NavTreeItem[];
@@ -22,12 +17,6 @@ interface UseNavTreeControllerProps {
     depth: number;
     defaultExpandedIds: string[];
 }
-
-interface UseNavTreeControllerEmit {
-    select: [item: NavTreeItem];
-}
-
-const NAV_TREE_KEY: InjectionKey<NavTreeContext> = Symbol('navTree');
 
 export function useNavTreeController(
     props: Readonly<UseNavTreeControllerProps>,
