@@ -1,10 +1,8 @@
 import { jwtVerify } from 'jose';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { mockUserAvatarGetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
-import {
-    bffUpstreamProfilePatch,
-    type BffAuthUserResponse,
-} from '~~/server/utils/auth/authUpstreamBff';
+import { bffUpstreamProfilePatch } from '~~/server/utils/auth/authUpstreamProfile';
+import type { BffAuthUserResponse } from '~~/server/utils/auth/authTypes';
 
 const SECRET = new TextEncoder().encode(
     process.env.JWT_SECRET || 'your-secret-key-change-in-production',

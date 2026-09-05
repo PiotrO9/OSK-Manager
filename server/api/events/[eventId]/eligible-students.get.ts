@@ -1,5 +1,5 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventEligibleStudentsGet } from '~~/server/utils/events/eventsBff';
+import { bffEventEligibleStudentsGet } from '~~/server/utils/events/eventStudentsBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {

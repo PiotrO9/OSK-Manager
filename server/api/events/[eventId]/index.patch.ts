@@ -1,8 +1,6 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import {
-    bffEventsPatch,
-    type InstructorEventResponse,
-} from '~~/server/utils/events/eventsBff';
+import { bffEventsPatch } from '~~/server/utils/events/eventsCrudBff';
+import type { InstructorEventResponse } from '~~/server/utils/events/eventsTypes';
 import { parseEventPatchBody } from '~~/server/utils/events/parseEventPatchBody';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 

@@ -1,8 +1,6 @@
 import { createError, type H3Event } from 'h3';
-import {
-    upstreamRequest,
-    type UpstreamRequestOptions,
-} from '~~/server/utils/upstream/upstreamRequest';
+import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
+import type { UpstreamRequestOptions } from '~~/server/utils/upstream/upstreamTypes';
 import type { BffLessonPatchBody } from './parseLessonPatchBody';
 import type { BffLessonCreateBody } from './parseLessonCreateBody';
 import type { BffOwnLessonCreateBody } from './parseOwnLessonBody';

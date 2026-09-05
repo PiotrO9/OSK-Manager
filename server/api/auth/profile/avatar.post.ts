@@ -1,6 +1,6 @@
 import { readMultipartFormData } from 'h3';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffUpstreamProfileAvatarUpload } from '~~/server/utils/auth/authUpstreamBff';
+import { bffUpstreamProfileAvatarUpload } from '~~/server/utils/auth/authUpstreamProfile';
 import { mockUserAvatarSetUrl } from '~~/server/utils/auth/mockUserAvatarStore';
 import { requireAuthUserIdFromCookie } from '~~/server/utils/auth/requireAuthFromCookie';
 
