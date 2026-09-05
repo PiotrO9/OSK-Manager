@@ -2,13 +2,21 @@ import type { Ref } from 'vue';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { normalizeBffPhotoUrl } from '~/utils/api/bffPhotoUpload';
 import {
-    normalizeVehicle,
-    normalizeVehicleDetail,
-    normalizeVehiclesList,
-    type Vehicle,
-    type VehicleDetail,
-    type VehicleStatus,
-    type VehicleWritePayload,
+    buildDefaultVehiclePath,
+    buildVehiclePath,
+    buildVehiclePhotoPath,
+    buildVehiclesListPath,
+    buildVehicleStatusPath,
+    normalizeVehicleDetailResponse,
+    normalizeVehicleListResponse,
+    normalizeVehicleResponse,
+    VEHICLE_INVALID_RESPONSE,
+} from '~/utils/vehicles/vehicleApiRequests';
+import type {
+    Vehicle,
+    VehicleDetail,
+    VehicleStatus,
+    VehicleWritePayload,
 } from '~/types/vehicles/vehicle';
 
 export type VehicleCreateBody = VehicleWritePayload & { schoolId: string };
@@ -45,13 +53,10 @@ export function useVehiclesApi() {
     }
 
     async function fetchList(schoolId: string): Promise<Vehicle[]> {
-        const sid = schoolId.trim();
-        const qs = new URLSearchParams({ schoolId: sid });
-
         return await runWithLoading(isListLoading, () =>
-            requestBffData<Vehicle[]>('GET', `/api/vehicles?${qs.toString()}`, {
+            requestBffData<Vehicle[]>('GET', buildVehiclesListPath(schoolId), {
                 fallbackMessage: 'Nie udało się pobrać listy pojazdów.',
-                normalize: (data) => normalizeVehiclesList(data),
+                normalize: normalizeVehicleListResponse,
             }),
         );
     }
@@ -61,8 +66,8 @@ export function useVehiclesApi() {
             requestBffData<Vehicle>('POST', '/api/vehicles', {
                 body,
                 fallbackMessage: 'Nie udało się dodać pojazdu.',
-                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                normalize: (data) => normalizeVehicle(data, 0),
+                invalidMessage: VEHICLE_INVALID_RESPONSE,
+                normalize: normalizeVehicleResponse,
             }),
         );
     }
@@ -74,16 +79,12 @@ export function useVehiclesApi() {
         const vehicleId = id.trim();
 
         return await runWithLoading(isUpdateLoading, () =>
-            requestBffData<Vehicle>(
-                'PATCH',
-                `/api/vehicles/${encodeURIComponent(vehicleId)}`,
-                {
-                    body,
-                    fallbackMessage: 'Nie udało się zapisać pojazdu.',
-                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                    normalize: (data) => normalizeVehicle(data, 0),
-                },
-            ),
+            requestBffData<Vehicle>('PATCH', buildVehiclePath(vehicleId), {
+                body,
+                fallbackMessage: 'Nie udało się zapisać pojazdu.',
+                invalidMessage: VEHICLE_INVALID_RESPONSE,
+                normalize: normalizeVehicleResponse,
+            }),
         );
     }
 
@@ -100,12 +101,12 @@ export function useVehiclesApi() {
         return await runWithLoading(isStatusUpdateLoading, () =>
             requestBffData<Vehicle>(
                 'PATCH',
-                `/api/vehicles/${encodeURIComponent(vehicleId)}/status`,
+                buildVehicleStatusPath(vehicleId),
                 {
                     body,
                     fallbackMessage: 'Nie udało się zmienić statusu pojazdu.',
-                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                    normalize: (data) => normalizeVehicle(data, 0),
+                    invalidMessage: VEHICLE_INVALID_RESPONSE,
+                    normalize: normalizeVehicleResponse,
                 },
             ),
         );
@@ -118,13 +119,9 @@ export function useVehiclesApi() {
 
         try {
             await runWithLoading(isDeleteLoading, () =>
-                requestBffSuccess(
-                    'DELETE',
-                    `/api/vehicles/${encodeURIComponent(vehicleId)}`,
-                    {
-                        fallbackMessage: 'Nie udało się usunąć pojazdu.',
-                    },
-                ),
+                requestBffSuccess('DELETE', buildVehiclePath(vehicleId), {
+                    fallbackMessage: 'Nie udało się usunąć pojazdu.',
+                }),
             );
         } catch (err) {
             deleteError.value =
@@ -142,15 +139,10 @@ export function useVehiclesApi() {
         const sid = schoolId.trim();
 
         await runWithLoading(isSetDefaultLoading, () =>
-            requestBffSuccess(
-                'PATCH',
-                `/api/driving-schools/${encodeURIComponent(sid)}/default-vehicle`,
-                {
-                    body: { vehicleId },
-                    fallbackMessage:
-                        'Nie udało się ustawić domyślnego pojazdu.',
-                },
-            ),
+            requestBffSuccess('PATCH', buildDefaultVehiclePath(sid), {
+                body: { vehicleId },
+                fallbackMessage: 'Nie udało się ustawić domyślnego pojazdu.',
+            }),
         );
     }
 
@@ -158,15 +150,11 @@ export function useVehiclesApi() {
         const vehicleId = id.trim();
 
         return await runWithLoading(isDetailLoading, () =>
-            requestBffData<VehicleDetail>(
-                'GET',
-                `/api/vehicles/${encodeURIComponent(vehicleId)}`,
-                {
-                    fallbackMessage: 'Nie udało się pobrać pojazdu.',
-                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                    normalize: (data) => normalizeVehicleDetail(data, 0),
-                },
-            ),
+            requestBffData<VehicleDetail>('GET', buildVehiclePath(vehicleId), {
+                fallbackMessage: 'Nie udało się pobrać pojazdu.',
+                invalidMessage: VEHICLE_INVALID_RESPONSE,
+                normalize: normalizeVehicleDetailResponse,
+            }),
         );
     }
 
@@ -180,11 +168,11 @@ export function useVehiclesApi() {
 
             return await requestBffData<string>(
                 'POST',
-                `/api/vehicles/${encodeURIComponent(id)}/photo`,
+                buildVehiclePhotoPath(id),
                 {
                     body,
                     fallbackMessage: 'Nie udało się przesłać zdjęcia.',
-                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    invalidMessage: VEHICLE_INVALID_RESPONSE,
                     normalize: normalizeBffPhotoUrl,
                 },
             );
