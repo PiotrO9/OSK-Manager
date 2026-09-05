@@ -1,14 +1,13 @@
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-import {
-    getOskClearDefaultBlockedMessage,
-    isOskDefaultSwitchLocked,
-} from '~/utils/schools/drivingSchoolRules';
+import { getOskClearDefaultBlockedMessage } from '~/utils/schools/drivingSchoolRules';
 import { toastFormZodError } from '~/utils/forms/formToast';
 import { oskFormSchema } from '~/utils/forms/oskFormSchema';
 import {
     buildManagerOskCreateBody,
     buildManagerOskUpdateBody,
     countManagerOskDefaultSchools,
+    getManagerOskErrorMessage,
+    removeManagerOskSchoolById,
 } from '~/utils/schools/managerOskPage';
 
 export function useManagerOskPage() {
@@ -30,14 +29,6 @@ export function useManagerOskPage() {
     const deletingId = ref<string | null>(null);
     const confirmTarget = ref<DrivingSchool | null>(null);
 
-    const formDialogOpen = ref(false);
-    const formDialogMode = ref<'create' | 'edit'>('create');
-    const formName = ref('');
-    const formCity = ref('');
-    const formAddress = ref('');
-    const formAsDefault = ref(false);
-    const editTarget = ref<DrivingSchool | null>(null);
-
     const isLocalCreateSaving = ref(false);
     const {
         statsError,
@@ -49,19 +40,30 @@ export function useManagerOskPage() {
     } = useManagerOskStats();
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
-    const isEditSaving = computed(
-        () => isUpdateLoading.value || isSetDefaultLoading.value,
-    );
-    const isFormSaving = computed(
-        () => isLocalCreateSaving.value || isEditSaving.value,
-    );
-
-    const isDefaultSwitchLocked = computed(() =>
-        isOskDefaultSwitchLocked(schools.value, editTarget.value),
-    );
     const defaultSchoolCount = computed(() =>
         countManagerOskDefaultSchools(schools.value),
     );
+    const {
+        formDialogOpen,
+        formDialogMode,
+        formName,
+        formCity,
+        formAddress,
+        formAsDefault,
+        editTarget,
+        isFormSaving,
+        isDefaultSwitchLocked,
+        resetFormFields,
+        openCreateFormDialog,
+        openEditFormDialog,
+        handleFormDialogOpenChange,
+    } = useManagerOskFormDialogState({
+        schools,
+        deletingId,
+        isUpdateLoading,
+        isSetDefaultLoading,
+        isLocalCreateSaving,
+    });
 
     async function loadSchools() {
         loadError.value = null;
@@ -71,18 +73,11 @@ export function useManagerOskPage() {
             await loadSchoolStats(schools.value);
         } catch (err) {
             clearSchoolStats();
-            loadError.value =
-                err instanceof Error
-                    ? err.message
-                    : 'Nie udało się wczytać listy OSK.';
+            loadError.value = getManagerOskErrorMessage(
+                err,
+                'Nie udało się wczytać listy OSK.',
+            );
         }
-    }
-
-    function resetFormFields() {
-        formName.value = '';
-        formCity.value = '';
-        formAddress.value = '';
-        formAsDefault.value = false;
     }
 
     function handleRequestDelete(school: DrivingSchool) {
@@ -112,7 +107,10 @@ export function useManagerOskPage() {
         try {
             await remove(school.id);
 
-            schools.value = schools.value.filter((s) => s.id !== school.id);
+            schools.value = removeManagerOskSchoolById(
+                schools.value,
+                school.id,
+            );
 
             toast.addToast({
                 title: 'Usunięto',
@@ -122,40 +120,14 @@ export function useManagerOskPage() {
         } catch (err) {
             toast.addToast({
                 title: 'Błąd',
-                description:
-                    err instanceof Error
-                        ? err.message
-                        : 'Nie udało się usunąć OSK.',
+                description: getManagerOskErrorMessage(
+                    err,
+                    'Nie udało się usunąć OSK.',
+                ),
                 variant: 'error',
             });
         } finally {
             deletingId.value = null;
-        }
-    }
-
-    function openEditFormDialog(school: DrivingSchool) {
-        if (
-            deletingId.value !== null ||
-            isEditSaving.value ||
-            isLocalCreateSaving.value
-        ) {
-            return;
-        }
-
-        formDialogMode.value = 'edit';
-        editTarget.value = school;
-        formName.value = school.name;
-        formCity.value = school.city ?? '';
-        formAddress.value = school.address ?? '';
-        formAsDefault.value = school.isDefault === true;
-        formDialogOpen.value = true;
-    }
-
-    function handleFormDialogOpenChange(open: boolean) {
-        formDialogOpen.value = open;
-
-        if (!open) {
-            editTarget.value = null;
         }
     }
 
@@ -213,10 +185,10 @@ export function useManagerOskPage() {
             } catch (err) {
                 toast.addToast({
                     title: 'Błąd',
-                    description:
-                        err instanceof Error
-                            ? err.message
-                            : 'Nie udało się zapisać zmian.',
+                    description: getManagerOskErrorMessage(
+                        err,
+                        'Nie udało się zapisać zmian.',
+                    ),
                     variant: 'error',
                 });
             }
@@ -242,40 +214,16 @@ export function useManagerOskPage() {
         } catch (err) {
             toast.addToast({
                 title: 'Błąd',
-                description:
-                    err instanceof Error
-                        ? err.message
-                        : 'Nie udało się dodać OSK.',
+                description: getManagerOskErrorMessage(
+                    err,
+                    'Nie udało się dodać OSK.',
+                ),
                 variant: 'error',
             });
         } finally {
             isLocalCreateSaving.value = false;
         }
     }
-
-    function openCreateFormDialog() {
-        if (
-            deletingId.value !== null ||
-            isLocalCreateSaving.value ||
-            isEditSaving.value
-        ) {
-            return;
-        }
-
-        editTarget.value = null;
-        formDialogMode.value = 'create';
-        resetFormFields();
-        formDialogOpen.value = true;
-    }
-
-    watch(
-        () => isDefaultSwitchLocked.value,
-        (locked) => {
-            if (locked) {
-                formAsDefault.value = true;
-            }
-        },
-    );
 
     onMounted(() => {
         loadSchools();

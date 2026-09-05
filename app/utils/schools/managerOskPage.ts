@@ -10,10 +10,51 @@ export interface ManagerOskStatsSummary {
     hasRejected: boolean;
 }
 
+export interface ManagerOskFormValues {
+    name: string;
+    city: string;
+    address: string;
+    asDefault: boolean;
+}
+
 export function countManagerOskDefaultSchools(
     schools: readonly DrivingSchool[],
 ): number {
     return schools.filter((school) => school.isDefault === true).length;
+}
+
+export function removeManagerOskSchoolById(
+    schools: readonly DrivingSchool[],
+    schoolId: string,
+): DrivingSchool[] {
+    return schools.filter((school) => school.id !== schoolId);
+}
+
+export function getManagerOskErrorMessage(
+    err: unknown,
+    fallback: string,
+): string {
+    return err instanceof Error ? err.message : fallback;
+}
+
+export function getManagerOskBlankFormValues(): ManagerOskFormValues {
+    return {
+        name: '',
+        city: '',
+        address: '',
+        asDefault: false,
+    };
+}
+
+export function buildManagerOskEditFormValues(
+    school: DrivingSchool,
+): ManagerOskFormValues {
+    return {
+        name: school.name,
+        city: school.city ?? '',
+        address: school.address ?? '',
+        asDefault: school.isDefault === true,
+    };
 }
 
 export function buildManagerOskStatsSummary(params: {
