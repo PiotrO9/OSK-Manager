@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { normalizeInstructorEventFromApi } from './instructorEventNormalize';
 import {
-    normalizeInstructorEventFromApi,
     readNestedEventStudents,
     readNestedInstructorListItem,
-} from './instructorEventNormalize';
+} from './instructorEventNestedReaders';
 
 describe('instructorEventNormalize', () => {
     it('reads nested instructor list item from snake and camel case fields', () => {
