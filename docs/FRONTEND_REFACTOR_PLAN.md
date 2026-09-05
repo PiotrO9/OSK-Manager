@@ -148,16 +148,16 @@ lista kontrolna refaktoru".
 
 - [x] Po migracji sprawdzic konsumentow starych eksportow przez `rg`.
 - [x] Usuwac nieuzywane composables, komponenty, typy i wrappery dopiero po przepieciu wszystkich konsumentow.
-- [ ] Nie pozostawiac tymczasowych adapterow bez zadania i terminu ich usuniecia.
-- [ ] Nie usuwac kodu tylko dlatego, ze nie jest znaleziony przez prosty import; sprawdzic auto-importy Nuxt i dynamiczne uzycia komponentow.
+- [x] Nie pozostawiac tymczasowych adapterow bez zadania i terminu ich usuniecia.
+- [x] Nie usuwac kodu tylko dlatego, ze nie jest znaleziony przez prosty import; sprawdzic auto-importy Nuxt i dynamiczne uzycia komponentow.
 
 ### Zaleznosci i kierunek importow
 
 - [ ] Sprawdzac, czy po zmianie nie powstaly importy cykliczne.
-- [ ] Utrzymac kierunek: page/component -> composable -> API lub util/type.
-- [ ] Nie pozwalac, aby `utils` importowaly composables, komponenty lub stan Nuxt.
-- [ ] Nie pozwalac, aby typy domenowe zalezaly od komponentow.
-- [ ] Ograniczac importy pomiedzy domenami do jawnych, stabilnych kontraktow.
+- [x] Utrzymac kierunek: page/component -> composable -> API lub util/type.
+- [x] Nie pozwalac, aby `utils` importowaly composables, komponenty lub stan Nuxt.
+- [x] Nie pozwalac, aby typy domenowe zalezaly od komponentow.
+- [x] Ograniczac importy pomiedzy domenami do jawnych, stabilnych kontraktow.
 - [ ] Przy wykryciu cyklu przeniesc wspolny kontrakt nizej, zamiast maskowac problem barrel file.
 
 ### Race conditions i anulowanie pracy
@@ -180,18 +180,18 @@ lista kontrolna refaktoru".
 
 ### Bezpieczenstwo frontendu i BFF
 
-- [ ] Nie logowac access tokenu, refresh tokenu, cookies ani pelnych danych logowania.
-- [ ] Utrzymac tokeny sesji w cookies `httpOnly` i nie przenosic ich do stanu klienta.
-- [ ] Przekazywac do upstreamu tylko wymagane naglowki i cookies.
-- [ ] Walidowac parametry route, query i body na granicy handlera.
-- [ ] Nie zwracac do klienta technicznych danych bledu lub sekretow konfiguracji.
-- [ ] Potwierdzic czyszczenie cookies po nieudanym odswiezeniu sesji i odpowiedzi 401.
-- [ ] Nie przechowywac danych uzytkownika w stanie modulowym wspoldzielonym miedzy requestami SSR.
-- [ ] Sprawdzic, czy tryb mock wymaga odpowiedniej roli tak samo jawnie jak odpowiadajacy mu przeplyw produkcyjny.
+- [x] Nie logowac access tokenu, refresh tokenu, cookies ani pelnych danych logowania.
+- [x] Utrzymac tokeny sesji w cookies `httpOnly` i nie przenosic ich do stanu klienta.
+- [x] Przekazywac do upstreamu tylko wymagane naglowki i cookies.
+- [x] Walidowac parametry route, query i body na granicy handlera.
+- [x] Nie zwracac do klienta technicznych danych bledu lub sekretow konfiguracji.
+- [x] Potwierdzic czyszczenie cookies po nieudanym odswiezeniu sesji i odpowiedzi 401.
+- [x] Nie przechowywac danych uzytkownika w stanie modulowym wspoldzielonym miedzy requestami SSR.
+- [x] Sprawdzic, czy tryb mock wymaga odpowiedniej roli tak samo jawnie jak odpowiadajacy mu przeplyw produkcyjny.
 
 ### Wydajnosc po ustabilizowaniu zachowania
 
-- [ ] Nie wykonywac optymalizacji wydajnosciowej w tym samym kroku co zmiana architektury.
+- [x] Nie wykonywac optymalizacji wydajnosciowej w tym samym kroku co zmiana architektury.
 - [ ] Po migracji sprawdzic liczbe requestow podczas wejscia na strone i typowych akcji.
 - [ ] Sprawdzic watchery wywolujace zduplikowane requesty lub kosztowne transformacje.
 - [ ] Przeniesc filtrowanie i sortowanie list do stabilnych `computed`.
@@ -200,12 +200,12 @@ lista kontrolna refaktoru".
 
 ### Budzet i kontrola zakresu
 
-- [ ] Jeden branch obejmuje jedna warstwe fundamentu albo jedna domene.
-- [ ] Jeden commit ma jedna odpowiedzialnosc i moze zostac niezaleznie przejrzany.
-- [ ] Nie dodawac nowych funkcji biznesowych do commitu refaktorujacego.
-- [ ] Problem spoza zakresu zapisac w liscie odroczonej zamiast naprawiac przy okazji.
+- [x] Jeden branch obejmuje jedna warstwe fundamentu albo jedna domene.
+- [x] Jeden commit ma jedna odpowiedzialnosc i moze zostac niezaleznie przejrzany.
+- [x] Nie dodawac nowych funkcji biznesowych do commitu refaktorujacego.
+- [x] Problem spoza zakresu zapisac w liscie odroczonej zamiast naprawiac przy okazji.
 - [ ] Gdy zmiana przekracza pierwotny zakres brancha, zatrzymac prace i zaktualizowac plan.
-- [ ] Preferowac migracje pionowe jednego przeplywu nad jednoczesna przebudowa wszystkich domen.
+- [x] Preferowac migracje pionowe jednego przeplywu nad jednoczesna przebudowa wszystkich domen.
 
 ## Etap 0: baseline i zabezpieczenia
 
@@ -213,14 +213,14 @@ Cel: miec punkt odniesienia, dzieki ktoremu wiadomo, czy refaktor nie zmienil za
 
 ### Todo
 
-- [ ] Potwierdzic czysty working tree przed pierwsza zmiana kodu.
+- [x] Potwierdzic czysty working tree przed pierwsza zmiana kodu.
 - [x] Uruchomic i zapisac wynik `npm run test`.
 - [x] Uruchomic i zapisac wynik `npm run lint`.
 - [x] Nie uruchamiac buildu jako czesci standardowej petli testowej.
 - [x] Spisac krytyczne scenariusze smoke testow.
-- [ ] Potwierdzic tryb `mock` oraz `upstream` dla BFF.
+- [x] Potwierdzic tryb `mock` oraz `upstream` dla BFF.
 - [x] Ustalic zasade nazw branchy: `refactor/<numer>-<obszar>`.
-- [ ] Nie laczyc refaktoru z dokumentami `UI_REDESIGN_*`.
+- [x] Nie laczyc refaktoru z dokumentami `UI_REDESIGN_*`.
 
 ### Wynik baseline
 
@@ -1153,18 +1153,18 @@ Cel: rozdzielic orkiestracje stron, formularze, dane referencyjne i akcje zapisu
 Checklist pomocnicza dla pojedynczego commitu/pilota. Aktualny stan Etapu 4
 jest podsumowany w sekcji "Jedna lista kontrolna refaktoru".
 
-- [ ] Nazwac wszystkie odpowiedzialnosci obecnego pliku.
-- [ ] Zapisac jego publiczne API i liste konsumentow.
-- [ ] Dodac test najwazniejszego zachowania przed podzialem.
-- [ ] Wyciagnac czyste mapowania do `utils/<domain>`.
-- [ ] Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
-- [ ] Nie duplikowac stanu pomiedzy nowymi composables.
-- [ ] Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
-- [ ] Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
-- [ ] Zachowac dotychczasowy kontrakt wrappera na czas migracji.
-- [ ] Przepiac konsumentow.
-- [ ] Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
-- [ ] Uruchomic test domeny i lint.
+- Nazwac wszystkie odpowiedzialnosci obecnego pliku.
+- Zapisac jego publiczne API i liste konsumentow.
+- Dodac test najwazniejszego zachowania przed podzialem.
+- Wyciagnac czyste mapowania do `utils/<domain>`.
+- Wyciagnac niezalezny stan lub efekt do malego composable domenowego.
+- Nie duplikowac stanu pomiedzy nowymi composables.
+- Zwracac readonly state, gdy mutacja ma isc przez jawne akcje.
+- Uzyc obiektu opcji przy wielu opcjonalnych argumentach.
+- Zachowac dotychczasowy kontrakt wrappera na czas migracji.
+- Przepiac konsumentow.
+- Usunac wrapper dopiero po braku odwolujacych sie konsumentow.
+- Uruchomic test domeny i lint.
 
 ### Pilot Etapu 4: `useManagerEventEditForm.ts`
 
@@ -1695,18 +1695,18 @@ Przed podzialem kazdego SFC nalezy dopisac krotka mape:
 Checklist pomocnicza dla pojedynczego commitu/pilota. Aktualny stan Etapu 5
 jest podsumowany w sekcji "Jedna lista kontrolna refaktoru".
 
-- [ ] Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
-- [ ] Zdefiniowac mape komponentow przed edycja.
-- [ ] Pozostawic strone jako route meta + composable + kompozycje widoku.
-- [ ] Uzyc `<script setup lang="ts">`.
-- [ ] Uporzadkowac sekcje jako script, template, style.
-- [x] Typowac props i emits.
-- [ ] Nie mutowac propsow w dziecku.
-- [ ] Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
-- [ ] Przeniesc filtrowanie i sortowanie z template do `computed`.
-- [ ] Zachowac stabilne `key` dla list.
-- [ ] Sprawdzic desktop i mobile bez zmiany wizualnej.
-- [ ] Dodac test komponentu lub logiki composable dla nowej granicy.
+- Policzyc niezalezne sekcje UI i odpowiedzialnosci skryptu.
+- Zdefiniowac mape komponentow przed edycja.
+- Pozostawic strone jako route meta + composable + kompozycje widoku.
+- Uzyc `<script setup lang="ts">`.
+- Uporzadkowac sekcje jako script, template, style.
+- Typowac props i emits.
+- Nie mutowac propsow w dziecku.
+- Uzyc `v-model` tylko dla prawdziwego kontraktu dwukierunkowego.
+- Przeniesc filtrowanie i sortowanie z template do `computed`.
+- Zachowac stabilne `key` dla list.
+- Sprawdzic desktop i mobile bez zmiany wizualnej.
+- Dodac test komponentu lub logiki composable dla nowej granicy.
 
 ### Pilot Etapu 5: `pages/vehicles/[id]/edit.vue`
 
@@ -2783,19 +2783,21 @@ Zmiany jakosciowe niemierzalne jedna liczba:
 
 Aktualizujemy go, gdy wybieramy rozwiazanie majace wplyw na wiecej niz jeden plik lub domene.
 
-| Data       | Etap    | Decyzja                                                                                       | Powod                                                                                                                   | Konsekwencje                                                                                                            |
-| ---------- | ------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 2026-08-16 | etap 1  | Akceptujemy `executeBffAdapter<T>(event, { upstream, mock })` jako publiczne API migracji BFF | Pilot `server/api/ratings/me.get.ts` zachowal osobna autoryzacje mocka, przekazanie `upstreamBase` i koperty odpowiedzi | Kolejne handlery moga migrowac na executor; walidacja, statusy HTTP, cookies i mapowanie bledow zostaja poza executorem |
-| 2026-08-16 | etap 3  | Reguly dostepu rol trzymamy w `app/utils/auth/authRole.ts`                                    | Middleware, strony i composables musza uzywac tej samej normalizacji roli oraz tych samych grup dostepu                 | Nowe warianty dostepu dodajemy jako typowane helpery z testem macierzy; nie sprawdzamy surowych stringow roli inline    |
-| 2026-08-19 | REF-002 | Wspolne wartosci `CourseKind` trzymamy w `shared/contracts/courses.ts`                        | Serwer BFF i frontend potrzebuja tych samych wartosci domenowych, ale serwer nie powinien importowac typow z `app`      | Pliki w `shared/contracts` musza pozostac bez zaleznosci od UI, Nuxt app i server utils; etykiety zostaja w warstwie UI |
+| Data       | Etap    | Decyzja                                                                                                                                                                                        | Powod                                                                                                                   | Konsekwencje                                                                                                            |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 2026-08-16 | etap 1  | Akceptujemy `executeBffAdapter<T>(event, { upstream, mock })` jako publiczne API migracji BFF                                                                                                  | Pilot `server/api/ratings/me.get.ts` zachowal osobna autoryzacje mocka, przekazanie `upstreamBase` i koperty odpowiedzi | Kolejne handlery moga migrowac na executor; walidacja, statusy HTTP, cookies i mapowanie bledow zostaja poza executorem |
+| 2026-08-16 | etap 3  | Reguly dostepu rol trzymamy w `app/utils/auth/authRole.ts`                                                                                                                                     | Middleware, strony i composables musza uzywac tej samej normalizacji roli oraz tych samych grup dostepu                 | Nowe warianty dostepu dodajemy jako typowane helpery z testem macierzy; nie sprawdzamy surowych stringow roli inline    |
+| 2026-08-19 | REF-002 | Wspolne wartosci `CourseKind` trzymamy w `shared/contracts/courses.ts`                                                                                                                         | Serwer BFF i frontend potrzebuja tych samych wartosci domenowych, ale serwer nie powinien importowac typow z `app`      | Pliki w `shared/contracts` musza pozostac bez zaleznosci od UI, Nuxt app i server utils; etykiety zostaja w warstwie UI |
+| 2026-09-05 | Stage 6 | Klient BFF zostaje w `app/utils/api`, a transport upstream rozdzielony na `server/utils/upstream/{upstreamRequest,upstreamCookies,upstreamEnvelope,upstreamBody,upstreamUrl,upstreamTypes}.ts` | Rozdzielenie odpowiedzialnosci usuwa monolit transportu i ogranicza ryzyko regresji cookies, envelope i URL buildera    | `upstreamRequest.ts` pozostaje cienkim orkiestratorem; nowe helpery importujemy jawnie z konkretnych modulow            |
+| 2026-09-05 | Stage 6 | Granice composables i utils: composable trzyma stan/orkiestracje, a `app/utils/<domain>` trzyma budowanie sciezek, normalizacje i czyste mapowania                                             | Ten wzorzec zmniejsza composables bez przenoszenia stanu Nuxt do utils                                                  | Nowe domenowe helpery API powstaja w `app/utils/<domain>`; publiczne metody composables pozostaja stabilnym kontraktem  |
 
 ### Todo
 
 - [x] Zapisac decyzje o publicznym API executora BFF po migracji pilotazowej.
-- [ ] Zapisac docelowy podzial klienta BFF po zakonczeniu etapu 2.
+- [x] Zapisac docelowy podzial klienta BFF po zakonczeniu etapu 2.
 - [x] Zapisac jedno zrodlo regul rol po zakonczeniu etapu 3.
-- [ ] Zapisac przyjete granice komponentow i composables, jezeli stana sie wzorcem dla kolejnych domen.
-- [ ] Przy zmianie decyzji nie usuwac starego wpisu; oznaczyc go jako zastapiony i wskazac nowy.
+- [x] Zapisac przyjete granice komponentow i composables, jezeli stana sie wzorcem dla kolejnych domen.
+- [x] Przy zmianie decyzji nie usuwac starego wpisu; oznaczyc go jako zastapiony i wskazac nowy.
 
 ## Problemy odroczone
 
@@ -2808,11 +2810,11 @@ Ta sekcja chroni aktualny branch przed niekontrolowanym rozszerzaniem zakresu.
 
 ### Todo
 
-- [ ] Dopisywac problem, gdy jest wazny, ale nie blokuje aktualnego etapu.
-- [ ] Nie naprawiac problemu odroczonego w biezacym commicie bez zmiany zakresu.
-- [ ] Przed rozpoczeciem nowego brancha przejrzec otwarte problemy.
-- [ ] Po rozwiazaniu wpisac commit i oznaczyc rekord jako `done`.
-- [ ] Usuwac wpis tylko wtedy, gdy okazal sie nieaktualny, z podaniem powodu.
+- [x] Dopisywac problem, gdy jest wazny, ale nie blokuje aktualnego etapu.
+- [x] Nie naprawiac problemu odroczonego w biezacym commicie bez zmiany zakresu.
+- [x] Przed rozpoczeciem nowego brancha przejrzec otwarte problemy.
+- [x] Po rozwiazaniu wpisac commit i oznaczyc rekord jako `done`.
+- [x] Usuwac wpis tylko wtedy, gdy okazal sie nieaktualny, z podaniem powodu.
 
 ## Kolejnosc branchy
 
@@ -2834,17 +2836,17 @@ Skopiuj te punkty do opisu pracy nad kazdym kolejnym elementem:
 
 To jest szablon roboczy, nie lista postepu calego refaktoru.
 
-- [ ] Okreslone obecne zachowanie i konsumenci.
-- [ ] Zapisany test regresyjny lub powod, dla ktorego nie jest potrzebny.
-- [ ] Zdefiniowana nowa granica odpowiedzialnosci.
-- [ ] Wykonana najmniejsza mozliwa migracja.
-- [ ] Brak zmiany publicznego kontraktu.
-- [ ] Testy celowane przechodza.
-- [ ] Lint przechodzi.
-- [ ] Build nie byl uruchamiany w petli testowej; ewentualna kontrola buildu wymaga osobnego polecenia.
-- [ ] Dokumentacja zostala zaktualizowana, jesli zmienila sie architektura.
-- [ ] Commit ma jedna odpowiedzialnosc i czytelny opis.
-- [ ] Branch zostal wypchniety dopiero po pelnej weryfikacji.
+- Okreslone obecne zachowanie i konsumenci.
+- Zapisany test regresyjny lub powod, dla ktorego nie jest potrzebny.
+- Zdefiniowana nowa granica odpowiedzialnosci.
+- Wykonana najmniejsza mozliwa migracja.
+- Brak zmiany publicznego kontraktu.
+- Testy celowane przechodza.
+- Lint przechodzi.
+- Build nie byl uruchamiany w petli testowej; ewentualna kontrola buildu wymaga osobnego polecenia.
+- Dokumentacja zostala zaktualizowana, jesli zmienila sie architektura.
+- Commit ma jedna odpowiedzialnosc i czytelny opis.
+- Branch zostal wypchniety dopiero po pelnej weryfikacji.
 
 ## Definition of Done calego refaktoru
 
