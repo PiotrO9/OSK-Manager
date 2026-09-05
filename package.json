@@ -33,6 +33,7 @@
         "format:check": "prettier . --check",
         "typecheck": "nuxi typecheck",
         "test": "vitest run",
+        "test:stage5": "node scripts/stage5-smoke.mjs",
         "preview": "nuxt preview",
         "postinstall": "nuxt prepare"
     },
