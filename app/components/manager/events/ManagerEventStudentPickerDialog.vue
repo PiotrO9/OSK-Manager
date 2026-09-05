@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { AssignStudentsToEventResponse } from '~/types/events/event';
 import type { StudentListItem } from '~/types/students/student';
-import { getEventStudentPickerCapacitySummary } from '~/utils/events/eventStudentPickerCapacity';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     filterEventStudentPickerStudents,
@@ -46,29 +45,15 @@ let loadSeq = 0;
 
 const selectedCount = computed(() => selectedStudentUserIds.value.length);
 
-const capacitySummary = computed(() =>
-    getEventStudentPickerCapacitySummary({
-        capacity: props.capacity,
-        selectedCount: selectedCount.value,
-    }),
-);
-
-const capacityNumber = computed(() => capacitySummary.value.capacityNumber);
-
-const isCapacityReached = computed(() => {
-    return capacitySummary.value.isCapacityReached;
-});
-
-const remainingSlots = computed(() => {
-    return capacitySummary.value.remainingSlots;
-});
-
-const capacityBadgeVariant = computed(() => {
-    return capacitySummary.value.badgeVariant;
-});
-
-const capacityBadgeLabel = computed((): string => {
-    return capacitySummary.value.badgeLabel;
+const {
+    capacityNumber,
+    isCapacityReached,
+    remainingSlots,
+    capacityBadgeVariant,
+    capacityBadgeLabel,
+} = useEventStudentPickerCapacityState({
+    capacity: () => props.capacity,
+    selectedCount: () => selectedCount.value,
 });
 
 /** GET /students — limit 1–100 (BFF); przy braku limitu wydarzenia = 100. */
@@ -261,15 +246,7 @@ const primarySubmitLabel = computed((): string => {
             :aria-describedby="DESCRIPTION_ID"
             class="max-h-[90vh] max-w-lg overflow-y-auto"
         >
-            <UiDialogHeader>
-                <UiDialogTitle>Przypisz kursantów do wydarzenia</UiDialogTitle>
-                <UiDialogDescription :id="DESCRIPTION_ID">
-                    Możesz przypisać kursantów (aktywnych w OSK) albo pominąć
-                    wybór — wydarzenie zostanie utworzone bez uczestników.
-                    Liczba wybranych nie może przekroczyć limitu miejsc —
-                    backend waliduje konflikty i pojemność.
-                </UiDialogDescription>
-            </UiDialogHeader>
+            <ManagerEventStudentPickerHeader :description-id="DESCRIPTION_ID" />
 
             <ManagerEventStudentPickerCapacitySummary
                 :badge-variant="capacityBadgeVariant"
@@ -300,23 +277,13 @@ const primarySubmitLabel = computed((): string => {
                 {{ submitError }}
             </p>
 
-            <UiDialogFooter class="gap-2 sm:gap-2">
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    :disabled="isAssigning"
-                    @click="handleClose"
-                >
-                    Anuluj
-                </UiButton>
-                <UiButton
-                    type="button"
-                    :disabled="isSubmitDisabled"
-                    @click="handleSubmit"
-                >
-                    {{ primarySubmitLabel }}
-                </UiButton>
-            </UiDialogFooter>
+            <ManagerEventStudentPickerFooter
+                :is-assigning="isAssigning"
+                :is-submit-disabled="isSubmitDisabled"
+                :primary-submit-label="primarySubmitLabel"
+                @cancel="handleClose"
+                @submit="handleSubmit"
+            />
         </UiDialogContent>
     </UiDialog>
 </template>
