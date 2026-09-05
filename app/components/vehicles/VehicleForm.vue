@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import { useSlots } from 'vue';
 import type { Vehicle, VehicleWritePayload } from '~/types/vehicles/vehicle';
+import {
+    buildVehicleWritePayload,
+    parseOptionalVehicleMileageKm,
+    parseOptionalVehicleModelYear,
+    vehicleToFormDraft,
+    VEHICLE_MILEAGE_KM_MAX,
+    VEHICLE_MODEL_YEAR_MAX,
+    VEHICLE_MODEL_YEAR_MIN,
+} from '~/utils/vehicles/vehicleForm';
 
 const props = defineProps<{
     mode: 'create' | 'edit';
@@ -31,25 +40,14 @@ const showModelYearInvalid = ref(false);
 const showMileageKmInvalid = ref(false);
 
 function syncFromProps() {
-    if (props.mode === 'edit' && props.initialVehicle) {
-        const v = props.initialVehicle;
+    const draft = vehicleToFormDraft(props.mode, props.initialVehicle);
 
-        nameModel.value = v.name;
-        registrationNumberModel.value = v.registrationNumber;
-        inspectionDateModel.value = v.inspectionDate ?? '';
-        insuranceDateModel.value = v.insuranceDate ?? '';
-        modelYearModel.value = v.modelYear != null ? String(v.modelYear) : '';
-        mileageKmModel.value = v.mileageKm != null ? String(v.mileageKm) : '';
-
-        return;
-    }
-
-    nameModel.value = '';
-    registrationNumberModel.value = '';
-    inspectionDateModel.value = '';
-    insuranceDateModel.value = '';
-    modelYearModel.value = '';
-    mileageKmModel.value = '';
+    nameModel.value = draft.name;
+    registrationNumberModel.value = draft.registrationNumber;
+    inspectionDateModel.value = draft.inspectionDate;
+    insuranceDateModel.value = draft.insuranceDate;
+    modelYearModel.value = draft.modelYear;
+    mileageKmModel.value = draft.mileageKm;
 }
 
 watch(
@@ -64,30 +62,6 @@ watch(
     { immediate: true },
 );
 
-function dateInputToPayload(value: string): string | null {
-    const t = value.trim();
-
-    return t.length > 0 ? t : null;
-}
-
-const MODEL_YEAR_MIN = 1900;
-const MODEL_YEAR_MAX = 2100;
-const MILEAGE_KM_MAX = 99_999_999;
-
-function numericFieldInputToTrimmedString(
-    raw: string | number | null | undefined,
-): string {
-    if (raw === null || raw === undefined) return '';
-
-    if (typeof raw === 'number') {
-        if (!Number.isFinite(raw)) return '';
-
-        return String(Math.trunc(raw));
-    }
-
-    return String(raw).trim();
-}
-
 function handleSubmit() {
     const nameOk = nameModel.value.trim().length > 0;
     const regOk = registrationNumberModel.value.trim().length > 0;
@@ -97,48 +71,41 @@ function handleSubmit() {
 
     if (!nameOk || !regOk) return;
 
-    let modelYearPayload: number | null = null;
-    const yearStr = numericFieldInputToTrimmedString(modelYearModel.value);
+    const modelYearResult = parseOptionalVehicleModelYear(modelYearModel.value);
 
-    if (yearStr.length > 0) {
-        const y = parseInt(yearStr, 10);
+    if (!modelYearResult.isValid) {
+        showModelYearInvalid.value = true;
 
-        if (!Number.isInteger(y) || y < MODEL_YEAR_MIN || y > MODEL_YEAR_MAX) {
-            showModelYearInvalid.value = true;
-
-            return;
-        }
-
-        modelYearPayload = y;
+        return;
     }
 
     showModelYearInvalid.value = false;
 
-    let mileageKmPayload: number | null = null;
-    const mileageStr = numericFieldInputToTrimmedString(mileageKmModel.value);
+    const mileageKmResult = parseOptionalVehicleMileageKm(mileageKmModel.value);
 
-    if (mileageStr.length > 0) {
-        const m = parseInt(mileageStr, 10);
+    if (!mileageKmResult.isValid) {
+        showMileageKmInvalid.value = true;
 
-        if (!Number.isInteger(m) || m < 0 || m > MILEAGE_KM_MAX) {
-            showMileageKmInvalid.value = true;
-
-            return;
-        }
-
-        mileageKmPayload = m;
+        return;
     }
 
     showMileageKmInvalid.value = false;
 
-    emit('submit', {
-        name: nameModel.value.trim(),
-        registrationNumber: registrationNumberModel.value.trim(),
-        inspectionDate: dateInputToPayload(inspectionDateModel.value),
-        insuranceDate: dateInputToPayload(insuranceDateModel.value),
-        modelYear: modelYearPayload,
-        mileageKm: mileageKmPayload,
-    });
+    emit(
+        'submit',
+        buildVehicleWritePayload(
+            {
+                name: nameModel.value,
+                registrationNumber: registrationNumberModel.value,
+                inspectionDate: inspectionDateModel.value,
+                insuranceDate: insuranceDateModel.value,
+                modelYear: modelYearModel.value,
+                mileageKm: mileageKmModel.value,
+            },
+            modelYearResult.value,
+            mileageKmResult.value,
+        ),
+    );
 }
 </script>
 
@@ -170,9 +137,9 @@ function handleSubmit() {
             :show-registration-required="showRegistrationRequired"
             :show-model-year-invalid="showModelYearInvalid"
             :show-mileage-km-invalid="showMileageKmInvalid"
-            :model-year-min="MODEL_YEAR_MIN"
-            :model-year-max="MODEL_YEAR_MAX"
-            :mileage-km-max="MILEAGE_KM_MAX"
+            :model-year-min="VEHICLE_MODEL_YEAR_MIN"
+            :model-year-max="VEHICLE_MODEL_YEAR_MAX"
+            :mileage-km-max="VEHICLE_MILEAGE_KM_MAX"
         />
 
         <div v-if="slots.afterFields" class="space-y-4 pt-1">
