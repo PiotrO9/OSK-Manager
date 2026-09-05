@@ -1,4 +1,3 @@
-import type { CalendarDate, DateValue } from '@internationalized/date';
 import { useCoursesApi } from '~/composables/courses/useCoursesApi';
 import { useSchoolAvailabilitySlotsApi } from '~/composables/schools/useSchoolAvailabilitySlotsApi';
 import type { CourseListItem } from '~/types/courses/course';
@@ -9,18 +8,14 @@ import type {
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
-    getMonday,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
-    weekCalendarDatesFromMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
 import {
     buildSchoolAvailabilityAggregatedSlots,
     buildSchoolAvailabilityCalendarFiltersPayload,
     buildSchoolAvailabilityWeekDays,
-    formatSchoolAvailabilityWeekRangeLabel,
-    getSchoolAvailabilitySelectedWeekMonday,
     getSchoolAvailabilitySlotTopPx,
     isSchoolAvailabilitySlotInsideTimeline,
     MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
@@ -55,14 +50,19 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         courses.value = await fetchCoursesList(sid).catch(() => []);
     }
 
-    const weekStart = ref<Date>(getMonday(new Date()));
     const slots = ref<SchoolAvailabilitySlot[]>([]);
     const errorMessage = ref<string | null>(null);
-    const isCalendarOpen = ref(false);
-    const calendarSelected = shallowRef<CalendarDate[]>(
-        weekCalendarDatesFromMonday(getMonday(new Date())),
-    );
     const { fetchSlots, isLoading } = useSchoolAvailabilitySlotsApi();
+    const {
+        weekStart,
+        weekRangeLabel,
+        isCalendarOpen,
+        calendarSelected,
+        handlePrevWeek,
+        handleNextWeek,
+        handleCalendarUpdate,
+        handleKeyDownWeekNav,
+    } = useManagerSchoolAvailabilityWeekPicker();
 
     let fetchSeq = 0;
 
@@ -79,10 +79,6 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
 
     const weekDays = computed(() =>
         buildSchoolAvailabilityWeekDays(weekStart.value),
-    );
-
-    const weekRangeLabel = computed(() =>
-        formatSchoolAvailabilityWeekRangeLabel(weekStart.value),
     );
 
     const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
@@ -224,55 +220,6 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         },
         { immediate: true },
     );
-
-    watch(weekStart, (w) => {
-        calendarSelected.value = weekCalendarDatesFromMonday(w);
-    });
-
-    function handlePrevWeek(): void {
-        const d = new Date(weekStart.value);
-
-        d.setDate(d.getDate() - 7);
-        weekStart.value = d;
-    }
-
-    function handleNextWeek(): void {
-        const d = new Date(weekStart.value);
-
-        d.setDate(d.getDate() + 7);
-        weekStart.value = d;
-    }
-
-    function handleCalendarUpdate(
-        value: DateValue | DateValue[] | undefined,
-    ): void {
-        const monday = getSchoolAvailabilitySelectedWeekMonday(value);
-
-        if (monday === null) {
-            return;
-        }
-
-        weekStart.value = monday;
-        calendarSelected.value = weekCalendarDatesFromMonday(monday);
-        isCalendarOpen.value = false;
-    }
-
-    function handleKeyDownWeekNav(
-        event: KeyboardEvent,
-        direction: 'prev' | 'next',
-    ): void {
-        if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-        }
-
-        event.preventDefault();
-
-        if (direction === 'prev') {
-            handlePrevWeek();
-        } else {
-            handleNextWeek();
-        }
-    }
 
     return {
         BASE_HOUR: MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
