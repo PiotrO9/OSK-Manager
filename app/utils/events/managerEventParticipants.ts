@@ -25,6 +25,27 @@ export function readManagerEventStudentUserIds(
         : [];
 }
 
+export function buildManagerEventTheoryStudentDraft(
+    event: InstructorEvent | null,
+): {
+    baselineIds: string[];
+    draftIds: string[];
+} {
+    if (!event) {
+        return {
+            baselineIds: [],
+            draftIds: [],
+        };
+    }
+
+    const ids = readManagerEventStudentUserIds(event);
+
+    return {
+        baselineIds: sortManagerEventParticipantIds(ids),
+        draftIds: [...ids],
+    };
+}
+
 export function isManagerEventTheoryEvent(
     event: InstructorEvent | null,
 ): boolean {
@@ -140,6 +161,33 @@ export function getManagerEventCapacityLimitError(params: {
     }
 
     return null;
+}
+
+export function getNextManagerEventTheoryStudentDraft(params: {
+    row: StudentListItem;
+    nextChecked: boolean;
+    draftIds: readonly string[];
+}): string[] {
+    if (params.nextChecked) {
+        const isAlreadyChecked = isManagerEventTheoryRowChecked({
+            row: params.row,
+            draftIds: params.draftIds,
+        });
+
+        if (isAlreadyChecked) {
+            return [...params.draftIds];
+        }
+
+        const canonical = getManagerEventCanonicalParticipantUserId(params.row);
+
+        return canonical
+            ? [...params.draftIds, canonical]
+            : [...params.draftIds];
+    }
+
+    return params.draftIds.filter(
+        (id) => !managerEventDraftIdBelongsToStudentRow(params.row, id),
+    );
 }
 
 export function readManagerEventEligibleCapacity(

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+    buildManagerEventTheoryStudentDraft,
     formatManagerEventTheoryCapacitySummary,
     getManagerEventCanonicalParticipantUserId,
     getManagerEventCapacityLimitError,
+    getNextManagerEventTheoryStudentDraft,
     isManagerEventEligibleRowInteractive,
     isManagerEventTheoryRowChecked,
     isManagerEventTheoryStudentsDirty,
@@ -79,6 +81,21 @@ describe('manager event participants model', () => {
                 event({ studentUserIds: [' user-2 ', '', 'user-1'] }),
             ),
         ).toEqual(['user-2', 'user-1']);
+    });
+
+    it('builds baseline and draft ids from an event', () => {
+        expect(
+            buildManagerEventTheoryStudentDraft(
+                event({ studentUserIds: [' user-2 ', 'user-1'] }),
+            ),
+        ).toEqual({
+            baselineIds: ['user-1', 'user-2'],
+            draftIds: ['user-2', 'user-1'],
+        });
+        expect(buildManagerEventTheoryStudentDraft(null)).toEqual({
+            baselineIds: [],
+            draftIds: [],
+        });
     });
 
     it('matches draft ids by user id or profile id', () => {
@@ -173,6 +190,23 @@ describe('manager event participants model', () => {
                 draftCount: 2,
             }),
         ).toBeNull();
+    });
+
+    it('calculates next selected student draft', () => {
+        expect(
+            getNextManagerEventTheoryStudentDraft({
+                row: student({ id: 'profile-1', userId: 'user-1' }),
+                nextChecked: true,
+                draftIds: ['user-2'],
+            }),
+        ).toEqual(['user-2', 'user-1']);
+        expect(
+            getNextManagerEventTheoryStudentDraft({
+                row: student({ id: 'profile-1', userId: 'user-1' }),
+                nextChecked: false,
+                draftIds: ['profile-1', 'user-2'],
+            }),
+        ).toEqual(['user-2']);
     });
 
     it('keeps assigned rows interactive even when they cannot be newly assigned', () => {
