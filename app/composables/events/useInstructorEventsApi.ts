@@ -14,88 +14,16 @@ import type {
     InstructorEventGetApiData,
     InstructorEventPatchApiData,
 } from '~/types/events/instructorEventApi';
+import {
+    buildCreateInstructorEventRequestBody,
+    buildPatchInstructorEventRequestBody,
+    buildTheoryEventEligibleStudentsQuery,
+    isTheoryInstructorEvent,
+    type EventStudentsPayload,
+    type TheoryEventEligibleStudentsPayload,
+} from '~/utils/events/instructorEventsApiRequests';
 import { normalizeInstructorEventFromApi } from '~/utils/events/instructorEventNormalize';
 import { normalizeTheoryEventEligibleStudents } from '~/utils/events/theoryEventEligibleStudents';
-
-interface InstructorEventCreateRequestBody {
-    instructorId: string;
-    type: CreateInstructorEventPayload['type'];
-    startTime: string;
-    endTime: string;
-    vehicleId?: string;
-    capacity?: number;
-    courseId?: string;
-}
-
-type InstructorEventPatchRequestBody = Partial<{
-    instructorId: string;
-    type: PatchInstructorEventPayload['type'];
-    startTime: string;
-    endTime: string;
-    vehicleId: string | null;
-    capacity: number | null;
-    status: NonNullable<PatchInstructorEventPayload['status']>;
-}>;
-
-function buildPatchRequestBody(
-    payload: PatchInstructorEventPayload,
-): InstructorEventPatchRequestBody {
-    const body: InstructorEventPatchRequestBody = {};
-
-    if (payload.instructorId !== undefined) {
-        body.instructorId = payload.instructorId.trim();
-    }
-
-    if (payload.type !== undefined) {
-        body.type = payload.type;
-    }
-
-    if (payload.startTime !== undefined) {
-        body.startTime = payload.startTime.trim();
-    }
-
-    if (payload.endTime !== undefined) {
-        body.endTime = payload.endTime.trim();
-    }
-
-    if (payload.vehicleId !== undefined) {
-        body.vehicleId = payload.vehicleId;
-    }
-
-    if (payload.capacity !== undefined) {
-        body.capacity = payload.capacity;
-    }
-
-    if (payload.status !== undefined) {
-        body.status = payload.status;
-    }
-
-    return body;
-}
-
-function isTheoryEventType(ev: InstructorEvent): boolean {
-    const t = String(ev.type ?? '')
-        .trim()
-        .toUpperCase();
-
-    return t === 'THEORY';
-}
-
-type EventStudentsPayload =
-    | string[]
-    | Array<Record<string, unknown>>
-    | {
-          data?: unknown;
-          studentUserIds?: unknown;
-          studentIds?: unknown;
-          assignedStudentIds?: unknown;
-          students?: unknown;
-          items?: unknown;
-          participants?: unknown;
-      }
-    | null;
-
-type TheoryEventEligibleStudentsPayload = TheoryEventEligibleStudentsData;
 
 export function useInstructorEventsApi() {
     const isLoading = ref(false);
@@ -109,24 +37,7 @@ export function useInstructorEventsApi() {
         isLoading.value = true;
 
         try {
-            const body: InstructorEventCreateRequestBody = {
-                instructorId: payload.instructorId.trim(),
-                type: payload.type,
-                startTime: payload.startTime.trim(),
-                endTime: payload.endTime.trim(),
-            };
-
-            if (payload.type === 'DRIVE' && payload.vehicleId?.trim()) {
-                body.vehicleId = payload.vehicleId.trim();
-            }
-
-            if (payload.capacity !== undefined && payload.capacity !== null) {
-                body.capacity = payload.capacity;
-            }
-
-            if (payload.type === 'THEORY' && payload.courseId?.trim()) {
-                body.courseId = payload.courseId.trim();
-            }
+            const body = buildCreateInstructorEventRequestBody(payload);
 
             const data = await requestBffData<InstructorEventCreateApiData>(
                 'POST',
@@ -215,7 +126,7 @@ export function useInstructorEventsApi() {
             let known = att.source === 'present';
 
             if (
-                isTheoryEventType(rawEvent) &&
+                isTheoryInstructorEvent(rawEvent) &&
                 !options?.skipTheoryStudentsSubresource &&
                 att.source === 'unknown'
             ) {
@@ -258,7 +169,7 @@ export function useInstructorEventsApi() {
         isUpdateLoading.value = true;
 
         try {
-            const body = buildPatchRequestBody(payload);
+            const body = buildPatchInstructorEventRequestBody(payload);
 
             const data = await requestBffData<InstructorEventPatchApiData>(
                 'PATCH',
@@ -289,12 +200,7 @@ export function useInstructorEventsApi() {
             throw new Error('Brak identyfikatora wydarzenia.');
         }
 
-        const start = opts?.startTime?.trim();
-        const end = opts?.endTime?.trim();
-        const query =
-            start && end
-                ? `?startTime=${encodeURIComponent(start)}&endTime=${encodeURIComponent(end)}`
-                : '';
+        const query = buildTheoryEventEligibleStudentsQuery(opts);
 
         const data = await requestBffData<TheoryEventEligibleStudentsPayload>(
             'GET',
