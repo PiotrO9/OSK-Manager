@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+    buildManagerOskEditFormValues,
     buildManagerOskCreateBody,
     buildManagerOskStatsSummary,
     buildManagerOskUpdateBody,
     countManagerOskDefaultSchools,
+    getManagerOskBlankFormValues,
+    getManagerOskErrorMessage,
+    removeManagerOskSchoolById,
 } from './managerOskPage';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
@@ -24,6 +28,55 @@ describe('manager OSK page model', () => {
                 school({ id: 'school-3', isDefault: true }),
             ]),
         ).toBe(2);
+    });
+
+    it('removes a school by id without mutating the source list', () => {
+        const source = [
+            school({ id: 'school-1' }),
+            school({ id: 'school-2' }),
+            school({ id: 'school-3' }),
+        ];
+
+        expect(removeManagerOskSchoolById(source, 'school-2')).toEqual([
+            source[0],
+            source[2],
+        ]);
+        expect(source).toHaveLength(3);
+    });
+
+    it('normalizes form values for blank and edit modes', () => {
+        expect(getManagerOskBlankFormValues()).toEqual({
+            name: '',
+            city: '',
+            address: '',
+            asDefault: false,
+        });
+
+        expect(
+            buildManagerOskEditFormValues(
+                school({
+                    name: 'OSK Edit',
+                    city: null,
+                    address: 'Krakowska 1',
+                    isDefault: true,
+                }),
+            ),
+        ).toEqual({
+            name: 'OSK Edit',
+            city: '',
+            address: 'Krakowska 1',
+            asDefault: true,
+        });
+    });
+
+    it('uses error message when available and otherwise falls back', () => {
+        expect(
+            getManagerOskErrorMessage(
+                new Error('Backend unavailable'),
+                'Fallback',
+            ),
+        ).toBe('Backend unavailable');
+        expect(getManagerOskErrorMessage('boom', 'Fallback')).toBe('Fallback');
     });
 
     it('sums fulfilled stats and reports rejected partial results', () => {
