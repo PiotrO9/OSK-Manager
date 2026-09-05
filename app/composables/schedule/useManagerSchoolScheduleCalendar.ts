@@ -1,6 +1,6 @@
-import type { DateValue } from '@internationalized/date';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { useManagerSchoolScheduleCalendarData } from '~/composables/schedule/useManagerSchoolScheduleCalendarData';
+import { useManagerSchoolScheduleWeekPicker } from '~/composables/schedule/useManagerSchoolScheduleWeekPicker';
 import {
     BASE_HOUR,
     GRID_HEIGHT_PX,
@@ -16,8 +16,6 @@ import {
     buildManagerSchoolScheduleWeekDays,
     formatManagerSchoolScheduleCompactWeekRangeLabel,
     formatManagerSchoolScheduleWeekRangeLabel,
-    resolveManagerSchoolScheduleCalendarWeekStart,
-    shiftManagerSchoolScheduleWeek,
 } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
 import { buildScheduleManagerItemEditRoute } from '~/utils/schedule/scheduleManagerEditNavigation';
 import {
@@ -27,10 +25,8 @@ import {
     isStudentRatingSelectableScheduleLesson,
 } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 import {
-    getMonday,
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
-    weekCalendarDatesFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
 
 export interface ManagerSchoolScheduleCalendarProps {
@@ -65,29 +61,26 @@ export function useManagerSchoolScheduleCalendar(
         ...args: ManagerSchoolScheduleCalendarEmit[K]
     ) => void,
 ) {
-    const localWeekStart = ref<Date>(getMonday(new Date()));
-    const isCalendarOpen = ref(false);
-    const calendarSelected = shallowRef<DateValue[]>(
-        weekCalendarDatesFromMonday(getMonday(new Date())),
-    );
+    const {
+        activeWeekStart,
+        calendarSelectedModel,
+        handleCalendarUpdate,
+        handleKeyDownWeekNav,
+        handleNextWeek,
+        handlePrevWeek,
+        isCalendarOpen,
+        localWeekStart,
+    } = useManagerSchoolScheduleWeekPicker({
+        isParentSchedule: () => props.parentSchedule,
+        parentWeekStart: () => props.weekStart,
+        updateParentWeekStart: (value) => emit('update:weekStart', value),
+    });
     const { errorMessage, internalItems, isLoading, loadWeek } =
         useManagerSchoolScheduleCalendarData({
             schoolId: () => props.schoolId,
             weekStart: localWeekStart,
             disabled: () => props.parentSchedule,
         });
-
-    const calendarSelectedModel = computed<DateValue[]>(
-        () => calendarSelected.value as unknown as DateValue[],
-    );
-
-    const activeWeekStart = computed(() => {
-        if (props.parentSchedule && props.weekStart) {
-            return getMonday(props.weekStart);
-        }
-
-        return localWeekStart.value;
-    });
 
     const displayItems = computed((): ScheduleLessonItem[] =>
         props.parentSchedule ? props.parentItems : internalItems.value,
@@ -145,68 +138,6 @@ export function useManagerSchoolScheduleCalendar(
         dateStr: string,
     ): number {
         return calculateSameStartTileHeightPx(lesson, lessonsForDate(dateStr));
-    }
-
-    watch(
-        activeWeekStart,
-        (w) => {
-            calendarSelected.value = weekCalendarDatesFromMonday(w);
-        },
-        { immediate: true },
-    );
-
-    function commitWeekMonday(monday: Date): void {
-        const m = getMonday(monday);
-
-        if (props.parentSchedule) {
-            emit('update:weekStart', m);
-
-            return;
-        }
-
-        localWeekStart.value = m;
-    }
-
-    function handlePrevWeek(): void {
-        commitWeekMonday(
-            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'prev'),
-        );
-    }
-
-    function handleNextWeek(): void {
-        commitWeekMonday(
-            shiftManagerSchoolScheduleWeek(activeWeekStart.value, 'next'),
-        );
-    }
-
-    function handleCalendarUpdate(
-        value: DateValue | DateValue[] | undefined,
-    ): void {
-        const monday = resolveManagerSchoolScheduleCalendarWeekStart(value);
-
-        if (!monday) {
-            return;
-        }
-
-        commitWeekMonday(monday);
-        isCalendarOpen.value = false;
-    }
-
-    function handleKeyDownWeekNav(
-        event: KeyboardEvent,
-        direction: 'prev' | 'next',
-    ): void {
-        if (event.key !== 'Enter' && event.key !== ' ') {
-            return;
-        }
-
-        event.preventDefault();
-
-        if (direction === 'prev') {
-            handlePrevWeek();
-        } else {
-            handleNextWeek();
-        }
     }
 
     function isStudentRatingSelectableLesson(
