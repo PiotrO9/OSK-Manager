@@ -8,13 +8,13 @@ import type { StudentListItem } from '~/types/students/student';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     formatManagerEventTheoryCapacitySummary,
-    getManagerEventCanonicalParticipantUserId,
+    buildManagerEventTheoryStudentDraft,
     getManagerEventCapacityLimitError,
+    getNextManagerEventTheoryStudentDraft,
     isManagerEventEligibleRowInteractive,
     isManagerEventTheoryEvent,
     isManagerEventTheoryRowChecked,
     isManagerEventTheoryStudentsDirty,
-    managerEventDraftIdBelongsToStudentRow,
     readManagerEventStudentUserIds,
     resolveManagerEventCapacityForStudentPicker,
     sortManagerEventParticipantIds,
@@ -125,10 +125,10 @@ export function useManagerEventParticipants(input: {
             return;
         }
 
-        const arr = readManagerEventStudentUserIds(ev);
+        const draft = buildManagerEventTheoryStudentDraft(ev);
 
-        theoryStudentsBaseline.value = sortManagerEventParticipantIds(arr);
-        draftTheoryStudentUserIds.value = [...arr];
+        theoryStudentsBaseline.value = draft.baselineIds;
+        draftTheoryStudentUserIds.value = draft.draftIds;
     }
 
     async function refreshEligibleForCurrentTime(): Promise<void> {
@@ -177,29 +177,13 @@ export function useManagerEventParticipants(input: {
             return;
         }
 
-        if (next) {
-            if (isTheoryRowChecked(s)) {
-                return;
-            }
-
-            const canonical = getManagerEventCanonicalParticipantUserId(s);
-
-            if (!canonical) {
-                return;
-            }
-
-            draftTheoryStudentUserIds.value = [
-                ...draftTheoryStudentUserIds.value,
-                canonical,
-            ];
-
-            return;
-        }
-
-        draftTheoryStudentUserIds.value =
-            draftTheoryStudentUserIds.value.filter(
-                (id) => !managerEventDraftIdBelongsToStudentRow(s, id),
-            );
+        draftTheoryStudentUserIds.value = getNextManagerEventTheoryStudentDraft(
+            {
+                row: s,
+                nextChecked: next,
+                draftIds: draftTheoryStudentUserIds.value,
+            },
+        );
     }
 
     watch(
