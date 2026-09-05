@@ -17,14 +17,12 @@ import {
     Users,
 } from 'lucide-vue-next';
 import { useSidebar } from '../shadcn/sidebar';
-
-interface NavItem {
-    readonly to: string;
-    readonly label: string;
-    readonly ariaLabel: string;
-    readonly icon: Component;
-    readonly tooltip: string;
-}
+import {
+    buildAppShellSidebarNavItems,
+    getAppShellUserInitials,
+    isAppShellSidebarNavActive,
+    type AppShellSidebarNavIconKey,
+} from '~/utils/navigation/appShellSidebarNav';
 
 const route = useRoute();
 const { session } = useAuthSession();
@@ -36,151 +34,31 @@ const showNavItemTooltip = computed(
     () => state.value === 'collapsed' && !isMobile.value,
 );
 
-const navItems = computed<NavItem[]>(() => {
-    const items: NavItem[] = [
-        {
-            to: '/',
-            label: 'Pulpit',
-            ariaLabel: 'Przejdź do pulpitu',
-            icon: LayoutDashboard,
-            tooltip: 'Pulpit',
-        },
-        {
-            to: '/account',
-            label: 'Konto',
-            ariaLabel: 'Przejdź do mojego konta',
-            icon: User,
-            tooltip: 'Konto',
-        },
-        {
-            to: '/my-courses',
-            label: 'Moje kursy',
-            ariaLabel: 'Przejdź do listy moich kursów',
-            icon: BookOpen,
-            tooltip: 'Moje kursy',
-        },
-    ];
+const NAV_ICON_BY_KEY: Record<AppShellSidebarNavIconKey, Component> = {
+    bookOpen: BookOpen,
+    building: Building2,
+    calendarCheck: CalendarCheck,
+    calendarClock: CalendarClock,
+    calendarDays: CalendarDays,
+    calendarPlus: CalendarPlus,
+    car: Car,
+    creditCard: CreditCard,
+    graduationCap: GraduationCap,
+    layoutDashboard: LayoutDashboard,
+    messageSquareText: MessageSquareText,
+    user: User,
+    users: Users,
+};
 
-    const role = session.value?.role?.trim().toUpperCase();
-
-    if (role === 'STUDENT' || role === 'INSTRUCTOR') {
-        items.splice(1, 0, {
-            to: '/my-lessons',
-            label: 'Moje lekcje',
-            ariaLabel: 'Przejdź do terminarza moich lekcji',
-            icon: CalendarDays,
-            tooltip: 'Moje lekcje',
-        });
-    }
-
-    if (role === 'STUDENT') {
-        items.splice(2, 0, {
-            to: '/book-lesson',
-            label: 'Rezerwuj jazdę',
-            ariaLabel: 'Przejdz do rezerwacji jazdy',
-            icon: CalendarPlus,
-            tooltip: 'Rezerwuj jazdę',
-        });
-        items.splice(4, 0, {
-            to: '/my-payments',
-            label: 'Moje opłaty',
-            ariaLabel: 'Przejdź do listy moich opłat',
-            icon: CreditCard,
-            tooltip: 'Moje opłaty',
-        });
-    }
-
-    if (role === 'INSTRUCTOR') {
-        items.splice(2, 0, {
-            to: '/my-reviews',
-            label: 'Moje opinie',
-            ariaLabel: 'Przejdz do opinii o moich lekcjach',
-            icon: MessageSquareText,
-            tooltip: 'Moje opinie',
-        });
-        items.splice(3, 0, {
-            to: '/events',
-            label: 'Moje wydarzenia',
-            ariaLabel: 'Przejdź do dziennego widoku moich wydarzeń',
-            icon: CalendarCheck,
-            tooltip: 'Moje wydarzenia',
-        });
-    }
-
-    if (session.value?.role === 'MANAGER') {
-        items.splice(1, 0, {
-            to: '/vehicles',
-            label: 'Pojazdy',
-            ariaLabel: 'Przejdź do listy pojazdów',
-            icon: Car,
-            tooltip: 'Pojazdy',
-        });
-    }
-
-    if (session.value?.role === 'MANAGER') {
-        items.push({
-            to: '/manager/osk',
-            label: 'OSK',
-            ariaLabel: 'Przejdź do zarządzania szkołami jazdy',
-            icon: Building2,
-            tooltip: 'Szkoły jazdy',
-        });
-    }
-
-    if (session.value?.role === 'MANAGER' || session.value?.role === 'ADMIN') {
-        items.push({
-            to: '/manager/instructors',
-            label: 'Instruktorzy',
-            ariaLabel: 'Przejdź do zarządzania instruktorami',
-            icon: GraduationCap,
-            tooltip: 'Instruktorzy',
-        });
-        items.push({
-            to: '/manager/students',
-            label: 'Kursanci',
-            ariaLabel: 'Przejdź do zarządzania kursantami',
-            icon: Users,
-            tooltip: 'Kursanci',
-        });
-        items.push({
-            to: '/manager/courses',
-            label: 'Kursy',
-            ariaLabel: 'Przejdź do listy kursów',
-            icon: BookOpen,
-            tooltip: 'Kursy',
-        });
-        items.push({
-            to: '/events',
-            label: 'Wydarzenia',
-            ariaLabel: 'Przejdź do dziennego widoku wydarzeń instruktorów',
-            icon: CalendarCheck,
-            tooltip: 'Wydarzenia',
-        });
-        items.push({
-            to: '/manager/reviews',
-            label: 'Opinie',
-            ariaLabel: 'Przejdz do listy opinii o lekcjach',
-            icon: MessageSquareText,
-            tooltip: 'Opinie',
-        });
-        items.push({
-            to: '/manager/schedule',
-            label: 'Harmonogram',
-            ariaLabel: 'Przejdź do tygodniowego harmonogramu lekcji szkoły',
-            icon: CalendarClock,
-            tooltip: 'Harmonogram lekcji',
-        });
-    }
-
-    return items;
-});
+const navItems = computed(() =>
+    buildAppShellSidebarNavItems(session.value?.role).map((item) => ({
+        ...item,
+        icon: NAV_ICON_BY_KEY[item.iconKey],
+    })),
+);
 
 function isNavActive(to: string): boolean {
-    if (to === '/') {
-        return route.path === '/' || route.path === '';
-    }
-
-    return route.path === to || route.path.startsWith(`${to}/`);
+    return isAppShellSidebarNavActive(route.path, to);
 }
 
 function handleLogoutClick() {
@@ -191,28 +69,8 @@ const displayUserLabel = computed(
     () => session.value?.userName ?? 'Użytkownik',
 );
 
-function userInitialsFromName(name: string): string {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-
-    if (parts.length === 0) {
-        return 'U';
-    }
-
-    if (parts.length === 1) {
-        const w = parts[0] ?? '';
-
-        return w.slice(0, 2).toUpperCase();
-    }
-
-    const a = parts[0]?.[0] ?? '';
-    const b = parts[1]?.[0] ?? '';
-    const pair = `${a}${b}`.toUpperCase();
-
-    return pair || 'U';
-}
-
 const userInitials = computed(() =>
-    userInitialsFromName(displayUserLabel.value),
+    getAppShellUserInitials(displayUserLabel.value),
 );
 
 const avatarSrc = computed(() => {
