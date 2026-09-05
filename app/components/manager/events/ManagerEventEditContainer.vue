@@ -172,29 +172,13 @@ const {
             :is-delete-loading="isDeleteLoading"
         />
 
-        <p
-            v-if="!schoolId"
-            class="border-border rounded-xl border border-dashed bg-amber-50/60 px-4 py-3 text-sm text-amber-800 dark:bg-amber-950/20 dark:text-amber-300"
-            role="status"
-        >
-            Dodaj <code class="text-xs">?schoolId=</code> w adresie, aby wybrać
-            pojazd przy jazdzie, zmienić instruktora i zarządzać kursantami w
-            teorii.
-        </p>
+        <ManagerEventEditMissingSchoolNotice v-if="!schoolId" />
 
-        <ErrorState
+        <ManagerEventEditReturnErrorState
             v-if="!eventId"
             title="Nieprawidłowy identyfikator wydarzenia"
             description="Adres strony nie zawiera poprawnego ID wydarzenia."
-        >
-            <template #action>
-                <UiButton as-child variant="outline" class="bg-background">
-                    <NuxtLink to="/manager/instructors">
-                        Wróć do listy instruktorów
-                    </NuxtLink>
-                </UiButton>
-            </template>
-        </ErrorState>
+        />
 
         <LoadingState
             v-else-if="isFetchLoading && !loadedEvent && !notFound"
@@ -203,18 +187,10 @@ const {
         />
 
         <template v-else-if="notFound">
-            <ErrorState
+            <ManagerEventEditReturnErrorState
                 title="Wydarzenie nie zostało znalezione"
                 description="Serwer zwrócił 404 dla tego bloku czasu."
-            >
-                <template #action>
-                    <UiButton as-child variant="outline" class="bg-background">
-                        <NuxtLink to="/manager/instructors">
-                            Wróć do listy instruktorów
-                        </NuxtLink>
-                    </UiButton>
-                </template>
-            </ErrorState>
+            />
         </template>
 
         <template v-else-if="loadError">
@@ -308,13 +284,9 @@ const {
             />
         </template>
 
-        <NuxtLink
+        <ManagerEventEditBackLink
             v-if="loadedEvent || notFound"
             :to="scheduleBackHref"
-            class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-            aria-label="Wróć do terminarza instruktora"
-        >
-            Wróć do terminarza instruktora
-        </NuxtLink>
+        />
     </div>
 </template>
