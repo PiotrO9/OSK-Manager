@@ -1,5 +1,5 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventsPost } from '~~/server/utils/events/eventsBff';
+import { bffEventsPost } from '~~/server/utils/events/eventsCrudBff';
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 
 type EventTypeLiteral = 'DRIVE' | 'THEORY';

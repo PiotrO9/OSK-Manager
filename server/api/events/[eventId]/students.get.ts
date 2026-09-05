@@ -1,8 +1,6 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import {
-    bffEventStudentsGet,
-    type EventStudentsReplaceResponse,
-} from '~~/server/utils/events/eventsBff';
+import { bffEventStudentsGet } from '~~/server/utils/events/eventStudentsBff';
+import type { EventStudentsReplaceResponse } from '~~/server/utils/events/eventsTypes';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 interface EventStudentsGetResponse {

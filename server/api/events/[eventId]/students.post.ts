@@ -1,5 +1,5 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventStudentsPost } from '~~/server/utils/events/eventsBff';
+import { bffEventStudentsPost } from '~~/server/utils/events/eventStudentsBff';
 import {
     isUuid,
     parseRequiredUuidRouterParam,

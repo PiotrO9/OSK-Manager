@@ -1,5 +1,5 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import { bffEventsDelete } from '~~/server/utils/events/eventsBff';
+import { bffEventsDelete } from '~~/server/utils/events/eventsCrudBff';
 import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
