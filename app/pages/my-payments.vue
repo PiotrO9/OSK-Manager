@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SummaryStripItem } from '~/components/app/ui/types';
+import type { SummaryStripItem } from '~/types/ui';
 import type { StudentPaymentItem } from '~/types/payments/payment';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
