@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MyCoursesProgressBar from '~/components/courses/MyCoursesProgressBar.vue';
 import { BookOpen } from 'lucide-vue-next';
 import {
     formatCourseKindLabel,
