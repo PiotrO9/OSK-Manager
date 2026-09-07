@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, ref, shallowRef, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 function installNuxtSchoolScheduleCalendarGlobals(): void {
@@ -7,6 +7,7 @@ function installNuxtSchoolScheduleCalendarGlobals(): void {
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('shallowRef', shallowRef);
     vi.stubGlobal('watch', watch);
+    vi.stubGlobal('onBeforeUnmount', onBeforeUnmount);
     vi.stubGlobal('useSchoolScheduleApi', () => ({
         fetchSchoolSchedule: vi.fn(),
         isLoading: ref(false),

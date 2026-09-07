@@ -39,6 +39,7 @@ export function useScheduleApi() {
     async function fetchMySchedule(
         dateFrom: string,
         dateTo: string,
+        options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
         const from = dateFrom.trim();
         const to = dateTo.trim();
@@ -53,6 +54,7 @@ export function useScheduleApi() {
             {
                 fallbackMessage: 'Nie udało się pobrać harmonogramu.',
                 normalize: normalizeScheduleItems,
+                signal: options.signal,
             },
         );
     }
@@ -61,6 +63,7 @@ export function useScheduleApi() {
         instructorId: string,
         dateFrom: string,
         dateTo: string,
+        options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
         const id = instructorId.trim();
         const from = dateFrom.trim();
@@ -76,6 +79,7 @@ export function useScheduleApi() {
             {
                 fallbackMessage: 'Nie udało się pobrać harmonogramu.',
                 normalize: normalizeScheduleItems,
+                signal: options.signal,
             },
         );
     }
@@ -85,6 +89,7 @@ export function useScheduleApi() {
         dateFrom: string,
         dateTo: string,
         schoolId: string,
+        options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
         const id = studentId.trim();
         const from = dateFrom.trim();
@@ -104,6 +109,7 @@ export function useScheduleApi() {
             {
                 fallbackMessage: 'Nie udało się pobrać harmonogramu.',
                 normalize: normalizeScheduleItems,
+                signal: options.signal,
             },
         );
     }

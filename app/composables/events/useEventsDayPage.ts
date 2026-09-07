@@ -139,10 +139,15 @@ export function useEventsDayPage() {
     });
 
     let loadSeq = 0;
+    let loadAbortController: AbortController | null = null;
 
     async function loadEvents(): Promise<void> {
         const day = selectedDate.value;
         const seq = ++loadSeq;
+        const controller = new AbortController();
+
+        loadAbortController?.abort();
+        loadAbortController = controller;
 
         errorMessage.value = null;
         isLoading.value = true;
@@ -163,8 +168,10 @@ export function useEventsDayPage() {
                 }
 
                 const [scheduleRows, instructorRows] = await Promise.all([
-                    fetchSchoolSchedule(sid, day, day),
-                    fetchInstructorsList(sid),
+                    fetchSchoolSchedule(sid, day, day, {
+                        signal: controller.signal,
+                    }),
+                    fetchInstructorsList(sid, { signal: controller.signal }),
                 ]);
 
                 raw = scheduleRows;
@@ -174,7 +181,9 @@ export function useEventsDayPage() {
                 }
             } else {
                 instructors.value = [];
-                raw = await fetchMySchedule(day, day);
+                raw = await fetchMySchedule(day, day, {
+                    signal: controller.signal,
+                });
             }
 
             if (seq !== loadSeq) {
@@ -196,6 +205,7 @@ export function useEventsDayPage() {
         } finally {
             if (seq === loadSeq) {
                 isLoading.value = false;
+                loadAbortController = null;
             }
         }
     }
@@ -242,6 +252,9 @@ export function useEventsDayPage() {
     });
 
     onBeforeUnmount(() => {
+        loadSeq += 1;
+        loadAbortController?.abort();
+        loadAbortController = null;
         window.removeEventListener('resize', updateViewportMode);
     });
 

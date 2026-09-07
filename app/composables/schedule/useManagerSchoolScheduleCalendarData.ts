@@ -16,8 +16,14 @@ export function useManagerSchoolScheduleCalendarData(
     const errorMessage = ref<string | null>(null);
     const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
     let fetchSeq = 0;
+    let fetchAbortController: AbortController | null = null;
 
     async function loadWeek(): Promise<void> {
+        const seq = ++fetchSeq;
+
+        fetchAbortController?.abort();
+        fetchAbortController = null;
+
         if (options.disabled()) {
             return;
         }
@@ -31,7 +37,9 @@ export function useManagerSchoolScheduleCalendarData(
             return;
         }
 
-        const seq = ++fetchSeq;
+        const controller = new AbortController();
+
+        fetchAbortController = controller;
 
         errorMessage.value = null;
 
@@ -40,7 +48,9 @@ export function useManagerSchoolScheduleCalendarData(
         );
 
         try {
-            const data = await fetchSchoolSchedule(sid, dateFrom, dateTo);
+            const data = await fetchSchoolSchedule(sid, dateFrom, dateTo, {
+                signal: controller.signal,
+            });
 
             if (seq !== fetchSeq) {
                 return;
@@ -69,6 +79,12 @@ export function useManagerSchoolScheduleCalendarData(
         },
         { immediate: true },
     );
+
+    onBeforeUnmount(() => {
+        fetchSeq += 1;
+        fetchAbortController?.abort();
+        fetchAbortController = null;
+    });
 
     return {
         errorMessage,

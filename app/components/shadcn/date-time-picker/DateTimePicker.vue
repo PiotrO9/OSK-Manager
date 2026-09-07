@@ -97,6 +97,14 @@ const effectiveMinuteOptions = computed(() => {
     return [...new Set(m)].sort((a, b) => a - b);
 });
 
+const effectiveHourOptionsKey = computed(() =>
+    effectiveHourOptions.value.join(','),
+);
+
+const effectiveMinuteOptionsKey = computed(() =>
+    effectiveMinuteOptions.value.join(','),
+);
+
 function ensureCalendarDate(): CalendarDate {
     if (calendarSelected.value) {
         return calendarSelected.value;
@@ -158,47 +166,30 @@ watch(
     { immediate: true },
 );
 
-watch(
-    () => {
-        const h = props.hourOptions;
-        const m = props.minuteOptions;
+watch([effectiveHourOptionsKey, effectiveMinuteOptionsKey], () => {
+    void nextTick(() => {
+        if (!parseDatetimeLocalParts(props.modelValue)) {
+            return;
+        }
 
-        return {
-            hKey:
-                h === undefined || h.length === 0
-                    ? ''
-                    : [...new Set(h)].sort((a, b) => a - b).join(','),
-            mKey:
-                m === undefined || m.length === 0
-                    ? ''
-                    : [...new Set(m)].sort((a, b) => a - b).join(','),
-        };
-    },
-    () => {
-        void nextTick(() => {
-            if (!parseDatetimeLocalParts(props.modelValue)) {
-                return;
-            }
+        const prev = buildDatetimeLocal(
+            ensureCalendarDate(),
+            hour.value,
+            minute.value,
+        );
 
-            const prev = buildDatetimeLocal(
-                ensureCalendarDate(),
-                hour.value,
-                minute.value,
-            );
+        clampSelectionToEffectiveOptions();
+        const next = buildDatetimeLocal(
+            ensureCalendarDate(),
+            hour.value,
+            minute.value,
+        );
 
-            clampSelectionToEffectiveOptions();
-            const next = buildDatetimeLocal(
-                ensureCalendarDate(),
-                hour.value,
-                minute.value,
-            );
-
-            if (prev !== next) {
-                emit('update:modelValue', next);
-            }
-        });
-    },
-);
+        if (prev !== next) {
+            emit('update:modelValue', next);
+        }
+    });
+});
 
 const displayLabel = computed(() => formatDatetimeLocalPl(props.modelValue));
 

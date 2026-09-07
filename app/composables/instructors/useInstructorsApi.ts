@@ -6,7 +6,10 @@ import {
 export function useInstructorsApi() {
     const isListLoading = ref(false);
 
-    async function fetchList(schoolId: string): Promise<InstructorListItem[]> {
+    async function fetchList(
+        schoolId: string,
+        options: { signal?: AbortSignal } = {},
+    ): Promise<InstructorListItem[]> {
         const id = schoolId.trim();
 
         if (!id) {
@@ -22,6 +25,7 @@ export function useInstructorsApi() {
                 {
                     fallbackMessage: 'Nie udało się pobrać listy instruktorów.',
                     normalize: normalizeInstructorsList,
+                    signal: options.signal,
                 },
             );
         } finally {

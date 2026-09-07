@@ -1,13 +1,12 @@
 import type { Ref } from 'vue';
 import type { LocationQueryValue, RouteLocationRaw } from 'vue-router';
 import type { CourseDetail } from '~/types/courses/course';
+import type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
 import {
     buildCourseOverviewItems,
     buildCourseRelatedItems,
     readSchoolIdFromQuery,
 } from '~/utils/courses/managerCourseDetailPage';
-import type { ManagerCourseInfoItem } from './useManagerCourseDetailPage';
-
 interface UseManagerCourseDetailPresentationOptions {
     course: Readonly<Ref<CourseDetail | null>>;
     querySchoolId: Readonly<

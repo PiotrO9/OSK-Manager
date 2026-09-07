@@ -7,7 +7,7 @@ import {
 } from 'lucide-vue-next';
 import type { Component, Ref } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
-import type { StatusTone } from '~/components/app/ui/types';
+import type { StatusTone } from '~/types/ui';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
 import {
     vehicleAvailabilityDescription,

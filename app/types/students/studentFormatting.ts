@@ -1,4 +1,3 @@
-import type { BadgeVariants } from '~/components/shadcn/badge';
 import type { StudentListItem } from './studentModels';
 
 /** Znane statusy uczestnictwa — etykiety UI; nieznany kod → „Nieznany”. */
@@ -18,7 +17,7 @@ export function formatStudentCourseStatusLabel(status: string): string {
     return STUDENT_COURSE_STATUS_LABELS[key] ?? 'Nieznany';
 }
 
-type BadgeVariant = NonNullable<BadgeVariants['variant']>;
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 export function getStudentCourseStatusVariant(status: string): BadgeVariant {
     const key = status.trim().toUpperCase();

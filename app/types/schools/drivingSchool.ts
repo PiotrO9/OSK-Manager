@@ -20,6 +20,18 @@ export interface DrivingSchool {
     enabledCourseKinds?: CourseKind[];
 }
 
+export interface CreateDrivingSchoolBody {
+    name: string;
+    city?: string;
+    address?: string;
+}
+
+export interface UpdateDrivingSchoolBody {
+    name: string;
+    city?: string | null;
+    address?: string | null;
+}
+
 function normalizeOfferedCourseType(item: unknown): OfferedCourseType | null {
     if (!item || typeof item !== 'object') {
         return null;

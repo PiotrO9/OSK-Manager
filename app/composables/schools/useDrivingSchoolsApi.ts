@@ -2,21 +2,16 @@ import type { Ref } from 'vue';
 import {
     normalizeDrivingSchool,
     normalizeDrivingSchoolsList,
+    type CreateDrivingSchoolBody,
     type DrivingSchool,
+    type UpdateDrivingSchoolBody,
 } from '~/types/schools/drivingSchool';
 import { requestBffData, requestBffSuccess } from '../core/useApi';
 
-export interface CreateDrivingSchoolBody {
-    name: string;
-    city?: string;
-    address?: string;
-}
-
-export interface UpdateDrivingSchoolBody {
-    name: string;
-    city?: string | null;
-    address?: string | null;
-}
+export type {
+    CreateDrivingSchoolBody,
+    UpdateDrivingSchoolBody,
+} from '~/types/schools/drivingSchool';
 
 /** Wynik `GET /api/driving-schools/default` rozróżnia brak konfiguracji od błędnej odpowiedzi. */
 export type FetchDefaultDrivingSchoolOutcome =

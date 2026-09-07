@@ -52,9 +52,11 @@ function handleSubmit(): void {
                     :key="value"
                     type="button"
                     size="sm"
+                    role="radio"
                     :variant="rating === value ? 'default' : 'outline'"
-                    :aria-pressed="rating === value"
+                    :aria-checked="rating === value"
                     :disabled="isSubmitting"
+                    :aria-label="`Ocena ${value} z 5`"
                     @click="rating = value"
                 >
                     {{ value }}
@@ -74,12 +76,21 @@ function handleSubmit(): void {
             />
         </div>
 
-        <p v-if="validationMessage" class="text-destructive text-sm">
+        <p
+            v-if="validationMessage"
+            class="text-destructive text-sm"
+            role="alert"
+            aria-live="polite"
+        >
             {{ validationMessage }}
         </p>
 
         <div class="flex flex-wrap justify-end gap-2">
-            <UiButton type="submit" :disabled="isSubmitting">
+            <UiButton
+                type="submit"
+                :disabled="isSubmitting"
+                :aria-busy="isSubmitting"
+            >
                 {{ isSubmitting ? 'Zapisywanie...' : 'Dodaj opinię' }}
             </UiButton>
         </div>

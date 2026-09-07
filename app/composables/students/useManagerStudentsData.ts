@@ -31,6 +31,8 @@ export function useManagerStudentsData() {
     const studentsPagination = ref<StudentsPagePagination | null>(null);
     const isStudentsLoading = ref(false);
     const studentsLoadError = ref<string | null>(null);
+    let coursesLoadSeq = 0;
+    let studentsLoadSeq = 0;
 
     const activeSchool = computed(
         () =>
@@ -90,6 +92,7 @@ export function useManagerStudentsData() {
 
     async function loadCoursesForFilter() {
         const sid = activeSchoolId.value.trim();
+        const seq = ++coursesLoadSeq;
 
         if (!sid) {
             courses.value = [];
@@ -101,20 +104,33 @@ export function useManagerStudentsData() {
         isCoursesLoading.value = true;
 
         try {
-            courses.value = await fetchCoursesList(sid);
+            const items = await fetchCoursesList(sid);
+
+            if (seq !== coursesLoadSeq) {
+                return;
+            }
+
+            courses.value = items;
         } catch (err) {
+            if (seq !== coursesLoadSeq) {
+                return;
+            }
+
             courses.value = [];
             coursesLoadError.value =
                 err instanceof Error
                     ? err.message
                     : 'Nie udało się pobrać listy kursów.';
         } finally {
-            isCoursesLoading.value = false;
+            if (seq === coursesLoadSeq) {
+                isCoursesLoading.value = false;
+            }
         }
     }
 
     async function loadStudents() {
         const sid = activeSchoolId.value.trim();
+        const seq = ++studentsLoadSeq;
 
         if (!sid) {
             students.value = [];
@@ -137,17 +153,27 @@ export function useManagerStudentsData() {
                     : {}),
             });
 
+            if (seq !== studentsLoadSeq) {
+                return;
+            }
+
             students.value = page.items;
             studentsPagination.value = {
                 total: page.total,
                 totalPages: page.totalPages,
             };
         } catch (err) {
+            if (seq !== studentsLoadSeq) {
+                return;
+            }
+
             students.value = [];
             studentsPagination.value = null;
             studentsLoadError.value = resolveStudentsListError(err);
         } finally {
-            isStudentsLoading.value = false;
+            if (seq === studentsLoadSeq) {
+                isStudentsLoading.value = false;
+            }
         }
     }
 

@@ -5,7 +5,7 @@ import {
 } from '~/types/courses/courseType';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
-import type { SummaryStripItem } from '~/components/app/ui/types';
+import type { SummaryStripItem } from '~/types/ui';
 
 export function displayManagerInstructorDetailsValue(value: string): string {
     const trimmed = value.trim();

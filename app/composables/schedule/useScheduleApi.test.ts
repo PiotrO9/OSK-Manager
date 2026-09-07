@@ -47,9 +47,12 @@ describe('useScheduleApi', () => {
     it('maps schedule items from the BFF envelope for current user schedule', async () => {
         const { useScheduleApi } = await import('./useScheduleApi');
         const api = useScheduleApi();
+        const controller = new AbortController();
 
         await expect(
-            api.fetchMySchedule(' 2026-08-10 ', ' 2026-08-16 '),
+            api.fetchMySchedule(' 2026-08-10 ', ' 2026-08-16 ', {
+                signal: controller.signal,
+            }),
         ).resolves.toEqual([lesson]);
 
         expect(requestBffData).toHaveBeenCalledWith(
@@ -57,6 +60,7 @@ describe('useScheduleApi', () => {
             '/api/schedule/me?dateFrom=2026-08-10&dateTo=2026-08-16',
             expect.objectContaining({
                 fallbackMessage: 'Nie udało się pobrać harmonogramu.',
+                signal: controller.signal,
             }),
         );
     });

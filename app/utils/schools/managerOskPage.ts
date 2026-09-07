@@ -1,8 +1,8 @@
 import type {
     CreateDrivingSchoolBody,
+    DrivingSchool,
     UpdateDrivingSchoolBody,
-} from '~/composables/schools/useDrivingSchoolsApi';
-import type { DrivingSchool } from '~/types/schools/drivingSchool';
+} from '~/types/schools/drivingSchool';
 
 export interface ManagerOskStatsSummary {
     instructorCount: number;

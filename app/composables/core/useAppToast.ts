@@ -1,19 +1,6 @@
-export type ToastVariant = 'success' | 'info' | 'warning' | 'error';
+import type { AddToastInput, ToastItem } from '~/types/toast';
 
-export interface ToastItem {
-    id: string;
-    title: string;
-    description?: string;
-    variant: ToastVariant;
-    createdAt: number;
-}
-
-export interface AddToastInput {
-    title: string;
-    description?: string;
-    variant?: ToastVariant;
-    durationMs?: number;
-}
+export type { AddToastInput, ToastItem, ToastVariant } from '~/types/toast';
 
 export function useAppToast() {
     const toasts = useState<ToastItem[]>('ui_toasts', () => []);

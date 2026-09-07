@@ -1,7 +1,7 @@
 import type { Ref } from 'vue';
+import type { ManagerInstructorEventType } from '~/types/instructors/managerInstructorSchedule';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { localDatetimeToIso } from '~/utils/events/managerEventEditForm';
-import type { ManagerInstructorEventType } from './useManagerInstructorSchedulePage';
 
 interface UseManagerInstructorScheduleEventFormOptions {
     instructorId: Ref<string>;

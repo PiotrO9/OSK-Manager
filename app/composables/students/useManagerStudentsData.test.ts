@@ -150,6 +150,89 @@ describe('useManagerStudentsData', () => {
         expect(data.visibleStudentsLabel.value).toBe('2 z 42 wyników');
     });
 
+    it('ignores stale courses responses from older school filter requests', async () => {
+        const olderCourse = course({ id: 'older-course' });
+        const newerCourse = course({ id: 'newer-course' });
+        let resolveOlder!: (items: CourseListItem[]) => void;
+
+        fetchCoursesList
+            .mockReturnValueOnce(
+                new Promise<CourseListItem[]>((resolve) => {
+                    resolveOlder = resolve;
+                }),
+            )
+            .mockResolvedValueOnce([newerCourse]);
+
+        const { useManagerStudentsData } =
+            await import('./useManagerStudentsData');
+        const data = useManagerStudentsData();
+
+        data.activeSchoolId.value = 'school-1';
+        const olderLoad = data.loadCoursesForFilter();
+
+        data.activeSchoolId.value = 'school-2';
+        const newerLoad = data.loadCoursesForFilter();
+
+        await newerLoad;
+
+        expect(data.courses.value).toEqual([newerCourse]);
+
+        resolveOlder([olderCourse]);
+        await olderLoad;
+
+        expect(data.courses.value).toEqual([newerCourse]);
+    });
+
+    it('ignores stale students responses from older list requests', async () => {
+        const olderStudent = student({ id: 'older-student' });
+        const newerStudent = student({ id: 'newer-student' });
+        let resolveOlder!: (payload: {
+            items: StudentListItem[];
+            total: number;
+            totalPages: number;
+        }) => void;
+
+        fetchStudentsPage
+            .mockReturnValueOnce(
+                new Promise<{
+                    items: StudentListItem[];
+                    total: number;
+                    totalPages: number;
+                }>((resolve) => {
+                    resolveOlder = resolve;
+                }),
+            )
+            .mockResolvedValueOnce({
+                items: [newerStudent],
+                total: 1,
+                totalPages: 1,
+            });
+
+        const { useManagerStudentsData } =
+            await import('./useManagerStudentsData');
+        const data = useManagerStudentsData();
+
+        data.activeSchoolId.value = 'school-1';
+        data.currentPage.value = 1;
+        const olderLoad = data.loadStudents();
+
+        data.currentPage.value = 2;
+        const newerLoad = data.loadStudents();
+
+        await newerLoad;
+
+        expect(data.students.value).toEqual([newerStudent]);
+
+        resolveOlder({
+            items: [olderStudent],
+            total: 1,
+            totalPages: 1,
+        });
+        await olderLoad;
+
+        expect(data.students.value).toEqual([newerStudent]);
+    });
+
     it('clears students and skips API calls without active school', async () => {
         const { useManagerStudentsData } =
             await import('./useManagerStudentsData');

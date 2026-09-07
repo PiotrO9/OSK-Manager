@@ -1,5 +1,5 @@
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import type { ManagerSchoolScheduleWeekDay } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
+import type { ManagerSchoolScheduleWeekDay } from './managerSchoolScheduleCalendarWeek';
 
 export interface ManagerSchoolScheduleCalendarGridState {
     baseHour: number;
