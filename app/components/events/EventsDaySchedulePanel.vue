@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import EventsDayScheduleGrid from '~/components/events/EventsDayScheduleGrid.vue';
 import EventsStatusFilter from '~/components/events/EventsStatusFilter.vue';
 import EventsViewModeToggle from '~/components/events/EventsViewModeToggle.vue';
 import type {
