@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AccountProfileAvatarSection from '~/components/account/AccountProfileAvatarSection.vue';
 import { IdCard, Mail, Phone, UserRound } from 'lucide-vue-next';
 import type { RoleBadgePresentation } from '~/composables/account/useAccountPage';
 import {
