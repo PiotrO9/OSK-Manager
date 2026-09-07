@@ -153,25 +153,29 @@ lista kontrolna refaktoru".
 
 ### Zaleznosci i kierunek importow
 
-- [ ] Sprawdzac, czy po zmianie nie powstaly importy cykliczne.
+- [x] Sprawdzac, czy po zmianie nie powstaly importy cykliczne.
 - [x] Utrzymac kierunek: page/component -> composable -> API lub util/type.
 - [x] Nie pozwalac, aby `utils` importowaly composables, komponenty lub stan Nuxt.
 - [x] Nie pozwalac, aby typy domenowe zalezaly od komponentow.
 - [x] Ograniczac importy pomiedzy domenami do jawnych, stabilnych kontraktow.
-- [ ] Przy wykryciu cyklu przeniesc wspolny kontrakt nizej, zamiast maskowac problem barrel file.
+- [x] Przy wykryciu cyklu przeniesc wspolny kontrakt nizej, zamiast maskowac problem barrel file.
 
 Aktualizacja 2026-09-07: audyt `madge` po poprawkach wykazuje brak cykli domenowych w `app/composables`, `app/utils` i `app/types`. Pozostaje 6 cykli w wygenerowanej warstwie `app/components/shadcn/*` opartych o barrel files; nie zostaly zmienione w tym kroku.
 
+Aktualizacja 2026-09-07: po iteracji `refactor/fe-async-submit-guards` uruchomiono statyczny skan importow dla `app`, `server` i `shared` z obsluga aliasow `~/`, `@/` oraz importow relatywnych. Wynik: brak nowych statycznych cykli importow w skanowanym zakresie; nie bylo cyklu wymagajacego przeniesienia wspolnego kontraktu.
+
 ### Race conditions i anulowanie pracy
 
-- [ ] Dla wyszukiwania, filtrow i zmiany zakresu dat sprawdzic kolejnosc odpowiedzi asynchronicznych.
-- [ ] Anulowac nieaktualne requesty przez `AbortController`, gdy transport to obsluguje.
-- [ ] Gdy anulowanie nie jest dostepne, ignorowac wynik starszego requestu przez identyfikator wykonania.
-- [ ] Czyscic asynchroniczne efekty watcherow przy zmianie zaleznosci i unmount.
-- [ ] Testowac scenariusz, w ktorym starsza odpowiedz przychodzi po nowszej.
-- [ ] Blokowac podwojny submit tylko tam, gdzie operacja nie jest bezpiecznie idempotentna.
+- [x] Dla wyszukiwania, filtrow i zmiany zakresu dat sprawdzic kolejnosc odpowiedzi asynchronicznych.
+- [x] Anulowac nieaktualne requesty przez `AbortController`, gdy transport to obsluguje.
+- [x] Gdy anulowanie nie jest dostepne, ignorowac wynik starszego requestu przez identyfikator wykonania.
+- [x] Czyscic asynchroniczne efekty watcherow przy zmianie zaleznosci i unmount.
+- [x] Testowac scenariusz, w ktorym starsza odpowiedz przychodzi po nowszej.
+- [x] Blokowac podwojny submit tylko tam, gdzie operacja nie jest bezpiecznie idempotentna.
 
 Aktualizacja 2026-09-07: potwierdzone i poprawione przeplywy `useEventsDayPage`, `useManagerSchoolScheduleCalendarData`, `useStudentLessonBookingPage` oraz `useManagerStudentsData`. Dodano propagacje `AbortSignal` dla harmonogramu, slotow i instruktorow oraz testy stale response dla dnia wydarzen, kalendarza szkoly i listy kursantow. Checkboxy globalne pozostaja otwarte, bo audyt wykazal dalsze luki w innych listach i formularzach.
+
+Aktualizacja 2026-09-07: iteracja `refactor/fe-async-submit-guards` domknela pozostale wykryte luki stale-response przez identyfikatory wykonania w listach, zasobach grafiku, slotach wydarzen, referencjach edycji lekcji, pojazdach oraz formularzach zaleznosciowych. Dodano testy regresyjne, w ktorych starsza odpowiedz przychodzi po nowszej, oraz handler-level guardy dla nieidempotentnych submit/delete.
 
 ### Dostepnosc po podziale komponentow
 
@@ -199,7 +203,7 @@ Aktualizacja 2026-09-07: statyczny audyt a11y objal formularze, dialogi, selecty
 
 - [x] Nie wykonywac optymalizacji wydajnosciowej w tym samym kroku co zmiana architektury.
 - [ ] Po migracji sprawdzic liczbe requestow podczas wejscia na strone i typowych akcji.
-- [ ] Sprawdzic watchery wywolujace zduplikowane requesty lub kosztowne transformacje.
+- [x] Sprawdzic watchery wywolujace zduplikowane requesty lub kosztowne transformacje.
 - [x] Przeniesc filtrowanie i sortowanie list do stabilnych `computed`.
 - [x] Rozwazac wirtualizacje dopiero po potwierdzeniu problemu na duzej liscie.
 - [x] Lazy-load stosowac dla ciezkich i rzadko uzywanych widokow, nie domyslnie dla kazdego komponentu.

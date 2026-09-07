@@ -29,6 +29,8 @@ export function useVehiclesListPage() {
     const statusUpdatingVehicleId = ref<string | null>(null);
 
     const activePanel = ref<VehiclesListPanelId>('simple');
+    let pageLoadSeq = 0;
+    let vehiclesLoadSeq = 0;
 
     function handleTabSelect(panel: VehiclesListPanelId) {
         activePanel.value = panel;
@@ -97,6 +99,7 @@ export function useVehiclesListPage() {
 
     async function loadVehicles() {
         const sid = resolvedSchoolId.value;
+        const seq = ++vehiclesLoadSeq;
 
         if (!sid) {
             vehicles.value = [];
@@ -107,8 +110,18 @@ export function useVehiclesListPage() {
         loadError.value = null;
 
         try {
-            vehicles.value = await fetchList(sid);
+            const items = await fetchList(sid);
+
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
+            vehicles.value = items;
         } catch (err) {
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
             loadError.value =
                 err instanceof Error
                     ? err.message
@@ -118,9 +131,17 @@ export function useVehiclesListPage() {
     }
 
     async function runPageLoad() {
-        resolvedSchoolId.value = await resolveSchoolId();
+        const seq = ++pageLoadSeq;
+        const sid = await resolveSchoolId();
+
+        if (seq !== pageLoadSeq) {
+            return;
+        }
+
+        resolvedSchoolId.value = sid;
 
         if (!resolvedSchoolId.value) {
+            vehiclesLoadSeq += 1;
             vehicles.value = [];
 
             return;

@@ -36,6 +36,10 @@ export function useManagerEventEditDeleteAction(
     }
 
     async function handleDeleteDialogConfirm(): Promise<void> {
+        if (input.isDeleteLoading.value) {
+            return;
+        }
+
         const id = input.eventId.value.trim();
 
         if (!id) {

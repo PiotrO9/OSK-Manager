@@ -37,6 +37,10 @@ export function useManagerInstructorScheduleEventForm({
     }
 
     async function handleSubmitEvent(): Promise<void> {
+        if (isEventSaving.value) {
+            return;
+        }
+
         eventFormError.value = null;
 
         const id = instructorId.value;

@@ -43,18 +43,34 @@ const activeSchoolId = ref('');
 const courses = ref<CourseListItem[]>([]);
 const isCoursesLoading = ref(false);
 const coursesLoadError = ref<string | null>(null);
+let schoolsLoadSeq = 0;
+let coursesLoadSeq = 0;
 
 async function loadSchools() {
+    const seq = ++schoolsLoadSeq;
+
     schoolsLoadError.value = null;
     isSchoolsLoading.value = true;
 
     try {
-        schools.value = await fetchSchoolsList();
+        const items = await fetchSchoolsList();
+
+        if (seq !== schoolsLoadSeq) {
+            return;
+        }
+
+        schools.value = items;
     } catch (e) {
+        if (seq !== schoolsLoadSeq) {
+            return;
+        }
+
         schoolsLoadError.value =
             e instanceof Error ? e.message : 'Nie udało się pobrać listy OSK.';
     } finally {
-        isSchoolsLoading.value = false;
+        if (seq === schoolsLoadSeq) {
+            isSchoolsLoading.value = false;
+        }
     }
 }
 
@@ -64,6 +80,7 @@ function resolveInitialActiveSchoolId(): string {
 
 async function loadCourses() {
     const sid = activeSchoolId.value.trim();
+    const seq = ++coursesLoadSeq;
 
     if (!sid) {
         courses.value = [];
@@ -75,12 +92,24 @@ async function loadCourses() {
     isCoursesLoading.value = true;
 
     try {
-        courses.value = await fetchCoursesList(sid);
+        const items = await fetchCoursesList(sid);
+
+        if (seq !== coursesLoadSeq) {
+            return;
+        }
+
+        courses.value = items;
     } catch (err) {
+        if (seq !== coursesLoadSeq) {
+            return;
+        }
+
         courses.value = [];
         coursesLoadError.value = resolveCoursesListError(err);
     } finally {
-        isCoursesLoading.value = false;
+        if (seq === coursesLoadSeq) {
+            isCoursesLoading.value = false;
+        }
     }
 }
 

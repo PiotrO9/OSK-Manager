@@ -5,6 +5,7 @@ const addToast = vi.fn();
 const createInstructorEvent = vi.fn();
 const reloadSchedule = vi.fn();
 const scrollIntoView = vi.fn();
+const isEventSaving = ref(false);
 const targetElement = {
     scrollIntoView,
 };
@@ -14,7 +15,7 @@ function installNuxtScheduleEventFormGlobals(): void {
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('useInstructorEventsApi', () => ({
         createInstructorEvent,
-        isLoading: ref(false),
+        isLoading: isEventSaving,
         isDeleteLoading: ref(false),
     }));
     vi.stubGlobal('document', {
@@ -27,6 +28,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
         vi.resetModules();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
+        isEventSaving.value = false;
         installNuxtScheduleEventFormGlobals();
     });
 
@@ -116,6 +118,24 @@ describe('useManagerInstructorScheduleEventForm', () => {
         expect(data.eventFormError.value).toBe(
             'Dla jazdy wybierz pojazd. Wymagany jest schoolId w adresie strony.',
         );
+    });
+
+    it('ignores submit while event creation is already pending', async () => {
+        isEventSaving.value = true;
+
+        const { useManagerInstructorScheduleEventForm } =
+            await import('./useManagerInstructorScheduleEventForm');
+        const data = useManagerInstructorScheduleEventForm({
+            instructorId: ref('instructor-1'),
+            reloadSchedule,
+        });
+
+        data.eventStartLocal.value = '2026-09-03T09:00';
+        data.eventEndLocal.value = '2026-09-03T10:00';
+        await data.handleSubmitEvent();
+
+        expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(reloadSchedule).not.toHaveBeenCalled();
     });
 
     it('creates theory event with optional course and resets form', async () => {

@@ -36,6 +36,7 @@ const schoolId = computed(() => {
 
 const vehicle = shallowRef<VehicleDetail | null>(null);
 const loadError = shallowRef<string | null>(null);
+let vehicleLoadSeq = 0;
 
 const vehicleTitle = computed(() => {
     const name = vehicle.value?.name.trim();
@@ -71,6 +72,7 @@ usePageMeta({
 
 async function loadVehicle() {
     const id = vehicleId.value;
+    const seq = ++vehicleLoadSeq;
 
     if (!id) {
         vehicle.value = null;
@@ -82,8 +84,18 @@ async function loadVehicle() {
     vehicle.value = null;
 
     try {
-        vehicle.value = await fetchVehicleById(id);
+        const detail = await fetchVehicleById(id);
+
+        if (seq !== vehicleLoadSeq) {
+            return;
+        }
+
+        vehicle.value = detail;
     } catch (err) {
+        if (seq !== vehicleLoadSeq) {
+            return;
+        }
+
         loadError.value =
             err instanceof Error && err.message.trim().length > 0
                 ? err.message

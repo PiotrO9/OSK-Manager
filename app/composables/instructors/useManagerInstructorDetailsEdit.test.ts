@@ -114,6 +114,21 @@ describe('useManagerInstructorDetailsEdit', () => {
         expect(data.submitError.value).toBe('Imię nie może być puste.');
     });
 
+    it('ignores edit submit while instructor save is already pending', async () => {
+        const { useManagerInstructorDetailsEdit } =
+            await import('./useManagerInstructorDetailsEdit');
+        const data = useManagerInstructorDetailsEdit({
+            instructor: ref(createInstructor()),
+            editForm: ref(createEditForm({ firstName: 'Anna Maria' })),
+            editBaseline: ref(createEditForm()),
+        });
+
+        data.isSubmitting.value = true;
+        await data.handleSubmitEdit();
+
+        expect(requestBffData).not.toHaveBeenCalled();
+    });
+
     it('saves changed fields and updates instructor edit baseline', async () => {
         requestBffData.mockResolvedValue({
             id: 'instructor-1',

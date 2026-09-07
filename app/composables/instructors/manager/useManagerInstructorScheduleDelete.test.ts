@@ -4,6 +4,7 @@ import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 const addToast = vi.fn();
 const deleteInstructorEvent = vi.fn();
+const isDeleteLoading = ref(false);
 
 function installNuxtScheduleDeleteGlobals(): void {
     vi.stubGlobal('ref', ref);
@@ -11,7 +12,7 @@ function installNuxtScheduleDeleteGlobals(): void {
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('useInstructorEventsApi', () => ({
         deleteInstructorEvent,
-        isDeleteLoading: ref(false),
+        isDeleteLoading,
     }));
 }
 
@@ -34,6 +35,7 @@ describe('useManagerInstructorScheduleDelete', () => {
         vi.resetModules();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
+        isDeleteLoading.value = false;
         installNuxtScheduleDeleteGlobals();
     });
 
@@ -75,6 +77,22 @@ describe('useManagerInstructorScheduleDelete', () => {
         await data.handleDeleteDialogConfirm();
 
         expect(deleteInstructorEvent).not.toHaveBeenCalled();
+    });
+
+    it('does nothing while delete is already pending', async () => {
+        isDeleteLoading.value = true;
+
+        const { useManagerInstructorScheduleDelete } =
+            await import('./useManagerInstructorScheduleDelete');
+        const items = ref([createScheduleItem()]);
+        const data = useManagerInstructorScheduleDelete({ items });
+
+        data.handleRequestDelete(createScheduleItem());
+        await data.handleDeleteDialogConfirm();
+
+        expect(deleteInstructorEvent).not.toHaveBeenCalled();
+        expect(items.value.map((item) => item.id)).toEqual(['event-1']);
+        expect(data.deleteDialogOpen.value).toBe(true);
     });
 
     it('deletes pending event, removes it from items and closes dialog', async () => {

@@ -37,9 +37,11 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     const activeSlotCtx = ref<LessonBookingSlotContext | null>(null);
     const courses = ref<CourseListItem[]>([]);
     const { fetchList: fetchCoursesList } = useCoursesApi();
+    let coursesLoadSeq = 0;
 
     async function loadSchoolCourses(): Promise<void> {
         const sid = schoolId().trim();
+        const seq = ++coursesLoadSeq;
 
         if (!sid) {
             courses.value = [];
@@ -47,7 +49,13 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
             return;
         }
 
-        courses.value = await fetchCoursesList(sid).catch(() => []);
+        const items = await fetchCoursesList(sid).catch(() => []);
+
+        if (seq !== coursesLoadSeq) {
+            return;
+        }
+
+        courses.value = items;
     }
 
     const slots = ref<SchoolAvailabilitySlot[]>([]);

@@ -32,6 +32,8 @@ export function useManagerInstructorsPage() {
     const formDialogOpen = ref(false);
     const isFormSaving = ref(false);
     const apiError = ref<string | null>(null);
+    let schoolsLoadSeq = 0;
+    let instructorsLoadSeq = 0;
 
     const prefillSchoolId = computed((): string | null => {
         const raw = route.query.schoolId;
@@ -96,23 +98,38 @@ export function useManagerInstructorsPage() {
     }
 
     async function loadSchools() {
+        const seq = ++schoolsLoadSeq;
+
         schoolsLoadError.value = null;
         isSchoolsLoading.value = true;
 
         try {
-            schools.value = await fetchSchoolsList();
+            const items = await fetchSchoolsList();
+
+            if (seq !== schoolsLoadSeq) {
+                return;
+            }
+
+            schools.value = items;
         } catch (e) {
+            if (seq !== schoolsLoadSeq) {
+                return;
+            }
+
             schoolsLoadError.value =
                 e instanceof Error
                     ? e.message
                     : 'Nie udało się pobrać listy OSK.';
         } finally {
-            isSchoolsLoading.value = false;
+            if (seq === schoolsLoadSeq) {
+                isSchoolsLoading.value = false;
+            }
         }
     }
 
     async function loadInstructors() {
         const sid = activeSchoolId.value.trim();
+        const seq = ++instructorsLoadSeq;
 
         if (!sid) {
             instructors.value = [];
@@ -124,12 +141,24 @@ export function useManagerInstructorsPage() {
         isInstructorsLoading.value = true;
 
         try {
-            instructors.value = await fetchInstructorsList(sid);
+            const items = await fetchInstructorsList(sid);
+
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
+            instructors.value = items;
         } catch (err) {
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
             instructors.value = [];
             instructorsLoadError.value = resolveInstructorsListError(err);
         } finally {
-            isInstructorsLoading.value = false;
+            if (seq === instructorsLoadSeq) {
+                isInstructorsLoading.value = false;
+            }
         }
     }
 

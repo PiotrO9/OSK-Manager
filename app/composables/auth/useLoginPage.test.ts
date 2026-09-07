@@ -115,6 +115,31 @@ describe('useLoginPage', () => {
         });
     });
 
+    it('ignores duplicate login submits while login is already pending', async () => {
+        let resolveLogin!: () => void;
+
+        login.mockImplementation(
+            () =>
+                new Promise<void>((resolve) => {
+                    resolveLogin = resolve;
+                }),
+        );
+
+        const { useLoginPage } = await import('./useLoginPage');
+        const page = useLoginPage();
+
+        page.email.value = 'manager@example.com';
+        page.password.value = 'secret';
+
+        const firstSubmit = page.handleLogin();
+        const secondSubmit = page.handleLogin();
+
+        expect(login).toHaveBeenCalledOnce();
+
+        resolveLogin();
+        await Promise.all([firstSubmit, secondSubmit]);
+    });
+
     it('moves safe redirect query to return cookie and cleans login URL', async () => {
         route.query = { redirect: '/manager/lessons?day=2026-08-16' };
 

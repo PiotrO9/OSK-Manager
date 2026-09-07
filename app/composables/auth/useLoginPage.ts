@@ -147,6 +147,10 @@ export function useLoginPage() {
     });
 
     async function handleLogin() {
+        if (isLoading.value) {
+            return;
+        }
+
         if (isAuthenticated.value) {
             addToast({
                 title: 'Już zalogowany',

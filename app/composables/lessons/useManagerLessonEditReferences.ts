@@ -43,10 +43,17 @@ export function useManagerLessonEditReferences(
     const instructorNameFallback = ref<string | null>(null);
     const vehicleDisplayFallback = ref<Vehicle | null>(null);
     const studentDisplayName = ref<string | null>(null);
+    let vehicleFallbackLoadSeq = 0;
+    let instructorFallbackLoadSeq = 0;
+    let studentDisplayNameLoadSeq = 0;
+    let vehiclesLoadSeq = 0;
+    let instructorsLoadSeq = 0;
 
     async function loadVehicleDisplayFallback(
         vehicleId: string | null | undefined,
     ): Promise<void> {
+        const seq = ++vehicleFallbackLoadSeq;
+
         vehicleDisplayFallback.value = null;
 
         const id =
@@ -61,8 +68,18 @@ export function useManagerLessonEditReferences(
         }
 
         try {
-            vehicleDisplayFallback.value = await options.fetchVehicleById(id);
+            const vehicle = await options.fetchVehicleById(id);
+
+            if (seq !== vehicleFallbackLoadSeq) {
+                return;
+            }
+
+            vehicleDisplayFallback.value = vehicle;
         } catch {
+            if (seq !== vehicleFallbackLoadSeq) {
+                return;
+            }
+
             vehicleDisplayFallback.value = null;
         }
     }
@@ -71,6 +88,7 @@ export function useManagerLessonEditReferences(
         instructorId: string,
     ): Promise<void> {
         const id = instructorId.trim();
+        const seq = ++instructorFallbackLoadSeq;
 
         if (!id) {
             instructorNameFallback.value = null;
@@ -89,12 +107,20 @@ export function useManagerLessonEditReferences(
             const normalized = parseInstructorListItemFromApi(data);
 
             if (normalized) {
+                if (seq !== instructorFallbackLoadSeq) {
+                    return;
+                }
+
                 instructorNameFallback.value =
                     formatManagerLessonInstructorDisplayName(normalized);
 
                 return;
             }
         } catch {
+            if (seq !== instructorFallbackLoadSeq) {
+                return;
+            }
+
             instructorNameFallback.value = null;
         }
     }
@@ -102,6 +128,8 @@ export function useManagerLessonEditReferences(
     async function loadStudentDisplayName(
         lesson: ManagerLessonDetail,
     ): Promise<void> {
+        const seq = ++studentDisplayNameLoadSeq;
+
         studentDisplayName.value = null;
 
         const nested = lesson.student;
@@ -135,6 +163,10 @@ export function useManagerLessonEditReferences(
             const detail: StudentDetail | null = normalizeStudentDetail(data);
 
             if (detail) {
+                if (seq !== studentDisplayNameLoadSeq) {
+                    return;
+                }
+
                 studentDisplayName.value =
                     formatManagerLessonStudentDisplayName(detail);
 
@@ -144,12 +176,17 @@ export function useManagerLessonEditReferences(
             /* fallback below */
         }
 
+        if (seq !== studentDisplayNameLoadSeq) {
+            return;
+        }
+
         studentDisplayName.value =
             userId.length > 12 ? `${userId.slice(0, 8)}…` : userId;
     }
 
     async function loadVehicles(): Promise<void> {
         const schoolId = options.schoolId.value;
+        const seq = ++vehiclesLoadSeq;
 
         vehiclesError.value = null;
         vehicles.value = [];
@@ -161,19 +198,32 @@ export function useManagerLessonEditReferences(
         isVehiclesLoading.value = true;
 
         try {
-            vehicles.value = await options.fetchVehiclesList(schoolId);
+            const items = await options.fetchVehiclesList(schoolId);
+
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
+            vehicles.value = items;
         } catch (err: unknown) {
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
             vehiclesError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            isVehiclesLoading.value = false;
+            if (seq === vehiclesLoadSeq) {
+                isVehiclesLoading.value = false;
+            }
         }
     }
 
     async function loadInstructors(): Promise<void> {
         const schoolId = options.schoolId.value;
+        const seq = ++instructorsLoadSeq;
 
         instructorsError.value = null;
         instructors.value = [];
@@ -185,14 +235,26 @@ export function useManagerLessonEditReferences(
         isInstructorsLoading.value = true;
 
         try {
-            instructors.value = await options.fetchInstructorsList(schoolId);
+            const items = await options.fetchInstructorsList(schoolId);
+
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
+            instructors.value = items;
         } catch (err: unknown) {
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
             instructorsError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy instruktorów.',
             );
         } finally {
-            isInstructorsLoading.value = false;
+            if (seq === instructorsLoadSeq) {
+                isInstructorsLoading.value = false;
+            }
         }
     }
 
@@ -259,6 +321,9 @@ export function useManagerLessonEditReferences(
     );
 
     function clearFallbacks(): void {
+        instructorFallbackLoadSeq += 1;
+        vehicleFallbackLoadSeq += 1;
+        studentDisplayNameLoadSeq += 1;
         instructorNameFallback.value = null;
         vehicleDisplayFallback.value = null;
     }

@@ -89,6 +89,20 @@ describe('useManagerEventEditDeleteAction', () => {
         expect(navigateTo).not.toHaveBeenCalled();
     });
 
+    it('does nothing while delete is already pending', async () => {
+        const { action, addToast, deleteInstructorEvent, isDeleteLoading } =
+            setupDeleteAction();
+
+        isDeleteLoading.value = true;
+        action.handleOpenDeleteDialog();
+        await action.handleDeleteDialogConfirm();
+
+        expect(deleteInstructorEvent).not.toHaveBeenCalled();
+        expect(addToast).not.toHaveBeenCalled();
+        expect(action.deleteDialogOpen.value).toBe(true);
+        expect(navigateTo).not.toHaveBeenCalled();
+    });
+
     it('keeps dialog open and shows error toast when delete fails', async () => {
         const { action, addToast } = setupDeleteAction({
             deleteInstructorEvent: vi
