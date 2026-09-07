@@ -1,4 +1,4 @@
-import type { HeaderMetaItem, StatusTone } from '~/components/app/ui/types';
+import type { HeaderMetaItem, StatusTone } from '~/types/ui';
 import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
 
 const LESSON_STATUS_LABELS: Record<string, string> = {

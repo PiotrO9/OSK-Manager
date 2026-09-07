@@ -7,6 +7,7 @@ const fetchSchoolSchedule = vi.fn();
 function installNuxtSchoolScheduleDataGlobals(): void {
     vi.stubGlobal('ref', ref);
     vi.stubGlobal('watch', vi.fn());
+    vi.stubGlobal('onBeforeUnmount', vi.fn());
     vi.stubGlobal('useSchoolScheduleApi', () => ({
         fetchSchoolSchedule,
         isLoading: ref(false),
@@ -82,6 +83,7 @@ describe('useManagerSchoolScheduleCalendarData', () => {
             'school-1',
             '2026-08-10',
             '2026-08-16',
+            expect.objectContaining({ signal: expect.any(AbortSignal) }),
         );
         expect(data.internalItems.value).toEqual([lesson]);
         expect(data.errorMessage.value).toBeNull();

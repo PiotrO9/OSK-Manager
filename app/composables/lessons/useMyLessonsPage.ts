@@ -3,7 +3,7 @@ import {
     getMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
-import type { SummaryStripItem } from '~/components/app/ui/types';
+import type { SummaryStripItem } from '~/types/ui';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { useMyLessonsCancellation } from './useMyLessonsCancellation';
 import { useMyLessonsRatings } from './useMyLessonsRatings';

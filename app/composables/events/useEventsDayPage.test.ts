@@ -108,8 +108,12 @@ describe('useEventsDayPage', () => {
             'school-1',
             '2026-08-16',
             '2026-08-16',
+            expect.objectContaining({ signal: expect.any(AbortSignal) }),
         );
-        expect(fetchInstructorsList).toHaveBeenCalledWith('school-1');
+        expect(fetchInstructorsList).toHaveBeenCalledWith(
+            'school-1',
+            expect.objectContaining({ signal: expect.any(AbortSignal) }),
+        );
         expect(fetchMySchedule).not.toHaveBeenCalled();
         expect(page.events.value).toEqual([event]);
         expect(
@@ -124,5 +128,77 @@ describe('useEventsDayPage', () => {
         );
 
         expect(eventCell?.events).toEqual([event]);
+    });
+
+    it('ignores stale manager day responses from older requests', async () => {
+        const olderEvent = scheduleEvent({
+            id: 'older',
+            instructor: {
+                id: 'older-user',
+                firstName: 'Old',
+                lastName: 'Instructor',
+            },
+        });
+        const newerEvent = scheduleEvent({
+            id: 'newer',
+            instructor: {
+                id: 'newer-user',
+                firstName: 'New',
+                lastName: 'Instructor',
+            },
+        });
+        let resolveOlderSchedule!: (items: ScheduleLessonItem[]) => void;
+        let resolveOlderInstructors!: (items: InstructorListItem[]) => void;
+
+        fetchSchoolSchedule
+            .mockReturnValueOnce(
+                new Promise<ScheduleLessonItem[]>((resolve) => {
+                    resolveOlderSchedule = resolve;
+                }),
+            )
+            .mockResolvedValueOnce([newerEvent]);
+        fetchInstructorsList
+            .mockReturnValueOnce(
+                new Promise<InstructorListItem[]>((resolve) => {
+                    resolveOlderInstructors = resolve;
+                }),
+            )
+            .mockResolvedValueOnce([
+                instructor({
+                    id: 'newer-instructor',
+                    userId: 'newer-user',
+                    firstName: 'New',
+                    lastName: 'Instructor',
+                }),
+            ]);
+        installNuxtEventsDayGlobals({
+            role: 'MANAGER',
+            defaultOskId: 'school-1',
+        });
+
+        const { useEventsDayPage } = await import('./useEventsDayPage');
+        const page = useEventsDayPage();
+
+        const olderLoad = page.loadEvents();
+        const newerLoad = page.loadEvents();
+
+        await newerLoad;
+
+        expect(page.events.value).toEqual([newerEvent]);
+        expect(page.managerScheduleColumns.value).toHaveLength(1);
+
+        resolveOlderSchedule([olderEvent]);
+        resolveOlderInstructors([
+            instructor({
+                id: 'older-instructor',
+                userId: 'older-user',
+                firstName: 'Old',
+                lastName: 'Instructor',
+            }),
+        ]);
+        await olderLoad;
+
+        expect(page.events.value).toEqual([newerEvent]);
+        expect(page.managerScheduleColumns.value[0]?.id).toBe('newer-user');
     });
 });

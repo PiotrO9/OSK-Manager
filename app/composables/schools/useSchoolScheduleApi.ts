@@ -13,6 +13,7 @@ export function useSchoolScheduleApi() {
         schoolId: string,
         dateFrom: string,
         dateTo: string,
+        options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
         const sid = schoolId.trim();
         const from = dateFrom.trim();
@@ -36,6 +37,7 @@ export function useSchoolScheduleApi() {
                 {
                     fallbackMessage: 'Nie udało się pobrać harmonogramu.',
                     normalize: normalizeScheduleItems,
+                    signal: options.signal,
                 },
             );
         } finally {

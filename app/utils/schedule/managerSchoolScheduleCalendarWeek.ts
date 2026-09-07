@@ -1,15 +1,15 @@
 import type { DateValue } from '@internationalized/date';
 import { toDate } from 'reka-ui/date';
+import type {
+    ManagerSchoolScheduleWeekDay,
+    ManagerSchoolScheduleWeekDirection,
+} from '~/types/schedule/managerSchoolScheduleCalendarWeek';
 import { formatDateOnly, getMonday } from '~/utils/date/weeklyCalendarDates';
 
-export interface ManagerSchoolScheduleWeekDay {
-    date: Date;
-    dateStr: string;
-    header: string;
-    isToday: boolean;
-}
-
-export type ManagerSchoolScheduleWeekDirection = 'prev' | 'next';
+export type {
+    ManagerSchoolScheduleWeekDay,
+    ManagerSchoolScheduleWeekDirection,
+} from '~/types/schedule/managerSchoolScheduleCalendarWeek';
 
 const WEEK_RANGE_LABEL_OPTIONS: Intl.DateTimeFormatOptions = {
     day: 'numeric',

@@ -34,6 +34,7 @@ export function useStudentLessonBookingPage() {
     const successMessage = shallowRef<string | null>(null);
 
     let slotsLoadSeq = 0;
+    let slotsAbortController: AbortController | null = null;
 
     const bookableCourses = computed(() =>
         courses.value.filter(
@@ -141,12 +142,17 @@ export function useStudentLessonBookingPage() {
     async function loadSlots(): Promise<void> {
         const course = selectedCourse.value;
         const seq = ++slotsLoadSeq;
+        const controller = new AbortController();
+
+        slotsAbortController?.abort();
+        slotsAbortController = controller;
 
         slotsErrorMessage.value = null;
         successMessage.value = null;
 
         if (!course) {
             slots.value = [];
+            slotsAbortController = null;
 
             return;
         }
@@ -162,6 +168,7 @@ export function useStudentLessonBookingPage() {
                     sort: 'startTime',
                     limit: 200,
                 },
+                { signal: controller.signal },
             );
 
             if (seq !== slotsLoadSeq) {
@@ -247,6 +254,12 @@ export function useStudentLessonBookingPage() {
 
     onMounted(() => {
         void loadCourses();
+    });
+
+    onBeforeUnmount(() => {
+        slotsLoadSeq += 1;
+        slotsAbortController?.abort();
+        slotsAbortController = null;
     });
 
     return {

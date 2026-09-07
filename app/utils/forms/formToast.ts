@@ -1,5 +1,5 @@
 import type { ZodError } from 'zod';
-import type { AddToastInput } from '~/composables/core/useAppToast';
+import type { AddToastInput } from '~/types/toast';
 
 export function toastFormZodError(
     addToast: (input: AddToastInput) => string,

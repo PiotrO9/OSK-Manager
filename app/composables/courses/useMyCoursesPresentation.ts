@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue';
-import type { StatusTone } from '~/components/app/ui/types';
+import type { StatusTone } from '~/types/ui';
 import type { CurrentUserCourseItem } from '~/types/courses/course';
 
 export function getMyCoursesFeaturedCourse(

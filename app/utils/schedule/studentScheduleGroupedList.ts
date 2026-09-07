@@ -1,4 +1,4 @@
-import type { StatusTone } from '~/components/app/ui/types';
+import type { StatusTone } from '~/types/ui';
 import type {
     ScheduleLessonItem,
     SchedulePersonRef,

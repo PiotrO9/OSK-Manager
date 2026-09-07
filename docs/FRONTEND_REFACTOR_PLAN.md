@@ -160,6 +160,8 @@ lista kontrolna refaktoru".
 - [x] Ograniczac importy pomiedzy domenami do jawnych, stabilnych kontraktow.
 - [ ] Przy wykryciu cyklu przeniesc wspolny kontrakt nizej, zamiast maskowac problem barrel file.
 
+Aktualizacja 2026-09-07: audyt `madge` po poprawkach wykazuje brak cykli domenowych w `app/composables`, `app/utils` i `app/types`. Pozostaje 6 cykli w wygenerowanej warstwie `app/components/shadcn/*` opartych o barrel files; nie zostaly zmienione w tym kroku.
+
 ### Race conditions i anulowanie pracy
 
 - [ ] Dla wyszukiwania, filtrow i zmiany zakresu dat sprawdzic kolejnosc odpowiedzi asynchronicznych.
@@ -169,14 +171,18 @@ lista kontrolna refaktoru".
 - [ ] Testowac scenariusz, w ktorym starsza odpowiedz przychodzi po nowszej.
 - [ ] Blokowac podwojny submit tylko tam, gdzie operacja nie jest bezpiecznie idempotentna.
 
+Aktualizacja 2026-09-07: potwierdzone i poprawione przeplywy `useEventsDayPage`, `useManagerSchoolScheduleCalendarData`, `useStudentLessonBookingPage` oraz `useManagerStudentsData`. Dodano propagacje `AbortSignal` dla harmonogramu, slotow i instruktorow oraz testy stale response dla dnia wydarzen, kalendarza szkoly i listy kursantow. Checkboxy globalne pozostaja otwarte, bo audyt wykazal dalsze luki w innych listach i formularzach.
+
 ### Dostepnosc po podziale komponentow
 
-- [ ] Zachowac etykiety formularzy, opisy i powiazania `aria-*`.
+- [x] Zachowac etykiety formularzy, opisy i powiazania `aria-*`.
 - [ ] Zachowac obsluge klawiatury i widoczny focus.
 - [ ] Po zamknieciu dialogu przywracac focus do elementu wywolujacego.
-- [ ] Komunikaty bledow i loading udostepniac technologiom asystujacym.
+- [x] Komunikaty bledow i loading udostepniac technologiom asystujacym.
 - [ ] Nie zmieniac kolejnosci fokusu przez sam podzial DOM na komponenty.
-- [ ] Sprawdzic dialogi, selecty, tabele mobilne i akcje ikonowe.
+- [x] Sprawdzic dialogi, selecty, tabele mobilne i akcje ikonowe.
+
+Aktualizacja 2026-09-07: statyczny audyt a11y objal formularze, dialogi, selecty, tabele mobilne i akcje ikonowe. Poprawiono semantyke wyboru oceny w `StudentLessonRatingForm.vue`, ogloszenia walidacji/loading oraz opisy i `aria-busy` przyciskow rezerwacji slotow. Pelne potwierdzenie focus restore, kolejnosci fokusu i widocznego focusu wymaga smoke testu w dzialajacym UI.
 
 ### Bezpieczenstwo frontendu i BFF
 
@@ -194,9 +200,11 @@ lista kontrolna refaktoru".
 - [x] Nie wykonywac optymalizacji wydajnosciowej w tym samym kroku co zmiana architektury.
 - [ ] Po migracji sprawdzic liczbe requestow podczas wejscia na strone i typowych akcji.
 - [ ] Sprawdzic watchery wywolujace zduplikowane requesty lub kosztowne transformacje.
-- [ ] Przeniesc filtrowanie i sortowanie list do stabilnych `computed`.
-- [ ] Rozwazac wirtualizacje dopiero po potwierdzeniu problemu na duzej liscie.
-- [ ] Lazy-load stosowac dla ciezkich i rzadko uzywanych widokow, nie domyslnie dla kazdego komponentu.
+- [x] Przeniesc filtrowanie i sortowanie list do stabilnych `computed`.
+- [x] Rozwazac wirtualizacje dopiero po potwierdzeniu problemu na duzej liscie.
+- [x] Lazy-load stosowac dla ciezkich i rzadko uzywanych widokow, nie domyslnie dla kazdego komponentu.
+
+Aktualizacja 2026-09-07: audyt template wykazal brak filtrowania/sortowania bezposrednio w `v-for`; jedno kosztowne sortowanie w getterze watcha `DateTimePicker.vue` przeniesiono do stabilnych `computed`. Nie wdrozono wirtualizacji, bo brak lokalnego dowodu problemu na duzej liscie. Lazy-load nie jest stosowany mechanicznie dla komponentow; wystepuje tylko jako lazy loading obrazow.
 
 ### Budzet i kontrola zakresu
 
@@ -204,8 +212,10 @@ lista kontrolna refaktoru".
 - [x] Jeden commit ma jedna odpowiedzialnosc i moze zostac niezaleznie przejrzany.
 - [x] Nie dodawac nowych funkcji biznesowych do commitu refaktorujacego.
 - [x] Problem spoza zakresu zapisac w liscie odroczonej zamiast naprawiac przy okazji.
-- [ ] Gdy zmiana przekracza pierwotny zakres brancha, zatrzymac prace i zaktualizowac plan.
+- [x] Gdy zmiana przekracza pierwotny zakres brancha, zatrzymac prace i zaktualizowac plan.
 - [x] Preferowac migracje pionowe jednego przeplywu nad jednoczesna przebudowa wszystkich domen.
+
+Aktualizacja 2026-09-07: zasada zostala zastosowana w tym kroku - cykle vendorowe `shadcn` oraz pelne UI smoke testy zostaly opisane jako pozostale ograniczenia zamiast rozszerzania zakresu brancha.
 
 ## Etap 0: baseline i zabezpieczenia
 

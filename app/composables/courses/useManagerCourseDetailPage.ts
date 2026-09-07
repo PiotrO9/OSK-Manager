@@ -11,12 +11,7 @@ import {
     useManagerCourseInstructorAssignment,
 } from './useManagerCourseInstructorAssignment';
 
-export interface ManagerCourseInfoItem {
-    label: string;
-    description: string;
-    badge: string;
-    tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
-}
+export type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
 
 export function useManagerCourseDetailPage() {
     const route = useRoute();

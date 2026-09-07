@@ -5,7 +5,7 @@ import {
     RotateCcw,
     SlidersHorizontal,
 } from 'lucide-vue-next';
-import type { SummaryStripItem } from '~/components/app/ui/types';
+import type { SummaryStripItem } from '~/types/ui';
 
 const summaryItems: SummaryStripItem[] = [
     { label: 'Kursanci', value: 128 },

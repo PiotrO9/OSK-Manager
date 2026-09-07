@@ -115,6 +115,10 @@ const slotKey = getStudentLessonBookingSlotListSlotKey;
                                         bookingSlotKey !== null &&
                                         bookingSlotKey !== slotKey(slot)
                                     "
+                                    :aria-busy="
+                                        bookingSlotKey === slotKey(slot)
+                                    "
+                                    :aria-label="`Zarezerwuj termin ${slot.startTime} - ${slot.endTime}, instruktor ${instructorName(slot)}`"
                                     @click="emit('book', slot)"
                                 >
                                     <span class="block text-sm font-extrabold">
@@ -189,6 +193,8 @@ const slotKey = getStudentLessonBookingSlotListSlotKey;
                                 bookingSlotKey !== null &&
                                 bookingSlotKey !== slotKey(slot)
                             "
+                            :aria-busy="bookingSlotKey === slotKey(slot)"
+                            :aria-label="`Zarezerwuj termin ${slot.startTime} - ${slot.endTime}, instruktor ${instructorName(slot)}`"
                             @click="emit('book', slot)"
                         >
                             {{

@@ -3,15 +3,9 @@ import {
     formatCourseKindLabel,
     type CourseDetail,
 } from '~/types/courses/course';
+import type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-
-interface ManagerCourseInfoItem {
-    label: string;
-    description: string;
-    badge: string;
-    tone?: 'neutral' | 'info' | 'success' | 'warning' | 'danger';
-}
 
 export function getRouteIdString(rawId: unknown): string {
     if (typeof rawId === 'string') {

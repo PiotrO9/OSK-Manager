@@ -1,4 +1,4 @@
-import type { HeaderMetaItem } from '~/components/app/ui/types';
+import type { HeaderMetaItem } from '~/types/ui';
 import type {
     Vehicle,
     VehicleDetail,

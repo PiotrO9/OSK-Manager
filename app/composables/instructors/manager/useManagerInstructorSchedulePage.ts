@@ -13,7 +13,7 @@ import { useManagerInstructorScheduleDelete } from './useManagerInstructorSchedu
 import { useManagerInstructorScheduleReadModel } from './useManagerInstructorScheduleReadModel';
 import { useManagerInstructorScheduleResources } from './useManagerInstructorScheduleResources';
 
-export type ManagerInstructorEventType = 'THEORY' | 'DRIVE';
+export type { ManagerInstructorEventType } from '~/types/instructors/managerInstructorSchedule';
 
 export function useManagerInstructorSchedulePage() {
     const route = useRoute();
