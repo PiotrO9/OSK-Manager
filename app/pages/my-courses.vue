@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MyCoursesList from '~/components/courses/MyCoursesList.vue';
 import { CalendarPlus } from 'lucide-vue-next';
 import {
     formatCourseKindLabel,
