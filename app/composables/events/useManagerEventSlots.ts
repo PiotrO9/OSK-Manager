@@ -14,6 +14,7 @@ export function useManagerEventSlots(input: {
     const { fetchSlots: fetchInstructorSlots, isLoading: isSlotsLoading } =
         useInstructorSlotsApi(input.formInstructorId);
     let skipSlotsRefreshAfterLoad = false;
+    let slotsRefreshSeq = 0;
 
     function syncFreeWindowsFromEvent(ev: InstructorEvent): void {
         const fw = ev.freeWindows;
@@ -27,6 +28,7 @@ export function useManagerEventSlots(input: {
     }
 
     async function refreshFreeWindowsFromSlots(date: string): Promise<void> {
+        const seq = ++slotsRefreshSeq;
         const instId = input.formInstructorId.value.trim();
         const d = date.trim();
 
@@ -37,6 +39,10 @@ export function useManagerEventSlots(input: {
         try {
             const slots = await fetchInstructorSlots(d, d);
             const windows = slotsToFreeWindows(slots, d);
+
+            if (seq !== slotsRefreshSeq) {
+                return;
+            }
 
             input.freeWindows.value = windows;
             input.freeWindowsUnavailable.value = windows.length === 0;

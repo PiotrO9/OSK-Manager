@@ -62,6 +62,10 @@ export function useManagerInstructorDetailsEdit({
     }
 
     async function handleSubmitEdit(): Promise<void> {
+        if (isSubmitting.value) {
+            return;
+        }
+
         submitError.value = null;
 
         const patch = buildManagerInstructorDirtyPatch(

@@ -10,6 +10,9 @@ const deleteInstructorEvent = vi.fn();
 const replaceStudentsOnEvent = vi.fn();
 const addToast = vi.fn();
 const navigateTo = vi.fn();
+const isUpdateLoading = ref(false);
+const isDeleteLoading = ref(false);
+const isReplacing = ref(false);
 
 function installNuxtGlobals(): void {
     vi.stubGlobal('ref', ref);
@@ -17,12 +20,12 @@ function installNuxtGlobals(): void {
     vi.stubGlobal('useInstructorEventsApi', () => ({
         updateInstructorEvent,
         deleteInstructorEvent,
-        isUpdateLoading: ref(false),
-        isDeleteLoading: ref(false),
+        isUpdateLoading,
+        isDeleteLoading,
     }));
     vi.stubGlobal('useEventApi', () => ({
         replaceStudentsOnEvent,
-        isReplacing: ref(false),
+        isReplacing,
     }));
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('navigateTo', navigateTo);
@@ -90,6 +93,9 @@ describe('useManagerEventEditActions', () => {
         vi.resetModules();
         vi.clearAllMocks();
         vi.unstubAllGlobals();
+        isUpdateLoading.value = false;
+        isDeleteLoading.value = false;
+        isReplacing.value = false;
         installNuxtGlobals();
         navigateTo.mockResolvedValue(undefined);
     });
@@ -127,6 +133,20 @@ describe('useManagerEventEditActions', () => {
             path: '/manager/instructors/instructor-1/schedule',
             query: { schoolId: 'school-1' },
         });
+    });
+
+    it('ignores submit while event save is already pending', async () => {
+        isUpdateLoading.value = true;
+        const input = createInput();
+        const { useManagerEventEditActions } =
+            await import('./useManagerEventEditActions');
+        const actions = useManagerEventEditActions(input);
+
+        await actions.handleSubmit();
+
+        expect(updateInstructorEvent).not.toHaveBeenCalled();
+        expect(replaceStudentsOnEvent).not.toHaveBeenCalled();
+        expect(addToast).not.toHaveBeenCalled();
     });
 
     it('shows a success toast and closes the dialog after deleting an event', async () => {

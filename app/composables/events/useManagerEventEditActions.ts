@@ -122,6 +122,10 @@ export function useManagerEventEditActions(input: {
     }
 
     async function handleSubmit(): Promise<void> {
+        if (isSaving.value) {
+            return;
+        }
+
         input.formError.value = null;
         input.theoryStudentsError.value = null;
 

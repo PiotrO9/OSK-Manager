@@ -38,6 +38,10 @@ export function useManagerInstructorScheduleDelete({
     }
 
     async function handleDeleteDialogConfirm(): Promise<void> {
+        if (isEventDeleteLoading.value) {
+            return;
+        }
+
         const item = pendingDeleteItem.value;
 
         if (!item) {

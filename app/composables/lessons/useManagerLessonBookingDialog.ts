@@ -106,11 +106,14 @@ export function useManagerLessonBookingDialog(
     );
 
     let loadSeq = 0;
+    let studentCoursesLoadSeq = 0;
 
     watch(
         [options.open, options.slotCtx],
         async ([isOpen, ctx]) => {
             if (!isOpen || !ctx) {
+                loadSeq += 1;
+
                 return;
             }
 
@@ -165,6 +168,8 @@ export function useManagerLessonBookingDialog(
     });
 
     watch(selectedStudentUserId, async (userId) => {
+        const seq = ++studentCoursesLoadSeq;
+
         selectedCourseId.value = '';
         studentCourses.value = [];
         loadCoursesError.value = null;
@@ -177,12 +182,22 @@ export function useManagerLessonBookingDialog(
         }
 
         try {
-            studentCourses.value = await loadStudentCoursesWithKind(
+            const courses = await loadStudentCoursesWithKind(
                 uid,
                 schoolId,
                 options.schoolCourses.value,
             );
+
+            if (seq !== studentCoursesLoadSeq) {
+                return;
+            }
+
+            studentCourses.value = courses;
         } catch (err: unknown) {
+            if (seq !== studentCoursesLoadSeq) {
+                return;
+            }
+
             loadCoursesError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się wczytać kursów kursanta.',
@@ -195,6 +210,10 @@ export function useManagerLessonBookingDialog(
     }
 
     async function handleSubmit(): Promise<void> {
+        if (isCreating.value) {
+            return;
+        }
+
         formError.value = null;
 
         const result = buildManagerLessonBookingSubmitBody({

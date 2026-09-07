@@ -52,6 +52,8 @@ export function useVehicleEditPage() {
     const photoUploadError = ref<string | null>(null);
     const pendingPhotoFile = ref<File | null>(null);
     const pendingPhotoObjectUrl = ref<string | null>(null);
+    let listLoadSeq = 0;
+    let detailLoadSeq = 0;
 
     const initialVehicle = computed<Vehicle | null>(() => {
         const fromList = vehicles.value.find((v) => v.id === vehicleId.value);
@@ -122,6 +124,7 @@ export function useVehicleEditPage() {
 
     async function loadList() {
         const sid = schoolId.value;
+        const seq = ++listLoadSeq;
 
         if (!sid) {
             vehicles.value = [];
@@ -133,20 +136,33 @@ export function useVehicleEditPage() {
         isListBootloading.value = true;
 
         try {
-            vehicles.value = await fetchList(sid);
+            const items = await fetchList(sid);
+
+            if (seq !== listLoadSeq) {
+                return;
+            }
+
+            vehicles.value = items;
         } catch (err) {
+            if (seq !== listLoadSeq) {
+                return;
+            }
+
             loadError.value =
                 err instanceof Error
                     ? err.message
                     : 'Nie udało się wczytać listy pojazdów.';
             vehicles.value = [];
         } finally {
-            isListBootloading.value = false;
+            if (seq === listLoadSeq) {
+                isListBootloading.value = false;
+            }
         }
     }
 
     async function loadVehicleDetail() {
         const id = vehicleId.value;
+        const seq = ++detailLoadSeq;
 
         if (!id) {
             vehicleDetail.value = null;
@@ -158,15 +174,27 @@ export function useVehicleEditPage() {
         detailLoadError.value = null;
 
         try {
-            vehicleDetail.value = await fetchVehicleById(id);
+            const detail = await fetchVehicleById(id);
+
+            if (seq !== detailLoadSeq) {
+                return;
+            }
+
+            vehicleDetail.value = detail;
         } catch (err) {
+            if (seq !== detailLoadSeq) {
+                return;
+            }
+
             detailLoadError.value =
                 err instanceof Error
                     ? err.message
                     : 'Nie udało się wczytać szczegółów pojazdu.';
             vehicleDetail.value = null;
         } finally {
-            isDetailLoading.value = false;
+            if (seq === detailLoadSeq) {
+                isDetailLoading.value = false;
+            }
         }
     }
 
@@ -272,6 +300,8 @@ export function useVehicleEditPage() {
     );
 
     onUnmounted(() => {
+        listLoadSeq += 1;
+        detailLoadSeq += 1;
         revokePendingPhotoPreview();
     });
 

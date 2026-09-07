@@ -20,52 +20,84 @@ export function useManagerInstructorScheduleResources({
     const courses = ref<CourseListItem[]>([]);
     const coursesError = ref<string | null>(null);
     const isCoursesLoading = ref(false);
+    let vehiclesLoadSeq = 0;
+    let coursesLoadSeq = 0;
 
     async function loadVehicles(): Promise<void> {
         const sid = schoolId.value;
+        const seq = ++vehiclesLoadSeq;
 
         vehiclesError.value = null;
         vehicles.value = [];
 
         if (!sid) {
+            isVehiclesLoading.value = false;
+
             return;
         }
 
         isVehiclesLoading.value = true;
 
         try {
-            vehicles.value = await fetchVehiclesList(sid);
+            const items = await fetchVehiclesList(sid);
+
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
+            vehicles.value = items;
         } catch (err: unknown) {
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
             vehiclesError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            isVehiclesLoading.value = false;
+            if (seq === vehiclesLoadSeq) {
+                isVehiclesLoading.value = false;
+            }
         }
     }
 
     async function loadCourses(): Promise<void> {
         const sid = schoolId.value;
+        const seq = ++coursesLoadSeq;
 
         coursesError.value = null;
         courses.value = [];
 
         if (!sid) {
+            isCoursesLoading.value = false;
+
             return;
         }
 
         isCoursesLoading.value = true;
 
         try {
-            courses.value = await fetchCoursesList(sid);
+            const items = await fetchCoursesList(sid);
+
+            if (seq !== coursesLoadSeq) {
+                return;
+            }
+
+            courses.value = items;
         } catch (err: unknown) {
+            if (seq !== coursesLoadSeq) {
+                return;
+            }
+
             coursesError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy kursów.',
             );
         } finally {
-            isCoursesLoading.value = false;
+            if (seq === coursesLoadSeq) {
+                isCoursesLoading.value = false;
+            }
         }
     }
 

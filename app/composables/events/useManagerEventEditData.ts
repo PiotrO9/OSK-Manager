@@ -40,6 +40,9 @@ export function useManagerEventEditData(input: {
     const linkedCourse = ref<CourseDetail | null>(null);
 
     let loadSeq = 0;
+    let vehiclesLoadSeq = 0;
+    let instructorsLoadSeq = 0;
+    let linkedCourseLoadSeq = 0;
 
     async function loadEvent(): Promise<void> {
         const id = input.eventId.value;
@@ -98,6 +101,8 @@ export function useManagerEventEditData(input: {
     }
 
     async function loadVehicles(): Promise<void> {
+        const seq = ++vehiclesLoadSeq;
+
         vehiclesError.value = null;
         vehicles.value = [];
 
@@ -114,19 +119,32 @@ export function useManagerEventEditData(input: {
         isVehiclesLoading.value = true;
 
         try {
-            vehicles.value = await fetchVehiclesList(schoolId);
+            const items = await fetchVehiclesList(schoolId);
+
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
+            vehicles.value = items;
         } catch (err: unknown) {
+            if (seq !== vehiclesLoadSeq) {
+                return;
+            }
+
             vehiclesError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            isVehiclesLoading.value = false;
+            if (seq === vehiclesLoadSeq) {
+                isVehiclesLoading.value = false;
+            }
         }
     }
 
     async function loadInstructors(): Promise<void> {
         const schoolId = input.schoolId.value;
+        const seq = ++instructorsLoadSeq;
 
         instructorsError.value = null;
         instructors.value = [];
@@ -138,14 +156,26 @@ export function useManagerEventEditData(input: {
         isInstructorsLoading.value = true;
 
         try {
-            instructors.value = await fetchInstructorsList(schoolId);
+            const items = await fetchInstructorsList(schoolId);
+
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
+            instructors.value = items;
         } catch (err: unknown) {
+            if (seq !== instructorsLoadSeq) {
+                return;
+            }
+
             instructorsError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać listy instruktorów.',
             );
         } finally {
-            isInstructorsLoading.value = false;
+            if (seq === instructorsLoadSeq) {
+                isInstructorsLoading.value = false;
+            }
         }
     }
 
@@ -225,6 +255,8 @@ export function useManagerEventEditData(input: {
                 input.schoolId.value.trim(),
             ] as const,
         async ([courseId, schoolId]) => {
+            const seq = ++linkedCourseLoadSeq;
+
             linkedCourseLabel.value = null;
             linkedCourse.value = null;
 
@@ -235,9 +267,17 @@ export function useManagerEventEditData(input: {
             try {
                 const course = await fetchCourseById(courseId);
 
+                if (seq !== linkedCourseLoadSeq) {
+                    return;
+                }
+
                 linkedCourseLabel.value = course.name.trim() || null;
                 linkedCourse.value = course;
             } catch {
+                if (seq !== linkedCourseLoadSeq) {
+                    return;
+                }
+
                 linkedCourseLabel.value = null;
                 linkedCourse.value = null;
             }
