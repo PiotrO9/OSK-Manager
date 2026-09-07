@@ -180,13 +180,15 @@ Aktualizacja 2026-09-07: iteracja `refactor/fe-async-submit-guards` domknela poz
 ### Dostepnosc po podziale komponentow
 
 - [x] Zachowac etykiety formularzy, opisy i powiazania `aria-*`.
-- [ ] Zachowac obsluge klawiatury i widoczny focus.
-- [ ] Po zamknieciu dialogu przywracac focus do elementu wywolujacego.
+- [x] Zachowac obsluge klawiatury i widoczny focus.
+- [x] Po zamknieciu dialogu przywracac focus do elementu wywolujacego.
 - [x] Komunikaty bledow i loading udostepniac technologiom asystujacym.
-- [ ] Nie zmieniac kolejnosci fokusu przez sam podzial DOM na komponenty.
+- [x] Nie zmieniac kolejnosci fokusu przez sam podzial DOM na komponenty.
 - [x] Sprawdzic dialogi, selecty, tabele mobilne i akcje ikonowe.
 
 Aktualizacja 2026-09-07: statyczny audyt a11y objal formularze, dialogi, selecty, tabele mobilne i akcje ikonowe. Poprawiono semantyke wyboru oceny w `StudentLessonRatingForm.vue`, ogloszenia walidacji/loading oraz opisy i `aria-busy` przyciskow rezerwacji slotow. Pelne potwierdzenie focus restore, kolejnosci fokusu i widocznego focusu wymaga smoke testu w dzialajacym UI.
+
+Aktualizacja 2026-09-07: manualny smoke test uzytkownika potwierdzil obsluge klawiatury, widoczny focus, restore focus po zamknieciu dialogow oraz brak problemow z kolejnoscia fokusu po podziale komponentow.
 
 ### Bezpieczenstwo frontendu i BFF
 
@@ -202,13 +204,15 @@ Aktualizacja 2026-09-07: statyczny audyt a11y objal formularze, dialogi, selecty
 ### Wydajnosc po ustabilizowaniu zachowania
 
 - [x] Nie wykonywac optymalizacji wydajnosciowej w tym samym kroku co zmiana architektury.
-- [ ] Po migracji sprawdzic liczbe requestow podczas wejscia na strone i typowych akcji.
+- [x] Po migracji sprawdzic liczbe requestow podczas wejscia na strone i typowych akcji.
 - [x] Sprawdzic watchery wywolujace zduplikowane requesty lub kosztowne transformacje.
 - [x] Przeniesc filtrowanie i sortowanie list do stabilnych `computed`.
 - [x] Rozwazac wirtualizacje dopiero po potwierdzeniu problemu na duzej liscie.
 - [x] Lazy-load stosowac dla ciezkich i rzadko uzywanych widokow, nie domyslnie dla kazdego komponentu.
 
 Aktualizacja 2026-09-07: audyt template wykazal brak filtrowania/sortowania bezposrednio w `v-for`; jedno kosztowne sortowanie w getterze watcha `DateTimePicker.vue` przeniesiono do stabilnych `computed`. Nie wdrozono wirtualizacji, bo brak lokalnego dowodu problemu na duzej liscie. Lazy-load nie jest stosowany mechanicznie dla komponentow; wystepuje tylko jako lazy loading obrazow.
+
+Aktualizacja 2026-09-07: manualny smoke test uzytkownika potwierdzil brak zauwazalnych duplikatow requestow podczas wejscia na sprawdzane strony i typowych akcji.
 
 ### Budzet i kontrola zakresu
 
