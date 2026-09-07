@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UserDrivingSchoolsSection from '~/components/dashboard/UserDrivingSchoolsSection.vue';
 import type { ManagerAttentionPayload } from '~/types/manager/attentionItem';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
