@@ -1,268 +1,93 @@
 <script setup lang="ts">
-import {
-    ArrowLeft,
-    BadgeCheck,
-    Car,
-    LogIn,
-    ShieldCheck,
-} from 'lucide-vue-next';
+import LoginPanel from '~/components/auth/LoginPanel.vue';
+import LoginStory from '~/components/auth/LoginStory.vue';
 
-definePageMeta({
-    layout: false,
-});
-
+definePageMeta({ layout: false });
 usePageMeta({
     title: () => 'Logowanie',
-    description: () => 'Zaloguj się do aplikacji.',
+    description: () =>
+        'Zaloguj się do panelu szkoły, instruktora lub kursanta w OSK Manager.',
 });
-
-const {
-    email,
-    handleDemoMockFill,
-    handleGoHome,
-    handleKeyDown,
-    handleLogin,
-    handleLogoutClick,
-    isAuthenticated,
-    isFormValid,
-    isLoading,
-    password,
-    session,
-    showDemoMockLoginUi,
-} = useLoginPage();
 </script>
 
 <template>
-    <div
-        class="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10 text-slate-950 sm:px-6 dark:bg-slate-950 dark:text-slate-50"
-    >
-        <section
-            class="grid w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.12)] lg:min-h-[620px] lg:grid-cols-[1.18fr_0.82fr] dark:border-slate-800 dark:bg-slate-950"
-            aria-label="Logowanie do OSK Manager"
-        >
-            <div
-                class="flex min-h-[420px] flex-col justify-between bg-sky-50/70 p-6 sm:p-10 lg:p-12 dark:bg-slate-900"
-            >
-                <div class="space-y-10">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex size-10 items-center justify-center rounded-xl bg-slate-950 text-sm font-extrabold text-white shadow-sm dark:bg-slate-50 dark:text-slate-950"
-                        >
-                            OM
-                        </div>
-                        <div>
-                            <p class="text-base leading-tight font-extrabold">
-                                OSK Manager
-                            </p>
-                            <p
-                                class="text-sm text-slate-500 dark:text-slate-400"
-                            >
-                                Panel
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="max-w-xl space-y-3">
-                        <h1
-                            class="text-4xl leading-[1.08] font-extrabold text-slate-950 sm:text-5xl dark:text-slate-50"
-                        >
-                            Zaloguj się do OSK Manager
-                        </h1>
-                        <p class="text-base text-slate-600 dark:text-slate-300">
-                            Szybki dostęp do panelu szkoły, instruktora i
-                            kursanta.
-                        </p>
-                    </div>
-                </div>
-
-                <div
-                    class="mt-12 max-w-xl rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(14,165,233,0.12)] dark:border-slate-800 dark:bg-slate-950"
-                >
-                    <div class="flex items-start gap-4">
-                        <div
-                            class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-300"
-                        >
-                            <Car class="size-5" aria-hidden="true" />
-                        </div>
-                        <div class="space-y-1">
-                            <h2 class="text-lg font-extrabold">
-                                Jedno miejsce do planowania jazd
-                            </h2>
-                            <p
-                                class="text-sm text-slate-600 dark:text-slate-400"
-                            >
-                                Kalendarz, kursanci, instruktorzy i płatności w
-                                spójnym panelu.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                class="flex items-center justify-center px-6 py-8 sm:px-10 lg:px-12"
-            >
-                <UiCard
-                    class="w-full max-w-[420px] border-0 bg-transparent shadow-none"
-                    aria-label="Panel logowania"
-                >
-                    <UiCardContent class="p-0">
-                        <form
-                            v-if="!isAuthenticated"
-                            class="space-y-5"
-                            @submit.prevent="handleLogin"
-                        >
-                            <div class="space-y-2">
-                                <label
-                                    class="block text-sm font-bold text-slate-900 dark:text-slate-100"
-                                    for="emailInput"
-                                >
-                                    Email
-                                </label>
-                                <UiInput
-                                    id="emailInput"
-                                    v-model="email"
-                                    class="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm shadow-none focus-visible:ring-sky-500 dark:border-slate-800 dark:bg-slate-900"
-                                    type="email"
-                                    placeholder="np. jan@example.com"
-                                    aria-label="Email"
-                                    :disabled="isLoading"
-                                    @keydown="handleKeyDown"
-                                />
-                            </div>
-
-                            <div class="space-y-2">
-                                <label
-                                    class="block text-sm font-bold text-slate-900 dark:text-slate-100"
-                                    for="passwordInput"
-                                >
-                                    Hasło
-                                </label>
-                                <UiInput
-                                    id="passwordInput"
-                                    v-model="password"
-                                    class="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 text-sm shadow-none focus-visible:ring-sky-500 dark:border-slate-800 dark:bg-slate-900"
-                                    type="password"
-                                    placeholder="Wprowadź hasło"
-                                    aria-label="Hasło"
-                                    :disabled="isLoading"
-                                    @keydown="handleKeyDown"
-                                />
-                            </div>
-
-                            <UiButton
-                                type="submit"
-                                class="h-12 w-full rounded-xl bg-sky-500 text-sm font-extrabold text-white shadow-none hover:bg-sky-600"
-                                aria-label="Zaloguj się"
-                                :disabled="!isFormValid || isLoading"
-                            >
-                                <LogIn class="mr-2 size-4" aria-hidden="true" />
-                                {{ isLoading ? 'Ładowanie...' : 'Zaloguj się' }}
-                            </UiButton>
-
-                            <div
-                                v-if="showDemoMockLoginUi"
-                                class="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950"
-                                role="region"
-                                aria-label="Demo: szybkie uzupełnianie formularza logowania"
-                            >
-                                <div class="flex flex-wrap gap-2">
-                                    <UiButton
-                                        type="button"
-                                        variant="secondary"
-                                        class="h-8 rounded-full border border-sky-200 bg-sky-50 px-4 text-xs font-extrabold text-sky-700 shadow-none hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950 dark:text-sky-300"
-                                        aria-label="Demo: wstaw dane konta szefa w formularz"
-                                        :disabled="isLoading"
-                                        @click="handleDemoMockFill('manager')"
-                                    >
-                                        Demo manager
-                                    </UiButton>
-                                    <UiButton
-                                        type="button"
-                                        variant="secondary"
-                                        class="h-8 rounded-full border border-slate-200 bg-slate-50 px-4 text-xs font-extrabold text-slate-600 shadow-none hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                                        aria-label="Demo: wstaw dane konta kursanta w formularz"
-                                        :disabled="isLoading"
-                                        @click="handleDemoMockFill('student')"
-                                    >
-                                        Demo kursant
-                                    </UiButton>
-                                    <UiButton
-                                        type="button"
-                                        variant="secondary"
-                                        class="h-8 rounded-full border border-slate-200 bg-slate-50 px-4 text-xs font-extrabold text-slate-600 shadow-none hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                                        aria-label="Demo: wstaw dane konta instruktora w formularz"
-                                        :disabled="isLoading"
-                                        @click="
-                                            handleDemoMockFill('instructor')
-                                        "
-                                    >
-                                        Demo instruktor
-                                    </UiButton>
-                                </div>
-                            </div>
-                        </form>
-
-                        <div
-                            v-else
-                            class="space-y-5 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950"
-                        >
-                            <div class="flex items-start gap-4">
-                                <div
-                                    class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                                >
-                                    <BadgeCheck
-                                        class="size-5"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                                <div>
-                                    <p class="text-sm text-slate-500">
-                                        Status sesji
-                                    </p>
-                                    <p
-                                        class="text-base font-extrabold text-slate-950 dark:text-slate-50"
-                                    >
-                                        Zalogowany jako:
-                                        {{ session?.userName }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="grid gap-2 sm:grid-cols-2">
-                                <UiButton
-                                    type="button"
-                                    variant="secondary"
-                                    class="h-11 rounded-xl"
-                                    aria-label="Wyloguj się"
-                                    @click="handleLogoutClick"
-                                >
-                                    Wyloguj się
-                                </UiButton>
-                                <UiButton
-                                    type="button"
-                                    class="h-11 rounded-xl bg-sky-500 text-white hover:bg-sky-600"
-                                    aria-label="Przejdź do strony głównej"
-                                    @click="handleGoHome"
-                                >
-                                    <ArrowLeft
-                                        class="mr-2 size-4"
-                                        aria-hidden="true"
-                                    />
-                                    Strona główna
-                                </UiButton>
-                            </div>
-                        </div>
-
-                        <div
-                            class="mt-6 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400"
-                        >
-                            <ShieldCheck class="size-4" aria-hidden="true" />
-                            Bezpieczne logowanie do panelu
-                        </div>
-                    </UiCardContent>
-                </UiCard>
-            </div>
-        </section>
-    </div>
+    <main class="login-page" aria-label="Logowanie do OSK Manager">
+        <div class="login-layout">
+            <LoginStory />
+            <LoginPanel />
+        </div>
+    </main>
 </template>
+
+<style scoped>
+@font-face {
+    font-family: 'Manrope';
+    src: url('/fonts/manrope/Manrope-Variable.ttf') format('truetype');
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+}
+.login-page {
+    --login-ink: #172b3a;
+    --login-muted: #64727e;
+    --login-surface: #ffffff;
+    --login-soft: #f5f7f9;
+    --login-border: #dce3e9;
+    --login-accent: #036d9f;
+    --login-accent-soft: #edf7fc;
+    display: grid;
+    align-items: center;
+    min-height: 100dvh;
+    padding: 24px;
+    background: #f0f3f5;
+    color: var(--login-ink);
+    font-family: 'Manrope', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+.login-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: 1512px;
+    margin-inline: auto;
+    overflow: hidden;
+    border: 1px solid #e4e9ed;
+    border-radius: 24px;
+    background: var(--login-surface);
+    box-shadow: 0 16px 64px #19384f08;
+}
+:global(.dark .login-page) {
+    --login-ink: #e7eff5;
+    --login-muted: #a5b6c5;
+    --login-surface: #142330;
+    --login-soft: #1b2e3d;
+    --login-border: #354958;
+    --login-accent: #7dd3fc;
+    --login-accent-soft: #1b3445;
+    background: #0b1721;
+}
+:global(.dark .login-layout) {
+    border-color: #243746;
+}
+@media (max-width: 959px) {
+    .login-page {
+        padding: 16px;
+    }
+    .login-layout {
+        grid-template-columns: 1fr;
+        min-height: calc(100dvh - 32px);
+        max-width: 640px;
+        border-radius: 20px;
+    }
+}
+@media (max-width: 479px) {
+    .login-page {
+        padding: 0;
+    }
+    .login-layout {
+        min-height: 100dvh;
+        border: 0;
+        border-radius: 0;
+    }
+}
+</style>
