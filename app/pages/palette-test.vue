@@ -71,7 +71,16 @@ usePageMeta({
 </template>
 
 <style scoped>
+@font-face {
+    font-family: 'Satoshi';
+    src: url('/fonts/satoshi/Satoshi-Variable.woff2') format('woff2');
+    font-style: normal;
+    font-weight: 300 900;
+    font-display: swap;
+}
 .palette-page {
+    font-family: 'Satoshi', sans-serif;
+    font-synthesis: none;
     --background: #f8fafc;
     --foreground: #001219;
     --card: #ffffff;

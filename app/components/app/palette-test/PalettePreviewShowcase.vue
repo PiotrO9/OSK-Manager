@@ -181,7 +181,7 @@ function getPalettePreviewStyle(palette: PalettePreview): CSSProperties {
 
 <template>
     <section class="space-y-6" aria-label="Wizualny podgląd palet kolorów">
-        <div class="grid max-w-3xl gap-6">
+        <div class="grid w-full gap-6">
             <UiCard
                 v-for="palette in palettes"
                 :key="palette.name"
