@@ -11,6 +11,7 @@ import {
     Mail,
 } from 'lucide-vue-next';
 import type { DemoMockLoginRole } from '~/composables/auth/useLoginPage';
+import { DEMO_MOCK_LOGIN_CREDENTIALS } from '~/composables/auth/useLoginPage';
 
 defineProps<{ isFormValid: boolean; isLoading: boolean; showDemo: boolean }>();
 const emit = defineEmits<{ submit: []; fillDemo: [role: DemoMockLoginRole] }>();
@@ -37,6 +38,18 @@ const demoRoles = [
         icon: CarFront,
     },
 ] as const;
+
+const selectedDemoRole = computed(
+    () =>
+        demoRoles.find(({ role }) => {
+            const credentials = DEMO_MOCK_LOGIN_CREDENTIALS[role];
+
+            return (
+                email.value === credentials.email &&
+                password.value === credentials.password
+            );
+        })?.role,
+);
 
 function fillDemo(role: DemoMockLoginRole) {
     passwordVisible.value = false;
@@ -140,6 +153,7 @@ function fillDemo(role: DemoMockLoginRole) {
                     type="button"
                     :aria-label="`Demo: wstaw dane konta ${item.accountLabel} w formularz`"
                     :disabled="isLoading"
+                    :aria-pressed="selectedDemoRole === item.role"
                     @click="fillDemo(item.role)"
                 >
                     <component :is="item.icon" :size="19" aria-hidden="true" />

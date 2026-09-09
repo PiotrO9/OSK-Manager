@@ -1,0 +1,62 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e3]:
+    - status [ref=f7e4]: Logowanie | OSK Manager
+    - main "Logowanie do OSK Manager" [ref=f7e736]:
+      - generic [ref=f7e737]:
+        - complementary "OSK Manager — zarządzanie szkołą jazdy" [ref=f7e738]:
+          - generic [ref=f7e739]: OSKManager
+          - generic [ref=f7e746]:
+            - paragraph [ref=f7e747]: DOBRY KIERUNEK DLA TWOJEJ SZKOŁY
+            - heading "Wszystko na właściwym torze." [level=2] [ref=f7e749]:
+              - generic [ref=f7e750]: Wszystko na
+              - text: właściwym torze.
+            - paragraph [ref=f7e751]: Mniej spraw do ogarnięcia.Więcej czasu na dobrą jazdę.
+          - generic [aria-hidden] [ref=f7e752]:
+            - generic [ref=f7e761]: Twoja szkoła
+            - generic [ref=f7e765]:
+              - generic [ref=f7e766]:
+                - generic [ref=f7e779]: Plan jazd
+                - generic [ref=f7e780]: Przykładowy dzień
+              - generic [ref=f7e781]:
+                - generic [ref=f7e782]:
+                  - text: 09:00
+                  - generic [ref=f7e783]: 10:30
+                - generic [ref=f7e785]:
+                  - text: Jazda praktyczna
+                  - generic [ref=f7e786]: Kategoria B · 90 min
+              - generic [ref=f7e795]:
+                - generic [ref=f7e796]: Wszystko zaplanowane
+                - generic [ref=f7e799]: Można ruszać.
+            - generic [ref=f7e806]:
+              - text: Jeden panel.
+              - strong [ref=f7e807]: Wspólny kierunek.
+          - generic [ref=f7e808]:
+            - paragraph [ref=f7e809]: Cała szkoła w jednym miejscu.
+            - list [ref=f7e810]:
+              - listitem [ref=f7e811]: Kalendarz
+              - listitem [ref=f7e814]: Kursanci i instruktorzy
+              - listitem [ref=f7e820]: Płatności
+        - region "Panel logowania" [ref=f7e824]:
+          - generic [ref=f7e825]: TWOJA SZKOŁA. TWÓJ PANEL.
+          - generic [ref=f7e827]:
+            - generic [ref=f7e828]:
+              - paragraph [ref=f7e829]: ZACZNIJMY DOBRY DZIEŃ
+              - heading "Możesz ruszać." [level=1] [ref=f7e830]
+              - paragraph [ref=f7e831]: Twoja sesja jest aktywna. Przejdź do swojego panelu.
+            - generic [ref=f7e832]:
+              - generic [ref=f7e837]:
+                - paragraph [ref=f7e838]: Zalogowany jako
+                - paragraph [ref=f7e839]: Marta Kierownik
+              - button "Przejdź do strony głównej" [ref=f7e840] [cursor=pointer]: Strona główna
+              - button "Wyloguj się" [ref=f7e841] [cursor=pointer]
+            - paragraph [ref=f7e842]: Bezpieczne logowanie do panelu
+          - generic [ref=f7e846]:
+            - generic [ref=f7e847]: OSK Manager
+            - generic [ref=f7e848]: Dobry plan. Spokojna jazda.
+    - generic "Powiadomienia"
+  - generic [ref=f7e150]:
+    - button "Toggle Nuxt DevTools" [ref=f7e151] [cursor=pointer]
+    - generic "Page load time" [ref=f7e155]:
+      - generic [ref=f7e156]: "8"
+      - generic [ref=f7e157]: ms
+    - button "Toggle Component Inspector" [ref=f7e159] [cursor=pointer]

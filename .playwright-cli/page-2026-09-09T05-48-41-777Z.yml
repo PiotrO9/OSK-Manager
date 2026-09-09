@@ -1,0 +1,74 @@
+- generic [ref=e3]:
+  - main "Logowanie do OSK Manager" [ref=e4]:
+    - generic [ref=e5]:
+      - complementary "OSK Manager — zarządzanie szkołą jazdy" [ref=e6]:
+        - generic [ref=e7]: OSKManager
+        - generic [ref=e14]:
+          - paragraph [ref=e15]: DOBRY KIERUNEK DLA TWOJEJ SZKOŁY
+          - heading "Wszystko na właściwym torze." [level=2] [ref=e17]:
+            - generic [ref=e18]: Wszystko na
+            - text: właściwym torze.
+          - paragraph [ref=e19]: Mniej spraw do ogarnięcia.Więcej czasu na dobrą jazdę.
+        - generic [aria-hidden] [ref=e20]:
+          - generic [ref=e29]: Twoja szkoła
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e47]: Plan jazd
+              - generic [ref=e48]: Przykładowy dzień
+            - generic [ref=e49]:
+              - generic [ref=e50]:
+                - text: 09:00
+                - generic [ref=e51]: 10:30
+              - generic [ref=e53]:
+                - text: Jazda praktyczna
+                - generic [ref=e54]: Kategoria B · 90 min
+            - generic [ref=e63]:
+              - generic [ref=e64]: Wszystko zaplanowane
+              - generic [ref=e67]: Można ruszać.
+          - generic [ref=e74]:
+            - text: Jeden panel.
+            - strong [ref=e75]: Wspólny kierunek.
+        - generic [ref=e76]:
+          - paragraph [ref=e77]: Cała szkoła w jednym miejscu.
+          - list [ref=e78]:
+            - listitem [ref=e79]: Kalendarz
+            - listitem [ref=e82]: Kursanci i instruktorzy
+            - listitem [ref=e88]: Płatności
+      - region "Panel logowania" [ref=e92]:
+        - generic [ref=e93]: TWOJA SZKOŁA. TWÓJ PANEL.
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - paragraph [ref=e97]: ZACZNIJMY DOBRY DZIEŃ
+            - heading "Dobrze Cię widzieć." [level=1] [ref=e98]
+            - paragraph [ref=e99]: Zaloguj się i zobacz, co przed Tobą.
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]: Adres e-mail
+              - textbox "Adres e-mail" [ref=e104]:
+                - /placeholder: np. jan@example.com
+            - generic [ref=e105]:
+              - generic [ref=e106]: Hasło
+              - generic [ref=e107]:
+                - textbox "Hasło" [ref=e108]:
+                  - /placeholder: Wprowadź hasło
+                - button "Pokaż hasło" [ref=e109] [cursor=pointer]
+            - button "Zaloguj się" [disabled]
+            - 'region "Demo: szybkie uzupełnianie formularza logowania" [ref=e113]':
+              - generic [ref=e114]: POZNAJ OSK MANAGER
+              - generic [ref=e116]:
+                - heading "Sprawdź, jak to działa" [level=2] [ref=e117]
+                - generic [ref=e118]: DEMO
+              - paragraph [ref=e119]: Wybierz rolę, a uzupełnimy dane logowania.
+              - generic [ref=e120]:
+                - 'button "Demo: wstaw dane konta managera w formularz" [ref=e121] [cursor=pointer]':
+                  - generic [ref=e126]: Manager
+                - 'button "Demo: wstaw dane konta kursanta w formularz" [ref=e127] [cursor=pointer]':
+                  - generic [ref=e131]: Kursant
+                - 'button "Demo: wstaw dane konta instruktora w formularz" [ref=e132] [cursor=pointer]':
+                  - generic [ref=e136]: Instruktor
+              - status [ref=e137]
+          - paragraph [ref=e138]: Bezpieczne logowanie do panelu
+        - generic [ref=e142]:
+          - generic [ref=e143]: OSK Manager
+          - generic [ref=e144]: Dobry plan. Spokojna jazda.
+  - generic "Powiadomienia"

@@ -1,0 +1,78 @@
+- generic [ref=e3]:
+  - main "Logowanie do OSK Manager" [ref=e4]:
+    - generic [ref=e5]:
+      - complementary "OSK Manager — zarządzanie szkołą jazdy" [ref=e6]:
+        - generic [ref=e7]: OSKManager
+        - generic [ref=e14]:
+          - paragraph [ref=e15]: PULPIT, GRAFIK, KURSY I PŁATNOŚCI
+          - heading "Panel OSK bez zgadywania." [level=2] [ref=e17]:
+            - generic [ref=e18]: Panel OSK
+            - text: bez zgadywania.
+          - paragraph [ref=e19]: Sprawdzaj jazdy, instruktorów, kursantów i płatności w jednym miejscu.
+        - generic [ref=e21]:
+          - generic [ref=e22]:
+            - generic [ref=e23]: OSK Centrum
+            - strong [ref=e28]: Dzisiaj
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - generic [ref=e31]:
+                - generic [ref=e32]: Harmonogram
+                - strong [ref=e37]: 6 jazd
+              - generic [ref=e38]:
+                - generic [ref=e39]: 09:00
+                - generic [ref=e41]:
+                  - text: Jazda praktyczna
+                  - strong [ref=e42]: "Kursant: Jan Nowak"
+              - generic [ref=e46]:
+                - generic [ref=e47]: 11:30
+                - generic [ref=e49]:
+                  - text: Zajęcia teorii
+                  - strong [ref=e50]: Kurs B, sala 2
+            - generic [ref=e53]:
+              - generic [ref=e54]:
+                - generic [ref=e55]: Do obsługi
+                - strong [ref=e56]: 3 sprawy
+                - generic [ref=e57]: braki w kursach i grafikach
+              - generic [ref=e58]:
+                - generic [ref=e59]: Płatności
+                - strong [ref=e60]: 2 zaległe
+                - generic [ref=e61]: kursanci do kontaktu
+        - generic [ref=e62]:
+          - paragraph [ref=e63]: Najważniejsze moduły po zalogowaniu
+          - list [ref=e64]:
+            - listitem [ref=e65]: Harmonogram
+            - listitem [ref=e68]: Kursanci
+            - listitem [ref=e74]: Płatności
+            - listitem [ref=e77]: Opinie
+      - region "Panel logowania" [ref=e80]:
+        - generic [ref=e81]:
+          - heading "Dobrze Cię widzieć." [level=1] [ref=e83]
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]: Adres e-mail
+              - textbox "Adres e-mail" [ref=e88]:
+                - /placeholder: np. jan@example.com
+            - generic [ref=e89]:
+              - generic [ref=e90]: Hasło
+              - generic [ref=e91]:
+                - textbox "Hasło" [ref=e92]:
+                  - /placeholder: Wprowadź hasło
+                - button "Pokaż hasło" [ref=e93] [cursor=pointer]
+            - button "Zaloguj się" [disabled]
+            - 'region "Demo: szybkie uzupełnianie formularza logowania" [ref=e97]':
+              - generic [ref=e99]:
+                - heading "Sprawdź, jak to działa" [level=2] [ref=e100]
+                - generic [ref=e101]: DEMO
+              - paragraph [ref=e102]: Wybierz rolę, a uzupełnimy dane logowania.
+              - generic [ref=e103]:
+                - 'button "Demo: wstaw dane konta managera w formularz" [ref=e104] [cursor=pointer]':
+                  - generic [ref=e109]: Manager
+                - 'button "Demo: wstaw dane konta kursanta w formularz" [ref=e110] [cursor=pointer]':
+                  - generic [ref=e114]: Kursant
+                - 'button "Demo: wstaw dane konta instruktora w formularz" [ref=e115] [cursor=pointer]':
+                  - generic [ref=e119]: Instruktor
+          - paragraph [ref=e120]: Bezpieczne logowanie do panelu
+        - generic [ref=e124]:
+          - generic [ref=e125]: OSK Manager
+          - generic [ref=e126]: Dobry plan. Spokojna jazda.
+  - generic "Powiadomienia"

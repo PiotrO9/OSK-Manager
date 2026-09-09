@@ -25,7 +25,7 @@ const {
                     {{
                         isAuthenticated
                             ? 'Możesz ruszać.'
-                            : 'Dobrze Cię widzieć.'
+                            : 'Dobrze Cię widzieć'
                     }}
                 </h1>
             </div>

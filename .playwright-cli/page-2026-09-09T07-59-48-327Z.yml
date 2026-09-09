@@ -1,0 +1,40 @@
+- generic [ref=e3]:
+  - main "Logowanie do OSK Manager" [ref=e4]:
+    - generic [ref=e7]:
+      - region "OSK Manager — funkcje aplikacji" [ref=e8]:
+        - generic [ref=e15]:
+          - strong [ref=e16]: OSK
+          - text: Manager
+        - heading "Plan jazd pod pełną kontrolą." [level=2] [ref=e19]:
+          - generic [ref=e20]: Plan jazd
+          - generic [ref=e21]: pod pełną
+          - generic [ref=e22]: kontrolą.
+        - paragraph [ref=e23]: Panel zarządzania szkołą jazdy
+      - region "Panel logowania" [ref=e24]:
+        - generic [ref=e25]:
+          - heading "Dobrze Cię widzieć." [level=1] [ref=e27]
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]: Adres e-mail
+              - textbox "Adres e-mail" [ref=e32]:
+                - /placeholder: np. jan@example.com
+            - generic [ref=e33]:
+              - generic [ref=e34]: Hasło
+              - generic [ref=e35]:
+                - textbox "Hasło" [ref=e36]:
+                  - /placeholder: Wprowadź hasło
+                - button "Pokaż hasło" [ref=e37] [cursor=pointer]
+            - button "Zaloguj się" [disabled]
+            - 'region "Demo: szybkie uzupełnianie formularza logowania" [ref=e41]':
+              - generic [ref=e43]:
+                - heading "Sprawdź, jak to działa" [level=2] [ref=e44]
+                - generic [ref=e45]: DEMO
+              - paragraph [ref=e46]: Wybierz rolę, a uzupełnimy dane logowania.
+              - generic [ref=e47]:
+                - 'button "Demo: wstaw dane konta managera w formularz" [ref=e48] [cursor=pointer]':
+                  - generic [ref=e53]: Manager
+                - 'button "Demo: wstaw dane konta kursanta w formularz" [ref=e54] [cursor=pointer]':
+                  - generic [ref=e58]: Kursant
+                - 'button "Demo: wstaw dane konta instruktora w formularz" [ref=e59] [cursor=pointer]':
+                  - generic [ref=e63]: Instruktor
+  - generic "Powiadomienia"

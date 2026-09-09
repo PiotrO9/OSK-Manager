@@ -1,0 +1,69 @@
+- generic [ref=e3]:
+  - main "Logowanie do OSK Manager" [ref=e4]:
+    - generic [ref=e5]:
+      - navigation "Warianty strony logowania" [ref=e6]:
+        - link "Obecna wersja" [ref=e7] [cursor=pointer]:
+          - /url: /login
+        - generic [ref=e12]:
+          - link "01 Plakat" [ref=e13] [cursor=pointer]:
+            - /url: /login?design=poster
+            - generic [ref=e14]: "01"
+            - text: Plakat
+          - link "02 Edytorial" [ref=e15] [cursor=pointer]:
+            - /url: /login?design=editorial
+            - generic [ref=e16]: "02"
+            - text: Edytorial
+          - link "03 Nokturn" [ref=e17] [cursor=pointer]:
+            - /url: /login?design=nocturne
+            - generic [ref=e18]: "03"
+            - text: Nokturn
+        - generic [ref=e19]: OSK / DESIGN STUDY
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - region "OSK Manager — funkcje aplikacji" [ref=e22]:
+            - generic [ref=e29]:
+              - strong [ref=e30]: OSK
+              - text: Manager
+            - generic [ref=e31]:
+              - generic:
+                - heading "Jazdy. Ludzie. Plan." [level=2]: Jazdy.Ludzie.Plan.
+                - paragraph: Grafik instruktorów, postępy kursantówi płatności za kursy.
+              - generic [ref=e32]:
+                - generic [ref=e34]: Harmonogram jazd
+                - generic [ref=e35]: ↗
+            - generic "Moduły aplikacji" [ref=e36]:
+              - generic [ref=e37]: Harmonogram
+              - generic [ref=e38]: Kursanci
+              - generic [ref=e39]: Instruktorzy
+              - generic [ref=e40]: Płatności
+          - region "Panel logowania" [ref=e41]:
+            - generic [ref=e42]:
+              - heading "Dobrze Cię widzieć." [level=1] [ref=e44]
+              - generic [ref=e45]:
+                - generic [ref=e46]:
+                  - generic [ref=e47]: Adres e-mail
+                  - textbox "Adres e-mail" [ref=e49]:
+                    - /placeholder: np. jan@example.com
+                - generic [ref=e50]:
+                  - generic [ref=e51]: Hasło
+                  - generic [ref=e52]:
+                    - textbox "Hasło" [ref=e53]:
+                      - /placeholder: Wprowadź hasło
+                    - button "Pokaż hasło" [ref=e54] [cursor=pointer]
+                - button "Zaloguj się" [disabled]
+                - 'region "Demo: szybkie uzupełnianie formularza logowania" [ref=e58]':
+                  - generic [ref=e60]:
+                    - heading "Sprawdź, jak to działa" [level=2] [ref=e61]
+                    - generic [ref=e62]: DEMO
+                  - paragraph [ref=e63]: Wybierz rolę, a uzupełnimy dane logowania.
+                  - generic [ref=e64]:
+                    - 'button "Demo: wstaw dane konta managera w formularz" [ref=e65] [cursor=pointer]':
+                      - generic [ref=e70]: Manager
+                    - 'button "Demo: wstaw dane konta kursanta w formularz" [ref=e71] [cursor=pointer]':
+                      - generic [ref=e75]: Kursant
+                    - 'button "Demo: wstaw dane konta instruktora w formularz" [ref=e76] [cursor=pointer]':
+                      - generic [ref=e80]: Instruktor
+        - paragraph [ref=e81]:
+          - generic [ref=e82]: 01 / Plakat
+          - text: Wyrazista grafika. Motyw drogi. Błękit i granat.
+  - generic "Powiadomienia"
