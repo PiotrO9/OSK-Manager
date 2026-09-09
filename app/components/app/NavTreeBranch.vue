@@ -37,11 +37,11 @@ defineProps<Props>();
                 :tabindex="effectiveFocusedId === item.id ? 0 : -1"
                 :aria-current="activeId === item.id ? 'page' : undefined"
                 :class="[
-                    'group flex w-full cursor-pointer items-center gap-2 rounded-lg py-2 pr-3 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sky-400',
+                    'group focus-visible:ring-primary flex w-full cursor-pointer items-center gap-2 rounded-lg py-2 pr-3 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2',
                     getNavTreeIndentClass(depth),
                     activeId === item.id
-                        ? 'bg-sky-500/10 font-semibold text-sky-600 dark:bg-sky-500/15 dark:text-sky-400'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                        ? 'bg-primary/10 text-primary dark:bg-primary/15 font-semibold'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 ]"
                 @click="onItemClick(item)"
             >
@@ -58,7 +58,7 @@ defineProps<Props>();
 
                 <span
                     v-if="item.badge"
-                    class="flex-none rounded-full bg-sky-500/15 px-2 py-0.5 text-xs font-medium text-sky-600 dark:bg-sky-500/20 dark:text-sky-400"
+                    class="bg-primary/15 text-primary flex-none rounded-full px-2 py-0.5 text-xs font-medium"
                 >
                     {{ item.badge }}
                 </span>
@@ -66,7 +66,7 @@ defineProps<Props>();
                 <Icon
                     v-if="item.children?.length"
                     name="heroicons:chevron-right"
-                    class="size-4 flex-none text-slate-400 transition-transform duration-200 dark:text-slate-500"
+                    class="text-muted-foreground size-4 flex-none transition-transform duration-200"
                     :class="{ 'rotate-90': isExpanded(item.id) }"
                     aria-hidden="true"
                 />

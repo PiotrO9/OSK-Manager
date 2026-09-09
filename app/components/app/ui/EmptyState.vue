@@ -15,11 +15,11 @@ const props = withDefaults(
 
 <template>
     <div
-        class="border-border bg-muted/20 flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center"
+        class="border-border bg-muted/20 flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed px-6 py-10 text-center"
         role="status"
     >
         <div
-            class="bg-background text-muted-foreground border-border flex size-10 items-center justify-center rounded-xl border"
+            class="bg-background text-muted-foreground border-border flex size-10 items-center justify-center rounded-lg border"
             aria-hidden="true"
         >
             <Inbox class="size-5" />

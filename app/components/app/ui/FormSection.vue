@@ -11,7 +11,7 @@ const props = withDefaults(
 </script>
 
 <template>
-    <section class="border-border bg-card rounded-xl border shadow-xs">
+    <section class="border-border bg-card rounded-lg border shadow-xs">
         <div class="border-border border-b px-4 py-4 md:px-5">
             <h2 class="text-foreground text-base font-semibold">
                 {{ props.title }}

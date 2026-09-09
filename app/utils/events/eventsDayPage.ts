@@ -71,14 +71,14 @@ export function displayEventPrimary(
     const type = eventTypeLabel(item.type);
 
     if (!isManager) {
-        return `${time} Â· ${type}`;
+        return `${time} · ${type}`;
     }
 
     const instructor = displayEventsDayInstructorName(item);
 
     return instructor === '-'
-        ? `${time} Â· ${type}`
-        : `${time} Â· ${type} Â· ${instructor}`;
+        ? `${time} · ${type}`
+        : `${time} · ${type} · ${instructor}`;
 }
 
 export function displayEventMeta(item: ScheduleLessonItem): string {
@@ -91,22 +91,22 @@ export function displayEventMeta(item: ScheduleLessonItem): string {
         parts.push(
             [item.vehicle.name, item.vehicle.registrationNumber]
                 .filter(Boolean)
-                .join(' Â· '),
+                .join(' · '),
         );
     }
 
-    return parts.join(' Â· ');
+    return parts.join(' · ');
 }
 
 export function eventTypeBadgeClasses(type: string): string {
     const t = String(type).trim().toUpperCase();
 
     if (t === 'THEORY') {
-        return 'border-violet-500/40 bg-violet-500/15 text-violet-800 dark:text-violet-200';
+        return 'border-warning-500/40 bg-warning-500/15 text-warning-800';
     }
 
     if (t === 'DRIVE' || t === 'PRACTICE') {
-        return 'border-emerald-500/40 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200';
+        return 'border-primary-500/40 bg-primary-500/15 text-primary-800';
     }
 
     return '';

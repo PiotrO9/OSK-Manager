@@ -16,15 +16,8 @@ usePageMeta({
 </template>
 
 <style scoped>
-@font-face {
-    font-family: 'Manrope';
-    src: url('/fonts/manrope/Manrope-Variable.ttf') format('truetype');
-    font-style: normal;
-    font-weight: 200 800;
-    font-display: swap;
-}
 .login-page {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Satoshi', sans-serif;
     -webkit-font-smoothing: antialiased;
 }
 </style>

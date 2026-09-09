@@ -24,7 +24,7 @@ defineEmits<{
             class="focus-visible:ring-primary inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             :class="
                 activePanel === 'simple'
-                    ? 'border-sky-200 bg-sky-50 text-sky-700'
+                    ? 'border-primary-200 bg-primary-50 text-primary-700'
                     : 'border-border bg-background text-muted-foreground hover:text-foreground'
             "
             :aria-selected="activePanel === 'simple'"
@@ -41,7 +41,7 @@ defineEmits<{
             class="focus-visible:ring-primary inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             :class="
                 activePanel === 'manager'
-                    ? 'border-sky-200 bg-sky-50 text-sky-700'
+                    ? 'border-primary-200 bg-primary-50 text-primary-700'
                     : 'border-border bg-background text-muted-foreground hover:text-foreground'
             "
             :aria-selected="activePanel === 'manager'"

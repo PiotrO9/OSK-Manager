@@ -43,12 +43,12 @@ export function formatInstructorCell(course: CourseListItem): string {
 
 export function courseTypeBadgeClasses(course: CourseListItem): string {
     if (course.type === 'PRACTICAL') {
-        return 'border-sky-200 bg-sky-50 text-sky-700';
+        return 'border-primary-200 bg-primary-50 text-primary-700';
     }
 
     if (course.type === 'THEORY_GROUP') {
-        return 'border-amber-200 bg-amber-50 text-amber-700';
+        return 'border-warning-200 bg-warning-50 text-warning-700';
     }
 
-    return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+    return 'border-success-200 bg-success-50 text-success-700';
 }

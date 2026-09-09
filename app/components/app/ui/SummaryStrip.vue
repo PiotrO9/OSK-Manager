@@ -7,10 +7,10 @@ const props = defineProps<{
 
 const toneClasses: Record<StatusTone, string> = {
     neutral: 'bg-card',
-    info: 'bg-info-50/50',
-    success: 'bg-success-50/50',
-    warning: 'bg-warning-50/50',
-    danger: 'bg-danger-50/50',
+    info: 'bg-info-50/50 dark:bg-info-500/10',
+    success: 'bg-success-50/50 dark:bg-success-500/10',
+    warning: 'bg-warning-50/50 dark:bg-warning-500/10',
+    danger: 'bg-danger-50/50 dark:bg-danger-500/10',
 };
 </script>
 
@@ -22,7 +22,7 @@ const toneClasses: Record<StatusTone, string> = {
         <article
             v-for="item in props.items"
             :key="item.label"
-            class="border-border min-w-0 rounded-xl border p-4 shadow-xs"
+            class="border-border min-w-0 rounded-lg border p-4 shadow-xs"
             :class="toneClasses[item.tone ?? 'neutral']"
         >
             <p class="text-muted-foreground truncate text-xs">

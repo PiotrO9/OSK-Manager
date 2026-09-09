@@ -21,9 +21,9 @@ useHead({
                 class="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-4 px-4 md:px-6"
             >
                 <NuxtLink
-                    to="/design-system"
+                    to="/"
                     class="focus-visible:ring-primary inline-flex min-w-0 items-center gap-3 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                    aria-label="Design system"
+                    aria-label="Przejdź do strony głównej"
                 >
                     <span
                         class="bg-primary text-primary-foreground flex size-8 shrink-0 items-center justify-center rounded-md text-xs font-bold"

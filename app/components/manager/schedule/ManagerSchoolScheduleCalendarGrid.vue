@@ -42,13 +42,13 @@ function emitBlockKeydown(
             >
                 <span class="inline-flex items-center gap-1">
                     <span
-                        class="inline-block size-2.5 shrink-0 rounded-sm border border-emerald-600/80 bg-emerald-500/30"
+                        class="border-primary-600/80 bg-primary-500/30 inline-block size-2.5 shrink-0 rounded-sm border"
                     />
                     <span>jazda</span>
                 </span>
                 <span class="inline-flex items-center gap-1">
                     <span
-                        class="inline-block size-2.5 shrink-0 rounded-sm border border-violet-600/80 bg-violet-500/30"
+                        class="border-warning-600/80 bg-warning-500/30 inline-block size-2.5 shrink-0 rounded-sm border"
                     />
                     <span>teoria</span>
                 </span>

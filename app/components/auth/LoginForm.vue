@@ -190,15 +190,22 @@ function fillDemo(role: DemoMockLoginRole) {
     height: 52px;
     padding: 0 16px 0 44px;
     border: 1px solid var(--login-border);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--login-surface);
     color: var(--login-ink);
     font-size: 14px;
-    box-shadow: 0 2px 3px #172b3a03;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--foreground) 4%, transparent);
+    transition:
+        border-color 0.18s,
+        background 0.18s,
+        box-shadow 0.18s;
 }
 .login-input::placeholder {
     color: var(--login-muted);
     font-weight: 400;
+}
+.login-input:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 52%, var(--login-border));
 }
 .login-input:focus-visible {
     border-color: var(--login-accent);
@@ -236,20 +243,20 @@ function fillDemo(role: DemoMockLoginRole) {
     height: 52px;
     margin-top: 26px;
     padding-inline: 20px;
-    border: 1px solid #087caf;
-    border-radius: 10px;
-    background: #087caf;
-    color: #fff;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-foreground);
     font-size: 13px;
     font-weight: 800;
-    box-shadow: 0 5px 12px #087caf19;
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--primary) 18%, transparent);
     transition:
         background 0.18s,
         box-shadow 0.18s;
 }
 .login-submit:hover {
-    background: #06628c;
-    box-shadow: 0 6px 16px #087caf28;
+    background: var(--login-accent-hover);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 .login-submit:disabled {
     border-color: var(--login-border);
@@ -303,7 +310,7 @@ function fillDemo(role: DemoMockLoginRole) {
     min-height: 75px;
     padding: 12px 4px;
     border: 1px solid var(--login-border);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--login-surface);
     color: var(--login-muted);
     font-size: 10px;
@@ -318,6 +325,12 @@ function fillDemo(role: DemoMockLoginRole) {
     border-color: var(--login-accent);
     background: var(--login-accent-soft);
     color: var(--login-accent);
+}
+.demo-role[aria-pressed='true'] {
+    border-color: var(--primary);
+    background: var(--accent);
+    color: var(--primary);
+    box-shadow: inset 0 0 0 1px var(--primary);
 }
 .demo-role:disabled {
     opacity: 0.5;

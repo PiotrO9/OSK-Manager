@@ -24,7 +24,7 @@ defineEmits<{
             class="focus-visible:ring-ring rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
             :class="
                 selected === opt
-                    ? 'border-sky-200 bg-sky-50 text-sky-700'
+                    ? 'border-primary-200 bg-primary-50 text-primary-700'
                     : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground'
             "
             :aria-pressed="selected === opt"

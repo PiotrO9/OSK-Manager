@@ -52,12 +52,12 @@ const emit = defineEmits<{
             class="mb-0.5 flex items-center gap-1"
         >
             <BookOpen
-                class="size-3 shrink-0 text-violet-700 dark:text-violet-200"
+                class="text-warning-700 size-3 shrink-0"
                 aria-hidden="true"
             />
             <UiBadge
                 variant="secondary"
-                class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[11px] font-semibold text-violet-950 dark:text-violet-50"
+                class="border-warning-500/40 bg-warning-500/20 text-warning-950 px-1 py-0 text-[11px] font-semibold"
             >
                 Teoria
             </UiBadge>
@@ -66,10 +66,7 @@ const emit = defineEmits<{
             </span>
         </div>
         <span v-else class="mb-0.5 flex items-center gap-1">
-            <Car
-                class="size-3 shrink-0 text-emerald-800 dark:text-emerald-200"
-                aria-hidden="true"
-            />
+            <Car class="text-primary-700 size-3 shrink-0" aria-hidden="true" />
             <span class="font-medium tabular-nums">
                 {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
             </span>
@@ -77,9 +74,7 @@ const emit = defineEmits<{
         <span
             class="block truncate text-xs font-medium"
             :class="
-                isTheoryLessonType(lesson.type)
-                    ? 'text-violet-950/95 dark:text-violet-50/95'
-                    : ''
+                isTheoryLessonType(lesson.type) ? 'text-warning-950/95' : ''
             "
         >
             {{ displayPrimaryLine(lesson, practicePrimaryLine) }}
@@ -101,7 +96,7 @@ const emit = defineEmits<{
                 isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "
-            class="block truncate text-[11px] leading-snug text-violet-900/85 dark:text-violet-100/85"
+            class="text-warning-900 block truncate text-[11px] leading-snug"
         >
             {{ displayInstructorSubtitle(lesson) }}
         </span>
@@ -116,7 +111,7 @@ const emit = defineEmits<{
                 !isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "
-            class="block truncate text-[11px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
+            class="text-primary-900 block truncate text-[11px] leading-snug"
         >
             {{ displayInstructorSubtitle(lesson) }}
         </span>

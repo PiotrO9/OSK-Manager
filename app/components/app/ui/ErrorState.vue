@@ -19,12 +19,12 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="border-danger-200 bg-danger-50/60 text-danger-900 dark:text-danger-700 flex min-h-32 flex-col gap-4 rounded-xl border px-5 py-4 sm:flex-row sm:items-start sm:justify-between"
+        class="border-danger-200 bg-danger-50/60 text-danger-900 dark:border-danger-500/40 dark:bg-danger-500/10 dark:text-danger-300 flex min-h-32 flex-col gap-4 rounded-lg border px-5 py-4 sm:flex-row sm:items-start sm:justify-between"
         role="alert"
     >
         <div class="flex min-w-0 gap-3">
             <div
-                class="bg-background/70 flex size-9 shrink-0 items-center justify-center rounded-xl"
+                class="bg-background/70 flex size-9 shrink-0 items-center justify-center rounded-lg"
                 aria-hidden="true"
             >
                 <AlertTriangle class="size-5" />

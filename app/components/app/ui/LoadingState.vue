@@ -13,7 +13,7 @@ const props = withDefaults(
 
 <template>
     <div
-        class="border-border bg-card min-h-40 rounded-xl border p-4"
+        class="border-border bg-card min-h-40 rounded-lg border p-4"
         role="status"
         aria-live="polite"
     >
@@ -37,9 +37,9 @@ const props = withDefaults(
             <UiSkeleton class="h-4 w-[86%]" />
             <UiSkeleton class="h-4 w-[64%]" />
             <div class="grid gap-3 pt-2 sm:grid-cols-3">
-                <UiSkeleton class="h-16 rounded-xl" />
-                <UiSkeleton class="h-16 rounded-xl" />
-                <UiSkeleton class="h-16 rounded-xl" />
+                <UiSkeleton class="h-16 rounded-lg" />
+                <UiSkeleton class="h-16 rounded-lg" />
+                <UiSkeleton class="h-16 rounded-lg" />
             </div>
         </div>
     </div>

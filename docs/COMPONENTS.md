@@ -2,6 +2,19 @@
 
 Komponenty są **auto-importowane** (bez ścieżek w szablonie). Szczegóły shadcn-vue: [SHADCN.md](SHADCN.md), [SHADCN_SKILLS.md](SHADCN_SKILLS.md), [MCP_SHADCN.md](MCP_SHADCN.md).
 
+## Tokeny i reużycie
+
+Kolorystyka, radius i font aplikacji są sterowane przez CSS custom properties w
+[`app/assets/css/tailwind.css`](../app/assets/css/tailwind.css) oraz
+[`app/assets/css/osk-design-tokens.css`](../app/assets/css/osk-design-tokens.css).
+Nowe widoki powinny używać tokenów `bg-background`, `bg-card`, `text-foreground`,
+`text-muted-foreground`, `border-border`, `bg-primary`, `text-primary` oraz skal
+semantycznych `success`, `warning`, `danger`, `info`.
+
+Nie kopiuj kolorów typu `sky-*`, `emerald-*`, `violet-*` do nowych ekranów. Jeżeli
+wzorzec ma wracać w kilku miejscach, najpierw rozbuduj komponent z
+`app/components/app/ui/`, a dopiero potem użyj go w widoku i w `/design-system`.
+
 ## shadcn-vue (`app/components/shadcn/`)
 
 Prefiks **`Ui`** (np. `UiButton`, `UiCard`, `UiDialog`, `UiInput`, `UiMenubar`, …). Dodawanie: `npx shadcn-vue@latest add <nazwa>`.
@@ -47,7 +60,7 @@ Komponenty domeny pojazdów:
 
 ## Design system (`app/components/app/design-system/`)
 
-Aktualna podstrona `/design-system` składa się z jednej długiej strony z nawigacją po sekcjach:
+Aktualna podstrona `/design-system` składa się z jednej długiej strony z nawigacją po sekcjach. To showcase komponentów używanych w aplikacji, nie osobny zestaw produkcyjnych primitive'ów:
 
 - **DesignSystemNavigation** — lewa nawigacja przewijająca do sekcji.
 - **Colors**, **Typography** — fundamenty wizualne.

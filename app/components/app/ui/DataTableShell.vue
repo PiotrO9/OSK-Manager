@@ -25,7 +25,7 @@ const emit = defineEmits<{
 
 <template>
     <section
-        class="border-border bg-card min-w-0 overflow-hidden rounded-xl border shadow-xs"
+        class="border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs"
         :aria-busy="props.isLoading"
     >
         <div

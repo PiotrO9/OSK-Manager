@@ -1,178 +1,21 @@
 <script setup lang="ts">
-interface ColorStep {
-    step: string;
-    value: string;
-    foreground: '#FFFFFF' | '#001219';
-    isBase?: boolean;
-}
-
-interface ColorFamily {
-    name: string;
-    token: string;
-    usage: string;
-    steps: readonly ColorStep[];
-}
-
-const families: readonly ColorFamily[] = [
-    {
-        name: 'Cobalt',
-        token: 'Primary',
-        usage: 'Akcje i nawigacja',
-        steps: [
-            { step: '950', value: '#172554', foreground: '#FFFFFF' },
-            { step: '900', value: '#1E3A8A', foreground: '#FFFFFF' },
-            { step: '800', value: '#1E40AF', foreground: '#FFFFFF' },
-            { step: '700', value: '#1D4ED8', foreground: '#FFFFFF' },
-            {
-                step: '600',
-                value: '#2563EB',
-                foreground: '#FFFFFF',
-                isBase: true,
-            },
-            { step: '500', value: '#3B82F6', foreground: '#001219' },
-            { step: '400', value: '#60A5FA', foreground: '#001219' },
-            { step: '300', value: '#93C5FD', foreground: '#001219' },
-            { step: '200', value: '#BFDBFE', foreground: '#001219' },
-            { step: '100', value: '#DBEAFE', foreground: '#001219' },
-            { step: '50', value: '#EFF6FF', foreground: '#001219' },
-        ],
-    },
-    {
-        name: 'Orange',
-        token: 'Accent',
-        usage: 'Uwagi i wyróżnienia',
-        steps: [
-            { step: '950', value: '#431407', foreground: '#FFFFFF' },
-            { step: '900', value: '#7C2D12', foreground: '#FFFFFF' },
-            { step: '800', value: '#9A3412', foreground: '#FFFFFF' },
-            { step: '700', value: '#C2410C', foreground: '#FFFFFF' },
-            { step: '600', value: '#EA580C', foreground: '#FFFFFF' },
-            {
-                step: '500',
-                value: '#F97316',
-                foreground: '#001219',
-                isBase: true,
-            },
-            { step: '400', value: '#FB923C', foreground: '#001219' },
-            { step: '300', value: '#FDBA74', foreground: '#001219' },
-            { step: '200', value: '#FED7AA', foreground: '#001219' },
-            { step: '100', value: '#FFEDD5', foreground: '#001219' },
-            { step: '50', value: '#FFF7ED', foreground: '#001219' },
-        ],
-    },
-    {
-        name: 'Green',
-        token: 'Success',
-        usage: 'Opłacone i ukończone',
-        steps: [
-            { step: '950', value: '#052E16', foreground: '#FFFFFF' },
-            { step: '900', value: '#14532D', foreground: '#FFFFFF' },
-            { step: '800', value: '#166534', foreground: '#FFFFFF' },
-            { step: '700', value: '#15803D', foreground: '#FFFFFF' },
-            {
-                step: '600',
-                value: '#16A34A',
-                foreground: '#FFFFFF',
-                isBase: true,
-            },
-            { step: '500', value: '#22C55E', foreground: '#001219' },
-            { step: '400', value: '#4ADE80', foreground: '#001219' },
-            { step: '300', value: '#86EFAC', foreground: '#001219' },
-            { step: '200', value: '#BBF7D0', foreground: '#001219' },
-            { step: '100', value: '#DCFCE7', foreground: '#001219' },
-            { step: '50', value: '#F0FDF4', foreground: '#001219' },
-        ],
-    },
-    {
-        name: 'Red',
-        token: 'Danger',
-        usage: 'Błędy i usuwanie',
-        steps: [
-            { step: '950', value: '#450A0A', foreground: '#FFFFFF' },
-            { step: '900', value: '#7F1D1D', foreground: '#FFFFFF' },
-            { step: '800', value: '#991B1B', foreground: '#FFFFFF' },
-            { step: '700', value: '#B91C1C', foreground: '#FFFFFF' },
-            {
-                step: '600',
-                value: '#DC2626',
-                foreground: '#FFFFFF',
-                isBase: true,
-            },
-            { step: '500', value: '#EF4444', foreground: '#001219' },
-            { step: '400', value: '#F87171', foreground: '#001219' },
-            { step: '300', value: '#FCA5A5', foreground: '#001219' },
-            { step: '200', value: '#FECACA', foreground: '#001219' },
-            { step: '100', value: '#FEE2E2', foreground: '#001219' },
-            { step: '50', value: '#FEF2F2', foreground: '#001219' },
-        ],
-    },
-    {
-        name: 'Graphite',
-        token: 'Neutral',
-        usage: 'Tekst, tła i granice',
-        steps: [
-            { step: '950', value: '#121416', foreground: '#FFFFFF' },
-            { step: '900', value: '#1B1F22', foreground: '#FFFFFF' },
-            { step: '800', value: '#252B30', foreground: '#FFFFFF' },
-            { step: '700', value: '#343C42', foreground: '#FFFFFF' },
-            { step: '600', value: '#465159', foreground: '#FFFFFF' },
-            {
-                step: '500',
-                value: '#64748B',
-                foreground: '#FFFFFF',
-                isBase: true,
-            },
-            { step: '400', value: '#A8B3BA', foreground: '#001219' },
-            { step: '300', value: '#CBD5E1', foreground: '#001219' },
-            { step: '200', value: '#D6DFE3', foreground: '#001219' },
-            { step: '100', value: '#EDF2F4', foreground: '#001219' },
-            { step: '50', value: '#F8FAFC', foreground: '#001219' },
-        ],
-    },
-];
+import {
+    DESIGN_SYSTEM_COLOR_FAMILIES,
+    DESIGN_SYSTEM_THEME_TOKENS,
+    findDesignSystemBaseColor,
+} from '~/data/design-system/colors';
 
 const { isDark } = useDarkMode();
 const { addToast } = useAppToast();
 
-const semanticColors = computed(() => [
-    {
-        name: 'Background',
-        value: isDark.value ? '#121416' : '#F8FAFC',
-        variable: '--background',
-    },
-    {
-        name: 'Surface',
-        value: isDark.value ? '#1B1F22' : '#FFFFFF',
-        variable: '--card',
-    },
-    {
-        name: 'Text',
-        value: isDark.value ? '#EDF2F4' : '#001219',
-        variable: '--foreground',
-    },
-    {
-        name: 'Muted',
-        value: isDark.value ? '#A8B3BA' : '#64748B',
-        variable: '--muted-foreground',
-    },
-    {
-        name: 'Border',
-        value: isDark.value ? '#343C42' : '#D6DFE3',
-        variable: '--border',
-    },
-    {
-        name: 'Focus',
-        value: isDark.value ? '#60A5FA' : '#1D4ED8',
-        variable: '--ring',
-    },
-]);
-
-function baseColor(family: ColorFamily): string {
-    return (
-        family.steps.find((step) => step.isBase)?.value ??
-        family.steps[0]!.value
-    );
-}
+const families = DESIGN_SYSTEM_COLOR_FAMILIES;
+const semanticColors = computed(() =>
+    DESIGN_SYSTEM_THEME_TOKENS.map((token) => ({
+        name: token.name,
+        variable: token.variable,
+        value: isDark.value ? token.dark : token.light,
+    })),
+);
 
 function formatHex(value: string): string {
     return value.toLowerCase();
@@ -273,12 +116,17 @@ async function copyColor(value: string) {
                         <button
                             type="button"
                             class="border-border mt-3 flex items-center gap-2 border-t pt-3"
-                            :title="`Skopiuj ${formatHex(baseColor(family))}`"
-                            @click="copyColor(baseColor(family))"
+                            :title="`Skopiuj ${formatHex(findDesignSystemBaseColor(family))}`"
+                            @click="
+                                copyColor(findDesignSystemBaseColor(family))
+                            "
                         >
                             <span
                                 class="border-border size-7 shrink-0 rounded border"
-                                :style="{ backgroundColor: baseColor(family) }"
+                                :style="{
+                                    backgroundColor:
+                                        findDesignSystemBaseColor(family),
+                                }"
                                 aria-hidden="true"
                             />
                             <div class="min-w-0">
@@ -290,7 +138,11 @@ async function copyColor(value: string) {
                                 <p
                                     class="text-muted-foreground truncate font-mono text-xs"
                                 >
-                                    {{ formatHex(baseColor(family)) }}
+                                    {{
+                                        formatHex(
+                                            findDesignSystemBaseColor(family),
+                                        )
+                                    }}
                                 </p>
                             </div>
                         </button>

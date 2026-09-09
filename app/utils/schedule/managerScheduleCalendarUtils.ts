@@ -3,13 +3,13 @@ import { labelForInstructorEventStatusRaw } from '~/utils/events/instructorEvent
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { formatDateOnly } from '~/utils/date/weeklyCalendarDates';
 
-/** O? czasu: 7:00-19:00 (12 h x 60 px). */
+/** Oś czasu: 7:00-19:00 (12 h x 60 px). */
 export const BASE_HOUR = 7;
 export const GRID_HEIGHT_PX = 720;
 export const PX_PER_MINUTE = 1;
-/** Odst?p przed granic? nast?pnego bloku w siatce. */
+/** Odstęp przed granicą następnego bloku w siatce. */
 export const SLOT_END_GUTTER_PX = 1;
-/** Odst?p mi?dzy kafelkami, gdy w jednym przedziale startu jest kilka lekcji. */
+/** Odstęp między kafelkami, gdy w jednym przedziale startu jest kilka lekcji. */
 export const SAME_START_TILE_GAP_PX = 2;
 
 export function isoToHm(iso: string): string {
@@ -65,26 +65,26 @@ export function lessonBlockClasses(type: string): string {
     const t = type.trim().toUpperCase();
 
     if (t === 'PRACTICE') {
-        return 'border-sky-400 bg-sky-50 text-sky-950 shadow-sky-900/10 dark:border-sky-500/70 dark:bg-sky-950/50 dark:text-sky-50';
+        return 'border-primary-300 bg-primary-50 text-primary-950 shadow-primary-900/10 dark:border-primary-500/70 dark:bg-primary-50 dark:text-primary-950';
     }
 
     if (t === 'THEORY') {
-        return 'border-indigo-300 bg-indigo-50 text-indigo-950 shadow-indigo-900/10 dark:border-indigo-400/60 dark:bg-indigo-950/50 dark:text-indigo-50';
+        return 'border-warning-300 bg-warning-50 text-warning-950 shadow-warning-900/10 dark:border-warning-500/70 dark:bg-warning-50 dark:text-warning-950';
     }
 
-    return 'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/70 dark:bg-amber-950/50 dark:text-amber-100';
+    return 'border-secondary-300 bg-secondary-50 text-secondary-950 dark:border-secondary-400 dark:bg-secondary-50 dark:text-secondary-950';
 }
 
 export function displayStudent(item: ScheduleLessonItem): string {
     const s = item.student;
 
     if (!s) {
-        return '?';
+        return '-';
     }
 
     const name = `${s.firstName} ${s.lastName}`.trim();
 
-    return name.length > 0 ? name : '?';
+    return name.length > 0 ? name : '-';
 }
 
 export function displayVehicle(item: ScheduleLessonItem): string {
@@ -123,7 +123,7 @@ export function displayTheoryPrimaryLine(item: ScheduleLessonItem): string {
         const shown = list.slice(0, 2).map((s) => {
             const n = `${s.firstName} ${s.lastName}`.trim();
 
-            return n.length > 0 ? n : '?';
+            return n.length > 0 ? n : '-';
         });
         const rest = list.length - shown.length;
 

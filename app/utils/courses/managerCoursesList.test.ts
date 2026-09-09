@@ -74,13 +74,13 @@ describe('managerCoursesList utils', () => {
 
     it('returns badge classes by course type', () => {
         expect(courseTypeBadgeClasses(course({ type: 'PRACTICAL' }))).toBe(
-            'border-sky-200 bg-sky-50 text-sky-700',
+            'border-primary-200 bg-primary-50 text-primary-700',
         );
         expect(courseTypeBadgeClasses(course({ type: 'THEORY_GROUP' }))).toBe(
-            'border-amber-200 bg-amber-50 text-amber-700',
+            'border-warning-200 bg-warning-50 text-warning-700',
         );
         expect(courseTypeBadgeClasses(course({ type: 'EXTRA' }))).toBe(
-            'border-emerald-200 bg-emerald-50 text-emerald-700',
+            'border-success-200 bg-success-50 text-success-700',
         );
     });
 });

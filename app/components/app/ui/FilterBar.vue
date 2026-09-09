@@ -15,7 +15,7 @@ const props = withDefaults(
 
 <template>
     <section
-        class="border-border bg-card flex min-w-0 flex-col gap-3 rounded-xl border px-4 py-3 shadow-xs md:flex-row md:items-center md:justify-between"
+        class="border-border bg-card flex min-w-0 flex-col gap-3 rounded-lg border px-4 py-3 shadow-xs md:flex-row md:items-center md:justify-between"
         :aria-busy="props.isLoading"
     >
         <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">

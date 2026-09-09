@@ -50,15 +50,15 @@ Sekcje nie sa dekoracyjnymi kartami. Ramka jest uzasadniona dla faktycznego form
 
 ## 4. Mapa sekcji i istniejacych komponentow
 
-| Sekcja         | Istniejaca baza do wykorzystania                                                                                                                                                                                                        | Przyklady i rozszerzenia                                                                                         |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Fundamenty     | `app/components/app/design-system/Typography.vue`, `Colors.vue`; obecna paleta                                                                                                                                                          | Satoshi w malych tekstach i naglowkach, role kolorow light/dark, kontrast, spacing, geometria i gestosc          |
-| Akcje          | `SectionActions.vue`, `ActionGroup`, `app/components/shadcn/button/`, `tooltip/`                                                                                                                                                        | Akcja glowna, outline, ghost, destructive, link; ikona/tekst; loading, disabled, focus                           |
-| Formularze     | `SectionFormControls.vue`, `FormSection`, `input/`, `label/`, `textarea/`, `select/`, `native-select/`, `radio-group/`, `checkbox/`, `switch/`, `date-picker/`, `date-time-picker/`, `calendar/`                                        | Dane kursanta, kwota, termin, wybor zasobu, walidacja i zapis; wyszukiwanie wyboru jako brak do uzupelnienia     |
-| Dane           | `SectionData.vue`, `PageHeader`, `FilterBar`, `DataTableShell`, `SummaryStrip`, `StatusBadge`                                                                                                                                             | Lista kursantow, podsumowanie platnosci, rekord osoby, filtrowanie, paginacja i szczegoly                        |
-| Harmonogram    | `app/components/manager/schedule/ManagerScheduleLessonBlock.vue`, `ManagerScheduleWeekToolbar.vue`, `ManagerScheduleLessonTable.vue`, `ManagerSchoolScheduleCalendarGrid.vue`                                                           | Ten sam zestaw zajec w siatce i liscie; jazda/teoria; stany rezerwacji, zaznaczenie, konflikt i brak dostepnosci |
-| Komunikaty     | `SectionFoundationStates.vue`, `SectionToasts.vue`, `SectionDialog.vue`, `LoadingState`, `EmptyState`, `ErrorState`, `ToastStack`, `useAppToast`, `dialog/`, `sheet/`                                                                    | Bledy lokalne i calego widoku, retry, puste dane/brak wynikow, toast, potwierdzenie i formularz w dialogu        |
-| Wzorce ekranow | `SectionScreenPatterns.vue`, istniejace komponenty domenowe wskazane ponizej; `NavTree`, `sidebar/`                                                                                                                                       | Lista kursantow, profil kursanta, rezerwacja jazdy, platnosci; wariant desktop/mobile                            |
+| Sekcja         | Istniejaca baza do wykorzystania                                                                                                                                                                 | Przyklady i rozszerzenia                                                                                         |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| Fundamenty     | `app/components/app/design-system/Typography.vue`, `Colors.vue`; obecna paleta                                                                                                                   | Satoshi w malych tekstach i naglowkach, role kolorow light/dark, kontrast, spacing, geometria i gestosc          |
+| Akcje          | `SectionActions.vue`, `ActionGroup`, `app/components/shadcn/button/`, `tooltip/`                                                                                                                 | Akcja glowna, outline, ghost, destructive, link; ikona/tekst; loading, disabled, focus                           |
+| Formularze     | `SectionFormControls.vue`, `FormSection`, `input/`, `label/`, `textarea/`, `select/`, `native-select/`, `radio-group/`, `checkbox/`, `switch/`, `date-picker/`, `date-time-picker/`, `calendar/` | Dane kursanta, kwota, termin, wybor zasobu, walidacja i zapis; wyszukiwanie wyboru jako brak do uzupelnienia     |
+| Dane           | `SectionData.vue`, `PageHeader`, `FilterBar`, `DataTableShell`, `SummaryStrip`, `StatusBadge`                                                                                                    | Lista kursantow, podsumowanie platnosci, rekord osoby, filtrowanie, paginacja i szczegoly                        |
+| Harmonogram    | `app/components/manager/schedule/ManagerScheduleLessonBlock.vue`, `ManagerScheduleWeekToolbar.vue`, `ManagerScheduleLessonTable.vue`, `ManagerSchoolScheduleCalendarGrid.vue`                    | Ten sam zestaw zajec w siatce i liscie; jazda/teoria; stany rezerwacji, zaznaczenie, konflikt i brak dostepnosci |
+| Komunikaty     | `SectionFoundationStates.vue`, `SectionToasts.vue`, `SectionDialog.vue`, `LoadingState`, `EmptyState`, `ErrorState`, `ToastStack`, `useAppToast`, `dialog/`, `sheet/`                            | Bledy lokalne i calego widoku, retry, puste dane/brak wynikow, toast, potwierdzenie i formularz w dialogu        |
+| Wzorce ekranow | `SectionScreenPatterns.vue`, istniejace komponenty domenowe wskazane ponizej; `NavTree`, `sidebar/`                                                                                              | Lista kursantow, profil kursanta, rezerwacja jazdy, platnosci; wariant desktop/mobile                            |
 
 Pelne sciezki krotkich nazw Section\* z tabeli zaczynaja sie od `app/components/app/design-system/`. Wspolne komponenty bez prefixu sa w `app/components/app/ui/`, a katalogi prymitywow w `app/components/shadcn/`.
 
@@ -120,9 +120,16 @@ Istniejace pliki do zmiany w przyszlej implementacji:
 - `app/components/app/design-system/Typography.vue`, `Colors.vue`, `DesignSystemNavigation.vue`, `SectionActions.vue`, `SectionFormControls.vue`, `SectionData.vue`, `SectionSchedule.vue`, `SectionFoundationStates.vue`, `SectionToasts.vue`, `SectionDialog.vue`, `SectionScreenPatterns.vue` i przykłady w `examples/`: rozwijać jako aktualny katalog showcase, bez równoległego starego katalogu.
 - `app/components/app/ui/*`: zmiany wspolnych wzorcow tylko w uzasadnionym zakresie; domyslne zachowanie zgodne z istniejacymi konsumentami.
 - `app/components/shadcn/*`: rozszerzenia bazowych kontrolek, jesli potrzebne; nie reinstalowac biblioteki i nie nadpisywac lokalnych modyfikacji generatorem.
-- `app/assets/css/tailwind.css`: import nowych tokenow i ewentualne mapowania; bez jednoczesnego, niekontrolowanego przelaczenia calej aplikacji.
+- `app/assets/css/tailwind.css` i `app/assets/css/osk-design-tokens.css`: globalne tokeny aplikacji. Zmiana palety ma zaczynac sie tutaj, a nie w pojedynczych ekranach.
+- `app/data/design-system/colors.ts`: dane palety pokazywane w `/design-system`. Warto utrzymywac je zgodnie z globalnymi tokenami CSS.
 - `app/pages/palette-test.vue`, `app/components/app/palette-test/PalettePreviewShowcase.vue`: pozniej wspolne zrodlo kolorow/fontu; bez ponownego selektora fontow.
 - `app/composables/core/useDarkMode.ts`: ujednolicenie stanu i SSR z zachowaniem obecnego API composable.
+
+Zasada wdrozenia w aplikacji: `/design-system` pokazuje realne komponenty
+`app/components/app/ui` oraz wybrane komponenty domenowe. Nowe wzorce trafiaja
+najpierw do tych komponentow wspolnych albo do jawnie wydzielonego komponentu
+domenowego, a dopiero potem do stron. Nie tworzyc osobnych, ladniejszych kopii
+tylko na potrzeby showcase.
 
 Planowane nowe pliki (nazwy docelowe, obecnie nieistniejace):
 

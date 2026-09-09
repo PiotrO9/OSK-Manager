@@ -32,15 +32,19 @@ import LoginPosterArt from './LoginPosterArt.vue';
 
 <style scoped>
 .login-layout {
-    --login-ink: #142e3d;
-    --login-muted: #627480;
-    --login-surface: #fff;
-    --login-soft: #f3f6f7;
-    --login-border: #d7e1e6;
-    --login-accent: #087caf;
-    --login-accent-soft: #eaf7fd;
+    --login-ink: var(--foreground);
+    --login-muted: var(--muted-foreground);
+    --login-surface: var(--card);
+    --login-soft: var(--muted);
+    --login-border: var(--border);
+    --login-accent: var(--primary);
+    --login-accent-hover: var(--color-primary-700);
+    --login-accent-soft: var(--accent);
+    --login-story: var(--primary);
+    --login-story-deep: var(--color-primary-950);
+    --login-story-muted: var(--color-primary-200);
     min-height: 100dvh;
-    background: #e9eef0;
+    background: var(--background);
     color: var(--login-ink);
 }
 .login-stage {
@@ -58,7 +62,7 @@ import LoginPosterArt from './LoginPosterArt.vue';
     overflow: hidden;
     border-radius: 22px;
     background: var(--login-surface);
-    box-shadow: 0 24px 80px #17384a0b;
+    box-shadow: 0 24px 80px color-mix(in srgb, var(--primary) 7%, transparent);
 }
 .login-story {
     position: relative;
@@ -68,8 +72,19 @@ import LoginPosterArt from './LoginPosterArt.vue';
     min-height: 654px;
     overflow: hidden;
     padding: 34px 40px 26px;
-    background: #102f40;
-    color: #f4f8fa;
+    background:
+        radial-gradient(
+            circle at 82% 18%,
+            color-mix(in srgb, var(--color-primary-300) 32%, transparent) 0 16%,
+            transparent 34%
+        ),
+        linear-gradient(
+            135deg,
+            var(--primary) 0%,
+            var(--color-primary-800) 46%,
+            var(--login-story-deep) 100%
+        );
+    color: var(--primary-foreground);
 }
 .login-brand {
     position: relative;
@@ -85,9 +100,10 @@ import LoginPosterArt from './LoginPosterArt.vue';
     place-items: center;
     width: 40px;
     height: 40px;
-    border: 1px solid #ffffff30;
+    border: 1px solid
+        color-mix(in srgb, var(--color-primary-300) 42%, transparent);
     border-radius: 12px;
-    color: #88d6fa;
+    color: var(--color-primary-300);
 }
 .login-brand strong {
     font-weight: 800;
@@ -100,9 +116,10 @@ import LoginPosterArt from './LoginPosterArt.vue';
     gap: 10px 20px;
     margin-top: auto;
     padding-top: 20px;
-    border-top: 1px solid #ffffff26;
+    border-top: 1px solid
+        color-mix(in srgb, var(--color-primary-200) 24%, transparent);
     font-size: 10px;
-    color: #bad4e1;
+    color: var(--login-story-muted);
 }
 .poster-form-panel {
     min-width: 0;
@@ -124,18 +141,18 @@ import LoginPosterArt from './LoginPosterArt.vue';
     min-height: 68px;
 }
 .login-layout {
-    background: #eaf0f2;
+    background: var(--background);
 }
 .login-layout .login-card {
-    border: 1px solid #dce5e9;
+    border: 1px solid var(--border);
     border-radius: 24px;
     box-shadow:
-        0 24px 64px #1638490d,
-        0 3px 12px #16384904;
+        0 24px 64px color-mix(in srgb, var(--primary) 6%, transparent),
+        0 3px 12px color-mix(in srgb, var(--foreground) 4%, transparent);
 }
 .login-layout .brand-symbol {
-    background: #8adaff0a;
-    border-color: #8adaff40;
+    background: color-mix(in srgb, var(--color-primary-300) 10%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary-300) 42%, transparent);
 }
 .login-layout .login-brand {
     gap: 13px;
@@ -149,7 +166,7 @@ import LoginPosterArt from './LoginPosterArt.vue';
     margin-inline: -40px;
     margin-bottom: -26px;
     padding: 22px 40px;
-    background: #102f40;
+    background: color-mix(in srgb, var(--login-story-deep) 82%, var(--primary));
     font-size: 10px;
 }
 .login-layout .poster-form-panel {
@@ -169,43 +186,10 @@ import LoginPosterArt from './LoginPosterArt.vue';
 .login-layout .poster-form-panel :deep(.field-label) {
     font-weight: 750;
 }
-.login-layout .poster-form-panel :deep(.login-input) {
-    border-radius: 9px;
-    background: #fbfcfd;
-    box-shadow: none;
-    transition:
-        border-color 0.18s,
-        background 0.18s;
-}
-.login-layout .poster-form-panel :deep(.login-input:hover:not(:disabled)) {
-    border-color: #a6becb;
-}
-.login-layout .poster-form-panel :deep(.login-input:focus-visible) {
-    background: #fff;
-    border-color: #087caf;
-}
-.login-layout .poster-form-panel :deep(.login-submit) {
-    border-radius: 9px;
-}
-.login-layout .poster-form-panel :deep(.login-submit:not(:disabled)) {
-    background: #123e54;
-    border-color: #123e54;
-    box-shadow: 0 4px 10px #123e541a;
-}
-.login-layout .poster-form-panel :deep(.login-submit:not(:disabled):hover) {
-    background: #0b5679;
-    border-color: #0b5679;
-}
 .login-layout .poster-form-panel :deep(.demo-role) {
     min-height: 72px;
-    border-radius: 9px;
+    border-radius: 8px;
     font-size: 11px;
-}
-.login-layout .poster-form-panel :deep(.demo-role[aria-pressed='true']) {
-    border-color: #087caf;
-    background: #eef9ff;
-    color: #05668f;
-    box-shadow: inset 0 0 0 1px #087caf;
 }
 @keyframes poster-form-enter {
     from {

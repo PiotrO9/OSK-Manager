@@ -19,7 +19,7 @@ defineProps<{
         >
             <UiBadge
                 variant="outline"
-                class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
+                class="border-primary-200 bg-primary-50 text-primary-700 rounded-full"
             >
                 Wszyscy instruktorzy
             </UiBadge>
@@ -43,7 +43,7 @@ defineProps<{
             </span>
             <UiBadge
                 variant="outline"
-                class="rounded-full border-sky-200 bg-sky-50 text-sky-700"
+                class="border-primary-200 bg-primary-50 text-primary-700 rounded-full"
             >
                 Instruktorzy: {{ scheduleInstructorCount }}
             </UiBadge>

@@ -23,9 +23,7 @@ const {
             <div class="panel-heading">
                 <h1 class="panel-title">
                     {{
-                        isAuthenticated
-                            ? 'Możesz ruszać.'
-                            : 'Dobrze Cię widzieć'
+                        isAuthenticated ? 'Możesz ruszać' : 'Dobrze Cię widzieć'
                     }}
                 </h1>
             </div>
@@ -122,12 +120,12 @@ const {
     width: 100%;
     height: 48px;
     justify-content: space-between;
-    border-radius: 10px;
-    background: #087caf;
-    color: white;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-foreground);
 }
 .session-home:hover {
-    background: #06628c;
+    background: var(--login-accent-hover);
 }
 .session-logout {
     width: 100%;
