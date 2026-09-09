@@ -142,7 +142,7 @@ export function displayTheoryPrimaryLine(item: ScheduleLessonItem): string {
     }
 
     if (pc != null && pc > 0) {
-        return `${pc} uczestnik?w`;
+        return `${pc} uczestników`;
     }
 
     return displayStudent(item);
@@ -171,7 +171,7 @@ export function displayInstructorSubtitle(item: ScheduleLessonItem): string {
     const ins = displayInstructorName(item);
 
     if (ins) {
-        return `Prowadz?cy: ${ins}`;
+        return `Prowadzący: ${ins}`;
     }
 
     return '';
@@ -192,7 +192,7 @@ export function ariaSummaryForLesson(
     item: ScheduleLessonItem,
     practicePrimaryLine: 'student' | 'instructor',
 ): string {
-    const time = `${isoToHm(item.startTime)}?${isoToHm(item.endTime)}`;
+    const time = `${isoToHm(item.startTime)}-${isoToHm(item.endTime)}`;
 
     if (isScheduleInstructorEvent(item)) {
         const statusLabel = labelForInstructorEventStatusRaw(item.status);

@@ -1,489 +1,247 @@
 <script setup lang="ts">
-import { z } from 'zod';
+import { Search } from 'lucide-vue-next';
 
-const { addToast } = useAppToast();
-
-const formName = ref('');
-const formEmail = ref('');
-const formMessage = ref('');
-const formTopic = ref<'general' | 'support' | 'feedback'>('general');
-const formIsConsented = ref(false);
-
-const inputText = ref('');
-const inputEmail = ref('');
-const inputPassword = ref('');
-const inputNumber = ref('');
-const inputTel = ref('');
-const inputUrl = ref('');
-const inputSearch = ref('');
-
-const formDeliveryMethod = ref<'standard' | 'express' | 'pickup'>('standard');
-const formNotificationPref = ref<'email' | 'sms' | 'none'>('email');
-const shadcnSwitchDemo = ref(false);
-
-function createFormControlsSchema() {
-    return z.object({
-        name: z.string().trim().min(1, 'Nazwa jest wymagana'),
-        email: z
-            .string()
-            .trim()
-            .min(1, 'Email jest wymagany')
-            .email('Nieprawidłowy email'),
-        topic: z.enum(['general', 'support', 'feedback']),
-        message: z.string().trim().min(1, 'Wiadomość jest wymagana'),
-        isConsented: z.boolean().refine((value) => value === true, {
-            message: 'Musisz zaakceptować warunki',
-        }),
-    });
-}
-
-const formControlsSchema = computed(createFormControlsSchema);
-
-type FormControlsData = z.infer<ReturnType<typeof createFormControlsSchema>>;
-type FormControlsErrors = Partial<Record<keyof FormControlsData, string>>;
-
-const formControlsErrors = ref<FormControlsErrors>({});
-
-const formControlsData = computed<FormControlsData>(() => ({
-    name: formName.value,
-    email: formEmail.value,
-    topic: formTopic.value,
-    message: formMessage.value,
-    isConsented: formIsConsented.value,
-}));
-
-const isFormControlsValid = computed(() => {
-    const result = formControlsSchema.value.safeParse(formControlsData.value);
-
-    return result.success;
-});
-
-function resetFormControlsErrors() {
-    formControlsErrors.value = {};
-}
-
-function setFormControlsErrorsFromZod(
-    result: z.ZodSafeParseError<FormControlsData>,
-) {
-    resetFormControlsErrors();
-
-    for (const issue of result.error.issues) {
-        const fieldKey = issue.path[0];
-
-        if (typeof fieldKey !== 'string') {
-            continue;
-        }
-
-        const key = fieldKey as keyof FormControlsData;
-
-        if (!formControlsErrors.value[key]) {
-            formControlsErrors.value[key] = issue.message;
-        }
-    }
-}
-
-function handleSubmitFormControls(event?: Event) {
-    if (event) {
-        event.preventDefault();
-    }
-
-    const result = formControlsSchema.value.safeParse(formControlsData.value);
-
-    if (!result.success) {
-        setFormControlsErrorsFromZod(result);
-
-        addToast({
-            title: 'Formularz jest nieprawidłowy',
-            description: 'Proszę sprawdzić dane i spróbować ponownie.',
-            variant: 'warning',
-        });
-
-        return;
-    }
-
-    resetFormControlsErrors();
-
-    addToast({
-        title: 'Formularz został wysłany',
-        description: `Dziękujemy, ${result.data.name}!`,
-        variant: 'success',
-    });
-}
+const name = shallowRef('Anna Kowalska');
+const email = shallowRef('anna.kowalska@example.com');
+const phone = shallowRef('+48 500 100 200');
+const amount = shallowRef('850,00');
+const status = shallowRef('planned');
+const notes = shallowRef('Parkowanie równoległe do przećwiczenia.');
+const website = shallowRef('https://osk-manager.pl');
+const password = shallowRef('Tymczasowe-2026');
+const hoursLimit = shallowRef(30);
+const birthDate = shallowRef('2001-04-18');
+const examDate = shallowRef('2026-09-18');
+const startTime = shallowRef('08:00');
+const lessonStart = shallowRef('2026-09-10T08:00');
+const notificationChannel = shallowRef('sms');
+const sms = shallowRef(true);
+const urgent = shallowRef(false);
 </script>
 
 <template>
-    <UiCard aria-label="Card: Form controls (shadcn)" class="min-w-0">
-        <UiCardHeader>
-            <UiCardTitle class="text-base">Form controls (shadcn)</UiCardTitle>
-            <UiCardDescription>
-                Input, Radio, Checkbox, Textarea, Switch — komponenty z
-                <code class="font-mono text-xs">app/components/shadcn</code>.
-            </UiCardDescription>
-        </UiCardHeader>
-        <UiCardContent class="space-y-6">
-            <section aria-label="Input types preview" class="space-y-3">
-                <p class="text-foreground text-sm font-semibold">Input types</p>
-                <form
-                    class="grid min-w-0 gap-4 md:grid-cols-2"
-                    aria-label="Input types demo form"
-                    @submit.prevent
-                >
-                    <div class="space-y-2">
-                        <UiLabel class="text-xs uppercase" for="inputTextDemo">
-                            Text
-                        </UiLabel>
-                        <UiInput
-                            id="inputTextDemo"
-                            v-model="inputText"
-                            type="text"
-                            placeholder="Text input"
-                            aria-label="Text input example"
-                        />
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel class="text-xs uppercase" for="inputEmailDemo">
-                            Email
-                        </UiLabel>
-                        <ClientOnly>
-                            <UiInput
-                                id="inputEmailDemo"
-                                v-model="inputEmail"
-                                type="email"
-                                placeholder="name@example.com"
-                                aria-label="Email input example"
-                            />
-                            <template #fallback>
-                                <div
-                                    class="border-input bg-background text-muted-foreground flex h-9 w-full items-center rounded-md border px-3 text-sm"
-                                    aria-hidden="true"
-                                >
-                                    name@example.com
-                                </div>
-                            </template>
-                        </ClientOnly>
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel
-                            class="text-xs uppercase"
-                            for="inputPasswordDemo"
-                        >
-                            Password
-                        </UiLabel>
-                        <UiInput
-                            id="inputPasswordDemo"
-                            v-model="inputPassword"
-                            type="password"
-                            autocomplete="current-password"
-                            placeholder="••••••••"
-                            aria-label="Password input example"
-                        />
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel
-                            class="text-xs uppercase"
-                            for="inputNumberDemo"
-                        >
-                            Number
-                        </UiLabel>
-                        <UiInput
-                            id="inputNumberDemo"
-                            v-model="inputNumber"
-                            type="number"
-                            placeholder="123"
-                            aria-label="Number input example"
-                        />
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel class="text-xs uppercase" for="inputTelDemo">
-                            Tel
-                        </UiLabel>
-                        <UiInput
-                            id="inputTelDemo"
-                            v-model="inputTel"
-                            type="tel"
-                            placeholder="+48 123 456 789"
-                            aria-label="Telephone input example"
-                        />
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel class="text-xs uppercase" for="inputUrlDemo">
-                            URL
-                        </UiLabel>
-                        <UiInput
-                            id="inputUrlDemo"
-                            v-model="inputUrl"
-                            type="url"
-                            placeholder="https://example.com"
-                            aria-label="URL input example"
-                        />
-                    </div>
-
-                    <div class="space-y-2 md:col-span-2">
-                        <UiLabel
-                            class="text-xs uppercase"
-                            for="inputSearchDemo"
-                        >
-                            Search
-                        </UiLabel>
-                        <UiInput
-                            id="inputSearchDemo"
-                            v-model="inputSearch"
-                            type="search"
-                            placeholder="Search..."
-                            aria-label="Search input example"
-                        />
-                    </div>
-                </form>
-            </section>
-
-            <UiSeparator />
-
-            <section aria-label="Shadcn Switch demo" class="space-y-3">
-                <p class="text-foreground text-sm font-semibold">Switch</p>
-                <div class="flex flex-wrap items-center gap-3">
-                    <UiSwitch
-                        id="shadcnSwitchDemo"
-                        v-model="shadcnSwitchDemo"
-                        aria-label="Przełącznik demo"
-                    />
-                    <UiLabel
-                        for="shadcnSwitchDemo"
-                        class="cursor-pointer text-sm font-normal"
-                    >
-                        Powiadomienia (demo)
-                    </UiLabel>
-                </div>
-            </section>
-
-            <UiSeparator />
-
-            <section
-                aria-label="Radio and RadioGroup preview"
-                class="space-y-4"
-            >
-                <p class="text-foreground text-sm font-semibold">
-                    Radio & RadioGroup
-                </p>
-                <div class="grid min-w-0 gap-6 md:grid-cols-2">
-                    <div class="min-w-0 space-y-2">
-                        <p class="text-muted-foreground text-xs font-medium">
-                            Delivery method (vertical)
-                        </p>
-                        <UiRadioGroup
-                            v-model="formDeliveryMethod"
-                            class="grid gap-3"
-                            aria-label="Select delivery method"
-                        >
-                            <div class="flex items-center gap-3">
-                                <UiRadioGroupItem
-                                    id="dm-standard"
-                                    value="standard"
-                                />
-                                <UiLabel for="dm-standard" class="font-normal">
-                                    Standard (3–5 days)
-                                </UiLabel>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <UiRadioGroupItem
-                                    id="dm-express"
-                                    value="express"
-                                />
-                                <UiLabel for="dm-express" class="font-normal">
-                                    Express (1–2 days)
-                                </UiLabel>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <UiRadioGroupItem
-                                    id="dm-pickup"
-                                    value="pickup"
-                                />
-                                <UiLabel for="dm-pickup" class="font-normal">
-                                    Store pickup
-                                </UiLabel>
-                            </div>
-                        </UiRadioGroup>
-                    </div>
-                    <div class="min-w-0 space-y-2">
-                        <p class="text-muted-foreground text-xs font-medium">
-                            Notification (horizontal)
-                        </p>
-                        <UiRadioGroup
-                            v-model="formNotificationPref"
-                            class="flex flex-row flex-wrap gap-4"
-                            aria-label="Select notification preference"
-                        >
-                            <div class="flex items-center gap-2">
-                                <UiRadioGroupItem id="np-email" value="email" />
-                                <UiLabel for="np-email" class="font-normal">
-                                    Email
-                                </UiLabel>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UiRadioGroupItem id="np-sms" value="sms" />
-                                <UiLabel for="np-sms" class="font-normal">
-                                    SMS
-                                </UiLabel>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UiRadioGroupItem
-                                    id="np-none"
-                                    value="none"
-                                    disabled
-                                />
-                                <UiLabel
-                                    for="np-none"
-                                    class="font-normal opacity-60"
-                                >
-                                    None (disabled)
-                                </UiLabel>
-                            </div>
-                        </UiRadioGroup>
-                    </div>
-                </div>
-            </section>
-
-            <UiSeparator />
-
-            <section
-                aria-label="Select, textarea and checkbox preview"
-                class="space-y-4"
-            >
-                <p class="text-foreground text-sm font-semibold">
-                    Select, textarea & checkbox
-                </p>
-
-                <form
-                    class="space-y-4"
-                    aria-label="Sample form controls preview"
-                    @submit.prevent="handleSubmitFormControls"
-                >
-                    <div class="space-y-2">
-                        <UiLabel for="formNameInput">Name</UiLabel>
-                        <UiInput
-                            id="formNameInput"
-                            v-model="formName"
-                            type="text"
-                            placeholder="e.g. John Doe"
-                            aria-label="Enter name"
-                        />
-                        <p
-                            v-if="formControlsErrors.name"
-                            class="text-destructive text-xs"
-                        >
-                            {{ formControlsErrors.name }}
-                        </p>
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel for="formEmailInput">Email</UiLabel>
-                        <UiInput
-                            id="formEmailInput"
-                            v-model="formEmail"
-                            type="email"
-                            placeholder="e.g. john@example.com"
-                            aria-label="Enter email"
-                        />
-                        <p
-                            v-if="formControlsErrors.email"
-                            class="text-destructive text-xs"
-                        >
-                            {{ formControlsErrors.email }}
-                        </p>
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel for="formTopicSelect">Topic (select)</UiLabel>
-                        <UiSelect v-model="formTopic">
-                            <UiSelectTrigger
-                                id="formTopicSelect"
-                                class="w-full"
-                                aria-label="Select topic"
-                            >
-                                <UiSelectValue placeholder="Topic" />
-                            </UiSelectTrigger>
-                            <UiSelectContent>
-                                <UiSelectGroup>
-                                    <UiSelectItem value="general">
-                                        General question
-                                    </UiSelectItem>
-                                    <UiSelectItem value="support">
-                                        Support
-                                    </UiSelectItem>
-                                    <UiSelectItem value="feedback">
-                                        Feedback
-                                    </UiSelectItem>
-                                </UiSelectGroup>
-                            </UiSelectContent>
-                        </UiSelect>
-                        <p
-                            v-if="formControlsErrors.topic"
-                            class="text-destructive text-xs"
-                        >
-                            {{ formControlsErrors.topic }}
-                        </p>
-                    </div>
-
-                    <div class="space-y-2">
-                        <UiLabel for="formMessageTextarea">
-                            Message (textarea)
-                        </UiLabel>
-                        <UiTextarea
-                            id="formMessageTextarea"
-                            v-model="formMessage"
-                            rows="4"
-                            placeholder="Write your message..."
-                            aria-label="Enter message"
-                        />
-                        <p
-                            v-if="formControlsErrors.message"
-                            class="text-destructive text-xs"
-                        >
-                            {{ formControlsErrors.message }}
-                        </p>
-                    </div>
-
-                    <div class="flex items-start gap-3">
-                        <UiCheckbox
-                            id="formConsentCheckbox"
-                            v-model="formIsConsented"
-                            aria-label="Accept terms and privacy policy"
-                        />
-                        <UiLabel
-                            for="formConsentCheckbox"
-                            class="text-sm leading-relaxed font-normal"
-                        >
-                            I accept the terms and privacy policy.
-                        </UiLabel>
-                    </div>
-
-                    <p
-                        v-if="formControlsErrors.isConsented"
-                        class="text-destructive text-xs"
-                    >
-                        {{ formControlsErrors.isConsented }}
+    <section class="space-y-5" aria-label="Kontrolki formularza">
+        <FormSection
+            title="Dane kursanta"
+            description="Etykieta pozostaje widoczna niezależnie od wartości i placeholdera."
+        >
+            <div class="grid min-w-0 gap-4 md:grid-cols-2">
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-name">Imię i nazwisko</UiLabel
+                    ><UiInput id="ds-name" v-model="name" />
+                    <p class="text-muted-foreground text-xs">
+                        Nazwa wyświetlana w grafiku.
                     </p>
-
-                    <div
-                        class="flex flex-wrap items-center gap-2 gap-y-1 sm:gap-3"
-                    >
-                        <UiButton
-                            type="submit"
-                            aria-label="Submit form preview"
-                            :disabled="!isFormControlsValid"
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-email">Adres e-mail</UiLabel
+                    ><UiInput id="ds-email" v-model="email" type="email" />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-phone">Telefon</UiLabel
+                    ><UiInput id="ds-phone" v-model="phone" type="tel" />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-url">Strona OSK</UiLabel
+                    ><UiInput id="ds-url" v-model="website" type="url" />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-password">Hasło tymczasowe</UiLabel
+                    ><UiInput
+                        id="ds-password"
+                        v-model="password"
+                        type="password"
+                        autocomplete="new-password"
+                    />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-amount">Kwota raty</UiLabel>
+                    <div class="relative">
+                        <UiInput
+                            id="ds-amount"
+                            v-model="amount"
+                            inputmode="decimal"
+                            class="pr-12 tabular-nums"
+                        /><span
+                            class="text-muted-foreground pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs"
+                            >PLN</span
                         >
-                            Submit
-                        </UiButton>
-                        <p class="text-muted-foreground text-xs">
-                            This is only a preview – data is not sent.
-                        </p>
                     </div>
-                </form>
-            </section>
-        </UiCardContent>
-    </UiCard>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-hours-limit">Limit godzin</UiLabel>
+                    <UiInput
+                        id="ds-hours-limit"
+                        v-model="hoursLimit"
+                        type="number"
+                        min="0"
+                        max="80"
+                        step="1"
+                        class="tabular-nums"
+                    />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-search">Wyszukiwanie</UiLabel>
+                    <div class="relative">
+                        <Search
+                            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                            aria-hidden="true"
+                        /><UiInput
+                            id="ds-search"
+                            class="pl-9"
+                            placeholder="Nazwisko, telefon lub PKK"
+                        />
+                    </div>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-status">Status lekcji</UiLabel
+                    ><UiSelect v-model="status"
+                        ><UiSelectTrigger id="ds-status" class="w-full"
+                            ><UiSelectValue /></UiSelectTrigger
+                        ><UiSelectContent
+                            ><UiSelectItem value="planned"
+                                >Zaplanowana</UiSelectItem
+                            ><UiSelectItem value="done"
+                                >Zrealizowana</UiSelectItem
+                            ><UiSelectItem value="cancelled"
+                                >Anulowana</UiSelectItem
+                            ></UiSelectContent
+                        ></UiSelect
+                    >
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <UiLabel for="ds-notes">Notatka instruktora</UiLabel
+                    ><UiTextarea id="ds-notes" v-model="notes" rows="3" />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-birth-date">Data urodzenia</UiLabel>
+                    <UiInput
+                        id="ds-birth-date"
+                        v-model="birthDate"
+                        type="date"
+                    />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-start-time">Godzina jazdy</UiLabel>
+                    <UiInput
+                        id="ds-start-time"
+                        v-model="startTime"
+                        type="time"
+                    />
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-exam-date">Badanie lekarskie</UiLabel>
+                    <UiDatePicker
+                        id="ds-exam-date"
+                        v-model="examDate"
+                        trigger-class="max-w-none"
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Picker aplikacyjny dla pól daty.
+                    </p>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-lesson-start">Termin jazdy</UiLabel>
+                    <UiDateTimePicker
+                        id="ds-lesson-start"
+                        v-model="lessonStart"
+                        :minute-options="[0, 15, 30, 45]"
+                        trigger-class="max-w-none"
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Picker daty i godziny dla harmonogramu.
+                    </p>
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <UiLabel for="ds-file">Dokument kursanta</UiLabel>
+                    <UiInput
+                        id="ds-file"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        class="cursor-pointer"
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Upload skanu PKK, badań albo zgody opiekuna.
+                    </p>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-invalid">Numer PKK</UiLabel
+                    ><UiInput
+                        id="ds-invalid"
+                        model-value="123"
+                        aria-invalid="true"
+                        aria-describedby="ds-invalid-error"
+                    />
+                    <p
+                        id="ds-invalid-error"
+                        class="text-destructive text-xs"
+                        role="alert"
+                    >
+                        Numer PKK musi zawierać 20 cyfr.
+                    </p>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-readonly">Identyfikator kursanta</UiLabel
+                    ><UiInput
+                        id="ds-readonly"
+                        model-value="KUR-2026-0184"
+                        readonly
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Pole tylko do odczytu pozostaje czytelne.
+                    </p>
+                </div>
+                <div class="space-y-1.5">
+                    <UiLabel for="ds-disabled">Zablokowane pole</UiLabel>
+                    <UiInput
+                        id="ds-disabled"
+                        model-value="Wartość niedostępna"
+                        class="cursor-not-allowed"
+                        disabled
+                    />
+                    <p class="text-muted-foreground text-xs">
+                        Stan dla braku uprawnień lub zamkniętego okresu.
+                    </p>
+                </div>
+                <div class="space-y-2">
+                    <UiLabel>Preferowany kontakt</UiLabel>
+                    <UiRadioGroup v-model="notificationChannel" class="gap-2">
+                        <label class="flex items-center gap-2 text-sm">
+                            <UiRadioGroupItem value="sms" />
+                            SMS
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <UiRadioGroupItem value="email" />
+                            E-mail
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <UiRadioGroupItem value="phone" />
+                            Telefon
+                        </label>
+                    </UiRadioGroup>
+                </div>
+                <div class="space-y-2 md:col-span-2">
+                    <UiLabel>Zgody i ustawienia</UiLabel>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-2 text-sm">
+                            <UiCheckbox v-model="sms" />
+                            Potwierdź SMS-em
+                        </label>
+                        <label class="flex items-center gap-2 text-sm">
+                            <UiSwitch v-model="urgent" />
+                            Tryb pilny
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <template #footer
+                ><div class="flex flex-wrap items-center justify-end gap-3">
+                    <ActionGroup label="Akcje formularza" align="end"
+                        ><UiButton variant="outline">Anuluj</UiButton
+                        ><UiButton>Zapisz kursanta</UiButton></ActionGroup
+                    >
+                </div></template
+            >
+        </FormSection>
+    </section>
 </template>

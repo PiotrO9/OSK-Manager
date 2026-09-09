@@ -34,7 +34,7 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-1.5 py-1 text-xs leading-tight shadow-sm"
+        class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-2 py-1.5 text-xs leading-tight shadow-sm"
         :class="[lessonBlockClasses(lesson.type), interactiveClasses]"
         :style="{
             top: `${topPx}px`,
@@ -57,12 +57,12 @@ const emit = defineEmits<{
             />
             <UiBadge
                 variant="secondary"
-                class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[9px] font-semibold tracking-wide text-violet-950 uppercase dark:text-violet-50"
+                class="border-violet-500/40 bg-violet-500/20 px-1 py-0 text-[11px] font-semibold text-violet-950 dark:text-violet-50"
             >
                 Teoria
             </UiBadge>
             <span class="ml-auto shrink-0 font-medium tabular-nums">
-                {{ isoToHm(lesson.startTime) }}?{{ isoToHm(lesson.endTime) }}
+                {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
             </span>
         </div>
         <span v-else class="mb-0.5 flex items-center gap-1">
@@ -71,11 +71,11 @@ const emit = defineEmits<{
                 aria-hidden="true"
             />
             <span class="font-medium tabular-nums">
-                {{ isoToHm(lesson.startTime) }}?{{ isoToHm(lesson.endTime) }}
+                {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
             </span>
         </span>
         <span
-            class="block truncate text-[10px] font-medium"
+            class="block truncate text-xs font-medium"
             :class="
                 isTheoryLessonType(lesson.type)
                     ? 'text-violet-950/95 dark:text-violet-50/95'
@@ -91,7 +91,7 @@ const emit = defineEmits<{
                         normalizeInstructorEventStatus(lesson.status),
                     )
                 "
-                class="px-1 py-0 text-[9px] font-medium"
+                class="px-1 py-0 text-[11px] font-medium"
             >
                 {{ labelForInstructorEventStatusRaw(lesson.status) }}
             </UiBadge>
@@ -101,13 +101,13 @@ const emit = defineEmits<{
                 isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "
-            class="block truncate text-[10px] leading-snug text-violet-900/85 dark:text-violet-100/85"
+            class="block truncate text-[11px] leading-snug text-violet-900/85 dark:text-violet-100/85"
         >
             {{ displayInstructorSubtitle(lesson) }}
         </span>
         <span
             v-if="!isTheoryLessonType(lesson.type) && displayVehicle(lesson)"
-            class="block truncate text-[10px] opacity-85"
+            class="block truncate text-[11px] opacity-85"
         >
             {{ displayVehicle(lesson) }}
         </span>
@@ -116,7 +116,7 @@ const emit = defineEmits<{
                 !isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "
-            class="block truncate text-[10px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
+            class="block truncate text-[11px] leading-snug text-emerald-900/85 dark:text-emerald-100/85"
         >
             {{ displayInstructorSubtitle(lesson) }}
         </span>

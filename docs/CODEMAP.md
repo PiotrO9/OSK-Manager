@@ -7,7 +7,7 @@ Krótki przewodnik: **gdzie szukać** logiki dla modułów OSK / auth / UI. Szcz
 | Ścieżka                                                                   | Rola                                                                                                                         |
 | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | [app/components/app/](../app/components/app/)                             | Layout UI aplikacji (`AppHeader`, `ToastStack`, `NavTree`) i sekcje demo/design-system.                                      |
-| [app/components/app/design-system/](../app/components/app/design-system/) | Sekcje showcase (`Section*`), `EmblaCarousel`, `AppLoader`.                                                                  |
+| [app/components/app/design-system/](../app/components/app/design-system/) | Aktualny showcase design systemu: fundamenty, akcje, formularze, dane, harmonogram, komunikaty i wzorce ekranów.             |
 | [app/components/shadcn/](../app/components/shadcn/)                       | Komponenty shadcn-vue (prefiks `Ui*` w szablonie).                                                                           |
 | [app/components/account/](../app/components/account/)                     | Komponenty strony konta użytkownika.                                                                                         |
 | [app/components/events/](../app/components/events/)                       | Komponenty dziennego widoku wydarzeń.                                                                                        |
@@ -73,7 +73,7 @@ kontrakt, który naprawdę ma być identyczny po obu stronach.
 ## UI — zasada
 
 - **Nowe widoki:** komponenty **shadcn** (`UiButton`, `UiCard`, `UiInput`, …).
-- **Wyjątki / demo:** `NavTree`, `EmblaCarousel`, `AppLoader`, `AppDemoNavigationMenubar` w `app/components/app/`.
+- **Wyjątki / demo:** `NavTree` i `AppDemoNavigationMenubar` w `app/components/app/`.
 
 ## i18n
 

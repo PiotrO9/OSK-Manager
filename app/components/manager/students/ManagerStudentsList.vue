@@ -9,9 +9,12 @@ interface Props {
     students: readonly StudentListItem[];
     activeSchoolId: string;
     isStudentsLoading: boolean;
+    showDetailsLink?: boolean;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+    showDetailsLink: true,
+});
 
 const emit = defineEmits<{
     assignCourse: [student: StudentListItem];
@@ -117,7 +120,7 @@ function studentStatusClasses(student: StudentListItem): string {
                     <td class="px-4 py-3">
                         <div class="flex flex-wrap gap-2">
                             <UiButton
-                                v-if="activeSchoolId"
+                                v-if="activeSchoolId && showDetailsLink"
                                 as-child
                                 variant="outline"
                                 size="sm"
@@ -190,7 +193,7 @@ function studentStatusClasses(student: StudentListItem): string {
 
             <div class="mt-4 grid gap-2 sm:grid-cols-2">
                 <UiButton
-                    v-if="activeSchoolId"
+                    v-if="activeSchoolId && showDetailsLink"
                     as-child
                     variant="outline"
                     size="sm"

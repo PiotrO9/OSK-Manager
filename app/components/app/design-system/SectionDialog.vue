@@ -1,30 +1,37 @@
 <script setup lang="ts">
-const emit = defineEmits<{
-    open: [];
-}>();
-
-function handleOpenDialog() {
-    emit('open');
-}
+const isOpen = shallowRef(false);
 </script>
 
 <template>
-    <UiCard aria-label="Card: Dialog (shadcn)" class="min-w-0">
-        <UiCardHeader>
-            <UiCardTitle class="text-base">Dialog (shadcn)</UiCardTitle>
-        </UiCardHeader>
-        <UiCardContent class="space-y-3">
-            <p class="text-muted-foreground text-sm">
-                Pełny dialog (Reka UI) jest pokazany na dole strony —
-                <code class="font-mono text-xs">UiDialog</code>
-                w
-                <code class="font-mono text-xs">design-system.vue</code>.
-            </p>
-            <div class="flex flex-wrap gap-2">
-                <UiButton aria-label="Open dialog" @click="handleOpenDialog">
-                    Otwórz dialog
-                </UiButton>
-            </div>
-        </UiCardContent>
-    </UiCard>
+    <FormSection
+        title="Potwierdzenie operacji"
+        description="Dialog zatrzymuje użytkownika tylko przy operacji wymagającej świadomej decyzji."
+    >
+        <UiDialog v-model:open="isOpen">
+            <UiDialogTrigger as-child
+                ><UiButton variant="destructive"
+                    >Anuluj zaplanowaną jazdę</UiButton
+                ></UiDialogTrigger
+            >
+            <UiDialogContent
+                aria-describedby="design-system-dialog-description"
+            >
+                <UiDialogHeader
+                    ><UiDialogTitle>Anulować jazdę?</UiDialogTitle
+                    ><UiDialogDescription id="design-system-dialog-description"
+                        >Termin 10 września, 08:00–09:30 zostanie zwolniony.
+                        Kursant otrzyma informację zgodnie z ustawieniami
+                        powiadomień.</UiDialogDescription
+                    ></UiDialogHeader
+                >
+                <UiDialogFooter
+                    ><UiButton variant="outline" @click="isOpen = false"
+                        >Wróć</UiButton
+                    ><UiButton variant="destructive" @click="isOpen = false"
+                        >Anuluj jazdę</UiButton
+                    ></UiDialogFooter
+                >
+            </UiDialogContent>
+        </UiDialog>
+    </FormSection>
 </template>

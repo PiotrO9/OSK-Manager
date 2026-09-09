@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="border-danger-200 bg-danger-50/60 text-danger-900 flex min-h-32 flex-col gap-4 rounded-xl border px-5 py-4 sm:flex-row sm:items-start sm:justify-between"
+        class="border-danger-200 bg-danger-50/60 text-danger-900 dark:text-danger-700 flex min-h-32 flex-col gap-4 rounded-xl border px-5 py-4 sm:flex-row sm:items-start sm:justify-between"
         role="alert"
     >
         <div class="flex min-w-0 gap-3">

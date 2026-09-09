@@ -10,7 +10,7 @@ const fields = [
 <template>
     <section class="space-y-4" aria-labelledby="foundation-states-heading">
         <div class="flex flex-col gap-1">
-            <StatusBadge label="States" tone="success" subtle />
+            <StatusBadge label="Stany systemu" tone="success" subtle />
             <h2
                 id="foundation-states-heading"
                 class="text-foreground text-xl font-bold tracking-tight"
@@ -18,7 +18,7 @@ const fields = [
                 Stany i formularze
             </h2>
             <p class="text-muted-foreground max-w-3xl text-sm leading-relaxed">
-                Te elementy maja stabilizowac layout i ujednolicic komunikaty w
+                Te elementy mają stabilizować układ i ujednolicić komunikaty w
                 widokach operacyjnych.
             </p>
         </div>
@@ -26,15 +26,15 @@ const fields = [
         <div class="grid min-w-0 gap-4 lg:grid-cols-3">
             <LoadingState
                 title="Wczytywanie kursantów"
-                description="Skeleton utrzymuje miejsce dla docelowego ukladu."
+                description="Szkielet utrzymuje miejsce dla docelowego układu."
             />
             <ErrorState
                 title="Nie udało się pobrać listy"
-                description="Komunikat bledu jest blisko danych, ktorych dotyczy."
+                description="Komunikat błędu pozostaje blisko danych, których dotyczy."
             />
             <EmptyState
                 title="Brak kursantów"
-                description="Pusty stan może zawierac konkretna akcje."
+                description="Pusty stan może zawierać konkretną akcję."
             >
                 <template #action>
                     <UiButton type="button" size="sm">Dodaj kursanta</UiButton>
@@ -44,7 +44,7 @@ const fields = [
 
         <FormSection
             title="Dane podstawowe"
-            description="Sekcja formularza grupuje powiazane pola i utrzymuje stale miejsce akcji."
+            description="Sekcja formularza grupuje powiązane pola i utrzymuje stałe miejsce akcji."
         >
             <div class="grid gap-4 md:grid-cols-2">
                 <div v-for="field in fields" :key="field.id" class="space-y-2">

@@ -13,50 +13,55 @@ function handleToast(variant: ToastVariant) {
 
     addToast({
         title,
-        description: 'To przykładowy komunikat.',
+        description:
+            variant === 'success'
+                ? 'Zmiany zostały zapisane.'
+                : variant === 'warning'
+                  ? 'Termin koliduje z dostępnością instruktora.'
+                  : variant === 'error'
+                    ? 'Nie udało się zapisać zmian.'
+                    : 'Kursant otrzyma przypomnienie przed jazdą.',
         variant,
     });
 }
 </script>
 
 <template>
-    <UiCard aria-label="Card: Toasts" class="min-w-0">
+    <UiCard aria-label="Przykłady powiadomień" class="min-w-0">
         <UiCardHeader>
-            <UiCardTitle class="text-base">Toasts</UiCardTitle>
+            <UiCardTitle class="text-base">Powiadomienia</UiCardTitle>
             <UiCardDescription>
-                Komunikaty w prawym górnym rogu przez
-                <code class="font-mono text-xs">ToastStack</code>
-                (własny komponent aplikacji).
+                Krótkie potwierdzenia i komunikaty wymagające uwagi.
             </UiCardDescription>
         </UiCardHeader>
         <UiCardContent>
             <div class="flex flex-wrap gap-2">
                 <UiButton
-                    aria-label="Show success toast"
+                    aria-label="Pokaż potwierdzenie"
                     @click="handleToast('success')"
                 >
-                    Success
+                    Sukces
                 </UiButton>
                 <UiButton
                     variant="secondary"
-                    aria-label="Show info toast"
+                    aria-label="Pokaż informację"
                     @click="handleToast('info')"
                 >
-                    Info
+                    Informacja
                 </UiButton>
                 <UiButton
                     variant="outline"
-                    aria-label="Show warning toast"
+                    aria-label="Pokaż ostrzeżenie"
                     @click="handleToast('warning')"
                 >
-                    Warning
+                    Ostrzeżenie
                 </UiButton>
                 <UiButton
                     variant="destructive"
-                    aria-label="Show error toast"
+                    aria-label="Pokaż błąd"
                     @click="handleToast('error')"
                 >
-                    Error
+                    Błąd
                 </UiButton>
             </div>
         </UiCardContent>

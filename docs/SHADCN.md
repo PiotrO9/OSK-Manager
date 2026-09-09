@@ -16,7 +16,7 @@ Nowe elementy interfejsu oparte na **gotowych wzorcach** mają pochodzić z ekos
 
 3. **Katalogi**
     - `app/components/shadcn/` — komponenty z rejestru (prefiks `Ui*`).
-    - `app/components/app/` — komponenty domenowe i wyjątki (np. `NavTree`, `EmblaCarousel`), nie zamienniki shadcn.
+    - `app/components/app/` — komponenty domenowe i wyjątki (np. `NavTree`), nie zamienniki shadcn.
 
 4. **Pomocnicze**
     - `app/lib/utils.ts` — funkcja `cn()` dla klas Tailwind.

@@ -47,10 +47,13 @@ Komponenty domeny pojazdów:
 
 ## Design system (`app/components/app/design-system/`)
 
-Sekcje `Section*` (podstrona design-system), m.in.:
+Aktualna podstrona `/design-system` składa się z jednej długiej strony z nawigacją po sekcjach:
 
-- **EmblaCarousel** — karuzela Embla (nie mylić z `UiSlider`).
-- **AppLoader** — loadery SVG / animacje.
+- **DesignSystemNavigation** — lewa nawigacja przewijająca do sekcji.
+- **Colors**, **Typography** — fundamenty wizualne.
+- **SectionActions**, **SectionFormControls**, **SectionData**, **SectionSchedule** — wzorce operacyjne CRM.
+- **SectionFoundationStates**, **SectionToasts**, **SectionDialog** — komunikaty i stany interfejsu.
+- **SectionScreenPatterns** oraz komponenty z `examples/` — gotowe kompozycje ekranów OSK.
 
 ## Manager (`app/components/manager/`)
 

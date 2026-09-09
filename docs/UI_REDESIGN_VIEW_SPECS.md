@@ -1244,18 +1244,14 @@ Current components:
 
 - `Colors`
 - `Typography`
+- `DesignSystemNavigation`
 - `SectionActions`
-- `SectionBadge`
-- `SectionBreadcrumbs`
-- `SectionCards`
 - `SectionDialog`
 - `SectionFormControls`
-- `SectionLoader`
-- `SectionNavigationMenubar`
-- `SectionNavTree`
-- `SectionSkeleton`
-- `SectionSlider`
-- `SectionSpinner`
+- `SectionData`
+- `SectionSchedule`
+- `SectionFoundationStates`
+- `SectionScreenPatterns`
 - `SectionToasts`
 
 Currently contains:
