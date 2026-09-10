@@ -19,7 +19,7 @@ Ustalone decyzje:
 
 Pierwszy zakres to design system i wspolne podstawy potrzebne jego przykladom. Migracja calego CRM jest osobnym, pozniejszym etapem. Nie zmieniac logowania, uprawnien, API/BFF, schematow danych ani procesow rezerwacji i platnosci.
 
-Ten dokument uzupelnia `docs/UI_COMPONENT_PATTERNS.md` i `docs/UI_REDESIGN_IMPLEMENTATION_PLAN.md`, nie zastepuje ich zasad zachowania funkcjonalnosci. Nowe decyzje o Satoshi i palecie maja pierwszenstwo przed starszymi mockupami w zakresie fontu i kolorow. Syntetyczne dane sa dozwolone tylko w design systemie i testach, nigdy jako zastepstwo danych produkcyjnych.
+Ten dokument uzupelnia `docs/UI_COMPONENT_PATTERNS.md` i `docs/UI_REFRESH_PLAN.md`, nie zastepuje ich zasad zachowania funkcjonalnosci. Decyzje o Satoshi i palecie maja pierwszenstwo przed starszymi propozycjami wizualnymi w zakresie fontu i kolorow. Syntetyczne dane sa dozwolone tylko w design systemie i testach, nigdy jako zastepstwo danych produkcyjnych.
 
 ## 2. Stan zastany
 
@@ -213,6 +213,6 @@ Po tych etapach zatrzymac sie. Wdrozenie nowego wygladu na rzeczywistych trasach
 ## 12. Materialy
 
 - Prompt wykonawczy: `docs/DESIGN_SYSTEM_IMPLEMENTATION_PROMPT.md`.
-- Istniejace zasady: `docs/UI_COMPONENT_PATTERNS.md`, `docs/UI_REDESIGN_IMPLEMENTATION_PLAN.md`, `docs/UI_REDESIGN_VIEW_SPECS.md`.
+- Istniejace zasady: `docs/UI_COMPONENT_PATTERNS.md`, `docs/UI_REFRESH_PLAN.md`.
 - Kontrast: https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html
 - Cele interakcji: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html

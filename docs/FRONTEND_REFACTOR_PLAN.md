@@ -238,7 +238,7 @@ Cel: miec punkt odniesienia, dzieki ktoremu wiadomo, czy refaktor nie zmienil za
 - [x] Spisac krytyczne scenariusze smoke testow.
 - [x] Potwierdzic tryb `mock` oraz `upstream` dla BFF.
 - [x] Ustalic zasade nazw branchy: `refactor/<numer>-<obszar>`.
-- [x] Nie laczyc refaktoru z dokumentami `UI_REDESIGN_*`.
+- [x] Nie laczyc refaktoru z bieżącą dokumentacją odświeżania UI.
 
 ### Wynik baseline
 

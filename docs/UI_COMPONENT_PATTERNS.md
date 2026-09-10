@@ -1,6 +1,6 @@
 # OSK Manager UI Component Patterns
 
-Ten dokument opisuje docelowe wzorce komponentow UI dla redesignu OSK Managera. Nalezy go stosowac razem z `UI_REDESIGN_GUIDELINES.md`.
+Ten dokument opisuje docelowe wzorce komponentow UI dla odświeżania widoków OSK Managera. Nalezy go stosowac razem z `UI_REFRESH_PLAN.md`, ktory prowadzi bieżącą checklistę ekranów.
 
 ## Zasada glowna
 
@@ -372,3 +372,50 @@ Wdrożony na `/manager/students`, czeka na ocenę użytkownika. Nie zastępuje j
 - Obowiązują Satoshi, istniejące tokeny i oba motywy. Wyszukiwarka i szybkie filtry dodane w kolejnej iteracji korzystają z danych backendu; nie dodajemy fikcyjnych statystyk.
 
 Zakres sprawdzenia i dalsze uwagi: `UI_REFRESH_PLAN.md`, sekcja 10.
+
+## Zasady przenoszenia W07 na kolejne widoki list, 2026-09-10
+
+Te zasady opisują to, co z aktualnego `/manager/students` warto traktować jako roboczy wzorzec dla innych list administracyjnych. Nie kopiuj mechanicznie komponentów domenowych kursantów; przenoś układ, hierarchię i sposób rozdzielenia odpowiedzialności.
+
+### Struktura strony
+
+- Route page ma pozostać cienka: pobiera stan z composable, składa sekcje widoku i podpina dialogi. Logika danych, formatowanie wierszy i obsługa akcji nie powinny rosnąć bezpośrednio w `app/pages/...`.
+- Górę widoku buduj jako `PageHeader` albo lokalny odpowiednik o tej samej semantyce: tytuł, krótki opis kontekstu i jedna główna akcja. Nie powtarzaj tego samego tytułu w panelu listy.
+- Główna lista powinna być jednym spójnym panelem: kontekst, filtry, wyszukiwanie, statystyki, rekordy i paginacja. Unikaj osobnych, zagnieżdżonych kart dla każdego z tych elementów.
+- Dialogi tworzenia/przypisania/edycji pozostają przy stronie jako część procesu, ale ich formularze i pola powinny być osobnymi komponentami.
+
+### Filtry i wyszukiwanie
+
+- Filtry powinny działać na realnych danych backendu albo jasno istniejącym stanie frontendu. Nie dodawaj filtra tylko dlatego, że pasuje do makiety.
+- Kontekst nadrzędny, np. OSK, kurs, instruktor albo tydzień, powinien być widoczny blisko listy. Jeżeli użytkownik nie ma wyboru, pokaż tekst kontekstu zamiast sztucznego selecta.
+- Wyszukiwanie, szybkie filtry i filtry zaawansowane mają resetować stronę paginacji oraz mieć jasne czyszczenie. Pusty wynik filtra powinien proponować usunięcie filtrów, nie tworzenie nowych danych.
+- Zaawansowane filtry przenoś przez shell `AppAdvancedFilters`/`AppAdvancedFilterSegments` i adapter domenowy, np. analogiczny do `ManagerStudentsAdvancedFilters`. Adapter ma dostarczać pola, operatory, segmenty i edytor właściwe dla danego modułu.
+
+### Statystyki
+
+- Liczniki mają być pomocnicze i zwarte. Nie powinny spychać tabeli lub kart poniżej pierwszego ekranu.
+- Każda metryka musi mówić, czego dotyczy: całego wyniku, aktywnej strony, wybranej OSK, tygodnia albo aktualnego filtra. Jeśli liczysz tylko bieżącą stronę, nazwij to w UI lub copy.
+- Podczas ładowania, błędu albo braku wiarygodnego źródła pokaż neutralny brak wartości zamiast wymyślać liczby.
+- Metryki z projektu albo propozycji UI bez pokrycia w API zapisuj jako brak/decyzję w `UI_REFRESH_PLAN.md`, nie dorabiaj ich lokalnie z niepełnych danych.
+
+### Rekordy listy
+
+- Desktop: używaj zwartej tabeli lub `DataTableShell`, gdzie główny identyfikator encji jest linkiem do szczegółów. Cały wiersz nie musi być klikalny, jeżeli w wierszu są osobne akcje.
+- Mobile: nie ściskaj tabeli. Używaj kart rekordów z tym samym zakresem danych i osobnymi akcjami. Przyciski akcji na telefonie trzymaj w wysokości około 44 px.
+- Najważniejsze dane encji pokazuj w pierwszej kolumnie lub pierwszym bloku karty; dane drugorzędne grupuj pod spodem. Statusy zawsze przez wspólne badge albo wzorzec kompatybilny ze `StatusBadge`.
+- Akcje w rekordzie mają być lekkie i konkretne. Główna akcja widoku należy do nagłówka, a akcje wiersza do rekordu.
+
+### Stany i responsywność
+
+- Zachowaj wszystkie stany: loading, error, empty, brak kontekstu nadrzędnego, pusty wynik filtra, disabled oraz saving w dialogach.
+- Stany pokazuj w tym samym panelu, którego dotyczą, aby layout nie skakał i użytkownik wiedział, co dokładnie nie działa.
+- Przełączanie tabela/karty powinno reagować na szerokość kontenera listy, nie tylko całego viewportu, bo sidebar zmienia realne miejsce na dane.
+- Sprawdzaj desktop, mobile i szerokość pośrednią z sidebarem. Szczególnie: brak poziomego scrolla, nieucięte akcje, długie nazwiska/maile i oba motywy.
+
+### Jak adaptować na następny widok
+
+1. Spisz aktualny cel widoku, dane, akcje, stany i zależności routingu.
+2. Wybierz odpowiedni typ: lista, szczegóły, formularz, harmonogram albo redirect.
+3. Zastosuj strukturę: nagłówek → jeden panel roboczy → filtry/search/statystyki → rekordy → paginacja/stany → dialogi.
+4. Zostaw różnice domenowe w adapterach, composables i komponentach feature, nie w globalnym shellu.
+5. Po wdrożeniu zaktualizuj bieżącą checklistę w `UI_REFRESH_PLAN.md` i dopisz decyzje, ograniczenia oraz zakres weryfikacji przy danym widoku.

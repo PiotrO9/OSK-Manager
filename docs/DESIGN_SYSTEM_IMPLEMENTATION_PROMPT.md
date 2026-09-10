@@ -4,7 +4,7 @@ Status: do uruchomienia po zatwierdzeniu. Utworzenie tego dokumentu nie jest zgo
 
 ---
 
-Przebuduj design system OSK Manager zgodnie z `docs/DESIGN_SYSTEM_REBUILD_PLAN.md`. Pracuj w repozytorium `FE/OSK-Manager-FE`. Przeczytaj caly plan oraz aktualne zasady w `docs/UI_COMPONENT_PATTERNS.md`, `docs/UI_REDESIGN_IMPLEMENTATION_PLAN.md` i specyfikacje dotykanych widokow. Plan jest mapa zakresu, a aktualny kod i typy domenowe sa zrodlem prawdy o funkcjonalnosci.
+Przebuduj design system OSK Manager zgodnie z `docs/DESIGN_SYSTEM_REBUILD_PLAN.md`. Pracuj w repozytorium `FE/OSK-Manager-FE`. Przeczytaj caly plan oraz aktualne zasady w `docs/UI_COMPONENT_PATTERNS.md` i `docs/UI_REFRESH_PLAN.md`. Plan jest mapa zakresu, a aktualny kod i typy domenowe sa zrodlem prawdy o funkcjonalnosci.
 
 ## Cel
 
