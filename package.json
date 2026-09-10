@@ -55,6 +55,7 @@
     },
     "devDependencies": {
         "@nuxt/eslint": "^1.12.1",
+        "@nuxtjs/color-mode": "^4.0.1",
         "@tailwindcss/postcss": "^4.1.18",
         "@tailwindcss/vite": "^4.1.18",
         "autoprefixer": "^10.4.23",

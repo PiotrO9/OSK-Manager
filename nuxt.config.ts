@@ -3,7 +3,13 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineNuxtConfig({
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
-    modules: ['@nuxt/eslint', '@nuxt/icon', '@nuxtjs/seo', 'shadcn-nuxt'],
+    modules: [
+        '@nuxt/eslint',
+        '@nuxt/icon',
+        '@nuxtjs/seo',
+        'shadcn-nuxt',
+        '@nuxtjs/color-mode',
+    ],
     site: {
         url: process.env.NUXT_PUBLIC_SITE_URL,
         name: 'OSK Manager',
@@ -12,6 +18,12 @@ export default defineNuxtConfig({
     shadcn: {
         prefix: 'Ui',
         componentDir: '@/components/shadcn',
+    },
+    colorMode: {
+        preference: 'system',
+        fallback: 'light',
+        classSuffix: '',
+        storageKey: 'osk-manager-color-mode',
     },
     runtimeConfig: {
         /** URL Expressa (bez końcowego /). Env: NUXT_API_UPSTREAM. Jeśli pusty — używane jest public.apiBase. */

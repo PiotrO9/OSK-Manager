@@ -87,6 +87,9 @@ const heading = computed(() => resolveShellHeading());
                 >
                     {{ heading }}
                 </p>
+                <div class="ml-auto flex items-center">
+                    <ThemeToggle />
+                </div>
             </header>
             <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">
                 <slot />
