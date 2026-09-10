@@ -3,6 +3,7 @@ import type {
     InstructorScheduleColumn,
     InstructorScheduleRow,
 } from '~/composables/events/useEventsDayPage';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
     displayParticipantCount,
     eventIsoToHm,
@@ -40,11 +41,12 @@ defineEmits<{
                         :key="column.id"
                         class="border-border flex min-w-0 flex-col items-center justify-center gap-2 border-l px-3 py-3 text-center"
                     >
-                        <div
+                        <ProfileAvatar
+                            :src="column.avatarUrl"
+                            :initials="column.initials"
+                            :size="40"
                             class="flex size-10 items-center justify-center rounded-full bg-sky-100 text-sm font-extrabold text-sky-700"
-                        >
-                            {{ column.initials }}
-                        </div>
+                        />
                         <p
                             class="text-foreground max-w-full truncate text-sm font-bold"
                             :title="column.name"

@@ -42,6 +42,7 @@ function student(overrides: Partial<StudentListItem> = {}): StudentListItem {
         isActive: true,
         createdAt: '2026-09-03T10:00:00.000Z',
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 

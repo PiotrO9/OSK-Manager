@@ -3,9 +3,27 @@ import {
     formatStudentCourseStatusLabel,
     getStudentCourseStatusVariant,
     normalizeStudentDetail,
+    normalizeStudentListItem,
 } from './student';
 
 describe('student domain types', () => {
+    it('normalizes list avatar url from backend aliases', () => {
+        expect(
+            normalizeStudentListItem({
+                id: ' profile-1 ',
+                user_id: ' user-1 ',
+                first_name: ' Anna ',
+                last_name: ' Nowak ',
+                email: ' ANNA@example.com ',
+                phone: ' 123 ',
+                pkk_number: ' PKK123 ',
+                is_active: true,
+                created_at: '2026-09-03T10:00:00.000Z',
+                avatar_url: ' https://cdn.example/student.jpg ',
+            })?.avatarUrl,
+        ).toBe('https://cdn.example/student.jpg');
+    });
+
     it('normalizes student profile details with course assignments', () => {
         expect(
             normalizeStudentDetail({

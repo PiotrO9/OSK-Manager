@@ -4,6 +4,7 @@ import {
     parseBooleanLike,
     readStringOrNull,
 } from './studentNormalizeShared';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
 export function normalizeStudentListItem(raw: unknown): StudentListItem | null {
     if (!raw || typeof raw !== 'object') {
@@ -59,6 +60,7 @@ export function normalizeStudentListItem(raw: unknown): StudentListItem | null {
         lastName,
         email,
         phone,
+        avatarUrl: readAvatarUrlFromRecord(o),
         pkkNumber,
         isActive: parseBooleanLike(o.isActive ?? o.is_active, true),
         createdAt,

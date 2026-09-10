@@ -21,6 +21,7 @@ export interface CourseCreatePayload {
 export interface CourseInstructorRef {
     id: string;
     name: string;
+    avatarUrl: string | null;
 }
 
 export interface CourseListItem {

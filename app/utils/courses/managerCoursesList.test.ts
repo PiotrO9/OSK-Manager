@@ -9,6 +9,7 @@ import {
     formatCoursesResultsLabel,
     formatCourseSubtitle,
     formatInstructorCell,
+    getCourseInstructorInitials,
 } from './managerCoursesList';
 
 function course(overrides: Partial<CourseListItem> = {}): CourseListItem {
@@ -31,7 +32,11 @@ describe('managerCoursesList utils', () => {
                 id: 'course-1',
                 category: 'B',
                 type: 'PRACTICAL',
-                instructor: { id: 'instructor-1', name: 'Anna Nowak' },
+                instructor: {
+                    id: 'instructor-1',
+                    name: 'Anna Nowak',
+                    avatarUrl: null,
+                },
             }),
             course({
                 id: 'course-2',
@@ -42,7 +47,11 @@ describe('managerCoursesList utils', () => {
                 id: 'course-3',
                 category: 'A',
                 type: 'THEORY_GROUP',
-                instructor: { id: 'instructor-2', name: 'Jan Kowalski' },
+                instructor: {
+                    id: 'instructor-2',
+                    name: 'Jan Kowalski',
+                    avatarUrl: null,
+                },
             }),
         ];
 
@@ -65,10 +74,25 @@ describe('managerCoursesList utils', () => {
         expect(
             formatInstructorCell(
                 course({
-                    instructor: { id: 'instructor-1', name: ' Anna Nowak ' },
+                    instructor: {
+                        id: 'instructor-1',
+                        name: ' Anna Nowak ',
+                        avatarUrl: null,
+                    },
                 }),
             ),
         ).toBe('Anna Nowak');
+        expect(
+            getCourseInstructorInitials(
+                course({
+                    instructor: {
+                        id: 'instructor-1',
+                        name: ' Anna Nowak ',
+                        avatarUrl: null,
+                    },
+                }),
+            ),
+        ).toBe('AN');
         expect(formatInstructorCell(course())).toBe('Brak instruktora');
     });
 

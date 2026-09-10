@@ -30,6 +30,7 @@ function instructorEvent(
                 lastName: 'Kowalski',
                 email: 'jan@example.com',
                 phone: null,
+                avatarUrl: null,
             },
         ],
         ...overrides,

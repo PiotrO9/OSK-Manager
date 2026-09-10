@@ -39,6 +39,7 @@ const student = (
     lastName: overrides.lastName ?? 'Nowak',
     email: overrides.email ?? 'anna@example.test',
     phone: overrides.phone ?? null,
+    avatarUrl: overrides.avatarUrl ?? null,
     pkkNumber: overrides.pkkNumber ?? null,
     isActive: overrides.isActive ?? true,
     createdAt: overrides.createdAt ?? '2026-06-01T00:00:00.000Z',
@@ -58,6 +59,7 @@ const eligibleRow = (
     hasScheduleConflict: false,
     canAssign: true,
     ...overrides,
+    avatarUrl: overrides.avatarUrl ?? null,
 });
 
 const eligibleData = (

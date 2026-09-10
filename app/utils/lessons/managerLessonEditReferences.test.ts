@@ -12,6 +12,7 @@ const instructor: InstructorListItem = {
     firstName: 'Jan',
     lastName: 'Kowalski',
     email: 'jan@example.test',
+    avatarUrl: null,
 };
 
 const vehicle: Vehicle = {
@@ -35,6 +36,7 @@ describe('manager lesson edit reference helpers', () => {
                 first_name: ' Jan ',
                 last_name: ' Kowalski ',
                 Email: ' jan@example.test ',
+                avatarUrl: ' ',
             }),
         ).toEqual(instructor);
     });
@@ -52,6 +54,7 @@ describe('manager lesson edit reference helpers', () => {
                 firstName: 'Anna Nowak',
                 lastName: '',
                 email: '',
+                avatarUrl: null,
             },
             instructor,
         ]);

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Mail } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -34,11 +35,13 @@ defineProps<{
                 >
                     <td class="px-4 py-3">
                         <div class="flex min-w-0 items-center gap-3">
-                            <div
+                            <ProfileAvatar
+                                :src="instructor.avatarUrl"
+                                :initials="instructorInitials(instructor)"
+                                :size="40"
+                                shape="rounded"
                                 class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-extrabold text-sky-700"
-                            >
-                                {{ instructorInitials(instructor) }}
-                            </div>
+                            />
                             <div class="min-w-0">
                                 <p class="truncate font-extrabold">
                                     {{

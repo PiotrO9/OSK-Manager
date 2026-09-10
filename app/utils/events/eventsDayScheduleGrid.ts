@@ -15,6 +15,7 @@ export interface EventsDayGridInstructorColumn {
     id: string;
     name: string;
     initials: string;
+    avatarUrl: string | null;
     events: ScheduleLessonItem[];
 }
 
@@ -162,6 +163,7 @@ export function getEventsDayManagerScheduleColumns(options: {
             id,
             name,
             initials: getEventsDayInitialsForName(name),
+            avatarUrl: instructor.avatarUrl,
             events: [],
         };
 
@@ -189,6 +191,7 @@ export function getEventsDayManagerScheduleColumns(options: {
                 fallbackName === '-'
                     ? '?'
                     : getEventsDayInitialsForName(fallbackName),
+            avatarUrl: event.instructor?.avatarUrl ?? null,
             events: [event],
         });
     }

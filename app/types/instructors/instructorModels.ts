@@ -5,6 +5,7 @@ export interface InstructorListItem {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl: string | null;
     qualifiedCourseTypes?: CourseTypeOption[];
     /** Konto użytkownika (GET kursu zwraca `instructor.id` jako User.id). */
     userId?: string;

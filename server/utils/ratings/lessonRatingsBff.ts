@@ -95,12 +95,14 @@ function makeMockRating(id: string, instructorId: string, index: number) {
             userId: crypto.randomUUID(),
             firstName: 'Anna',
             lastName: 'Nowak',
+            avatarUrl: null,
         },
         student: {
             id: crypto.randomUUID(),
             userId: crypto.randomUUID(),
             firstName: index % 2 === 0 ? 'Jan' : 'Marta',
             lastName: index % 2 === 0 ? 'Kowalski' : 'Zielinska',
+            avatarUrl: null,
         },
     };
 }

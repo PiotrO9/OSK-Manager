@@ -5,6 +5,7 @@ import type {
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
 import { formatStudentDisplayName } from '~/types/students/student';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
 defineProps<{
@@ -32,6 +33,14 @@ defineProps<{
 const emit = defineEmits<{
     toggleStudent: [row: TheoryEventEligibleStudentRow, checked: boolean];
 }>();
+
+function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
+    const first = row.firstName.trim().charAt(0);
+    const last = row.lastName.trim().charAt(0);
+    const initials = `${first}${last}`.trim();
+
+    return initials.length > 0 ? initials.toUpperCase() : 'K';
+}
 </script>
 
 <template>
@@ -141,18 +150,30 @@ const emit = defineEmits<{
                             />
                             <UiLabel
                                 :for="`theory-student-${row.userId}`"
-                                class="text-foreground min-w-0 flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                                class="text-foreground flex min-w-0 flex-1 cursor-pointer items-start gap-2 text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
                             >
-                                {{
-                                    formatStudentDisplayName(
-                                        theoryEligibleRowToStudentListItem(row),
-                                    )
-                                }}
-                                <span
-                                    v-if="row.email?.trim()"
-                                    class="text-muted-foreground block text-xs font-normal"
-                                >
-                                    {{ row.email.trim() }}
+                                <ProfileAvatar
+                                    :src="row.avatarUrl"
+                                    :initials="theoryStudentInitials(row)"
+                                    :size="24"
+                                    class="border-border bg-muted/40 text-muted-foreground mt-0.5 border"
+                                />
+                                <span class="min-w-0">
+                                    <span class="block">
+                                        {{
+                                            formatStudentDisplayName(
+                                                theoryEligibleRowToStudentListItem(
+                                                    row,
+                                                ),
+                                            )
+                                        }}
+                                    </span>
+                                    <span
+                                        v-if="row.email?.trim()"
+                                        class="text-muted-foreground block text-xs font-normal"
+                                    >
+                                        {{ row.email.trim() }}
+                                    </span>
                                 </span>
                             </UiLabel>
                         </div>

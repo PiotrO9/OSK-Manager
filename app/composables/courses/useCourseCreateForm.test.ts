@@ -22,6 +22,7 @@ const instructors: InstructorListItem[] = [
         firstName: 'Anna',
         lastName: 'Nowak',
         email: 'anna@example.test',
+        avatarUrl: null,
         qualifiedCourseTypes: [
             { id: 'type-b', code: 'B', name: 'Kategoria B' },
         ],
@@ -31,6 +32,7 @@ const instructors: InstructorListItem[] = [
         firstName: 'Jan',
         lastName: 'Kowalski',
         email: 'jan@example.test',
+        avatarUrl: null,
         qualifiedCourseTypes: [
             { id: 'type-c', code: 'C', name: 'Kategoria C' },
         ],

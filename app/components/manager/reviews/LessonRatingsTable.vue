@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {
     formatLessonRatingPersonName,
+    type LessonRatingPerson,
     type LessonRatingListItem,
 } from '~/types/lessons/lessonRating';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 
 const props = withDefaults(
     defineProps<{
@@ -60,6 +62,36 @@ function lessonMetaLabel(rating: LessonRatingListItem): string {
 
     return parts.join(' - ');
 }
+
+function personInitials(person: LessonRatingPerson): string {
+    const first = person.firstName.trim().charAt(0);
+    const last = person.lastName.trim().charAt(0);
+    const initials = `${first}${last}`.trim();
+
+    return initials.length > 0 ? initials.toUpperCase() : '?';
+}
+
+function visiblePeople(
+    rating: LessonRatingListItem,
+): { key: string; person: LessonRatingPerson }[] {
+    const people: { key: string; person: LessonRatingPerson }[] = [];
+
+    if (props.showStudent && rating.student) {
+        people.push({
+            key: `student-${rating.student.id}`,
+            person: rating.student,
+        });
+    }
+
+    if (props.showInstructorMeta) {
+        people.push({
+            key: `instructor-${rating.instructor.id}`,
+            person: rating.instructor,
+        });
+    }
+
+    return people;
+}
 </script>
 
 <template>
@@ -87,6 +119,28 @@ function lessonMetaLabel(rating: LessonRatingListItem): string {
                 class="border-border bg-background flex min-w-0 items-start justify-between gap-3 rounded-xl border px-3 py-3 md:px-4"
             >
                 <div class="min-w-0 space-y-1">
+                    <div
+                        v-if="visiblePeople(rating).length > 0"
+                        class="flex min-w-0 flex-wrap items-center gap-2"
+                    >
+                        <span
+                            v-for="entry in visiblePeople(rating)"
+                            :key="entry.key"
+                            class="flex min-w-0 items-center gap-1.5"
+                        >
+                            <ProfileAvatar
+                                :src="entry.person.avatarUrl"
+                                :initials="personInitials(entry.person)"
+                                :size="24"
+                                class="border-border bg-muted/40 text-muted-foreground border"
+                            />
+                            <span
+                                class="text-muted-foreground max-w-40 truncate text-xs"
+                            >
+                                {{ formatLessonRatingPersonName(entry.person) }}
+                            </span>
+                        </span>
+                    </div>
                     <p class="text-foreground text-sm leading-snug font-bold">
                         <span v-if="rating.comment">
                             {{ rating.comment }}

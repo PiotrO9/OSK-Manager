@@ -1,3 +1,5 @@
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
+
 export type LessonRatingsPeriod = 'latest' | 'yesterday' | 'last7days' | 'all';
 
 export interface LessonRatingPerson {
@@ -5,6 +7,7 @@ export interface LessonRatingPerson {
     userId: string;
     firstName: string;
     lastName: string;
+    avatarUrl: string | null;
 }
 
 export interface LessonRatingLesson {
@@ -62,6 +65,7 @@ function normalizePerson(raw: unknown): LessonRatingPerson | null {
         userId,
         firstName: readString(o, 'firstName') || readString(o, 'first_name'),
         lastName: readString(o, 'lastName') || readString(o, 'last_name'),
+        avatarUrl: readAvatarUrlFromRecord(o),
     };
 }
 

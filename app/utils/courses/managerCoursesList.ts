@@ -41,6 +41,20 @@ export function formatInstructorCell(course: CourseListItem): string {
     return 'Brak instruktora';
 }
 
+export function getCourseInstructorInitials(course: CourseListItem): string {
+    const name = course.instructor?.name?.trim() ?? '';
+    const parts = name.split(/\s+/).filter((part) => part.length > 0);
+
+    if (parts.length === 0) {
+        return 'IN';
+    }
+
+    return parts
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('');
+}
+
 export function courseTypeBadgeClasses(course: CourseListItem): string {
     if (course.type === 'PRACTICAL') {
         return 'border-primary-200 bg-primary-50 text-primary-700';

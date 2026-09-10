@@ -54,6 +54,7 @@ describe('instructor domain types', () => {
                     first_name: ' Anna ',
                     last_name: ' Nowak ',
                     email: ' anna@example.test ',
+                    avatar_url: ' https://cdn.example/avatar.png ',
                     user: { id: 'user-1' },
                 },
             ],
@@ -61,9 +62,16 @@ describe('instructor domain types', () => {
 
         expect(instructors).toHaveLength(1);
         expect(formatInstructorDisplayName(instructors[0]!)).toBe('Anna Nowak');
+        expect(instructors[0]?.avatarUrl).toBe(
+            'https://cdn.example/avatar.png',
+        );
         expect(
             resolveInstructorProfileIdForCourseSelection(
-                { id: 'user-1', name: 'Anna Nowak' },
+                {
+                    id: 'user-1',
+                    name: 'Anna Nowak',
+                    avatarUrl: null,
+                },
                 instructors,
             ),
         ).toBe('profile-1');

@@ -38,6 +38,7 @@ function makeInstructor(
         lastName: 'Nowak',
         email: 'jan@example.com',
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 
@@ -127,6 +128,7 @@ describe('eventsDayScheduleGrid', () => {
                     userId: 'user-1',
                     firstName: 'Anna',
                     lastName: 'Kowal',
+                    avatarUrl: 'https://cdn.example/instructor.png',
                 }),
             ],
             events: [
@@ -147,6 +149,10 @@ describe('eventsDayScheduleGrid', () => {
             'without-instructor',
         ]);
         expect(columns[1]?.name).toBe('Bez przypisanego instruktora');
+        expect(columns[0]?.avatarUrl).toBe(
+            'https://cdn.example/instructor.png',
+        );
+        expect(columns[1]?.avatarUrl).toBeNull();
         expect(columns[0]?.events.map((event) => event.id)).toEqual([
             'assigned',
         ]);
@@ -171,6 +177,7 @@ describe('eventsDayScheduleGrid', () => {
                 id: 'column-1',
                 name: 'Column',
                 initials: 'C',
+                avatarUrl: null,
                 events,
             },
         ];

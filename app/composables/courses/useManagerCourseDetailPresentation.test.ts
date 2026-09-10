@@ -107,7 +107,11 @@ describe('useManagerCourseDetailPresentation', () => {
         const courseRef = ref<CourseDetail | null>(
             course({
                 capacity: 12,
-                instructor: { id: 'user-1', name: 'Anna Nowak' },
+                instructor: {
+                    id: 'user-1',
+                    name: 'Anna Nowak',
+                    avatarUrl: null,
+                },
             }),
         );
         const querySchoolIdRef = querySchoolId('school-1');

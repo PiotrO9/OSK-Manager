@@ -24,6 +24,7 @@ describe('course normalizers', () => {
                         instructor: {
                             id: 'instructor-1',
                             name: 'Anna Nowak',
+                            avatar_url: ' https://cdn.example/instructor.jpg ',
                         },
                     },
                     {
@@ -50,6 +51,7 @@ describe('course normalizers', () => {
                 instructor: {
                     id: 'instructor-1',
                     name: 'Anna Nowak',
+                    avatarUrl: 'https://cdn.example/instructor.jpg',
                 },
             },
         ]);

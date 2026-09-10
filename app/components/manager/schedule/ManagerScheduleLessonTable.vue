@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import type {
+    ScheduleLessonItem,
+    SchedulePersonRef,
+} from '~/types/schedule/schedule';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
     buildScheduleManagerItemEditRoute,
     isScheduleManagerItemEditable,
@@ -120,6 +124,18 @@ function rowTitle(item: ScheduleLessonItem): string | undefined {
 
     return undefined;
 }
+
+function schedulePersonInitials(person: SchedulePersonRef | undefined): string {
+    if (!person) {
+        return '?';
+    }
+
+    const first = person.firstName.trim().charAt(0);
+    const last = person.lastName.trim().charAt(0);
+    const initials = `${first}${last}`.trim();
+
+    return initials.length > 0 ? initials.toUpperCase() : '?';
+}
 </script>
 
 <template>
@@ -222,10 +238,44 @@ function rowTitle(item: ScheduleLessonItem): string | undefined {
                         }}</span>
                     </td>
                     <td class="px-4 py-3">
-                        {{ displaySchedulePerson(item.instructor) }}
+                        <div
+                            v-if="item.instructor"
+                            class="flex min-w-0 items-center gap-2"
+                        >
+                            <ProfileAvatar
+                                :src="item.instructor.avatarUrl"
+                                :initials="
+                                    schedulePersonInitials(item.instructor)
+                                "
+                                :size="24"
+                                class="border-border bg-muted/40 text-muted-foreground border"
+                            />
+                            <span class="min-w-0 truncate">
+                                {{ displaySchedulePerson(item.instructor) }}
+                            </span>
+                        </div>
+                        <span v-else class="text-muted-foreground">
+                            {{ displaySchedulePerson(item.instructor) }}
+                        </span>
                     </td>
                     <td class="px-4 py-3">
-                        {{ displaySchedulePerson(item.student) }}
+                        <div
+                            v-if="item.student"
+                            class="flex min-w-0 items-center gap-2"
+                        >
+                            <ProfileAvatar
+                                :src="item.student.avatarUrl"
+                                :initials="schedulePersonInitials(item.student)"
+                                :size="24"
+                                class="border-border bg-muted/40 text-muted-foreground border"
+                            />
+                            <span class="min-w-0 truncate">
+                                {{ displaySchedulePerson(item.student) }}
+                            </span>
+                        </div>
+                        <span v-else class="text-muted-foreground">
+                            {{ displaySchedulePerson(item.student) }}
+                        </span>
                     </td>
                     <td class="px-4 py-3">
                         {{ displayScheduleVehicle(item.vehicle) }}

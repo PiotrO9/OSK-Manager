@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -29,11 +30,13 @@ defineProps<{
                         {{ instructor.email || '—' }}
                     </p>
                 </div>
-                <div
+                <ProfileAvatar
+                    :src="instructor.avatarUrl"
+                    :initials="instructorInitials(instructor)"
+                    :size="40"
+                    shape="rounded"
                     class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-extrabold text-sky-700"
-                >
-                    {{ instructorInitials(instructor) }}
-                </div>
+                />
             </div>
 
             <div class="mt-3 flex flex-wrap gap-2">

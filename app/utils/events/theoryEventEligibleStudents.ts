@@ -5,6 +5,7 @@ import type {
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
 import type { StudentListItem } from '~/types/students/student';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
 function readString(raw: unknown): string {
     if (raw === null || raw === undefined) {
@@ -104,6 +105,7 @@ function readOneStudent(raw: unknown): TheoryEventEligibleStudentRow | null {
         lastName,
         email,
         phone,
+        avatarUrl: readAvatarUrlFromRecord(o),
         createdAt,
         isAssignedToEvent: readBool(
             o.isAssignedToEvent ?? o.is_assigned_to_event,
@@ -163,6 +165,7 @@ export function theoryEligibleRowToStudentListItem(
         lastName: row.lastName,
         email: row.email,
         phone: row.phone,
+        avatarUrl: row.avatarUrl,
         pkkNumber: null,
         isActive: true,
         createdAt: row.createdAt,
@@ -179,6 +182,7 @@ export function instructorEventStudentToStudentListItem(
         lastName: s.lastName,
         email: s.email,
         phone: s.phone,
+        avatarUrl: s.avatarUrl,
         pkkNumber: null,
         isActive: true,
         createdAt: '',

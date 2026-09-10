@@ -15,7 +15,7 @@ export interface MockCourseListRow {
     courseType?: MockDrivingSchoolOfferedType;
     type: 'THEORY_GROUP' | 'PRACTICAL' | 'EXTRA';
     totalHours: number;
-    instructor: { id: string; name: string } | null;
+    instructor: { id: string; name: string; avatarUrl: string | null } | null;
     /** Tylko typ THEORY_GROUP; brak pola = domyślne 24 w szczegółach (seedy demo). */
     capacity?: number | null;
 }
@@ -53,6 +53,7 @@ function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
             instructor: {
                 id: crypto.randomUUID(),
                 name: 'Anna Nowak',
+                avatarUrl: null,
             },
         },
         {
@@ -72,6 +73,7 @@ function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
             instructor: {
                 id: crypto.randomUUID(),
                 name: 'Piotr Kowalski',
+                avatarUrl: null,
             },
         },
     ];
@@ -115,7 +117,7 @@ function resolveMockCourseTypeByCategory(
 function resolveInstructorRefForSchool(
     schoolId: string,
     instructorProfileId: string | null,
-): { id: string; name: string } | null {
+): { id: string; name: string; avatarUrl: string | null } | null {
     if (!instructorProfileId) {
         return null;
     }
@@ -127,6 +129,7 @@ function resolveInstructorRefForSchool(
         return {
             id: instructorProfileId,
             name: 'Instruktor',
+            avatarUrl: null,
         };
     }
 
@@ -139,6 +142,7 @@ function resolveInstructorRefForSchool(
     return {
         id: instructorProfileId,
         name,
+        avatarUrl: r.avatarUrl,
     };
 }
 

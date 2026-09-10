@@ -34,6 +34,7 @@ function instructor(
             { id: 'type-b', code: 'B', name: 'Kategoria B' },
         ],
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 
@@ -106,7 +107,11 @@ describe('useManagerCourseInstructorAssignment', () => {
         const matchingInstructor = instructor();
         const { assignment, fetchInstructorsList } = setupAssignment({
             course: course({
-                instructor: { id: 'user-1', name: 'Anna Nowak' },
+                instructor: {
+                    id: 'user-1',
+                    name: 'Anna Nowak',
+                    avatarUrl: null,
+                },
             }),
             fetchInstructorsList: vi.fn().mockResolvedValue([
                 matchingInstructor,
@@ -200,7 +205,11 @@ describe('useManagerCourseInstructorAssignment', () => {
 
     it('saves selected instructor and syncs course state on success', async () => {
         const updated = course({
-            instructor: { id: 'user-1', name: 'Anna Nowak' },
+            instructor: {
+                id: 'user-1',
+                name: 'Anna Nowak',
+                avatarUrl: null,
+            },
         });
         const { assignment, courseRef, patchCourse, addToast } =
             setupAssignment({
@@ -230,7 +239,11 @@ describe('useManagerCourseInstructorAssignment', () => {
     it('saves null instructor when no instructor is selected', async () => {
         const { assignment, patchCourse } = setupAssignment({
             course: course({
-                instructor: { id: 'user-1', name: 'Anna Nowak' },
+                instructor: {
+                    id: 'user-1',
+                    name: 'Anna Nowak',
+                    avatarUrl: null,
+                },
             }),
             schoolId: 'school-1',
             patchCourse: vi.fn().mockResolvedValue(course()),

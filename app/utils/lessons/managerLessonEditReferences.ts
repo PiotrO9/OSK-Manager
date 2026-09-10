@@ -1,5 +1,6 @@
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { StudentDetail } from '~/types/students/student';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 
 export function formatManagerLessonInstructorDisplayName(
@@ -55,7 +56,13 @@ export function parseInstructorListItemFromApi(
               ? o.Email.trim()
               : '';
 
-    return { id, firstName, lastName, email };
+    return {
+        id,
+        firstName,
+        lastName,
+        email,
+        avatarUrl: readAvatarUrlFromRecord(o),
+    };
 }
 
 export function buildManagerLessonInstructorsForSelect(params: {
@@ -79,6 +86,7 @@ export function buildManagerLessonInstructorsForSelect(params: {
         firstName: fallback ? fallback : 'Aktualny',
         lastName: '',
         email: '',
+        avatarUrl: null,
     };
 
     return [synthetic, ...list];

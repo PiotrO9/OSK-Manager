@@ -3,6 +3,7 @@ import type {
     FreeWindow,
     InstructorEventStudent,
 } from '~/types/events/instructorEvent';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
 export function readNestedInstructorListItem(
     raw: unknown,
@@ -51,6 +52,7 @@ export function readNestedInstructorListItem(
         firstName,
         lastName,
         email,
+        avatarUrl: readAvatarUrlFromRecord(o),
         ...(phone !== undefined ? { phone } : {}),
     };
 }
@@ -130,6 +132,7 @@ export function readNestedEventStudents(
             lastName,
             email,
             phone,
+            avatarUrl: readAvatarUrlFromRecord(o),
         });
     }
 

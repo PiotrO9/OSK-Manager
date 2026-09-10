@@ -1,5 +1,6 @@
 import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
 import { normalizeCourseTypeOption } from '~/types/courses/courseType';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type {
     CourseInstructorRef,
     CourseListItem,
@@ -47,7 +48,7 @@ export function normalizeInstructorRef(
         return null;
     }
 
-    return { id, name };
+    return { id, name, avatarUrl: readAvatarUrlFromRecord(o) };
 }
 
 export function normalizeCourseListItem(raw: unknown): CourseListItem | null {

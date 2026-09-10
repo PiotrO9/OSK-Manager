@@ -65,7 +65,11 @@ describe('managerCourseDetailPage utils', () => {
         expect(
             formatCourseInstructorName(
                 course({
-                    instructor: { id: 'instructor-1', name: ' Anna Nowak ' },
+                    instructor: {
+                        id: 'instructor-1',
+                        name: ' Anna Nowak ',
+                        avatarUrl: null,
+                    },
                 }),
             ),
         ).toBe('Anna Nowak');
@@ -100,7 +104,11 @@ describe('managerCourseDetailPage utils', () => {
         expect(
             buildCourseRelatedItems({
                 course: course({
-                    instructor: { id: 'instructor-1', name: 'Anna Nowak' },
+                    instructor: {
+                        id: 'instructor-1',
+                        name: 'Anna Nowak',
+                        avatarUrl: null,
+                    },
                 }),
                 courseCategoryLabel: 'Kategoria B',
                 effectiveSchoolId: 'school-1',

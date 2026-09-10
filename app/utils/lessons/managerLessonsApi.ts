@@ -1,4 +1,5 @@
 import type { InstructorListItem } from '~/types/instructors/instructor';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type {
     ManagerLessonDetail,
     PatchManagerLessonPayload,
@@ -164,6 +165,7 @@ function readNestedManagerLessonInstructorItem(
         email:
             readStringField(o, 'email') ||
             (typeof o.Email === 'string' ? o.Email.trim() : ''),
+        avatarUrl: readAvatarUrlFromRecord(o),
     };
 }
 

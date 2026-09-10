@@ -4,10 +4,12 @@ import {
     formatCourseKindLabel,
     type CourseListItem,
 } from '~/types/courses/course';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
     courseTypeBadgeClasses,
     formatCourseSubtitle,
     formatInstructorCell,
+    getCourseInstructorInitials,
 } from '~/utils/courses/managerCoursesList';
 
 const props = defineProps<{
@@ -51,9 +53,24 @@ const props = defineProps<{
                 <UiBadge variant="outline" class="bg-muted/40 rounded-full">
                     {{ props.activeSchoolName ?? course.category }}
                 </UiBadge>
-                <UiBadge variant="outline" class="bg-muted/40 rounded-full">
-                    {{ formatInstructorCell(course) }}
-                </UiBadge>
+            </div>
+
+            <div class="text-muted-foreground mt-3 text-sm">
+                <div
+                    v-if="course.instructor"
+                    class="flex min-w-0 items-center gap-2"
+                >
+                    <ProfileAvatar
+                        :src="course.instructor.avatarUrl"
+                        :initials="getCourseInstructorInitials(course)"
+                        :size="24"
+                        class="border-border bg-muted/40 text-muted-foreground border"
+                    />
+                    <span class="min-w-0 truncate">
+                        {{ formatInstructorCell(course) }}
+                    </span>
+                </div>
+                <span v-else>{{ formatInstructorCell(course) }}</span>
             </div>
 
             <UiButton

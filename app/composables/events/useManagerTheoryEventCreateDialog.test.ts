@@ -91,6 +91,7 @@ function instructor(
             },
         ],
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 

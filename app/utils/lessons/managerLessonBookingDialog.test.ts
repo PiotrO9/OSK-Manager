@@ -53,6 +53,7 @@ describe('manager lesson booking dialog helpers', () => {
                 firstName: 'Anna',
                 lastName: 'Nowak',
                 email: '',
+                avatarUrl: null,
                 qualifiedCourseTypes: [{ id: 'ct-b', code: 'B', name: 'B' }],
             },
             {
@@ -60,6 +61,7 @@ describe('manager lesson booking dialog helpers', () => {
                 firstName: 'Jan',
                 lastName: 'Kowalski',
                 email: '',
+                avatarUrl: null,
                 qualifiedCourseTypes: [{ id: 'ct-a', code: 'A', name: 'A' }],
             },
         ];

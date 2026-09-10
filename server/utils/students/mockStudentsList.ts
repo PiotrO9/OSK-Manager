@@ -11,6 +11,7 @@ export interface MockStudentListRow {
     lastName: string;
     email: string;
     phone: string | null;
+    avatarUrl: string | null;
     pkkNumber: string | null;
     isActive: boolean;
     createdAt: string;
@@ -314,6 +315,7 @@ function ensureSeedForSchool(schoolId: string): MockStudentListRow[] {
                 i % 4 === 0
                     ? `+48 600 ${String(100 + i).padStart(3, '0')} ${String(200 + i).slice(0, 3)}`
                     : null,
+            avatarUrl: null,
             pkkNumber: i % 5 === 0 ? `PKK-${short}-${i}` : null,
             isActive: true,
             createdAt: new Date(createdBase + i * 3600000).toISOString(),
@@ -333,6 +335,7 @@ export interface MockStudentDetailPayload {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl: string | null;
     pkkNumber: string | null;
     notes: string | null;
     courses: Array<{
@@ -408,6 +411,7 @@ export function mockStudentDetailPayload(
             firstName: row.firstName,
             lastName: row.lastName,
             email: row.email,
+            avatarUrl: row.avatarUrl,
             pkkNumber: row.pkkNumber,
             notes,
             courses: [],
@@ -447,6 +451,7 @@ export function mockStudentDetailPayload(
         firstName: row.firstName,
         lastName: row.lastName,
         email: row.email,
+        avatarUrl: row.avatarUrl,
         pkkNumber: row.pkkNumber,
         notes,
         courses,

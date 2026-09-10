@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { StudentListItem } from '~/types/students/student';
 import { formatStudentDisplayName } from '~/types/students/student';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import { isEventStudentPickerRowSelectionBlocked } from '~/utils/events/eventStudentPickerStudents';
 
 const props = defineProps<{
@@ -27,6 +28,14 @@ function isRowSelectionBlocked(userId: string): boolean {
         selectedUserIds: props.selectedStudentUserIds,
         isCapacityReached: props.isCapacityReached,
     });
+}
+
+function studentInitials(student: StudentListItem): string {
+    const first = student.firstName.trim().charAt(0);
+    const last = student.lastName.trim().charAt(0);
+    const initials = `${first}${last}`.trim();
+
+    return initials.length > 0 ? initials.toUpperCase() : 'K';
 }
 </script>
 
@@ -68,14 +77,24 @@ function isRowSelectionBlocked(userId: string): boolean {
                     @change="emit('toggleStudent', student.userId)"
                 />
                 <label
-                    class="min-w-0 flex-1 cursor-pointer text-sm leading-snug"
+                    class="flex min-w-0 flex-1 cursor-pointer items-start gap-2 text-sm leading-snug"
                     :for="`event-student-cb-${student.userId}`"
                 >
-                    <span class="font-medium">{{
-                        formatStudentDisplayName(student)
-                    }}</span>
-                    <span class="text-muted-foreground block truncate text-xs">
-                        {{ student.email }}
+                    <ProfileAvatar
+                        :src="student.avatarUrl"
+                        :initials="studentInitials(student)"
+                        :size="24"
+                        class="border-border bg-muted/40 text-muted-foreground mt-0.5 border"
+                    />
+                    <span class="min-w-0">
+                        <span class="block font-medium">{{
+                            formatStudentDisplayName(student)
+                        }}</span>
+                        <span
+                            class="text-muted-foreground block truncate text-xs"
+                        >
+                            {{ student.email }}
+                        </span>
                     </span>
                 </label>
             </li>

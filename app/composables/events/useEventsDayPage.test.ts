@@ -60,6 +60,7 @@ function instructor(
         lastName: 'Nowak',
         email: 'anna@example.com',
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 

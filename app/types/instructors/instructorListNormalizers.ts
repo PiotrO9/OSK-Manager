@@ -1,4 +1,5 @@
 import { normalizeCourseTypesList } from '~/types/courses/courseType';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type { InstructorListItem } from './instructorModels';
 
 function normalizeInstructorItem(
@@ -54,6 +55,7 @@ function normalizeInstructorItem(
         firstName,
         lastName,
         email,
+        avatarUrl: readAvatarUrlFromRecord(o),
         qualifiedCourseTypes: normalizeCourseTypesList(o.qualifiedCourseTypes),
         ...(userId !== undefined ? { userId } : {}),
     };

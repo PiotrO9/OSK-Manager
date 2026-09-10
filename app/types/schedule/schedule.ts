@@ -6,6 +6,7 @@ export interface SchedulePersonRef {
     id: string;
     firstName: string;
     lastName: string;
+    avatarUrl?: string | null;
 }
 
 export interface ScheduleVehicleRef {

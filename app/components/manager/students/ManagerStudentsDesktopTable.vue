@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Plus } from 'lucide-vue-next';
 import ManagerStudentPkkCopy from './ManagerStudentPkkCopy.vue';
+import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import type { StudentListItem } from '~/types/students/student';
 import type { StudentListRow } from '~/types/students/studentListView';
 
@@ -50,11 +51,12 @@ const emit = defineEmits<{ assignCourse: [student: StudentListItem] }>();
             >
                 <th scope="row" class="px-5 py-3 text-left font-normal">
                     <div class="flex min-w-0 items-center gap-3">
-                        <span
+                        <ProfileAvatar
+                            :src="row.student.avatarUrl"
+                            :initials="row.initials"
+                            :size="36"
                             class="border-border bg-muted/40 text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold"
-                            aria-hidden="true"
-                            >{{ row.initials }}</span
-                        >
+                        />
                         <div class="min-w-0 space-y-1">
                             <NuxtLink
                                 v-if="row.detailsTo"

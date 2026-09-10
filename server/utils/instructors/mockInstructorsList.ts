@@ -10,6 +10,7 @@ export interface MockInstructorListRow {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl: string | null;
     qualifiedCourseTypes?: MockDrivingSchoolOfferedType[];
 }
 
@@ -95,12 +96,14 @@ function ensureSeedForSchool(schoolId: string): MockInstructorListRow[] {
             firstName: 'Anna',
             lastName: 'Nowak',
             email: `anna.nowak.${short}@example.com`,
+            avatarUrl: null,
         },
         {
             id: crypto.randomUUID(),
             firstName: 'Piotr',
             lastName: 'Kowalski',
             email: `piotr.kowalski.${short}@example.com`,
+            avatarUrl: null,
         },
     ];
 
@@ -185,6 +188,7 @@ export interface MockInstructorDetailPayload {
     firstName: string;
     lastName: string;
     email: string;
+    avatarUrl: string | null;
     licenseNumber: string;
     phone: string;
     qualifications: string;
@@ -203,6 +207,7 @@ function buildDetailPayload(
         firstName: row.firstName,
         lastName: row.lastName,
         email: row.email,
+        avatarUrl: row.avatarUrl,
         licenseNumber: `OSK-LIC-${suffix.toUpperCase()}`,
         phone: `+48 600 ${suffix.slice(0, 3)} ${suffix.slice(3, 6)}`,
         qualifications: extras.qualifications,

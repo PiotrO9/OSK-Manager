@@ -14,6 +14,7 @@ describe('instructorEventNormalize', () => {
                 last_name: ' Nowak ',
                 email: ' anna@example.test ',
                 phone: ' 123 ',
+                avatar_url: ' https://cdn.example/instructor.jpg ',
             }),
         ).toEqual({
             id: 'instructor-1',
@@ -21,6 +22,7 @@ describe('instructorEventNormalize', () => {
             lastName: 'Nowak',
             email: 'anna@example.test',
             phone: '123',
+            avatarUrl: 'https://cdn.example/instructor.jpg',
         });
     });
 
@@ -33,6 +35,7 @@ describe('instructorEventNormalize', () => {
                     first_name: ' Jan ',
                     last_name: ' Kowalski ',
                     email: ' jan@example.test ',
+                    avatar_url: ' https://cdn.example/student.jpg ',
                 },
                 { id: 'missing-user' },
             ]),
@@ -44,6 +47,7 @@ describe('instructorEventNormalize', () => {
                 lastName: 'Kowalski',
                 email: 'jan@example.test',
                 phone: null,
+                avatarUrl: 'https://cdn.example/student.jpg',
             },
         ]);
     });

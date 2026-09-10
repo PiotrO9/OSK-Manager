@@ -56,6 +56,7 @@ function student(overrides: Partial<StudentListItem> = {}): StudentListItem {
         pkkNumber: null,
         isActive: true,
         createdAt: '2026-09-03T10:00:00.000Z',
+        avatarUrl: overrides.avatarUrl ?? null,
         ...overrides,
     };
 }

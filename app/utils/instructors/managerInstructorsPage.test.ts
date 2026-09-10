@@ -22,6 +22,7 @@ function instructor(
         phone: null,
         qualifiedCourseTypes: [],
         ...overrides,
+        avatarUrl: overrides.avatarUrl ?? null,
     };
 }
 

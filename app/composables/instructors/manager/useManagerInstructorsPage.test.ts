@@ -44,6 +44,7 @@ function createInstructor(id: string): InstructorListItem {
         firstName: `Jan ${id}`,
         lastName: 'Kowalski',
         email: `${id}@example.com`,
+        avatarUrl: null,
         qualifiedCourseTypes: [],
     };
 }

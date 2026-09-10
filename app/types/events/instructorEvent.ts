@@ -26,6 +26,7 @@ export interface InstructorEventStudent {
     lastName: string;
     email: string;
     phone: string | null;
+    avatarUrl: string | null;
 }
 
 export interface InstructorEvent {
@@ -92,6 +93,7 @@ export interface TheoryEventEligibleStudentRow {
     lastName: string;
     email: string;
     phone: string | null;
+    avatarUrl: string | null;
     createdAt: string;
     isAssignedToEvent: boolean;
     hasScheduleConflict: boolean;
