@@ -11,6 +11,7 @@ export async function bffUpstreamStudentsList(
         courseId?: string;
         search?: string;
         view?: string;
+        filters?: string;
     },
 ): Promise<{ success: true; data: unknown }> {
     const query: Record<string, string | number | undefined> = {
@@ -19,6 +20,7 @@ export async function bffUpstreamStudentsList(
         limit: params.limit,
         search: params.search,
         view: params.view,
+        filters: params.filters,
     };
 
     if (params.courseId !== undefined && params.courseId.trim().length > 0) {

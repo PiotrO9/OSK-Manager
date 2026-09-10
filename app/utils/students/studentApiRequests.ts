@@ -4,6 +4,10 @@ import type {
     StudentProcessStatus,
 } from '~/types/students/student';
 import {
+    serializeStudentAdvancedFilters,
+    type StudentAdvancedFilter,
+} from '~~/shared/utils/studentAdvancedFilters';
+import {
     normalizeStudentListPage,
     normalizeStudentProcessStatus,
 } from '~/types/students/student';
@@ -15,6 +19,7 @@ export interface StudentsListQuery {
     courseId?: string;
     search?: string;
     view?: string;
+    filters?: readonly StudentAdvancedFilter[];
 }
 
 export interface AssignStudentToCourseParams {
@@ -79,6 +84,12 @@ export function buildStudentsListPath(params: StudentsListQuery): string {
     if (params.search?.trim()) qs.set('search', params.search.trim());
 
     if (params.view && params.view !== 'all') qs.set('view', params.view);
+
+    const filters = serializeStudentAdvancedFilters(params.filters ?? []);
+
+    if (filters) {
+        qs.set('filters', filters);
+    }
 
     return `/api/students?${qs.toString()}`;
 }

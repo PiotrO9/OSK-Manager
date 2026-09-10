@@ -151,6 +151,46 @@ describe('useManagerStudentsData', () => {
         expect(data.visibleStudentsLabel.value).toBe('2 z 42 wyników');
     });
 
+    it('forwards active advanced filters to the students request', async () => {
+        fetchStudentsPage.mockResolvedValue({
+            items: [],
+            total: 0,
+            page: 1,
+            limit: 20,
+            totalPages: 0,
+        });
+
+        const { useManagerStudentsData } =
+            await import('./useManagerStudentsData');
+        const data = useManagerStudentsData();
+
+        data.activeSchoolId.value = 'school-1';
+        data.advancedFilters.value = [
+            {
+                id: 'advanced-1',
+                field: 'isActive',
+                operator: 'neq',
+                value: false,
+            },
+        ];
+
+        await data.loadStudents();
+
+        expect(fetchStudentsPage).toHaveBeenCalledWith({
+            schoolId: 'school-1',
+            page: 1,
+            limit: 20,
+            filters: [
+                {
+                    id: 'advanced-1',
+                    field: 'isActive',
+                    operator: 'neq',
+                    value: false,
+                },
+            ],
+        });
+    });
+
     it('ignores stale courses responses from older school filter requests', async () => {
         const olderCourse = course({ id: 'older-course' });
         const newerCourse = course({ id: 'newer-course' });

@@ -2,6 +2,7 @@ import {
     mockCoursesGetById,
     mockCoursesListPayload,
 } from '~~/server/utils/courses/mockCoursesList';
+import type { StudentAdvancedFilter } from '~~/shared/utils/studentAdvancedFilters';
 
 /** Wiersz listy kursantów — kształt elementu `data.data[]`  wg students-api.md. */
 export interface MockStudentListRow {
@@ -197,6 +198,32 @@ function mockStudentAssignedToCourse(
     }
 
     return Math.abs(h) % 2 === 0;
+}
+
+function hashForMock(value: string): number {
+    let h = 0;
+
+    for (let i = 0; i < value.length; i++) {
+        h = (h * 31 + value.charCodeAt(i)) | 0;
+    }
+
+    return Math.abs(h);
+}
+
+function mockStudentHasOverduePayments(row: MockStudentListRow): boolean {
+    return hashForMock(`${row.id}:overdue`) % 4 === 0;
+}
+
+function mockStudentHasUpcomingLesson(
+    row: MockStudentListRow,
+    schoolId: string,
+): boolean {
+    const courses = mockCoursesListPayload(schoolId).courses;
+    const hasCourse = courses.some((course) =>
+        mockStudentVisibleInCourseFilter(row.id, course.id),
+    );
+
+    return hasCourse && hashForMock(`${row.id}:lesson`) % 3 !== 0;
 }
 
 function getMockCourseParticipantSet(): Set<string> {
@@ -466,7 +493,7 @@ export function mockStudentsListPayload(
     courseId?: string,
     search = '',
     view = 'all',
-    hasOverduePayments = false,
+    filters: readonly StudentAdvancedFilter[] = [],
 ): {
     data: MockStudentListRow[];
     total: number;
@@ -500,17 +527,30 @@ export function mockStudentsListPayload(
 
         if (!terms.every((term) => text.includes(term))) return false;
 
-        if (view === 'without-pkk') return !row.pkkNumber?.trim();
+        if (view === 'without-pkk' && row.pkkNumber?.trim()) return false;
 
-        if (view === 'without-course')
-            return !mockCoursesListPayload(schoolId).courses.some((course) =>
-                mockStudentVisibleInCourseFilter(row.id, course.id),
-            );
+        if (view === 'without-course') {
+            if (
+                mockCoursesListPayload(schoolId).courses.some((course) =>
+                    mockStudentVisibleInCourseFilter(row.id, course.id),
+                )
+            ) {
+                return false;
+            }
+        }
 
-        if (view === 'overdue') return hasOverduePayments;
+        if (view === 'overdue' && !mockStudentHasOverduePayments(row))
+            return false;
 
-        // Mock student events contain no scheduled lessons.
-        return true;
+        if (view === 'without-lesson') {
+            if (mockStudentHasUpcomingLesson(row, schoolId)) {
+                return false;
+            }
+        }
+
+        return filters.every((filter) =>
+            mockStudentMatchesAdvancedFilter(row, schoolId, filter),
+        );
     });
     const total = matching.length;
     const safeLimit = Math.max(1, Math.min(100, limit));
@@ -524,6 +564,117 @@ export function mockStudentsListPayload(
         page: safePage,
         limit: safeLimit,
     };
+}
+
+function normalizeMockText(value: string | null): string {
+    return (value ?? '').trim().toLocaleLowerCase('pl');
+}
+
+function mockTextMatches(
+    value: string | null,
+    operator: string,
+    expected: string,
+): boolean {
+    const actual = normalizeMockText(value);
+    const needle = expected.trim().toLocaleLowerCase('pl');
+
+    if (operator === 'contains') return actual.includes(needle);
+
+    if (operator === 'not_contains')
+        return value === null || !actual.includes(needle);
+
+    if (operator === 'eq') return actual === needle;
+
+    if (operator === 'neq') return value === null || actual !== needle;
+
+    return false;
+}
+
+function mockStudentMatchesAdvancedFilter(
+    row: MockStudentListRow,
+    schoolId: string,
+    filter: StudentAdvancedFilter,
+): boolean {
+    if (filter.field === 'firstName')
+        return mockTextMatches(row.firstName, filter.operator, filter.value);
+
+    if (filter.field === 'lastName')
+        return mockTextMatches(row.lastName, filter.operator, filter.value);
+
+    if (filter.field === 'email')
+        return mockTextMatches(row.email, filter.operator, filter.value);
+
+    if (filter.field === 'phone') {
+        if (filter.operator === 'is_empty') return !row.phone?.trim();
+
+        if (filter.operator === 'is_not_empty')
+            return Boolean(row.phone?.trim());
+
+        if (!('value' in filter)) return false;
+
+        return mockTextMatches(row.phone, filter.operator, filter.value);
+    }
+
+    if (filter.field === 'pkkNumber') {
+        if (filter.operator === 'is_empty') return !row.pkkNumber?.trim();
+
+        if (filter.operator === 'is_not_empty')
+            return Boolean(row.pkkNumber?.trim());
+
+        if (!('value' in filter)) return false;
+
+        return mockTextMatches(row.pkkNumber, filter.operator, filter.value);
+    }
+
+    if (filter.field === 'isActive') {
+        return filter.operator === 'eq'
+            ? row.isActive === filter.value
+            : row.isActive !== filter.value;
+    }
+
+    if (filter.field === 'courseId') {
+        if (
+            filter.operator === 'is_empty' ||
+            filter.operator === 'is_not_empty'
+        ) {
+            const hasAnyCourse = mockCoursesListPayload(schoolId).courses.some(
+                (course) => mockStudentVisibleInCourseFilter(row.id, course.id),
+            );
+
+            return filter.operator === 'is_not_empty'
+                ? hasAnyCourse
+                : !hasAnyCourse;
+        }
+
+        if (!('value' in filter)) return false;
+
+        const hasCourse = mockStudentVisibleInCourseFilter(
+            row.id,
+            filter.value,
+        );
+
+        return filter.operator === 'eq' ? hasCourse : !hasCourse;
+    }
+
+    if (filter.field === 'hasOverduePayments') {
+        return mockStudentHasOverduePayments(row) === filter.value;
+    }
+
+    if (filter.field === 'hasUpcomingLesson') {
+        return mockStudentHasUpcomingLesson(row, schoolId) === filter.value;
+    }
+
+    if (filter.field === 'createdAt') {
+        const createdAt = row.createdAt.slice(0, 10);
+
+        if (filter.operator === 'before') return createdAt < filter.value;
+
+        if (filter.operator === 'after') return createdAt > filter.value;
+
+        return createdAt >= filter.value[0] && createdAt <= filter.value[1];
+    }
+
+    return true;
 }
 
 export function mockStudentProcessStatusPayload(

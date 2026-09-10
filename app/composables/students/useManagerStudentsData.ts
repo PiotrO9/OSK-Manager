@@ -1,4 +1,5 @@
 import type { StudentListView } from '~~/shared/utils/studentListFilters';
+import type { StudentAdvancedFilter } from '~~/shared/utils/studentAdvancedFilters';
 import type { CourseListItem } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { StudentListItem } from '~/types/students/student';
@@ -27,6 +28,7 @@ export function useManagerStudentsData() {
 
     const search = ref('');
     const quickView = ref<StudentListView>('all');
+    const advancedFilters = ref<StudentAdvancedFilter[]>([]);
     const activeCourseId = ref('');
     const currentPage = ref(1);
 
@@ -157,6 +159,9 @@ export function useManagerStudentsData() {
                 schoolId: sid,
                 ...(search.value.trim() ? { search: search.value.trim() } : {}),
                 ...(quickView.value !== 'all' ? { view: quickView.value } : {}),
+                ...(advancedFilters.value.length > 0
+                    ? { filters: advancedFilters.value }
+                    : {}),
                 page: currentPage.value,
                 limit: STUDENTS_PAGE_LIMIT,
                 ...(courseIdTrimmed.length > 0
@@ -199,6 +204,7 @@ export function useManagerStudentsData() {
         activeCourseId,
         search,
         quickView,
+        advancedFilters,
         currentPage,
         students,
         studentsPagination,

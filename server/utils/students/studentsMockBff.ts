@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { mockCoursesGetById } from '~~/server/utils/courses/mockCoursesList';
+import type { StudentAdvancedFilter } from '~~/shared/utils/studentAdvancedFilters';
 import {
     mockCourseParticipantAssign,
     mockStudentDetailPayload,
@@ -124,9 +125,28 @@ export function bffMockStudentsList(params: {
     courseId?: string;
     search?: string;
     view?: string;
+    filters?: readonly StudentAdvancedFilter[];
 }): { success: true; data: unknown } {
     if (params.courseId !== undefined) {
         const course = mockCoursesGetById(params.courseId);
+
+        if (!course || course.schoolId !== params.schoolId) {
+            throw createError({
+                statusCode: 404,
+                message: 'Course not found',
+            });
+        }
+    }
+
+    for (const filter of params.filters ?? []) {
+        if (
+            filter.field !== 'courseId' ||
+            (filter.operator !== 'eq' && filter.operator !== 'neq')
+        ) {
+            continue;
+        }
+
+        const course = mockCoursesGetById(filter.value);
 
         if (!course || course.schoolId !== params.schoolId) {
             throw createError({
@@ -144,7 +164,7 @@ export function bffMockStudentsList(params: {
             params.courseId,
             params.search,
             params.view,
-            mockStudentPaymentsPayload().summary.overdueCount > 0,
+            params.filters,
         ),
     );
 }

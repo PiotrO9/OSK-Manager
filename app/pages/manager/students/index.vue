@@ -20,6 +20,9 @@ const {
     activeCourseId,
     search,
     quickView,
+    advancedFilters,
+    advancedFilterDraft,
+    advancedFilterDraftError,
     currentPage,
     students,
     studentsPagination,
@@ -43,6 +46,12 @@ const {
     handleCourseFilterChange,
     handlePrevPage,
     handleNextPage,
+    clearAllStudentFilters,
+    startNewAdvancedFilter,
+    startEditAdvancedFilter,
+    updateAdvancedFilterDraft,
+    applyAdvancedFilterDraft,
+    removeAdvancedFilter,
     handleOpenCreateDialog,
     handleFormDialogOpenChange,
     handleOpenAssignCourse,
@@ -74,7 +83,18 @@ const {
             <ManagerStudentsSearch
                 v-model:search="search"
                 v-model:quick-view="quickView"
+                :advanced-filters="advancedFilters"
+                :advanced-filter-draft="advancedFilterDraft"
+                :advanced-filter-draft-error="advancedFilterDraftError"
+                :courses="courses"
                 :disabled="isSchoolsLoading || !activeSchoolId"
+                @start-new-advanced-filter="startNewAdvancedFilter"
+                @start-edit-advanced-filter="startEditAdvancedFilter"
+                @update-advanced-filter-draft="updateAdvancedFilterDraft"
+                @apply-advanced-filter-draft="applyAdvancedFilterDraft"
+                @cancel-advanced-filter-draft="startNewAdvancedFilter"
+                @remove-advanced-filter="removeAdvancedFilter"
+                @clear-all-filters="clearAllStudentFilters"
             />
             <ManagerStudentsStats
                 :total-students-count="totalStudentsCount"
@@ -140,14 +160,18 @@ const {
                     v-else-if="students.length === 0"
                     class="m-4"
                     :title="
-                        search.trim() || quickView !== 'all'
+                        search.trim() ||
+                        quickView !== 'all' ||
+                        advancedFilters.length > 0
                             ? 'Brak wyników wyszukiwania'
                             : activeCourseId
                               ? 'Brak kursantów w tym kursie'
                               : 'Brak kursantów'
                     "
                     :description="
-                        search.trim() || quickView !== 'all'
+                        search.trim() ||
+                        quickView !== 'all' ||
+                        advancedFilters.length > 0
                             ? 'Zmień wyszukiwanie lub wyczyść filtry, aby zobaczyć pozostałych kursantów.'
                             : activeCourseId
                               ? 'Wybierz inny kurs lub wyczyść filtr, aby zobaczyć pozostałych kursantów.'
@@ -159,15 +183,11 @@ const {
                             v-if="
                                 activeCourseId ||
                                 search.trim() ||
-                                quickView !== 'all'
+                                quickView !== 'all' ||
+                                advancedFilters.length > 0
                             "
                             variant="outline"
-                            @click="
-                                search = '';
-                                quickView = 'all';
-                                activeCourseId = '';
-                                handleCourseFilterChange();
-                            "
+                            @click="clearAllStudentFilters"
                             >Wyczyść filtry</UiButton
                         >
                         <UiButton v-else @click="handleOpenCreateDialog"

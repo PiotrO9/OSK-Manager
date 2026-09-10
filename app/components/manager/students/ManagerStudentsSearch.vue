@@ -1,15 +1,31 @@
 <script setup lang="ts">
 import { Search, X } from 'lucide-vue-next';
+import type { CourseListItem } from '~/types/courses/course';
+import type {
+    StudentAdvancedFilter,
+    StudentAdvancedFilterDraft,
+} from '~~/shared/utils/studentAdvancedFilters';
 import type { StudentListView } from '~~/shared/utils/studentListFilters';
 
 defineProps<{
     search: string;
     quickView: StudentListView;
+    advancedFilters: readonly StudentAdvancedFilter[];
+    advancedFilterDraft: StudentAdvancedFilterDraft;
+    advancedFilterDraftError: string | null;
+    courses: readonly CourseListItem[];
     disabled: boolean;
 }>();
 const emit = defineEmits<{
     'update:search': [value: string];
     'update:quickView': [value: StudentListView];
+    startNewAdvancedFilter: [];
+    startEditAdvancedFilter: [filterId: string];
+    updateAdvancedFilterDraft: [value: StudentAdvancedFilterDraft];
+    applyAdvancedFilterDraft: [];
+    cancelAdvancedFilterDraft: [];
+    removeAdvancedFilter: [filterId: string];
+    clearAllFilters: [];
 }>();
 const views: { value: StudentListView; label: string }[] = [
     { value: 'all', label: 'Wszyscy' },
@@ -74,5 +90,19 @@ const views: { value: StudentListView; label: string }[] = [
                 >{{ view.label }}</UiButton
             >
         </div>
+        <ManagerStudentsAdvancedFilters
+            :filters="advancedFilters"
+            :draft="advancedFilterDraft"
+            :courses="courses"
+            :disabled="disabled"
+            :error="advancedFilterDraftError"
+            @start-new="emit('startNewAdvancedFilter')"
+            @start-edit="emit('startEditAdvancedFilter', $event)"
+            @update-draft="emit('updateAdvancedFilterDraft', $event)"
+            @apply="emit('applyAdvancedFilterDraft')"
+            @cancel="emit('cancelAdvancedFilterDraft')"
+            @remove="emit('removeAdvancedFilter', $event)"
+            @clear="emit('clearAllFilters')"
+        />
     </div>
 </template>

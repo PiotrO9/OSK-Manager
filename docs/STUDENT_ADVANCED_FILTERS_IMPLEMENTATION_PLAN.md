@@ -2,7 +2,7 @@
 
 Data: 2026-09-10
 
-Status: gotowy do implementacji, bez zmian funkcjonalnych wykonanych w ramach tego dokumentu.
+Status: wdrożony iteracyjnie, w trakcie oceny użytkownika.
 
 Zakres: W07 `/manager/students`, frontend Nuxt, BFF Nuxt i backend Express/Prisma.
 
@@ -37,7 +37,7 @@ Inspiracją interakcji jest [Table Filters — Lemon Squeezy](https://dribbble.c
 
 [Wszyscy] [Bez PKK] [Bez kursu] [Z zaległościami] [Bez zaplanowanej jazdy]
 
-[Status konta · nie jest · Nieaktywny ×] [Kurs · nie jest · Kat. B ×]
+[Status konta] [nie jest] [Nieaktywny] [×] [Kurs] [nie jest] [Kat. B] [×]
                                                         [Wyczyść wszystkie]
 ```
 
@@ -68,13 +68,15 @@ Dodaj filtr
 3. Operatory `jest pusty`, `nie jest pusty`, `ma dowolny` i `nie ma` nie pokazują pola wartości.
 4. `Zastosuj filtr` jest wyłączone do czasu uzupełnienia poprawnej reguły.
 5. Zastosowanie, edycja lub usunięcie reguły wraca na stronę 1, unieważnia starsze żądanie i pobiera wyniki ponownie.
-6. Kliknięcie treści chipa otwiera tę regułę do edycji. `×` usuwa ją bez otwierania edytora.
-7. Zamknięcie edytora przez `Esc`, kliknięcie poza nim lub `Anuluj` odrzuca szkic i nie zmienia wyników.
-8. Identyczna reguła nie jest dodawana drugi raz. Powtarzanie tego samego pola z inną wartością jest dozwolone.
-9. `Wszyscy` zeruje tylko szybki widok. Nie usuwa tekstu, kursu ani reguł zaawansowanych.
-10. `Wyczyść wszystkie` usuwa tekst, wybrany kurs, szybki widok i reguły zaawansowane. Wybrana szkoła zostaje.
-11. Zmiana szkoły usuwa główny filtr kursu oraz zaawansowane reguły odnoszące się do konkretnych kursów. Pozostałe reguły i tekst pozostają.
-12. Sprzeczne warunki są dozwolone i prowadzą do pustego wyniku. Stan pusty pokazuje wszystkie aktywne chipy i akcję `Wyczyść wszystkie`.
+6. Aktywny filtr jest pokazany jako jeden chip z segmentami `Pole`, `Warunek` i opcjonalną `Wartość`. Segmenty nie mają znaków ani strzałek pomiędzy sobą; różnią się wizualnie tłem/obramowaniem, żeby wyglądały jak schematyczne, klikalne części reguły.
+7. Kliknięcie treści chipa otwiera tę regułę do edycji. `×` usuwa ją bez otwierania edytora.
+8. Przy edycji reguły zmiana warunku zachowuje wpisaną wartość, jeżeli nowy warunek nadal używa wartości tego samego typu. Przykłady: `zawiera` ↔ `nie zawiera` ↔ `jest` ↔ `nie jest`, `jest` ↔ `nie jest` dla statusu i kursu, `przed` ↔ `po` dla dat. Wartość jest czyszczona tylko po przejściu na warunek bez wartości, np. `jest pusty`, `nie jest pusty`, `ma dowolny kurs`, `nie ma kursu`, `ma`, `nie ma`.
+9. Zamknięcie edytora przez `Esc`, kliknięcie poza nim lub `Anuluj` odrzuca szkic i nie zmienia wyników.
+10. Identyczna reguła nie jest dodawana drugi raz. Powtarzanie tego samego pola z inną wartością jest dozwolone.
+11. `Wszyscy` zeruje tylko szybki widok. Nie usuwa tekstu, kursu ani reguł zaawansowanych.
+12. `Wyczyść wszystkie` usuwa tekst, wybrany kurs, szybki widok i reguły zaawansowane. Wybrana szkoła zostaje.
+13. Zmiana szkoły usuwa główny filtr kursu oraz zaawansowane reguły odnoszące się do konkretnych kursów. Pozostałe reguły i tekst pozostają.
+14. Sprzeczne warunki są dozwolone i prowadzą do pustego wyniku. Stan pusty pokazuje wszystkie aktywne chipy i akcję `Wyczyść wszystkie`.
 
 ## 4. Pola, operatory i semantyka
 
@@ -165,8 +167,11 @@ BFF parsuje i waliduje `filters`, po czym wysyła do backendu kanoniczny JSON. B
 
 | Plik                                                                 | Zmiana                                                                                                                                                       |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/components/app/AppAdvancedFilters.vue`                          | Reużywalna powłoka zaawansowanych filtrów: trigger, licznik, czyszczenie, aktywne chipy, desktopowy popover, mobilny sheet i slot na edytor domenowy.        |
+| `app/components/app/AppAdvancedFilterSegments.vue`                   | Reużywalna prezentacja segmentów aktywnej reguły `Pole`, `Warunek`, `Wartość` bez zależności od kursantów.                                                   |
+| `shared/utils/advancedFilters.ts`                                    | Neutralne typy `AdvancedFilterChip` i `AdvancedFilterSegment` używane przez wspólną powłokę UI.                                                              |
 | `shared/utils/studentAdvancedFilters.ts`                             | Typy, lista pól/operatorów, Zod, serializacja bez `id`, formatowanie etykiet chipów i sprawdzanie duplikatów.                                                |
-| `app/components/manager/students/ManagerStudentsAdvancedFilters.vue` | Przycisk, licznik, aktywne chipy, usuwanie/edycja, `Wyczyść wszystkie`, desktopowy popover i mobilny sheet.                                                  |
+| `app/components/manager/students/ManagerStudentsAdvancedFilters.vue` | Adapter kursantów: mapuje reguły kursantów na neutralne chipy i wkłada edytor kursantów w slot wspólnego komponentu.                                         |
 | `app/components/manager/students/ManagerStudentFilterEditor.vue`     | Kontrolowany szkic `Pole → Warunek → Wartość`; odpowiednia kontrolka tekst/select/data. Bez pobierania danych i bez logiki API.                              |
 | `app/components/manager/students/ManagerStudentsSearch.vue`          | Osadzenie triggera obok wyszukiwarki i chipów pod szybkimi widokami; nowe props/emits.                                                                       |
 | `app/composables/students/useManagerStudentsAdvancedFilters.ts`      | Stan zastosowanych reguł i szkicu, add/edit/remove/reset, czyszczenie reguł kursu po zmianie OSK.                                                            |
@@ -208,7 +213,7 @@ Najważniejsze reguły implementacji backendu:
 
 - trigger ma `aria-expanded`, `aria-controls` oraz nazwę z liczbą reguł;
 - grupa chipów ma etykietę `Aktywne filtry zaawansowane`;
-- treść chipa ma pełne zdanie, np. `Status konta nie jest Nieaktywny`;
+- treść chipa ma dostępnościowo pełne zdanie, np. `Status konta nie jest Nieaktywny`, a wizualnie jest rozbita na segmenty `Status konta`, `nie jest`, `Nieaktywny`;
 - osobny przycisk usuwania ma etykietę `Usuń filtr: …`;
 - wszystkie pola edytora mają widoczne etykiety;
 - fokus po otwarciu trafia do wyboru pola, a po zamknięciu wraca na trigger;
@@ -225,7 +230,7 @@ Najważniejsze reguły implementacji backendu:
 2. Brak parametru przy pustej tablicy.
 3. Odrzucenie nieznanego pola/operatora, złej wartości, odwróconego zakresu, 9. reguły i payloadu ponad limit.
 4. Add/edit/remove/reset bez mutowania propsów; brak identycznego duplikatu.
-5. Operator bez wartości usuwa poprzednią wartość po zmianie typu.
+5. Zmiana warunku zachowuje wartość dla kompatybilnych typów wartości i czyści ją tylko przy przejściu na operator bez wartości.
 6. Zmiana filtra resetuje stronę, unieważnia starsze żądanie i pobiera listę tylko po zastosowaniu pełnej reguły.
 7. `Wszyscy` zachowuje reguły zaawansowane; `Wyczyść wszystkie` usuwa wszystkie warstwy poza szkołą.
 8. Zmiana OSK usuwa tylko reguły z konkretnym `courseId`.
@@ -258,13 +263,13 @@ Najważniejsze reguły implementacji backendu:
 ## 10. Checklista i kolejność implementacji
 
 - [x] **Plan:** ustalić zakres, semantykę operatorów, kontrakt API i kryteria akceptacji.
-- [ ] **Kontrakt:** dodać typy, registry pól/operatorów, Zod i testy serializacji.
-- [ ] **Backend:** dodać parser, builder Prisma, walidację kursów, OpenAPI i testy serwisu.
-- [ ] **BFF i mock:** bezpiecznie przekazać parametr oraz dodać zgodny evaluator mocka.
-- [ ] **Stan frontendu:** dodać composable i integrację requestów, reset strony oraz anulowanie wyścigów.
-- [ ] **UI:** dodać edytor, trigger, chipy, popover desktop i sheet mobile.
-- [ ] **Integracja widoku:** obsłużyć pusty stan, `Wyczyść wszystkie` i zmianę szkoły.
-- [ ] **Weryfikacja:** uruchomić testy FE/BE, typy, lint, OpenAPI i scenariusze przeglądarkowe.
+- [x] **Kontrakt:** dodać typy, registry pól/operatorów, Zod i testy serializacji.
+- [x] **Backend:** dodać parser, builder Prisma, walidację kursów, OpenAPI i testy serwisu.
+- [x] **BFF i mock:** bezpiecznie przekazać parametr oraz dodać zgodny evaluator mocka.
+- [x] **Stan frontendu:** dodać composable i integrację requestów, reset strony oraz anulowanie wyścigów.
+- [x] **UI:** dodać edytor, trigger, chipy, popover desktop i sheet mobile.
+- [x] **Integracja widoku:** obsłużyć pusty stan, `Wyczyść wszystkie` i zmianę szkoły.
+- [ ] **Weryfikacja:** uruchomić testy FE/BE, typy, lint, OpenAPI i scenariusze przeglądarkowe. Częściowo wykonane: testy ukierunkowane FE/BE, lint dotkniętych plików, backend typecheck i Nuxt dev server. Pełny FE typecheck blokują istniejące błędy testów `avatarUrl`, a scenariusz przeglądarkowy wymaga sesji managera oraz zainstalowanej przeglądarki Playwright.
 - [ ] **Dokumentacja:** dopisać wynik i decyzję użytkownika do `UI_REFRESH_PLAN.md`; W07 odhaczyć dopiero po akceptacji całości.
 
 Każdy punkt wdrażamy i weryfikujemy przed rozpoczęciem następnego. Checkbox oznacza gotowy, sprawdzony etap, a nie samo rozpoczęcie pracy.

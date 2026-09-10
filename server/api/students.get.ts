@@ -1,4 +1,9 @@
 import { isStudentListView } from '~~/shared/utils/studentListFilters';
+import {
+    parseStudentAdvancedFiltersParam,
+    serializeStudentAdvancedFilters,
+    type StudentAdvancedFilter,
+} from '~~/shared/utils/studentAdvancedFilters';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
@@ -17,11 +22,27 @@ export default defineEventHandler(async (event) => {
 
     const search = readQueryString(rawQuery.search).trim();
     const view = readQueryString(rawQuery.view) || 'all';
+    const filtersRaw = readQueryString(rawQuery.filters);
+    let filters: StudentAdvancedFilter[] = [];
 
     if (search.length > 120 || !isStudentListView(view)) {
         throw createError({
             statusCode: 400,
             message: 'Nieprawidłowe parametry wyszukiwania kursantów.',
+        });
+    }
+
+    try {
+        filters = parseStudentAdvancedFiltersParam(filtersRaw).map(
+            (rule, index) => ({
+                ...rule,
+                id: `request-${index}`,
+            }),
+        );
+    } catch {
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidłowe zaawansowane filtry kursantów.',
         });
     }
 
@@ -63,6 +84,7 @@ export default defineEventHandler(async (event) => {
                 courseId,
                 search,
                 view,
+                filters: serializeStudentAdvancedFilters(filters) ?? undefined,
             }),
         mock: async () => {
             await requireManagerFromCookie(event);
@@ -74,6 +96,7 @@ export default defineEventHandler(async (event) => {
                 courseId,
                 search,
                 view,
+                filters,
             });
         },
     });

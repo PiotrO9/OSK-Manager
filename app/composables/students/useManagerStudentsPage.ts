@@ -28,6 +28,7 @@ export function useManagerStudentsPage() {
         activeCourse,
         search,
         quickView,
+        advancedFilters,
         totalStudentsCount,
         activeStudentsOnPage,
         studentsWithPkkOnPage,
@@ -37,6 +38,10 @@ export function useManagerStudentsPage() {
         loadCoursesForFilter,
         loadStudents,
     } = useManagerStudentsData();
+
+    const advancedFilterState = useManagerStudentsAdvancedFilters({
+        advancedFilters,
+    });
 
     const {
         assignDialogOpen,
@@ -73,12 +78,7 @@ export function useManagerStudentsPage() {
         loadStudents,
     });
 
-    const {
-        handleActiveSchoolChange,
-        handleCourseFilterChange,
-        handlePrevPage,
-        handleNextPage,
-    } = useManagerStudentsListActions({
+    const listActions = useManagerStudentsListActions({
         activeCourseId,
         currentPage,
         studentsPagination,
@@ -88,18 +88,29 @@ export function useManagerStudentsPage() {
         loadStudents,
     });
 
-    watch([search, quickView], ([text], [previousText], onCleanup) => {
-        invalidateStudentsRequest();
-        currentPage.value = 1;
-        const timer = setTimeout(
-            () => {
-                void loadStudents();
-            },
-            text !== previousText && text.trim() ? 350 : 0,
-        );
+    async function handleActiveSchoolChange(): Promise<void> {
+        advancedFilterState.clearConcreteCourseFilters();
+        await listActions.handleActiveSchoolChange();
+    }
 
-        onCleanup(() => clearTimeout(timer));
-    });
+    const { handleCourseFilterChange, handlePrevPage, handleNextPage } =
+        listActions;
+
+    watch(
+        [search, quickView, advancedFilters],
+        ([text], [previousText], onCleanup) => {
+            invalidateStudentsRequest();
+            currentPage.value = 1;
+            const timer = setTimeout(
+                () => {
+                    void loadStudents();
+                },
+                text !== previousText && text.trim() ? 350 : 0,
+            );
+
+            onCleanup(() => clearTimeout(timer));
+        },
+    );
 
     const { prefillSchoolId } = useManagerStudentsPageInit({
         schools,
@@ -109,6 +120,15 @@ export function useManagerStudentsPage() {
         loadStudents,
         openInitialRegisterForm,
     });
+
+    function clearAllStudentFilters(): void {
+        search.value = '';
+        quickView.value = 'all';
+        activeCourseId.value = '';
+        advancedFilterState.clearAdvancedFilters();
+        currentPage.value = 1;
+        void loadStudents();
+    }
 
     return {
         schools,
@@ -134,6 +154,11 @@ export function useManagerStudentsPage() {
         prefillSchoolId,
         search,
         quickView,
+        advancedFilters,
+        advancedFiltersCount: advancedFilterState.advancedFiltersCount,
+        hasAdvancedFilters: advancedFilterState.hasAdvancedFilters,
+        advancedFilterDraft: advancedFilterState.draft,
+        advancedFilterDraftError: advancedFilterState.draftError,
         activeSchool,
         activeCourse,
         totalStudentsCount,
@@ -146,6 +171,13 @@ export function useManagerStudentsPage() {
         handleCourseFilterChange,
         handlePrevPage,
         handleNextPage,
+        clearAllStudentFilters,
+        startNewAdvancedFilter: advancedFilterState.startNewFilter,
+        startEditAdvancedFilter: advancedFilterState.startEditFilter,
+        updateAdvancedFilterDraft: advancedFilterState.updateDraft,
+        applyAdvancedFilterDraft: advancedFilterState.applyDraft,
+        removeAdvancedFilter: advancedFilterState.removeFilter,
+        clearAdvancedFilters: advancedFilterState.clearAdvancedFilters,
         handleOpenCreateDialog,
         handleFormDialogOpenChange,
         handleOpenAssignCourse,
