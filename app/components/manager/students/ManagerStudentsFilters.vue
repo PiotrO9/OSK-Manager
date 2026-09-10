@@ -43,7 +43,7 @@ function handleCourseUpdate(value: unknown) {
 <template>
     <FilterBar
         title=""
-        class="rounded-none border-0 border-b px-4 py-4 shadow-none sm:px-5"
+        class="rounded-t-xl border-0 border-b px-4 py-4 shadow-none sm:px-5"
         :is-loading="isStudentsLoading || isCoursesLoading"
         aria-label="Filtry listy kursantów"
     >

@@ -27,11 +27,11 @@ const emit = defineEmits<{
             !isStudentsLoading &&
             !hasError
         "
-        class="border-border bg-muted/20 flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+        class="students-pagination border-border bg-muted/20 flex flex-col gap-3 rounded-b-xl border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5"
         aria-label="Strony listy kursantów"
     >
         <p
-            class="text-muted-foreground text-xs tabular-nums"
+            class="text-muted-foreground text-sm font-medium tabular-nums sm:text-xs"
             aria-live="polite"
         >
             Strona {{ currentPage }} z {{ pagination.totalPages }} ({{
@@ -39,7 +39,7 @@ const emit = defineEmits<{
             }}
             kursantów)
         </p>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 sm:justify-end">
             <UiButton
                 type="button"
                 variant="outline"
@@ -69,3 +69,17 @@ const emit = defineEmits<{
         </div>
     </nav>
 </template>
+
+<style scoped>
+.students-pagination {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: var(--card);
+    background: color-mix(in srgb, var(--card) 96%, transparent);
+    box-shadow:
+        0 -1px 0 var(--border),
+        0 -16px 32px color-mix(in srgb, var(--background) 70%, transparent);
+    backdrop-filter: blur(10px);
+}
+</style>
