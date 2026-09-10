@@ -9,16 +9,16 @@ defineEmits<{
 <template>
     <PageHeader
         title="Kursanci"
-        description="Lista kursantów, filtry OSK i szybkie przypisanie kursu."
+        description="Dane kontaktowe, statusy i przypisania do kursów."
     >
         <template #actions>
             <UiButton
                 type="button"
-                class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                class="h-11 w-full px-4 sm:h-10 sm:w-auto"
                 aria-label="Otwórz formularz dodawania kursanta"
                 @click="$emit('create')"
             >
-                <UserPlus class="mr-2 size-4" aria-hidden="true" />
+                <UserPlus class="size-4" aria-hidden="true" />
                 Dodaj kursanta
             </UiButton>
         </template>

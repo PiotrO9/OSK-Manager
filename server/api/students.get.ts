@@ -1,3 +1,4 @@
+import { isStudentListView } from '~~/shared/utils/studentListFilters';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
@@ -13,6 +14,16 @@ export default defineEventHandler(async (event) => {
         required: 'Parametr schoolId jest wymagany.',
         invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
     });
+
+    const search = readQueryString(rawQuery.search).trim();
+    const view = readQueryString(rawQuery.view) || 'all';
+
+    if (search.length > 120 || !isStudentListView(view)) {
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidłowe parametry wyszukiwania kursantów.',
+        });
+    }
 
     const page = parsePositiveIntQuery(rawQuery.page, 1);
 
@@ -50,11 +61,20 @@ export default defineEventHandler(async (event) => {
                 page,
                 limit,
                 courseId,
+                search,
+                view,
             }),
         mock: async () => {
             await requireManagerFromCookie(event);
 
-            return bffMockStudentsList({ schoolId, page, limit, courseId });
+            return bffMockStudentsList({
+                schoolId,
+                page,
+                limit,
+                courseId,
+                search,
+                view,
+            });
         },
     });
 });

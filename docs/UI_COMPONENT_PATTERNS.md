@@ -357,3 +357,18 @@ Rekomendowana kolejnosc:
 10. `ActionGroup`
 
 Ta kolejnosc pozwala najpierw ustabilizowac najbardziej widoczne i najczesciej powtarzane wzorce.
+
+## Wariant roboczy listy CRM — W07, 2026-09-09
+
+Wdrożony na `/manager/students`, czeka na ocenę użytkownika. Nie zastępuje jeszcze zasad wszystkich list.
+
+- `PageHeader`: tytuł, krótki opis i jeden przycisk główny.
+- Jeden panel `bg-card` łączy kontekst OSK, filtr, statystyki, rekordy i paginację. Bez powtórzonego tytułu listy i zagnieżdżonych ramek.
+- Kompaktowy filtr kursu z przyciskiem czyszczenia; przy jednej szkole kontekst OSK jest tekstem, przy wielu pozostaje wybór.
+- Liczniki są paskiem tekstowym: liczba wyników osobno, statystyki bieżącej strony pod wspólną etykietą. Podczas ładowania lub błędu pokazują kreskę.
+- `DataTableShell`: nazwisko jako link profilu, PKK pod nazwiskiem, kontakt, `StatusBadge`, data dodania i jedna lekka akcja przypisania. Cały wiersz nie jest klikalny.
+- Tabela i karty przełączają się według szerokości kontenera listy (768 px), uwzględniając sidebar. Karty mają komplet danych i osobne akcje profilu/przypisania, z wysokością przycisków 44 px.
+- Zachowane współdzielone stany ładowania, błędu i pustych danych; pusty wynik filtra umożliwia jego usunięcie.
+- Obowiązują Satoshi, istniejące tokeny i oba motywy. Wyszukiwarka i szybkie filtry dodane w kolejnej iteracji korzystają z danych backendu; nie dodajemy fikcyjnych statystyk.
+
+Zakres sprawdzenia i dalsze uwagi: `UI_REFRESH_PLAN.md`, sekcja 10.

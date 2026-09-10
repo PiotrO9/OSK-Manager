@@ -113,9 +113,8 @@ function handleFormSubmit() {
             <UiDialogHeader>
                 <UiDialogTitle>Nowy kursant</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Konto powstaje przez rejestrację z rolą STUDENT w wybranej
-                    OSK (upstream
-                    <span class="font-mono">POST /auth/register</span>).
+                    Uzupełnij dane kursanta i wybierz szkołę jazdy, do której
+                    będzie przypisane jego konto.
                 </UiDialogDescription>
             </UiDialogHeader>
 

@@ -3,10 +3,12 @@ const props = withDefaults(
     defineProps<{
         title?: string;
         description?: string;
+        showLabels?: boolean;
     }>(),
     {
         title: 'Wczytywanie danych',
         description: '',
+        showLabels: true,
     },
 );
 </script>
@@ -16,8 +18,12 @@ const props = withDefaults(
         class="border-border bg-card min-h-40 rounded-lg border p-4"
         role="status"
         aria-live="polite"
+        :aria-label="props.title"
     >
-        <div class="flex items-center justify-between gap-4">
+        <div
+            v-if="props.showLabels"
+            class="flex items-center justify-between gap-4"
+        >
             <div class="min-w-0 space-y-1">
                 <p class="text-foreground text-sm font-semibold">
                     {{ props.title }}
@@ -32,7 +38,7 @@ const props = withDefaults(
             <UiBadge variant="secondary">Ładowanie</UiBadge>
         </div>
 
-        <div class="mt-5 space-y-3">
+        <div :class="['space-y-3', props.showLabels ? 'mt-5' : '']">
             <UiSkeleton class="h-4 w-full" />
             <UiSkeleton class="h-4 w-[86%]" />
             <UiSkeleton class="h-4 w-[64%]" />

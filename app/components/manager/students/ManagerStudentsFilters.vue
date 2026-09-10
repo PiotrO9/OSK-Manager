@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Building2, SlidersHorizontal, X } from 'lucide-vue-next';
 import type { CourseListItem } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
@@ -11,7 +12,6 @@ interface Props {
     isStudentsLoading: boolean;
     isCoursesLoading: boolean;
 }
-
 defineProps<Props>();
 
 const emit = defineEmits<{
@@ -41,79 +41,119 @@ function handleCourseUpdate(value: unknown) {
 </script>
 
 <template>
-    <div
-        class="border-border bg-muted/20 grid gap-3 rounded-2xl border p-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+    <FilterBar
+        title=""
+        class="rounded-none border-0 border-b px-4 py-4 shadow-none sm:px-5"
+        :is-loading="isStudentsLoading || isCoursesLoading"
+        aria-label="Filtry listy kursantów"
     >
-        <div v-if="schools.length > 1" class="space-y-1.5">
-            <UiLabel for="students-page-school">Szkoła jazdy</UiLabel>
-            <UiSelect
-                :model-value="activeSchoolId"
-                :disabled="isStudentsLoading || isCoursesLoading"
-                @update:model-value="handleSchoolUpdate"
+        <div
+            class="flex w-full min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+        >
+            <div
+                v-if="schools.length > 1"
+                class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:max-w-sm lg:flex-1"
             >
-                <UiSelectTrigger
-                    id="students-page-school"
-                    class="bg-background h-11 w-full rounded-xl"
-                    aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
+                <UiLabel
+                    for="students-page-school"
+                    class="text-muted-foreground shrink-0 text-xs"
+                    >Szkoła jazdy</UiLabel
                 >
-                    <UiSelectValue placeholder="Wybierz szkołę" />
-                </UiSelectTrigger>
-                <UiSelectContent>
-                    <UiSelectGroup>
-                        <UiSelectItem
-                            v-for="s in schools"
-                            :key="s.id"
-                            :value="s.id"
-                        >
-                            {{ s.name
-                            }}{{
-                                s.city && s.city.length > 0
-                                    ? ` (${s.city})`
-                                    : ''
-                            }}
-                        </UiSelectItem>
-                    </UiSelectGroup>
-                </UiSelectContent>
-            </UiSelect>
-        </div>
-
-        <div v-else class="border-border bg-background rounded-xl border p-3">
-            <p class="text-muted-foreground text-xs font-medium">
-                Szkoła jazdy
-            </p>
-            <p class="text-foreground mt-1 truncate text-sm font-bold">
-                {{ activeSchoolName ?? 'Brak wybranej szkoły' }}
-            </p>
-        </div>
-
-        <div class="space-y-1.5">
-            <UiLabel for="students-page-course-filter"> Kurs </UiLabel>
-            <UiSelect
-                :model-value="activeCourseId"
-                :disabled="
-                    isStudentsLoading || isCoursesLoading || !activeSchoolId
-                "
-                @update:model-value="handleCourseUpdate"
+                <UiSelect
+                    :model-value="activeSchoolId"
+                    :disabled="isStudentsLoading || isCoursesLoading"
+                    @update:model-value="handleSchoolUpdate"
+                >
+                    <UiSelectTrigger
+                        id="students-page-school"
+                        class="h-11 w-full min-w-0 sm:h-9"
+                        aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
+                    >
+                        <UiSelectValue placeholder="Wybierz szkołę" />
+                    </UiSelectTrigger>
+                    <UiSelectContent>
+                        <UiSelectGroup>
+                            <UiSelectItem
+                                v-for="school in schools"
+                                :key="school.id"
+                                :value="school.id"
+                            >
+                                {{ school.name
+                                }}{{ school.city ? ` (${school.city})` : '' }}
+                            </UiSelectItem>
+                        </UiSelectGroup>
+                    </UiSelectContent>
+                </UiSelect>
+            </div>
+            <div v-else class="flex min-w-0 items-center gap-3">
+                <span
+                    class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
+                    ><Building2 class="size-4" aria-hidden="true"
+                /></span>
+                <div class="min-w-0">
+                    <p class="text-muted-foreground text-xs">Szkoła jazdy</p>
+                    <p
+                        class="text-foreground text-sm font-semibold wrap-anywhere"
+                    >
+                        {{ activeSchoolName ?? 'Brak wybranej szkoły' }}
+                    </p>
+                </div>
+            </div>
+            <div
+                class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:w-80 lg:shrink-0"
             >
-                <UiSelectTrigger
-                    id="students-page-course-filter"
-                    class="bg-background h-11 w-full rounded-xl"
-                    aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
+                <UiLabel
+                    for="students-page-course-filter"
+                    class="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs"
+                    ><SlidersHorizontal
+                        class="size-3.5"
+                        aria-hidden="true"
+                    />Kurs</UiLabel
                 >
-                    <UiSelectValue placeholder="Wszystkie kursy" />
-                </UiSelectTrigger>
-                <UiSelectContent>
-                    <UiSelectGroup>
-                        <UiSelectItem
-                            v-for="c in courses"
-                            :key="c.id"
-                            :value="c.id"
+                <div class="flex min-w-0 flex-1 items-center gap-1">
+                    <UiSelect
+                        :model-value="activeCourseId"
+                        :disabled="
+                            isStudentsLoading ||
+                            isCoursesLoading ||
+                            !activeSchoolId
+                        "
+                        @update:model-value="handleCourseUpdate"
+                    >
+                        <UiSelectTrigger
+                            id="students-page-course-filter"
+                            class="h-11 w-full min-w-0 sm:h-9"
+                            aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
                         >
-                            {{ c.name }} ({{ c.category }})
-                        </UiSelectItem>
-                    </UiSelectGroup>
-                </UiSelectContent>
-            </UiSelect>
+                            <UiSelectValue placeholder="Wszystkie kursy" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem
+                                    v-for="course in courses"
+                                    :key="course.id"
+                                    :value="course.id"
+                                    >{{ course.name }} ({{
+                                        course.category
+                                    }})</UiSelectItem
+                                >
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
+                    <UiButton
+                        v-if="activeCourseId"
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        class="size-11 shrink-0 sm:size-9"
+                        :disabled="isStudentsLoading || isCoursesLoading"
+                        aria-label="Wyczyść filtr kursu"
+                        title="Wszystkie kursy"
+                        @click="handleCourseUpdate('')"
+                        ><X class="size-4" aria-hidden="true"
+                    /></UiButton>
+                </div>
+            </div>
         </div>
-    </div>
+    </FilterBar>
 </template>

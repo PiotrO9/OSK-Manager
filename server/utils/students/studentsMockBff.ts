@@ -122,6 +122,8 @@ export function bffMockStudentsList(params: {
     page: number;
     limit: number;
     courseId?: string;
+    search?: string;
+    view?: string;
 }): { success: true; data: unknown } {
     if (params.courseId !== undefined) {
         const course = mockCoursesGetById(params.courseId);
@@ -140,6 +142,9 @@ export function bffMockStudentsList(params: {
             params.page,
             params.limit,
             params.courseId,
+            params.search,
+            params.view,
+            mockStudentPaymentsPayload().summary.overdueCount > 0,
         ),
     );
 }

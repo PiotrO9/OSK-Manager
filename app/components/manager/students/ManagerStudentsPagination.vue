@@ -19,16 +19,21 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div
+    <nav
         v-if="
             activeSchoolId &&
             pagination &&
             pagination.totalPages > 1 &&
+            !isStudentsLoading &&
             !hasError
         "
-        class="border-border flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:justify-between"
+        class="border-border bg-muted/20 flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+        aria-label="Strony listy kursantów"
     >
-        <p class="text-muted-foreground text-sm tabular-nums">
+        <p
+            class="text-muted-foreground text-xs tabular-nums"
+            aria-live="polite"
+        >
             Strona {{ currentPage }} z {{ pagination.totalPages }} ({{
                 pagination.total
             }}
@@ -39,7 +44,7 @@ const emit = defineEmits<{
                 type="button"
                 variant="outline"
                 size="sm"
-                class="rounded-xl"
+                class="h-11 flex-1 sm:h-9 sm:flex-none"
                 :disabled="currentPage <= 1 || isStudentsLoading"
                 aria-label="Poprzednia strona listy kursantów"
                 @click="emit('prev')"
@@ -51,7 +56,7 @@ const emit = defineEmits<{
                 type="button"
                 variant="outline"
                 size="sm"
-                class="rounded-xl"
+                class="h-11 flex-1 sm:h-9 sm:flex-none"
                 :disabled="
                     currentPage >= pagination.totalPages || isStudentsLoading
                 "
@@ -62,5 +67,5 @@ const emit = defineEmits<{
                 <ChevronRight class="ml-1 size-4" aria-hidden="true" />
             </UiButton>
         </div>
-    </div>
+    </nav>
 </template>

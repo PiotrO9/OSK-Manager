@@ -26,10 +26,13 @@ export function useManagerStudentsPage() {
         studentsLoadError,
         activeSchool,
         activeCourse,
+        search,
+        quickView,
         totalStudentsCount,
         activeStudentsOnPage,
         studentsWithPkkOnPage,
         visibleStudentsLabel,
+        invalidateStudentsRequest,
         loadSchools,
         loadCoursesForFilter,
         loadStudents,
@@ -85,6 +88,19 @@ export function useManagerStudentsPage() {
         loadStudents,
     });
 
+    watch([search, quickView], ([text], [previousText], onCleanup) => {
+        invalidateStudentsRequest();
+        currentPage.value = 1;
+        const timer = setTimeout(
+            () => {
+                void loadStudents();
+            },
+            text !== previousText && text.trim() ? 350 : 0,
+        );
+
+        onCleanup(() => clearTimeout(timer));
+    });
+
     const { prefillSchoolId } = useManagerStudentsPageInit({
         schools,
         activeSchoolId,
@@ -116,6 +132,8 @@ export function useManagerStudentsPage() {
         isFormSaving,
         apiError,
         prefillSchoolId,
+        search,
+        quickView,
         activeSchool,
         activeCourse,
         totalStudentsCount,

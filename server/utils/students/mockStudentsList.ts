@@ -459,6 +459,9 @@ export function mockStudentsListPayload(
     page: number,
     limit: number,
     courseId?: string,
+    search = '',
+    view = 'all',
+    hasOverduePayments = false,
 ): {
     data: MockStudentListRow[];
     total: number;
@@ -474,11 +477,41 @@ export function mockStudentsListPayload(
               )
             : all;
 
-    const total = filtered.length;
+    const terms = search
+        .trim()
+        .toLocaleLowerCase('pl')
+        .split(/\s+/)
+        .filter(Boolean);
+    const matching = filtered.filter((row) => {
+        const text = [
+            row.firstName,
+            row.lastName,
+            row.email,
+            row.phone,
+            row.pkkNumber,
+        ]
+            .join(' ')
+            .toLocaleLowerCase('pl');
+
+        if (!terms.every((term) => text.includes(term))) return false;
+
+        if (view === 'without-pkk') return !row.pkkNumber?.trim();
+
+        if (view === 'without-course')
+            return !mockCoursesListPayload(schoolId).courses.some((course) =>
+                mockStudentVisibleInCourseFilter(row.id, course.id),
+            );
+
+        if (view === 'overdue') return hasOverduePayments;
+
+        // Mock student events contain no scheduled lessons.
+        return true;
+    });
+    const total = matching.length;
     const safeLimit = Math.max(1, Math.min(100, limit));
     const safePage = Math.max(1, page);
     const offset = (safePage - 1) * safeLimit;
-    const pageRows = filtered.slice(offset, offset + safeLimit);
+    const pageRows = matching.slice(offset, offset + safeLimit);
 
     return {
         data: pageRows,

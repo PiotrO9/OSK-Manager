@@ -18,6 +18,8 @@ const {
     isCoursesLoading,
     coursesLoadError,
     activeCourseId,
+    search,
+    quickView,
     currentPage,
     students,
     studentsPagination,
@@ -32,11 +34,9 @@ const {
     apiError,
     prefillSchoolId,
     activeSchool,
-    activeCourse,
     totalStudentsCount,
     activeStudentsOnPage,
     studentsWithPkkOnPage,
-    visibleStudentsLabel,
     loadSchools,
     loadStudents,
     handleActiveSchoolChange,
@@ -53,135 +53,147 @@ const {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="space-y-6">
         <ManagerStudentsPageHeader @create="handleOpenCreateDialog" />
 
-        <ManagerStudentsStats
-            :total-students-count="totalStudentsCount"
-            :page-students-count="students.length"
-            :active-students-on-page="activeStudentsOnPage"
-            :students-with-pkk-on-page="studentsWithPkkOnPage"
-        />
+        <section
+            class="border-border bg-card min-w-0 overflow-hidden rounded-lg border shadow-xs"
+            aria-label="Baza kursantów"
+        >
+            <ManagerStudentsFilters
+                v-model:active-school-id="activeSchoolId"
+                v-model:active-course-id="activeCourseId"
+                :schools="schools"
+                :courses="courses"
+                :active-school-name="activeSchool?.name ?? null"
+                :is-students-loading="isSchoolsLoading || isStudentsLoading"
+                :is-courses-loading="isCoursesLoading"
+                @school-change="handleActiveSchoolChange"
+                @course-change="handleCourseFilterChange"
+            />
+            <ManagerStudentsSearch
+                v-model:search="search"
+                v-model:quick-view="quickView"
+                :disabled="isSchoolsLoading || !activeSchoolId"
+            />
+            <ManagerStudentsStats
+                :total-students-count="totalStudentsCount"
+                :page-students-count="students.length"
+                :active-students-on-page="activeStudentsOnPage"
+                :students-with-pkk-on-page="studentsWithPkkOnPage"
+                :is-unavailable="
+                    isSchoolsLoading ||
+                    isStudentsLoading ||
+                    Boolean(schoolsLoadError || studentsLoadError)
+                "
+            />
 
-        <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-            <UiCardHeader class="border-border border-b p-5 pt-0">
-                <div
-                    class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"
-                >
-                    <div class="space-y-1">
-                        <UiCardTitle class="text-xl font-extrabold">
-                            Lista kursantów
-                        </UiCardTitle>
-                        <UiCardDescription>
-                            {{ visibleStudentsLabel }}
-                            <span v-if="activeSchool">
-                                · {{ activeSchool.name }}
-                            </span>
-                        </UiCardDescription>
-                    </div>
-                    <UiBadge
-                        v-if="activeCourse"
-                        variant="outline"
-                        class="w-fit rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
-                    >
-                        Kurs: {{ activeCourse.name }}
-                    </UiBadge>
-                </div>
-            </UiCardHeader>
-
-            <UiCardContent
-                class="space-y-4 px-4 py-0"
-                :aria-busy="isSchoolsLoading || isStudentsLoading"
+            <p
+                v-if="isCoursesLoading"
+                class="text-muted-foreground px-5 py-3 text-sm"
+                role="status"
             >
-                <ManagerStudentsFilters
-                    v-model:active-school-id="activeSchoolId"
-                    v-model:active-course-id="activeCourseId"
-                    :schools="schools"
-                    :courses="courses"
-                    :active-school-name="activeSchool?.name ?? null"
-                    :is-students-loading="isStudentsLoading"
-                    :is-courses-loading="isCoursesLoading"
-                    @school-change="handleActiveSchoolChange"
-                    @course-change="handleCourseFilterChange"
+                Wczytywanie kursów do filtra…
+            </p>
+            <p
+                v-else-if="coursesLoadError"
+                class="text-destructive px-5 py-3 text-sm"
+                role="alert"
+                aria-live="polite"
+            >
+                {{ coursesLoadError }}
+            </p>
+
+            <div :aria-busy="isSchoolsLoading || isStudentsLoading">
+                <LoadingState
+                    v-if="isSchoolsLoading"
+                    class="m-4 border-0 shadow-none"
+                    title="Wczytywanie szkół jazdy"
                 />
-
-                <p
-                    v-if="isCoursesLoading"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Wczytywanie kursów do filtra…
-                </p>
-                <p
-                    v-else-if="coursesLoadError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                    aria-live="polite"
-                >
-                    {{ coursesLoadError }}
-                </p>
-
-                <div v-if="isSchoolsLoading" class="space-y-3" role="status">
-                    <UiSkeleton class="h-16 rounded-xl" />
-                    <UiSkeleton class="h-16 rounded-xl" />
-                    <UiSkeleton class="h-16 rounded-xl" />
-                </div>
-
                 <ErrorState
                     v-else-if="schoolsLoadError"
+                    class="m-4"
                     title="Nie udało się wczytać szkół jazdy"
                     :description="schoolsLoadError"
                     @retry="loadSchools"
                 />
-
                 <EmptyState
                     v-else-if="schools.length === 0"
+                    class="m-4"
                     title="Brak szkół jazdy"
                     description="Dodaj OSK w panelu szkół, aby wyświetlić listę kursantów."
                 />
-
                 <ErrorState
                     v-else-if="studentsLoadError"
+                    class="m-4"
                     title="Nie udało się wczytać kursantów"
                     :description="studentsLoadError"
                     @retry="loadStudents"
                 />
-
-                <div
+                <LoadingState
                     v-else-if="isStudentsLoading"
-                    class="space-y-3"
-                    role="status"
-                >
-                    <UiSkeleton class="h-14 rounded-xl" />
-                    <UiSkeleton class="h-14 rounded-xl" />
-                    <UiSkeleton class="h-14 rounded-xl" />
-                </div>
-
+                    class="m-4 border-0 shadow-none"
+                    title="Wczytywanie kursantów"
+                    :show-labels="false"
+                />
                 <EmptyState
                     v-else-if="students.length === 0"
-                    title="Brak kursantów"
-                    description="W wybranej szkole lub filtrze kursu nie ma jeszcze kursantów."
-                />
-
+                    class="m-4"
+                    :title="
+                        search.trim() || quickView !== 'all'
+                            ? 'Brak wyników wyszukiwania'
+                            : activeCourseId
+                              ? 'Brak kursantów w tym kursie'
+                              : 'Brak kursantów'
+                    "
+                    :description="
+                        search.trim() || quickView !== 'all'
+                            ? 'Zmień wyszukiwanie lub wyczyść filtry, aby zobaczyć pozostałych kursantów.'
+                            : activeCourseId
+                              ? 'Wybierz inny kurs lub wyczyść filtr, aby zobaczyć pozostałych kursantów.'
+                              : 'Dodaj pierwszego kursanta do wybranej szkoły jazdy.'
+                    "
+                >
+                    <template #action>
+                        <UiButton
+                            v-if="
+                                activeCourseId ||
+                                search.trim() ||
+                                quickView !== 'all'
+                            "
+                            variant="outline"
+                            @click="
+                                search = '';
+                                quickView = 'all';
+                                activeCourseId = '';
+                                handleCourseFilterChange();
+                            "
+                            >Wyczyść filtry</UiButton
+                        >
+                        <UiButton v-else @click="handleOpenCreateDialog"
+                            >Dodaj kursanta</UiButton
+                        >
+                    </template>
+                </EmptyState>
                 <ManagerStudentsList
                     v-else
+                    class="rounded-none border-0 shadow-none"
                     :students="students"
                     :active-school-id="activeSchoolId"
                     :is-students-loading="isStudentsLoading"
                     @assign-course="handleOpenAssignCourse"
                 />
-
-                <ManagerStudentsPagination
-                    :active-school-id="activeSchoolId"
-                    :current-page="currentPage"
-                    :pagination="studentsPagination"
-                    :is-students-loading="isStudentsLoading"
-                    :has-error="Boolean(studentsLoadError)"
-                    @prev="handlePrevPage"
-                    @next="handleNextPage"
-                />
-            </UiCardContent>
-        </UiCard>
+            </div>
+            <ManagerStudentsPagination
+                :active-school-id="activeSchoolId"
+                :current-page="currentPage"
+                :pagination="studentsPagination"
+                :is-students-loading="isStudentsLoading"
+                :has-error="Boolean(studentsLoadError)"
+                @prev="handlePrevPage"
+                @next="handleNextPage"
+            />
+        </section>
 
         <ManagerStudentAssignCourseDialog
             :open="assignDialogOpen"

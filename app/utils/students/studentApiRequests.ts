@@ -13,6 +13,8 @@ export interface StudentsListQuery {
     page: number;
     limit: number;
     courseId?: string;
+    search?: string;
+    view?: string;
 }
 
 export interface AssignStudentToCourseParams {
@@ -73,6 +75,10 @@ export function buildStudentsListPath(params: StudentsListQuery): string {
     if (courseId) {
         qs.set('courseId', courseId);
     }
+
+    if (params.search?.trim()) qs.set('search', params.search.trim());
+
+    if (params.view && params.view !== 'all') qs.set('view', params.view);
 
     return `/api/students?${qs.toString()}`;
 }

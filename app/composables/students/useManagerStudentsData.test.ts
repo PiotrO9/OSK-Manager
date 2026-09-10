@@ -278,4 +278,42 @@ describe('useManagerStudentsData', () => {
             'Brak dostępu do listy kursantów dla wybranej szkoły.',
         );
     });
+    it('forwards search and view while ignoring a request invalidated during typing', async () => {
+        const { useManagerStudentsData } =
+            await import('./useManagerStudentsData');
+        const data = useManagerStudentsData();
+
+        data.activeSchoolId.value = 'school-1';
+        let resolveOld!: (value: unknown) => void;
+
+        fetchStudentsPage.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    resolveOld = resolve;
+                }),
+        );
+        const pending = data.loadStudents();
+
+        data.search.value = '  Jan Kowalski  ';
+        data.quickView.value = 'without-pkk';
+        data.invalidateStudentsRequest();
+        resolveOld({ items: [student()], total: 1, totalPages: 1 });
+        await pending;
+        expect(data.students.value).toEqual([]);
+        expect(data.isStudentsLoading.value).toBe(true);
+        fetchStudentsPage.mockResolvedValue({
+            items: [],
+            total: 0,
+            totalPages: 0,
+        });
+        await data.loadStudents();
+        expect(fetchStudentsPage).toHaveBeenLastCalledWith({
+            schoolId: 'school-1',
+            page: 1,
+            limit: 20,
+            search: 'Jan Kowalski',
+            view: 'without-pkk',
+        });
+        expect(data.isStudentsLoading.value).toBe(false);
+    });
 });

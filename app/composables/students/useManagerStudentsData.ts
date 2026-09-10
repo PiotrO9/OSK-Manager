@@ -1,3 +1,4 @@
+import type { StudentListView } from '~~/shared/utils/studentListFilters';
 import type { CourseListItem } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { StudentListItem } from '~/types/students/student';
@@ -24,6 +25,8 @@ export function useManagerStudentsData() {
     const isCoursesLoading = ref(false);
     const coursesLoadError = ref<string | null>(null);
 
+    const search = ref('');
+    const quickView = ref<StudentListView>('all');
     const activeCourseId = ref('');
     const currentPage = ref(1);
 
@@ -128,6 +131,12 @@ export function useManagerStudentsData() {
         }
     }
 
+    function invalidateStudentsRequest() {
+        studentsLoadSeq += 1;
+        isStudentsLoading.value = Boolean(activeSchoolId.value.trim());
+        studentsLoadError.value = null;
+    }
+
     async function loadStudents() {
         const sid = activeSchoolId.value.trim();
         const seq = ++studentsLoadSeq;
@@ -146,6 +155,8 @@ export function useManagerStudentsData() {
             const courseIdTrimmed = activeCourseId.value.trim();
             const page = await fetchStudentsPage({
                 schoolId: sid,
+                ...(search.value.trim() ? { search: search.value.trim() } : {}),
+                ...(quickView.value !== 'all' ? { view: quickView.value } : {}),
                 page: currentPage.value,
                 limit: STUDENTS_PAGE_LIMIT,
                 ...(courseIdTrimmed.length > 0
@@ -186,6 +197,8 @@ export function useManagerStudentsData() {
         isCoursesLoading,
         coursesLoadError,
         activeCourseId,
+        search,
+        quickView,
         currentPage,
         students,
         studentsPagination,
@@ -199,6 +212,7 @@ export function useManagerStudentsData() {
         visibleStudentsLabel,
         loadSchools,
         loadCoursesForFilter,
+        invalidateStudentsRequest,
         loadStudents,
     };
 }

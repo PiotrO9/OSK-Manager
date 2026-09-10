@@ -1,49 +1,55 @@
 <script setup lang="ts">
-defineProps<{
-    totalStudentsCount: number;
-    pageStudentsCount: number;
-    activeStudentsOnPage: number;
-    studentsWithPkkOnPage: number;
-}>();
+withDefaults(
+    defineProps<{
+        totalStudentsCount: number;
+        pageStudentsCount: number;
+        activeStudentsOnPage: number;
+        studentsWithPkkOnPage: number;
+        isUnavailable?: boolean;
+    }>(),
+    { isUnavailable: false },
+);
 </script>
 
 <template>
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div
+        class="border-border bg-muted/20 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b px-4 py-3 sm:px-5"
+        aria-label="Podsumowanie listy kursantów"
+    >
+        <dl class="flex items-baseline gap-2 text-sm">
+            <dt class="text-muted-foreground">Wyniki</dt>
+            <dd class="text-foreground font-bold tabular-nums">
+                {{ isUnavailable ? '—' : totalStudentsCount }}
+            </dd>
+        </dl>
         <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-xs"
         >
-            <p class="text-muted-foreground text-sm font-medium">Kursanci</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ totalStudentsCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">Na stronie</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ pageStudentsCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">
-                Aktywni na stronie
-            </p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ activeStudentsOnPage }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">
-                Z numerem PKK
-            </p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ studentsWithPkkOnPage }}
-            </p>
+            <span>Na tej stronie:</span>
+            <dl class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div class="flex items-center gap-1.5">
+                    <dt>kursanci</dt>
+                    <dd class="text-foreground font-semibold tabular-nums">
+                        {{ isUnavailable ? '—' : pageStudentsCount }}
+                    </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="bg-success-600 size-1.5 rounded-full"
+                        aria-hidden="true"
+                    />
+                    <dt>aktywni</dt>
+                    <dd class="text-foreground font-semibold tabular-nums">
+                        {{ isUnavailable ? '—' : activeStudentsOnPage }}
+                    </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <dt>z PKK</dt>
+                    <dd class="text-foreground font-semibold tabular-nums">
+                        {{ isUnavailable ? '—' : studentsWithPkkOnPage }}
+                    </dd>
+                </div>
+            </dl>
         </div>
     </div>
 </template>

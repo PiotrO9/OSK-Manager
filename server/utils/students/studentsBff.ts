@@ -9,12 +9,16 @@ export async function bffUpstreamStudentsList(
         page: number;
         limit: number;
         courseId?: string;
+        search?: string;
+        view?: string;
     },
 ): Promise<{ success: true; data: unknown }> {
     const query: Record<string, string | number | undefined> = {
         schoolId: params.schoolId,
         page: params.page,
         limit: params.limit,
+        search: params.search,
+        view: params.view,
     };
 
     if (params.courseId !== undefined && params.courseId.trim().length > 0) {
