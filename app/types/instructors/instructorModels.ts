@@ -15,6 +15,7 @@ export interface InstructorListItem {
 
 export interface InstructorDetail {
     id: string;
+    schoolId: string;
     name: string;
     email: string;
     licenseNumber: string;

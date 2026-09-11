@@ -8,6 +8,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 
 function getInstructorId(): string {
     const raw = route.params.id;
@@ -57,6 +58,18 @@ const backHref = computed(() => {
 
     return id ? `/manager/instructors/${id}` : '/manager/instructors';
 });
+
+watch(
+    () => route.query.schoolId,
+    (schoolId) => {
+        if (schoolId === undefined) {
+            return;
+        }
+
+        void router.replace({ path: route.path, query: {} });
+    },
+    { immediate: true },
+);
 </script>
 
 <template>

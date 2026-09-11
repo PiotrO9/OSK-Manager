@@ -36,13 +36,6 @@ defineProps<{
                         edycję. Bloki bez kursanta zmieniają wolne sloty
                         instruktora.
                     </p>
-                    <p
-                        v-if="!schoolId"
-                        class="text-warning-800 mt-2 text-xs font-medium"
-                    >
-                        Dodaj <code>?schoolId=</code> w adresie, aby wybrac
-                        pojazd dla bloku jazdy.
-                    </p>
                 </div>
             </div>
 

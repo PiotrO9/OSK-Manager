@@ -6,46 +6,60 @@ defineProps<{
     activeSchool: DrivingSchool | null;
     instructorsWithQualificationsCount: number;
     uniqueQualificationCodesCount: number;
+    isUnavailable?: boolean;
 }>();
 </script>
 
 <template>
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div
+        class="border-border bg-muted/20 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b px-4 py-3 sm:px-5"
+        aria-label="Podsumowanie listy instruktorów"
+    >
+        <dl class="flex items-baseline gap-2 text-sm">
+            <dt class="text-muted-foreground">Wyniki</dt>
+            <dd class="text-foreground font-bold tabular-nums">
+                {{ isUnavailable ? '—' : instructorsCount }}
+            </dd>
+        </dl>
+
         <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+            class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-2 text-xs"
         >
-            <p class="text-muted-foreground text-sm font-medium">
-                Instruktorzy
-            </p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ instructorsCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">OSK</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ activeSchool ? '1' : '0' }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">
-                Z kwalifikacjami
-            </p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ instructorsWithQualificationsCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">Kategorie</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ uniqueQualificationCodesCount }}
-            </p>
+            <span>Wybrana OSK:</span>
+            <dl class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div class="flex min-w-0 items-center gap-1.5">
+                    <dt class="sr-only">Szkoła jazdy</dt>
+                    <dd class="text-foreground max-w-56 truncate font-semibold">
+                        {{
+                            isUnavailable
+                                ? '—'
+                                : activeSchool?.name || 'Brak wyboru'
+                        }}
+                    </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span
+                        class="bg-success-600 size-1.5 rounded-full"
+                        aria-hidden="true"
+                    />
+                    <dt>z kwalifikacjami</dt>
+                    <dd class="text-foreground font-semibold tabular-nums">
+                        {{
+                            isUnavailable
+                                ? '—'
+                                : instructorsWithQualificationsCount
+                        }}
+                    </dd>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <dt>kategorie</dt>
+                    <dd class="text-foreground font-semibold tabular-nums">
+                        {{
+                            isUnavailable ? '—' : uniqueQualificationCodesCount
+                        }}
+                    </dd>
+                </div>
+            </dl>
         </div>
     </div>
 </template>

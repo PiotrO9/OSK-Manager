@@ -66,6 +66,11 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
         userIdRaw != null && String(userIdRaw).trim().length > 0
             ? String(userIdRaw).trim()
             : id;
+    const schoolIdRaw = o.schoolId ?? o.school_id;
+    const schoolId =
+        schoolIdRaw != null && String(schoolIdRaw).trim().length > 0
+            ? String(schoolIdRaw).trim()
+            : '';
 
     const firstName =
         o.firstName != null
@@ -83,7 +88,7 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
 
     const email = o.email != null ? String(o.email).trim().toLowerCase() : '';
 
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !lastName || !email || !schoolId) {
         return null;
     }
 
@@ -100,6 +105,7 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
     return {
         id,
         userId,
+        schoolId,
         firstName,
         lastName,
         email,

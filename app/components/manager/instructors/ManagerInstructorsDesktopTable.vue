@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Mail } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import AppListAvatar from '~/components/app/AppListAvatar.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -16,81 +15,100 @@ defineProps<{
 </script>
 
 <template>
-    <div class="hidden overflow-hidden rounded-2xl border md:block">
-        <table class="w-full min-w-[760px] text-left text-sm">
-            <thead class="bg-muted/50 text-muted-foreground border-b">
-                <tr>
-                    <th scope="col" class="px-4 py-3 font-semibold">Nazwa</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Kontakt</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Zakres</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Akcje</th>
-                </tr>
-            </thead>
-            <tbody class="divide-border divide-y">
-                <tr
-                    v-for="instructor in instructors"
-                    :key="instructor.id"
-                    class="hover:bg-muted/30"
+    <table class="hidden w-full table-fixed text-left text-sm @3xl:table">
+        <caption class="sr-only">
+            Instruktorzy: dane kontaktowe, kwalifikacje i akcje.
+        </caption>
+        <thead
+            class="border-border bg-muted/30 text-muted-foreground border-b text-xs"
+        >
+            <tr>
+                <th scope="col" class="w-[32%] px-5 py-3 font-medium">
+                    Instruktor
+                </th>
+                <th scope="col" class="w-[30%] px-4 py-3 font-medium">
+                    Kontakt
+                </th>
+                <th scope="col" class="w-[16%] px-4 py-3 font-medium">
+                    Kwalifikacje
+                </th>
+                <th
+                    scope="col"
+                    class="w-[22%] px-5 py-3 text-right font-medium"
                 >
-                    <td class="px-4 py-3">
-                        <div class="flex min-w-0 items-center gap-3">
-                            <ProfileAvatar
-                                :src="instructor.avatarUrl"
-                                :initials="instructorInitials(instructor)"
-                                :size="40"
-                                shape="rounded"
-                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sm font-extrabold text-sky-700"
-                            />
-                            <div class="min-w-0">
-                                <p class="truncate font-extrabold">
-                                    {{
-                                        formatInstructorDisplayName(instructor)
-                                    }}
-                                </p>
-                                <p class="text-muted-foreground text-xs">
-                                    {{
-                                        instructorQualificationLabel(instructor)
-                                    }}
-                                </p>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <p
-                            class="text-muted-foreground flex items-center gap-2 text-sm break-all"
-                        >
-                            <Mail
-                                class="size-3.5 shrink-0"
-                                aria-hidden="true"
-                            />
-                            {{ instructor.email || '—' }}
-                        </p>
-                    </td>
-                    <td class="px-4 py-3">
-                        <UiBadge
-                            variant="outline"
-                            class="bg-muted/40 rounded-full"
-                        >
-                            {{ instructorQualificationLabel(instructor) }}
-                        </UiBadge>
-                    </td>
-                    <td class="px-4 py-3">
-                        <UiButton
-                            as-child
-                            variant="outline"
-                            size="sm"
-                            class="rounded-xl"
-                        >
+                    Akcje
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-border divide-y">
+            <tr
+                v-for="instructor in instructors"
+                :key="instructor.id"
+                class="group hover:bg-muted/30 focus-within:bg-muted/30 transition-colors"
+            >
+                <th scope="row" class="px-5 py-3 text-left font-normal">
+                    <div class="flex min-w-0 items-center gap-3">
+                        <AppListAvatar
+                            :src="instructor.avatarUrl"
+                            :initials="instructorInitials(instructor)"
+                            :size="36"
+                        />
+                        <div class="min-w-0 space-y-1">
                             <NuxtLink
                                 :to="instructorDetailsTo(instructor)"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
                                 :aria-label="`Otwórz szczegóły instruktora ${formatInstructorDisplayName(instructor)}`"
+                                >{{
+                                    formatInstructorDisplayName(instructor)
+                                }}</NuxtLink
                             >
-                                Szczegóły
-                            </NuxtLink>
-                        </UiButton>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                            <p class="text-muted-foreground text-xs">
+                                Instruktor OSK
+                            </p>
+                        </div>
+                    </div>
+                </th>
+                <td class="px-4 py-3">
+                    <div class="space-y-1.5 text-xs">
+                        <p class="text-foreground wrap-anywhere">
+                            {{ instructor.email || 'Brak e-maila' }}
+                        </p>
+                        <p class="text-muted-foreground tabular-nums">
+                            {{ instructor.phone || 'Brak telefonu' }}
+                        </p>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <StatusBadge
+                        :label="instructorQualificationLabel(instructor)"
+                        :tone="
+                            (instructor.qualifiedCourseTypes ?? []).length > 0
+                                ? 'info'
+                                : 'neutral'
+                        "
+                        subtle
+                    />
+                </td>
+                <td class="px-3 py-3 text-right">
+                    <UiButton
+                        as-child
+                        variant="ghost"
+                        size="sm"
+                        class="text-primary dark:text-primary-300 h-9 gap-1.5 px-2"
+                    >
+                        <NuxtLink
+                            :to="instructorDetailsTo(instructor)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            :aria-label="`Otwórz szczegóły instruktora ${formatInstructorDisplayName(instructor)}`"
+                        >
+                            Szczegóły
+                        </NuxtLink>
+                    </UiButton>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </template>

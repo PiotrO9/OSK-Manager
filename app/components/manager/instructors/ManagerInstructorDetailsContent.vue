@@ -32,14 +32,14 @@ const {
 const displayValue = displayManagerInstructorDetailsValue;
 
 const reviewsTo = computed<RouteLocationRaw | null>(() => {
-    if (!props.subpageQuery.schoolId) {
+    if (!props.instructor.schoolId) {
         return null;
     }
 
     return {
         path: '/manager/reviews',
         query: {
-            schoolId: props.subpageQuery.schoolId,
+            schoolId: props.instructor.schoolId,
             instructorId: props.instructor.id,
         },
     };

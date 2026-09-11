@@ -5,12 +5,12 @@ import { useManagerInstructorDetailsEdit } from './useManagerInstructorDetailsEd
 import { useManagerInstructorDetailsRatingSummary } from './useManagerInstructorDetailsRatingSummary';
 import {
     displayManagerInstructorText,
-    getManagerInstructorRouteString,
 } from '~/utils/instructors/managerInstructorDetailsPage';
 import { usePageMeta } from '../core/usePageMeta';
 
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
+    const router = useRouter();
 
     const {
         editBaseline,
@@ -52,11 +52,7 @@ export function useManagerInstructorDetailsPage() {
     const { ratingSummary, isRatingSummaryLoading, loadRatingSummary } =
         useManagerInstructorDetailsRatingSummary();
 
-    const instructorSubpageQuery = computed((): Record<string, string> => {
-        const schoolId = getManagerInstructorRouteString(route.query.schoolId);
-
-        return schoolId.length > 0 ? { schoolId } : {};
-    });
+    const instructorSubpageQuery = computed<Record<string, string>>(() => ({}));
 
     usePageMeta({
         title: () => instructor.value?.name?.trim() || 'Instruktor',
@@ -68,11 +64,20 @@ export function useManagerInstructorDetailsPage() {
         async (id) => {
             resetEditState();
             isDeleteDialogOpen.value = false;
-            await Promise.all([
-                loadInstructor(id),
-                loadCourseTypes(),
-                loadRatingSummary(id),
-            ]);
+            await Promise.all([loadInstructor(id), loadCourseTypes()]);
+            await loadRatingSummary(id, instructor.value?.schoolId ?? '');
+        },
+        { immediate: true },
+    );
+
+    watch(
+        () => route.query.schoolId,
+        (schoolId) => {
+            if (schoolId === undefined) {
+                return;
+            }
+
+            void router.replace({ path: route.path, query: {} });
         },
         { immediate: true },
     );

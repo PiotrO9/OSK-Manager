@@ -84,6 +84,21 @@ export function normalizeInstructorDetail(
         return null;
     }
 
+    const schoolIdsRaw = o.schoolIds ?? o.school_ids;
+    const schoolIdFromArray =
+        Array.isArray(schoolIdsRaw) && schoolIdsRaw.length === 1
+            ? schoolIdsRaw[0]
+            : undefined;
+    const schoolIdRaw = o.schoolId ?? o.school_id ?? schoolIdFromArray;
+    const schoolId =
+        schoolIdRaw != null && String(schoolIdRaw).trim().length > 0
+            ? String(schoolIdRaw).trim()
+            : '';
+
+    if (!schoolId) {
+        return null;
+    }
+
     let name = o.name != null ? String(o.name).trim() : '';
 
     if (!name && (o.firstName != null || o.lastName != null)) {
@@ -151,6 +166,7 @@ export function normalizeInstructorDetail(
 
     return {
         id,
+        schoolId,
         name: name || '—',
         email,
         licenseNumber: licenseNumber || '—',

@@ -105,7 +105,14 @@ export function useManagerInstructorDetailsEdit({
                         getManagerInstructorGenericSaveErrorMessage(),
                 },
             );
-            const normalized = normalizeInstructorDetail(updated);
+            const updatedWithContext =
+                updated && typeof updated === 'object'
+                    ? {
+                          schoolId: instructor.value?.schoolId,
+                          ...(updated as unknown as Record<string, unknown>),
+                      }
+                    : updated;
+            const normalized = normalizeInstructorDetail(updatedWithContext);
             const forEdit = normalizeInstructorDetailForEdit(updated);
 
             if (!normalized || !forEdit) {

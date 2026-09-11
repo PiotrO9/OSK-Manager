@@ -9,7 +9,6 @@ import {
     getStudentDetailsInitials,
     getStudentDetailsRouteUserIdString,
     getStudentDetailsSubtitle,
-    getStudentNotesOverviewLabel,
 } from '~/utils/students/studentDetailsPage';
 import { useManagerStudentPayments } from './useManagerStudentPayments';
 import { useManagerStudentProcessStatus } from './useManagerStudentProcessStatus';
@@ -27,34 +26,21 @@ function getGenericLoadErrorMessage(): string {
     return 'Nie udało się wczytać danych kursanta.';
 }
 
-function getMissingSchoolIdMessage(): string {
-    return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
-}
-
 type StudentDetailData = StudentDetail | null;
 
 export function useManagerStudentDetailsPage() {
     const route = useRoute();
+    const router = useRouter();
     const student = ref<StudentDetail | null>(null);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
 
-    const schoolId = computed((): string => {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
-
-        if (typeof s !== 'string') {
-            return '';
-        }
-
-        return s.trim();
-    });
+    const schoolId = computed(() => student.value?.schoolId ?? '');
 
     const {
         processStatusSteps,
         processStatusLoading,
         processStatusError,
-        processOverviewLabel,
         loadStudentProcessStatus,
     } = useManagerStudentProcessStatus({
         schoolId,
@@ -67,7 +53,6 @@ export function useManagerStudentDetailsPage() {
         paymentsError,
         paymentsSaving,
         paymentsActionError,
-        paymentsOverviewLabel,
         loadStudentPayments,
         handleCreateStudentPayment,
         handleUpdateStudentPayment,
@@ -84,7 +69,6 @@ export function useManagerStudentDetailsPage() {
         scheduleLoading,
         scheduleError,
         studentScheduleRange,
-        scheduleOverviewLabel,
         loadStudentSchedule,
         handlePrevScheduleWeek,
         handleNextScheduleWeek,
@@ -103,10 +87,6 @@ export function useManagerStudentDetailsPage() {
 
     const studentSubtitle = computed(() => {
         return getStudentDetailsSubtitle(student.value);
-    });
-
-    const notesOverviewLabel = computed(() => {
-        return getStudentNotesOverviewLabel(student.value);
     });
 
     const backToListHref = computed(() => {
@@ -134,14 +114,6 @@ export function useManagerStudentDetailsPage() {
 
         const userId = getRouteUserIdString(rawUserId);
 
-        if (!schoolId.value) {
-            student.value = null;
-            errorMessage.value = getMissingSchoolIdMessage();
-            isLoading.value = false;
-
-            return;
-        }
-
         if (!userId) {
             student.value = null;
             errorMessage.value = getNotFoundMessage();
@@ -156,10 +128,9 @@ export function useManagerStudentDetailsPage() {
         student.value = null;
 
         try {
-            const qs = new URLSearchParams({ schoolId: schoolId.value });
             const data = await requestBffData<StudentDetailData>(
                 'GET',
-                `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
+                `/api/students/${encodeURIComponent(userId)}`,
                 {
                     fallbackMessage: getGenericLoadErrorMessage(),
                 },
@@ -204,14 +175,26 @@ export function useManagerStudentDetailsPage() {
 
     watch(
         () => [route.params.userId, route.query.schoolId] as const,
-        async ([userId]) => {
+        ([, querySchoolId]) => {
+            if (querySchoolId === undefined) {
+                return;
+            }
+
+            void router.replace({ path: route.path, query: {} });
+        },
+        { immediate: true },
+    );
+
+    watch(
+        () => route.params.userId,
+        async (userId) => {
             await loadStudent(userId);
         },
         { immediate: true },
     );
 
     watch(
-        () => [route.params.userId, route.query.schoolId] as const,
+        () => [route.params.userId, schoolId.value] as const,
         ([userId]) => {
             void loadStudentProcessStatus(userId);
             void loadStudentPayments(userId);
@@ -222,7 +205,7 @@ export function useManagerStudentDetailsPage() {
     watch(
         [
             () => student.value?.id,
-            () => route.query.schoolId,
+            schoolId,
             studentScheduleRange,
         ],
         () => {
@@ -258,10 +241,6 @@ export function useManagerStudentDetailsPage() {
         studentDisplayName,
         studentInitials,
         studentSubtitle,
-        processOverviewLabel,
-        notesOverviewLabel,
-        paymentsOverviewLabel,
-        scheduleOverviewLabel,
         backToListHref,
         scheduleWeekStart,
         scheduleItems,

@@ -12,6 +12,7 @@ import {
 const student = {
     id: 'student-profile-1',
     userId: 'student-user-1',
+    schoolId: 'school-1',
     firstName: ' Anna ',
     lastName: ' Nowak ',
     email: 'anna@example.com',

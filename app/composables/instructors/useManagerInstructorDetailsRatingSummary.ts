@@ -7,7 +7,6 @@ const emptyRatingSummary: LessonRatingsSummary = {
 };
 
 export function useManagerInstructorDetailsRatingSummary() {
-    const route = useRoute();
     const { fetchInstructorRatings } = useLessonRatingsListApi();
 
     const ratingSummary = ref<LessonRatingsSummary>({
@@ -15,9 +14,12 @@ export function useManagerInstructorDetailsRatingSummary() {
     });
     const isRatingSummaryLoading = ref(false);
 
-    async function loadRatingSummary(rawId: unknown): Promise<void> {
+    async function loadRatingSummary(
+        rawId: unknown,
+        rawSchoolId: unknown,
+    ): Promise<void> {
         const id = getManagerInstructorRouteString(rawId);
-        const schoolId = getManagerInstructorRouteString(route.query.schoolId);
+        const schoolId = getManagerInstructorRouteString(rawSchoolId);
 
         ratingSummary.value = { ...emptyRatingSummary };
 

@@ -43,11 +43,9 @@ export async function bffUpstreamStudentDetail(
     event: H3Event,
     upstreamBase: string,
     userId: string,
-    schoolId: string,
 ): Promise<{ success: true; data: unknown }> {
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: `/students/${encodeURIComponent(userId)}`,
-        query: { schoolId: schoolId.trim() },
         fallbackError: 'Nie udało się pobrać danych kursanta',
     });
 

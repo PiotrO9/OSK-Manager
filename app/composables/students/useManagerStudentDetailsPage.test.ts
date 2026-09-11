@@ -18,6 +18,9 @@ function installNuxtStudentDetailsGlobals(route: {
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('watch', watch);
     vi.stubGlobal('useRoute', () => route);
+    vi.stubGlobal('useRouter', () => ({
+        replace: vi.fn(),
+    }));
     vi.stubGlobal('usePageMeta', vi.fn());
     vi.stubGlobal('requestBffData', requestBffData);
     vi.stubGlobal('useScheduleApi', () => ({
@@ -41,7 +44,31 @@ describe('useManagerStudentDetailsPage', () => {
         vi.clearAllMocks();
     });
 
-    it('reports missing school id without calling student detail APIs', async () => {
+    it('loads student details without school id in the route', async () => {
+        requestBffData.mockResolvedValue({
+            id: 'student-profile-1',
+            userId: 'student-user-1',
+            schoolId: 'school-1',
+            firstName: 'Anna',
+            lastName: 'Nowak',
+            email: 'anna@example.com',
+            pkkNumber: null,
+            notes: null,
+            courses: [],
+        });
+        fetchProcessStatus.mockResolvedValue({ steps: [] });
+        fetchStudentPayments.mockResolvedValue({
+            payments: [],
+            summary: {
+                paidAmount: '0.00',
+                unpaidAmount: '0.00',
+                overdueAmount: '0.00',
+                overdueCount: 0,
+                nextDueDate: null,
+                currency: 'PLN',
+            },
+        });
+        fetchScheduleForStudent.mockResolvedValue([]);
         installNuxtStudentDetailsGlobals({
             params: { userId: 'student-user-1' },
             query: {},
@@ -51,15 +78,18 @@ describe('useManagerStudentDetailsPage', () => {
         const page = useManagerStudentDetailsPage();
 
         await nextTick();
+        await Promise.resolve();
+        await nextTick();
 
-        expect(page.student.value).toBeNull();
+        expect(page.student.value?.schoolId).toBe('school-1');
         expect(page.isLoading.value).toBe(false);
-        expect(page.errorMessage.value).toBe(
-            'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.',
+        expect(page.errorMessage.value).toBeNull();
+        expect(requestBffData).toHaveBeenCalledWith(
+            'GET',
+            '/api/students/student-user-1',
+            {
+                fallbackMessage: 'Nie udało się wczytać danych kursanta.',
+            },
         );
-        expect(requestBffData).not.toHaveBeenCalled();
-        expect(fetchProcessStatus).not.toHaveBeenCalled();
-        expect(fetchStudentPayments).not.toHaveBeenCalled();
-        expect(fetchScheduleForStudent).not.toHaveBeenCalled();
     });
 });

@@ -6,6 +6,9 @@ definePageMeta({
     middleware: ['manager'],
 });
 
+const route = useRoute();
+const router = useRouter();
+
 usePageMeta({
     title: () => 'Terminarz instruktora',
     description: () => 'Tygodniowy harmonogram jazd, teorii i blokad.',
@@ -14,6 +17,8 @@ usePageMeta({
 const {
     instructorId,
     schoolId,
+    isSchoolContextLoading,
+    schoolContextError,
     weekStart,
     items,
     isScheduleLoading,
@@ -51,6 +56,18 @@ const {
     handleDeleteDialogCancel,
     handleDeleteDialogConfirm,
 } = useManagerInstructorSchedulePage();
+
+watch(
+    () => route.query.schoolId,
+    (schoolId) => {
+        if (schoolId === undefined) {
+            return;
+        }
+
+        void router.replace({ path: route.path, query: {} });
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
@@ -103,6 +120,12 @@ const {
                 :next-scheduled-item-label="nextScheduledItemLabel"
             />
 
+            <ErrorState
+                v-if="schoolContextError"
+                title="Nie udało się ustalić szkoły instruktora"
+                :description="schoolContextError"
+            />
+
             <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
                 <ManagerInstructorScheduleWeekSection
                     :week-start="weekStart"
@@ -131,7 +154,9 @@ const {
                     :is-courses-loading="isCoursesLoading"
                     :vehicles="vehicles"
                     :vehicles-error="vehiclesError"
-                    :is-vehicles-loading="isVehiclesLoading"
+                    :is-vehicles-loading="
+                        isVehiclesLoading || isSchoolContextLoading
+                    "
                     :is-event-saving="isEventSaving"
                     :event-form-error="eventFormError"
                     :back-href="backHref"

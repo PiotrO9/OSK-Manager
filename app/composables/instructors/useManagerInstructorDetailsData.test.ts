@@ -15,6 +15,7 @@ function installNuxtInstructorDetailsDataGlobals(): void {
 function instructorPayload(overrides: Record<string, unknown> = {}) {
     return {
         id: 'instructor-1',
+        schoolId: 'school-1',
         firstName: 'Anna',
         lastName: 'Nowak',
         email: 'anna@example.com',

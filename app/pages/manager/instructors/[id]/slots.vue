@@ -7,17 +7,7 @@ definePageMeta({
 });
 
 const route = useRoute();
-
-function readSchoolIdFromQuery(): string {
-    const raw = route.query.schoolId;
-    const s = Array.isArray(raw) ? raw[0] : raw;
-
-    if (typeof s !== 'string') {
-        return '';
-    }
-
-    return s.trim();
-}
+const router = useRouter();
 
 function getInstructorId(): string {
     const raw = route.params.id;
@@ -37,17 +27,9 @@ const instructorId = computed(getInstructorId);
 
 const backToDetailHref = computed(() => {
     const id = instructorId.value;
-    const sid = readSchoolIdFromQuery();
 
     if (!id) {
         return '/manager/instructors';
-    }
-
-    if (sid) {
-        return {
-            path: `/manager/instructors/${id}`,
-            query: { schoolId: sid },
-        };
     }
 
     return `/manager/instructors/${id}`;
@@ -55,21 +37,25 @@ const backToDetailHref = computed(() => {
 
 const scheduleHref = computed(() => {
     const id = instructorId.value;
-    const sid = readSchoolIdFromQuery();
 
     if (!id) {
         return '/manager/instructors';
     }
 
-    if (sid) {
-        return {
-            path: `/manager/instructors/${id}/schedule`,
-            query: { schoolId: sid },
-        };
-    }
-
     return `/manager/instructors/${id}/schedule`;
 });
+
+watch(
+    () => route.query.schoolId,
+    (schoolId) => {
+        if (schoolId === undefined) {
+            return;
+        }
+
+        void router.replace({ path: route.path, query: {} });
+    },
+    { immediate: true },
+);
 
 usePageMeta({
     title: () => 'Sloty instruktora',

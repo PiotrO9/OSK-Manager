@@ -142,20 +142,18 @@ export function useManagerLessonEditReferences(
             return;
         }
 
-        const schoolId = options.schoolId.value.trim();
         const userId = lesson.studentId.trim();
 
-        if (!schoolId || !userId) {
+        if (!userId) {
             studentDisplayName.value = null;
 
             return;
         }
 
         try {
-            const qs = new URLSearchParams({ schoolId });
             const data = await requestBffData<StudentFallbackData>(
                 'GET',
-                `/api/students/${encodeURIComponent(userId)}?${qs.toString()}`,
+                `/api/students/${encodeURIComponent(userId)}`,
                 {
                     fallbackMessage: 'Nie udało się pobrać danych kursanta.',
                 },

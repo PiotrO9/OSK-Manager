@@ -119,23 +119,30 @@ function handleDraftKeydown(event: KeyboardEvent) {
 
 <template>
     <section
-        class="border-border border-t pt-6"
+        class="border-border bg-card rounded-lg border shadow-xs"
         :aria-labelledby="sectionHeadingId"
         :data-context-school-id="schoolId.trim() || undefined"
     >
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2
-                :id="sectionHeadingId"
-                class="text-foreground text-lg font-semibold"
-            >
-                Notatka o kursancie
-            </h2>
+        <div
+            class="border-border flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4"
+        >
+            <div class="min-w-0">
+                <h2
+                    :id="sectionHeadingId"
+                    class="text-foreground text-base font-semibold"
+                >
+                    Notatka o kursancie
+                </h2>
+                <p class="text-muted-foreground mt-1 text-sm">
+                    Wewnętrzny kontekst dla obsługi kursanta.
+                </p>
+            </div>
             <UiButton
                 v-if="!isEditing"
                 type="button"
                 variant="outline"
                 size="sm"
-                class="shrink-0"
+                class="shrink-0 rounded-lg"
                 aria-label="Edytuj notatkę o kursancie"
                 @click="handleStartEdit"
             >
@@ -143,60 +150,62 @@ function handleDraftKeydown(event: KeyboardEvent) {
             </UiButton>
         </div>
 
-        <template v-if="!isEditing">
-            <p
-                class="text-foreground min-h-16 text-sm whitespace-pre-wrap"
-                :class="{
-                    'text-muted-foreground':
-                        getDisplayNotes().trim().length === 0,
-                }"
-            >
-                {{ getReadModeLabel() }}
-            </p>
-        </template>
-
-        <template v-else>
-            <div class="space-y-3">
-                <UiTextarea
-                    v-model="draftNotes"
-                    :maxlength="NOTES_MAX_LEN"
-                    rows="6"
-                    class="min-h-32"
-                    aria-label="Treść notatki o kursancie"
-                    :disabled="isSaving"
-                    @keydown="handleDraftKeydown"
-                />
-                <p class="text-muted-foreground text-xs" aria-live="polite">
-                    {{ draftNotes.length }} / {{ NOTES_MAX_LEN }} znaków
-                </p>
+        <div class="p-5">
+            <template v-if="!isEditing">
                 <p
-                    v-if="saveError"
-                    class="text-destructive text-sm"
-                    role="alert"
-                    aria-live="assertive"
+                    class="text-foreground min-h-16 text-sm whitespace-pre-wrap"
+                    :class="{
+                        'text-muted-foreground':
+                            getDisplayNotes().trim().length === 0,
+                    }"
                 >
-                    {{ saveError }}
+                    {{ getReadModeLabel() }}
                 </p>
-                <div class="flex flex-wrap gap-2">
-                    <UiButton
-                        type="button"
+            </template>
+
+            <template v-else>
+                <div class="space-y-3">
+                    <UiTextarea
+                        v-model="draftNotes"
+                        :maxlength="NOTES_MAX_LEN"
+                        rows="6"
+                        class="min-h-32"
+                        aria-label="Treść notatki o kursancie"
                         :disabled="isSaving"
-                        aria-label="Zapisz notatkę"
-                        @click="handleSaveNotes"
+                        @keydown="handleDraftKeydown"
+                    />
+                    <p class="text-muted-foreground text-xs" aria-live="polite">
+                        {{ draftNotes.length }} / {{ NOTES_MAX_LEN }} znaków
+                    </p>
+                    <p
+                        v-if="saveError"
+                        class="text-destructive text-sm"
+                        role="alert"
+                        aria-live="assertive"
                     >
-                        {{ isSaving ? 'Zapisywanie…' : 'Zapisz' }}
-                    </UiButton>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        :disabled="isSaving"
-                        aria-label="Anuluj edycję notatki"
-                        @click="handleCancelEdit"
-                    >
-                        Anuluj
-                    </UiButton>
+                        {{ saveError }}
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <UiButton
+                            type="button"
+                            :disabled="isSaving"
+                            aria-label="Zapisz notatkę"
+                            @click="handleSaveNotes"
+                        >
+                            {{ isSaving ? 'Zapisywanie…' : 'Zapisz' }}
+                        </UiButton>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            :disabled="isSaving"
+                            aria-label="Anuluj edycję notatki"
+                            @click="handleCancelEdit"
+                        >
+                            Anuluj
+                        </UiButton>
+                    </div>
                 </div>
-            </div>
-        </template>
+            </template>
+        </div>
     </section>
 </template>

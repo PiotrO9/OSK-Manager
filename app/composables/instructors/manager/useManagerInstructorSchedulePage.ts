@@ -5,7 +5,6 @@ import {
 import {
     buildManagerInstructorScheduleBackHref,
     getManagerInstructorScheduleInstructorId,
-    getManagerInstructorScheduleSchoolId,
 } from '~/utils/instructors/managerInstructorSchedulePage';
 import { useManagerInstructorScheduleData } from './useManagerInstructorScheduleData';
 import { useManagerInstructorScheduleEventForm } from './useManagerInstructorScheduleEventForm';
@@ -20,9 +19,12 @@ export function useManagerInstructorSchedulePage() {
     const instructorId = computed(() =>
         getManagerInstructorScheduleInstructorId(route),
     );
-    const schoolId = computed(() =>
-        getManagerInstructorScheduleSchoolId(route),
-    );
+    const {
+        schoolId,
+        isSchoolContextLoading,
+        schoolContextError,
+        loadInstructorSchoolContext,
+    } = useManagerInstructorSchoolContext({ instructorId });
 
     const weekStart = ref<Date>(getMonday(new Date()));
     const range = computed(() => weekRangeFromMonday(weekStart.value));
@@ -88,6 +90,14 @@ export function useManagerInstructorSchedulePage() {
     );
 
     watch(
+        instructorId,
+        () => {
+            void loadInstructorSchoolContext();
+        },
+        { immediate: true },
+    );
+
+    watch(
         schoolId,
         () => {
             void loadResources();
@@ -110,15 +120,14 @@ export function useManagerInstructorSchedulePage() {
     }
 
     const backHref = computed(() => {
-        return buildManagerInstructorScheduleBackHref(
-            instructorId.value,
-            schoolId.value,
-        );
+        return buildManagerInstructorScheduleBackHref(instructorId.value);
     });
 
     return {
         instructorId,
         schoolId,
+        isSchoolContextLoading,
+        schoolContextError,
         weekStart,
         items,
         isScheduleLoading,

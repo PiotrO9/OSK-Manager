@@ -6,7 +6,6 @@ import {
     formatManagerInstructorScheduleWeekLabel,
     getManagerInstructorScheduleInstructorId,
     getManagerInstructorScheduleRouteString,
-    getManagerInstructorScheduleSchoolId,
 } from './managerInstructorSchedulePage';
 
 describe('manager instructor schedule page helpers', () => {
@@ -20,16 +19,14 @@ describe('manager instructor schedule page helpers', () => {
         expect(getManagerInstructorScheduleRouteString(undefined)).toBe('');
     });
 
-    it('reads instructor and school identifiers from Nuxt route shape', () => {
+    it('reads instructor identifier from Nuxt route shape', () => {
         const route = {
             params: { id: [' instructor-1 '] },
-            query: { schoolId: [' school-1 '] },
         };
 
         expect(getManagerInstructorScheduleInstructorId(route)).toBe(
             'instructor-1',
         );
-        expect(getManagerInstructorScheduleSchoolId(route)).toBe('school-1');
     });
 
     it('formats schedule date labels and keeps invalid input unchanged', () => {
@@ -44,21 +41,15 @@ describe('manager instructor schedule page helpers', () => {
         ).toBe('7 września 2026');
     });
 
-    it('builds back href with optional school query', () => {
-        expect(buildManagerInstructorScheduleBackHref('', 'school-1')).toBe(
+    it('builds back href without school query', () => {
+        expect(buildManagerInstructorScheduleBackHref('')).toBe(
             '/manager/instructors',
         );
-        expect(buildManagerInstructorScheduleBackHref('instructor-1', '')).toBe(
+        expect(buildManagerInstructorScheduleBackHref('instructor-1')).toBe(
             '/manager/instructors/instructor-1',
         );
-        expect(
-            buildManagerInstructorScheduleBackHref(
-                ' instructor-1 ',
-                ' school-1 ',
-            ),
-        ).toEqual({
-            path: '/manager/instructors/instructor-1',
-            query: { schoolId: 'school-1' },
-        });
+        expect(buildManagerInstructorScheduleBackHref(' instructor-1 ')).toBe(
+            '/manager/instructors/instructor-1',
+        );
     });
 });

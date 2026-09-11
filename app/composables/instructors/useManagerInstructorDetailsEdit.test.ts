@@ -27,6 +27,7 @@ function installNuxtEditGlobals(): void {
 function createInstructor(): InstructorDetail {
     return {
         id: 'instructor-1',
+        schoolId: 'school-1',
         name: 'Anna Nowak',
         email: 'anna@example.com',
         licenseNumber: 'LIC-123',

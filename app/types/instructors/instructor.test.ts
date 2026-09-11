@@ -11,6 +11,7 @@ describe('instructor domain types', () => {
     it('normalizes instructor detail for display and edit form', () => {
         const raw = {
             id: ' instructor-1 ',
+            school_id: ' school-1 ',
             name: ' Anna Nowak ',
             first_name: ' Anna ',
             last_name: ' Nowak ',
@@ -26,6 +27,7 @@ describe('instructor domain types', () => {
 
         expect(normalizeInstructorDetail(raw)).toMatchObject({
             id: 'instructor-1',
+            schoolId: 'school-1',
             name: 'Anna Nowak',
             email: 'anna@example.test',
             licenseNumber: 'LIC-1',

@@ -29,6 +29,7 @@ describe('student domain types', () => {
             normalizeStudentDetail({
                 id: ' profile-1 ',
                 user_id: ' user-1 ',
+                school_id: ' school-1 ',
                 first_name: ' Anna ',
                 last_name: ' Nowak ',
                 email: ' ANNA@example.com ',
@@ -54,6 +55,7 @@ describe('student domain types', () => {
         ).toEqual({
             id: 'profile-1',
             userId: 'user-1',
+            schoolId: 'school-1',
             firstName: 'Anna',
             lastName: 'Nowak',
             email: 'anna@example.com',

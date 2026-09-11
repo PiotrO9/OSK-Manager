@@ -32,10 +32,9 @@ const rows = computed<StudentListRow[]>(() =>
                 ? 'Brak daty'
                 : dateFormatter.format(date),
             detailsTo:
-                props.activeSchoolId && props.showDetailsLink
+                props.showDetailsLink
                     ? {
                           path: `/manager/students/${student.userId}`,
-                          query: { schoolId: props.activeSchoolId },
                       }
                     : null,
         };

@@ -2,9 +2,7 @@ export interface ManagerInstructorScheduleRouteLike {
     params: {
         id?: unknown;
     };
-    query: {
-        schoolId?: unknown;
-    };
+    query?: Record<string, unknown>;
 }
 
 export function getManagerInstructorScheduleRouteString(raw: unknown): string {
@@ -23,12 +21,6 @@ export function getManagerInstructorScheduleInstructorId(
     route: ManagerInstructorScheduleRouteLike,
 ): string {
     return getManagerInstructorScheduleRouteString(route.params.id);
-}
-
-export function getManagerInstructorScheduleSchoolId(
-    route: ManagerInstructorScheduleRouteLike,
-): string {
-    return getManagerInstructorScheduleRouteString(route.query.schoolId);
 }
 
 export function formatManagerInstructorScheduleRangeLabel(iso: string): string {
@@ -78,20 +70,11 @@ export function formatManagerInstructorScheduleWeekLabel(d: Date): string {
 
 export function buildManagerInstructorScheduleBackHref(
     instructorId: string,
-    schoolId: string,
 ) {
     const id = instructorId.trim();
-    const sid = schoolId.trim();
 
     if (!id) {
         return '/manager/instructors';
-    }
-
-    if (sid) {
-        return {
-            path: `/manager/instructors/${id}`,
-            query: { schoolId: sid },
-        };
     }
 
     return `/manager/instructors/${id}`;

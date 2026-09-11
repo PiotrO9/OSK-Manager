@@ -38,7 +38,10 @@ function createSchool(id: string): DrivingSchool {
     } as DrivingSchool;
 }
 
-function createInstructor(id: string): InstructorListItem {
+function createInstructor(
+    id: string,
+    overrides: Partial<InstructorListItem> = {},
+): InstructorListItem {
     return {
         id,
         firstName: `Jan ${id}`,
@@ -46,6 +49,7 @@ function createInstructor(id: string): InstructorListItem {
         email: `${id}@example.com`,
         avatarUrl: null,
         qualifiedCourseTypes: [],
+        ...overrides,
     };
 }
 
@@ -151,5 +155,67 @@ describe('useManagerInstructorsPage', () => {
             'instructor-2',
         ]);
         expect(page.isInstructorsLoading.value).toBe(false);
+    });
+
+    it('derives visible instructors and labels from local filters', async () => {
+        const { useManagerInstructorsPage } =
+            await import('./useManagerInstructorsPage');
+        const page = useManagerInstructorsPage();
+
+        page.instructors.value = [
+            createInstructor('instructor-1', {
+                firstName: 'Anna',
+                lastName: 'Nowak',
+                email: 'anna@example.com',
+                qualifiedCourseTypes: [
+                    { id: 'ct-1', code: 'B', name: 'Prawo jazdy B' },
+                ],
+            }),
+            createInstructor('instructor-2', {
+                firstName: 'Piotr',
+                lastName: 'Zieliński',
+                email: 'piotr@example.com',
+            }),
+        ];
+
+        page.search.value = 'anna b';
+
+        expect(page.visibleInstructors.value.map((item) => item.id)).toEqual([
+            'instructor-1',
+        ]);
+        expect(page.visibleInstructorsLabel.value).toBe('1 wynik');
+
+        page.search.value = '';
+        page.quickView.value = 'unqualified';
+
+        expect(page.visibleInstructors.value.map((item) => item.id)).toEqual([
+            'instructor-2',
+        ]);
+        expect(page.qualificationFilterLabel.value).toBe('Bez kwalifikacji');
+        expect(page.hasInstructorFilters.value).toBe(true);
+
+        page.quickView.value = 'all';
+        page.advancedFilters.value = [
+            {
+                id: 'filter-1',
+                field: 'qualification',
+                operator: 'eq',
+                value: 'ct-1',
+            },
+        ];
+
+        expect(page.visibleInstructors.value.map((item) => item.id)).toEqual([
+            'instructor-1',
+        ]);
+        expect(page.hasInstructorFilters.value).toBe(true);
+        expect(page.qualificationOptions.value).toEqual([
+            { id: 'ct-1', code: 'B', name: 'Prawo jazdy B' },
+        ]);
+
+        page.clearInstructorFilters();
+
+        expect(page.search.value).toBe('');
+        expect(page.quickView.value).toBe('all');
+        expect(page.advancedFilters.value).toEqual([]);
     });
 });

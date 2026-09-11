@@ -116,7 +116,6 @@ export function useManagerInstructorDetailsContent(input: {
             description: 'Tygodniowy wzorzec pracy',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/availability`,
-                query: input.subpageQuery,
             },
             icon: Clock3,
         },
@@ -125,7 +124,6 @@ export function useManagerInstructorDetailsContent(input: {
             description: 'Wolne sloty instruktora',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/slots`,
-                query: input.subpageQuery,
             },
             icon: CalendarDays,
         },
@@ -134,7 +132,6 @@ export function useManagerInstructorDetailsContent(input: {
             description: 'Lekcje i bloki czasu',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/schedule`,
-                query: input.subpageQuery,
             },
             icon: UserRound,
         },

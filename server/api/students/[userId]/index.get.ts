@@ -1,8 +1,5 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
-import {
-    parseRequiredUuidQuery,
-    parseRequiredUuidRouterParam,
-} from '~~/server/utils/validation/requestValidation';
+import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamStudentDetail } from '~~/server/utils/students/studentsBff';
 
 export default defineEventHandler(async (event) => {
@@ -11,24 +8,13 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator kursanta.',
     });
 
-    const rawQuery = getQuery(event);
-    const schoolId = parseRequiredUuidQuery(rawQuery, 'schoolId', {
-        required: 'Parametr schoolId jest wymagany.',
-        invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
-    });
-
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>
-            bffUpstreamStudentDetail(
-                event,
-                upstreamBase,
-                studentUserId,
-                schoolId,
-            ),
+            bffUpstreamStudentDetail(event, upstreamBase, studentUserId),
         mock: async () => {
             await requireManagerFromCookie(event);
 
-            return bffMockStudentDetail(studentUserId, schoolId);
+            return bffMockStudentDetail(studentUserId);
         },
     });
 });

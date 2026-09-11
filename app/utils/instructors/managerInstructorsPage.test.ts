@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import {
     buildInstructorDetailsRoute,
+    filterInstructorsForList,
     formatQualificationFilterLabel,
     formatVisibleInstructorsLabel,
+    getInstructorQualificationOptions,
     instructorInitials,
     instructorQualificationLabel,
     isInstructorSchoolIdUuid,
@@ -84,6 +86,100 @@ describe('managerInstructorsPage utils', () => {
         expect(formatQualificationFilterLabel(1)).toBe(
             'Kwalifikacje: wszystkie',
         );
+        expect(formatQualificationFilterLabel(1, 'qualified')).toBe(
+            'Z kwalifikacjami',
+        );
+        expect(formatQualificationFilterLabel(0, 'unqualified')).toBe(
+            'Bez kwalifikacji',
+        );
+    });
+
+    it('filters instructors by search and quick qualification view', () => {
+        const items = [
+            instructor({
+                id: 'instructor-1',
+                firstName: 'Anna',
+                lastName: 'Nowak',
+                email: 'anna@example.com',
+                qualifiedCourseTypes: [
+                    { id: 'ct-1', code: 'B', name: 'Prawo jazdy B' },
+                ],
+            }),
+            instructor({
+                id: 'instructor-2',
+                firstName: 'Piotr',
+                lastName: 'Zieliński',
+                email: 'piotr@example.com',
+                phone: '500 100 200',
+            }),
+        ];
+
+        expect(
+            filterInstructorsForList(items, 'anna b', 'all').map(
+                (item) => item.id,
+            ),
+        ).toEqual(['instructor-1']);
+        expect(
+            filterInstructorsForList(items, '500', 'unqualified').map(
+                (item) => item.id,
+            ),
+        ).toEqual(['instructor-2']);
+        expect(
+            filterInstructorsForList(items, '', 'qualified').map(
+                (item) => item.id,
+            ),
+        ).toEqual(['instructor-1']);
+        expect(
+            filterInstructorsForList(items, '', 'all', [
+                {
+                    id: 'filter-1',
+                    field: 'qualification',
+                    operator: 'eq',
+                    value: 'ct-1',
+                },
+            ]).map((item) => item.id),
+        ).toEqual(['instructor-1']);
+        expect(
+            filterInstructorsForList(items, '', 'all', [
+                {
+                    id: 'filter-2',
+                    field: 'phone',
+                    operator: 'is_empty',
+                },
+            ]).map((item) => item.id),
+        ).toEqual(['instructor-1']);
+        expect(
+            filterInstructorsForList(items, '', 'all', [
+                {
+                    id: 'filter-3',
+                    field: 'hasQualifications',
+                    operator: 'eq',
+                    value: false,
+                },
+            ]).map((item) => item.id),
+        ).toEqual(['instructor-2']);
+    });
+
+    it('builds sorted qualification options from instructors', () => {
+        expect(
+            getInstructorQualificationOptions([
+                instructor({
+                    qualifiedCourseTypes: [
+                        { id: 'ct-b', code: 'B', name: 'Prawo jazdy B' },
+                        { id: 'ct-a', code: 'A', name: '' },
+                    ],
+                }),
+                instructor({
+                    id: 'instructor-2',
+                    qualifiedCourseTypes: [
+                        { id: 'ct-b', code: 'B', name: 'Prawo jazdy B' },
+                    ],
+                }),
+            ]),
+        ).toEqual([
+            { id: 'ct-a', code: 'A', name: 'A' },
+            { id: 'ct-b', code: 'B', name: 'Prawo jazdy B' },
+        ]);
     });
 
     it('formats instructor qualification labels', () => {
@@ -109,15 +205,13 @@ describe('managerInstructorsPage utils', () => {
         ).toBe('IN');
     });
 
-    it('builds instructor details route with optional school query', () => {
+    it('builds instructor details route without school query', () => {
         expect(buildInstructorDetailsRoute(instructor(), '')).toEqual({
             path: '/manager/instructors/instructor-1',
-            query: {},
         });
         expect(buildInstructorDetailsRoute(instructor(), ' school-1 ')).toEqual(
             {
                 path: '/manager/instructors/instructor-1',
-                query: { schoolId: 'school-1' },
             },
         );
     });

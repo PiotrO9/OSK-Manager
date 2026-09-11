@@ -41,6 +41,7 @@ export interface StudentCourseItem {
 export interface StudentDetail {
     id: string;
     userId: string;
+    schoolId: string;
     firstName: string;
     lastName: string;
     email: string;

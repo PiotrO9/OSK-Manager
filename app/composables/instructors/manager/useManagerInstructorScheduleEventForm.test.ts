@@ -116,7 +116,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
         expect(data.eventFormError.value).toBe(
-            'Dla jazdy wybierz pojazd. Wymagany jest schoolId w adresie strony.',
+            'Dla jazdy wybierz pojazd.',
         );
     });
 

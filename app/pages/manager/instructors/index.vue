@@ -17,17 +17,31 @@ const {
     isSchoolsLoading,
     activeSchoolId,
     activeSchool,
-    instructors,
+    search,
+    quickView,
+    advancedFilters,
+    advancedFilterDraft,
+    advancedFilterDraftError,
+    qualificationOptions,
+    visibleInstructors,
     isInstructorsLoading,
     instructorsLoadError,
     formDialogOpen,
     isFormSaving,
     apiError,
     prefillSchoolId,
-    instructorsWithQualificationsCount,
-    uniqueQualificationCodesCount,
     visibleInstructorsLabel,
     qualificationFilterLabel,
+    instructorsWithQualificationsCount,
+    uniqueQualificationCodesCount,
+    hasInstructorFilters,
+    clearInstructorFilters,
+    startNewAdvancedFilter,
+    startEditAdvancedFilter,
+    updateAdvancedFilterDraft,
+    applyAdvancedFilterDraft,
+    cancelAdvancedFilterDraft,
+    removeAdvancedFilter,
     loadSchools,
     loadInstructors,
     handleActiveSchoolChange,
@@ -41,10 +55,10 @@ const {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="space-y-6">
         <PageHeader
             title="Instruktorzy"
-            description="Zespół szkoleniowy, kwalifikacje i przypisanie do OSK."
+            description="Zespół szkoleniowy, kwalifikacje i szybki dostęp do profili."
         >
             <template #actions>
                 <UiButton
@@ -59,30 +73,40 @@ const {
             </template>
         </PageHeader>
 
-        <ManagerInstructorsStatsGrid
-            :instructors-count="instructors.length"
-            :active-school="activeSchool"
-            :instructors-with-qualifications-count="
-                instructorsWithQualificationsCount
-            "
-            :unique-qualification-codes-count="uniqueQualificationCodesCount"
-        />
-
         <ManagerInstructorsListCard
             v-model:active-school-id="activeSchoolId"
+            v-model:search="search"
+            v-model:quick-view="quickView"
             :schools="schools"
             :active-school="activeSchool"
-            :instructors="instructors"
+            :instructors="visibleInstructors"
+            :advanced-filters="advancedFilters"
+            :advanced-filter-draft="advancedFilterDraft"
+            :advanced-filter-draft-error="advancedFilterDraftError"
+            :qualification-options="qualificationOptions"
             :is-schools-loading="isSchoolsLoading"
             :is-instructors-loading="isInstructorsLoading"
             :schools-load-error="schoolsLoadError"
             :instructors-load-error="instructorsLoadError"
             :visible-instructors-label="visibleInstructorsLabel"
             :qualification-filter-label="qualificationFilterLabel"
+            :instructors-with-qualifications-count="
+                instructorsWithQualificationsCount
+            "
+            :unique-qualification-codes-count="uniqueQualificationCodesCount"
+            :has-active-filters="hasInstructorFilters"
             :instructor-details-to="instructorDetailsTo"
             :instructor-qualification-label="instructorQualificationLabel"
             :instructor-initials="instructorInitials"
             @active-school-change="handleActiveSchoolChange"
+            @create-instructor="handleOpenCreateDialog"
+            @start-new-advanced-filter="startNewAdvancedFilter"
+            @start-edit-advanced-filter="startEditAdvancedFilter"
+            @update-advanced-filter-draft="updateAdvancedFilterDraft"
+            @apply-advanced-filter-draft="applyAdvancedFilterDraft"
+            @cancel-advanced-filter-draft="cancelAdvancedFilterDraft"
+            @remove-advanced-filter="removeAdvancedFilter"
+            @clear-filters="clearInstructorFilters"
             @retry-schools="loadSchools"
             @retry-instructors="loadInstructors"
         />

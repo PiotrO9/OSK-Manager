@@ -1,11 +1,15 @@
 import type { InstructorRegisterPayload } from './useManagerInstructorFormDialog';
+import { useManagerInstructorsAdvancedFilters } from './useManagerInstructorsAdvancedFilters';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { requestBffSuccess } from '../../core/useApi';
 import {
     buildInstructorDetailsRoute,
+    filterInstructorsForList,
     formatQualificationFilterLabel,
     formatVisibleInstructorsLabel,
+    getInstructorQualificationOptions,
+    type InstructorQuickView,
     INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
     instructorInitials,
     instructorQualificationLabel,
@@ -28,6 +32,9 @@ export function useManagerInstructorsPage() {
     const instructors = ref<InstructorListItem[]>([]);
     const isInstructorsLoading = ref(false);
     const instructorsLoadError = ref<string | null>(null);
+    const search = ref('');
+    const quickView = ref<InstructorQuickView>('all');
+    const advancedFilterState = useManagerInstructorsAdvancedFilters();
 
     const formDialogOpen = ref(false);
     const isFormSaving = ref(false);
@@ -55,9 +62,22 @@ export function useManagerInstructorsPage() {
             ) ?? null,
     );
 
+    const visibleInstructors = computed(() =>
+        filterInstructorsForList(
+            instructors.value,
+            search.value,
+            quickView.value,
+            advancedFilterState.advancedFilters.value,
+        ),
+    );
+
+    const qualificationOptions = computed(() =>
+        getInstructorQualificationOptions(instructors.value),
+    );
+
     const instructorsWithQualificationsCount = computed(
         () =>
-            instructors.value.filter(
+            visibleInstructors.value.filter(
                 (instructor) =>
                     (instructor.qualifiedCourseTypes ?? []).length > 0,
             ).length,
@@ -66,7 +86,7 @@ export function useManagerInstructorsPage() {
     const uniqueQualificationCodesCount = computed(() => {
         const codes = new Set<string>();
 
-        for (const instructor of instructors.value) {
+        for (const instructor of visibleInstructors.value) {
             for (const courseType of instructor.qualifiedCourseTypes ?? []) {
                 const code = courseType.code.trim();
 
@@ -80,12 +100,28 @@ export function useManagerInstructorsPage() {
     });
 
     const visibleInstructorsLabel = computed(() =>
-        formatVisibleInstructorsLabel(instructors.value.length),
+        formatVisibleInstructorsLabel(visibleInstructors.value.length),
     );
 
     const qualificationFilterLabel = computed(() =>
-        formatQualificationFilterLabel(uniqueQualificationCodesCount.value),
+        formatQualificationFilterLabel(
+            uniqueQualificationCodesCount.value,
+            quickView.value,
+        ),
     );
+
+    const hasInstructorFilters = computed(
+        () =>
+            search.value.trim().length > 0 ||
+            quickView.value !== 'all' ||
+            advancedFilterState.hasAdvancedFilters.value,
+    );
+
+    function clearInstructorFilters() {
+        search.value = '';
+        quickView.value = 'all';
+        advancedFilterState.clearAdvancedFilters();
+    }
 
     function resolveInitialActiveSchoolId(): string {
         const pre = prefillSchoolId.value;
@@ -262,6 +298,15 @@ export function useManagerInstructorsPage() {
         activeSchoolId,
         activeSchool,
         instructors,
+        search,
+        quickView,
+        advancedFilters: advancedFilterState.advancedFilters,
+        advancedFiltersCount: advancedFilterState.advancedFiltersCount,
+        hasAdvancedFilters: advancedFilterState.hasAdvancedFilters,
+        advancedFilterDraft: advancedFilterState.draft,
+        advancedFilterDraftError: advancedFilterState.draftError,
+        qualificationOptions,
+        visibleInstructors,
         isInstructorsLoading,
         instructorsLoadError,
         formDialogOpen,
@@ -272,6 +317,15 @@ export function useManagerInstructorsPage() {
         uniqueQualificationCodesCount,
         visibleInstructorsLabel,
         qualificationFilterLabel,
+        hasInstructorFilters,
+        clearInstructorFilters,
+        startNewAdvancedFilter: advancedFilterState.startNewFilter,
+        startEditAdvancedFilter: advancedFilterState.startEditFilter,
+        updateAdvancedFilterDraft: advancedFilterState.updateDraft,
+        applyAdvancedFilterDraft: advancedFilterState.applyDraft,
+        cancelAdvancedFilterDraft: advancedFilterState.startNewFilter,
+        removeAdvancedFilter: advancedFilterState.removeFilter,
+        clearAdvancedFilters: advancedFilterState.clearAdvancedFilters,
         loadSchools,
         loadInstructors,
         handleActiveSchoolChange,

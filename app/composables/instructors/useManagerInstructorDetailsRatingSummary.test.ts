@@ -2,15 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 
 const fetchInstructorRatings = vi.fn();
-const route = {
-    query: {
-        schoolId: 'school-1',
-    },
-};
 
 function installNuxtRatingSummaryGlobals(): void {
     vi.stubGlobal('ref', ref);
-    vi.stubGlobal('useRoute', () => route);
     vi.stubGlobal('useLessonRatingsListApi', () => ({
         fetchInstructorRatings,
     }));
@@ -21,7 +15,6 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         vi.resetModules();
         vi.unstubAllGlobals();
         vi.clearAllMocks();
-        route.query.schoolId = 'school-1';
         installNuxtRatingSummaryGlobals();
     });
 
@@ -31,7 +24,7 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('   ');
+        await data.loadRatingSummary('   ', 'school-1');
 
         expect(fetchInstructorRatings).not.toHaveBeenCalled();
         expect(data.ratingSummary.value).toEqual({
@@ -42,14 +35,12 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
     });
 
     it('skips API calls and resets summary without school id', async () => {
-        route.query.schoolId = '';
-
         const { useManagerInstructorDetailsRatingSummary } =
             await import('./useManagerInstructorDetailsRatingSummary');
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('instructor-1');
+        await data.loadRatingSummary('instructor-1', '');
 
         expect(fetchInstructorRatings).not.toHaveBeenCalled();
         expect(data.ratingSummary.value).toEqual({
@@ -68,7 +59,7 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
             await import('./useManagerInstructorDetailsRatingSummary');
         const data = useManagerInstructorDetailsRatingSummary();
 
-        await data.loadRatingSummary(' instructor-1 ');
+        await data.loadRatingSummary(' instructor-1 ', ' school-1 ');
 
         expect(fetchInstructorRatings).toHaveBeenCalledWith('instructor-1', {
             schoolId: 'school-1',
@@ -90,7 +81,7 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('instructor-1');
+        await data.loadRatingSummary('instructor-1', 'school-1');
 
         expect(data.ratingSummary.value).toEqual({
             averageRating: null,

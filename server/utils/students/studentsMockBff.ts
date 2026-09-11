@@ -171,9 +171,8 @@ export function bffMockStudentsList(params: {
 
 export function bffMockStudentDetail(
     studentUserId: string,
-    schoolId: string,
 ): { success: true; data: unknown } {
-    const detail = mockStudentDetailPayload(studentUserId, schoolId);
+    const detail = mockStudentDetailPayload(studentUserId);
 
     if (!detail) {
         throw createError({

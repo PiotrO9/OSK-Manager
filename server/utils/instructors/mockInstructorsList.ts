@@ -145,14 +145,16 @@ export function mockInstructorBelongsToSchool(
     );
 }
 
-function findRowById(id: string): MockInstructorListRow | null {
+function findRowById(
+    id: string,
+): (MockInstructorListRow & { schoolId: string }) | null {
     const store = getStore();
 
-    for (const rows of Object.values(store)) {
+    for (const [schoolId, rows] of Object.entries(store)) {
         const row = rows.find((r) => r.id === id);
 
         if (row) {
-            return row;
+            return { ...row, schoolId };
         }
     }
 
@@ -185,6 +187,7 @@ function mergeProfileExtras(
 /** Szczegóły instruktora — kształt zbliżony do GET /instructors/:id (mock). */
 export interface MockInstructorDetailPayload {
     id: string;
+    schoolId: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -197,13 +200,14 @@ export interface MockInstructorDetailPayload {
 }
 
 function buildDetailPayload(
-    row: MockInstructorListRow,
+    row: MockInstructorListRow & { schoolId: string },
 ): MockInstructorDetailPayload {
     const suffix = row.id.replace(/-/g, '').slice(0, 6);
     const extras = getExtrasMap()[row.id] ?? getDefaultProfileExtras();
 
     return {
         id: row.id,
+        schoolId: row.schoolId,
         firstName: row.firstName,
         lastName: row.lastName,
         email: row.email,

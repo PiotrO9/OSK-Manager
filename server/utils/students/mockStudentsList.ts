@@ -47,6 +47,12 @@ function getMockStudentNotesStore(): Record<string, string | null> {
 }
 
 function findMockStudentRowByUserId(userId: string): MockStudentListRow | null {
+    return findMockStudentRowWithSchoolByUserId(userId)?.row ?? null;
+}
+
+function findMockStudentRowWithSchoolByUserId(
+    userId: string,
+): { schoolId: string; row: MockStudentListRow } | null {
     const uid = userId.trim();
 
     if (!uid) {
@@ -55,11 +61,11 @@ function findMockStudentRowByUserId(userId: string): MockStudentListRow | null {
 
     const store = getStore();
 
-    for (const rows of Object.values(store)) {
+    for (const [schoolId, rows] of Object.entries(store)) {
         const row = rows.find((r) => r.userId === uid);
 
         if (row) {
-            return row;
+            return { schoolId, row };
         }
     }
 
@@ -359,6 +365,7 @@ function ensureSeedForSchool(schoolId: string): MockStudentListRow[] {
 export interface MockStudentDetailPayload {
     id: string;
     userId: string;
+    schoolId: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -399,21 +406,28 @@ function hashUserIdForMockCourses(userId: string): number {
  */
 export function mockStudentDetailPayload(
     userId: string,
-    schoolId: string,
+    schoolId?: string,
 ): MockStudentDetailPayload | null {
     const uid = userId.trim();
-    const sid = schoolId.trim();
+    const sid = schoolId?.trim() ?? '';
 
-    if (!uid || !sid) {
+    if (!uid) {
         return null;
     }
 
-    const all = ensureSeedForSchool(sid);
-    const row = all.find((r) => r.userId === uid);
+    const found = sid
+        ? {
+              schoolId: sid,
+              row: ensureSeedForSchool(sid).find((r) => r.userId === uid),
+          }
+        : findMockStudentRowWithSchoolByUserId(uid);
 
-    if (!row) {
+    if (!found?.row) {
         return null;
     }
+
+    const row = found.row;
+    const resolvedSchoolId = found.schoolId;
 
     const notesRaw = getMockStudentNotesStore()[uid];
     const notes =
@@ -423,7 +437,7 @@ export function mockStudentDetailPayload(
             ? String(notesRaw)
             : null;
 
-    const { courses: schoolCourses } = mockCoursesListPayload(sid);
+    const { courses: schoolCourses } = mockCoursesListPayload(resolvedSchoolId);
     const sorted = [...schoolCourses].sort((a, b) =>
         a.id.localeCompare(b.id, 'en'),
     );
@@ -435,6 +449,7 @@ export function mockStudentDetailPayload(
         return {
             id: row.id,
             userId: row.userId,
+            schoolId: resolvedSchoolId,
             firstName: row.firstName,
             lastName: row.lastName,
             email: row.email,
@@ -475,6 +490,7 @@ export function mockStudentDetailPayload(
     return {
         id: row.id,
         userId: row.userId,
+        schoolId: resolvedSchoolId,
         firstName: row.firstName,
         lastName: row.lastName,
         email: row.email,

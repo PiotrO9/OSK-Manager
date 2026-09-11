@@ -72,8 +72,7 @@ export function useManagerInstructorScheduleEventForm({
             const vid = eventVehicleId.value.trim();
 
             if (!vid) {
-                eventFormError.value =
-                    'Dla jazdy wybierz pojazd. Wymagany jest schoolId w adresie strony.';
+                eventFormError.value = 'Dla jazdy wybierz pojazd.';
 
                 return;
             }
