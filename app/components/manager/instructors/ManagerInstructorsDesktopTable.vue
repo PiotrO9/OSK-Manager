@@ -23,7 +23,6 @@ defineProps<{
                     <th scope="col" class="px-4 py-3 font-semibold">Nazwa</th>
                     <th scope="col" class="px-4 py-3 font-semibold">Kontakt</th>
                     <th scope="col" class="px-4 py-3 font-semibold">Zakres</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Status</th>
                     <th scope="col" class="px-4 py-3 font-semibold">Akcje</th>
                 </tr>
             </thead>
@@ -73,14 +72,6 @@ defineProps<{
                             class="bg-muted/40 rounded-full"
                         >
                             {{ instructorQualificationLabel(instructor) }}
-                        </UiBadge>
-                    </td>
-                    <td class="px-4 py-3">
-                        <UiBadge
-                            variant="outline"
-                            class="rounded-full border-emerald-200 bg-emerald-50 text-emerald-700"
-                        >
-                            Konto
                         </UiBadge>
                     </td>
                     <td class="px-4 py-3">
