@@ -29,7 +29,7 @@ Po zakończeniu pracy nad widokiem AI powinno zaktualizować tę checklistę ora
 
 ### Kursy
 
-- [ ] **W14 — Lista kursów** — `/manager/courses`.
+- [x] **W14 — Lista kursów** — `/manager/courses` — 2026-09-12: zaakceptowany jako wykonany w nowej rundzie UI; wariant CRM zgodny z W07/W09, wyszukiwarka, kategoria, szybkie filtry typu i przypisania, zaawansowane reguły, paginacja i mobile.
 - [ ] **W15 — Szczegóły kursu** — `/manager/courses/:id` — razem z przypisaniem instruktora.
 - [ ] **W16 — Nowy kurs** — `/manager/courses/new`.
 
@@ -129,7 +129,7 @@ Wszystkie poniższe strony mają middleware `manager`, które dopuszcza **M i A*
 | W11 Dostępność instruktora  | `/manager/instructors/:id/availability` | [availability.vue](../app/pages/manager/instructors/%5Bid%5D/availability.vue) | M/A  | Zarządzanie tygodniową dostępnością instruktora i podgląd wynikających z niej wolnych okien.                                                                                       | Formularz harmonogramu + kalendarz; `ManagerInstructorAvailabilityContent`, `ManagerInstructorAvailabilityEditor`, `ManagerInstructorAvailabilityDayRow`, `ManagerInstructorWeeklyCalendar`; W10, W12, W13.                                                                             | wdrożone do oceny — 2026-09-12 |
 | W12 Terminarz instruktora   | `/manager/instructors/:id/schedule`     | [schedule.vue](../app/pages/manager/instructors/%5Bid%5D/schedule.vue)         | M/A  | Przegląd tygodnia, dodawanie bloków czasu, zmiany statusów wydarzeń, usuwanie bloków i przejścia do edycji.                                                                        | Harmonogram + formularz; `ManagerInstructorScheduleContextCard`, `ManagerInstructorScheduleWeekSection`, `ManagerInstructorEventFormSection`, `ManagerInstructorEventDeleteDialog`; W19–W20.                                                                                            | do przeglądu                   |
 | W13 Wolne sloty instruktora | `/manager/instructors/:id/slots`        | [slots.vue](../app/pages/manager/instructors/%5Bid%5D/slots.vue)               | M/A  | Podgląd dostępnych okien i zmiana tygodnia; powrót do profilu lub przejście do terminarza.                                                                                         | Kalendarz dostępności; `ManagerInstructorWeeklyCalendar`, `PageHeader`; W10–W12. Sam podgląd slotów nie jest dialogiem rezerwacji.                                                                                                                                                      | do przeglądu                   |
-| W14 Kursy                   | `/manager/courses`                      | [index.vue](../app/pages/manager/courses/index.vue)                            | M/A  | Wybór szkoły, przegląd kursów, otwarcie szczegółów i tworzenia kursu.                                                                                                              | Lista; `ManagerCoursesListPanel`, `ManagerCoursesStats`, `ManagerCoursesDesktopTable`, `ManagerCoursesMobileCards`; W15–W16.                                                                                                                                                            | do przeglądu                   |
+| W14 Kursy                   | `/manager/courses`                      | [index.vue](../app/pages/manager/courses/index.vue)                            | M/A  | Wybór szkoły, przegląd kursów, otwarcie szczegółów i tworzenia kursu.                                                                                                              | Lista; `ManagerCoursesListPanel`, `ManagerCoursesStats`, `ManagerCoursesDesktopTable`, `ManagerCoursesMobileCards`; W15–W16.                                                                                                                                                            | gotowe — 2026-09-12            |
 | W15 Szczegóły kursu         | `/manager/courses/:id`                  | [[id].vue](../app/pages/manager/courses/%5Bid%5D.vue)                          | M/A  | Parametry kursu, powiązane dane i zmiana przypisanego instruktora z obsługą ograniczeń zapisu.                                                                                     | Szczegóły + formularz; `ManagerCourseDetailContainer`, `ManagerCourseProfileCard`, `ManagerCourseOverviewCard`, `ManagerCourseInstructorAssignmentCard`; W14, W09, W07.                                                                                                                 | do przeglądu                   |
 | W16 Nowy kurs               | `/manager/courses/new`                  | [new.vue](../app/pages/manager/courses/new.vue)                                | M/A  | Utworzenie kursu: szkoła, parametry szkolenia, instruktor, ustawienia teorii, walidacja i zapis.                                                                                   | Formularz; `CourseCreateForm`, `CourseCreateBasicFields`, `CourseCreateInstructorField`, `CourseCreateTheoryFields`, `CourseCreateFormActions`; W14–W15.                                                                                                                                | do przeglądu                   |
 | W17 Szkoły jazdy            | `/manager/osk`                          | [index.vue](../app/pages/manager/osk/index.vue)                                | M/A  | Lista szkół i podsumowania, dodawanie/edycja, wybór domyślnej szkoły, usuwanie.                                                                                                    | Lista kart; `ManagerOskListGrid`, `FilterBar`, `SummaryStrip`, `StatusBadge`; D06–D07; szkoła jest kontekstem innych modułów.                                                                                                                                                           | do przeglądu                   |
@@ -439,3 +439,35 @@ Weryfikacja:
 - Przeglądarka: lokalne wejście na `localhost:3000/manager/instructors` działa, ale bieżąca sesja zwróciła pusty kontekst szkół i 0 rekordów, więc nie wykonano pełnej kontroli wizualnej W10 z realnym rekordem instruktora. Do akceptacji pozostało sprawdzenie desktop/mobile/tablet, zakładek, dialogów D04/D05 i linków W11/W12/W13 na sesji z dostępną szkołą oraz rekordami instruktorów.
 
 Status: **wdrożone do oceny, nieodhaczone 2026-09-12**. Widok wymaga akceptacji użytkownika przed zmianą checkboxa W10 na `[x]`.
+
+## 16. W14 — lista kursów z filtrami, 2026-09-12
+
+Na prośbę użytkownika wdrożono jeden wariant zgodny z listami kursantów i instruktorów oraz `UI_COMPONENT_PATTERNS.md`. Zachowano Satoshi, istniejące tokeny i oba motywy. Lista ma jeden panel: kontekst szkoły, wyszukiwarka, filtry, zwarty pasek liczników, tabela lub mobilne rekordy oraz paginacja po 20 pozycji. Kolumny: nazwa kursu jako link do W15, kategoria, typ, godziny i instruktor. W16 pozostaje dostępny z głównej akcji „Dodaj kurs”.
+
+Filtry:
+
+- Wyszukiwarka po nazwie kursu, kategorii, typie i nazwisku instruktora; każde wpisane słowo musi pasować, wielkość liter i polskie znaki nie ograniczają dopasowania.
+- Wybór kategorii oraz szybkie widoki Wszystkie / Teoria / Praktyka / Dodatkowe / Bez instruktora.
+- Adapter `ManagerCoursesAdvancedFilters` używa istniejących `AppAdvancedFilters` i segmentów aktywnych reguł. Edytor działa jako popover na desktopie i dolny sheet na telefonie.
+- Reguły: nazwa zawiera/nie zawiera/jest/nie jest; kategoria i typ jest/nie jest; instruktor jest/nie jest konkretną osobą lub jest/nie jest przypisany; godziny co najmniej/co najwyżej/dokładnie.
+- Maksymalnie 8 reguł łączonych przez AND, walidacja liczb, ochrona przed duplikatami, edycja i usuwanie pojedynczego warunku, reset samych reguł lub wszystkich filtrów. Zakres godzin powstaje przez połączenie minimum i maksimum.
+- Filtrowana jest cała lista pobrana z istniejącego API wybranej OSK, przed lokalną paginacją. Liczniki dotyczą wszystkich wyników. Zmiana filtrów resetuje stronę, zmiana OSK czyści także reguły specyficzne dla szkoły. Stan filtrów nie jest zapisywany między wizytami.
+
+Strona korzysta z `useManagerCoursesPage`, a stan filtrowania i paginacji z `useManagerCoursesFilters`. Uwzględniono początkowy `schoolId` z adresu, ponowienie po błędzie szkół oraz ignorowanie spóźnionej odpowiedzi po zmianie szkoły. Nie dodawano filtrów po statusie, cenie, terminie ani liczbie kursantów, ponieważ kontrakt listy nie zawiera tych danych.
+
+Inspiracje znalezione w internecie:
+
+- [shadcn/ui Tasks](https://ui.shadcn.com/examples/tasks): zwarta tabela, toolbar z wyszukiwaniem i filtrami, paginacja. Najbliższy wzorzec wizualny do istniejącego OSK Managera.
+- [TanStack Table — Filters Faceted](https://tanstack.com/table/latest/docs/framework/react/examples/filters-faceted): filtrowanie według wartości kolumn i zakresów liczbowych. Inspiracja zachowaniem filtrów; bez dodawania biblioteki do projektu.
+- [AG Grid — Advanced Filter](https://www.ag-grid.com/javascript-data-grid/filter-advanced/): reguły pole/warunek/wartość i łączenie kryteriów. W W14 wykorzystano prosty model AND przez istniejący shell, bez wdrażania pełnego kreatora zagnieżdżonych grup.
+
+Weryfikacja:
+
+- Vitest: 5 plików, 22 testy zaliczone, w tym wyszukiwanie, kombinacje filtrów, granice godzin, brak instruktora, edycja/duplikaty, paginacja, zmiana OSK, retry szkół i spóźnione odpowiedzi.
+- `npm run typecheck`: kod wyjścia 0.
+- ESLint dla plików W14: kod wyjścia 0.
+- Headless Playwright na działającym `localhost:3000`, z przechwyconymi odpowiedziami API i 23 rekordami testowymi: paginacja 20+3, wyszukiwanie rekordu z drugiej strony, łączenie filtrów, edycja/usuwanie/reset reguł, pusty wynik, pusty kurs, przełączenie szkoły oraz błąd 500 i udane ponowienie.
+- Screenshoty i kontrola przepełnienia: 1440, 1024, 768, 390 i 320 px, długie nazwy, jasny/ciemny motyw, mobilny edytor. Brak poziomego przepełnienia i błędów konsoli w zwykłym przebiegu; odpowiedzi 500 były celowo symulowane. Artefakty lokalne: `.cache/w14-*.png`.
+- Testy przeglądarkowe potwierdzają UI na fixture; nie stanowią weryfikacji danych ani zapisów na rzeczywistej sesji managera. W15 i W16 wymagają osobnego odświeżenia zgodnie z checklistą.
+
+Status: **zaakceptowane i odhaczone 2026-09-12**. W14 jest traktowane jako wykonane w nowej rundzie UI.

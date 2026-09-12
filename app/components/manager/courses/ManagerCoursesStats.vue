@@ -1,63 +1,40 @@
 <script setup lang="ts">
 import type { CourseListItem } from '~/types/courses/course';
 import {
-    countCoursesWithInstructor,
     countUniqueCategories,
-    countUniqueCourseTypes,
+    countCoursesWithInstructor,
 } from '~/utils/courses/managerCoursesList';
-
 const props = defineProps<{
     courses: CourseListItem[];
+    total: number;
+    unavailable: boolean;
 }>();
-
-const uniqueCourseTypesCount = computed(() =>
-    countUniqueCourseTypes(props.courses),
-);
-
-const uniqueCategoriesCount = computed(() =>
-    countUniqueCategories(props.courses),
-);
-
-const coursesWithInstructorCount = computed(() =>
-    countCoursesWithInstructor(props.courses),
+const categoryCount = computed(() => countUniqueCategories(props.courses));
+const unassignedCount = computed(
+    () => props.courses.length - countCoursesWithInstructor(props.courses),
 );
 </script>
-
 <template>
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+    <div
+        class="border-border text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-4 py-3 text-xs sm:px-5"
+        aria-live="polite"
+    >
+        <span class="text-foreground font-semibold tabular-nums"
+            >{{ unavailable ? '—' : courses.length }} z
+            {{ unavailable ? '—' : total }} kursów</span
         >
-            <p class="text-muted-foreground text-sm font-medium">Kursy</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ props.courses.length }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+        <span>W wynikach:</span>
+        <span
+            >Kategorie
+            <strong class="text-foreground ml-1 font-semibold tabular-nums">{{
+                unavailable ? '—' : categoryCount
+            }}</strong></span
         >
-            <p class="text-muted-foreground text-sm font-medium">Typy</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ uniqueCourseTypesCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
+        <span
+            >Bez instruktora
+            <strong class="text-foreground ml-1 font-semibold tabular-nums">{{
+                unavailable ? '—' : unassignedCount
+            }}</strong></span
         >
-            <p class="text-muted-foreground text-sm font-medium">Kategorie</p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ uniqueCategoriesCount }}
-            </p>
-        </div>
-        <div
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-        >
-            <p class="text-muted-foreground text-sm font-medium">
-                Z instruktorem
-            </p>
-            <p class="text-foreground mt-2 text-3xl font-extrabold">
-                {{ coursesWithInstructorCount }}
-            </p>
-        </div>
     </div>
 </template>

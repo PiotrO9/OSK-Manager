@@ -402,7 +402,7 @@ Te zasady opisują to, co z aktualnego `/manager/students` warto traktować jako
 
 - Desktop: używaj zwartej tabeli lub `DataTableShell`, gdzie główny identyfikator encji jest linkiem do szczegółów. Cały wiersz nie musi być klikalny, jeżeli w wierszu są osobne akcje.
 - Mobile: nie ściskaj tabeli. Używaj kart rekordów z tym samym zakresem danych i osobnymi akcjami. Przyciski akcji na telefonie trzymaj w wysokości około 44 px.
-- Najważniejsze dane encji pokazuj w pierwszej kolumnie lub pierwszym bloku karty; dane drugorzędne grupuj pod spodem. Avatary/inicjały w listach pokazuj przez `AppListAvatar`, żeby zachować ten sam rozmiar, koło, obramowanie i kolor w widokach kursantów, instruktorów i kolejnych listach. Statusy zawsze przez wspólne badge albo wzorzec kompatybilny ze `StatusBadge`.
+- Najważniejsze dane encji pokazuj w pierwszej kolumnie lub pierwszym bloku karty; dane drugorzędne grupuj pod spodem. Avatary/inicjały w listach pokazuj przez `AppListAvatar`, żeby zachować ten sam rozmiar, koło, obramowanie i kolor w widokach kursantów, instruktorów i kolejnych listach. Jeżeli w tabeli pokazujesz osobę, np. instruktora albo kursanta, używaj układu profilu: `AppListAvatar`, nazwa jako główny tekst lub link do profilu oraz krótka rola/opis pod spodem. Nie zastępuj osoby małym badge'em ani samym `text-xs` obok inicjałów. Statusy zawsze przez wspólne badge albo wzorzec kompatybilny ze `StatusBadge`.
 - Akcje w rekordzie mają być lekkie i konkretne. Główna akcja widoku należy do nagłówka, a akcje wiersza do rekordu.
 
 ### Stany i responsywność

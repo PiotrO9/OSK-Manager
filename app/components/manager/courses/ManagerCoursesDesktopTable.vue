@@ -1,110 +1,140 @@
 <script setup lang="ts">
+import { ArrowUpRight } from 'lucide-vue-next';
+import AppListAvatar from '~/components/app/AppListAvatar.vue';
 import {
     formatCourseKindLabel,
     type CourseListItem,
 } from '~/types/courses/course';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
 import {
-    courseTypeBadgeClasses,
-    formatCourseSubtitle,
     formatInstructorCell,
     getCourseInstructorInitials,
 } from '~/utils/courses/managerCoursesList';
-
-const props = defineProps<{
-    courses: CourseListItem[];
-    activeSchoolId: string;
-    activeSchoolName: string | null;
-}>();
+defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
 </script>
-
 <template>
-    <div
-        class="border-border hidden overflow-hidden rounded-xl border md:block"
-    >
-        <table class="w-full min-w-[760px] text-left text-sm">
-            <thead class="bg-muted/40 text-muted-foreground border-b">
-                <tr>
-                    <th scope="col" class="px-4 py-3 font-semibold">Nazwa</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Zakres</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Typ</th>
-                    <th scope="col" class="px-4 py-3 font-semibold">
-                        Instruktor
-                    </th>
-                    <th scope="col" class="px-4 py-3 font-semibold">Akcje</th>
-                </tr>
-            </thead>
-            <tbody class="divide-border divide-y">
-                <tr
-                    v-for="course in props.courses"
-                    :key="course.id"
-                    class="hover:bg-muted/30"
-                >
-                    <td class="px-4 py-3">
-                        <div class="min-w-0">
-                            <p class="text-foreground truncate font-extrabold">
-                                {{ course.name }}
-                            </p>
-                            <p class="text-muted-foreground mt-0.5 text-xs">
-                                {{ formatCourseSubtitle(course) }}
-                            </p>
-                        </div>
-                    </td>
-                    <td class="text-muted-foreground px-4 py-3">
-                        {{ props.activeSchoolName ?? course.category }}
-                    </td>
-                    <td class="px-4 py-3">
-                        <UiBadge
-                            variant="outline"
-                            class="rounded-full"
-                            :class="courseTypeBadgeClasses(course)"
-                        >
-                            {{ formatCourseKindLabel(course.type) }}
-                        </UiBadge>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div
-                            v-if="course.instructor"
-                            class="flex min-w-0 items-center gap-2"
-                        >
-                            <ProfileAvatar
-                                :src="course.instructor.avatarUrl"
-                                :initials="getCourseInstructorInitials(course)"
-                                :size="24"
-                                class="border-border bg-muted/40 text-muted-foreground border"
-                            />
-                            <span
-                                class="text-muted-foreground min-w-0 truncate"
-                            >
-                                {{ formatInstructorCell(course) }}
-                            </span>
-                        </div>
-                        <span v-else class="text-muted-foreground">
-                            {{ formatInstructorCell(course) }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <UiButton
-                            as-child
-                            variant="outline"
-                            size="sm"
-                            class="rounded-full"
-                        >
+    <table class="hidden w-full table-fixed text-left text-sm @3xl:table">
+        <caption class="sr-only">
+            Kursy: kategoria, typ, liczba godzin i instruktor.
+        </caption>
+        <thead
+            class="border-border bg-muted/30 text-muted-foreground border-b text-xs"
+        >
+            <tr>
+                <th scope="col" class="w-[28%] px-5 py-3 font-medium">Kurs</th>
+                <th scope="col" class="w-[10%] px-3 py-3 font-medium">
+                    Kategoria
+                </th>
+                <th scope="col" class="w-[18%] px-3 py-3 font-medium">Typ</th>
+                <th scope="col" class="w-[8%] px-3 py-3 text-right font-medium">
+                    Godziny
+                </th>
+                <th scope="col" class="w-[30%] px-3 py-3 font-medium">
+                    Instruktor
+                </th>
+                <th scope="col" class="w-[6%] px-1 py-3">
+                    <span class="sr-only">Akcje</span>
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-border divide-y">
+            <tr
+                v-for="course in courses"
+                :key="course.id"
+                class="hover:bg-muted/30 focus-within:bg-muted/30 transition-colors"
+            >
+                <th scope="row" class="px-5 py-4 text-left font-normal">
+                    <NuxtLink
+                        :to="{
+                            path: `/manager/courses/${course.id}`,
+                            query: { schoolId: activeSchoolId },
+                        }"
+                        class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
+                        >{{ course.name }}</NuxtLink
+                    >
+                </th>
+                <td class="px-3 py-4">
+                    <StatusBadge
+                        :label="course.category"
+                        tone="neutral"
+                        subtle
+                    />
+                </td>
+                <td class="px-3 py-4">
+                    <StatusBadge
+                        :label="formatCourseKindLabel(course.type)"
+                        :tone="
+                            course.type === 'PRACTICAL'
+                                ? 'info'
+                                : course.type === 'THEORY_GROUP'
+                                  ? 'warning'
+                                  : 'success'
+                        "
+                        subtle
+                    />
+                </td>
+                <td class="px-3 py-4 text-right font-medium tabular-nums">
+                    {{ course.totalHours }}
+                    <span class="text-muted-foreground font-normal">h</span>
+                </td>
+                <td class="px-3 py-3">
+                    <div
+                        v-if="course.instructor"
+                        class="flex min-w-0 items-center gap-3"
+                    >
+                        <AppListAvatar
+                            :src="course.instructor.avatarUrl"
+                            :initials="getCourseInstructorInitials(course)"
+                            :size="36"
+                        />
+                        <div class="min-w-0 space-y-1">
                             <NuxtLink
                                 :to="{
-                                    path: `/manager/courses/${course.id}`,
-                                    query: props.activeSchoolId
-                                        ? { schoolId: props.activeSchoolId }
-                                        : undefined,
+                                    path: `/manager/instructors/${course.instructor.id}`,
+                                    query: { schoolId: activeSchoolId },
                                 }"
-                                :aria-label="`Szczegóły kursu: ${course.name}`"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
+                                :aria-label="`Otwórz szczegóły instruktora ${course.instructor.name}`"
+                                >{{ course.instructor.name }}</NuxtLink
                             >
-                                Szczegóły
-                            </NuxtLink>
-                        </UiButton>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                            <p class="text-muted-foreground text-xs">
+                                Instruktor OSK
+                            </p>
+                        </div>
+                    </div>
+                    <span
+                        v-else
+                        class="text-muted-foreground text-sm wrap-anywhere"
+                        >{{ formatInstructorCell(course) }}</span
+                    >
+                </td>
+                <td class="px-1 py-4">
+                    <UiTooltip
+                        ><UiTooltipTrigger as-child>
+                            <UiButton
+                                as-child
+                                variant="ghost"
+                                size="icon"
+                                class="size-9"
+                            >
+                                <NuxtLink
+                                    :to="{
+                                        path: `/manager/courses/${course.id}`,
+                                        query: { schoolId: activeSchoolId },
+                                    }"
+                                    :aria-label="`Szczegóły kursu: ${course.name}`"
+                                    ><ArrowUpRight
+                                        class="size-4"
+                                        aria-hidden="true"
+                                /></NuxtLink>
+                            </UiButton> </UiTooltipTrigger
+                        ><UiTooltipContent
+                            >Szczegóły kursu</UiTooltipContent
+                        ></UiTooltip
+                    >
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </template>
