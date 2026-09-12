@@ -7,6 +7,7 @@ const fetchSchoolSchedule = vi.fn();
 function installNuxtSchoolScheduleDataGlobals(): void {
     vi.stubGlobal('ref', ref);
     vi.stubGlobal('watch', vi.fn());
+    vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', vi.fn());
     vi.stubGlobal('useSchoolScheduleApi', () => ({
         fetchSchoolSchedule,

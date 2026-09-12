@@ -306,7 +306,7 @@ watch(isOpen, (open) => {
 
 <template>
     <UiPopover v-model:open="isOpen">
-        <UiPopoverTrigger>
+        <UiPopoverTrigger as-child>
             <UiButton
                 :id="id"
                 type="button"

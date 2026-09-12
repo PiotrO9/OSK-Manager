@@ -64,7 +64,7 @@ const calendarOpen = defineModel<boolean>('calendarOpen', { required: true });
         </p>
 
         <UiPopover v-model:open="calendarOpen">
-            <UiPopoverTrigger>
+            <UiPopoverTrigger as-child>
                 <UiButton
                     type="button"
                     variant="outline"

@@ -7,6 +7,7 @@ function installNuxtSchoolScheduleCalendarGlobals(): void {
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('shallowRef', shallowRef);
     vi.stubGlobal('watch', watch);
+    vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', onBeforeUnmount);
     vi.stubGlobal('useSchoolScheduleApi', () => ({
         fetchSchoolSchedule: vi.fn(),

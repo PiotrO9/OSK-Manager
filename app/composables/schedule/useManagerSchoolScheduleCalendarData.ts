@@ -15,6 +15,7 @@ export function useManagerSchoolScheduleCalendarData(
     const internalItems = ref<ScheduleLessonItem[]>([]);
     const errorMessage = ref<string | null>(null);
     const { fetchSchoolSchedule, isLoading } = useSchoolScheduleApi();
+    const hasMounted = ref(false);
     let fetchSeq = 0;
     let fetchAbortController: AbortController | null = null;
 
@@ -73,12 +74,19 @@ export function useManagerSchoolScheduleCalendarData(
     watch(
         [options.weekStart, options.schoolId],
         () => {
-            if (!options.disabled()) {
+            if (hasMounted.value && !options.disabled()) {
                 void loadWeek();
             }
         },
-        { immediate: true },
     );
+
+    onMounted(() => {
+        hasMounted.value = true;
+
+        if (!options.disabled()) {
+            void loadWeek();
+        }
+    });
 
     onBeforeUnmount(() => {
         fetchSeq += 1;
