@@ -1,11 +1,10 @@
-import { CalendarDays, Clock3, UserRound } from 'lucide-vue-next';
+import { CalendarDays, Clock3, TimerReset } from 'lucide-vue-next';
 import {
     formatCourseTypeOptionLabel,
     type CourseTypeOption,
 } from '~/types/courses/courseType';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
-import type { SummaryStripItem } from '~/types/ui';
 
 export function displayManagerInstructorDetailsValue(value: string): string {
     const trimmed = value.trim();
@@ -72,38 +71,6 @@ export function useManagerInstructorDetailsContent(input: {
         return `${count} opinii`;
     });
 
-    const summaryItems = computed<SummaryStripItem[]>(() => [
-        {
-            label: 'Kategorie',
-            value: input.instructor.qualifiedCourseTypes.length,
-            description: categoryLabel.value,
-            tone: 'info',
-        },
-        {
-            label: 'Doswiadczenie',
-            value: displayManagerInstructorDetailsValue(
-                input.instructor.experience,
-            ),
-            description: 'Z profilu instruktora',
-            tone: 'neutral',
-        },
-        {
-            label: 'Srednia ocen',
-            value: ratingAverageLabel.value,
-            description: ratingsCountLabel.value,
-            tone:
-                input.ratingSummary.averageRating === null
-                    ? 'neutral'
-                    : 'success',
-        },
-        {
-            label: 'Telefon',
-            value: displayManagerInstructorDetailsValue(input.instructor.phone),
-            description: 'Dane kontaktowe',
-            tone: 'neutral',
-        },
-    ]);
-
     const actionDisabledClass = computed(() =>
         input.isDeleting
             ? 'pointer-events-none cursor-not-allowed opacity-50'
@@ -112,34 +79,35 @@ export function useManagerInstructorDetailsContent(input: {
 
     const relatedLinks = computed(() => [
         {
-            label: 'Dostepnosc',
-            description: 'Tygodniowy wzorzec pracy',
+            label: 'Dostępność',
+            description: 'Edytuj tygodniowy wzorzec pracy',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/availability`,
+                query: input.subpageQuery,
             },
             icon: Clock3,
         },
         {
-            label: 'Terminarz',
-            description: 'Wolne sloty instruktora',
+            label: 'Wolne sloty',
+            description: 'Sprawdź najbliższe okna do rezerwacji',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/slots`,
+                query: input.subpageQuery,
             },
             icon: CalendarDays,
         },
         {
-            label: 'Lekcje',
-            description: 'Lekcje i bloki czasu',
+            label: 'Terminarz',
+            description: 'Lekcje, teoria i bloki czasu',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/schedule`,
+                query: input.subpageQuery,
             },
-            icon: UserRound,
+            icon: TimerReset,
         },
     ]);
 
     const profileRows = computed(() => [
-        { label: 'Status', value: 'Aktywny' },
-        { label: 'Kategorie', value: categoryLabel.value },
         {
             label: 'Telefon',
             value: displayManagerInstructorDetailsValue(input.instructor.phone),
@@ -161,7 +129,6 @@ export function useManagerInstructorDetailsContent(input: {
         categoryLabel,
         ratingAverageLabel,
         ratingsCountLabel,
-        summaryItems,
         actionDisabledClass,
         relatedLinks,
         profileRows,

@@ -6,7 +6,9 @@ import {
     formatManagerInstructorWeekRangeLabel,
     getManagerInstructorBusiestDay,
     getManagerInstructorEarliestSlotLabel,
+    getManagerInstructorSlotHeightPx,
     getManagerInstructorSlotTopPx,
+    getManagerInstructorVisibleHourRange,
     groupManagerInstructorSlotsByDate,
 } from './managerInstructorWeeklyCalendar';
 
@@ -14,7 +16,33 @@ describe('manager instructor weekly calendar model', () => {
     it('calculates slot top offset from the base hour', () => {
         expect(getManagerInstructorSlotTopPx('07:00')).toBe(0);
         expect(getManagerInstructorSlotTopPx('08:30')).toBe(90);
+        expect(getManagerInstructorSlotTopPx('06:30', 6)).toBe(30);
         expect(getManagerInstructorSlotTopPx('bad')).toBe(0);
+    });
+
+    it('calculates slot height and expands visible hours around data', () => {
+        expect(
+            getManagerInstructorSlotHeightPx({
+                startTime: '08:00',
+                endTime: '09:30',
+            }),
+        ).toBe(90);
+        expect(
+            getManagerInstructorSlotHeightPx({
+                startTime: '08:00',
+                endTime: '08:10',
+            }),
+        ).toBe(28);
+
+        expect(
+            getManagerInstructorVisibleHourRange([
+                {
+                    date: '2026-09-07',
+                    startTime: '06:30',
+                    endTime: '20:15',
+                },
+            ]),
+        ).toEqual({ baseHour: 6, endHour: 21 });
     });
 
     it('builds seven localized week days and marks today', () => {

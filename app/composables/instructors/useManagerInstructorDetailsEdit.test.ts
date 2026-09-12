@@ -30,6 +30,7 @@ function createInstructor(): InstructorDetail {
         schoolId: 'school-1',
         name: 'Anna Nowak',
         email: 'anna@example.com',
+        avatarUrl: null,
         licenseNumber: 'LIC-123',
         phone: '—',
         qualifications: 'Kat. B',

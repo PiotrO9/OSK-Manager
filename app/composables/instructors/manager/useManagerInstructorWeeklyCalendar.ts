@@ -16,11 +16,10 @@ import {
     formatManagerInstructorWeekRangeLabel,
     getManagerInstructorBusiestDay,
     getManagerInstructorEarliestSlotLabel,
+    getManagerInstructorSlotHeightPx,
     getManagerInstructorSlotTopPx,
+    getManagerInstructorVisibleHourRange,
     groupManagerInstructorSlotsByDate,
-    MANAGER_INSTRUCTOR_WEEK_BASE_HOUR,
-    MANAGER_INSTRUCTOR_WEEK_END_HOUR,
-    MANAGER_INSTRUCTOR_WEEK_GRID_HEIGHT_PX,
 } from '~/utils/instructors/managerInstructorWeeklyCalendar';
 
 export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
@@ -37,14 +36,20 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
 
     let fetchSeq = 0;
 
+    const visibleHourRange = computed(() =>
+        getManagerInstructorVisibleHourRange(slots.value),
+    );
+
+    const baseHour = computed(() => visibleHourRange.value.baseHour);
+    const endHour = computed(() => visibleHourRange.value.endHour);
+    const gridHeightPx = computed(() => (endHour.value - baseHour.value) * 60);
+
     const hourLabels = computed(() =>
         Array.from(
             {
-                length:
-                    MANAGER_INSTRUCTOR_WEEK_END_HOUR -
-                    MANAGER_INSTRUCTOR_WEEK_BASE_HOUR,
+                length: endHour.value - baseHour.value,
             },
-            (_, i) => MANAGER_INSTRUCTOR_WEEK_BASE_HOUR + i,
+            (_, i) => baseHour.value + i,
         ),
     );
 
@@ -187,9 +192,9 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
     }
 
     return {
-        BASE_HOUR: MANAGER_INSTRUCTOR_WEEK_BASE_HOUR,
-        END_HOUR: MANAGER_INSTRUCTOR_WEEK_END_HOUR,
-        GRID_HEIGHT_PX: MANAGER_INSTRUCTOR_WEEK_GRID_HEIGHT_PX,
+        BASE_HOUR: baseHour,
+        END_HOUR: endHour,
+        GRID_HEIGHT_PX: gridHeightPx,
         WEEK_PICKER_CALENDAR_MIN,
         WEEK_PICKER_CALENDAR_MAX,
         errorMessage,
@@ -205,7 +210,9 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
         busiestDay,
         slotsForDate,
         loadWeek,
-        slotTopPx: getManagerInstructorSlotTopPx,
+        slotTopPx: (startTime: string) =>
+            getManagerInstructorSlotTopPx(startTime, baseHour.value),
+        slotHeightPx: getManagerInstructorSlotHeightPx,
         handlePrevWeek,
         handleNextWeek,
         handleCalendarUpdate,

@@ -257,5 +257,6 @@ export function buildInstructorDetailsRoute(
 ): RouteLocationRaw {
     return {
         path: `/manager/instructors/${instructor.id}`,
+        query: {},
     };
 }

@@ -19,13 +19,13 @@ defineProps<{
 </script>
 
 <template>
-    <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+    <UiCard class="overflow-hidden rounded-lg shadow-xs">
         <UiCardHeader class="border-border border-b p-5">
-            <UiCardTitle class="text-xl font-extrabold">
-                Powiazane dane
+            <UiCardTitle class="text-lg font-bold">
+                Powiązane widoki
             </UiCardTitle>
-            <UiCardDescription>
-                Elementy, ktorych nie można zgubic po redesignie.
+            <UiCardDescription class="mt-1">
+                Szybkie przejścia do pracy z czasem, slotami i opiniami.
             </UiCardDescription>
         </UiCardHeader>
 
@@ -34,7 +34,7 @@ defineProps<{
                 v-for="item in links"
                 :key="item.label"
                 :to="item.to"
-                class="border-border hover:bg-muted/40 focus-visible:ring-ring flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                class="border-border hover:bg-muted/40 focus-visible:ring-ring flex min-w-0 items-center justify-between gap-3 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 :class="actionDisabledClass"
                 :tabindex="isDeleting ? -1 : 0"
                 :aria-disabled="isDeleting"
@@ -60,13 +60,13 @@ defineProps<{
                         </span>
                     </span>
                 </span>
-                <StatusBadge label="Widoczne" tone="neutral" subtle />
+                <StatusBadge label="Otwórz" tone="neutral" subtle />
             </NuxtLink>
 
             <NuxtLink
                 v-if="reviewsTo"
                 :to="reviewsTo"
-                class="border-border hover:bg-muted/40 focus-visible:ring-ring flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                class="border-border hover:bg-muted/40 focus-visible:ring-ring flex min-w-0 items-center justify-between gap-3 rounded-lg border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                 :class="actionDisabledClass"
                 :tabindex="isDeleting ? -1 : 0"
                 :aria-disabled="isDeleting"
@@ -88,7 +88,7 @@ defineProps<{
                         </span>
                     </span>
                 </span>
-                <StatusBadge label="Widoczne" tone="neutral" subtle />
+                <StatusBadge label="Otwórz" tone="neutral" subtle />
             </NuxtLink>
         </UiCardContent>
     </UiCard>

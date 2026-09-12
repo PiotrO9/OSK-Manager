@@ -18,29 +18,32 @@ const courseTypeLabel = managerInstructorCourseTypeLabel;
 </script>
 
 <template>
-    <UiCard class="overflow-hidden rounded-2xl shadow-sm">
+    <UiCard class="overflow-hidden rounded-lg shadow-xs">
         <UiCardHeader class="border-border border-b p-5">
-            <UiCardTitle class="text-xl font-extrabold">
+            <UiCardTitle class="text-lg font-bold">
                 Kontakt i kwalifikacje
             </UiCardTitle>
-            <UiCardDescription>
-                Dane profilu oraz kategorie uprawnien.
+            <UiCardDescription class="mt-1">
+                Dane profilu oraz kategorie uprawnień.
             </UiCardDescription>
         </UiCardHeader>
 
         <UiCardContent class="space-y-4 p-5">
             <div class="grid gap-3 sm:grid-cols-2">
-                <div class="border-border rounded-2xl border p-4">
-                    <Mail class="mb-3 size-4 text-sky-700" aria-hidden="true" />
+                <div class="border-border rounded-lg border p-4">
+                    <Mail
+                        class="text-info-700 dark:text-info-300 mb-3 size-4"
+                        aria-hidden="true"
+                    />
                     <p class="text-muted-foreground text-xs">Email</p>
                     <p class="text-foreground mt-1 font-semibold break-all">
                         {{ displayValue(props.instructor.email) }}
                     </p>
                 </div>
 
-                <div class="border-border rounded-2xl border p-4">
+                <div class="border-border rounded-lg border p-4">
                     <Phone
-                        class="mb-3 size-4 text-sky-700"
+                        class="text-info-700 dark:text-info-300 mb-3 size-4"
                         aria-hidden="true"
                     />
                     <p class="text-muted-foreground text-xs">Telefon</p>
@@ -58,7 +61,7 @@ const courseTypeLabel = managerInstructorCourseTypeLabel;
             </div>
 
             <div>
-                <p class="text-muted-foreground text-xs">Kategorie uprawnien</p>
+                <p class="text-muted-foreground text-xs">Kategorie uprawnień</p>
                 <div
                     v-if="props.instructor.qualifiedCourseTypes.length > 0"
                     class="mt-2 flex flex-wrap gap-2"
@@ -82,7 +85,7 @@ const courseTypeLabel = managerInstructorCourseTypeLabel;
                     type="button"
                     variant="outline"
                     size="sm"
-                    class="rounded-xl"
+                    class="rounded-lg"
                     :disabled="props.isDeleting"
                     @click="emit('edit')"
                 >
@@ -94,13 +97,13 @@ const courseTypeLabel = managerInstructorCourseTypeLabel;
                     type="button"
                     variant="destructive"
                     size="sm"
-                    class="rounded-xl"
+                    class="rounded-lg"
                     :disabled="props.isDeleting || props.isSubmitting"
                     :aria-busy="props.isDeleting"
                     @click="emit('delete')"
                 >
                     <Trash2 class="mr-2 size-4" aria-hidden="true" />
-                    Usun
+                    Usuń
                 </UiButton>
             </ActionGroup>
         </UiCardContent>

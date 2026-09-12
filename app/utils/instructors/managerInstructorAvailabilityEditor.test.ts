@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+    formatInstructorAvailabilityDuration,
+    getInstructorAvailabilityChangedRows,
     getInstructorAvailabilityDraftTimelineBar,
     getInstructorAvailabilityLabel,
     getInstructorAvailabilityStatusClass,
     getInstructorAvailabilityStatusLabel,
+    validateInstructorAvailabilityRows,
     validateInstructorAvailabilityRow,
 } from './managerInstructorAvailabilityEditor';
 import type { WeeklyDayFormRow } from '~/types/instructors/instructorAvailability';
@@ -73,5 +76,51 @@ describe('manager instructor availability editor model', () => {
         expect(
             getInstructorAvailabilityDraftTimelineBar(row({ enabled: false })),
         ).toBeNull();
+    });
+
+    it('detects changed rows by enabled state and hours', () => {
+        const savedRows = [
+            row(),
+            row({ dayOfWeek: 2, label: 'Wtorek', enabled: false }),
+        ];
+        const rows = [
+            row({ startTime: '09:00' }),
+            row({ dayOfWeek: 2, label: 'Wtorek', enabled: false }),
+        ];
+
+        expect(getInstructorAvailabilityChangedRows(rows, savedRows)).toEqual([
+            rows[0],
+        ]);
+    });
+
+    it('formats total weekly availability duration', () => {
+        expect(
+            formatInstructorAvailabilityDuration([
+                row({ startTime: '08:00', endTime: '16:00' }),
+                row({
+                    dayOfWeek: 2,
+                    label: 'Wtorek',
+                    startTime: '09:30',
+                    endTime: '12:00',
+                }),
+                row({ dayOfWeek: 3, label: 'Środa', enabled: false }),
+            ]),
+        ).toBe('10 h 30 min');
+    });
+
+    it('validates changed rows as a batch', () => {
+        const result = validateInstructorAvailabilityRows([
+            row({ dayOfWeek: 1, startTime: '16:00', endTime: '08:00' }),
+            row({ dayOfWeek: 2, label: 'Wtorek', enabled: false }),
+        ]);
+
+        expect(result.hasErrors).toBe(true);
+        expect(result.formError).toBe(
+            'Popraw godziny w oznaczonych dniach przed zapisem.',
+        );
+        expect(result.rowErrors[1]).toBe(
+            'Godzina rozpoczęcia musi być wcześniejsza niż zakończenia.',
+        );
+        expect(result.rowErrors[2]).toBeUndefined();
     });
 });

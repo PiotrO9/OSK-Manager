@@ -109,6 +109,7 @@ export function useManagerInstructorDetailsEdit({
                 updated && typeof updated === 'object'
                     ? {
                           schoolId: instructor.value?.schoolId,
+                          avatarUrl: instructor.value?.avatarUrl,
                           ...(updated as unknown as Record<string, unknown>),
                       }
                     : updated;

@@ -5,9 +5,13 @@ const props = withDefaults(
     defineProps<{
         instructorId: string;
         compact?: boolean;
+        refreshKey?: number;
+        showCompactHeader?: boolean;
     }>(),
     {
         compact: false,
+        refreshKey: 0,
+        showCompactHeader: false,
     },
 );
 
@@ -31,11 +35,19 @@ const {
     slotsForDate,
     loadWeek,
     slotTopPx,
+    slotHeightPx,
     handlePrevWeek,
     handleNextWeek,
     handleCalendarUpdate,
     handleKeyDownWeekNav,
 } = useManagerInstructorWeeklyCalendar(() => props.instructorId);
+
+watch(
+    () => props.refreshKey,
+    () => {
+        void loadWeek();
+    },
+);
 </script>
 
 <template>
@@ -47,7 +59,7 @@ const {
         "
     >
         <ManagerInstructorWeeklyCalendarHeader
-            v-if="!props.compact"
+            v-if="!props.compact || props.showCompactHeader"
             v-model:is-calendar-open="isCalendarOpen"
             :is-loading="isLoading"
             :calendar-selected="calendarSelected"
@@ -79,7 +91,7 @@ const {
 
             <div
                 v-else
-                class="border-border relative overflow-x-auto bg-white"
+                class="border-border bg-background relative overflow-x-auto"
                 :class="props.compact ? 'border-0' : ''"
             >
                 <div
@@ -104,7 +116,7 @@ const {
 
                 <div
                     class="relative"
-                    :class="props.compact ? 'min-w-[560px]' : 'min-w-[820px]'"
+                    :class="props.compact ? 'min-w-[680px]' : 'min-w-[820px]'"
                 >
                     <div
                         v-if="isLoading"
@@ -125,7 +137,7 @@ const {
                         :aria-label="`Terminarz slotów, ${weekRangeLabel}`"
                     >
                         <div
-                            class="border-border flex shrink-0 flex-col border-r bg-white"
+                            class="border-border bg-background flex shrink-0 flex-col border-r"
                             :class="props.compact ? 'w-12' : 'w-14'"
                             aria-hidden="true"
                         >
@@ -140,7 +152,7 @@ const {
                                 <div
                                     v-for="h in hourLabels"
                                     :key="h"
-                                    class="text-muted-foreground flex h-[60px] items-start justify-end pt-2 pr-2 text-xs"
+                                    class="text-muted-foreground flex h-[60px] items-start justify-end pt-2 pr-2 text-xs tabular-nums"
                                 >
                                     {{ String(h).padStart(2, '0') }}:00
                                 </div>
@@ -158,8 +170,8 @@ const {
                                     :class="[
                                         props.compact ? 'h-10' : 'h-12',
                                         day.isToday
-                                            ? 'bg-sky-50 font-semibold text-sky-800'
-                                            : 'bg-white',
+                                            ? 'bg-info-50 text-info-900 dark:bg-info-950/40 dark:text-info-100'
+                                            : 'bg-background',
                                     ]"
                                 >
                                     <span
@@ -169,14 +181,14 @@ const {
                                     </span>
                                     <span
                                         v-if="day.isToday"
-                                        class="text-[11px] font-bold text-sky-700"
+                                        class="text-info-700 dark:text-info-300 text-[11px] font-bold"
                                     >
-                                        dzis
+                                        dziś
                                     </span>
                                 </div>
 
                                 <div
-                                    class="border-border relative border-b bg-white"
+                                    class="border-border bg-background relative border-b"
                                     :style="{ height: `${GRID_HEIGHT_PX}px` }"
                                 >
                                     <div
@@ -184,8 +196,8 @@ const {
                                         aria-hidden="true"
                                     >
                                         <div
-                                            v-for="n in 12"
-                                            :key="n"
+                                            v-for="h in hourLabels"
+                                            :key="h"
                                             class="border-border/60 h-[60px] border-b"
                                         />
                                     </div>
@@ -200,14 +212,14 @@ const {
                                             class="absolute right-1.5 left-1.5 overflow-hidden rounded-lg border border-sky-400 bg-sky-50 px-2 py-1 text-xs leading-tight text-sky-950 shadow-sm shadow-sky-100 transition-colors hover:bg-sky-100"
                                             :style="{
                                                 top: `${slotTopPx(slot.startTime)}px`,
-                                                height: '48px',
+                                                height: `${slotHeightPx(slot)}px`,
                                             }"
                                             :title="`${slot.startTime} - ${slot.endTime}`"
                                             role="group"
                                             :aria-label="`Wolny slot ${slot.startTime} do ${slot.endTime}`"
                                         >
                                             <span class="block font-extrabold">
-                                                Dostępny
+                                                Wolny
                                             </span>
                                             <span class="block truncate">
                                                 {{ slot.startTime }}-{{
@@ -224,7 +236,7 @@ const {
                                         "
                                         class="text-muted-foreground absolute inset-0 flex items-center justify-center p-2 text-center text-xs"
                                     >
-                                        Brak slotów
+                                        Brak wolnych terminów
                                     </div>
                                 </div>
                             </div>

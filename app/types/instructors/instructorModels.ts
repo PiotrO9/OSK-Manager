@@ -18,6 +18,7 @@ export interface InstructorDetail {
     schoolId: string;
     name: string;
     email: string;
+    avatarUrl: string | null;
     licenseNumber: string;
     phone: string;
     qualifications: string;

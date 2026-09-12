@@ -3,14 +3,11 @@ import { useManagerInstructorDetailsData } from './useManagerInstructorDetailsDa
 import { useManagerInstructorDetailsDelete } from './useManagerInstructorDetailsDelete';
 import { useManagerInstructorDetailsEdit } from './useManagerInstructorDetailsEdit';
 import { useManagerInstructorDetailsRatingSummary } from './useManagerInstructorDetailsRatingSummary';
-import {
-    displayManagerInstructorText,
-} from '~/utils/instructors/managerInstructorDetailsPage';
+import { displayManagerInstructorText } from '~/utils/instructors/managerInstructorDetailsPage';
 import { usePageMeta } from '../core/usePageMeta';
 
 export function useManagerInstructorDetailsPage() {
     const route = useRoute();
-    const router = useRouter();
 
     const {
         editBaseline,
@@ -52,7 +49,18 @@ export function useManagerInstructorDetailsPage() {
     const { ratingSummary, isRatingSummaryLoading, loadRatingSummary } =
         useManagerInstructorDetailsRatingSummary();
 
-    const instructorSubpageQuery = computed<Record<string, string>>(() => ({}));
+    const instructorSubpageQuery = computed<Record<string, string>>(() => {
+        const schoolId = instructor.value?.schoolId.trim() ?? '';
+        const query: Record<string, string> = {};
+
+        if (!schoolId) {
+            return query;
+        }
+
+        query.schoolId = schoolId;
+
+        return query;
+    });
 
     usePageMeta({
         title: () => instructor.value?.name?.trim() || 'Instruktor',
@@ -66,18 +74,6 @@ export function useManagerInstructorDetailsPage() {
             isDeleteDialogOpen.value = false;
             await Promise.all([loadInstructor(id), loadCourseTypes()]);
             await loadRatingSummary(id, instructor.value?.schoolId ?? '');
-        },
-        { immediate: true },
-    );
-
-    watch(
-        () => route.query.schoolId,
-        (schoolId) => {
-            if (schoolId === undefined) {
-                return;
-            }
-
-            void router.replace({ path: route.path, query: {} });
         },
         { immediate: true },
     );

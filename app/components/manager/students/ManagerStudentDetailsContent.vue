@@ -162,7 +162,7 @@ function handleTabChange(value: string | number): void {
                                 :key="tab.value"
                                 :value="tab.value"
                                 :aria-controls="getTabPanelId(tab.value)"
-                                class="text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground focus-visible:ring-ring -mb-px border-b-2 border-transparent px-1 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                class="text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground focus-visible:ring-ring -mb-px cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                             >
                                 {{ tab.label }}
                             </TabsTrigger>

@@ -10,6 +10,7 @@ import {
     formatPolishExperienceYears,
     readNumericExperienceYears,
 } from './instructorNormalizeShared';
+import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
 /**
  * Normalizacja odpowiedzi GET/PATCH pod formularz edycji (prefill).
@@ -169,6 +170,7 @@ export function normalizeInstructorDetail(
         schoolId,
         name: name || '—',
         email,
+        avatarUrl: readAvatarUrlFromRecord(o),
         licenseNumber: licenseNumber || '—',
         phone: phone || '—',
         qualifications: qualifications || '—',
