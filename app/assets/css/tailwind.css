@@ -204,6 +204,104 @@
     }
 }
 
+@layer components {
+    [data-slot='dialog-overlay'].osk-dialog-overlay {
+        animation-duration: 200ms;
+        animation-fill-mode: both;
+        animation-timing-function: ease-in-out;
+        will-change: opacity, filter;
+    }
+
+    [data-slot='dialog-overlay'].osk-dialog-overlay[data-state='open'] {
+        animation-name: osk-dialog-overlay-in;
+    }
+
+    [data-slot='dialog-overlay'].osk-dialog-overlay[data-state='closed'] {
+        animation-name: osk-dialog-overlay-out;
+    }
+
+    [data-slot='dialog-content'].osk-dialog-content {
+        --osk-dialog-tilt: -18deg;
+        animation-duration: 240ms;
+        animation-fill-mode: both;
+        animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+        transform-origin: top center;
+        will-change: opacity, filter, transform;
+    }
+
+    [data-slot='dialog-content'].osk-dialog-content[data-state='open'] {
+        animation-name: osk-dialog-content-in;
+    }
+
+    [data-slot='dialog-content'].osk-dialog-content[data-state='closed'] {
+        animation-name: osk-dialog-content-out;
+        animation-duration: 180ms;
+        animation-timing-function: ease-in;
+    }
+
+    @keyframes osk-dialog-overlay-in {
+        from {
+            opacity: 0;
+            filter: blur(4px);
+        }
+        to {
+            opacity: 1;
+            filter: blur(0);
+        }
+    }
+
+    @keyframes osk-dialog-overlay-out {
+        from {
+            opacity: 1;
+            filter: blur(0);
+        }
+        to {
+            opacity: 0;
+            filter: blur(4px);
+        }
+    }
+
+    @keyframes osk-dialog-content-in {
+        from {
+            opacity: 0;
+            filter: blur(4px);
+            transform: perspective(500px) rotateX(var(--osk-dialog-tilt))
+                scale(0.86);
+        }
+        70% {
+            transform: perspective(500px) rotateX(2deg) scale(1.01);
+        }
+        to {
+            opacity: 1;
+            filter: blur(0);
+            transform: perspective(500px) rotateX(0) scale(1);
+        }
+    }
+
+    @keyframes osk-dialog-content-out {
+        from {
+            opacity: 1;
+            filter: blur(0);
+            transform: perspective(500px) rotateX(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            filter: blur(4px);
+            transform: perspective(500px) rotateX(var(--osk-dialog-tilt))
+                scale(0.9);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-slot='dialog-overlay'].osk-dialog-overlay,
+        [data-slot='dialog-content'].osk-dialog-content {
+            animation: none;
+            filter: none;
+            will-change: auto;
+        }
+    }
+}
+
 a[class~='hover:underline'] {
     text-decoration-line: none;
     background-image: linear-gradient(currentColor, currentColor);
