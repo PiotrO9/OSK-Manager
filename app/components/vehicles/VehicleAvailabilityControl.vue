@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import {

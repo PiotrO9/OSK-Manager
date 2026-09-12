@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import { courseCreateFormMessages } from '~/utils/courses/courseCreateFormMessages';
 
 const props = defineProps<{

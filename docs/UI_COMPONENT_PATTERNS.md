@@ -81,6 +81,7 @@ Zasady:
 - opis ma byc krotki i praktyczny;
 - akcje glowne powinny byc w prawym obszarze naglowka na desktopie;
 - na mobile akcje moga zejsc pod tytul.
+- glowna akcja w naglowku powinna korzystac z bazowego `UiButton` jako zrodla stylu; dopuszczalne sa tylko klasy layoutowe typu `h-*`, `w-*`, `px-*` albo responsywne dopasowanie szerokosci. Nie dopisuj lokalnie `rounded-*`, `shadow-*`, `font-*` ani marginesow ikon, bo rozbijaja wspolny wariant primary buttona.
 
 ## FilterBar
 
@@ -267,6 +268,18 @@ Zasady:
 - walidacja powinna byc widoczna przy polu;
 - akcje zapisu/anulowania powinny miec stale miejsce;
 - formularz w dialogu nie powinien byc zbyt dlugi, jesli lepszy jest osobny widok.
+
+### Pola daty i czasu
+
+W formularzach używaj nowych pickerów opisanych w [`DATE_TIME_PICKERS.md`](./DATE_TIME_PICKERS.md):
+
+- `UiDatePicker` dla pojedynczej daty;
+- `UiTimePicker` dla pojedynczej godziny;
+- `UiDateTimePicker` dla jednego terminu logicznego;
+- `UiDateRangePicker` dla dowolnego zakresu dat;
+- `UiWeekPicker` tylko dla pełnego tygodnia w kalendarzach.
+
+Nie dodawaj lokalnych wersji `V2`, natywnych `input[type="date"]` ani `input[type="time"]` w przebudowywanych widokach. Jeżeli formularz trzyma datę i godzinę osobno w modelu, stosuj dwa pola (`UiDatePicker` + `UiTimePicker`). Jeżeli model domenowy ma jeden termin, stosuj `UiDateTimePicker`.
 
 ## DetailLayout
 

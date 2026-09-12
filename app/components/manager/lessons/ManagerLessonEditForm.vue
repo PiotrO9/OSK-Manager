@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import {
     formatInstructorDisplayName,

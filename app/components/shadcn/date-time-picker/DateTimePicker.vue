@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { CalendarDate, DateValue } from '@internationalized/date';
+import type { CalendarDate } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
-import { Calendar as CalendarIcon } from 'lucide-vue-next';
-import { computed, nextTick, ref, shallowRef, watch } from 'vue';
+import { computed, nextTick, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
+import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import {
     buildDatetimeLocal,
     dateValueToIsoDateString,
-    formatDatetimeLocalPl,
     isoDateStringToCalendarDate,
     parseDatetimeLocalParts,
 } from '~/utils/date/weeklyCalendarDates';
@@ -25,28 +25,18 @@ const props = withDefaults(
         ariaInvalid?: boolean;
         ariaDescribedby?: string;
         ariaRequired?: boolean;
-        /** Minimalna data (`YYYY-MM-DD`) dla kalendarza. */
         minDate?: string;
-        /** Maksymalna data (`YYYY-MM-DD`) dla kalendarza. */
         maxDate?: string;
-        /**
-         * Dozwolone godziny (0–23). Puste lub brak — pełny zakres.
-         * Np. przy edycji eventu z `freeWindows`.
-         */
         hourOptions?: number[];
-        /**
-         * Dozwolone minuty (0–59). Puste lub brak — pełny zakres.
-         * Np. przy edycji eventu z `freeWindows`.
-         */
         minuteOptions?: number[];
         clearable?: boolean;
-        /** Przycisk ustawiający dzisiejszą datę (bez zmiany godziny). */
         showTodayButton?: boolean;
         triggerClass?: string;
     }>(),
     {
         id: undefined,
-        placeholder: 'Wybierz datę i godzinę',
+        disabled: false,
+        placeholder: 'Wybierz datę',
         ariaInvalid: false,
         ariaDescribedby: undefined,
         ariaRequired: false,
@@ -64,372 +54,129 @@ const emit = defineEmits<{
     'update:modelValue': [value: string];
 }>();
 
-const DEFAULT_HOUR_OPTIONS: number[] = Array.from({ length: 24 }, (_, i) => i);
+const datePickerOpen = shallowRef(false);
+const timePickerOpen = shallowRef(false);
+const timeValue = shallowRef('09:00');
 
-const DEFAULT_MINUTE_OPTIONS: number[] = Array.from(
-    { length: 60 },
-    (_, i) => i,
+const parsedDatetime = computed(() =>
+    parseDatetimeLocalParts(props.modelValue),
 );
 
-const isOpen = ref(false);
-
-const calendarSelected = shallowRef<CalendarDate | undefined>(undefined);
-const hour = ref(9);
-const minute = ref(0);
-
-const effectiveHourOptions = computed(() => {
-    const h = props.hourOptions;
-
-    if (h === undefined || h.length === 0) {
-        return DEFAULT_HOUR_OPTIONS;
+const dateValue = computed(() => {
+    if (!parsedDatetime.value) {
+        return '';
     }
 
-    return [...new Set(h)].sort((a, b) => a - b);
+    return dateValueToIsoDateString(parsedDatetime.value.date);
 });
 
-const effectiveMinuteOptions = computed(() => {
-    const m = props.minuteOptions;
+function syncTimeFromModel(): void {
+    const parsed = parseDatetimeLocalParts(props.modelValue);
 
-    if (m === undefined || m.length === 0) {
-        return DEFAULT_MINUTE_OPTIONS;
-    }
-
-    return [...new Set(m)].sort((a, b) => a - b);
-});
-
-const effectiveHourOptionsKey = computed(() =>
-    effectiveHourOptions.value.join(','),
-);
-
-const effectiveMinuteOptionsKey = computed(() =>
-    effectiveMinuteOptions.value.join(','),
-);
-
-function ensureCalendarDate(): CalendarDate {
-    if (calendarSelected.value) {
-        return calendarSelected.value;
-    }
-
-    const t = today(getLocalTimeZone());
-
-    calendarSelected.value = t;
-
-    return t;
-}
-
-function emitFromParts(): void {
-    const d = ensureCalendarDate();
-
-    emit('update:modelValue', buildDatetimeLocal(d, hour.value, minute.value));
-}
-
-function clampSelectionToEffectiveOptions(): void {
-    const hours = effectiveHourOptions.value;
-    const mins = effectiveMinuteOptions.value;
-
-    if (!hours.includes(hour.value)) {
-        hour.value = hours[0] ?? 0;
-    }
-
-    if (!mins.includes(minute.value)) {
-        minute.value = mins[0] ?? 0;
-    }
-}
-
-function syncFromModel(): void {
-    const p = parseDatetimeLocalParts(props.modelValue);
-
-    if (p) {
-        calendarSelected.value = p.date;
-        hour.value = p.hour;
-        minute.value = p.minute;
-        clampSelectionToEffectiveOptions();
-        const next = buildDatetimeLocal(p.date, hour.value, minute.value);
-
-        if (next !== props.modelValue.trim()) {
-            emit('update:modelValue', next);
-        }
+    if (!parsed) {
+        timeValue.value = '09:00';
 
         return;
     }
 
-    calendarSelected.value = undefined;
-    hour.value = 9;
-    minute.value = 0;
+    timeValue.value = `${String(parsed.hour).padStart(2, '0')}:${String(
+        parsed.minute,
+    ).padStart(2, '0')}`;
+}
+
+function parseTime(value: string): { hour: number; minute: number } {
+    const [hourRaw = '9', minuteRaw = '0'] = value.split(':');
+    const hour = Number.parseInt(hourRaw, 10);
+    const minute = Number.parseInt(minuteRaw, 10);
+
+    return {
+        hour: Number.isFinite(hour) ? hour : 9,
+        minute: Number.isFinite(minute) ? minute : 0,
+    };
+}
+
+function emitFromParts(date: CalendarDate, time: string): void {
+    const { hour, minute } = parseTime(time);
+
+    emit('update:modelValue', buildDatetimeLocal(date, hour, minute));
+}
+
+async function handleDateUpdate(value: string): Promise<void> {
+    const date = isoDateStringToCalendarDate(value);
+
+    datePickerOpen.value = false;
+    timePickerOpen.value = false;
+
+    if (!date) {
+        emit('update:modelValue', '');
+
+        return;
+    }
+
+    emitFromParts(date, timeValue.value);
+
+    if (!props.disabled) {
+        await nextTick();
+        window.setTimeout(() => {
+            timePickerOpen.value = true;
+        }, 40);
+    }
+}
+
+function handleTimeUpdate(value: string): void {
+    timeValue.value = value;
+
+    const date = parsedDatetime.value?.date ?? today(getLocalTimeZone());
+
+    emitFromParts(date, value);
 }
 
 watch(
     () => props.modelValue,
     () => {
-        syncFromModel();
+        syncTimeFromModel();
     },
     { immediate: true },
 );
-
-watch([effectiveHourOptionsKey, effectiveMinuteOptionsKey], () => {
-    void nextTick(() => {
-        if (!parseDatetimeLocalParts(props.modelValue)) {
-            return;
-        }
-
-        const prev = buildDatetimeLocal(
-            ensureCalendarDate(),
-            hour.value,
-            minute.value,
-        );
-
-        clampSelectionToEffectiveOptions();
-        const next = buildDatetimeLocal(
-            ensureCalendarDate(),
-            hour.value,
-            minute.value,
-        );
-
-        if (prev !== next) {
-            emit('update:modelValue', next);
-        }
-    });
-});
-
-const displayLabel = computed(() => formatDatetimeLocalPl(props.modelValue));
-
-function handleCalendarUpdate(value: DateValue | undefined): void {
-    if (value === undefined) {
-        return;
-    }
-
-    const iso = dateValueToIsoDateString(value);
-    const cd = isoDateStringToCalendarDate(iso);
-
-    if (!cd) {
-        return;
-    }
-
-    calendarSelected.value = cd;
-    emitFromParts();
-}
-
-function handleHourChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const h = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(h) || h < 0 || h > 23) {
-        return;
-    }
-
-    hour.value = h;
-    emitFromParts();
-
-    void nextTick(() => {
-        const mins = effectiveMinuteOptions.value;
-
-        if (!mins.includes(minute.value)) {
-            minute.value = mins[0] ?? 0;
-            emitFromParts();
-        }
-    });
-}
-
-function handleMinuteChange(event: Event): void {
-    const raw = (event.target as HTMLSelectElement).value;
-    const m = Number.parseInt(raw, 10);
-
-    if (!Number.isFinite(m) || m < 0 || m > 59) {
-        return;
-    }
-
-    minute.value = m;
-    emitFromParts();
-}
-
-function handleToday(): void {
-    const t = today(getLocalTimeZone());
-
-    calendarSelected.value = t;
-    emitFromParts();
-}
-
-function handleClear(): void {
-    emit('update:modelValue', '');
-    isOpen.value = false;
-}
-
-const minValueCal = computed(() => {
-    const t = props.minDate?.trim();
-
-    return t && t.length > 0 ? isoDateStringToCalendarDate(t) : undefined;
-});
-
-const maxValueCal = computed(() => {
-    const t = props.maxDate?.trim();
-
-    return t && t.length > 0 ? isoDateStringToCalendarDate(t) : undefined;
-});
-
-watch(isOpen, (open) => {
-    if (!open) {
-        return;
-    }
-
-    if (props.modelValue.trim().length === 0) {
-        calendarSelected.value = today(getLocalTimeZone());
-        hour.value = 9;
-        minute.value = 0;
-
-        return;
-    }
-
-    void nextTick(() => {
-        if (!parseDatetimeLocalParts(props.modelValue)) {
-            return;
-        }
-
-        const prev = buildDatetimeLocal(
-            ensureCalendarDate(),
-            hour.value,
-            minute.value,
-        );
-
-        clampSelectionToEffectiveOptions();
-        const next = buildDatetimeLocal(
-            ensureCalendarDate(),
-            hour.value,
-            minute.value,
-        );
-
-        if (prev !== next) {
-            emit('update:modelValue', next);
-        }
-    });
-});
 </script>
 
 <template>
-    <UiPopover v-model:open="isOpen">
-        <UiPopoverTrigger as-child>
-            <UiButton
-                :id="id"
-                type="button"
-                variant="outline"
-                :disabled="disabled"
-                :aria-invalid="ariaInvalid ? true : undefined"
-                :aria-required="ariaRequired ? true : undefined"
-                :aria-describedby="ariaDescribedby"
-                :data-empty="displayLabel.length === 0"
-                :class="
-                    cn(
-                        'data-[empty=true]:text-muted-foreground w-full max-w-lg justify-start text-left font-normal',
-                        triggerClass,
-                    )
-                "
-            >
-                <CalendarIcon
-                    class="size-4 shrink-0 opacity-70"
-                    aria-hidden="true"
-                />
-                <span v-if="displayLabel.length > 0">{{ displayLabel }}</span>
-                <span v-else>{{ placeholder }}</span>
-            </UiButton>
-        </UiPopoverTrigger>
-        <UiPopoverContent
-            class="w-auto max-w-[min(100vw-2rem,28rem)] overflow-hidden p-0"
-            align="start"
-        >
-            <div class="sm:divide-border flex flex-col sm:flex-row sm:divide-x">
-                <div class="min-w-0 flex-1">
-                    <UiCalendar
-                        :model-value="calendarSelected"
-                        locale="pl-PL"
-                        :min-value="minValueCal"
-                        :max-value="maxValueCal"
-                        @update:model-value="handleCalendarUpdate"
-                    />
-                </div>
-                <div
-                    class="border-border flex flex-col justify-center gap-2 border-t p-3 sm:w-38 sm:border-t-0"
-                >
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="space-y-1">
-                            <label
-                                class="text-muted-foreground block text-center text-xs font-medium"
-                                :for="id ? `${id}-hour` : undefined"
-                            >
-                                Godz.
-                            </label>
-                            <select
-                                :id="id ? `${id}-hour` : undefined"
-                                class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                :value="hour"
-                                :disabled="disabled"
-                                aria-label="Godzina"
-                                @change="handleHourChange"
-                            >
-                                <option
-                                    v-for="h in effectiveHourOptions"
-                                    :key="h"
-                                    :value="h"
-                                >
-                                    {{ String(h).padStart(2, '0') }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="space-y-1">
-                            <label
-                                class="text-muted-foreground block text-center text-xs font-medium"
-                                :for="id ? `${id}-minute` : undefined"
-                            >
-                                Min.
-                            </label>
-                            <select
-                                :id="id ? `${id}-minute` : undefined"
-                                class="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full rounded-md border px-2 text-sm shadow-xs focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                                :value="minute"
-                                :disabled="disabled"
-                                aria-label="Minuta"
-                                @change="handleMinuteChange"
-                            >
-                                <option
-                                    v-for="m in effectiveMinuteOptions"
-                                    :key="m"
-                                    :value="m"
-                                >
-                                    {{ String(m).padStart(2, '0') }}
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div
-                v-if="
-                    showTodayButton ||
-                    (clearable && modelValue.trim().length > 0)
-                "
-                class="border-border flex flex-wrap items-center justify-start gap-2 border-t px-2 py-2"
-            >
-                <UiButton
-                    v-if="showTodayButton"
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="text-muted-foreground"
-                    :disabled="disabled"
-                    @click="handleToday"
-                >
-                    Dzisiaj
-                </UiButton>
-                <UiButton
-                    v-if="clearable && modelValue.trim().length > 0"
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    class="text-muted-foreground"
-                    :disabled="disabled"
-                    @click="handleClear"
-                >
-                    Wyczyść
-                </UiButton>
-            </div>
-        </UiPopoverContent>
-    </UiPopover>
+    <div
+        :class="
+            cn(
+                'grid w-full max-w-lg grid-cols-[minmax(0,1fr)_8.75rem] gap-2',
+                triggerClass,
+            )
+        "
+    >
+        <UiDatePicker
+            :id="id"
+            v-model:open="datePickerOpen"
+            :model-value="dateValue"
+            :disabled="disabled"
+            :placeholder="placeholder"
+            :aria-invalid="ariaInvalid"
+            :aria-describedby="ariaDescribedby"
+            :min="minDate"
+            :max="maxDate"
+            :clearable="clearable"
+            :show-today-button="showTodayButton"
+            trigger-class="h-10 max-w-none"
+            @update:model-value="handleDateUpdate"
+        />
+        <UiTimePicker
+            :id="id ? `${id}-time` : undefined"
+            v-model:open="timePickerOpen"
+            :model-value="timeValue"
+            label="Godzina terminu"
+            context-label="Termin"
+            trigger-class="h-10 max-w-none"
+            :disabled="disabled"
+            :invalid="ariaInvalid"
+            :describedby="ariaDescribedby"
+            :hour-options="hourOptions"
+            :minute-options="minuteOptions"
+            @update:model-value="handleTimeUpdate"
+        />
+    </div>
 </template>

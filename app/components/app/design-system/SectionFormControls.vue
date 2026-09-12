@@ -1,5 +1,19 @@
 <script setup lang="ts">
+import type { DateValue } from '@internationalized/date';
 import { Search } from 'lucide-vue-next';
+import { toDate } from 'reka-ui/date';
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
+import UiDateRangePicker from '~/components/shadcn/date-range-picker/DateRangePicker.vue';
+import UiDateTimePicker from '~/components/shadcn/date-time-picker/DateTimePicker.vue';
+import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
+import UiWeekPicker from '~/components/shadcn/week-picker/WeekPicker.vue';
+import {
+    WEEK_PICKER_CALENDAR_MAX,
+    WEEK_PICKER_CALENDAR_MIN,
+    getMonday,
+    weekCalendarDatesFromMonday,
+    weekRangeFromMonday,
+} from '~/utils/date/weeklyCalendarDates';
 
 const name = shallowRef('Anna Kowalska');
 const email = shallowRef('anna.kowalska@example.com');
@@ -12,11 +26,80 @@ const password = shallowRef('Tymczasowe-2026');
 const hoursLimit = shallowRef(30);
 const birthDate = shallowRef('2001-04-18');
 const examDate = shallowRef('2026-09-18');
+const optionalExamDate = shallowRef('');
+const boundedDate = shallowRef('2026-09-12');
+const lessonDateRange = shallowRef({
+    start: '2026-09-12',
+    end: '2026-09-14',
+});
+const optionalDateRange = shallowRef({
+    start: '',
+    end: '',
+});
 const startTime = shallowRef('08:00');
+const lessonTime = shallowRef('09:30');
+const instructorStartTime = shallowRef('08:00');
+const instructorEndTime = shallowRef('16:00');
+const disabledTime = shallowRef('12:00');
 const lessonStart = shallowRef('2026-09-10T08:00');
+const optionalLessonStart = shallowRef('');
+const boundedLessonStart = shallowRef('2026-09-12T10:30');
+const demoWeekStart = shallowRef(getMonday(new Date(2026, 8, 7)));
+const demoWeekOpen = shallowRef(false);
 const notificationChannel = shallowRef('sms');
 const sms = shallowRef(true);
 const urgent = shallowRef(false);
+
+const demoWeekSelected = computed(() =>
+    weekCalendarDatesFromMonday(demoWeekStart.value),
+);
+
+const demoWeekRangeLabel = computed(() => {
+    const range = weekRangeFromMonday(demoWeekStart.value);
+    const from = new Date(`${range.dateFrom}T00:00:00`);
+    const to = new Date(`${range.dateTo}T00:00:00`);
+    const sameMonth = from.getMonth() === to.getMonth();
+    const month = new Intl.DateTimeFormat('pl-PL', { month: 'long' }).format(
+        to,
+    );
+    const startDay = from.getDate();
+    const endDay = to.getDate();
+
+    if (sameMonth) {
+        return `${startDay}-${endDay} ${month}`;
+    }
+
+    const startMonth = new Intl.DateTimeFormat('pl-PL', {
+        month: 'short',
+    }).format(from);
+
+    return `${startDay} ${startMonth} - ${endDay} ${month}`;
+});
+
+function handleDemoWeekUpdate(
+    value: DateValue | DateValue[] | undefined,
+): void {
+    if (value === undefined) {
+        return;
+    }
+
+    const values = Array.isArray(value) ? value : [value];
+
+    if (values.length === 0) {
+        return;
+    }
+
+    let anchor = values[0]!;
+
+    for (const item of values) {
+        if (toDate(item).getTime() > toDate(anchor).getTime()) {
+            anchor = item;
+        }
+    }
+
+    demoWeekStart.value = getMonday(toDate(anchor));
+    demoWeekOpen.value = false;
+}
 </script>
 
 <template>
@@ -151,6 +234,208 @@ const urgent = shallowRef(false);
                     <p class="text-muted-foreground text-xs">
                         Picker daty i godziny dla harmonogramu.
                     </p>
+                </div>
+                <div class="space-y-4 rounded-lg border p-3 md:col-span-2">
+                    <div>
+                        <p class="text-foreground text-sm font-semibold">
+                            Pickery daty i czasu
+                        </p>
+                        <p class="text-muted-foreground mt-1 text-xs">
+                            Warianty kontrolek używanych w grafiku, dostępności
+                            i rezerwacjach.
+                        </p>
+                    </div>
+                    <div class="grid gap-4 lg:grid-cols-3">
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-basic">Data</UiLabel>
+                            <UiDatePicker
+                                id="ds-picker-date-basic"
+                                v-model="examDate"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Podstawowy wybór pojedynczej daty.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-clearable">
+                                Data opcjonalna
+                            </UiLabel>
+                            <UiDatePicker
+                                id="ds-picker-date-clearable"
+                                v-model="optionalExamDate"
+                                clearable
+                                placeholder="Brak ustawionej daty"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Wariant pusty z możliwością czyszczenia.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-bounded">
+                                Data z zakresem
+                            </UiLabel>
+                            <UiDatePicker
+                                id="ds-picker-date-bounded"
+                                v-model="boundedDate"
+                                min="2026-09-07"
+                                max="2026-09-30"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Ograniczenie do dozwolonego okresu.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-time-basic">
+                                Godzina
+                            </UiLabel>
+                            <UiTimePicker
+                                id="ds-picker-time-basic"
+                                v-model="lessonTime"
+                                label="Godzina jazdy"
+                                context-label="Jazda praktyczna"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Nowy zegar analogowy z presetami minut.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-time-start">
+                                Początek pracy
+                            </UiLabel>
+                            <UiTimePicker
+                                id="ds-picker-time-start"
+                                v-model="instructorStartTime"
+                                label="Początek pracy"
+                                context-label="Środa"
+                                :max-exclusive="instructorEndTime"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Nie pozwala wejść poza koniec pracy.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-time-end">
+                                Koniec pracy
+                            </UiLabel>
+                            <UiTimePicker
+                                id="ds-picker-time-end"
+                                v-model="instructorEndTime"
+                                label="Koniec pracy"
+                                context-label="Środa"
+                                :min-exclusive="instructorStartTime"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Zabezpiecza kolejność godzin.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-time-disabled">
+                                Godzina zablokowana
+                            </UiLabel>
+                            <UiTimePicker
+                                id="ds-picker-time-disabled"
+                                v-model="disabledTime"
+                                label="Przerwa techniczna"
+                                context-label="Niedostępne"
+                                disabled
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Stan niedostępny dla zamkniętych danych.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel>Zakres tygodnia</UiLabel>
+                            <UiWeekPicker
+                                v-model:open="demoWeekOpen"
+                                :model-value="demoWeekSelected"
+                                :week-range-label="demoWeekRangeLabel"
+                                :min-value="WEEK_PICKER_CALENDAR_MIN"
+                                :max-value="WEEK_PICKER_CALENDAR_MAX"
+                                trigger-class="w-full max-w-none"
+                                @calendar-update="handleDemoWeekUpdate"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Picker tygodnia używany przy kalendarzach.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-range">
+                                Zakres dat
+                            </UiLabel>
+                            <UiDateRangePicker
+                                id="ds-picker-date-range"
+                                v-model="lessonDateRange"
+                                clearable
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Dowolny zakres, np. trzy wybrane dni.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-range-empty">
+                                Zakres dat opcjonalny
+                            </UiLabel>
+                            <UiDateRangePicker
+                                id="ds-picker-date-range-empty"
+                                v-model="optionalDateRange"
+                                clearable
+                                placeholder="Brak zakresu"
+                                min="2026-09-07"
+                                max="2026-09-30"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Pusty stan z ograniczeniem min/max.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-datetime-basic">
+                                Data i godzina
+                            </UiLabel>
+                            <UiDateTimePicker
+                                id="ds-picker-datetime-basic"
+                                v-model="lessonStart"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Obecny picker łączony dla terminu jazdy.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-datetime-clearable">
+                                Data i godzina opcjonalna
+                            </UiLabel>
+                            <UiDateTimePicker
+                                id="ds-picker-datetime-clearable"
+                                v-model="optionalLessonStart"
+                                clearable
+                                placeholder="Nie ustawiono terminu"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Pusty stan oraz ręczne czyszczenie.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-datetime-bounded">
+                                Data i godzina z zakresem
+                            </UiLabel>
+                            <UiDateTimePicker
+                                id="ds-picker-datetime-bounded"
+                                v-model="boundedLessonStart"
+                                min-date="2026-09-07"
+                                max-date="2026-09-30"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Ograniczony zakres dni.
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <div class="space-y-1.5 md:col-span-2">
                     <UiLabel for="ds-file">Dokument kursanta</UiLabel>

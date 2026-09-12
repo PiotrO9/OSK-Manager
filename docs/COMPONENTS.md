@@ -19,6 +19,8 @@ wzorzec ma wracać w kilku miejscach, najpierw rozbuduj komponent z
 
 Prefiks **`Ui`** (np. `UiButton`, `UiCard`, `UiDialog`, `UiInput`, `UiMenubar`, …). Dodawanie: `npx shadcn-vue@latest add <nazwa>`.
 
+Pickery daty i czasu mają osobny standard: [`DATE_TIME_PICKERS.md`](DATE_TIME_PICKERS.md). W nowych widokach używaj `UiDatePicker`, `UiTimePicker`, `UiDateTimePicker`, `UiDateRangePicker` i `UiWeekPicker` jako kanonicznych komponentów. Nie twórz wariantów z dopiskiem `V2` i nie wracaj do natywnych pól daty/czasu, jeżeli przypadek da się pokryć tym zestawem.
+
 ## App (`app/components/app/`)
 
 ### AppHeader

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CalendarDays, Clock, Layers3, Plus } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
+import UiDateTimePicker from '~/components/shadcn/date-time-picker/DateTimePicker.vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { ManagerInstructorEventType } from '~/composables/instructors/manager/useManagerInstructorSchedulePage';

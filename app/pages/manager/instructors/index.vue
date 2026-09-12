@@ -63,11 +63,11 @@ const {
             <template #actions>
                 <UiButton
                     type="button"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    class="h-11 w-full px-4 sm:h-10 sm:w-auto"
                     aria-label="Otwórz formularz dodawania instruktora"
                     @click="handleOpenCreateDialog"
                 >
-                    <Plus class="mr-2 size-4" aria-hidden="true" />
+                    <Plus class="size-4" aria-hidden="true" />
                     Dodaj instruktora
                 </UiButton>
             </template>

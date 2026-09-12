@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
+
 defineProps<{
     isSaving: boolean;
     showNameRequired: boolean;

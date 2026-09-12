@@ -10,9 +10,7 @@ import {
     formatTimePickerValue,
     hourFromClockAngle,
     isTimePickerCandidateAllowed,
-    isTimePickerHourSelectable,
     minuteFromClockAngle,
-    nearestAllowedMinuteForHour,
     normalizeTimePickerValue,
 } from '~/utils/date/timePickerValue';
 
@@ -33,7 +31,10 @@ const props = withDefaults(
         contextLabel?: string;
         minExclusive?: string;
         maxExclusive?: string;
+        hourOptions?: number[];
+        minuteOptions?: number[];
         triggerClass?: string;
+        open?: boolean;
     }>(),
     {
         id: undefined,
@@ -43,15 +44,26 @@ const props = withDefaults(
         contextLabel: undefined,
         minExclusive: undefined,
         maxExclusive: undefined,
+        hourOptions: undefined,
+        minuteOptions: undefined,
         triggerClass: undefined,
+        open: undefined,
     },
 );
 
 const emit = defineEmits<{
     'update:modelValue': [value: string];
+    'update:open': [value: boolean];
 }>();
 
-const isOpen = shallowRef(false);
+const internalOpen = shallowRef(false);
+const isOpen = computed({
+    get: () => props.open ?? internalOpen.value,
+    set: (value: boolean) => {
+        internalOpen.value = value;
+        emit('update:open', value);
+    },
+});
 const activePart = shallowRef<ClockPart>('hour');
 const draftHour = shallowRef(8);
 const draftMinute = shallowRef(0);
@@ -77,7 +89,7 @@ const innerHourOptions = [0, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23].map(
     }),
 );
 
-const minuteOptions = Array.from({ length: 12 }, (_, index) => {
+const clockMinuteOptions = Array.from({ length: 12 }, (_, index) => {
     const value = index * 5;
 
     return {
@@ -95,16 +107,27 @@ const bounds = computed(() => ({
     maxExclusive: props.maxExclusive,
 }));
 
+const effectiveHourOptions = computed(() =>
+    normalizeNumberOptions(props.hourOptions, 0, 23),
+);
+
+const effectiveMinuteOptions = computed(() =>
+    normalizeNumberOptions(props.minuteOptions, 0, 59),
+);
+
 const displayedValue = computed(() =>
     formatTimePickerValue(draftHour.value, draftMinute.value),
 );
 
-const isDraftAllowed = computed(() =>
-    isTimePickerCandidateAllowed(
-        draftHour.value,
-        draftMinute.value,
-        bounds.value,
-    ),
+const isDraftAllowed = computed(
+    () =>
+        isHourAllowedByOptions(draftHour.value) &&
+        isMinuteAllowedByOptions(draftMinute.value) &&
+        isTimePickerCandidateAllowed(
+            draftHour.value,
+            draftMinute.value,
+            bounds.value,
+        ),
 );
 
 const triggerValue = computed(() => {
@@ -158,7 +181,7 @@ const boundsHint = computed(() => {
 
 const currentClockOptions = computed(() => {
     if (activePart.value === 'minute') {
-        return minuteOptions.map((option) => ({
+        return clockMinuteOptions.map((option) => ({
             ...option,
             disabled: !isMinuteSelectable(option.value),
         }));
@@ -175,6 +198,7 @@ function syncDraftFromModel(): void {
 
     draftHour.value = next.hour;
     draftMinute.value = next.minute;
+    clampDraftToOptions();
     activePart.value = 'hour';
 }
 
@@ -201,10 +225,13 @@ function setHour(value: number): void {
 }
 
 function updateHour(value: number, shouldSwitchToMinute: boolean): void {
-    const minute = nearestAllowedMinuteForHour(
+    if (!isHourAllowedByOptions(value)) {
+        return;
+    }
+
+    const minute = nearestAllowedMinuteForHourWithOptions(
         value,
         draftMinute.value,
-        bounds.value,
     );
 
     if (minute === null) {
@@ -228,11 +255,19 @@ function setMinute(value: number): void {
 }
 
 function isHourSelectable(hour: number): boolean {
-    return isTimePickerHourSelectable(hour, bounds.value);
+    return (
+        isHourAllowedByOptions(hour) &&
+        effectiveMinuteOptions.value.some((minute) =>
+            isTimePickerCandidateAllowed(hour, minute, bounds.value),
+        )
+    );
 }
 
 function isMinuteSelectable(minute: number): boolean {
-    return isTimePickerCandidateAllowed(draftHour.value, minute, bounds.value);
+    return (
+        isMinuteAllowedByOptions(minute) &&
+        isTimePickerCandidateAllowed(draftHour.value, minute, bounds.value)
+    );
 }
 
 function handleNumberInput(event: Event, part: ClockPart): void {
@@ -250,13 +285,12 @@ function handleNumberInput(event: Event, part: ClockPart): void {
 
     if (part === 'hour') {
         const hour = Math.min(23, value);
-        const minute = nearestAllowedMinuteForHour(
+        const minute = nearestAllowedMinuteForHourWithOptions(
             hour,
             draftMinute.value,
-            bounds.value,
         );
 
-        if (minute !== null) {
+        if (isHourAllowedByOptions(hour) && minute !== null) {
             draftHour.value = hour;
             draftMinute.value = minute;
         }
@@ -369,6 +403,69 @@ function apply(): void {
 
     emit('update:modelValue', displayedValue.value);
     isOpen.value = false;
+}
+
+function normalizeNumberOptions(
+    values: number[] | undefined,
+    min: number,
+    max: number,
+): number[] {
+    if (!values || values.length === 0) {
+        return Array.from({ length: max - min + 1 }, (_, index) => min + index);
+    }
+
+    const normalized = [...new Set(values)]
+        .filter(
+            (value) => Number.isInteger(value) && value >= min && value <= max,
+        )
+        .sort((a, b) => a - b);
+
+    return normalized.length > 0
+        ? normalized
+        : Array.from({ length: max - min + 1 }, (_, index) => min + index);
+}
+
+function isHourAllowedByOptions(hour: number): boolean {
+    return effectiveHourOptions.value.includes(hour);
+}
+
+function isMinuteAllowedByOptions(minute: number): boolean {
+    return effectiveMinuteOptions.value.includes(minute);
+}
+
+function nearestAllowedMinuteForHourWithOptions(
+    hour: number,
+    preferredMinute: number,
+): number | null {
+    if (!isHourAllowedByOptions(hour)) {
+        return null;
+    }
+
+    const byDistance = [...effectiveMinuteOptions.value].sort(
+        (a, b) =>
+            Math.abs(a - preferredMinute) - Math.abs(b - preferredMinute) ||
+            a - b,
+    );
+
+    return (
+        byDistance.find((minute) =>
+            isTimePickerCandidateAllowed(hour, minute, bounds.value),
+        ) ?? null
+    );
+}
+
+function clampDraftToOptions(): void {
+    if (!isHourSelectable(draftHour.value)) {
+        draftHour.value =
+            effectiveHourOptions.value.find(isHourSelectable) ?? 0;
+    }
+
+    const minute = nearestAllowedMinuteForHourWithOptions(
+        draftHour.value,
+        draftMinute.value,
+    );
+
+    draftMinute.value = minute ?? effectiveMinuteOptions.value[0] ?? 0;
 }
 </script>
 

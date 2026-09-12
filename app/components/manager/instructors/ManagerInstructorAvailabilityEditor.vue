@@ -46,7 +46,7 @@ const rowsWithDraftBars = computed(() =>
 
         <template v-else>
             <div
-                class="space-y-2"
+                class="border-border bg-card divide-border overflow-hidden rounded-lg border shadow-xs"
                 role="list"
                 aria-label="Tygodniowa dostępność instruktora"
             >

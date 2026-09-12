@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { computed } from 'vue';
+import UiWeekPicker from '~/components/shadcn/week-picker/WeekPicker.vue';
 
-defineProps<{
+const props = defineProps<{
     isLoading: boolean;
     isCalendarOpen: boolean;
     calendarSelected: DateValue[];
@@ -11,13 +13,18 @@ defineProps<{
     calendarMax: DateValue;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
     'update:isCalendarOpen': [open: boolean];
     calendarUpdate: [value: DateValue | DateValue[] | undefined];
     prevWeek: [];
     nextWeek: [];
     keyDownWeekNav: [event: KeyboardEvent, direction: 'prev' | 'next'];
 }>();
+
+const calendarOpen = computed({
+    get: () => props.isCalendarOpen,
+    set: (open: boolean) => emit('update:isCalendarOpen', open),
+});
 </script>
 
 <template>
@@ -47,36 +54,15 @@ defineEmits<{
             role="toolbar"
             aria-label="Nawigacja tygodnia kalendarza slotów"
         >
-            <UiPopover
-                :open="isCalendarOpen"
-                @update:open="$emit('update:isCalendarOpen', $event)"
-            >
-                <UiPopoverTrigger>
-                    <UiButton
-                        type="button"
-                        variant="outline"
-                        class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                        :disabled="isLoading"
-                        aria-label="Wybierz tydzien w kalendarzu"
-                    >
-                        <CalendarDays class="mr-2 size-4" aria-hidden="true" />
-                        {{ weekRangeCompactLabel }}
-                    </UiButton>
-                </UiPopoverTrigger>
-                <UiPopoverContent class="w-auto p-0" align="end">
-                    <UiCalendar
-                        multiple
-                        fixed-weeks
-                        :week-starts-on="1"
-                        :min-value="calendarMin"
-                        :max-value="calendarMax"
-                        :disable-days-outside-current-view="false"
-                        :model-value="calendarSelected"
-                        locale="pl-PL"
-                        @update:model-value="$emit('calendarUpdate', $event)"
-                    />
-                </UiPopoverContent>
-            </UiPopover>
+            <UiWeekPicker
+                v-model:open="calendarOpen"
+                :model-value="calendarSelected"
+                :week-range-label="weekRangeCompactLabel"
+                :min-value="calendarMin"
+                :max-value="calendarMax"
+                :disabled="isLoading"
+                @calendar-update="emit('calendarUpdate', $event)"
+            />
 
             <UiButton
                 type="button"
@@ -84,8 +70,8 @@ defineEmits<{
                 class="h-10 rounded-xl px-4 font-semibold shadow-sm"
                 aria-label="Poprzedni tydzien"
                 :disabled="isLoading"
-                @click="$emit('prevWeek')"
-                @keydown="$emit('keyDownWeekNav', $event, 'prev')"
+                @click="emit('prevWeek')"
+                @keydown="emit('keyDownWeekNav', $event, 'prev')"
             >
                 <ChevronLeft class="mr-2 size-4" aria-hidden="true" />
                 Poprzedni
@@ -97,8 +83,8 @@ defineEmits<{
                 class="h-10 rounded-xl px-4 font-semibold shadow-sm"
                 aria-label="Nastepny tydzien"
                 :disabled="isLoading"
-                @click="$emit('nextWeek')"
-                @keydown="$emit('keyDownWeekNav', $event, 'next')"
+                @click="emit('nextWeek')"
+                @keydown="emit('keyDownWeekNav', $event, 'next')"
             >
                 Nastepny
                 <ChevronRight class="ml-2 size-4" aria-hidden="true" />
