@@ -2,7 +2,10 @@ import {
     formatCourseKindLabel,
     type CourseDetail,
 } from '~/types/courses/course';
-import { formatCourseInstructorName } from '~/utils/courses/managerCourseDetailPage';
+import {
+    buildCourseCapacityInsight,
+    formatCourseInstructorName,
+} from '~/utils/courses/managerCourseDetailPage';
 import { usePageMeta } from '../core/usePageMeta';
 import { useManagerCourseDetailData } from './useManagerCourseDetailData';
 import { useManagerCourseDetailPresentation } from './useManagerCourseDetailPresentation';
@@ -19,6 +22,7 @@ export function useManagerCourseDetailPage() {
     const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
         useCoursesApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
+    const { fetchList: fetchStudentsList } = useStudentsApi();
 
     const { course, loadError, loadCourse } = useManagerCourseDetailData({
         fetchById,
@@ -31,12 +35,37 @@ export function useManagerCourseDetailPage() {
         courseTitle,
         courseCategoryLabel,
         courseSubtitle,
-        courseInitials,
         overviewItems,
-        relatedItems,
     } = useManagerCourseDetailPresentation({
         course,
         querySchoolId: computed(() => route.query.schoolId),
+    });
+
+    const {
+        participants,
+        participantsCurrentPage,
+        participantsPagination,
+        participantsTotal,
+        participantsLoadError,
+        isParticipantsLoading,
+        loadParticipants,
+        loadPreviousParticipantsPage,
+        loadNextParticipantsPage,
+    } = useManagerCourseParticipants({
+        course,
+        effectiveSchoolId,
+        fetchStudentsList,
+    });
+
+    const capacityInsight = computed(() => {
+        if (!course.value) {
+            return null;
+        }
+
+        return buildCourseCapacityInsight({
+            course: course.value,
+            participantCount: participantsTotal.value,
+        });
     });
 
     usePageMeta({
@@ -53,6 +82,7 @@ export function useManagerCourseDetailPage() {
         instructorsLoadError,
         isInstructorsLoading,
         selectedInstructorProfileId,
+        currentInstructorProfileId,
         qualifiedInstructors,
         instructorSaveBlockedReason,
         canSaveInstructorAssignment,
@@ -91,6 +121,7 @@ export function useManagerCourseDetailPage() {
         instructorsLoadError,
         isInstructorsLoading,
         selectedInstructorProfileId,
+        currentInstructorProfileId,
         qualifiedInstructors,
         effectiveSchoolId,
         backToCoursesHref,
@@ -98,15 +129,23 @@ export function useManagerCourseDetailPage() {
         courseTitle,
         courseCategoryLabel,
         courseSubtitle,
-        courseInitials,
         overviewItems,
-        relatedItems,
+        participants,
+        participantsCurrentPage,
+        participantsPagination,
+        participantsTotal,
+        participantsLoadError,
+        isParticipantsLoading,
+        capacityInsight,
         isDetailLoading,
         isPatchLoading,
         instructorSaveBlockedReason,
         canSaveInstructorAssignment,
         loadCourse,
         loadInstructors,
+        loadParticipants,
+        loadPreviousParticipantsPage,
+        loadNextParticipantsPage,
         handleInstructorSelectChange,
         handleSaveInstructorAssignment,
         formatInstructorName,

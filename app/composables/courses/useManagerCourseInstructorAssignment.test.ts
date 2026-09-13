@@ -150,6 +150,7 @@ describe('useManagerCourseInstructorAssignment', () => {
             matchingInstructor,
         ]);
         expect(assignment.selectedInstructorProfileId.value).toBe('profile-1');
+        expect(assignment.currentInstructorProfileId.value).toBe('profile-1');
     });
 
     it('clears instructors and load error when effective school id becomes empty', async () => {

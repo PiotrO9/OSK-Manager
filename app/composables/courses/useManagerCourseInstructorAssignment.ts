@@ -72,7 +72,7 @@ export function useManagerCourseInstructorAssignment({
 
         return resolveInstructorProfileIdForCourseSelection(
             course.value.instructor,
-            qualifiedInstructors.value,
+            instructors.value,
         );
     });
 
@@ -206,6 +206,7 @@ export function useManagerCourseInstructorAssignment({
         instructorsLoadError,
         isInstructorsLoading,
         selectedInstructorProfileId,
+        currentInstructorProfileId: resolvedInstructorProfileIdFromCourse,
         qualifiedInstructors,
         instructorSaveBlockedReason,
         canSaveInstructorAssignment,

@@ -46,7 +46,6 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                     <NuxtLink
                         :to="{
                             path: `/manager/courses/${course.id}`,
-                            query: { schoolId: activeSchoolId },
                         }"
                         class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
                         >{{ course.name }}</NuxtLink
@@ -121,7 +120,6 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                                 <NuxtLink
                                     :to="{
                                         path: `/manager/courses/${course.id}`,
-                                        query: { schoolId: activeSchoolId },
                                     }"
                                     :aria-label="`Szczegóły kursu: ${course.name}`"
                                     ><ArrowUpRight

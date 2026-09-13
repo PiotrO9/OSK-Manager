@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { CourseDetail } from '~/types/courses/course';
 
 import {
+    buildCourseCapacityInsight,
     buildCourseOverviewItems,
-    buildCourseRelatedItems,
     formatCapacityText,
     formatCourseInstructorName,
     getRouteIdString,
@@ -45,13 +45,13 @@ describe('managerCourseDetailPage utils', () => {
 
     it('maps course detail API errors to user messages', () => {
         expect(resolveCourseDetailError({ statusCode: 403 })).toBe(
-            'Brak dost�pu do szczeg��w tego kursu.',
+            'Brak dostępu do szczegółów tego kursu.',
         );
         expect(resolveCourseDetailError({ statusCode: 404 })).toBe(
             'Nie znaleziono kursu.',
         );
         expect(resolveCourseDetailError({ statusCode: 500 })).toBe(
-            'Serwer jest chwilowo niedost�pny. Spr�buj ponownie.',
+            'Serwer jest chwilowo niedostępny. Spróbuj ponownie.',
         );
         expect(resolveCourseDetailError(new Error('API down'))).toBe(
             'API down',
@@ -81,54 +81,72 @@ describe('managerCourseDetailPage utils', () => {
         ).toEqual([
             {
                 label: 'Godziny kursu',
-                description: '40 h lacznie',
+                description: '40 h łącznie',
                 badge: '40 h',
                 tone: 'info',
             },
             {
                 label: 'Typ kursu',
-                description: 'Rodzaj zajec i organizacji kursu.',
+                description: 'Rodzaj zajęć i organizacji kursu.',
                 badge: 'Praktyka',
                 tone: 'neutral',
             },
             {
                 label: 'Limit miejsc',
-                description: 'Maksymalna liczba uczestnikow.',
+                description: 'Maksymalna liczba uczestników.',
                 badge: '12',
                 tone: 'success',
             },
         ]);
     });
 
-    it('builds related items for course cards', () => {
+    it('builds capacity insights for limited courses', () => {
         expect(
-            buildCourseRelatedItems({
-                course: course({
-                    instructor: {
-                        id: 'instructor-1',
-                        name: 'Anna Nowak',
-                        avatarUrl: null,
-                    },
-                }),
-                courseCategoryLabel: 'Kategoria B',
-                effectiveSchoolId: 'school-1',
+            buildCourseCapacityInsight({
+                course: course({ capacity: 12 }),
+                participantCount: 8,
             }),
-        ).toEqual([
-            {
-                label: 'Instruktor',
-                description: 'Przypisanie edytowane w panelu obok.',
-                badge: 'Anna Nowak',
-            },
-            {
-                label: 'Kategoria',
-                description: 'Zachowana w konfiguracji kursu.',
-                badge: 'Kategoria B',
-            },
-            {
-                label: 'OSK',
-                description: 'Kontekst pobrany z linku lub danych kursu.',
-                badge: 'Powiazane',
-            },
-        ]);
+        ).toEqual({
+            participantCount: 8,
+            capacity: 12,
+            fillPercentage: 67,
+            freeSeats: 4,
+            valueLabel: '8 / 12',
+            helperLabel: '4 wolnych miejsc',
+            badgeLabel: 'Są miejsca',
+            badgeTone: 'success',
+            hasCapacity: true,
+            isOverCapacity: false,
+        });
+    });
+
+    it('builds capacity insights for courses without limits and missing participant data', () => {
+        expect(
+            buildCourseCapacityInsight({
+                course: course({ capacity: null }),
+                participantCount: 3,
+            }),
+        ).toMatchObject({
+            participantCount: 3,
+            capacity: null,
+            fillPercentage: null,
+            valueLabel: '3',
+            badgeLabel: '3 uczestników',
+            hasCapacity: false,
+        });
+
+        expect(
+            buildCourseCapacityInsight({
+                course: course({ capacity: 10 }),
+                participantCount: null,
+            }),
+        ).toMatchObject({
+            participantCount: null,
+            capacity: 10,
+            fillPercentage: null,
+            valueLabel: '— / 10',
+            badgeLabel: 'Brak danych',
+            hasCapacity: true,
+        });
     });
 });

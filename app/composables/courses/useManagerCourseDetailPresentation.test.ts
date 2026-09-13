@@ -33,7 +33,7 @@ describe('useManagerCourseDetailPresentation', () => {
         installVueGlobals();
     });
 
-    it('uses query school id before course school id for navigation targets', () => {
+    it('uses course school id before legacy query school id for navigation targets', () => {
         const courseRef = ref<CourseDetail | null>(
             course({ schoolId: 'school-from-course' }),
         );
@@ -44,22 +44,22 @@ describe('useManagerCourseDetailPresentation', () => {
             querySchoolId: querySchoolIdRef,
         });
 
-        expect(presentation.effectiveSchoolId.value).toBe('school-from-query');
+        expect(presentation.effectiveSchoolId.value).toBe('school-from-course');
         expect(presentation.backToCoursesHref.value).toEqual({
             path: '/manager/courses',
-            query: { schoolId: 'school-from-query' },
+            query: { schoolId: 'school-from-course' },
         });
         expect(presentation.createCourseTarget.value).toEqual({
             path: '/manager/courses/new',
-            query: { schoolId: 'school-from-query' },
+            query: { schoolId: 'school-from-course' },
         });
     });
 
-    it('falls back to course school id and empty navigation when school id is missing', () => {
+    it('falls back to legacy query school id and empty navigation when school id is missing', () => {
         const courseRef = ref<CourseDetail | null>(
             course({ schoolId: 'school-from-course' }),
         );
-        const querySchoolIdRef = querySchoolId();
+        const querySchoolIdRef = querySchoolId('school-from-query');
 
         const presentation = useManagerCourseDetailPresentation({
             course: courseRef,
@@ -70,6 +70,18 @@ describe('useManagerCourseDetailPresentation', () => {
 
         courseRef.value = course({ schoolId: undefined });
 
+        expect(presentation.effectiveSchoolId.value).toBe('school-from-query');
+        expect(presentation.backToCoursesHref.value).toEqual({
+            path: '/manager/courses',
+            query: { schoolId: 'school-from-query' },
+        });
+        expect(presentation.createCourseTarget.value).toEqual({
+            path: '/manager/courses/new',
+            query: { schoolId: 'school-from-query' },
+        });
+
+        querySchoolIdRef.value = undefined;
+
         expect(presentation.effectiveSchoolId.value).toBe('');
         expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
         expect(presentation.createCourseTarget.value).toEqual({
@@ -78,7 +90,7 @@ describe('useManagerCourseDetailPresentation', () => {
         });
     });
 
-    it('derives course title, category label, subtitle and initials', () => {
+    it('derives course title, category label and subtitle', () => {
         const courseRef = ref<CourseDetail | null>(course());
         const querySchoolIdRef = querySchoolId();
 
@@ -90,9 +102,8 @@ describe('useManagerCourseDetailPresentation', () => {
         expect(presentation.courseTitle.value).toBe('Kurs B ekspres');
         expect(presentation.courseCategoryLabel.value).toBe('Kategoria B');
         expect(presentation.courseSubtitle.value).toBe(
-            'Kategoria Kategoria B - aktywny kurs',
+            'Kategoria B - aktywny kurs',
         );
-        expect(presentation.courseInitials.value).toBe('KB');
 
         courseRef.value = null;
 
@@ -100,10 +111,9 @@ describe('useManagerCourseDetailPresentation', () => {
         expect(presentation.courseSubtitle.value).toBe(
             'Parametry kursu, kursanci, godziny i ustawienia.',
         );
-        expect(presentation.courseInitials.value).toBe('K');
     });
 
-    it('derives overview and related card items from current course', () => {
+    it('derives overview items from current course', () => {
         const courseRef = ref<CourseDetail | null>(
             course({
                 capacity: 12,
@@ -122,27 +132,9 @@ describe('useManagerCourseDetailPresentation', () => {
         });
 
         expect(presentation.overviewItems.value).toHaveLength(3);
-        expect(presentation.relatedItems.value).toEqual([
-            {
-                label: 'Instruktor',
-                description: 'Przypisanie edytowane w panelu obok.',
-                badge: 'Anna Nowak',
-            },
-            {
-                label: 'Kategoria',
-                description: 'Zachowana w konfiguracji kursu.',
-                badge: 'Kategoria B',
-            },
-            {
-                label: 'OSK',
-                description: 'Kontekst pobrany z linku lub danych kursu.',
-                badge: 'Powiazane',
-            },
-        ]);
 
         courseRef.value = null;
 
         expect(presentation.overviewItems.value).toEqual([]);
-        expect(presentation.relatedItems.value).toEqual([]);
     });
 });

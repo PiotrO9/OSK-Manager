@@ -16,7 +16,7 @@ defineProps<{
             <UiButton
                 as-child
                 variant="outline"
-                class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
+                class="h-10 rounded-lg px-4 font-semibold shadow-xs"
             >
                 <NuxtLink
                     :to="backToCoursesHref"
@@ -28,7 +28,7 @@ defineProps<{
             </UiButton>
             <UiButton
                 as-child
-                class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+                class="h-10 rounded-lg px-4 font-semibold shadow-xs"
             >
                 <NuxtLink :to="createCourseTarget" aria-label="Dodaj nowy kurs">
                     <Plus class="mr-2 size-4" aria-hidden="true" />

@@ -4,7 +4,6 @@ import type { CourseDetail } from '~/types/courses/course';
 import type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
 import {
     buildCourseOverviewItems,
-    buildCourseRelatedItems,
     readSchoolIdFromQuery,
 } from '~/utils/courses/managerCourseDetailPage';
 interface UseManagerCourseDetailPresentationOptions {
@@ -23,15 +22,15 @@ export function useManagerCourseDetailPresentation({
     });
 
     const effectiveSchoolId = computed(() => {
-        const q = schoolIdFromQuery.value;
-
-        if (q.length > 0) {
-            return q;
-        }
-
         const sid = course.value?.schoolId?.trim();
 
-        return sid && sid.length > 0 ? sid : '';
+        if (sid && sid.length > 0) {
+            return sid;
+        }
+
+        const q = schoolIdFromQuery.value;
+
+        return q.length > 0 ? q : '';
     });
 
     const backToCoursesHref = computed<RouteLocationRaw>(() => {
@@ -71,20 +70,7 @@ export function useManagerCourseDetailPresentation({
             return 'Parametry kursu, kursanci, godziny i ustawienia.';
         }
 
-        return `Kategoria ${courseCategoryLabel.value} - aktywny kurs`;
-    });
-
-    const courseInitials = computed(() => {
-        const source =
-            course.value?.name?.trim() || course.value?.category || 'K';
-        const initials = source
-            .split(/\s+/)
-            .filter((part) => part.length > 0)
-            .slice(0, 2)
-            .map((part) => part.charAt(0))
-            .join('');
-
-        return initials.length > 0 ? initials.toUpperCase() : 'K';
+        return `${courseCategoryLabel.value} - aktywny kurs`;
     });
 
     const overviewItems = computed<ManagerCourseInfoItem[]>(() => {
@@ -95,18 +81,6 @@ export function useManagerCourseDetailPresentation({
         return buildCourseOverviewItems(course.value);
     });
 
-    const relatedItems = computed<ManagerCourseInfoItem[]>(() => {
-        if (!course.value) {
-            return [];
-        }
-
-        return buildCourseRelatedItems({
-            course: course.value,
-            courseCategoryLabel: courseCategoryLabel.value,
-            effectiveSchoolId: effectiveSchoolId.value,
-        });
-    });
-
     return {
         schoolIdFromQuery,
         effectiveSchoolId,
@@ -115,8 +89,6 @@ export function useManagerCourseDetailPresentation({
         courseTitle,
         courseCategoryLabel,
         courseSubtitle,
-        courseInitials,
         overviewItems,
-        relatedItems,
     };
 }

@@ -3,7 +3,10 @@ import {
     formatCourseKindLabel,
     type CourseDetail,
 } from '~/types/courses/course';
-import type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
+import type {
+    ManagerCourseCapacityInsight,
+    ManagerCourseInfoItem,
+} from '~/types/courses/managerCourseDetail';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
@@ -35,7 +38,7 @@ export function resolveCourseDetailError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
     if (status === 403) {
-        return 'Brak dost�pu do szczeg��w tego kursu.';
+        return 'Brak dostępu do szczegółów tego kursu.';
     }
 
     if (status === 404) {
@@ -43,14 +46,14 @@ export function resolveCourseDetailError(err: unknown): string {
     }
 
     if (status !== undefined && status >= 500) {
-        return 'Serwer jest chwilowo niedost�pny. Spr�buj ponownie.';
+        return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
     }
 
     if (err instanceof Error && err.message.trim().length > 0) {
         return err.message.trim();
     }
 
-    return getApiFetchErrorMessage(err, 'Nie uda�o si� wczyta� danych kursu.');
+    return getApiFetchErrorMessage(err, 'Nie udało się wczytać danych kursu.');
 }
 
 export function formatCapacityText(capacity: number | null): string {
@@ -77,49 +80,100 @@ export function buildCourseOverviewItems(
     return [
         {
             label: 'Godziny kursu',
-            description: `${course.totalHours} h lacznie`,
+            description: `${course.totalHours} h łącznie`,
             badge: `${course.totalHours} h`,
             tone: 'info',
         },
         {
             label: 'Typ kursu',
-            description: 'Rodzaj zajec i organizacji kursu.',
+            description: 'Rodzaj zajęć i organizacji kursu.',
             badge: formatCourseKindLabel(course.type),
             tone: 'neutral',
         },
         {
             label: 'Limit miejsc',
-            description: 'Maksymalna liczba uczestnikow.',
+            description: 'Maksymalna liczba uczestników.',
             badge: formatCapacityText(course.capacity),
             tone: course.capacity === null ? 'neutral' : 'success',
         },
     ];
 }
 
-export function buildCourseRelatedItems({
+export function buildCourseCapacityInsight({
     course,
-    courseCategoryLabel,
-    effectiveSchoolId,
+    participantCount,
 }: {
     course: CourseDetail;
-    courseCategoryLabel: string;
-    effectiveSchoolId: string;
-}): ManagerCourseInfoItem[] {
-    return [
-        {
-            label: 'Instruktor',
-            description: 'Przypisanie edytowane w panelu obok.',
-            badge: formatCourseInstructorName(course),
-        },
-        {
-            label: 'Kategoria',
-            description: 'Zachowana w konfiguracji kursu.',
-            badge: courseCategoryLabel,
-        },
-        {
-            label: 'OSK',
-            description: 'Kontekst pobrany z linku lub danych kursu.',
-            badge: effectiveSchoolId ? 'Powiazane' : 'Brak ID',
-        },
-    ];
+    participantCount: number | null;
+}): ManagerCourseCapacityInsight {
+    const capacity = course.capacity;
+    const hasCapacity = capacity !== null;
+
+    if (participantCount === null) {
+        return {
+            participantCount,
+            capacity,
+            fillPercentage: null,
+            freeSeats: null,
+            valueLabel: hasCapacity ? `— / ${capacity}` : '—',
+            helperLabel: hasCapacity
+                ? 'Nie udało się policzyć zajętych miejsc.'
+                : 'Nie udało się policzyć uczestników.',
+            badgeLabel: 'Brak danych',
+            badgeTone: 'neutral',
+            hasCapacity,
+            isOverCapacity: false,
+        };
+    }
+
+    if (!hasCapacity) {
+        return {
+            participantCount,
+            capacity,
+            fillPercentage: null,
+            freeSeats: null,
+            valueLabel: String(participantCount),
+            helperLabel: 'Kurs bez limitu miejsc.',
+            badgeLabel: `${participantCount} uczestników`,
+            badgeTone: participantCount > 0 ? 'info' : 'neutral',
+            hasCapacity,
+            isOverCapacity: false,
+        };
+    }
+
+    const safeCapacity = Math.max(0, capacity);
+    const fillPercentage =
+        safeCapacity === 0
+            ? participantCount > 0
+                ? 100
+                : 0
+            : Math.min(
+                  100,
+                  Math.round((participantCount / safeCapacity) * 100),
+              );
+    const freeSeats = Math.max(0, safeCapacity - participantCount);
+    const isOverCapacity = participantCount > safeCapacity;
+
+    return {
+        participantCount,
+        capacity: safeCapacity,
+        fillPercentage,
+        freeSeats,
+        valueLabel: `${participantCount} / ${safeCapacity}`,
+        helperLabel: isOverCapacity
+            ? `${participantCount - safeCapacity} ponad limit`
+            : `${freeSeats} wolnych miejsc`,
+        badgeLabel: isOverCapacity
+            ? 'Przekroczony limit'
+            : freeSeats === 0
+              ? 'Komplet'
+              : 'Są miejsca',
+        badgeTone: isOverCapacity
+            ? 'warning'
+            : freeSeats === 0
+              ? 'info'
+              : 'success',
+        hasCapacity,
+        isOverCapacity,
+    };
 }

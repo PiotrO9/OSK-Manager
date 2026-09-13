@@ -6,3 +6,16 @@ export interface ManagerCourseInfoItem {
     badge: string;
     tone?: StatusTone;
 }
+
+export interface ManagerCourseCapacityInsight {
+    participantCount: number | null;
+    capacity: number | null;
+    fillPercentage: number | null;
+    freeSeats: number | null;
+    valueLabel: string;
+    helperLabel: string;
+    badgeLabel: string;
+    badgeTone: StatusTone;
+    hasCapacity: boolean;
+    isOverCapacity: boolean;
+}

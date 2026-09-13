@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { User } from 'lucide-vue-next';
+import { ExternalLink, UserCheck } from 'lucide-vue-next';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
 } from '~/types/instructors/instructor';
 import type { CourseDetail } from '~/types/courses/course';
 
-defineProps<{
+const props = defineProps<{
     course: CourseDetail;
     noInstructorValue: string;
     instructorName: string;
+    instructorProfileId: string;
     instructorSaveBlockedReason: string;
     instructorsLoadError: string | null;
     isInstructorsLoading: boolean;
@@ -32,48 +33,79 @@ const selectedInstructorProfileId = defineModel<string>(
         required: true,
     },
 );
+
+const instructorDetailsRoute = computed(() => {
+    const instructorId = props.instructorProfileId.trim();
+
+    return instructorId ? `/manager/instructors/${instructorId}` : null;
+});
+
+const currentInstructorInitials = computed(() => {
+    const name = props.instructorName.trim();
+
+    if (!props.course.instructor || !name) {
+        return 'BI';
+    }
+
+    return name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0))
+        .join('')
+        .toUpperCase();
+});
 </script>
 
 <template>
-    <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-        <UiCardHeader class="border-border border-b p-5">
-            <div class="flex items-start justify-between gap-3">
-                <div class="space-y-1">
-                    <UiCardTitle class="text-xl font-extrabold">
-                        Przypisanie instruktora
-                    </UiCardTitle>
-                    <UiCardDescription>
-                        Aktualizuj prowadz¹cego z listy instruktorów tej OSK.
-                    </UiCardDescription>
-                </div>
-                <User
-                    class="text-muted-foreground size-5 shrink-0"
-                    aria-hidden="true"
-                />
-            </div>
+    <UiCard
+        class="h-fit max-w-4xl gap-0 overflow-hidden rounded-lg py-0 shadow-xs"
+    >
+        <UiCardHeader class="border-border border-b px-5 py-4">
+            <UiCardTitle class="text-base font-semibold">
+                Instruktor kursu
+            </UiCardTitle>
+            <UiCardDescription>
+                Obecny prowadzÄ…cy i szybka zmiana przypisania.
+            </UiCardDescription>
         </UiCardHeader>
-        <UiCardContent class="space-y-5 p-5">
-            <div class="border-border rounded-2xl border p-4">
-                <div
-                    class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
-                >
+        <UiCardContent class="space-y-4 p-5">
+            <div
+                class="border-border bg-muted/20 flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <div class="flex min-w-0 items-center gap-3">
+                    <AppListAvatar
+                        :src="course.instructor?.avatarUrl ?? null"
+                        :initials="currentInstructorInitials"
+                        :size="40"
+                    />
                     <div class="min-w-0">
-                        <p class="font-extrabold">Zapisany w kursie</p>
-                        <p class="text-muted-foreground mt-1 text-sm">
-                            To przypisanie jest u¿ywane przy organizacji zajec.
+                        <p class="text-muted-foreground text-xs font-medium">
+                            Aktualnie prowadzi
+                        </p>
+                        <NuxtLink
+                            v-if="instructorDetailsRoute"
+                            :to="instructorDetailsRoute"
+                            class="text-foreground hover:text-primary mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-sm font-semibold"
+                        >
+                            <span class="truncate">{{ instructorName }}</span>
+                            <ExternalLink
+                                class="size-3 shrink-0"
+                                aria-hidden="true"
+                            />
+                        </NuxtLink>
+                        <p
+                            v-else
+                            class="text-foreground mt-0.5 text-sm font-semibold"
+                        >
+                            {{ instructorName }}
                         </p>
                     </div>
-                    <StatusBadge
-                        :label="instructorName"
-                        :tone="course.instructor ? 'success' : 'neutral'"
-                        subtle
-                    />
                 </div>
             </div>
 
             <p
                 v-if="instructorSaveBlockedReason"
-                class="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700"
+                class="border-warning-200 bg-warning-50 text-warning-800 dark:border-warning-500/40 dark:bg-warning-500/10 dark:text-warning-300 rounded-lg border px-4 py-3 text-sm font-medium"
                 role="status"
             >
                 {{ instructorSaveBlockedReason }}
@@ -81,55 +113,75 @@ const selectedInstructorProfileId = defineModel<string>(
 
             <ErrorState
                 v-if="instructorsLoadError"
-                title="Nie uda³o siê wczytaæ instruktorów"
+                title="Nie udaÅ‚o siÄ™ wczytaÄ‡ instruktorÃ³w"
                 :description="instructorsLoadError"
                 @retry="$emit('retryInstructors')"
             />
 
-            <div class="space-y-2">
-                <UiLabel for="course-detail-instructor-select">
-                    Zmiana przypisania
-                </UiLabel>
-                <p
-                    v-if="isInstructorsLoading"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    Wczytywanie listy instruktorów...
-                </p>
-                <UiSelect
-                    v-else
-                    v-model="selectedInstructorProfileId"
-                    :disabled="!!instructorSaveBlockedReason || isPatchLoading"
-                    @update:model-value="$emit('instructorSelectChange')"
-                >
-                    <UiSelectTrigger
-                        id="course-detail-instructor-select"
-                        class="h-11 w-full rounded-xl"
-                        aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
+            <div
+                class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end"
+            >
+                <div class="min-w-0 space-y-2">
+                    <UiLabel for="course-detail-instructor-select">
+                        ZmieÅ„ prowadzÄ…cego
+                    </UiLabel>
+                    <p
+                        v-if="isInstructorsLoading"
+                        class="text-muted-foreground rounded-lg border px-3 py-2 text-sm"
+                        role="status"
                     >
-                        <UiSelectValue placeholder="Brak instruktora" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem :value="noInstructorValue">
-                                Brak instruktora
-                            </UiSelectItem>
-                            <UiSelectItem
-                                v-for="ins in qualifiedInstructors"
-                                :key="ins.id"
-                                :value="ins.id"
-                            >
-                                {{ formatInstructorDisplayName(ins)
-                                }}{{
-                                    ins.email && ins.email.length > 0
-                                        ? ` (${ins.email})`
-                                        : ''
-                                }}
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
+                        Wczytywanie listy instruktorÃ³w...
+                    </p>
+                    <UiSelect
+                        v-else
+                        v-model="selectedInstructorProfileId"
+                        :disabled="
+                            !!instructorSaveBlockedReason || isPatchLoading
+                        "
+                        @update:model-value="$emit('instructorSelectChange')"
+                    >
+                        <UiSelectTrigger
+                            id="course-detail-instructor-select"
+                            class="h-11 w-full rounded-lg"
+                            aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
+                        >
+                            <UiSelectValue placeholder="Brak instruktora" />
+                        </UiSelectTrigger>
+                        <UiSelectContent>
+                            <UiSelectGroup>
+                                <UiSelectItem :value="noInstructorValue">
+                                    Brak instruktora
+                                </UiSelectItem>
+                                <UiSelectItem
+                                    v-for="ins in qualifiedInstructors"
+                                    :key="ins.id"
+                                    :value="ins.id"
+                                >
+                                    {{ formatInstructorDisplayName(ins)
+                                    }}{{
+                                        ins.email && ins.email.length > 0
+                                            ? ` (${ins.email})`
+                                            : ''
+                                    }}
+                                </UiSelectItem>
+                            </UiSelectGroup>
+                        </UiSelectContent>
+                    </UiSelect>
+                </div>
+
+                <UiButton
+                    type="button"
+                    class="h-11 gap-2 rounded-lg px-4 font-semibold"
+                    :disabled="!canSaveInstructorAssignment"
+                    :aria-busy="isPatchLoading"
+                    @click="$emit('saveInstructorAssignment')"
+                >
+                    <UserCheck class="size-4" aria-hidden="true" />
+                    {{ isPatchLoading ? 'Zapisywanie...' : 'Zapisz' }}
+                </UiButton>
+            </div>
+
+            <div class="space-y-2">
                 <p
                     v-if="
                         !isInstructorsLoading &&
@@ -139,8 +191,8 @@ const selectedInstructorProfileId = defineModel<string>(
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Brak instruktorów w tej szkole. Mo¿esz wyczyœciæ przypisanie
-                    albo dodaæ instruktorów w panelu OSK.
+                    Brak instruktorÃ³w w tej szkole. MoÅ¼esz wyczyÅ›ciÄ‡ przypisanie
+                    albo dodaÄ‡ instruktorÃ³w w panelu OSK.
                 </p>
                 <p
                     v-else-if="
@@ -151,19 +203,9 @@ const selectedInstructorProfileId = defineModel<string>(
                     class="text-muted-foreground text-sm"
                     role="status"
                 >
-                    Brak instruktorów z uprawnieniem do kategorii tego kursu.
+                    Brak instruktorÃ³w z uprawnieniem do kategorii tego kursu.
                 </p>
             </div>
-
-            <UiButton
-                type="button"
-                class="h-10 rounded-xl px-4 font-semibold"
-                :disabled="!canSaveInstructorAssignment"
-                :aria-busy="isPatchLoading"
-                @click="$emit('saveInstructorAssignment')"
-            >
-                {{ isPatchLoading ? 'Zapisywanie...' : 'Zapisz przypisanie' }}
-            </UiButton>
         </UiCardContent>
     </UiCard>
 </template>

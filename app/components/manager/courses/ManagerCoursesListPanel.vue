@@ -260,10 +260,7 @@ const {
                     :courses="visibleCourses"
                     :active-school-id="activeSchoolId"
                 />
-                <ManagerCoursesMobileCards
-                    :courses="visibleCourses"
-                    :active-school-id="activeSchoolId"
-                />
+                <ManagerCoursesMobileCards :courses="visibleCourses" />
             </div>
             <nav
                 v-if="!unavailable && totalPages > 1"

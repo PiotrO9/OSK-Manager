@@ -9,7 +9,7 @@ import {
     formatInstructorCell,
     getCourseInstructorInitials,
 } from '~/utils/courses/managerCoursesList';
-defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
+defineProps<{ courses: CourseListItem[] }>();
 </script>
 <template>
     <div class="divide-border divide-y @3xl:hidden">
@@ -21,7 +21,6 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
             <NuxtLink
                 :to="{
                     path: `/manager/courses/${course.id}`,
-                    query: { schoolId: activeSchoolId },
                 }"
                 class="hover:text-primary focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere outline-none hover:underline focus-visible:ring-2"
                 >{{ course.name }}</NuxtLink
@@ -63,7 +62,6 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                 <NuxtLink
                     :to="{
                         path: `/manager/courses/${course.id}`,
-                        query: { schoolId: activeSchoolId },
                     }"
                     :aria-label="`Szczegóły kursu: ${course.name}`"
                     >Szczegóły kursu<ArrowUpRight
