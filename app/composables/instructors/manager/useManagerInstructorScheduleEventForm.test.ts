@@ -59,9 +59,10 @@ describe('useManagerInstructorScheduleEventForm', () => {
             reloadSchedule,
         });
 
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(result).toBe(false);
         expect(data.eventFormError.value).toBe(
             'Brak identyfikatora instruktora.',
         );
@@ -75,9 +76,10 @@ describe('useManagerInstructorScheduleEventForm', () => {
             reloadSchedule,
         });
 
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(result).toBe(false);
         expect(data.eventFormError.value).toBe(
             'Podaj poczatek i koniec bloku.',
         );
@@ -93,11 +95,31 @@ describe('useManagerInstructorScheduleEventForm', () => {
 
         data.eventStartLocal.value = '2026-09-03T10:00';
         data.eventEndLocal.value = '2026-09-03T09:00';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(result).toBe(false);
         expect(data.eventFormError.value).toBe(
             'Koniec musi być pozniej niz poczatek.',
+        );
+    });
+
+    it('validates minimum event duration', async () => {
+        const { useManagerInstructorScheduleEventForm } =
+            await import('./useManagerInstructorScheduleEventForm');
+        const data = useManagerInstructorScheduleEventForm({
+            instructorId: ref('instructor-1'),
+            reloadSchedule,
+        });
+
+        data.eventStartLocal.value = '2026-09-03T09:00';
+        data.eventEndLocal.value = '2026-09-03T09:30';
+        const result = await data.handleSubmitEvent();
+
+        expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(result).toBe(false);
+        expect(data.eventFormError.value).toBe(
+            'Blok musi trwać co najmniej 60 minut.',
         );
     });
 
@@ -112,12 +134,11 @@ describe('useManagerInstructorScheduleEventForm', () => {
         data.eventType.value = 'DRIVE';
         data.eventStartLocal.value = '2026-09-03T09:00';
         data.eventEndLocal.value = '2026-09-03T10:00';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
-        expect(data.eventFormError.value).toBe(
-            'Dla jazdy wybierz pojazd.',
-        );
+        expect(result).toBe(false);
+        expect(data.eventFormError.value).toBe('Dla jazdy wybierz pojazd.');
     });
 
     it('ignores submit while event creation is already pending', async () => {
@@ -132,10 +153,11 @@ describe('useManagerInstructorScheduleEventForm', () => {
 
         data.eventStartLocal.value = '2026-09-03T09:00';
         data.eventEndLocal.value = '2026-09-03T10:00';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).not.toHaveBeenCalled();
         expect(reloadSchedule).not.toHaveBeenCalled();
+        expect(result).toBe(false);
     });
 
     it('creates theory event with optional course and resets form', async () => {
@@ -153,7 +175,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
         data.eventStartLocal.value = '2026-09-03T09:00';
         data.eventEndLocal.value = '2026-09-03T10:00';
         data.eventCourseId.value = ' course-1 ';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).toHaveBeenCalledWith({
             instructorId: 'instructor-1',
@@ -172,6 +194,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
         expect(data.eventVehicleId.value).toBe('');
         expect(data.eventCourseId.value).toBe('');
         expect(reloadSchedule).toHaveBeenCalledOnce();
+        expect(result).toBe(true);
     });
 
     it('creates drive event with selected vehicle', async () => {
@@ -189,7 +212,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
         data.eventStartLocal.value = '2026-09-03T09:00';
         data.eventEndLocal.value = '2026-09-03T10:00';
         data.eventVehicleId.value = ' vehicle-1 ';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(createInstructorEvent).toHaveBeenCalledWith({
             instructorId: 'instructor-1',
@@ -198,6 +221,7 @@ describe('useManagerInstructorScheduleEventForm', () => {
             endTime: expect.stringMatching(/^2026-09-03T/),
             vehicleId: 'vehicle-1',
         });
+        expect(result).toBe(true);
     });
 
     it('exposes API errors without resetting form', async () => {
@@ -212,10 +236,11 @@ describe('useManagerInstructorScheduleEventForm', () => {
 
         data.eventStartLocal.value = '2026-09-03T09:00';
         data.eventEndLocal.value = '2026-09-03T10:00';
-        await data.handleSubmitEvent();
+        const result = await data.handleSubmitEvent();
 
         expect(data.eventFormError.value).toBe('API down');
         expect(data.eventStartLocal.value).toBe('2026-09-03T09:00');
         expect(reloadSchedule).not.toHaveBeenCalled();
+        expect(result).toBe(false);
     });
 });

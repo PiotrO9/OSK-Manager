@@ -17,6 +17,7 @@ const props = defineProps<{
     lessonBlockTopPx: (lesson: ScheduleLessonItem, dateStr: string) => number;
     lessons: ScheduleLessonItem[];
     practicePrimaryLine: 'student' | 'instructor';
+    showInstructorSubtitle: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -74,6 +75,7 @@ function emitBlockKeydown(
                     "
                     :is-clickable="blockActions.blockIsClickable(lesson)"
                     :practice-primary-line="practicePrimaryLine"
+                    :show-instructor-subtitle="showInstructorSubtitle"
                     @select="emit('blockSelect', $event)"
                     @keydown="emitBlockKeydown"
                 />

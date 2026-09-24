@@ -41,6 +41,10 @@ export interface ManagerSchoolScheduleCalendarProps {
     emptyDayMessage?: string;
     practicePrimaryLine?: 'student' | 'instructor';
     studentRatingSelectionEnabled?: boolean;
+    eventActionMode?: 'navigate' | 'select';
+    showInstructorSubtitle?: boolean;
+    showInstructorCount?: boolean;
+    scopeBadgeLabel?: string;
 }
 
 type ManagerSchoolScheduleCalendarResolvedProps = Required<
@@ -52,6 +56,7 @@ type ManagerSchoolScheduleCalendarResolvedProps = Required<
 interface ManagerSchoolScheduleCalendarEmit {
     'update:weekStart': [value: Date];
     'lesson-selected': [lesson: ScheduleLessonItem];
+    'block-selected': [lesson: ScheduleLessonItem];
 }
 
 export function useManagerSchoolScheduleCalendar(
@@ -159,6 +164,7 @@ export function useManagerSchoolScheduleCalendar(
     function blockAccessibilityLabel(lesson: ScheduleLessonItem): string {
         return getManagerSchoolScheduleBlockAccessibilityLabel(lesson, {
             eventEditEnabled: props.eventEditEnabled,
+            eventActionMode: props.eventActionMode,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
             practicePrimaryLine: props.practicePrimaryLine,
         });
@@ -178,6 +184,12 @@ export function useManagerSchoolScheduleCalendar(
 
         if (isStudentRatingSelectableLesson(lesson)) {
             emit('lesson-selected', lesson);
+
+            return;
+        }
+
+        if (props.eventActionMode === 'select') {
+            emit('block-selected', lesson);
 
             return;
         }

@@ -10,6 +10,7 @@ export interface ManagerSchoolScheduleCalendarGridState {
     practicePrimaryLine: 'student' | 'instructor';
     scheduleCountBadgeLabel: string;
     scheduleItemsCount: number;
+    showInstructorSubtitle: boolean;
     weekDays: ManagerSchoolScheduleWeekDay[];
     weekRangeLabel: string;
 }

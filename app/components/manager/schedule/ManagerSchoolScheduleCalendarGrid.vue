@@ -8,6 +8,7 @@ import type {
 
 defineProps<{
     blockActions: ManagerSchoolScheduleCalendarBlockActions;
+    compact?: boolean;
     layout: ManagerSchoolScheduleCalendarGridLayout;
     state: ManagerSchoolScheduleCalendarGridState;
 }>();
@@ -62,7 +63,11 @@ function emitBlockKeydown(
             </UiBadge>
         </div>
 
-        <div class="relative min-w-[720px]">
+        <div
+            :class="
+                compact ? 'relative min-w-[560px]' : 'relative min-w-[720px]'
+            "
+        >
             <div
                 v-if="state.displayLoading"
                 class="bg-background/80 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-[1px]"
@@ -100,6 +105,7 @@ function emitBlockKeydown(
                         :lesson-block-top-px="layout.lessonBlockTopPx"
                         :lessons="layout.lessonsForDate(day.dateStr)"
                         :practice-primary-line="state.practicePrimaryLine"
+                        :show-instructor-subtitle="state.showInstructorSubtitle"
                         @block-select="emit('blockSelect', $event)"
                         @block-keydown="emitBlockKeydown"
                     />

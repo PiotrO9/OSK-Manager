@@ -30,6 +30,11 @@ const props = withDefaults(
          */
         practicePrimaryLine?: 'student' | 'instructor';
         studentRatingSelectionEnabled?: boolean;
+        eventActionMode?: 'navigate' | 'select';
+        showInstructorSubtitle?: boolean;
+        showInstructorCount?: boolean;
+        scopeBadgeLabel?: string;
+        compactChrome?: boolean;
     }>(),
     {
         eventEditEnabled: false,
@@ -42,12 +47,18 @@ const props = withDefaults(
         emptyDayMessage: 'Brak lekcji',
         practicePrimaryLine: 'student',
         studentRatingSelectionEnabled: false,
+        eventActionMode: 'navigate',
+        showInstructorSubtitle: true,
+        showInstructorCount: true,
+        scopeBadgeLabel: 'Wszyscy instruktorzy',
+        compactChrome: false,
     },
 );
 
 const emit = defineEmits<{
     'update:weekStart': [value: Date];
     'lesson-selected': [lesson: ScheduleLessonItem];
+    'block-selected': [lesson: ScheduleLessonItem];
 }>();
 
 const {
@@ -91,6 +102,7 @@ const calendarGridState = computed<ManagerSchoolScheduleCalendarGridState>(
         practicePrimaryLine: props.practicePrimaryLine,
         scheduleCountBadgeLabel: props.scheduleCountBadgeLabel,
         scheduleItemsCount: displayItems.value.length,
+        showInstructorSubtitle: props.showInstructorSubtitle,
         weekDays: weekDays.value,
         weekRangeLabel: weekRangeLabel.value,
     }),
@@ -119,13 +131,22 @@ defineExpose({
 </script>
 
 <template>
-    <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-        <UiCardContent class="space-y-4 p-4">
+    <UiCard
+        :class="
+            compactChrome
+                ? 'overflow-hidden rounded-xl py-0 shadow-xs'
+                : 'overflow-hidden rounded-2xl shadow-sm'
+        "
+    >
+        <UiCardContent
+            :class="compactChrome ? 'space-y-3 p-2 sm:p-3' : 'space-y-4 p-4'"
+        >
             <ManagerScheduleWeekToolbar
                 v-model:calendar-open="isCalendarOpen"
                 :is-loading="displayLoading"
                 :compact-week-range-label="compactWeekRangeLabel"
                 :calendar-selected-model="calendarSelectedModel"
+                :compact="compactChrome"
                 :min-value="WEEK_PICKER_CALENDAR_MIN"
                 :max-value="WEEK_PICKER_CALENDAR_MAX"
                 @previous="handlePrevWeek"
@@ -145,15 +166,19 @@ defineExpose({
             </p>
 
             <ManagerScheduleMetaBar
+                v-if="!compactChrome"
                 :is-loading="displayLoading"
                 :base-hour="BASE_HOUR"
                 :schedule-count-badge-label="scheduleCountBadgeLabel"
                 :display-items-count="displayItems.length"
                 :schedule-instructor-count="scheduleInstructorCount"
                 :earliest-start-label="earliestStartLabel"
+                :scope-badge-label="scopeBadgeLabel"
+                :show-instructor-count="showInstructorCount"
             />
 
             <ManagerSchoolScheduleCalendarGrid
+                :compact="compactChrome"
                 :state="calendarGridState"
                 :layout="calendarGridLayout"
                 :block-actions="calendarBlockActions"

@@ -8,6 +8,7 @@ export const SCHEDULE_BLOCK_INTERACTIVE_CLASSES =
     'cursor-pointer hover:brightness-[0.97] focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none dark:hover:brightness-[1.08]';
 
 export interface ManagerSchoolScheduleBlockInteractionOptions {
+    eventActionMode?: 'navigate' | 'select';
     eventEditEnabled: boolean | undefined;
     studentRatingSelectionEnabled: boolean | undefined;
     practicePrimaryLine: 'student' | 'instructor';
@@ -64,10 +65,18 @@ export function getManagerSchoolScheduleBlockAccessibilityLabel(
     }
 
     if (isScheduleInstructorEvent(lesson)) {
+        if (options.eventActionMode === 'select') {
+            return `${base}. Naciśnij Enter lub Spację, aby wybrać blok czasu.`;
+        }
+
         return `${base}. Naciśnij Enter lub Spację, aby edytować blok czasu.`;
     }
 
     if (isScheduleBookedPracticalLesson(lesson)) {
+        if (options.eventActionMode === 'select') {
+            return `${base}. Naciśnij Enter lub Spację, aby wybrać jazdę praktyczną.`;
+        }
+
         return `${base}. Naciśnij Enter lub Spację, aby edytować jazdę praktyczną.`;
     }
 

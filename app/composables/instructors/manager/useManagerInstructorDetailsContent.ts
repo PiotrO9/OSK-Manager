@@ -101,7 +101,6 @@ export function useManagerInstructorDetailsContent(input: {
             description: 'Lekcje, teoria i bloki czasu',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/schedule`,
-                query: input.subpageQuery,
             },
             icon: TimerReset,
         },

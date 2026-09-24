@@ -81,6 +81,10 @@ describe('useManagerSchoolScheduleCalendar', () => {
                 emptyDayMessage: 'Brak zajęć.',
                 practicePrimaryLine: 'student',
                 studentRatingSelectionEnabled: false,
+                eventActionMode: 'navigate',
+                showInstructorSubtitle: true,
+                showInstructorCount: true,
+                scopeBadgeLabel: 'Wszyscy instruktorzy',
             },
             vi.fn(),
         );
@@ -99,5 +103,83 @@ describe('useManagerSchoolScheduleCalendar', () => {
         expect(calendar.lessonBlockTopPx(sameStartSecond, '2026-08-10')).toBe(
             165.5,
         );
+    });
+
+    it('emits selected instructor events when configured for selection mode', async () => {
+        const event = scheduleLesson({
+            id: 'event-1',
+            kind: 'instructor_event',
+            type: 'THEORY',
+            student: undefined,
+        });
+        const emit = vi.fn();
+
+        const { useManagerSchoolScheduleCalendar } =
+            await import('./useManagerSchoolScheduleCalendar');
+
+        const calendar = useManagerSchoolScheduleCalendar(
+            {
+                schoolId: 'school-1',
+                eventEditEnabled: true,
+                parentSchedule: true,
+                parentItems: [event],
+                parentLoading: false,
+                parentError: null,
+                weekStart: new Date(2026, 7, 10),
+                scheduleCountBadgeLabel: 'wpisy',
+                emptyDayMessage: 'Brak wpisów.',
+                practicePrimaryLine: 'student',
+                studentRatingSelectionEnabled: false,
+                eventActionMode: 'select',
+                showInstructorSubtitle: false,
+                showInstructorCount: false,
+                scopeBadgeLabel: 'Ten instruktor',
+            },
+            emit,
+        );
+
+        calendar.handleScheduleBlockClick(event);
+
+        expect(emit).toHaveBeenCalledWith('block-selected', event);
+        expect(navigateTo).not.toHaveBeenCalled();
+    });
+
+    it('emits selected practical lessons when configured for selection mode', async () => {
+        const lesson = scheduleLesson({
+            id: 'lesson-2',
+            kind: 'lesson',
+            type: 'PRACTICE',
+            status: 'SCHEDULED',
+        });
+        const emit = vi.fn();
+
+        const { useManagerSchoolScheduleCalendar } =
+            await import('./useManagerSchoolScheduleCalendar');
+
+        const calendar = useManagerSchoolScheduleCalendar(
+            {
+                schoolId: 'school-1',
+                eventEditEnabled: true,
+                parentSchedule: true,
+                parentItems: [lesson],
+                parentLoading: false,
+                parentError: null,
+                weekStart: new Date(2026, 7, 10),
+                scheduleCountBadgeLabel: 'wpisy',
+                emptyDayMessage: 'Brak wpisów.',
+                practicePrimaryLine: 'student',
+                studentRatingSelectionEnabled: false,
+                eventActionMode: 'select',
+                showInstructorSubtitle: false,
+                showInstructorCount: false,
+                scopeBadgeLabel: 'Ten instruktor',
+            },
+            emit,
+        );
+
+        calendar.handleScheduleBlockClick(lesson);
+
+        expect(emit).toHaveBeenCalledWith('block-selected', lesson);
+        expect(navigateTo).not.toHaveBeenCalled();
     });
 });

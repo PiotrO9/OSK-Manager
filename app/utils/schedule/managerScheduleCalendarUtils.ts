@@ -97,11 +97,13 @@ export function displayVehicle(item: ScheduleLessonItem): string {
     const n = v.name.trim();
     const r = v.registrationNumber.trim();
 
-    if (n && r) {
-        return `${n} (${r})`;
+    const model = n.replace(/^pojazd\s+\d+\s*-\s*/i, '').trim() || n;
+
+    if (model && r) {
+        return `${model} (${r})`;
     }
 
-    return n || r || '';
+    return model || r;
 }
 
 export function displayInstructorName(item: ScheduleLessonItem): string {

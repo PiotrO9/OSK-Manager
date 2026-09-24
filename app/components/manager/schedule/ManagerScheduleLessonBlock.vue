@@ -16,15 +16,21 @@ import {
 } from '~/utils/events/instructorEventStatusDisplay';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 
-defineProps<{
-    lesson: ScheduleLessonItem;
-    topPx: number;
-    heightPx: number;
-    accessibilityLabel: string;
-    interactiveClasses: string;
-    isClickable: boolean;
-    practicePrimaryLine: 'student' | 'instructor';
-}>();
+withDefaults(
+    defineProps<{
+        lesson: ScheduleLessonItem;
+        topPx: number;
+        heightPx: number;
+        accessibilityLabel: string;
+        interactiveClasses: string;
+        isClickable: boolean;
+        practicePrimaryLine: 'student' | 'instructor';
+        showInstructorSubtitle?: boolean;
+    }>(),
+    {
+        showInstructorSubtitle: true,
+    },
+);
 
 const emit = defineEmits<{
     select: [lesson: ScheduleLessonItem];
@@ -93,6 +99,7 @@ const emit = defineEmits<{
         </span>
         <span
             v-if="
+                showInstructorSubtitle &&
                 isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "
@@ -108,6 +115,7 @@ const emit = defineEmits<{
         </span>
         <span
             v-if="
+                showInstructorSubtitle &&
                 !isTheoryLessonType(lesson.type) &&
                 displayInstructorSubtitle(lesson)
             "

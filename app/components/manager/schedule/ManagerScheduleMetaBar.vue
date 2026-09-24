@@ -6,13 +6,15 @@ defineProps<{
     displayItemsCount: number;
     scheduleInstructorCount: number;
     earliestStartLabel: string;
+    scopeBadgeLabel?: string;
+    showInstructorCount?: boolean;
 }>();
 </script>
 
 <template>
     <div class="space-y-4">
         <FilterBar
-            title="Filtry zapytania API"
+            title="Zakres harmonogramu"
             :result-label="isLoading ? 'Ładowanie...' : ''"
             :is-loading="isLoading"
             class="rounded-2xl"
@@ -21,7 +23,7 @@ defineProps<{
                 variant="outline"
                 class="border-primary-200 bg-primary-50 text-primary-700 rounded-full"
             >
-                Wszyscy instruktorzy
+                {{ scopeBadgeLabel ?? 'Wszyscy instruktorzy' }}
             </UiBadge>
             <UiBadge variant="secondary" class="rounded-full">
                 {{ baseHour }}:00-19:00
@@ -42,6 +44,7 @@ defineProps<{
                 Oś godzin: {{ baseHour }}:00-19:00
             </span>
             <UiBadge
+                v-if="showInstructorCount ?? true"
                 variant="outline"
                 class="border-primary-200 bg-primary-50 text-primary-700 rounded-full"
             >

@@ -8,6 +8,8 @@ interface UseManagerInstructorScheduleEventFormOptions {
     reloadSchedule: () => Promise<void>;
 }
 
+const MIN_EVENT_DURATION_MS = 60 * 60 * 1000;
+
 export function useManagerInstructorScheduleEventForm({
     instructorId,
     reloadSchedule,
@@ -36,9 +38,9 @@ export function useManagerInstructorScheduleEventForm({
         target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    async function handleSubmitEvent(): Promise<void> {
+    async function handleSubmitEvent(): Promise<boolean> {
         if (isEventSaving.value) {
-            return;
+            return false;
         }
 
         eventFormError.value = null;
@@ -48,7 +50,7 @@ export function useManagerInstructorScheduleEventForm({
         if (!id) {
             eventFormError.value = 'Brak identyfikatora instruktora.';
 
-            return;
+            return false;
         }
 
         const startIso = localDatetimeToIso(eventStartLocal.value);
@@ -57,13 +59,22 @@ export function useManagerInstructorScheduleEventForm({
         if (!startIso || !endIso) {
             eventFormError.value = 'Podaj poczatek i koniec bloku.';
 
-            return;
+            return false;
         }
 
-        if (new Date(startIso).getTime() >= new Date(endIso).getTime()) {
+        const startMs = new Date(startIso).getTime();
+        const endMs = new Date(endIso).getTime();
+
+        if (startMs >= endMs) {
             eventFormError.value = 'Koniec musi być pozniej niz poczatek.';
 
-            return;
+            return false;
+        }
+
+        if (endMs - startMs < MIN_EVENT_DURATION_MS) {
+            eventFormError.value = 'Blok musi trwać co najmniej 60 minut.';
+
+            return false;
         }
 
         const type = eventType.value;
@@ -74,7 +85,7 @@ export function useManagerInstructorScheduleEventForm({
             if (!vid) {
                 eventFormError.value = 'Dla jazdy wybierz pojazd.';
 
-                return;
+                return false;
             }
         }
 
@@ -100,11 +111,15 @@ export function useManagerInstructorScheduleEventForm({
             resetEventForm();
 
             await reloadSchedule();
+
+            return true;
         } catch (err: unknown) {
             eventFormError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się utworzyć bloku.',
             );
+
+            return false;
         }
     }
 

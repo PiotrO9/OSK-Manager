@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CalendarDate } from '@internationalized/date';
-import { getLocalTimeZone, today } from '@internationalized/date';
 import { computed, nextTick, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
@@ -126,7 +125,11 @@ async function handleDateUpdate(value: string): Promise<void> {
 function handleTimeUpdate(value: string): void {
     timeValue.value = value;
 
-    const date = parsedDatetime.value?.date ?? today(getLocalTimeZone());
+    const date = parsedDatetime.value?.date;
+
+    if (!date) {
+        return;
+    }
 
     emitFromParts(date, value);
 }

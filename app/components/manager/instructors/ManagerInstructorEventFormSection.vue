@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { CalendarDays, Clock, Layers3, Plus } from 'lucide-vue-next';
-import type { RouteLocationRaw } from 'vue-router';
-import UiDateTimePicker from '~/components/shadcn/date-time-picker/DateTimePicker.vue';
+import { Plus } from 'lucide-vue-next';
+import { computed, shallowRef, watch } from 'vue';
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
+import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { ManagerInstructorEventType } from '~/composables/instructors/manager/useManagerInstructorSchedulePage';
+import {
+    buildDatetimeLocal,
+    dateValueToIsoDateString,
+    isoDateStringToCalendarDate,
+    parseDatetimeLocalParts,
+} from '~/utils/date/weeklyCalendarDates';
 
 defineProps<{
     schoolId: string;
@@ -16,7 +23,6 @@ defineProps<{
     isVehiclesLoading: boolean;
     isEventSaving: boolean;
     eventFormError: string | null;
-    backHref: RouteLocationRaw;
 }>();
 
 const emit = defineEmits<{
@@ -33,6 +39,194 @@ const eventVehicleId = defineModel<string>('eventVehicleId', {
     required: true,
 });
 const eventCourseId = defineModel<string>('eventCourseId', { required: true });
+
+const DEFAULT_START_TIME = '09:00';
+const DEFAULT_END_TIME = '10:00';
+const MIN_DURATION_MINUTES = 60;
+const LATEST_START_TIME = '23:00';
+
+const startTime = shallowRef(DEFAULT_START_TIME);
+const endTime = shallowRef(DEFAULT_END_TIME);
+
+const eventDate = computed({
+    get: () => {
+        const start = parseDatetimeLocalParts(eventStartLocal.value);
+
+        if (start) {
+            return dateValueToIsoDateString(start.date);
+        }
+
+        const end = parseDatetimeLocalParts(eventEndLocal.value);
+
+        return end ? dateValueToIsoDateString(end.date) : '';
+    },
+    set: (value: string) => {
+        setEventDate(value);
+    },
+});
+
+function setEventDate(value: string): void {
+    const date = isoDateStringToCalendarDate(value);
+
+    if (!date) {
+        eventStartLocal.value = '';
+        eventEndLocal.value = '';
+
+        return;
+    }
+
+    const nextDate = dateValueToIsoDateString(date);
+
+    updateEventDatetime('start', nextDate, startTime.value);
+    updateEventDatetime('end', nextDate, endTime.value);
+}
+
+function updateEventDatetime(
+    target: 'start' | 'end',
+    dateValue: string,
+    timeValue: string,
+): void {
+    const date = isoDateStringToCalendarDate(dateValue);
+
+    if (!date) {
+        return;
+    }
+
+    const [hourRaw = '9', minuteRaw = '0'] = timeValue.split(':');
+    const hour = Number.parseInt(hourRaw, 10);
+    const minute = Number.parseInt(minuteRaw, 10);
+    const nextValue = buildDatetimeLocal(
+        date,
+        Number.isFinite(hour) ? hour : 9,
+        Number.isFinite(minute) ? minute : 0,
+    );
+
+    if (target === 'start') {
+        eventStartLocal.value = nextValue;
+
+        return;
+    }
+
+    eventEndLocal.value = nextValue;
+}
+
+function timeToMinutes(value: string): number | null {
+    const [hourRaw = '', minuteRaw = ''] = value.split(':');
+    const hour = Number.parseInt(hourRaw, 10);
+    const minute = Number.parseInt(minuteRaw, 10);
+
+    if (
+        !Number.isFinite(hour) ||
+        !Number.isFinite(minute) ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59
+    ) {
+        return null;
+    }
+
+    return hour * 60 + minute;
+}
+
+function minutesToTime(value: number): string {
+    const normalized = Math.max(0, Math.min(value, 23 * 60 + 59));
+    const hour = Math.floor(normalized / 60);
+    const minute = normalized % 60;
+
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(
+        2,
+        '0',
+    )}`;
+}
+
+function formatVehicleOptionLabel(vehicle: Vehicle): string {
+    const model = vehicle.name
+        .trim()
+        .replace(/^pojazd\s+\d+\s*-\s*/i, '')
+        .trim();
+    const registrationNumber = vehicle.registrationNumber.trim();
+
+    if (model && registrationNumber) {
+        return `${model} (${registrationNumber})`;
+    }
+
+    return model || registrationNumber || '-';
+}
+
+const endMinExclusive = computed(() => {
+    const startMinutes = timeToMinutes(startTime.value);
+
+    if (startMinutes === null) {
+        return undefined;
+    }
+
+    return minutesToTime(startMinutes + MIN_DURATION_MINUTES - 1);
+});
+
+function handleStartTimeChanged(value: string): void {
+    startTime.value = value;
+
+    const startMinutes = timeToMinutes(value);
+    const endMinutes = timeToMinutes(endTime.value);
+
+    if (
+        startMinutes !== null &&
+        endMinutes !== null &&
+        endMinutes - startMinutes < MIN_DURATION_MINUTES
+    ) {
+        endTime.value = minutesToTime(startMinutes + MIN_DURATION_MINUTES);
+    }
+
+    if (eventDate.value) {
+        updateEventDatetime('start', eventDate.value, value);
+        updateEventDatetime('end', eventDate.value, endTime.value);
+    }
+}
+
+function handleEndTimeChanged(value: string): void {
+    endTime.value = value;
+
+    if (eventDate.value) {
+        updateEventDatetime('end', eventDate.value, value);
+    }
+}
+
+watch(
+    eventStartLocal,
+    (value) => {
+        const parsed = parseDatetimeLocalParts(value);
+
+        if (!parsed) {
+            startTime.value = DEFAULT_START_TIME;
+
+            return;
+        }
+
+        startTime.value = `${String(parsed.hour).padStart(2, '0')}:${String(
+            parsed.minute,
+        ).padStart(2, '0')}`;
+    },
+    { immediate: true },
+);
+
+watch(
+    eventEndLocal,
+    (value) => {
+        const parsed = parseDatetimeLocalParts(value);
+
+        if (!parsed) {
+            endTime.value = DEFAULT_END_TIME;
+
+            return;
+        }
+
+        endTime.value = `${String(parsed.hour).padStart(2, '0')}:${String(
+            parsed.minute,
+        ).padStart(2, '0')}`;
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
@@ -140,7 +334,7 @@ const eventCourseId = defineModel<string>('eventCourseId', { required: true });
                                 :key="v.id"
                                 :value="v.id"
                             >
-                                {{ v.name }} ({{ v.registrationNumber }})
+                                {{ formatVehicleOptionLabel(v) }}
                             </UiSelectItem>
                         </UiSelectGroup>
                     </UiSelectContent>
@@ -148,23 +342,41 @@ const eventCourseId = defineModel<string>('eventCourseId', { required: true });
             </div>
 
             <div class="space-y-2">
-                <UiLabel for="event-start">Początek</UiLabel>
-                <UiDateTimePicker
-                    id="event-start"
-                    v-model="eventStartLocal"
-                    placeholder="Data i godzina początku"
+                <UiLabel for="event-date">Data</UiLabel>
+                <UiDatePicker
+                    id="event-date"
+                    v-model="eventDate"
+                    placeholder="Wybierz dzień bloku"
                     :aria-required="true"
                 />
             </div>
 
-            <div class="space-y-2">
-                <UiLabel for="event-end">Koniec</UiLabel>
-                <UiDateTimePicker
-                    id="event-end"
-                    v-model="eventEndLocal"
-                    placeholder="Data i godzina końca"
-                    :aria-required="true"
-                />
+            <div class="grid gap-3 sm:grid-cols-2">
+                <div class="space-y-2">
+                    <UiLabel for="event-start-time">Początek</UiLabel>
+                    <UiTimePicker
+                        id="event-start-time"
+                        :model-value="startTime"
+                        label="Godzina początku bloku"
+                        context-label="Początek"
+                        trigger-class="h-10 max-w-none"
+                        :max-exclusive="LATEST_START_TIME"
+                        @update:model-value="handleStartTimeChanged"
+                    />
+                </div>
+
+                <div class="space-y-2">
+                    <UiLabel for="event-end-time">Koniec</UiLabel>
+                    <UiTimePicker
+                        id="event-end-time"
+                        :model-value="endTime"
+                        label="Godzina końca bloku"
+                        context-label="Koniec"
+                        trigger-class="h-10 max-w-none"
+                        :min-exclusive="endMinExclusive"
+                        @update:model-value="handleEndTimeChanged"
+                    />
+                </div>
             </div>
 
             <p
@@ -174,39 +386,10 @@ const eventCourseId = defineModel<string>('eventCourseId', { required: true });
             >
                 {{ eventFormError }}
             </p>
-
-            <div
-                class="border-border bg-muted/30 grid gap-3 rounded-xl border p-3 text-xs sm:grid-cols-3 xl:grid-cols-1"
-            >
-                <div class="flex items-center gap-2">
-                    <Clock
-                        class="text-primary size-4 shrink-0"
-                        aria-hidden="true"
-                    />
-                    Walidacja czasu po stronie serwera
-                </div>
-                <div class="flex items-center gap-2">
-                    <Layers3
-                        class="text-primary size-4 shrink-0"
-                        aria-hidden="true"
-                    />
-                    Brak kursanta w nowym bloku
-                </div>
-                <div class="flex items-center gap-2">
-                    <CalendarDays
-                        class="text-primary size-4 shrink-0"
-                        aria-hidden="true"
-                    />
-                    Po zapisie odświeżam tydzien
-                </div>
-            </div>
         </div>
 
         <template #footer>
             <ActionGroup label="Akcje bloku czasu" align="end">
-                <UiButton as-child variant="outline" type="button">
-                    <NuxtLink :to="backHref">Szczegóły instruktora</NuxtLink>
-                </UiButton>
                 <UiButton
                     type="button"
                     :disabled="isEventSaving"

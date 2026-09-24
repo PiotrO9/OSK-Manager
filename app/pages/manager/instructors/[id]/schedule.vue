@@ -8,6 +8,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const isEventFormOpen = ref(false);
 
 usePageMeta({
     title: () => 'Terminarz instruktora',
@@ -38,19 +39,10 @@ const {
     deleteDialogOpen,
     isEventSaving,
     isEventDeleteLoading,
-    scheduleItemsCount,
-    lessonItemsCount,
-    blockItemsCount,
     scheduleWeekLabel,
-    scheduleResultLabel,
-    nextScheduledItemLabel,
     pendingDeleteTimeLabel,
-    backHref,
     loadSchedule,
-    handlePrevWeek,
-    handleNextWeek,
     handleInstructorEventStatusChanged,
-    handleFocusEventForm,
     handleSubmitEvent,
     handleRequestDelete,
     handleDeleteDialogCancel,
@@ -68,6 +60,22 @@ watch(
     },
     { immediate: true },
 );
+
+function handleOpenEventForm(): void {
+    isEventFormOpen.value = true;
+}
+
+function handleScheduleWeekStartChanged(value: Date): void {
+    weekStart.value = value;
+}
+
+async function handleSubmitEventFromSheet(): Promise<void> {
+    const wasSaved = await handleSubmitEvent();
+
+    if (wasSaved) {
+        isEventFormOpen.value = false;
+    }
+}
 </script>
 
 <template>
@@ -89,7 +97,7 @@ watch(
                 <UiButton
                     type="button"
                     class="shadow-primary-500/20 gap-2 shadow-lg"
-                    @click="handleFocusEventForm"
+                    @click="handleOpenEventForm"
                 >
                     <Plus class="size-4" aria-hidden="true" />
                     Dodaj blok
@@ -112,57 +120,60 @@ watch(
         </ErrorState>
 
         <template v-else>
-            <ManagerInstructorScheduleContextCard
-                :school-id="schoolId"
-                :schedule-items-count="scheduleItemsCount"
-                :lesson-items-count="lessonItemsCount"
-                :block-items-count="blockItemsCount"
-                :next-scheduled-item-label="nextScheduledItemLabel"
-            />
-
             <ErrorState
                 v-if="schoolContextError"
                 title="Nie udało się ustalić szkoły instruktora"
                 :description="schoolContextError"
             />
 
-            <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
-                <ManagerInstructorScheduleWeekSection
-                    :week-start="weekStart"
-                    :schedule-week-label="scheduleWeekLabel"
-                    :schedule-result-label="scheduleResultLabel"
-                    :is-schedule-loading="isScheduleLoading"
-                    :schedule-error="scheduleError"
-                    :items="items"
-                    :school-id="schoolId"
-                    @prev-week="handlePrevWeek"
-                    @next-week="handleNextWeek"
-                    @refresh="loadSchedule"
-                    @request-delete="handleRequestDelete"
-                    @status-changed="handleInstructorEventStatusChanged"
-                />
+            <ManagerInstructorScheduleWeekSection
+                :week-start="weekStart"
+                :is-schedule-loading="isScheduleLoading"
+                :schedule-error="scheduleError"
+                :items="items"
+                :school-id="schoolId"
+                @week-start-changed="handleScheduleWeekStartChanged"
+                @refresh="loadSchedule"
+                @request-delete="handleRequestDelete"
+                @status-changed="handleInstructorEventStatusChanged"
+            />
 
-                <ManagerInstructorEventFormSection
-                    v-model:event-type="eventType"
-                    v-model:event-start-local="eventStartLocal"
-                    v-model:event-end-local="eventEndLocal"
-                    v-model:event-vehicle-id="eventVehicleId"
-                    v-model:event-course-id="eventCourseId"
-                    :school-id="schoolId"
-                    :courses="courses"
-                    :courses-error="coursesError"
-                    :is-courses-loading="isCoursesLoading"
-                    :vehicles="vehicles"
-                    :vehicles-error="vehiclesError"
-                    :is-vehicles-loading="
-                        isVehiclesLoading || isSchoolContextLoading
-                    "
-                    :is-event-saving="isEventSaving"
-                    :event-form-error="eventFormError"
-                    :back-href="backHref"
-                    @submit="handleSubmitEvent"
-                />
-            </div>
+            <UiSheet v-model:open="isEventFormOpen">
+                <UiSheetContent
+                    class="w-[min(100vw,34rem)] gap-0 overflow-y-auto p-0 sm:max-w-xl"
+                >
+                    <UiSheetHeader
+                        class="border-border border-b px-5 py-4 pr-12 text-left"
+                    >
+                        <UiSheetTitle>Dodaj blok czasu</UiSheetTitle>
+                        <UiSheetDescription>
+                            Rezerwacja czasu instruktora dla teorii albo jazdy.
+                        </UiSheetDescription>
+                    </UiSheetHeader>
+
+                    <div class="p-4 sm:p-5">
+                        <ManagerInstructorEventFormSection
+                            v-model:event-type="eventType"
+                            v-model:event-start-local="eventStartLocal"
+                            v-model:event-end-local="eventEndLocal"
+                            v-model:event-vehicle-id="eventVehicleId"
+                            v-model:event-course-id="eventCourseId"
+                            :school-id="schoolId"
+                            :courses="courses"
+                            :courses-error="coursesError"
+                            :is-courses-loading="isCoursesLoading"
+                            :vehicles="vehicles"
+                            :vehicles-error="vehiclesError"
+                            :is-vehicles-loading="
+                                isVehiclesLoading || isSchoolContextLoading
+                            "
+                            :is-event-saving="isEventSaving"
+                            :event-form-error="eventFormError"
+                            @submit="handleSubmitEventFromSheet"
+                        />
+                    </div>
+                </UiSheetContent>
+            </UiSheet>
         </template>
 
         <ManagerInstructorEventDeleteDialog

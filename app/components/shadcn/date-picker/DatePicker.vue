@@ -1,31 +1,12 @@
 <script setup lang="ts">
-import type { DateRange } from 'reka-ui';
+import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import {
     Calendar as CalendarIcon,
     ChevronDown,
-    ChevronLeft,
-    ChevronRight,
     RotateCcw,
     X,
 } from 'lucide-vue-next';
-import {
-    DateRangePickerCalendar,
-    DateRangePickerCell,
-    DateRangePickerCellTrigger,
-    DateRangePickerContent,
-    DateRangePickerGrid,
-    DateRangePickerGridBody,
-    DateRangePickerGridHead,
-    DateRangePickerGridRow,
-    DateRangePickerHeadCell,
-    DateRangePickerHeader,
-    DateRangePickerHeading,
-    DateRangePickerNext,
-    DateRangePickerPrev,
-    DateRangePickerRoot,
-    DateRangePickerTrigger,
-} from 'reka-ui';
 import { computed, shallowRef } from 'vue';
 import { cn } from '@/lib/utils';
 import {
@@ -87,10 +68,7 @@ const selectedDate = computed(() =>
     isoDateStringToCalendarDate(props.modelValue),
 );
 
-const rangeValue = computed<DateRange>(() => ({
-    start: selectedDate.value,
-    end: selectedDate.value,
-}));
+const calendarValue = computed<DateValue | undefined>(() => selectedDate.value);
 
 const displayLabel = computed(() => {
     if (!selectedDate.value) {
@@ -116,14 +94,12 @@ const maxValueCal = computed(() => {
     return t && t.length > 0 ? isoDateStringToCalendarDate(t) : undefined;
 });
 
-function handleRangeUpdate(value: DateRange): void {
-    const next = value.start ?? value.end;
-
-    if (!next) {
+function handleDateUpdate(value: DateValue | DateValue[] | undefined): void {
+    if (!value || Array.isArray(value)) {
         return;
     }
 
-    emit('update:modelValue', dateValueToIsoDateString(next));
+    emit('update:modelValue', dateValueToIsoDateString(value));
     isOpen.value = false;
 }
 
@@ -142,20 +118,8 @@ function handleToday(): void {
 </script>
 
 <template>
-    <DateRangePickerRoot
-        v-model:open="isOpen"
-        :model-value="rangeValue"
-        :min-value="minValueCal"
-        :max-value="maxValueCal"
-        :locale="locale"
-        :disabled="disabled"
-        :week-starts-on="1"
-        :maximum-days="1"
-        fixed-weeks
-        prevent-deselect
-        @update:model-value="handleRangeUpdate"
-    >
-        <DateRangePickerTrigger as-child>
+    <UiPopover v-model:open="isOpen">
+        <UiPopoverTrigger as-child>
             <UiButton
                 :id="id"
                 type="button"
@@ -187,9 +151,9 @@ function handleToday(): void {
                     aria-hidden="true"
                 />
             </UiButton>
-        </DateRangePickerTrigger>
+        </UiPopoverTrigger>
 
-        <DateRangePickerContent
+        <UiPopoverContent
             align="start"
             class="date-picker-panel bg-popover text-popover-foreground max-h-[min(32rem,var(--reka-popover-content-available-height))] w-[22rem] overflow-y-auto rounded-lg border p-0 shadow-lg"
             :collision-padding="12"
@@ -214,69 +178,20 @@ function handleToday(): void {
                 </div>
             </div>
 
-            <DateRangePickerCalendar
-                #default="{ weekDays, grid }"
-                class="date-picker-calendar p-3"
-            >
-                <DateRangePickerHeader class="relative">
-                    <DateRangePickerPrev
-                        aria-label="Poprzedni miesiąc"
-                        class="border-input bg-background hover:bg-accent hover:text-accent-foreground absolute top-0 left-0 inline-flex size-8 items-center justify-center rounded-md border text-sm shadow-xs transition-colors"
-                    >
-                        <ChevronLeft class="size-4" aria-hidden="true" />
-                    </DateRangePickerPrev>
-                    <DateRangePickerHeading
-                        class="text-center text-sm font-semibold"
-                    />
-                    <DateRangePickerNext
-                        aria-label="Następny miesiąc"
-                        class="border-input bg-background hover:bg-accent hover:text-accent-foreground absolute top-0 right-0 inline-flex size-8 items-center justify-center rounded-md border text-sm shadow-xs transition-colors"
-                    >
-                        <ChevronRight class="size-4" aria-hidden="true" />
-                    </DateRangePickerNext>
-                </DateRangePickerHeader>
-
-                <div class="mt-4 flex flex-col gap-y-4">
-                    <DateRangePickerGrid
-                        v-for="month in grid"
-                        :key="month.value.toString()"
-                        class="w-full border-collapse space-y-1"
-                    >
-                        <DateRangePickerGridHead>
-                            <DateRangePickerGridRow class="flex">
-                                <DateRangePickerHeadCell
-                                    v-for="day in weekDays"
-                                    :key="day"
-                                    class="text-muted-foreground w-10 rounded-md text-[0.8rem] font-normal"
-                                >
-                                    {{ day }}
-                                </DateRangePickerHeadCell>
-                            </DateRangePickerGridRow>
-                        </DateRangePickerGridHead>
-                        <DateRangePickerGridBody>
-                            <DateRangePickerGridRow
-                                v-for="(weekDates, index) in month.rows"
-                                :key="`weekDate-${index}`"
-                                class="mt-2 flex w-full"
-                            >
-                                <DateRangePickerCell
-                                    v-for="weekDate in weekDates"
-                                    :key="weekDate.toString()"
-                                    :date="weekDate"
-                                    class="relative size-10 p-0 text-center text-sm"
-                                >
-                                    <DateRangePickerCellTrigger
-                                        :day="weekDate"
-                                        :month="month.value"
-                                        as="button"
-                                        class="date-picker-day hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring inline-flex size-10 cursor-pointer items-center justify-center rounded-md text-sm font-normal transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none"
-                                    />
-                                </DateRangePickerCell>
-                            </DateRangePickerGridRow>
-                        </DateRangePickerGridBody>
-                    </DateRangePickerGrid>
-                </div>
-            </DateRangePickerCalendar>
+            <div class="p-3">
+                <UiCalendar
+                    fixed-weeks
+                    :week-starts-on="1"
+                    :min-value="minValueCal"
+                    :max-value="maxValueCal"
+                    :disable-days-outside-current-view="false"
+                    :model-value="calendarValue"
+                    :locale="locale"
+                    :disabled="disabled"
+                    class="date-picker-calendar"
+                    @update:model-value="handleDateUpdate"
+                />
+            </div>
 
             <div
                 class="border-border bg-background flex flex-wrap items-center justify-between gap-2 border-t px-3 py-2"
@@ -312,8 +227,8 @@ function handleToday(): void {
                     Pojedynczy dzień
                 </div>
             </div>
-        </DateRangePickerContent>
-    </DateRangePickerRoot>
+        </UiPopoverContent>
+    </UiPopover>
 </template>
 
 <style scoped>
@@ -321,8 +236,19 @@ function handleToday(): void {
     animation-duration: 180ms;
 }
 
-.date-picker-day {
-    cursor: pointer;
+.date-picker-calendar {
+    width: 100%;
+}
+
+.date-picker-calendar :deep([data-slot='calendar']) {
+    width: 100%;
+}
+
+.date-picker-calendar :deep([data-slot='calendar-grid']) {
+    width: 100%;
+}
+
+.date-picker-calendar :deep([data-slot='calendar-cell-trigger']) {
     border-radius: 0.45rem;
     transition:
         background-color 180ms ease,
@@ -330,35 +256,28 @@ function handleToday(): void {
         box-shadow 180ms ease;
 }
 
-.date-picker-day[data-today]:not([data-selected]) {
+.date-picker-calendar :deep([data-today]):not([data-selected]) {
     background: var(--accent);
     color: var(--accent-foreground);
 }
 
-.date-picker-day[data-highlighted] {
-    background: color-mix(in srgb, var(--primary) 10%, transparent);
-    color: var(--foreground);
-}
-
-.date-picker-day[data-selection-start],
-.date-picker-day[data-selection-end],
-.date-picker-day[data-selected] {
+.date-picker-calendar :deep([data-selected]) {
     background: var(--primary);
     color: var(--primary-foreground);
 }
 
-.date-picker-day[data-disabled],
-.date-picker-day[data-outside-view] {
+.date-picker-calendar :deep([data-disabled]),
+.date-picker-calendar :deep([data-outside-view]) {
     color: var(--muted-foreground);
     opacity: 0.5;
 }
 
-.date-picker-day[data-disabled] {
+.date-picker-calendar :deep([data-disabled]) {
     cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .date-picker-day {
+    .date-picker-calendar :deep([data-slot='calendar-cell-trigger']) {
         transition: none;
     }
 }

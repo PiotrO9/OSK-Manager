@@ -2,10 +2,7 @@ import {
     getMonday,
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
-import {
-    buildManagerInstructorScheduleBackHref,
-    getManagerInstructorScheduleInstructorId,
-} from '~/utils/instructors/managerInstructorSchedulePage';
+import { getManagerInstructorScheduleInstructorId } from '~/utils/instructors/managerInstructorSchedulePage';
 import { useManagerInstructorScheduleData } from './useManagerInstructorScheduleData';
 import { useManagerInstructorScheduleEventForm } from './useManagerInstructorScheduleEventForm';
 import { useManagerInstructorScheduleDelete } from './useManagerInstructorScheduleDelete';
@@ -119,10 +116,6 @@ export function useManagerInstructorSchedulePage() {
         weekStart.value = getMonday(d);
     }
 
-    const backHref = computed(() => {
-        return buildManagerInstructorScheduleBackHref(instructorId.value);
-    });
-
     return {
         instructorId,
         schoolId,
@@ -154,7 +147,6 @@ export function useManagerInstructorSchedulePage() {
         scheduleResultLabel,
         nextScheduledItemLabel,
         pendingDeleteTimeLabel,
-        backHref,
         loadSchedule,
         handlePrevWeek,
         handleNextWeek,
