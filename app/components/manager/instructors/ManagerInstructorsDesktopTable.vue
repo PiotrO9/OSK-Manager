@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router';
 import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import ManagerInstructorQualificationBadges from './ManagerInstructorQualificationBadges.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -81,14 +82,8 @@ defineProps<{
                     </div>
                 </td>
                 <td class="px-4 py-3">
-                    <StatusBadge
-                        :label="instructorQualificationLabel(instructor)"
-                        :tone="
-                            (instructor.qualifiedCourseTypes ?? []).length > 0
-                                ? 'info'
-                                : 'neutral'
-                        "
-                        subtle
+                    <ManagerInstructorQualificationBadges
+                        :qualifications="instructor.qualifiedCourseTypes ?? []"
                     />
                 </td>
                 <td class="px-3 py-3 text-right">

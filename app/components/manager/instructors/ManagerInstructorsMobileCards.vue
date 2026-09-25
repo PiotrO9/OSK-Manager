@@ -2,6 +2,7 @@
 import { ArrowUpRight } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
 import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import ManagerInstructorQualificationBadges from './ManagerInstructorQualificationBadges.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -57,14 +58,8 @@ defineProps<{
             </dl>
 
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <StatusBadge
-                    :label="instructorQualificationLabel(instructor)"
-                    :tone="
-                        (instructor.qualifiedCourseTypes ?? []).length > 0
-                            ? 'info'
-                            : 'neutral'
-                    "
-                    subtle
+                <ManagerInstructorQualificationBadges
+                    :qualifications="instructor.qualifiedCourseTypes ?? []"
                 />
                 <UiButton
                     as-child
