@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { LoaderCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
@@ -9,13 +10,14 @@ import {
 import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
 import type { StatusTone } from '~/components/app/ui/types';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
 import {
     buildDatetimeLocal,
     isoDateStringToCalendarDate,
     parseDatetimeLocalParts,
 } from '~/utils/date/weeklyCalendarDates';
 
-defineProps<{
+const props = defineProps<{
     formId: string;
     loadedLesson: ManagerLessonDetail;
     studentDisplayName: string | null;
@@ -30,6 +32,14 @@ defineProps<{
     vehiclesError: string | null;
     schoolId: string;
     formError: string | null;
+    availabilityStatus: ScheduleAvailabilityStatus;
+    availabilityMessage: string;
+    minDurationMinutes: number | null;
+    availableStartTimes?: readonly string[];
+    availableEndTimes?: readonly string[];
+    availableVehicleIds?: readonly string[];
+    isAvailabilityOptionsLoading: boolean;
+    availabilityOptionsError: string;
 }>();
 
 defineEmits<{
@@ -84,6 +94,20 @@ function parseTimePart(value: string): { hour: number; minute: number } | null {
     return { hour, minute };
 }
 
+function timeToMinutes(value: string): number | null {
+    const time = parseTimePart(value);
+
+    return time ? time.hour * 60 + time.minute : null;
+}
+
+function minutesToTime(value: number): string {
+    const normalized = Math.max(0, Math.min(value, 23 * 60 + 59));
+    const hour = Math.floor(normalized / 60);
+    const minute = normalized % 60;
+
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
 function mergeDatetimeLocal(
     currentValue: string,
     updates: { date?: string; time?: string },
@@ -107,12 +131,15 @@ function mergeDatetimeLocal(
     return buildDatetimeLocal(date, time.hour, time.minute);
 }
 
-const startDateModel = computed({
-    get: () => datePartFromDatetimeLocal(formStartLocal.value),
+const lessonDateModel = computed({
+    get: () =>
+        datePartFromDatetimeLocal(formStartLocal.value) ||
+        datePartFromDatetimeLocal(formEndLocal.value),
     set: (date: string) => {
         formStartLocal.value = mergeDatetimeLocal(formStartLocal.value, {
             date,
         });
+        formEndLocal.value = mergeDatetimeLocal(formEndLocal.value, { date });
     },
 });
 
@@ -122,15 +149,22 @@ const startTimeModel = computed({
         formStartLocal.value = mergeDatetimeLocal(formStartLocal.value, {
             time,
         });
-    },
-});
 
-const endDateModel = computed({
-    get: () => datePartFromDatetimeLocal(formEndLocal.value),
-    set: (date: string) => {
-        formEndLocal.value = mergeDatetimeLocal(formEndLocal.value, {
-            date,
-        });
+        const startMinutes = timeToMinutes(time);
+        const endMinutes = timeToMinutes(
+            timePartFromDatetimeLocal(formEndLocal.value),
+        );
+
+        if (
+            props.minDurationMinutes !== null &&
+            startMinutes !== null &&
+            endMinutes !== null &&
+            endMinutes - startMinutes < props.minDurationMinutes
+        ) {
+            formEndLocal.value = mergeDatetimeLocal(formEndLocal.value, {
+                time: minutesToTime(startMinutes + props.minDurationMinutes),
+            });
+        }
     },
 });
 
@@ -143,23 +177,45 @@ const endTimeModel = computed({
     },
 });
 
-const areDatesEqual = computed(
-    () =>
-        startDateModel.value.length > 0 &&
-        startDateModel.value === endDateModel.value,
-);
-
 const startTimeMaxExclusive = computed(() =>
-    areDatesEqual.value && endTimeModel.value.length > 0
+    lessonDateModel.value && endTimeModel.value.length > 0
         ? endTimeModel.value
         : undefined,
 );
 
-const endTimeMinExclusive = computed(() =>
-    areDatesEqual.value && startTimeModel.value.length > 0
-        ? startTimeModel.value
-        : undefined,
-);
+const endTimeMinExclusive = computed(() => {
+    if (!lessonDateModel.value || !startTimeModel.value) {
+        return undefined;
+    }
+
+    const startMinutes = timeToMinutes(startTimeModel.value);
+
+    if (startMinutes === null || props.minDurationMinutes === null) {
+        return startTimeModel.value;
+    }
+
+    return minutesToTime(startMinutes + props.minDurationMinutes - 1);
+});
+
+function formatVehicleOptionLabel(vehicle: Vehicle): string {
+    const model = vehicle.name
+        .trim()
+        .replace(/^pojazd\s+\d+\s*-\s*/i, '')
+        .trim();
+    const base = `${model || '-'} (${vehicle.registrationNumber.trim()})`;
+
+    return isVehicleDisabled(vehicle)
+        ? `${base} - niedostępny w tym dniu`
+        : base;
+}
+
+function isVehicleDisabled(vehicle: Vehicle): boolean {
+    return (
+        vehicle.status === 'UNAVAILABLE' ||
+        (props.availableVehicleIds !== undefined &&
+            !props.availableVehicleIds.includes(vehicle.id))
+    );
+}
 </script>
 
 <template>
@@ -264,8 +320,9 @@ const endTimeMinExclusive = computed(() =>
                             v-for="v in vehiclesForSelect"
                             :key="v.id"
                             :value="v.id"
+                            :disabled="isVehicleDisabled(v)"
                         >
-                            {{ v.name }} ({{ v.registrationNumber }})
+                            {{ formatVehicleOptionLabel(v) }}
                         </UiSelectItem>
                     </UiSelectGroup>
                 </UiSelectContent>
@@ -276,53 +333,82 @@ const endTimeMinExclusive = computed(() =>
             <legend class="text-foreground text-sm font-semibold">
                 Termin
             </legend>
+            <div class="space-y-2">
+                <UiLabel for="lesson-date">Data</UiLabel>
+                <UiDatePicker
+                    id="lesson-date"
+                    v-model="lessonDateModel"
+                    placeholder="Wybierz dzień lekcji"
+                    trigger-class="h-10 max-w-none rounded-xl bg-background"
+                />
+            </div>
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="space-y-2">
-                    <UiLabel for="lesson-start-date">Początek</UiLabel>
-                    <div
-                        class="grid max-w-[30rem] gap-2 sm:grid-cols-[minmax(13rem,1fr)_8.75rem]"
-                    >
-                        <UiDatePicker
-                            id="lesson-start-date"
-                            v-model="startDateModel"
-                            placeholder="Data początku"
-                            :max="endDateModel || undefined"
-                            trigger-class="h-10 max-w-none rounded-xl bg-background"
-                        />
-                        <UiTimePicker
-                            id="lesson-start-time"
-                            v-model="startTimeModel"
-                            label="Godzina początku"
-                            context-label="Początek"
-                            :max-exclusive="startTimeMaxExclusive"
-                            trigger-class="h-10 rounded-xl bg-background"
-                        />
-                    </div>
+                    <UiLabel for="lesson-start-time">Początek</UiLabel>
+                    <UiTimePicker
+                        id="lesson-start-time"
+                        v-model="startTimeModel"
+                        label="Godzina początku"
+                        context-label="Początek"
+                        :max-exclusive="startTimeMaxExclusive"
+                        :allowed-times="availableStartTimes"
+                        :disabled="isAvailabilityOptionsLoading"
+                        trigger-class="h-10 max-w-none rounded-xl bg-background"
+                    />
                 </div>
                 <div class="space-y-2">
-                    <UiLabel for="lesson-end-date">Koniec</UiLabel>
-                    <div
-                        class="grid max-w-[30rem] gap-2 sm:grid-cols-[minmax(13rem,1fr)_8.75rem]"
-                    >
-                        <UiDatePicker
-                            id="lesson-end-date"
-                            v-model="endDateModel"
-                            placeholder="Data końca"
-                            :min="startDateModel || undefined"
-                            trigger-class="h-10 max-w-none rounded-xl bg-background"
-                        />
-                        <UiTimePicker
-                            id="lesson-end-time"
-                            v-model="endTimeModel"
-                            label="Godzina końca"
-                            context-label="Koniec"
-                            :min-exclusive="endTimeMinExclusive"
-                            trigger-class="h-10 rounded-xl bg-background"
-                        />
-                    </div>
+                    <UiLabel for="lesson-end-time">Koniec</UiLabel>
+                    <UiTimePicker
+                        id="lesson-end-time"
+                        v-model="endTimeModel"
+                        label="Godzina końca"
+                        context-label="Koniec"
+                        :min-exclusive="endTimeMinExclusive"
+                        :allowed-times="availableEndTimes"
+                        :disabled="isAvailabilityOptionsLoading"
+                        trigger-class="h-10 max-w-none rounded-xl bg-background"
+                    />
                 </div>
             </div>
         </fieldset>
+
+        <div
+            v-if="isAvailabilityOptionsLoading"
+            class="text-muted-foreground flex items-center lg:col-span-2"
+            role="status"
+        >
+            <LoaderCircle class="size-4 animate-spin" aria-hidden="true" />
+            <span class="sr-only">Aktualizacja dostępnych godzin</span>
+        </div>
+
+        <p
+            v-else-if="availabilityOptionsError"
+            class="text-muted-foreground text-xs lg:col-span-2"
+            role="status"
+        >
+            {{ availabilityOptionsError }}
+        </p>
+
+        <p
+            v-else-if="availableStartTimes?.length === 0"
+            class="text-destructive text-sm lg:col-span-2"
+            role="alert"
+        >
+            Brak dostępnych godzin w wybranym dniu.
+        </p>
+
+        <p
+            v-if="availabilityStatus !== 'idle'"
+            :class="[
+                'text-sm lg:col-span-2',
+                availabilityStatus === 'unavailable'
+                    ? 'text-destructive'
+                    : 'text-muted-foreground',
+            ]"
+            :role="availabilityStatus === 'unavailable' ? 'alert' : 'status'"
+        >
+            {{ availabilityMessage }}
+        </p>
 
         <p
             v-if="!schoolId"

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 import type { InstructorEvent } from '~/types/events/instructorEvent';
+import type { EventStudentsAvailabilityResponse } from '~/types/events/event';
 
 import { useManagerEventEditParticipantsSave } from './useManagerEventEditParticipantsSave';
 
@@ -28,10 +29,7 @@ function setupParticipantsSave(
             id: string,
             studentUserIds: string[],
         ) => Promise<void>;
-        fetchEventById?: (
-            id: string,
-            options?: { includeSlots?: boolean },
-        ) => Promise<InstructorEvent>;
+        checkStudentsAvailability?: () => Promise<EventStudentsAvailabilityResponse>;
     } = {},
 ) {
     const loadedEvent = ref<InstructorEvent | null>(
@@ -40,29 +38,21 @@ function setupParticipantsSave(
     const formError = ref<string | null>(null);
     const replaceStudentsOnEvent =
         options.replaceStudentsOnEvent ?? vi.fn().mockResolvedValue(undefined);
-    const fetchEventById =
-        options.fetchEventById ??
-        vi.fn().mockResolvedValue(instructorEvent({ id: 'event-reloaded' }));
-    const applyPrefill = vi.fn();
-    const syncFreeWindowsFromEvent = vi.fn();
-    const resetStudentDraftFromEvent = vi.fn();
+    const checkStudentsAvailability =
+        options.checkStudentsAvailability ??
+        vi.fn().mockResolvedValue({ available: true, issues: [] });
     const refreshEligibleForCurrentTime = vi.fn().mockResolvedValue(undefined);
-    const loadTheoryEligibleStudents = vi.fn().mockResolvedValue(undefined);
     const sortedStudentIds = vi.fn((ids: string[]) => [...ids].sort());
+    const draftTheoryStudentUserIds = ref(['student-2', 'student-1']);
 
     const participantsSave = useManagerEventEditParticipantsSave({
-        loadedEvent,
         formStartLocal: ref('2026-08-16T10:00'),
         formEndLocal: ref('2026-08-16T11:00'),
         formError,
-        draftTheoryStudentUserIds: ref(['student-2', 'student-1']),
+        draftTheoryStudentUserIds,
         replaceStudentsOnEvent,
-        fetchEventById,
-        applyPrefill,
-        syncFreeWindowsFromEvent,
-        resetStudentDraftFromEvent,
+        checkStudentsAvailability,
         refreshEligibleForCurrentTime,
-        loadTheoryEligibleStudents,
         sortedStudentIds,
         localDatetimeToIso: vi.fn((local: string) => `${local}:00.000Z`),
     });
@@ -72,20 +62,21 @@ function setupParticipantsSave(
         loadedEvent,
         formError,
         replaceStudentsOnEvent,
-        fetchEventById,
-        applyPrefill,
-        syncFreeWindowsFromEvent,
-        resetStudentDraftFromEvent,
+        checkStudentsAvailability,
         refreshEligibleForCurrentTime,
-        loadTheoryEligibleStudents,
         sortedStudentIds,
+        draftTheoryStudentUserIds,
     };
 }
 
 describe('useManagerEventEditParticipantsSave', () => {
     it('replaces dirty participants with sorted student ids', async () => {
-        const { participantsSave, replaceStudentsOnEvent, sortedStudentIds } =
-            setupParticipantsSave();
+        const {
+            participantsSave,
+            replaceStudentsOnEvent,
+            checkStudentsAvailability,
+            sortedStudentIds,
+        } = setupParticipantsSave();
 
         const result = await participantsSave.replaceDirtyParticipants(
             'event-1',
@@ -97,71 +88,74 @@ describe('useManagerEventEditParticipantsSave', () => {
             'student-2',
             'student-1',
         ]);
+        expect(checkStudentsAvailability).toHaveBeenCalledWith('event-1', {
+            studentIds: ['student-1', 'student-2'],
+            startTime: '2026-08-16T10:00:00.000Z',
+            endTime: '2026-08-16T11:00:00.000Z',
+        });
         expect(replaceStudentsOnEvent).toHaveBeenCalledWith('event-1', [
             'student-1',
             'student-2',
         ]);
     });
 
-    it('reloads event and refreshes eligible students after participant conflict', async () => {
-        const reloadedEvent = instructorEvent({ id: 'event-reloaded' });
+    it('blocks replacement and preserves the draft when preflight is unavailable', async () => {
         const {
             participantsSave,
-            loadedEvent,
             formError,
-            fetchEventById,
-            applyPrefill,
-            syncFreeWindowsFromEvent,
-            resetStudentDraftFromEvent,
-            refreshEligibleForCurrentTime,
-            loadTheoryEligibleStudents,
+            replaceStudentsOnEvent,
+            draftTheoryStudentUserIds,
         } = setupParticipantsSave({
-            replaceStudentsOnEvent: vi
-                .fn()
-                .mockRejectedValue({ statusCode: 409, message: 'Conflict' }),
-            fetchEventById: vi.fn().mockResolvedValue(reloadedEvent),
+            checkStudentsAvailability: vi.fn().mockResolvedValue({
+                available: false,
+                issues: [
+                    {
+                        code: 'STUDENT_SCHEDULE_CONFLICT',
+                        message: 'Kursant ma konflikt grafiku.',
+                    },
+                ],
+            }),
         });
 
         const result = await participantsSave.replaceDirtyParticipants(
             'event-1',
-            true,
+            false,
         );
 
         expect(result).toBe(false);
-        expect(fetchEventById).toHaveBeenCalledWith('event-1', {
-            includeSlots: true,
+        expect(replaceStudentsOnEvent).not.toHaveBeenCalled();
+        expect(draftTheoryStudentUserIds.value).toEqual([
+            'student-2',
+            'student-1',
+        ]);
+        expect(formError.value).toBe('Kursant ma konflikt grafiku.');
+    });
+
+    it('refreshes eligibility but preserves the draft after an authoritative PUT conflict', async () => {
+        const {
+            participantsSave,
+            formError,
+            refreshEligibleForCurrentTime,
+            draftTheoryStudentUserIds,
+        } = setupParticipantsSave({
+            replaceStudentsOnEvent: vi.fn().mockRejectedValue({
+                statusCode: 409,
+                message: 'Conflict',
+            }),
         });
-        expect(loadedEvent.value).toEqual(reloadedEvent);
-        expect(applyPrefill).toHaveBeenCalledWith(reloadedEvent);
-        expect(syncFreeWindowsFromEvent).toHaveBeenCalledWith(reloadedEvent);
-        expect(resetStudentDraftFromEvent).toHaveBeenCalledWith(reloadedEvent);
+
+        await participantsSave.replaceDirtyParticipants('event-1', true);
+
         expect(refreshEligibleForCurrentTime).toHaveBeenCalledOnce();
-        expect(loadTheoryEligibleStudents).not.toHaveBeenCalled();
+        expect(draftTheoryStudentUserIds.value).toEqual([
+            'student-2',
+            'student-1',
+        ]);
         expect(formError.value).toContain('Zmiany bloku zapisane');
     });
 
-    it('falls back to loading theory eligible students when reloaded event is not theory course event', async () => {
-        const reloadedEvent = instructorEvent({
-            id: 'event-reloaded',
-            type: 'DRIVE',
-            courseId: undefined,
-        });
-        const { participantsSave, loadTheoryEligibleStudents } =
-            setupParticipantsSave({
-                replaceStudentsOnEvent: vi.fn().mockRejectedValue({
-                    statusCode: 409,
-                    message: 'Conflict',
-                }),
-                fetchEventById: vi.fn().mockResolvedValue(reloadedEvent),
-            });
-
-        await participantsSave.replaceDirtyParticipants('event-1', false);
-
-        expect(loadTheoryEligibleStudents).toHaveBeenCalledOnce();
-    });
-
     it('sets error without reload for non-conflict failures', async () => {
-        const { participantsSave, formError, fetchEventById } =
+        const { participantsSave, formError, refreshEligibleForCurrentTime } =
             setupParticipantsSave({
                 replaceStudentsOnEvent: vi
                     .fn()
@@ -174,7 +168,7 @@ describe('useManagerEventEditParticipantsSave', () => {
         );
 
         expect(result).toBe(false);
-        expect(fetchEventById).not.toHaveBeenCalled();
+        expect(refreshEligibleForCurrentTime).not.toHaveBeenCalled();
         expect(formError.value).toBe('API unavailable');
     });
 });

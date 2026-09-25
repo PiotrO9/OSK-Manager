@@ -1,18 +1,9 @@
 import type { Ref } from 'vue';
-import type { InstructorEvent } from '~/types/events/instructorEvent';
+import type { EventStudentsAvailabilityResponse } from '~/types/events/event';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { getManagerEventEditErrorStatusCode } from '~/composables/events/managerEventEditErrors';
 
-type FetchEventById = (
-    id: string,
-    options?: {
-        includeSlots?: boolean;
-        skipTheoryStudentsSubresource?: boolean;
-    },
-) => Promise<InstructorEvent>;
-
 interface UseManagerEventEditParticipantsSaveInput {
-    loadedEvent: Ref<InstructorEvent | null>;
     formStartLocal: Ref<string>;
     formEndLocal: Ref<string>;
     formError: Ref<string | null>;
@@ -21,12 +12,15 @@ interface UseManagerEventEditParticipantsSaveInput {
         id: string,
         studentUserIds: string[],
     ) => Promise<unknown>;
-    fetchEventById: FetchEventById;
-    applyPrefill: (ev: InstructorEvent) => void;
-    syncFreeWindowsFromEvent: (ev: InstructorEvent) => void;
-    resetStudentDraftFromEvent: (ev: InstructorEvent | null) => void;
+    checkStudentsAvailability: (
+        id: string,
+        body: {
+            studentIds: string[];
+            startTime?: string;
+            endTime?: string;
+        },
+    ) => Promise<EventStudentsAvailabilityResponse>;
     refreshEligibleForCurrentTime: () => Promise<void>;
-    loadTheoryEligibleStudents: () => Promise<void>;
     sortedStudentIds: (ids: string[]) => string[];
     localDatetimeToIso: (local: string) => string | null;
 }
@@ -34,43 +28,41 @@ interface UseManagerEventEditParticipantsSaveInput {
 export function useManagerEventEditParticipantsSave(
     input: UseManagerEventEditParticipantsSaveInput,
 ) {
-    async function reloadAfterParticipantConflict(id: string): Promise<void> {
-        const event = await input.fetchEventById(id, { includeSlots: true });
-
-        input.loadedEvent.value = event;
-        input.applyPrefill(event);
-        input.syncFreeWindowsFromEvent(event);
-
-        const startIso = input.localDatetimeToIso(input.formStartLocal.value);
-        const endIso = input.localDatetimeToIso(input.formEndLocal.value);
-
-        input.resetStudentDraftFromEvent(event);
-
-        if (
-            event.courseId?.trim() &&
-            startIso &&
-            endIso &&
-            String(event.type ?? '')
-                .trim()
-                .toUpperCase() === 'THEORY'
-        ) {
-            await input.refreshEligibleForCurrentTime();
-
-            return;
-        }
-
-        await input.loadTheoryEligibleStudents();
-    }
-
     async function replaceDirtyParticipants(
         id: string,
-        shouldRefreshSlotsAfterPatch: boolean,
+        eventFieldsWereSaved: boolean,
     ): Promise<boolean> {
+        const studentIds = input.sortedStudentIds(
+            input.draftTheoryStudentUserIds.value,
+        );
+        const startTime = input.localDatetimeToIso(input.formStartLocal.value);
+        const endTime = input.localDatetimeToIso(input.formEndLocal.value);
+
         try {
-            await input.replaceStudentsOnEvent(
-                id,
-                input.sortedStudentIds(input.draftTheoryStudentUserIds.value),
-            );
+            const preflight = await input.checkStudentsAvailability(id, {
+                studentIds,
+                ...(startTime && endTime ? { startTime, endTime } : {}),
+            });
+
+            if (!preflight.available) {
+                try {
+                    await input.refreshEligibleForCurrentTime();
+                } catch {
+                    /* keep the preflight result as the primary error */
+                }
+
+                const message =
+                    preflight.issues[0]?.message ??
+                    'Lista kursantów wymaga korekty.';
+
+                input.formError.value = eventFieldsWereSaved
+                    ? `Zmiany bloku zapisane, ale lista uczestników wymaga korekty. ${message}`
+                    : message;
+
+                return false;
+            }
+
+            await input.replaceStudentsOnEvent(id, studentIds);
 
             return true;
         } catch (err: unknown) {
@@ -81,12 +73,12 @@ export function useManagerEventEditParticipantsSave(
 
             if (getManagerEventEditErrorStatusCode(err) === 409) {
                 try {
-                    await reloadAfterParticipantConflict(id);
+                    await input.refreshEligibleForCurrentTime();
                 } catch {
                     /* message below */
                 }
 
-                input.formError.value = shouldRefreshSlotsAfterPatch
+                input.formError.value = eventFieldsWereSaved
                     ? 'Zmiany bloku zapisane, ale lista uczestników wymaga korekty — zdejmij lub zmień kursantów z kolizją grafiku i zapisz ponownie.'
                     : message;
 
@@ -100,7 +92,6 @@ export function useManagerEventEditParticipantsSave(
     }
 
     return {
-        reloadAfterParticipantConflict,
         replaceDirtyParticipants,
     };
 }

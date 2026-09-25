@@ -106,6 +106,40 @@ describe('useManagerInstructorScheduleResources', () => {
         expect(data.isCoursesLoading.value).toBe(false);
     });
 
+    it('reuses successfully loaded resources when the form is reopened', async () => {
+        fetchVehiclesList.mockResolvedValue([createVehicle()]);
+        fetchCoursesList.mockResolvedValue([createCourse()]);
+
+        const { useManagerInstructorScheduleResources } =
+            await import('./useManagerInstructorScheduleResources');
+        const data = useManagerInstructorScheduleResources({
+            schoolId: ref('school-1'),
+        });
+
+        await data.loadResources();
+        await data.loadResources();
+
+        expect(fetchVehiclesList).toHaveBeenCalledTimes(1);
+        expect(fetchCoursesList).toHaveBeenCalledTimes(1);
+    });
+
+    it('loads resources again after the school changes', async () => {
+        fetchVehiclesList.mockResolvedValue([createVehicle()]);
+        fetchCoursesList.mockResolvedValue([createCourse()]);
+        const schoolId = ref('school-1');
+
+        const { useManagerInstructorScheduleResources } =
+            await import('./useManagerInstructorScheduleResources');
+        const data = useManagerInstructorScheduleResources({ schoolId });
+
+        await data.loadResources();
+        schoolId.value = 'school-2';
+        await data.loadResources();
+
+        expect(fetchVehiclesList).toHaveBeenNthCalledWith(2, 'school-2');
+        expect(fetchCoursesList).toHaveBeenNthCalledWith(2, 'school-2');
+    });
+
     it('exposes vehicle load errors independently from courses', async () => {
         const course = createCourse();
 

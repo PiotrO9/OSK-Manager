@@ -19,3 +19,12 @@ export interface EventStudentsAssignResponse {
     assigned: number;
     skipped: number;
 }
+
+export interface EventStudentsAvailabilityResponse {
+    available: boolean;
+    issues: Array<{
+        code: 'EVENT_CAPACITY_EXCEEDED' | 'STUDENT_SCHEDULE_CONFLICT';
+        message: string;
+        studentUserIds?: string[];
+    }>;
+}

@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, ref, watch } from 'vue';
-import type {
-    FreeWindow,
-    InstructorEvent,
-} from '~/types/events/instructorEvent';
+import type { InstructorEvent } from '~/types/events/instructorEvent';
 
 function installVueGlobals(): void {
     vi.stubGlobal('ref', ref);
@@ -33,17 +30,11 @@ describe('useManagerEventEditForm', () => {
         installVueGlobals();
     });
 
-    it('keeps prefilled event snapshot clean and marks instructor changes as slot-relevant', async () => {
+    it('keeps a prefilled event clean and marks instructor changes as dirty', async () => {
         const loadedEvent = ref<InstructorEvent | null>(null);
-        const freeWindows = ref<FreeWindow[]>([]);
-        const freeWindowsUnavailable = ref(false);
         const { useManagerEventEditForm } =
             await import('./useManagerEventEditForm');
-        const form = useManagerEventEditForm({
-            loadedEvent,
-            freeWindows,
-            freeWindowsUnavailable,
-        });
+        const form = useManagerEventEditForm({ loadedEvent });
         const event = instructorEvent();
 
         loadedEvent.value = event;
@@ -51,11 +42,9 @@ describe('useManagerEventEditForm', () => {
 
         expect(form.currentSnapshot.value).toEqual(form.baselineSnapshot.value);
         expect(form.isFormFieldsDirty.value).toBe(false);
-        expect(form.needsTimeOrInstructorSlotValidation()).toBe(false);
 
         form.formInstructorId.value = 'instructor-2';
 
         expect(form.isFormFieldsDirty.value).toBe(true);
-        expect(form.needsTimeOrInstructorSlotValidation()).toBe(true);
     });
 });

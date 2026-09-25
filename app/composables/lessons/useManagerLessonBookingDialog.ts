@@ -8,6 +8,7 @@ import type {
 } from '~/types/lessons/lessonBooking';
 import type { StudentListItem } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import type { LessonCreateAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     buildManagerLessonBookingSubmitBody,
@@ -40,6 +41,7 @@ export function useManagerLessonBookingDialog(
 
     const students = ref<StudentListItem[]>([]);
     const vehicles = ref<Vehicle[]>([]);
+    const availableVehicleIds = ref<string[]>([]);
     const studentCourses = ref<StudentCourseWithKind[]>([]);
     const schoolInstructors = ref<InstructorListItem[]>([]);
 
@@ -105,6 +107,40 @@ export function useManagerLessonBookingDialog(
         formatManagerLessonBookingSlotWhenLabel(options.slotCtx.value),
     );
 
+    const availabilityCandidate =
+        computed<LessonCreateAvailabilityRequest | null>(() => {
+            const ctx = options.slotCtx.value;
+            const courseId = selectedCourseId.value.trim();
+            const studentId = selectedStudentUserId.value.trim();
+            const instructorId = selectedInstructorId.value.trim();
+            const vehicleId = selectedVehicleId.value.trim();
+
+            if (
+                !options.open.value ||
+                !ctx ||
+                !courseId ||
+                !studentId ||
+                !instructorId ||
+                !vehicleId
+            ) {
+                return null;
+            }
+
+            return {
+                intent: 'lesson_create',
+                courseId,
+                studentId,
+                instructorId,
+                vehicleId,
+                date: ctx.date,
+                startTime: ctx.startTime,
+                endTime: ctx.endTime,
+            };
+        });
+    const availability = useScheduleAvailabilityCheck({
+        candidate: availabilityCandidate,
+    });
+
     let loadSeq = 0;
     let studentCoursesLoadSeq = 0;
 
@@ -121,6 +157,7 @@ export function useManagerLessonBookingDialog(
 
             students.value = [];
             vehicles.value = [];
+            availableVehicleIds.value = [];
             studentCourses.value = [];
             schoolInstructors.value = [];
             selectedInstructorId.value =
@@ -145,6 +182,7 @@ export function useManagerLessonBookingDialog(
 
                 students.value = data.students;
                 vehicles.value = data.vehicles;
+                availableVehicleIds.value = data.availableVehicleIds;
                 schoolInstructors.value = instructorRows;
             } catch {
                 /* loadModalError carries the visible message */
@@ -230,6 +268,16 @@ export function useManagerLessonBookingDialog(
             return;
         }
 
+        const availabilityStatus = await availability.recheck();
+
+        if (availabilityStatus === 'unavailable') {
+            formError.value =
+                availability.message.value ||
+                'Wybrany termin jest niedostępny.';
+
+            return;
+        }
+
         try {
             await createLesson(result.body);
 
@@ -259,6 +307,7 @@ export function useManagerLessonBookingDialog(
     return {
         students,
         vehicles,
+        availableVehicleIds,
         selectedInstructorId,
         selectedStudentUserId,
         selectedCourseId,
@@ -272,6 +321,8 @@ export function useManagerLessonBookingDialog(
         filteredAvailableInstructors,
         instructorLabel,
         slotWhenLabel,
+        lessonAvailabilityStatus: availability.status,
+        lessonAvailabilityMessage: availability.message,
         handleClose,
         handleSubmit,
     };

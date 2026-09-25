@@ -76,6 +76,15 @@ export function useManagerLessonEditPage() {
         isFormDirty,
         applyPrefill,
         buildPatchPayload,
+        lessonAvailabilityStatus,
+        lessonAvailabilityMessage,
+        availableStartTimes,
+        availableEndTimes,
+        availableVehicleIds,
+        isAvailabilityOptionsLoading,
+        availabilityOptionsError,
+        lessonMinDurationMinutes,
+        recheckLessonAvailability,
     } = useManagerLessonEditForm(loadedLesson);
 
     const {
@@ -228,6 +237,16 @@ export function useManagerLessonEditPage() {
             return;
         }
 
+        const availabilityStatus = await recheckLessonAvailability();
+
+        if (availabilityStatus === 'unavailable') {
+            formError.value =
+                lessonAvailabilityMessage.value ||
+                'Wybrany termin jest niedostępny.';
+
+            return;
+        }
+
         try {
             const updated = await updateLesson(id, result.payload);
 
@@ -276,6 +295,14 @@ export function useManagerLessonEditPage() {
         instructorSelectLabel,
         scheduleBackHref,
         isFormDirty,
+        lessonAvailabilityStatus,
+        lessonAvailabilityMessage,
+        availableStartTimes,
+        availableEndTimes,
+        availableVehicleIds,
+        isAvailabilityOptionsLoading,
+        availabilityOptionsError,
+        lessonMinDurationMinutes,
         loadLesson,
         handleCancel,
         handleSubmit,

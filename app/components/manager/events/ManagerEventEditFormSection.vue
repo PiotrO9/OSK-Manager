@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { LoaderCircle } from 'lucide-vue-next';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
 
 defineProps<{
     eventId: string;
@@ -9,8 +11,11 @@ defineProps<{
     schoolId: string;
     headerDateRangeLabel: string;
     formError: string | null;
-    isSlotsLoading: boolean;
-    freeWindowsUnavailable: boolean;
+    eventAvailabilityStatus: ScheduleAvailabilityStatus;
+    eventAvailabilityMessage: string;
+    availableVehicleIds?: readonly string[];
+    isAvailabilityOptionsLoading: boolean;
+    availabilityOptionsError: string;
     isSaving: boolean;
     isDeleteLoading: boolean;
     isFormDirty: boolean;
@@ -92,10 +97,34 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
                 :is-instructors-loading="isInstructorsLoading"
                 :instructors-error="instructorsError"
                 :vehicles="vehicles"
+                :available-vehicle-ids="availableVehicleIds"
                 :is-vehicles-loading="isVehiclesLoading"
                 :vehicles-error="vehiclesError"
                 :is-saving="isSaving"
             />
+
+            <div
+                v-if="isAvailabilityOptionsLoading"
+                class="text-muted-foreground flex items-center"
+                role="status"
+            >
+                <LoaderCircle class="size-4 animate-spin" aria-hidden="true" />
+                <span class="sr-only">Aktualizacja dostępnych godzin</span>
+            </div>
+            <p
+                v-else-if="availabilityOptionsError"
+                class="text-muted-foreground text-xs"
+                role="status"
+            >
+                {{ availabilityOptionsError }}
+            </p>
+            <p
+                v-else-if="startHourOptions.length === 0"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                Brak dostępnych godzin w wybranym dniu.
+            </p>
             <ManagerEventTimeFields
                 :start-date="startDate"
                 :start-hour="startHour"
@@ -119,19 +148,20 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
             />
 
             <p
-                v-if="isSlotsLoading"
-                class="text-muted-foreground text-xs"
-                role="status"
+                v-if="eventAvailabilityStatus !== 'idle'"
+                :class="[
+                    'text-sm',
+                    eventAvailabilityStatus === 'unavailable'
+                        ? 'text-destructive'
+                        : 'text-muted-foreground',
+                ]"
+                :role="
+                    eventAvailabilityStatus === 'unavailable'
+                        ? 'alert'
+                        : 'status'
+                "
             >
-                Aktualizacja dostępnych okien grafiku...
-            </p>
-            <p
-                v-if="freeWindowsUnavailable"
-                class="border-border rounded-md border border-dashed px-3 py-2 text-sm text-amber-700 dark:text-amber-500"
-                role="alert"
-            >
-                Instruktor nie ma dostępności w tym dniu - zmień datę lub
-                instruktora, aby wybrać godziny bloku.
+                {{ eventAvailabilityMessage }}
             </p>
 
             <p v-if="formError" class="text-destructive text-sm" role="alert">
@@ -142,6 +172,10 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
                 :is-saving="isSaving"
                 :is-delete-loading="isDeleteLoading"
                 :is-form-dirty="isFormDirty"
+                :is-availability-blocking="
+                    eventAvailabilityStatus === 'checking' ||
+                    eventAvailabilityStatus === 'unavailable'
+                "
                 @cancel="$emit('cancel')"
             />
         </form>

@@ -3,8 +3,10 @@ import { normalizeStudentUserIds } from './eventsPayload';
 import { eventDataRequest } from './eventsRequest';
 import type {
     EventStudentsAssignResponse,
+    EventStudentsAvailabilityResponse,
     EventStudentsReplaceResponse,
 } from './eventsTypes';
+import type { ParsedEventStudentsBody } from './eventStudentsBody';
 
 export async function bffEventStudentsGet(
     event: H3Event,
@@ -79,6 +81,37 @@ export async function bffEventStudentsPut(
             studentUserIds: normalizeStudentUserIds(data?.studentUserIds),
         },
     };
+}
+
+export async function bffEventStudentsAvailabilityCheck(
+    event: H3Event,
+    upstreamBase: string,
+    eventId: string,
+    body: ParsedEventStudentsBody,
+): Promise<{ success: true; data: EventStudentsAvailabilityResponse }> {
+    const data = await eventDataRequest<EventStudentsAvailabilityResponse>(
+        event,
+        upstreamBase,
+        {
+            path: `/events/${encodeURIComponent(eventId)}/students/availability-check`,
+            method: 'POST',
+            body,
+            fallbackError: 'Nie udało się sprawdzić dostępności kursantów',
+        },
+    );
+
+    if (
+        !data ||
+        typeof data.available !== 'boolean' ||
+        !Array.isArray(data.issues)
+    ) {
+        throw createError({
+            statusCode: 502,
+            statusMessage: 'Nieprawidłowa odpowiedź serwera',
+        });
+    }
+
+    return { success: true, data };
 }
 
 export async function bffEventStudentsPost(

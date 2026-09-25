@@ -1,5 +1,6 @@
 import type {
     AssignStudentsToEventResponse,
+    EventStudentsAvailabilityResponse,
     RemoveStudentsFromEventResponse,
     ReplaceStudentsOnEventResponse,
 } from '~/types/events/event';
@@ -34,6 +35,7 @@ export function useEventApi() {
     const removeError = ref<string | null>(null);
     const isReplacing = ref(false);
     const replaceError = ref<string | null>(null);
+    const isCheckingStudentsAvailability = ref(false);
 
     async function assignStudentsToEvent(
         eventId: string,
@@ -171,6 +173,51 @@ export function useEventApi() {
         }
     }
 
+    async function checkStudentsAvailability(
+        eventId: string,
+        body: {
+            studentIds: string[];
+            startTime?: string;
+            endTime?: string;
+        },
+    ): Promise<EventStudentsAvailabilityResponse> {
+        const eid = eventId.trim();
+
+        if (!eid) {
+            throw new Error('Brak identyfikatora wydarzenia.');
+        }
+
+        isCheckingStudentsAvailability.value = true;
+
+        try {
+            return await requestBffData<EventStudentsAvailabilityResponse>(
+                'POST',
+                `/api/events/${encodeURIComponent(eid)}/students/availability-check`,
+                {
+                    body,
+                    fallbackMessage:
+                        'Nie udało się sprawdzić dostępności kursantów.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: (data) => {
+                        if (!data || typeof data !== 'object') {
+                            return null;
+                        }
+
+                        const result =
+                            data as EventStudentsAvailabilityResponse;
+
+                        return typeof result.available === 'boolean' &&
+                            Array.isArray(result.issues)
+                            ? result
+                            : null;
+                    },
+                },
+            );
+        } finally {
+            isCheckingStudentsAvailability.value = false;
+        }
+    }
+
     return {
         isAssigning: readonly(isAssigning),
         assignError: readonly(assignError),
@@ -178,8 +225,12 @@ export function useEventApi() {
         removeError: readonly(removeError),
         isReplacing: readonly(isReplacing),
         replaceError: readonly(replaceError),
+        isCheckingStudentsAvailability: readonly(
+            isCheckingStudentsAvailability,
+        ),
         assignStudentsToEvent,
         removeStudentsFromEvent,
         replaceStudentsOnEvent,
+        checkStudentsAvailability,
     };
 }

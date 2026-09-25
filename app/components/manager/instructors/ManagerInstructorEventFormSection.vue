@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next';
+import { LoaderCircle, Plus } from 'lucide-vue-next';
 import { computed, shallowRef, watch } from 'vue';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { ManagerInstructorEventType } from '~/composables/instructors/manager/useManagerInstructorSchedulePage';
+import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
 import {
     buildDatetimeLocal,
     dateValueToIsoDateString,
@@ -13,7 +14,7 @@ import {
     parseDatetimeLocalParts,
 } from '~/utils/date/weeklyCalendarDates';
 
-defineProps<{
+const props = defineProps<{
     schoolId: string;
     courses: CourseListItem[];
     coursesError: string | null;
@@ -23,12 +24,24 @@ defineProps<{
     isVehiclesLoading: boolean;
     isEventSaving: boolean;
     eventFormError: string | null;
+    eventAvailabilityStatus: ScheduleAvailabilityStatus;
+    eventAvailabilityMessage: string;
+    isEventSubmitReady: boolean;
+    minDurationMinutes: number;
+    availableVehicleIds?: readonly string[];
+    availableStartTimes?: readonly string[];
+    availableEndTimes?: readonly string[];
+    isAvailabilityOptionsLoading: boolean;
+    availabilityOptionsError: string;
 }>();
 
 const emit = defineEmits<{
     submit: [];
 }>();
 const eventType = defineModel<ManagerInstructorEventType>('eventType', {
+    required: true,
+});
+const eventDateLocal = defineModel<string>('eventDateLocal', {
     required: true,
 });
 const eventStartLocal = defineModel<string>('eventStartLocal', {
@@ -40,35 +53,29 @@ const eventVehicleId = defineModel<string>('eventVehicleId', {
 });
 const eventCourseId = defineModel<string>('eventCourseId', { required: true });
 
-const DEFAULT_START_TIME = '09:00';
-const DEFAULT_END_TIME = '10:00';
-const MIN_DURATION_MINUTES = 60;
 const LATEST_START_TIME = '23:00';
 
-const startTime = shallowRef(DEFAULT_START_TIME);
-const endTime = shallowRef(DEFAULT_END_TIME);
+const startTime = shallowRef('');
+const endTime = shallowRef('');
 
 const eventDate = computed({
-    get: () => {
-        const start = parseDatetimeLocalParts(eventStartLocal.value);
-
-        if (start) {
-            return dateValueToIsoDateString(start.date);
-        }
-
-        const end = parseDatetimeLocalParts(eventEndLocal.value);
-
-        return end ? dateValueToIsoDateString(end.date) : '';
-    },
+    get: () => eventDateLocal.value,
     set: (value: string) => {
         setEventDate(value);
     },
 });
 
+const areTimePrerequisitesComplete = computed(
+    () =>
+        Boolean(eventDate.value) &&
+        (eventType.value !== 'DRIVE' || Boolean(eventVehicleId.value.trim())),
+);
+
 function setEventDate(value: string): void {
     const date = isoDateStringToCalendarDate(value);
 
     if (!date) {
+        eventDateLocal.value = '';
         eventStartLocal.value = '';
         eventEndLocal.value = '';
 
@@ -77,8 +84,9 @@ function setEventDate(value: string): void {
 
     const nextDate = dateValueToIsoDateString(date);
 
-    updateEventDatetime('start', nextDate, startTime.value);
-    updateEventDatetime('end', nextDate, endTime.value);
+    eventDateLocal.value = nextDate;
+    eventStartLocal.value = '';
+    eventEndLocal.value = '';
 }
 
 function updateEventDatetime(
@@ -148,10 +156,32 @@ function formatVehicleOptionLabel(vehicle: Vehicle): string {
     const registrationNumber = vehicle.registrationNumber.trim();
 
     if (model && registrationNumber) {
-        return `${model} (${registrationNumber})`;
+        return `${model} (${registrationNumber})${vehicleAvailabilitySuffix(
+            vehicle,
+        )}`;
     }
 
-    return model || registrationNumber || '-';
+    const label = model || registrationNumber || '-';
+
+    return `${label}${vehicleAvailabilitySuffix(vehicle)}`;
+}
+
+function isVehicleUnavailableForDate(vehicle: Vehicle): boolean {
+    if (vehicle.status === 'UNAVAILABLE') return true;
+
+    return (
+        Boolean(eventDate.value) &&
+        props.availableVehicleIds !== undefined &&
+        !props.availableVehicleIds.includes(vehicle.id)
+    );
+}
+
+function vehicleAvailabilitySuffix(vehicle: Vehicle): string {
+    if (vehicle.status === 'UNAVAILABLE') return ' - niedostępny';
+
+    return isVehicleUnavailableForDate(vehicle)
+        ? ' - brak wolnych terminów'
+        : '';
 }
 
 const endMinExclusive = computed(() => {
@@ -161,7 +191,7 @@ const endMinExclusive = computed(() => {
         return undefined;
     }
 
-    return minutesToTime(startMinutes + MIN_DURATION_MINUTES - 1);
+    return minutesToTime(startMinutes + props.minDurationMinutes - 1);
 });
 
 function handleStartTimeChanged(value: string): void {
@@ -173,9 +203,9 @@ function handleStartTimeChanged(value: string): void {
     if (
         startMinutes !== null &&
         endMinutes !== null &&
-        endMinutes - startMinutes < MIN_DURATION_MINUTES
+        endMinutes - startMinutes < props.minDurationMinutes
     ) {
-        endTime.value = minutesToTime(startMinutes + MIN_DURATION_MINUTES);
+        endTime.value = minutesToTime(startMinutes + props.minDurationMinutes);
     }
 
     if (eventDate.value) {
@@ -198,7 +228,7 @@ watch(
         const parsed = parseDatetimeLocalParts(value);
 
         if (!parsed) {
-            startTime.value = DEFAULT_START_TIME;
+            startTime.value = '';
 
             return;
         }
@@ -216,7 +246,7 @@ watch(
         const parsed = parseDatetimeLocalParts(value);
 
         if (!parsed) {
-            endTime.value = DEFAULT_END_TIME;
+            endTime.value = '';
 
             return;
         }
@@ -333,6 +363,7 @@ watch(
                                 v-for="v in vehicles"
                                 :key="v.id"
                                 :value="v.id"
+                                :disabled="isVehicleUnavailableForDate(v)"
                             >
                                 {{ formatVehicleOptionLabel(v) }}
                             </UiSelectItem>
@@ -359,8 +390,14 @@ watch(
                         :model-value="startTime"
                         label="Godzina początku bloku"
                         context-label="Początek"
+                        placeholder="Wybierz godzinę"
                         trigger-class="h-10 max-w-none"
                         :max-exclusive="LATEST_START_TIME"
+                        :allowed-times="availableStartTimes"
+                        :disabled="
+                            !areTimePrerequisitesComplete ||
+                            isAvailabilityOptionsLoading
+                        "
                         @update:model-value="handleStartTimeChanged"
                     />
                 </div>
@@ -372,12 +409,74 @@ watch(
                         :model-value="endTime"
                         label="Godzina końca bloku"
                         context-label="Koniec"
+                        placeholder="Wybierz godzinę"
                         trigger-class="h-10 max-w-none"
                         :min-exclusive="endMinExclusive"
+                        :allowed-times="availableEndTimes"
+                        :disabled="
+                            !areTimePrerequisitesComplete ||
+                            isAvailabilityOptionsLoading
+                        "
                         @update:model-value="handleEndTimeChanged"
                     />
                 </div>
             </div>
+
+            <p
+                v-if="isAvailabilityOptionsLoading"
+                class="text-muted-foreground text-xs"
+                role="status"
+            >
+                Pobieranie dostępnych godzin...
+            </p>
+
+            <p
+                v-else-if="availabilityOptionsError"
+                class="text-muted-foreground text-xs"
+                role="status"
+            >
+                {{ availabilityOptionsError }}
+            </p>
+
+            <p
+                v-else-if="
+                    areTimePrerequisitesComplete &&
+                    availableStartTimes?.length === 0
+                "
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                Brak dostępnych godzin w wybranym dniu.
+            </p>
+
+            <div
+                v-if="eventAvailabilityStatus === 'checking'"
+                class="text-muted-foreground flex items-center"
+                role="status"
+            >
+                <LoaderCircle class="size-4 animate-spin" aria-hidden="true" />
+                <span class="sr-only">Sprawdzanie dostępności terminu</span>
+            </div>
+
+            <p
+                v-if="
+                    eventAvailabilityStatus === 'unavailable' ||
+                    eventAvailabilityStatus === 'error'
+                "
+                :class="[
+                    'text-sm',
+                    eventAvailabilityStatus === 'unavailable'
+                        ? 'text-destructive'
+                        : 'text-muted-foreground',
+                ]"
+                :role="
+                    eventAvailabilityStatus === 'unavailable'
+                        ? 'alert'
+                        : 'status'
+                "
+            >
+                {{ eventAvailabilityMessage }}
+            </p>
 
             <p
                 v-if="eventFormError"
@@ -392,7 +491,12 @@ watch(
             <ActionGroup label="Akcje bloku czasu" align="end">
                 <UiButton
                     type="button"
-                    :disabled="isEventSaving"
+                    :disabled="
+                        isEventSaving ||
+                        !isEventSubmitReady ||
+                        eventAvailabilityStatus === 'checking' ||
+                        eventAvailabilityStatus === 'unavailable'
+                    "
                     :aria-busy="isEventSaving"
                     class="gap-2"
                     @click="emit('submit')"

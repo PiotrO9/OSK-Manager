@@ -17,6 +17,7 @@ const DESCRIPTION_ID = 'lesson-booking-dialog-desc';
 const {
     students,
     vehicles,
+    availableVehicleIds,
     selectedInstructorId,
     selectedStudentUserId,
     selectedCourseId,
@@ -30,6 +31,8 @@ const {
     filteredAvailableInstructors,
     instructorLabel,
     slotWhenLabel,
+    lessonAvailabilityStatus,
+    lessonAvailabilityMessage,
     handleClose,
     handleSubmit,
 } = useManagerLessonBookingDialog({
@@ -120,8 +123,26 @@ const {
                 <ManagerLessonBookingVehicleSelect
                     v-model:selected-vehicle-id="selectedVehicleId"
                     :vehicles="vehicles"
+                    :available-vehicle-ids="availableVehicleIds"
                     :disabled="isCreating"
                 />
+
+                <p
+                    v-if="lessonAvailabilityStatus !== 'idle'"
+                    :class="[
+                        'text-sm',
+                        lessonAvailabilityStatus === 'unavailable'
+                            ? 'text-destructive'
+                            : 'text-muted-foreground',
+                    ]"
+                    :role="
+                        lessonAvailabilityStatus === 'unavailable'
+                            ? 'alert'
+                            : 'status'
+                    "
+                >
+                    {{ lessonAvailabilityMessage }}
+                </p>
 
                 <p
                     v-if="formError"
@@ -140,7 +161,14 @@ const {
                     >
                         Anuluj
                     </UiButton>
-                    <UiButton type="submit" :disabled="isCreating">
+                    <UiButton
+                        type="submit"
+                        :disabled="
+                            isCreating ||
+                            lessonAvailabilityStatus === 'checking' ||
+                            lessonAvailabilityStatus === 'unavailable'
+                        "
+                    >
                         {{ isCreating ? 'Zapisywanie…' : 'Zarezerwuj lekcję' }}
                     </UiButton>
                 </UiDialogFooter>

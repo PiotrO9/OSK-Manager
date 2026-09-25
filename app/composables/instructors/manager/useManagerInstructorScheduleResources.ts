@@ -22,6 +22,7 @@ export function useManagerInstructorScheduleResources({
     const isCoursesLoading = ref(false);
     let vehiclesLoadSeq = 0;
     let coursesLoadSeq = 0;
+    let loadedSchoolId: string | null = null;
 
     async function loadVehicles(): Promise<void> {
         const sid = schoolId.value;
@@ -102,7 +103,27 @@ export function useManagerInstructorScheduleResources({
     }
 
     async function loadResources(): Promise<void> {
+        const sid = schoolId.value;
+
+        if (
+            sid &&
+            loadedSchoolId === sid &&
+            !vehiclesError.value &&
+            !coursesError.value
+        ) {
+            return;
+        }
+
         await Promise.all([loadVehicles(), loadCourses()]);
+
+        if (
+            sid &&
+            schoolId.value === sid &&
+            !vehiclesError.value &&
+            !coursesError.value
+        ) {
+            loadedSchoolId = sid;
+        }
     }
 
     return {

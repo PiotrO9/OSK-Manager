@@ -29,10 +29,12 @@ const props = withDefaults(
         invalid?: boolean;
         describedby?: string;
         contextLabel?: string;
+        placeholder?: string;
         minExclusive?: string;
         maxExclusive?: string;
         hourOptions?: number[];
         minuteOptions?: number[];
+        allowedTimes?: readonly string[];
         triggerClass?: string;
         open?: boolean;
     }>(),
@@ -42,10 +44,12 @@ const props = withDefaults(
         invalid: false,
         describedby: undefined,
         contextLabel: undefined,
+        placeholder: 'Wybierz godzinę',
         minExclusive: undefined,
         maxExclusive: undefined,
         hourOptions: undefined,
         minuteOptions: undefined,
+        allowedTimes: undefined,
         triggerClass: undefined,
         open: undefined,
     },
@@ -115,22 +119,23 @@ const effectiveMinuteOptions = computed(() =>
     normalizeNumberOptions(props.minuteOptions, 0, 59),
 );
 
+const allowedTimeSet = computed(() =>
+    props.allowedTimes === undefined
+        ? null
+        : new Set(props.allowedTimes.map((value) => value.trim())),
+);
+
 const displayedValue = computed(() =>
     formatTimePickerValue(draftHour.value, draftMinute.value),
 );
 
-const isDraftAllowed = computed(
-    () =>
-        isHourAllowedByOptions(draftHour.value) &&
-        isMinuteAllowedByOptions(draftMinute.value) &&
-        isTimePickerCandidateAllowed(
-            draftHour.value,
-            draftMinute.value,
-            bounds.value,
-        ),
+const isDraftAllowed = computed(() =>
+    isCandidateSelectable(draftHour.value, draftMinute.value),
 );
 
 const triggerValue = computed(() => {
+    if (!props.modelValue.trim()) return props.placeholder;
+
     const parsed = normalizeTimePickerValue(props.modelValue);
 
     return formatTimePickerValue(parsed.hour, parsed.minute);
@@ -174,6 +179,10 @@ const boundsHint = computed(() => {
 
     if (props.maxExclusive) {
         return `Wybierz godzinę przed ${props.maxExclusive}.`;
+    }
+
+    if (allowedTimeSet.value !== null) {
+        return 'Wybierz dostępną godzinę.';
     }
 
     return 'Wybierz poprawną godzinę.';
@@ -220,6 +229,13 @@ watch(isOpen, (open) => {
     }
 });
 
+watch(
+    () => props.allowedTimes,
+    () => {
+        clampDraftToOptions();
+    },
+);
+
 function setHour(value: number): void {
     updateHour(value, true);
 }
@@ -258,15 +274,27 @@ function isHourSelectable(hour: number): boolean {
     return (
         isHourAllowedByOptions(hour) &&
         effectiveMinuteOptions.value.some((minute) =>
-            isTimePickerCandidateAllowed(hour, minute, bounds.value),
+            isCandidateSelectable(hour, minute),
         )
     );
 }
 
 function isMinuteSelectable(minute: number): boolean {
+    return isCandidateSelectable(draftHour.value, minute);
+}
+
+function isCandidateSelectable(hour: number, minute: number): boolean {
+    if (
+        !isHourAllowedByOptions(hour) ||
+        !isMinuteAllowedByOptions(minute) ||
+        !isTimePickerCandidateAllowed(hour, minute, bounds.value)
+    ) {
+        return false;
+    }
+
     return (
-        isMinuteAllowedByOptions(minute) &&
-        isTimePickerCandidateAllowed(draftHour.value, minute, bounds.value)
+        allowedTimeSet.value === null ||
+        allowedTimeSet.value.has(formatTimePickerValue(hour, minute))
     );
 }
 
@@ -319,10 +347,9 @@ function handleSegmentKeydown(event: KeyboardEvent, part: ClockPart): void {
 
     if (part === 'hour') {
         const nextHour = (draftHour.value + direction + 24) % 24;
-        const minute = nearestAllowedMinuteForHour(
+        const minute = nearestAllowedMinuteForHourWithOptions(
             nextHour,
             draftMinute.value,
-            bounds.value,
         );
 
         if (minute !== null) {
@@ -448,9 +475,7 @@ function nearestAllowedMinuteForHourWithOptions(
     );
 
     return (
-        byDistance.find((minute) =>
-            isTimePickerCandidateAllowed(hour, minute, bounds.value),
-        ) ?? null
+        byDistance.find((minute) => isCandidateSelectable(hour, minute)) ?? null
     );
 }
 

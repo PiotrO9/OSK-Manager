@@ -5,6 +5,7 @@ import {
     type InstructorListItem,
 } from '~/types/instructors/instructor';
 import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
+import type { EventCreateAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
 
@@ -108,6 +109,30 @@ export function useManagerTheoryEventCreateDialog({
         });
 
         return `${dateStr}, ${s.startTime}–${s.endTime}`;
+    });
+
+    const availabilityCandidate =
+        computed<EventCreateAvailabilityRequest | null>(() => {
+            const ctx = slotCtx.value;
+            const instructorId = selectedInstructorId.value.trim();
+            const courseId = selectedCourseId.value.trim();
+
+            if (!open.value || !ctx || !instructorId) {
+                return null;
+            }
+
+            return {
+                intent: 'event_create',
+                instructorId,
+                eventType: 'THEORY',
+                date: ctx.date,
+                startTime: ctx.startTime,
+                endTime: ctx.endTime,
+                ...(courseId ? { courseId } : {}),
+            };
+        });
+    const availability = useScheduleAvailabilityCheck({
+        candidate: availabilityCandidate,
     });
 
     watch(
@@ -227,6 +252,16 @@ export function useManagerTheoryEventCreateDialog({
         const startIso = buildSlotIsoUTC(ctx.date, ctx.startTime);
         const endIso = buildSlotIsoUTC(ctx.date, ctx.endTime);
 
+        const availabilityStatus = await availability.recheck();
+
+        if (availabilityStatus === 'unavailable') {
+            formError.value =
+                availability.message.value ||
+                'Wybrany termin jest niedostępny.';
+
+            return;
+        }
+
         try {
             const cid = selectedCourseId.value.trim();
 
@@ -263,6 +298,8 @@ export function useManagerTheoryEventCreateDialog({
         handleSubmit,
         isCoursesLoading,
         isLoading,
+        eventAvailabilityStatus: availability.status,
+        eventAvailabilityMessage: availability.message,
         schoolInstructors,
         selectedCourseId,
         selectedInstructorId,

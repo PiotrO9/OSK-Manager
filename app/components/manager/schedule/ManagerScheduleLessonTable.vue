@@ -4,6 +4,7 @@ import type {
     SchedulePersonRef,
 } from '~/types/schedule/schedule';
 import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import ManagerScheduleVehicleIcon from './ManagerScheduleVehicleIcon.vue';
 import {
     buildScheduleManagerItemEditRoute,
     isScheduleManagerItemEditable,
@@ -278,7 +279,19 @@ function schedulePersonInitials(person: SchedulePersonRef | undefined): string {
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        {{ displayScheduleVehicle(item.vehicle) }}
+                        <div
+                            v-if="displayScheduleVehicle(item.vehicle)"
+                            class="flex items-center gap-2"
+                        >
+                            <ManagerScheduleVehicleIcon
+                                class="text-primary-700 size-4 shrink-0"
+                                :category-code="item.categoryCode"
+                            />
+                            <span class="truncate">
+                                {{ displayScheduleVehicle(item.vehicle) }}
+                            </span>
+                        </div>
+                        <span v-else class="text-muted-foreground">—</span>
                     </td>
                     <td
                         v-if="hasActionsColumn"

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     areManagerLessonSnapshotsEqual,
     buildManagerLessonPatchPayload,
+    managerLessonLocalDatetimeToIso,
     type ManagerLessonEditSnapshot,
 } from './useManagerLessonEditForm';
 
@@ -50,6 +51,24 @@ describe('manager lesson edit form helpers', () => {
             ok: false,
             error: 'Koniec musi być później niż początek.',
         });
+    });
+
+    it('rejects lesson ranges spanning multiple local days', () => {
+        expect(
+            buildManagerLessonPatchPayload(base, {
+                ...base,
+                end: '2026-06-27T10:00',
+            }),
+        ).toEqual({
+            ok: false,
+            error: 'Początek i koniec lekcji muszą przypadać tego samego dnia.',
+        });
+    });
+
+    it('converts Polish wall-clock time to an ISO instant', () => {
+        expect(managerLessonLocalDatetimeToIso('2026-06-26T09:00')).toBe(
+            '2026-06-26T07:00:00.000Z',
+        );
     });
 
     it('requires vehicle and instructor ids', () => {

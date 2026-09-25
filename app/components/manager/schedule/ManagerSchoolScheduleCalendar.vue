@@ -73,7 +73,6 @@ const {
     displayError,
     displayItems,
     displayLoading,
-    earliestStartLabel,
     handleCalendarUpdate,
     handleKeyDownWeekNav,
     handleNextWeek,
@@ -87,7 +86,6 @@ const {
     lessonBlockTopPx,
     lessonsForDate,
     loadWeek,
-    scheduleInstructorCount,
     weekDays,
     weekRangeLabel,
 } = useManagerSchoolScheduleCalendar(props, emit);
@@ -167,14 +165,8 @@ defineExpose({
 
             <ManagerScheduleMetaBar
                 v-if="!compactChrome"
-                :is-loading="displayLoading"
-                :base-hour="BASE_HOUR"
                 :schedule-count-badge-label="scheduleCountBadgeLabel"
                 :display-items-count="displayItems.length"
-                :schedule-instructor-count="scheduleInstructorCount"
-                :earliest-start-label="earliestStartLabel"
-                :scope-badge-label="scopeBadgeLabel"
-                :show-instructor-count="showInstructorCount"
             />
 
             <ManagerSchoolScheduleCalendarGrid

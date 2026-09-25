@@ -31,6 +31,7 @@ const {
     coursesError,
     isCoursesLoading,
     eventType,
+    eventDateLocal,
     eventStartLocal,
     eventEndLocal,
     eventVehicleId,
@@ -38,10 +39,20 @@ const {
     eventFormError,
     deleteDialogOpen,
     isEventSaving,
+    eventAvailabilityStatus,
+    eventAvailabilityMessage,
+    isEventSubmitReady,
+    eventMinDurationMinutes,
+    availableStartTimes,
+    availableEndTimes,
+    availableVehicleIds,
+    isAvailabilityOptionsLoading,
+    availabilityOptionsError,
     isEventDeleteLoading,
     scheduleWeekLabel,
     pendingDeleteTimeLabel,
     loadSchedule,
+    loadResources,
     handleInstructorEventStatusChanged,
     handleSubmitEvent,
     handleRequestDelete,
@@ -60,6 +71,14 @@ watch(
     },
     { immediate: true },
 );
+
+watch([isEventFormOpen, schoolId], ([isOpen, currentSchoolId]) => {
+    if (!isOpen || !currentSchoolId) {
+        return;
+    }
+
+    void loadResources();
+});
 
 function handleOpenEventForm(): void {
     isEventFormOpen.value = true;
@@ -152,8 +171,10 @@ async function handleSubmitEventFromSheet(): Promise<void> {
                     </UiSheetHeader>
 
                     <div class="p-4 sm:p-5">
-                        <ManagerInstructorEventFormSection
+                        <LazyManagerInstructorEventFormSection
+                            v-if="isEventFormOpen"
                             v-model:event-type="eventType"
+                            v-model:event-date-local="eventDateLocal"
                             v-model:event-start-local="eventStartLocal"
                             v-model:event-end-local="eventEndLocal"
                             v-model:event-vehicle-id="eventVehicleId"
@@ -169,6 +190,21 @@ async function handleSubmitEventFromSheet(): Promise<void> {
                             "
                             :is-event-saving="isEventSaving"
                             :event-form-error="eventFormError"
+                            :event-availability-status="eventAvailabilityStatus"
+                            :event-availability-message="
+                                eventAvailabilityMessage
+                            "
+                            :is-event-submit-ready="isEventSubmitReady"
+                            :min-duration-minutes="eventMinDurationMinutes"
+                            :available-vehicle-ids="availableVehicleIds"
+                            :available-start-times="availableStartTimes"
+                            :available-end-times="availableEndTimes"
+                            :is-availability-options-loading="
+                                isAvailabilityOptionsLoading
+                            "
+                            :availability-options-error="
+                                availabilityOptionsError
+                            "
                             @submit="handleSubmitEventFromSheet"
                         />
                     </div>
@@ -176,7 +212,8 @@ async function handleSubmitEventFromSheet(): Promise<void> {
             </UiSheet>
         </template>
 
-        <ManagerInstructorEventDeleteDialog
+        <LazyManagerInstructorEventDeleteDialog
+            v-if="deleteDialogOpen"
             v-model:open="deleteDialogOpen"
             :time-range-label="pendingDeleteTimeLabel"
             :is-deleting="isEventDeleteLoading"

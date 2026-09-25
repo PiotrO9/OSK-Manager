@@ -8,11 +8,13 @@ import type {
 const updateInstructorEvent = vi.fn();
 const deleteInstructorEvent = vi.fn();
 const replaceStudentsOnEvent = vi.fn();
+const checkStudentsAvailability = vi.fn();
 const addToast = vi.fn();
 const navigateTo = vi.fn();
 const isUpdateLoading = ref(false);
 const isDeleteLoading = ref(false);
 const isReplacing = ref(false);
+const isCheckingStudentsAvailability = ref(false);
 
 function installNuxtGlobals(): void {
     vi.stubGlobal('ref', ref);
@@ -25,7 +27,9 @@ function installNuxtGlobals(): void {
     }));
     vi.stubGlobal('useEventApi', () => ({
         replaceStudentsOnEvent,
+        checkStudentsAvailability,
         isReplacing,
+        isCheckingStudentsAvailability,
     }));
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('navigateTo', navigateTo);
@@ -85,6 +89,8 @@ function createInput() {
         refreshEligibleForCurrentTime: vi.fn().mockResolvedValue(undefined),
         loadTheoryEligibleStudents: vi.fn().mockResolvedValue(undefined),
         sortedStudentIds: vi.fn((ids: string[]) => [...ids].sort()),
+        eventAvailabilityMessage: ref(''),
+        recheckEventAvailability: vi.fn().mockResolvedValue('available'),
     };
 }
 
@@ -96,6 +102,11 @@ describe('useManagerEventEditActions', () => {
         isUpdateLoading.value = false;
         isDeleteLoading.value = false;
         isReplacing.value = false;
+        isCheckingStudentsAvailability.value = false;
+        checkStudentsAvailability.mockResolvedValue({
+            available: true,
+            issues: [],
+        });
         installNuxtGlobals();
         navigateTo.mockResolvedValue(undefined);
     });

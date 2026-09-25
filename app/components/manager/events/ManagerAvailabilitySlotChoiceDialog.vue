@@ -85,8 +85,12 @@ function handleClose(): void {
                 </UiButton>
             </div>
 
-            <UiDialogFooter class="sm:justify-start">
-                <UiButton type="button" variant="ghost" @click="handleClose">
+            <UiDialogFooter>
+                <UiButton
+                    type="button"
+                    variant="secondary"
+                    @click="handleClose"
+                >
                     Anuluj
                 </UiButton>
             </UiDialogFooter>

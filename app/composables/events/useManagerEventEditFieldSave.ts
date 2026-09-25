@@ -1,15 +1,10 @@
 import type { Ref } from 'vue';
 import type {
-    FreeWindow,
     InstructorEvent,
     PatchInstructorEventPayload,
 } from '~/types/events/instructorEvent';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
-import { isSlotWithinFreeWindows } from '~/utils/schedule/freeWindows';
-import {
-    getManagerEventEditErrorStatusCode,
-    isPatchParticipantConflict,
-} from '~/composables/events/managerEventEditErrors';
+import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
 
 interface UseManagerEventEditFieldSaveInput {
     loadedEvent: Ref<InstructorEvent | null>;
@@ -20,24 +15,20 @@ interface UseManagerEventEditFieldSaveInput {
     formInstructorId: Ref<string>;
     formCapacityInput: Ref<string | number>;
     formError: Ref<string | null>;
-    freeWindows: Ref<FreeWindow[]>;
-    freeWindowsUnavailable: Ref<boolean>;
     updateInstructorEvent: (
         id: string,
         payload: PatchInstructorEventPayload,
     ) => Promise<InstructorEvent>;
     parseCapacity: (raw: unknown) => number | null | false;
     localDatetimeToIso: (local: string) => string | null;
-    refreshFreeWindowsFromSlots: (date: string) => Promise<void>;
+    eventAvailabilityMessage: Ref<string>;
+    recheckEventAvailability: () => Promise<ScheduleAvailabilityStatus>;
 }
 
 export function useManagerEventEditFieldSave(
     input: UseManagerEventEditFieldSaveInput,
 ) {
-    async function updateDirtyEventFields(
-        id: string,
-        shouldRefreshSlotsAfterPatch: boolean,
-    ): Promise<boolean> {
+    async function updateDirtyEventFields(id: string): Promise<boolean> {
         const startIso = input.localDatetimeToIso(input.formStartLocal.value);
         const endIso = input.localDatetimeToIso(input.formEndLocal.value);
 
@@ -54,20 +45,14 @@ export function useManagerEventEditFieldSave(
             return false;
         }
 
-        if (shouldRefreshSlotsAfterPatch) {
-            const start = new Date(startIso);
-            const end = new Date(endIso);
+        if (
+            input.formStartLocal.value.slice(0, 10) !==
+            input.formEndLocal.value.slice(0, 10)
+        ) {
+            input.formError.value =
+                'Początek i koniec wydarzenia muszą przypadać tego samego dnia.';
 
-            if (
-                input.freeWindowsUnavailable.value ||
-                !isSlotWithinFreeWindows(input.freeWindows.value, start, end)
-            ) {
-                input.formError.value = input.freeWindowsUnavailable.value
-                    ? 'Instruktor nie ma dostępności w tym dniu — zmień datę lub instruktora.'
-                    : 'Wybrany przedział czasu nie mieści się w wolnym oknie grafiku instruktora.';
-
-                return false;
-            }
+            return false;
         }
 
         const type = input.formType.value;
@@ -100,6 +85,16 @@ export function useManagerEventEditFieldSave(
             return false;
         }
 
+        const availabilityStatus = await input.recheckEventAvailability();
+
+        if (availabilityStatus === 'unavailable') {
+            input.formError.value =
+                input.eventAvailabilityMessage.value ||
+                'Wybrany termin jest niedostępny.';
+
+            return false;
+        }
+
         const payload: PatchInstructorEventPayload = {
             instructorId,
             type,
@@ -124,31 +119,12 @@ export function useManagerEventEditFieldSave(
                 };
             }
 
-            if (shouldRefreshSlotsAfterPatch) {
-                const date = input.formStartLocal.value.trim().slice(0, 10);
-
-                if (date) {
-                    await input.refreshFreeWindowsFromSlots(date);
-                }
-            }
-
             return true;
         } catch (err: unknown) {
             const message = getApiFetchErrorMessage(
                 err,
                 'Nie udało się zapisać zmian.',
             );
-
-            if (
-                getManagerEventEditErrorStatusCode(err) === 409 &&
-                !isPatchParticipantConflict(err)
-            ) {
-                const date = input.formStartLocal.value.trim().slice(0, 10);
-
-                if (date) {
-                    await input.refreshFreeWindowsFromSlots(date);
-                }
-            }
 
             input.formError.value = message;
 

@@ -154,7 +154,7 @@ function setScheduleView(value: ScheduleViewMode): void {
 
         <div class="space-y-3 p-2 sm:p-3">
             <div
-                v-show="scheduleView === 'calendar'"
+                v-if="scheduleView === 'calendar'"
                 id="instructor-schedule-calendar-panel"
                 role="tabpanel"
                 aria-labelledby="instructor-schedule-calendar-tab"
@@ -179,7 +179,7 @@ function setScheduleView(value: ScheduleViewMode): void {
             </div>
 
             <div
-                v-show="scheduleView === 'list'"
+                v-else
                 id="instructor-schedule-list-panel"
                 role="tabpanel"
                 aria-labelledby="instructor-schedule-list-tab"
@@ -195,7 +195,7 @@ function setScheduleView(value: ScheduleViewMode): void {
                     :description="scheduleError"
                     @retry="emit('refresh')"
                 />
-                <ManagerScheduleLessonTable
+                <LazyManagerScheduleLessonTable
                     v-else
                     :items="items"
                     empty-message="Brak wpisów w wybranym tygodniu."

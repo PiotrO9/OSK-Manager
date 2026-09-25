@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { BookOpen, Car } from 'lucide-vue-next';
+import { BookOpen } from 'lucide-vue-next';
+import ManagerScheduleVehicleIcon from './ManagerScheduleVehicleIcon.vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     displayInstructorSubtitle,
@@ -72,7 +73,10 @@ const emit = defineEmits<{
             </span>
         </div>
         <span v-else class="mb-0.5 flex items-center gap-1">
-            <Car class="text-primary-700 size-3 shrink-0" aria-hidden="true" />
+            <ManagerScheduleVehicleIcon
+                class="text-primary-700 size-3 shrink-0"
+                :category-code="lesson.categoryCode"
+            />
             <span class="font-medium tabular-nums">
                 {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
             </span>

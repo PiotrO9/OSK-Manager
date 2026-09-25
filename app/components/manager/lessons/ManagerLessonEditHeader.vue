@@ -7,6 +7,7 @@ defineProps<{
     lessonDateLabel: string;
     formId: string;
     canSave: boolean;
+    isAvailabilityBlocking: boolean;
     isSaving: boolean;
 }>();
 </script>
@@ -33,7 +34,7 @@ defineProps<{
                 type="submit"
                 :form="formId"
                 class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                :disabled="!canSave || isSaving"
+                :disabled="!canSave || isAvailabilityBlocking || isSaving"
             >
                 <Save class="size-4" aria-hidden="true" />
                 {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}

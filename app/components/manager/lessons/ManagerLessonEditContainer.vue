@@ -26,6 +26,14 @@ const {
     instructorSelectLabel,
     scheduleBackHref,
     isFormDirty,
+    lessonAvailabilityStatus,
+    lessonAvailabilityMessage,
+    availableStartTimes,
+    availableEndTimes,
+    availableVehicleIds,
+    isAvailabilityOptionsLoading,
+    availabilityOptionsError,
+    lessonMinDurationMinutes,
     loadLesson,
     handleCancel,
     handleSubmit,
@@ -39,6 +47,10 @@ const {
             :lesson-date-label="lessonDateLabel"
             :form-id="FORM_ID"
             :can-save="Boolean(loadedLesson) && isFormDirty"
+            :is-availability-blocking="
+                lessonAvailabilityStatus === 'checking' ||
+                lessonAvailabilityStatus === 'unavailable'
+            "
             :is-saving="isSaving"
         />
 
@@ -93,6 +105,16 @@ const {
                     :vehicles-error="vehiclesError"
                     :school-id="schoolId"
                     :form-error="formError"
+                    :availability-status="lessonAvailabilityStatus"
+                    :availability-message="lessonAvailabilityMessage"
+                    :available-start-times="availableStartTimes"
+                    :available-end-times="availableEndTimes"
+                    :available-vehicle-ids="availableVehicleIds"
+                    :is-availability-options-loading="
+                        isAvailabilityOptionsLoading
+                    "
+                    :availability-options-error="availabilityOptionsError"
+                    :min-duration-minutes="lessonMinDurationMinutes"
                     @submit="handleSubmit"
                 />
 
@@ -100,6 +122,10 @@ const {
                     <ManagerLessonEditActions
                         :form-id="FORM_ID"
                         :can-save="isFormDirty"
+                        :is-availability-blocking="
+                            lessonAvailabilityStatus === 'checking' ||
+                            lessonAvailabilityStatus === 'unavailable'
+                        "
                         :is-saving="isSaving"
                         @cancel="handleCancel"
                     />

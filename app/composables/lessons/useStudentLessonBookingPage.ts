@@ -4,11 +4,13 @@ import {
     weekRangeFromMonday,
 } from '~/utils/date/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 import {
     formatCourseKindLabel,
     type CurrentUserCourseItem,
 } from '~/types/courses/course';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
+import type { LessonSelfBookAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
 
 export function getStudentLessonBookingSlotKey(
     slot: SchoolAvailabilitySlot,
@@ -32,6 +34,11 @@ export function useStudentLessonBookingPage() {
     const slotsErrorMessage = shallowRef<string | null>(null);
     const bookingSlotKey = shallowRef<string | null>(null);
     const successMessage = shallowRef<string | null>(null);
+    const availabilityCandidate =
+        shallowRef<LessonSelfBookAvailabilityRequest | null>(null);
+    const availability = useScheduleAvailabilityCheck({
+        candidate: availabilityCandidate,
+    });
 
     let slotsLoadSeq = 0;
     let slotsAbortController: AbortController | null = null;
@@ -213,8 +220,33 @@ export function useStudentLessonBookingPage() {
         bookingSlotKey.value = getStudentLessonBookingSlotKey(slot);
         successMessage.value = null;
         slotsErrorMessage.value = null;
+        availabilityCandidate.value = {
+            intent: 'lesson_self_book',
+            courseId: course.id,
+            instructorId: slot.instructorId,
+            date: slot.date,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+        };
 
         try {
+            const availabilityStatus = await availability.recheck();
+
+            if (availabilityStatus === 'unavailable') {
+                const message =
+                    availability.message.value ||
+                    'Wybrany termin nie jest już dostępny.';
+
+                slotsErrorMessage.value = message;
+                addToast({
+                    title: 'Termin jest niedostępny',
+                    description: message,
+                    variant: 'error',
+                });
+
+                return;
+            }
+
             await bookOwnLesson({
                 courseId: course.id,
                 instructorId: slot.instructorId,
@@ -229,10 +261,13 @@ export function useStudentLessonBookingPage() {
             });
             await loadSlots();
         } catch (err: unknown) {
-            const message = getApiFetchErrorMessage(
-                err,
-                'Nie udało się zarezerwować jazdy.',
-            );
+            const isConflict = getApiErrorStatusCode(err) === 409;
+            const message = isConflict
+                ? 'Ten termin został właśnie zajęty. Lista terminów została odświeżona.'
+                : getApiFetchErrorMessage(
+                      err,
+                      'Nie udało się zarezerwować jazdy.',
+                  );
 
             slotsErrorMessage.value = message;
             addToast({
@@ -240,7 +275,13 @@ export function useStudentLessonBookingPage() {
                 description: message,
                 variant: 'error',
             });
+
+            if (isConflict) {
+                await loadSlots();
+                slotsErrorMessage.value = message;
+            }
         } finally {
+            availabilityCandidate.value = null;
             bookingSlotKey.value = null;
         }
     }

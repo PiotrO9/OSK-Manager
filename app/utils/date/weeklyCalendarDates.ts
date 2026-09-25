@@ -1,6 +1,10 @@
 import type { DateValue } from '@internationalized/date';
 import { CalendarDate, parseDate } from '@internationalized/date';
 import { toDate } from 'reka-ui/date';
+import {
+    isoInstantToPolishDatetimeLocal,
+    polishSlotToIso,
+} from '~/utils/date/polishScheduleTime';
 
 /** Granice `UiCalendar` przy wyborze tygodnia — jawny zakres, żeby nic nie narzucało min. jak „od zaznaczonego tygodnia”. */
 export const WEEK_PICKER_CALENDAR_MIN = parseDate('1900-01-01');
@@ -67,29 +71,10 @@ export function dateValueToIsoDateString(value: DateValue): string {
 const DATETIME_LOCAL_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
 
 /**
- * ISO 8601 z API (UTC lub ze strefą) → string jak `datetime-local` w **lokalnej** strefie przeglądarki.
- * Nie wycinaj ręcznie `slice(0, 16)` z `...Z` — to myli godzinę UTC z lokalną.
+ * ISO 8601 z API → `datetime-local` w stałej strefie Europe/Warsaw.
  */
 export function isoInstantToDatetimeLocalString(iso: string): string {
-    const t = iso.trim();
-
-    if (t.length === 0) {
-        return '';
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return '';
-    }
-
-    const y = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
-
-    return `${y}-${mo}-${day}T${hh}:${mm}`;
+    return isoInstantToPolishDatetimeLocal(iso);
 }
 
 /** Parsuje wartość jak `input[type=datetime-local]` — lokalna ściana czasu, bez strefy. */
@@ -188,11 +173,15 @@ export function weekRangeFromMonday(monday: Date): {
 }
 
 /**
- * Składa ISO 8601 w UTC dla slotu (backend oczekuje pełnego datetime).
+ * Składa ISO 8601 dla polskiego czasu slotu (backend oczekuje pełnego datetime).
  * `time` w formacie HH:mm (np. "09:00").
  */
 export function buildSlotIsoUTC(date: string, time: string): string {
-    const t = time.trim();
+    const iso = polishSlotToIso(date, time);
 
-    return `${date.trim()}T${t}:00.000Z`;
+    if (!iso) {
+        throw new RangeError('Invalid Polish schedule date or time');
+    }
+
+    return iso;
 }

@@ -26,6 +26,8 @@ const {
     handleSubmit,
     isCoursesLoading,
     isLoading,
+    eventAvailabilityStatus,
+    eventAvailabilityMessage,
     selectedCourseId,
     selectedInstructorId,
     slotWhenLabel,
@@ -195,6 +197,23 @@ const {
                 </div>
 
                 <p
+                    v-if="eventAvailabilityStatus !== 'idle'"
+                    :class="[
+                        'text-sm',
+                        eventAvailabilityStatus === 'unavailable'
+                            ? 'text-destructive'
+                            : 'text-muted-foreground',
+                    ]"
+                    :role="
+                        eventAvailabilityStatus === 'unavailable'
+                            ? 'alert'
+                            : 'status'
+                    "
+                >
+                    {{ eventAvailabilityMessage }}
+                </p>
+
+                <p
                     v-if="formError"
                     class="text-destructive text-sm"
                     role="alert"
@@ -211,7 +230,14 @@ const {
                     >
                         Anuluj
                     </UiButton>
-                    <UiButton type="submit" :disabled="isLoading">
+                    <UiButton
+                        type="submit"
+                        :disabled="
+                            isLoading ||
+                            eventAvailabilityStatus === 'checking' ||
+                            eventAvailabilityStatus === 'unavailable'
+                        "
+                    >
                         {{ isLoading ? 'Tworzenie…' : 'Utwórz blok' }}
                     </UiButton>
                 </UiDialogFooter>

@@ -1,5 +1,6 @@
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 import { isoInstantToDatetimeLocalString } from '~/utils/date/weeklyCalendarDates';
+import { polishLocalDateTimeToIso } from '~/utils/date/polishScheduleTime';
 
 export interface ManagerEventEditFormSnapshot {
     type: 'DRIVE' | 'THEORY';
@@ -20,19 +21,7 @@ export interface ManagerEventEditCurrentSnapshotInput {
 }
 
 export function localDatetimeToIso(local: string): string | null {
-    const t = local.trim();
-
-    if (!t) {
-        return null;
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return null;
-    }
-
-    return d.toISOString();
+    return polishLocalDateTimeToIso(local);
 }
 
 export function parseManagerEventCapacity(raw: unknown): number | null | false {

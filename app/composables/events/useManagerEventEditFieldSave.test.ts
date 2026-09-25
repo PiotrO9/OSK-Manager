@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 import type {
-    FreeWindow,
     InstructorEvent,
     PatchInstructorEventPayload,
 } from '~/types/events/instructorEvent';
@@ -46,14 +45,16 @@ function setupFieldSave(
         formVehicleId?: string;
         formInstructorId?: string;
         formCapacityInput?: string | number;
-        freeWindows?: FreeWindow[];
-        freeWindowsUnavailable?: boolean;
         updateInstructorEvent?: (
             id: string,
             payload: PatchInstructorEventPayload,
         ) => Promise<InstructorEvent>;
         parseCapacity?: (raw: unknown) => number | null | false;
         localDatetimeToIso?: (local: string) => string | null;
+        recheckEventAvailability?: () => Promise<
+            'idle' | 'checking' | 'available' | 'unavailable' | 'error'
+        >;
+        eventAvailabilityMessage?: string;
     } = {},
 ) {
     const loadedEvent = ref<InstructorEvent | null>(
@@ -75,7 +76,9 @@ function setupFieldSave(
     const localDatetimeToIso =
         options.localDatetimeToIso ??
         vi.fn((local: string) => `${local}:00.000Z`);
-    const refreshFreeWindowsFromSlots = vi.fn().mockResolvedValue(undefined);
+    const recheckEventAvailability =
+        options.recheckEventAvailability ??
+        vi.fn().mockResolvedValue('available');
 
     const fieldSave = useManagerEventEditFieldSave({
         loadedEvent,
@@ -86,19 +89,11 @@ function setupFieldSave(
         formInstructorId: ref(options.formInstructorId ?? 'instructor-2'),
         formCapacityInput: ref(options.formCapacityInput ?? '3'),
         formError,
-        freeWindows: ref(
-            options.freeWindows ?? [
-                {
-                    startTime: '2026-08-16T09:00:00.000Z',
-                    endTime: '2026-08-16T12:00:00.000Z',
-                },
-            ],
-        ),
-        freeWindowsUnavailable: ref(options.freeWindowsUnavailable ?? false),
         updateInstructorEvent,
         parseCapacity,
         localDatetimeToIso,
-        refreshFreeWindowsFromSlots,
+        eventAvailabilityMessage: ref(options.eventAvailabilityMessage ?? ''),
+        recheckEventAvailability,
     });
 
     return {
@@ -108,7 +103,7 @@ function setupFieldSave(
         updateInstructorEvent,
         parseCapacity,
         localDatetimeToIso,
-        refreshFreeWindowsFromSlots,
+        recheckEventAvailability,
     };
 }
 
@@ -117,7 +112,7 @@ describe('useManagerEventEditFieldSave', () => {
         const { fieldSave, loadedEvent, updateInstructorEvent } =
             setupFieldSave();
 
-        const result = await fieldSave.updateDirtyEventFields('event-1', false);
+        const result = await fieldSave.updateDirtyEventFields('event-1');
 
         expect(result).toBe(true);
         expect(updateInstructorEvent).toHaveBeenCalledWith('event-1', {
@@ -140,10 +135,7 @@ describe('useManagerEventEditFieldSave', () => {
         });
 
         expect(
-            await missingDates.fieldSave.updateDirtyEventFields(
-                'event-1',
-                false,
-            ),
+            await missingDates.fieldSave.updateDirtyEventFields('event-1'),
         ).toBe(false);
         expect(missingDates.formError.value).toBe(
             'Podaj początek i koniec bloku (data i godzina).',
@@ -156,10 +148,7 @@ describe('useManagerEventEditFieldSave', () => {
         });
 
         expect(
-            await reversedDates.fieldSave.updateDirtyEventFields(
-                'event-1',
-                false,
-            ),
+            await reversedDates.fieldSave.updateDirtyEventFields('event-1'),
         ).toBe(false);
         expect(reversedDates.formError.value).toBe(
             'Koniec musi być później niż początek.',
@@ -167,33 +156,11 @@ describe('useManagerEventEditFieldSave', () => {
         expect(reversedDates.updateInstructorEvent).not.toHaveBeenCalled();
     });
 
-    it('rejects slots outside instructor free windows when slot validation is required', async () => {
-        const { fieldSave, formError, updateInstructorEvent } = setupFieldSave({
-            freeWindows: [
-                {
-                    startTime: '2026-08-16T12:00:00.000Z',
-                    endTime: '2026-08-16T14:00:00.000Z',
-                },
-            ],
-        });
-
-        const result = await fieldSave.updateDirtyEventFields('event-1', true);
-
-        expect(result).toBe(false);
-        expect(formError.value).toBe(
-            'Wybrany przedział czasu nie mieści się w wolnym oknie grafiku instruktora.',
-        );
-        expect(updateInstructorEvent).not.toHaveBeenCalled();
-    });
-
     it('validates drive vehicle, instructor and capacity before patching', async () => {
         const missingVehicle = setupFieldSave({ formVehicleId: '   ' });
 
         expect(
-            await missingVehicle.fieldSave.updateDirtyEventFields(
-                'event-1',
-                false,
-            ),
+            await missingVehicle.fieldSave.updateDirtyEventFields('event-1'),
         ).toBe(false);
         expect(missingVehicle.formError.value).toContain(
             'Dla jazdy wybierz pojazd',
@@ -202,10 +169,7 @@ describe('useManagerEventEditFieldSave', () => {
         const missingInstructor = setupFieldSave({ formInstructorId: '   ' });
 
         expect(
-            await missingInstructor.fieldSave.updateDirtyEventFields(
-                'event-1',
-                false,
-            ),
+            await missingInstructor.fieldSave.updateDirtyEventFields('event-1'),
         ).toBe(false);
         expect(missingInstructor.formError.value).toBe('Wybierz instruktora.');
 
@@ -214,52 +178,40 @@ describe('useManagerEventEditFieldSave', () => {
         });
 
         expect(
-            await invalidCapacity.fieldSave.updateDirtyEventFields(
-                'event-1',
-                false,
-            ),
+            await invalidCapacity.fieldSave.updateDirtyEventFields('event-1'),
         ).toBe(false);
         expect(invalidCapacity.formError.value).toBe(
             'Limit miejsc musi być liczbą całkowitą ≥ 0 lub puste (bez limitu).',
         );
     });
 
-    it('refreshes free windows after a successful time or instructor patch', async () => {
-        const { fieldSave, refreshFreeWindowsFromSlots } = setupFieldSave();
+    it('keeps form data and blocks patch when preview reports a conflict', async () => {
+        const { fieldSave, formError, updateInstructorEvent } = setupFieldSave({
+            recheckEventAvailability: vi.fn().mockResolvedValue('unavailable'),
+            eventAvailabilityMessage:
+                'Wybrany pojazd jest zajęty w tym terminie.',
+        });
 
-        const result = await fieldSave.updateDirtyEventFields('event-1', true);
-
-        expect(result).toBe(true);
-        expect(refreshFreeWindowsFromSlots).toHaveBeenCalledWith('2026-08-16');
+        await expect(fieldSave.updateDirtyEventFields('event-1')).resolves.toBe(
+            false,
+        );
+        expect(updateInstructorEvent).not.toHaveBeenCalled();
+        expect(formError.value).toBe(
+            'Wybrany pojazd jest zajęty w tym terminie.',
+        );
     });
 
-    it('refreshes slots for non-participant patch conflicts', async () => {
-        const { fieldSave, formError, refreshFreeWindowsFromSlots } =
-            setupFieldSave({
-                updateInstructorEvent: vi.fn().mockRejectedValue({
-                    statusCode: 409,
-                    data: { message: 'Conflict' },
-                }),
-            });
-
-        const result = await fieldSave.updateDirtyEventFields('event-1', true);
-
-        expect(result).toBe(false);
-        expect(refreshFreeWindowsFromSlots).toHaveBeenCalledWith('2026-08-16');
-        expect(formError.value).toBe('Conflict');
-    });
-
-    it('does not refresh slots for participant patch conflicts', async () => {
-        const { fieldSave, refreshFreeWindowsFromSlots } = setupFieldSave({
+    it('keeps the server conflict message when the final write loses a race', async () => {
+        const { fieldSave, formError } = setupFieldSave({
             updateInstructorEvent: vi.fn().mockRejectedValue({
                 statusCode: 409,
-                data: { message: 'participant schedules conflict' },
+                data: { message: 'Conflict' },
             }),
         });
 
-        const result = await fieldSave.updateDirtyEventFields('event-1', true);
+        const result = await fieldSave.updateDirtyEventFields('event-1');
 
         expect(result).toBe(false);
-        expect(refreshFreeWindowsFromSlots).not.toHaveBeenCalled();
+        expect(formError.value).toBe('Conflict');
     });
 });

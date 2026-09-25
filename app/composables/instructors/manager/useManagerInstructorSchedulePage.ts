@@ -57,12 +57,22 @@ export function useManagerInstructorSchedulePage() {
 
     const {
         eventType,
+        eventDateLocal,
         eventStartLocal,
         eventEndLocal,
         eventVehicleId,
         eventCourseId,
         eventFormError,
         isEventSaving,
+        eventAvailabilityStatus,
+        eventAvailabilityMessage,
+        isEventSubmitReady,
+        eventMinDurationMinutes,
+        availableStartTimes,
+        availableEndTimes,
+        availableVehicleIds,
+        isAvailabilityOptionsLoading,
+        availabilityOptionsError,
         handleFocusEventForm,
         handleSubmitEvent,
     } = useManagerInstructorScheduleEventForm({
@@ -90,14 +100,6 @@ export function useManagerInstructorSchedulePage() {
         instructorId,
         () => {
             void loadInstructorSchoolContext();
-        },
-        { immediate: true },
-    );
-
-    watch(
-        schoolId,
-        () => {
-            void loadResources();
         },
         { immediate: true },
     );
@@ -132,6 +134,7 @@ export function useManagerInstructorSchedulePage() {
         coursesError,
         isCoursesLoading,
         eventType,
+        eventDateLocal,
         eventStartLocal,
         eventEndLocal,
         eventVehicleId,
@@ -139,6 +142,15 @@ export function useManagerInstructorSchedulePage() {
         eventFormError,
         deleteDialogOpen,
         isEventSaving,
+        eventAvailabilityStatus,
+        eventAvailabilityMessage,
+        isEventSubmitReady,
+        eventMinDurationMinutes,
+        availableStartTimes,
+        availableEndTimes,
+        availableVehicleIds,
+        isAvailabilityOptionsLoading,
+        availabilityOptionsError,
         isEventDeleteLoading,
         scheduleItemsCount,
         lessonItemsCount,
@@ -148,6 +160,7 @@ export function useManagerInstructorSchedulePage() {
         nextScheduledItemLabel,
         pendingDeleteTimeLabel,
         loadSchedule,
+        loadResources,
         handlePrevWeek,
         handleNextWeek,
         handleInstructorEventStatusChanged,

@@ -1,20 +1,10 @@
 import type { ComputedRef, Ref } from 'vue';
-import type {
-    FreeWindow,
-    InstructorEvent,
-} from '~/types/events/instructorEvent';
+import type { InstructorEvent } from '~/types/events/instructorEvent';
+import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
 import { useManagerEventEditActionLabels } from './useManagerEventEditActionLabels';
 import { useManagerEventEditDeleteAction } from './useManagerEventEditDeleteAction';
 import { useManagerEventEditFieldSave } from './useManagerEventEditFieldSave';
 import { useManagerEventEditParticipantsSave } from './useManagerEventEditParticipantsSave';
-
-type FetchEventById = (
-    id: string,
-    options?: {
-        includeSlots?: boolean;
-        skipTheoryStudentsSubresource?: boolean;
-    },
-) => Promise<InstructorEvent>;
 
 export function useManagerEventEditActions(input: {
     eventId: ComputedRef<string>;
@@ -27,8 +17,6 @@ export function useManagerEventEditActions(input: {
     formInstructorId: Ref<string>;
     formCapacityInput: Ref<string | number>;
     formError: Ref<string | null>;
-    freeWindows: Ref<FreeWindow[]>;
-    freeWindowsUnavailable: Ref<boolean>;
     isFormFieldsDirty: ComputedRef<boolean>;
     isTheoryStudentsDirty: ComputedRef<boolean>;
     theoryStudentsError: Ref<string | null>;
@@ -37,15 +25,10 @@ export function useManagerEventEditActions(input: {
     draftTheoryStudentUserIds: Ref<string[]>;
     parseCapacity: (raw: unknown) => number | null | false;
     localDatetimeToIso: (local: string) => string | null;
-    needsTimeOrInstructorSlotValidation: () => boolean;
-    refreshFreeWindowsFromSlots: (date: string) => Promise<void>;
-    fetchEventById: FetchEventById;
-    applyPrefill: (ev: InstructorEvent) => void;
-    syncFreeWindowsFromEvent: (ev: InstructorEvent) => void;
-    resetStudentDraftFromEvent: (ev: InstructorEvent | null) => void;
     refreshEligibleForCurrentTime: () => Promise<void>;
-    loadTheoryEligibleStudents: () => Promise<void>;
     sortedStudentIds: (ids: string[]) => string[];
+    eventAvailabilityMessage: Ref<string>;
+    recheckEventAvailability: () => Promise<ScheduleAvailabilityStatus>;
 }) {
     const {
         updateInstructorEvent,
@@ -53,14 +36,24 @@ export function useManagerEventEditActions(input: {
         isUpdateLoading,
         isDeleteLoading,
     } = useInstructorEventsApi();
-    const { replaceStudentsOnEvent, isReplacing } = useEventApi();
+    const {
+        replaceStudentsOnEvent,
+        checkStudentsAvailability,
+        isReplacing,
+        isCheckingStudentsAvailability,
+    } = useEventApi();
     const { addToast } = useAppToast();
 
     const isFormDirty = computed(
         () =>
             input.isFormFieldsDirty.value || input.isTheoryStudentsDirty.value,
     );
-    const isSaving = computed(() => isUpdateLoading.value || isReplacing.value);
+    const isSaving = computed(
+        () =>
+            isUpdateLoading.value ||
+            isReplacing.value ||
+            isCheckingStudentsAvailability.value,
+    );
 
     const { scheduleBackHref, deleteDialogTimeLabel, headerDateRangeLabel } =
         useManagerEventEditActionLabels({
@@ -85,18 +78,13 @@ export function useManagerEventEditActions(input: {
         addToast,
     });
     const { replaceDirtyParticipants } = useManagerEventEditParticipantsSave({
-        loadedEvent: input.loadedEvent,
         formStartLocal: input.formStartLocal,
         formEndLocal: input.formEndLocal,
         formError: input.formError,
         draftTheoryStudentUserIds: input.draftTheoryStudentUserIds,
         replaceStudentsOnEvent,
-        fetchEventById: input.fetchEventById,
-        applyPrefill: input.applyPrefill,
-        syncFreeWindowsFromEvent: input.syncFreeWindowsFromEvent,
-        resetStudentDraftFromEvent: input.resetStudentDraftFromEvent,
+        checkStudentsAvailability,
         refreshEligibleForCurrentTime: input.refreshEligibleForCurrentTime,
-        loadTheoryEligibleStudents: input.loadTheoryEligibleStudents,
         sortedStudentIds: input.sortedStudentIds,
         localDatetimeToIso: input.localDatetimeToIso,
     });
@@ -109,12 +97,11 @@ export function useManagerEventEditActions(input: {
         formInstructorId: input.formInstructorId,
         formCapacityInput: input.formCapacityInput,
         formError: input.formError,
-        freeWindows: input.freeWindows,
-        freeWindowsUnavailable: input.freeWindowsUnavailable,
         updateInstructorEvent,
         parseCapacity: input.parseCapacity,
         localDatetimeToIso: input.localDatetimeToIso,
-        refreshFreeWindowsFromSlots: input.refreshFreeWindowsFromSlots,
+        eventAvailabilityMessage: input.eventAvailabilityMessage,
+        recheckEventAvailability: input.recheckEventAvailability,
     });
 
     function handleCancel(): void {
@@ -166,14 +153,8 @@ export function useManagerEventEditActions(input: {
             }
         }
 
-        const shouldRefreshSlotsAfterPatch =
-            input.needsTimeOrInstructorSlotValidation();
-
         if (fieldsDirty) {
-            const didUpdate = await updateDirtyEventFields(
-                id,
-                shouldRefreshSlotsAfterPatch,
-            );
+            const didUpdate = await updateDirtyEventFields(id);
 
             if (!didUpdate) {
                 return;
@@ -181,10 +162,7 @@ export function useManagerEventEditActions(input: {
         }
 
         if (participantsDirty) {
-            const didReplace = await replaceDirtyParticipants(
-                id,
-                shouldRefreshSlotsAfterPatch,
-            );
+            const didReplace = await replaceDirtyParticipants(id, fieldsDirty);
 
             if (!didReplace) {
                 return;

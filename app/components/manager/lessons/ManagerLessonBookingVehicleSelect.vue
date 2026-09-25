@@ -1,10 +1,31 @@
 <script setup lang="ts">
 import type { Vehicle } from '~/types/vehicles/vehicle';
 
-defineProps<{
+const props = defineProps<{
     vehicles: readonly Vehicle[];
+    availableVehicleIds?: readonly string[];
     disabled: boolean;
 }>();
+
+function isVehicleDisabled(vehicle: Vehicle): boolean {
+    return (
+        vehicle.status === 'UNAVAILABLE' ||
+        (props.availableVehicleIds !== undefined &&
+            !props.availableVehicleIds.includes(vehicle.id))
+    );
+}
+
+function formatVehicleLabel(vehicle: Vehicle): string {
+    const model = vehicle.name
+        .trim()
+        .replace(/^pojazd\s+\d+\s*-\s*/i, '')
+        .trim();
+    const label = `${model || '-'} (${vehicle.registrationNumber.trim()})`;
+
+    return isVehicleDisabled(vehicle)
+        ? `${label} - niedostępny w tym terminie`
+        : label;
+}
 
 const selectedVehicleId = defineModel<string>('selectedVehicleId', {
     required: true,
@@ -36,14 +57,15 @@ const selectedVehicleId = defineModel<string>('selectedVehicleId', {
                         v-for="vehicle in vehicles"
                         :key="vehicle.id"
                         :value="vehicle.id"
+                        :disabled="isVehicleDisabled(vehicle)"
                     >
-                        {{ vehicle.name }} ({{ vehicle.registrationNumber }})
+                        {{ formatVehicleLabel(vehicle) }}
                     </UiSelectItem>
                 </UiSelectGroup>
             </UiSelectContent>
         </UiSelect>
         <p
-            v-if="vehicles.length === 0"
+            v-if="availableVehicleIds?.length === 0"
             class="text-muted-foreground text-xs"
             role="status"
         >

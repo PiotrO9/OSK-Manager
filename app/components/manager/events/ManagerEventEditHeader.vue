@@ -4,6 +4,7 @@ import { CalendarDays, Plus } from 'lucide-vue-next';
 defineProps<{
     dateRangeLabel: string;
     canSave: boolean;
+    isAvailabilityBlocking: boolean;
     isSaving: boolean;
     isDeleteLoading: boolean;
 }>();
@@ -28,7 +29,12 @@ defineProps<{
                 type="submit"
                 form="event-edit-form"
                 class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                :disabled="!canSave || isSaving || isDeleteLoading"
+                :disabled="
+                    !canSave ||
+                    isAvailabilityBlocking ||
+                    isSaving ||
+                    isDeleteLoading
+                "
             >
                 <Plus class="mr-2 size-4" aria-hidden="true" />
                 {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}

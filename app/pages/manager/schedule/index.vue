@@ -136,9 +136,7 @@ usePageMeta({
             class="border-border bg-background rounded-2xl border p-4 shadow-sm"
             :aria-busy="isSchoolsLoading"
         >
-            <div
-                class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-            >
+            <div class="flex items-center">
                 <div class="flex min-w-0 items-center gap-3">
                     <div
                         class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"
@@ -167,25 +165,6 @@ usePageMeta({
                             <span class="truncate">{{
                                 schoolLocationLabel
                             }}</span>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="grid gap-2 sm:grid-cols-3 lg:min-w-[420px]">
-                    <div class="border-border rounded-xl border px-3 py-2">
-                        <p class="text-muted-foreground text-xs">Tryb</p>
-                        <p class="text-foreground mt-1 font-extrabold">
-                            Manager
-                        </p>
-                    </div>
-                    <div class="border-border rounded-xl border px-3 py-2">
-                        <p class="text-muted-foreground text-xs">Zakres</p>
-                        <p class="text-foreground mt-1 font-extrabold">7 dni</p>
-                    </div>
-                    <div class="border-border rounded-xl border px-3 py-2">
-                        <p class="text-muted-foreground text-xs">Edycja</p>
-                        <p class="text-foreground mt-1 font-extrabold">
-                            Wlaczona
                         </p>
                     </div>
                 </div>

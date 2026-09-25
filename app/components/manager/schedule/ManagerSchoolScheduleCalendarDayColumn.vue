@@ -42,9 +42,6 @@ function emitBlockKeydown(
             <span class="text-foreground text-xs font-medium capitalize">
                 {{ day.header }}
             </span>
-            <UiBadge v-if="day.isToday" variant="secondary" class="mt-1">
-                dziś
-            </UiBadge>
         </div>
 
         <div

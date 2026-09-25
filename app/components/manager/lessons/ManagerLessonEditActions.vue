@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-vue-next';
 defineProps<{
     formId: string;
     canSave: boolean;
+    isAvailabilityBlocking: boolean;
     isSaving: boolean;
 }>();
 
@@ -21,7 +22,7 @@ defineEmits<{
         <UiButton
             type="submit"
             :form="formId"
-            :disabled="!canSave || isSaving"
+            :disabled="!canSave || isAvailabilityBlocking || isSaving"
             :aria-busy="isSaving"
         >
             {{ isSaving ? 'Zapisywanie...' : 'Zapisz' }}

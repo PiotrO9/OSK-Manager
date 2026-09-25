@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { BookOpen, Car } from 'lucide-vue-next';
+import { BookOpen } from 'lucide-vue-next';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import ManagerScheduleVehicleIcon from '~/components/manager/schedule/ManagerScheduleVehicleIcon.vue';
 import {
     buildStudentScheduleDayGroups,
     displayStudentScheduleTimeRange,
@@ -94,7 +95,11 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                                     v-if="isStudentScheduleTheoryItem(item)"
                                     class="size-4"
                                 />
-                                <Car v-else class="size-4" />
+                                <ManagerScheduleVehicleIcon
+                                    v-else
+                                    class="size-4"
+                                    :category-code="item.categoryCode"
+                                />
                             </span>
 
                             <div class="min-w-0">

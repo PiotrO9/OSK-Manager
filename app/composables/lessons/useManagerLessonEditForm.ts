@@ -4,6 +4,13 @@ import type {
     PatchManagerLessonPayload,
 } from '~/types/lessons/managerLesson';
 import { isoInstantToDatetimeLocalString } from '~/utils/date/weeklyCalendarDates';
+import { polishLocalDateTimeToIso } from '~/utils/date/polishScheduleTime';
+import { useScheduleAvailabilityCheck } from '~/composables/schedule/useScheduleAvailabilityCheck';
+import { useScheduleAvailabilityOptions } from '~/composables/schedule/useScheduleAvailabilityOptions';
+import type {
+    LessonEditAvailabilityOptionsRequest,
+    LessonEditAvailabilityRequest,
+} from '~/types/schedule/scheduleAvailability';
 
 export interface ManagerLessonEditSnapshot {
     start: string;
@@ -28,19 +35,7 @@ export function managerLessonIsoToDatetimeLocal(iso: string): string {
 }
 
 export function managerLessonLocalDatetimeToIso(local: string): string | null {
-    const t = local.trim();
-
-    if (!t) {
-        return null;
-    }
-
-    const d = new Date(t);
-
-    if (Number.isNaN(d.getTime())) {
-        return null;
-    }
-
-    return d.toISOString();
+    return polishLocalDateTimeToIso(local);
 }
 
 export function buildManagerLessonBaselineSnapshot(
@@ -96,6 +91,13 @@ export function buildManagerLessonPatchPayload(
         return {
             ok: false,
             error: 'Podaj początek i koniec lekcji (data i godzina).',
+        };
+    }
+
+    if (values.start.slice(0, 10) !== values.end.slice(0, 10)) {
+        return {
+            ok: false,
+            error: 'Początek i koniec lekcji muszą przypadać tego samego dnia.',
         };
     }
 
@@ -178,6 +180,138 @@ export function useManagerLessonEditForm(
         );
     });
 
+    const availabilityCandidate =
+        computed<LessonEditAvailabilityRequest | null>(() => {
+            const lesson = loadedLesson.value;
+            const [date = '', startTime = ''] = formStartLocal.value.split('T');
+            const [endDate = '', endTime = ''] = formEndLocal.value.split('T');
+            const instructorId = formInstructorId.value.trim();
+            const vehicleId = formVehicleId.value.trim();
+
+            if (
+                !lesson ||
+                !date ||
+                !startTime ||
+                !endTime ||
+                endDate !== date ||
+                !instructorId ||
+                !vehicleId
+            ) {
+                return null;
+            }
+
+            return {
+                intent: 'lesson_edit',
+                lessonId: lesson.id,
+                instructorId,
+                vehicleId,
+                date,
+                startTime,
+                endTime,
+            };
+        });
+    const availability = useScheduleAvailabilityCheck({
+        candidate: availabilityCandidate,
+        auto: false,
+    });
+    const availabilityOptionsCandidate =
+        computed<LessonEditAvailabilityOptionsRequest | null>(() => {
+            const lesson = loadedLesson.value;
+            const [date = ''] = formStartLocal.value.split('T');
+            const instructorId = formInstructorId.value.trim();
+            const vehicleId = formVehicleId.value.trim();
+
+            if (!lesson || !date || !instructorId) return null;
+
+            return {
+                intent: 'lesson_edit',
+                lessonId: lesson.id,
+                instructorId,
+                date,
+                ...(vehicleId ? { vehicleId } : {}),
+            };
+        });
+    const availabilityOptions = useScheduleAvailabilityOptions({
+        candidate: availabilityOptionsCandidate,
+    });
+    const availableStartTimes = computed<readonly string[] | undefined>(() =>
+        availabilityOptions.status.value === 'success'
+            ? (availabilityOptions.result.value?.options.map(
+                  (option) => option.startTime,
+              ) ?? [])
+            : undefined,
+    );
+    const availableEndTimes = computed<readonly string[] | undefined>(() => {
+        if (availabilityOptions.status.value !== 'success') return undefined;
+
+        const startTime = formStartLocal.value.split('T')[1] ?? '';
+
+        return (
+            availabilityOptions.result.value?.options.find(
+                (option) => option.startTime === startTime,
+            )?.endTimes ?? []
+        );
+    });
+    const availableVehicleIds = computed<readonly string[] | undefined>(() =>
+        availabilityOptions.status.value === 'success'
+            ? availabilityOptions.result.value?.availableVehicleIds
+            : undefined,
+    );
+    const isAvailabilityOptionsLoading = computed(
+        () => availabilityOptions.status.value === 'loading',
+    );
+    const availabilityOptionsError = computed(() =>
+        availabilityOptions.status.value === 'error'
+            ? 'Nie udało się pobrać dostępnych godzin. Termin zostanie sprawdzony przy zapisie.'
+            : '',
+    );
+    const lessonAvailabilityStatus = computed(() =>
+        isFormDirty.value ? availability.status.value : 'idle',
+    );
+    const lessonAvailabilityMessage = computed(() =>
+        isFormDirty.value ? availability.message.value : '',
+    );
+
+    watch(
+        () => availabilityOptions.result.value,
+        (next) => {
+            if (!next || !formVehicleId.value.trim()) return;
+
+            const first = next.options[0];
+
+            if (!first) {
+                formStartLocal.value = '';
+                formEndLocal.value = '';
+
+                return;
+            }
+
+            const date = availabilityOptionsCandidate.value?.date ?? '';
+            const currentStart = formStartLocal.value.split('T')[1] ?? '';
+            const currentEnd = formEndLocal.value.split('T')[1] ?? '';
+            const selected = next.options.find(
+                (option) => option.startTime === currentStart,
+            );
+
+            if (!selected) {
+                const firstEnd = first.endTimes[0];
+
+                if (!firstEnd) return;
+
+                formStartLocal.value = `${date}T${first.startTime}`;
+                formEndLocal.value = `${date}T${firstEnd}`;
+
+                return;
+            }
+
+            if (!selected.endTimes.includes(currentEnd)) {
+                const firstEnd = selected.endTimes[0];
+
+                if (firstEnd) formEndLocal.value = `${date}T${firstEnd}`;
+            }
+        },
+    );
+
     function buildPatchPayload(): ManagerLessonPatchBuildResult {
         return buildManagerLessonPatchPayload(baselineSnapshot.value, {
             start: formStartLocal.value,
@@ -198,5 +332,19 @@ export function useManagerLessonEditForm(
         isFormDirty,
         applyPrefill,
         buildPatchPayload,
+        lessonAvailabilityStatus,
+        lessonAvailabilityMessage,
+        availableStartTimes,
+        availableEndTimes,
+        availableVehicleIds,
+        isAvailabilityOptionsLoading,
+        availabilityOptionsError,
+        lessonMinDurationMinutes: computed(
+            () =>
+                availabilityOptions.result.value?.policy.minDurationMinutes ??
+                availability.result.value?.policy.minDurationMinutes ??
+                null,
+        ),
+        recheckLessonAvailability: availability.recheck,
     };
 }

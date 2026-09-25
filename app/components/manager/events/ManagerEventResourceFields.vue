@@ -5,7 +5,7 @@ import {
 } from '~/types/instructors/instructor';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 
-defineProps<{
+const props = defineProps<{
     eventType: string;
     schoolId: string;
     instructors: InstructorListItem[];
@@ -13,12 +13,33 @@ defineProps<{
     isInstructorsLoading: boolean;
     instructorsError: string | null;
     vehicles: Vehicle[];
+    availableVehicleIds?: readonly string[];
     isVehiclesLoading: boolean;
     vehiclesError: string | null;
     isSaving: boolean;
 }>();
 const instructorId = defineModel<string>('instructorId', { required: true });
 const vehicleId = defineModel<string>('vehicleId', { required: true });
+
+function formatVehicleOptionLabel(vehicle: Vehicle): string {
+    const model = vehicle.name
+        .trim()
+        .replace(/^pojazd\s+\d+\s*-\s*/i, '')
+        .trim();
+    const base = `${model || '-'} (${vehicle.registrationNumber.trim()})`;
+
+    return isVehicleDisabled(vehicle)
+        ? `${base} - niedostępny w tym dniu`
+        : base;
+}
+
+function isVehicleDisabled(vehicle: Vehicle): boolean {
+    return (
+        vehicle.status === 'UNAVAILABLE' ||
+        (props.availableVehicleIds !== undefined &&
+            !props.availableVehicleIds.includes(vehicle.id))
+    );
+}
 </script>
 
 <template>
@@ -121,8 +142,9 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
                             v-for="v in vehicles"
                             :key="v.id"
                             :value="v.id"
+                            :disabled="isVehicleDisabled(v)"
                         >
-                            {{ v.name }} ({{ v.registrationNumber }})
+                            {{ formatVehicleOptionLabel(v) }}
                         </UiSelectItem>
                     </UiSelectGroup>
                 </UiSelectContent>

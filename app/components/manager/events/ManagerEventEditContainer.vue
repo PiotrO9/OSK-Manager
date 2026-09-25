@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import type {
-    FreeWindow,
-    InstructorEvent,
-} from '~/types/events/instructorEvent';
+import type { InstructorEvent } from '~/types/events/instructorEvent';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
 const { eventId, schoolId } = useManagerEventEditPage();
 
 const loadedEvent = ref<InstructorEvent | null>(null);
-const freeWindows = ref<FreeWindow[]>([]);
-const freeWindowsUnavailable = ref(false);
 
 const {
     formType,
@@ -26,7 +21,6 @@ const {
     formCapacityInput,
     formError,
     isFormFieldsDirty,
-    currentFormDate,
     pickerMinDate,
     pickerMaxDate,
     startHourOptionsResolved,
@@ -36,7 +30,12 @@ const {
     applyPrefill,
     parseCapacity,
     localDatetimeToIso,
-    needsTimeOrInstructorSlotValidation,
+    eventAvailabilityStatus,
+    eventAvailabilityMessage,
+    availableVehicleIds,
+    isAvailabilityOptionsLoading,
+    availabilityOptionsError,
+    recheckEventAvailability,
     handleStartDateChange,
     handleStartHourChange,
     handleStartMinuteChange,
@@ -45,20 +44,6 @@ const {
     handleEndMinuteChange,
 } = useManagerEventEditForm({
     loadedEvent,
-    freeWindows,
-    freeWindowsUnavailable,
-});
-
-const {
-    isSlotsLoading,
-    syncFreeWindowsFromEvent,
-    refreshFreeWindowsFromSlots,
-    skipNextSlotsRefresh,
-} = useManagerEventSlots({
-    formInstructorId,
-    currentFormDate,
-    freeWindows,
-    freeWindowsUnavailable,
 });
 
 const {
@@ -73,7 +58,6 @@ const {
     qualifiedInstructorsForEvent,
     instructorSelectLabel,
     isFetchLoading,
-    fetchEventById,
     fetchTheoryEventEligibleStudents,
     loadEvent,
 } = useManagerEventEditData({
@@ -83,8 +67,6 @@ const {
     formType,
     formInstructorId,
     applyPrefill,
-    syncFreeWindowsFromEvent,
-    skipNextSlotsRefresh,
 });
 
 const {
@@ -102,8 +84,6 @@ const {
     isTheoryRowChecked,
     isTheoryEligibleRowInteractive,
     handleToggleTheoryStudent,
-    loadTheoryEligibleStudents,
-    resetStudentDraftFromEvent,
     refreshEligibleForCurrentTime,
 } = useManagerEventParticipants({
     eventId,
@@ -141,8 +121,6 @@ const {
     formInstructorId,
     formCapacityInput,
     formError,
-    freeWindows,
-    freeWindowsUnavailable,
     isFormFieldsDirty,
     isTheoryStudentsDirty,
     theoryStudentsError,
@@ -151,15 +129,10 @@ const {
     draftTheoryStudentUserIds,
     parseCapacity,
     localDatetimeToIso,
-    needsTimeOrInstructorSlotValidation,
-    refreshFreeWindowsFromSlots,
-    fetchEventById,
-    applyPrefill,
-    syncFreeWindowsFromEvent,
-    resetStudentDraftFromEvent,
     refreshEligibleForCurrentTime,
-    loadTheoryEligibleStudents,
     sortedStudentIds,
+    eventAvailabilityMessage,
+    recheckEventAvailability,
 });
 </script>
 
@@ -168,6 +141,10 @@ const {
         <ManagerEventEditHeader
             :date-range-label="headerDateRangeLabel"
             :can-save="Boolean(loadedEvent) && isFormDirty"
+            :is-availability-blocking="
+                eventAvailabilityStatus === 'checking' ||
+                eventAvailabilityStatus === 'unavailable'
+            "
             :is-saving="isSaving"
             :is-delete-loading="isDeleteLoading"
         />
@@ -211,8 +188,11 @@ const {
                 :school-id="schoolId"
                 :header-date-range-label="headerDateRangeLabel"
                 :form-error="formError"
-                :is-slots-loading="isSlotsLoading"
-                :free-windows-unavailable="freeWindowsUnavailable"
+                :event-availability-status="eventAvailabilityStatus"
+                :event-availability-message="eventAvailabilityMessage"
+                :available-vehicle-ids="availableVehicleIds"
+                :is-availability-options-loading="isAvailabilityOptionsLoading"
+                :availability-options-error="availabilityOptionsError"
                 :is-saving="isSaving"
                 :is-delete-loading="isDeleteLoading"
                 :is-form-dirty="isFormDirty"

@@ -30,6 +30,8 @@ export interface ScheduleLessonItem {
     status: string;
     startTime: string;
     endTime: string;
+    /** Kod kategorii kursu, np. `A`, `B`, `C`; brak dla bloków bez kursu. */
+    categoryCode?: string | null;
     instructor?: SchedulePersonRef;
     student?: SchedulePersonRef;
     vehicle?: ScheduleVehicleRef;

@@ -8,6 +8,7 @@ export interface ScheduleItemResponse {
     status: string;
     startTime: string;
     endTime: string;
+    categoryCode?: string | null;
     instructor?: { id: string; firstName: string; lastName: string };
     student?: { id: string; firstName: string; lastName: string };
     vehicle?: { id: string; name: string; registrationNumber: string };

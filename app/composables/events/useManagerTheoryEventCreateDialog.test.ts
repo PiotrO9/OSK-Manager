@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch, type Ref } from 'vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
@@ -12,6 +12,14 @@ const createInstructorEvent = vi.fn();
 const fetchCoursesList = vi.fn();
 const fetchInstructorsList = vi.fn();
 const isEventCreating = ref(false);
+const availabilityStatus = ref<'idle' | 'unavailable'>('idle');
+const availabilityMessage = ref('');
+const recheckAvailability = vi.fn();
+const useScheduleAvailabilityCheck = vi.fn((_options: unknown) => ({
+    status: availabilityStatus,
+    message: availabilityMessage,
+    recheck: recheckAvailability,
+}));
 
 function deferred<T>() {
     let resolve!: (value: T | PromiseLike<T>) => void;
@@ -38,6 +46,7 @@ function installGlobals(): void {
     vi.stubGlobal('useInstructorsApi', () => ({
         fetchList: fetchInstructorsList,
     }));
+    vi.stubGlobal('useScheduleAvailabilityCheck', useScheduleAvailabilityCheck);
 }
 
 function slotCtx(
@@ -120,6 +129,9 @@ describe('useManagerTheoryEventCreateDialog', () => {
             capacity: null,
         });
         isEventCreating.value = false;
+        availabilityStatus.value = 'idle';
+        availabilityMessage.value = '';
+        recheckAvailability.mockResolvedValue('available');
         installGlobals();
     });
 
@@ -207,13 +219,27 @@ describe('useManagerTheoryEventCreateDialog', () => {
         page.selectedCourseId.value = ' course-1 ';
         page.capacityInput.value = '20';
 
+        const options = useScheduleAvailabilityCheck.mock.calls[0]?.[0] as {
+            candidate: Readonly<Ref<Record<string, string> | null>>;
+        };
+
+        expect(options.candidate.value).toEqual({
+            intent: 'event_create',
+            instructorId: 'instructor-1',
+            eventType: 'THEORY',
+            date: '2026-08-20',
+            startTime: '10:00',
+            endTime: '11:30',
+            courseId: 'course-1',
+        });
+
         await page.handleSubmit();
 
         expect(createInstructorEvent).toHaveBeenCalledWith({
             instructorId: 'instructor-1',
             type: 'THEORY',
-            startTime: '2026-08-20T10:00:00.000Z',
-            endTime: '2026-08-20T11:30:00.000Z',
+            startTime: '2026-08-20T08:00:00.000Z',
+            endTime: '2026-08-20T09:30:00.000Z',
             capacity: 20,
             courseId: 'course-1',
         });
@@ -222,6 +248,31 @@ describe('useManagerTheoryEventCreateDialog', () => {
             capacity: 20,
         });
         expect(open.value).toBe(false);
+    });
+
+    it('keeps the dialog open when the theory slot is unavailable', async () => {
+        availabilityStatus.value = 'unavailable';
+        availabilityMessage.value =
+            'Instruktor nie jest dostępny w tym terminie.';
+        recheckAvailability.mockResolvedValue('unavailable');
+        const open = ref(true);
+        const emitCreated = vi.fn();
+        const page = useManagerTheoryEventCreateDialog({
+            open,
+            schoolId: ref('school-1'),
+            slotCtx: ref(slotCtx()),
+            emitCreated,
+        });
+
+        page.selectedInstructorId.value = 'instructor-1';
+        await page.handleSubmit();
+
+        expect(createInstructorEvent).not.toHaveBeenCalled();
+        expect(emitCreated).not.toHaveBeenCalled();
+        expect(page.formError.value).toBe(
+            'Instruktor nie jest dostępny w tym terminie.',
+        );
+        expect(open.value).toBe(true);
     });
 
     it('ignores submit while theory event creation is already pending', async () => {

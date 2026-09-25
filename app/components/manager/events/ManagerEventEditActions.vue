@@ -3,6 +3,7 @@ defineProps<{
     isSaving: boolean;
     isDeleteLoading: boolean;
     isFormDirty: boolean;
+    isAvailabilityBlocking: boolean;
 }>();
 
 defineEmits<{
@@ -25,7 +26,12 @@ defineEmits<{
         <UiButton
             type="submit"
             class="rounded-xl"
-            :disabled="isSaving || isDeleteLoading || !isFormDirty"
+            :disabled="
+                isSaving ||
+                isDeleteLoading ||
+                isAvailabilityBlocking ||
+                !isFormDirty
+            "
         >
             {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
         </UiButton>

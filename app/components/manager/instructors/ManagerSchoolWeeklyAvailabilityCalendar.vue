@@ -36,6 +36,12 @@ const {
     handleCalendarUpdate,
     handleKeyDownWeekNav,
 } = useManagerSchoolWeeklyAvailabilityCalendar(() => props.schoolId);
+
+function getInstructorCountLabel(instructorCount: number): string {
+    return `${instructorCount} ${
+        instructorCount === 1 ? 'instruktor' : 'instruktorów'
+    }`;
+}
 </script>
 
 <template>
@@ -169,7 +175,7 @@ const {
                                 >
                                     <button
                                         type="button"
-                                        class="border-primary bg-primary-50/90 text-primary-800 hover:bg-primary-100 focus-visible:ring-ring absolute right-1 left-1 overflow-hidden rounded-lg border border-l-4 px-2 py-1 text-left text-xs leading-tight shadow-sm transition focus-visible:ring-2 focus-visible:outline-none"
+                                        class="border-primary bg-primary-50/90 text-primary-800 hover:bg-primary-100 focus-visible:ring-ring absolute right-1 left-1 cursor-pointer overflow-hidden rounded-lg border border-l-4 px-2 py-1 text-left text-xs leading-tight shadow-sm transition focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed"
                                         :style="{
                                             top: `${slotTopPx(slot.startTime)}px`,
                                             height: '52px',
@@ -183,11 +189,13 @@ const {
                                             Dostępny
                                         </span>
                                         <span
-                                            v-if="slot.instructorCount > 1"
                                             class="text-primary-700 block truncate text-[10px]"
                                         >
-                                            {{ slot.instructorCount }}
-                                            instruktorów
+                                            {{
+                                                getInstructorCountLabel(
+                                                    slot.instructorCount,
+                                                )
+                                            }}
                                         </span>
                                         <span
                                             class="text-primary-700/80 block truncate text-[10px]"

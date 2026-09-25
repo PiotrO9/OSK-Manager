@@ -14,6 +14,15 @@ export interface ReplaceStudentsOnEventResponse {
     studentUserIds: string[];
 }
 
+export interface EventStudentsAvailabilityResponse {
+    available: boolean;
+    issues: Array<{
+        code: 'EVENT_CAPACITY_EXCEEDED' | 'STUDENT_SCHEDULE_CONFLICT';
+        message: string;
+        studentUserIds?: string[];
+    }>;
+}
+
 /** Odpowiedź DELETE /events/:eventId/students/:studentUserId. */
 export interface RemoveStudentsFromEventResponse {
     studentUserIds: string[];

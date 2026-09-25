@@ -19,8 +19,6 @@ export function useManagerEventEditData(input: {
     formType: EventTypeRef;
     formInstructorId: Ref<string>;
     applyPrefill: (ev: InstructorEvent) => void;
-    syncFreeWindowsFromEvent: (ev: InstructorEvent) => void;
-    skipNextSlotsRefresh: () => void;
 }) {
     const { fetchEventById, fetchTheoryEventEligibleStudents, isFetchLoading } =
         useInstructorEventsApi();
@@ -62,16 +60,14 @@ export function useManagerEventEditData(input: {
         input.loadedEvent.value = null;
 
         try {
-            const event = await fetchEventById(id, { includeSlots: true });
+            const event = await fetchEventById(id);
 
             if (seq !== loadSeq) {
                 return;
             }
 
             input.loadedEvent.value = event;
-            input.skipNextSlotsRefresh();
             input.applyPrefill(event);
-            input.syncFreeWindowsFromEvent(event);
         } catch (err: unknown) {
             if (seq !== loadSeq) {
                 return;

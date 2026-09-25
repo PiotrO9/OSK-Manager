@@ -15,6 +15,7 @@ import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
 export interface LessonBookingModalData {
     students: StudentListItem[];
     vehicles: Vehicle[];
+    availableVehicleIds: string[];
 }
 
 export function useLessonBookingApi() {
@@ -51,7 +52,7 @@ export function useLessonBookingApi() {
         const sid = ctx.schoolId.trim();
 
         if (!sid) {
-            return { students: [], vehicles: [] };
+            return { students: [], vehicles: [], availableVehicleIds: [] };
         }
 
         const startIso = buildSlotIsoUTC(ctx.date, ctx.startTime);
@@ -61,14 +62,25 @@ export function useLessonBookingApi() {
         modalError.value = null;
 
         try {
-            const [page, vehicles] = await Promise.all([
+            const [page, vehicles, availableVehicles] = await Promise.all([
                 fetchList({ schoolId: sid, page: 1, limit: 100 }),
+                requestBffData<Vehicle[]>(
+                    'GET',
+                    `/api/vehicles?${new URLSearchParams({ schoolId: sid }).toString()}`,
+                    {
+                        fallbackMessage: 'Nie udało się pobrać listy pojazdów.',
+                        normalize: (data) => normalizeVehiclesList(data),
+                    },
+                ),
                 fetchVehiclesForSlot(sid, startIso, endIso),
             ]);
 
             return {
                 students: page.items,
                 vehicles,
+                availableVehicleIds: availableVehicles.map(
+                    (vehicle) => vehicle.id,
+                ),
             };
         } catch (err: unknown) {
             modalError.value = getApiFetchErrorMessage(

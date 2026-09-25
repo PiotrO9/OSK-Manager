@@ -16,6 +16,7 @@ const lessons: readonly ScheduleLessonItem[] = [
             name: 'Toyota Yaris',
             registrationNumber: 'EZG 4K21',
         },
+        categoryCode: 'B',
     },
     {
         id: 'lesson-2',
