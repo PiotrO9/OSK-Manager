@@ -40,7 +40,10 @@ const calendarOpen = computed({
             </div>
 
             <div class="min-w-0">
-                <UiCardTitle class="text-xl font-extrabold">
+                <UiCardTitle
+                    id="instructor-slots-week-heading"
+                    class="text-xl font-extrabold"
+                >
                     Wolne sloty instruktora
                 </UiCardTitle>
                 <UiCardDescription class="mt-1">

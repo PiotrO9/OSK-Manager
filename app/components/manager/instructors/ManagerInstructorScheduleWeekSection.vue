@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Pencil, Trash2, X } from 'lucide-vue-next';
+import { Pencil, Trash2, X } from 'lucide-vue-next';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { buildScheduleManagerItemEditRoute } from '~/utils/schedule/scheduleManagerEditNavigation';
@@ -89,35 +89,12 @@ function setScheduleView(value: ScheduleViewMode): void {
 </script>
 
 <template>
-    <section
-        class="border-border bg-card overflow-hidden rounded-xl border shadow-xs"
-        aria-labelledby="schedule-week-heading"
+    <WeekCalendarPanel
+        title="Terminarz"
+        description="Tygodniowy harmonogram jazd, teorii i bloków."
+        heading-id="schedule-week-heading"
     >
-        <div
-            class="border-border flex flex-col gap-4 border-b p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between"
-        >
-            <div class="flex min-w-0 gap-3">
-                <div
-                    class="bg-primary-50 text-primary-600 flex size-10 shrink-0 items-center justify-center rounded-xl"
-                    aria-hidden="true"
-                >
-                    <CalendarDays class="size-5" />
-                </div>
-                <div class="min-w-0">
-                    <h2
-                        id="schedule-week-heading"
-                        class="text-foreground text-lg font-semibold"
-                    >
-                        Terminarz
-                    </h2>
-                    <p
-                        class="text-muted-foreground mt-1 text-sm leading-relaxed"
-                    >
-                        Tygodniowy harmonogram jazd, teorii i bloków.
-                    </p>
-                </div>
-            </div>
-
+        <template #actions>
             <div
                 class="grid w-full grid-cols-2 gap-2 sm:w-auto"
                 role="tablist"
@@ -150,9 +127,9 @@ function setScheduleView(value: ScheduleViewMode): void {
                     Lista
                 </UiButton>
             </div>
-        </div>
+        </template>
 
-        <div class="space-y-3 p-2 sm:p-3">
+        <div class="space-y-3">
             <div
                 v-if="scheduleView === 'calendar'"
                 id="instructor-schedule-calendar-panel"
@@ -323,5 +300,5 @@ function setScheduleView(value: ScheduleViewMode): void {
                 </UiButton>
             </div>
         </div>
-    </section>
+    </WeekCalendarPanel>
 </template>

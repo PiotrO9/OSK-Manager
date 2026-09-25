@@ -132,14 +132,14 @@ defineExpose({
     <UiCard
         :class="
             compactChrome
-                ? 'overflow-hidden rounded-xl py-0 shadow-xs'
+                ? 'overflow-visible rounded-none border-0 bg-transparent py-0 shadow-none'
                 : 'overflow-hidden rounded-2xl shadow-sm'
         "
     >
         <UiCardContent
-            :class="compactChrome ? 'space-y-3 p-2 sm:p-3' : 'space-y-4 p-4'"
+            :class="compactChrome ? 'space-y-3 p-0' : 'space-y-4 p-4'"
         >
-            <ManagerScheduleWeekToolbar
+            <WeekCalendarToolbar
                 v-model:calendar-open="isCalendarOpen"
                 :is-loading="displayLoading"
                 :compact-week-range-label="compactWeekRangeLabel"
@@ -147,6 +147,7 @@ defineExpose({
                 :compact="compactChrome"
                 :min-value="WEEK_PICKER_CALENDAR_MIN"
                 :max-value="WEEK_PICKER_CALENDAR_MAX"
+                aria-label="Nawigacja tygodnia harmonogramu lekcji"
                 @previous="handlePrevWeek"
                 @next="handleNextWeek"
                 @previous-keydown="handleKeyDownWeekNav($event, 'prev')"

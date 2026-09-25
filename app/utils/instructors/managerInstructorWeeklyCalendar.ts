@@ -20,6 +20,19 @@ export interface ManagerInstructorBusiestDay {
     count: number;
 }
 
+export interface ConnectedInstructorSlot {
+    slot: AvailabilitySlot;
+    joinsPrevious: boolean;
+    joinsNext: boolean;
+}
+
+export interface ManagerInstructorSlotRun {
+    date: string;
+    startTime: string;
+    endTime: string;
+    slots: AvailabilitySlot[];
+}
+
 function parseTimeToMinutes(time: string): number | null {
     const parts = time.trim().split(':').map(Number);
 
@@ -191,6 +204,58 @@ export function groupManagerInstructorSlotsByDate(
     }
 
     return map;
+}
+
+/** Łączy tylko wygląd sąsiadujących terminów; każdy slot pozostaje osobnym wyborem. */
+export function connectManagerInstructorAdjacentSlots(
+    slots: readonly AvailabilitySlot[],
+): ConnectedInstructorSlot[] {
+    const sorted = [...slots].sort(
+        (a, b) =>
+            a.date.localeCompare(b.date) ||
+            a.startTime.localeCompare(b.startTime) ||
+            a.endTime.localeCompare(b.endTime),
+    );
+
+    return sorted.map((slot, index) => {
+        const previous = sorted[index - 1];
+        const next = sorted[index + 1];
+
+        return {
+            slot,
+            joinsPrevious:
+                previous?.date === slot.date &&
+                previous.endTime === slot.startTime,
+            joinsNext:
+                next?.date === slot.date && slot.endTime === next.startTime,
+        };
+    });
+}
+
+/** Grupuje stykające się terminy wizualnie, bez zmiany pojedynczych slotów do rezerwacji. */
+export function groupManagerInstructorSlotRuns(
+    slots: readonly AvailabilitySlot[],
+): ManagerInstructorSlotRun[] {
+    const runs: ManagerInstructorSlotRun[] = [];
+
+    for (const connected of connectManagerInstructorAdjacentSlots(slots)) {
+        const { slot } = connected;
+        const previousRun = runs[runs.length - 1];
+
+        if (connected.joinsPrevious && previousRun) {
+            previousRun.endTime = slot.endTime;
+            previousRun.slots.push(slot);
+        } else {
+            runs.push({
+                date: slot.date,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                slots: [slot],
+            });
+        }
+    }
+
+    return runs;
 }
 
 export function getManagerInstructorEarliestSlotLabel(

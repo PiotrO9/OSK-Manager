@@ -47,17 +47,16 @@ const {
     <UiDialog v-model:open="open">
         <UiDialogContent
             :show-close-button="!isCreating"
-            :close-on-outside-click="false"
+            :close-on-outside-click="!isCreating"
             :aria-describedby="DESCRIPTION_ID"
             class="max-h-[90vh] max-w-lg overflow-y-auto"
         >
             <UiDialogHeader>
                 <UiDialogTitle>Rezerwuj lekcję</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Utworzenie jazdy praktycznej przez
-                    <span class="font-mono">POST /api/lessons</span>. Wybierz
-                    kursanta, kurs praktyczny lub dodatkowy oraz pojazd. Lekcji
-                    teoretycznych nie planuje się w tym oknie — są grupowe.
+                    Wybierz kursanta, kurs praktyczny lub dodatkowy oraz pojazd,
+                    aby zarezerwować jazdę. Lekcje teoretyczne planuje się
+                    osobno.
                 </UiDialogDescription>
             </UiDialogHeader>
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     buildManagerInstructorWeekDays,
+    connectManagerInstructorAdjacentSlots,
     formatManagerInstructorWeekRangeCompactLabel,
     formatManagerInstructorWeekRangeLabel,
     getManagerInstructorBusiestDay,
@@ -9,6 +10,7 @@ import {
     getManagerInstructorSlotHeightPx,
     getManagerInstructorSlotTopPx,
     getManagerInstructorVisibleHourRange,
+    groupManagerInstructorSlotRuns,
     groupManagerInstructorSlotsByDate,
 } from './managerInstructorWeeklyCalendar';
 
@@ -80,6 +82,88 @@ describe('manager instructor weekly calendar model', () => {
             '10:00',
         ]);
         expect(grouped.get('2026-09-08')).toHaveLength(1);
+    });
+
+    it('marks only directly touching slots in the same day as connected', () => {
+        const connected = connectManagerInstructorAdjacentSlots([
+            { date: '2026-09-07', startTime: '11:00', endTime: '12:00' },
+            { date: '2026-09-07', startTime: '10:00', endTime: '11:00' },
+            { date: '2026-09-07', startTime: '12:00', endTime: '13:00' },
+            { date: '2026-09-07', startTime: '14:00', endTime: '15:00' },
+            { date: '2026-09-08', startTime: '15:00', endTime: '16:00' },
+        ]);
+
+        expect(
+            connected.map(({ slot, joinsPrevious, joinsNext }) => ({
+                startTime: slot.startTime,
+                joinsPrevious,
+                joinsNext,
+            })),
+        ).toEqual([
+            { startTime: '10:00', joinsPrevious: false, joinsNext: true },
+            { startTime: '11:00', joinsPrevious: true, joinsNext: true },
+            { startTime: '12:00', joinsPrevious: true, joinsNext: false },
+            { startTime: '14:00', joinsPrevious: false, joinsNext: false },
+            { startTime: '15:00', joinsPrevious: false, joinsNext: false },
+        ]);
+    });
+
+    it('does not connect overlapping slots', () => {
+        const connected = connectManagerInstructorAdjacentSlots([
+            { date: '2026-09-07', startTime: '10:00', endTime: '11:30' },
+            { date: '2026-09-07', startTime: '11:00', endTime: '12:00' },
+        ]);
+
+        expect(
+            connected.every((item) => !item.joinsPrevious && !item.joinsNext),
+        ).toBe(true);
+    });
+
+    it('groups consecutive slots into one visual run while retaining exact bookable slots', () => {
+        const runs = groupManagerInstructorSlotRuns([
+            { date: '2026-09-07', startTime: '11:00', endTime: '12:00' },
+            { date: '2026-09-07', startTime: '10:00', endTime: '11:00' },
+            { date: '2026-09-07', startTime: '12:00', endTime: '13:00' },
+            { date: '2026-09-07', startTime: '14:00', endTime: '15:00' },
+            { date: '2026-09-08', startTime: '15:00', endTime: '16:00' },
+        ]);
+
+        expect(
+            runs.map(({ date, startTime, endTime, slots }) => ({
+                date,
+                startTime,
+                endTime,
+                bookableTimes: slots.map((slot) => slot.startTime),
+            })),
+        ).toEqual([
+            {
+                date: '2026-09-07',
+                startTime: '10:00',
+                endTime: '13:00',
+                bookableTimes: ['10:00', '11:00', '12:00'],
+            },
+            {
+                date: '2026-09-07',
+                startTime: '14:00',
+                endTime: '15:00',
+                bookableTimes: ['14:00'],
+            },
+            {
+                date: '2026-09-08',
+                startTime: '15:00',
+                endTime: '16:00',
+                bookableTimes: ['15:00'],
+            },
+        ]);
+    });
+
+    it('keeps overlapping slots in separate visual runs', () => {
+        const runs = groupManagerInstructorSlotRuns([
+            { date: '2026-09-07', startTime: '10:00', endTime: '11:30' },
+            { date: '2026-09-07', startTime: '11:00', endTime: '12:00' },
+        ]);
+
+        expect(runs).toHaveLength(2);
     });
 
     it('returns earliest slot label and busiest day', () => {

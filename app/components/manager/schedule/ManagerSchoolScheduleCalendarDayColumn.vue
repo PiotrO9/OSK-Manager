@@ -35,14 +35,7 @@ function emitBlockKeydown(
 
 <template>
     <div class="border-border flex min-w-0 flex-col border-r last:border-r-0">
-        <div
-            class="border-border flex h-12 shrink-0 flex-col items-center justify-center border-b px-1 text-center"
-            :class="day.isToday ? 'bg-primary/10 font-semibold' : ''"
-        >
-            <span class="text-foreground text-xs font-medium capitalize">
-                {{ day.header }}
-            </span>
-        </div>
+        <WeekCalendarDayHeader :label="day.header" :is-today="day.isToday" />
 
         <div
             class="border-border relative border-b"

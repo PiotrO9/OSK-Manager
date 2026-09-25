@@ -11,6 +11,7 @@ export function useManagerInstructorSchoolContext(input: {
     instructorId: Ref<string>;
 }) {
     const schoolId = ref('');
+    const instructor = ref<InstructorDetail | null>(null);
     const isSchoolContextLoading = ref(false);
     const schoolContextError = ref<string | null>(null);
     let fetchSeq = 0;
@@ -20,6 +21,7 @@ export function useManagerInstructorSchoolContext(input: {
         const seq = ++fetchSeq;
 
         schoolId.value = '';
+        instructor.value = null;
         schoolContextError.value = null;
 
         if (!id) {
@@ -53,6 +55,7 @@ export function useManagerInstructorSchoolContext(input: {
             }
 
             schoolId.value = normalized.schoolId;
+            instructor.value = normalized;
         } catch (err: unknown) {
             if (seq !== fetchSeq) {
                 return;
@@ -71,6 +74,7 @@ export function useManagerInstructorSchoolContext(input: {
 
     return {
         schoolId,
+        instructor,
         isSchoolContextLoading,
         schoolContextError,
         loadInstructorSchoolContext,

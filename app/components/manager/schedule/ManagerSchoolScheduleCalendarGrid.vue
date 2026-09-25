@@ -86,7 +86,7 @@ function emitBlockKeydown(
                 role="grid"
                 :aria-label="`Harmonogram lekcji, ${state.weekRangeLabel}`"
             >
-                <ManagerScheduleHourGutter
+                <WeekCalendarHourGutter
                     :hour-labels="layout.hourLabels"
                     :grid-height-px="layout.gridHeightPx"
                 />
