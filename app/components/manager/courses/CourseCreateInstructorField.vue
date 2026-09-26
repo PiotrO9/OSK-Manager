@@ -6,8 +6,11 @@ const props = defineProps<{
     instructors: InstructorListItem[];
     qualifiedInstructors: InstructorListItem[];
     isInstructorsLoading: boolean;
+    instructorsLoadError: string | null;
     isDisabled: boolean;
 }>();
+
+defineEmits<{ retry: [] }>();
 
 const instructorIdModel = defineModel<string>('instructorId', {
     required: true,
@@ -20,6 +23,22 @@ const instructorIdModel = defineModel<string>('instructorId', {
             Instruktor (opcjonalnie)
         </UiLabel>
         <p
+            v-if="props.instructorsLoadError"
+            class="text-destructive text-sm"
+            role="alert"
+        >
+            {{ props.instructorsLoadError }}
+        </p>
+        <UiButton
+            v-if="props.instructorsLoadError"
+            type="button"
+            variant="outline"
+            size="sm"
+            @click="$emit('retry')"
+        >
+            Spróbuj ponownie
+        </UiButton>
+        <p
             v-if="props.isInstructorsLoading"
             class="text-muted-foreground text-sm"
             role="status"
@@ -27,7 +46,7 @@ const instructorIdModel = defineModel<string>('instructorId', {
             Wczytywanie listy instruktorów…
         </p>
         <UiSelect
-            v-else
+            v-else-if="!props.instructorsLoadError"
             v-model="instructorIdModel"
             :disabled="props.isDisabled"
         >
@@ -56,7 +75,11 @@ const instructorIdModel = defineModel<string>('instructorId', {
             </UiSelectContent>
         </UiSelect>
         <p
-            v-if="!props.isInstructorsLoading && props.instructors.length === 0"
+            v-if="
+                !props.isInstructorsLoading &&
+                !props.instructorsLoadError &&
+                props.instructors.length === 0
+            "
             class="text-muted-foreground text-sm"
             role="status"
         >
@@ -66,6 +89,7 @@ const instructorIdModel = defineModel<string>('instructorId', {
         <p
             v-else-if="
                 !props.isInstructorsLoading &&
+                !props.instructorsLoadError &&
                 props.qualifiedInstructors.length === 0
             "
             class="text-muted-foreground text-sm"

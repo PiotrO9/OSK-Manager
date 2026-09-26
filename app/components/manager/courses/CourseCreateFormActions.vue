@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import { buttonVariants } from '~/components/shadcn/button';
-
 defineProps<{
     schoolId: string;
     isSaving: boolean;
@@ -10,34 +7,30 @@ defineProps<{
 </script>
 
 <template>
-    <div
-        class="border-border bg-muted/10 flex flex-col-reverse gap-2 border-t px-4 py-4 sm:flex-row sm:justify-end md:px-5"
-    >
-        <UiButton
-            as-child
-            variant="outline"
-            class="h-10 rounded-xl px-4 font-semibold shadow-sm"
+    <div class="border-border bg-muted/20 border-t px-4 py-4 sm:px-6">
+        <ActionGroup
+            label="Akcje tworzenia kursu"
+            align="end"
+            class="max-sm:[&>*]:w-full"
         >
-            <NuxtLink
-                :to="{
-                    path: '/manager/courses',
-                    query: { schoolId },
-                }"
+            <UiButton as-child variant="outline" class="h-11 sm:h-10">
+                <NuxtLink
+                    :to="{
+                        path: '/manager/courses',
+                        query: { schoolId },
+                    }"
+                >
+                    Anuluj
+                </NuxtLink>
+            </UiButton>
+            <UiButton
+                type="submit"
+                class="h-11 sm:h-10"
+                :disabled="isSaving || isBlocked"
+                :aria-busy="isSaving"
             >
-                Anuluj
-            </NuxtLink>
-        </UiButton>
-        <button
-            type="submit"
-            :class="
-                cn(
-                    buttonVariants(),
-                    'h-10 rounded-xl px-4 font-semibold shadow-sm',
-                )
-            "
-            :disabled="isSaving || isBlocked"
-        >
-            {{ isSaving ? 'Tworzenie…' : 'Zapisz' }}
-        </button>
+                {{ isSaving ? 'Tworzenie…' : 'Zapisz' }}
+            </UiButton>
+        </ActionGroup>
     </div>
 </template>

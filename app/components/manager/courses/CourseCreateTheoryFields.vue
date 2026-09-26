@@ -28,15 +28,21 @@ const formMessages = courseCreateFormMessages;
             :disabled="props.isDisabled"
             trigger-class="h-10 w-full rounded-xl bg-background"
             placeholder="Wybierz datę rozpoczęcia"
-            :aria-invalid="
-                props.showTheoryStartRequired || props.showTheoryRangeInvalid
-            "
+            :aria-invalid="props.showTheoryStartRequired"
             :aria-describedby="
-                props.showTheoryStartRequired || props.showTheoryRangeInvalid
-                    ? 'course-create-theory-error'
+                props.showTheoryStartRequired
+                    ? 'course-create-theory-start-error'
                     : undefined
             "
         />
+        <p
+            v-if="props.showTheoryStartRequired"
+            id="course-create-theory-start-error"
+            class="text-destructive text-sm"
+            role="alert"
+        >
+            {{ formMessages.theoryStartRequired }}
+        </p>
     </div>
 
     <div class="space-y-2">
@@ -53,33 +59,30 @@ const formMessages = courseCreateFormMessages;
                 props.showTheoryEndRequired || props.showTheoryRangeInvalid
             "
             :aria-describedby="
-                props.showTheoryEndRequired || props.showTheoryRangeInvalid
-                    ? 'course-create-theory-error'
-                    : undefined
+                props.showTheoryEndRequired
+                    ? 'course-create-theory-end-error'
+                    : props.showTheoryRangeInvalid
+                      ? 'course-create-theory-range-error'
+                      : undefined
             "
         />
-    </div>
-
-    <p
-        v-if="props.showTheoryStartRequired || props.showTheoryEndRequired"
-        id="course-create-theory-error"
-        class="text-destructive text-sm"
-        role="alert"
-    >
-        <span v-if="props.showTheoryStartRequired">
-            {{ formMessages.theoryStartRequired }}
-        </span>
-        <span v-else-if="props.showTheoryEndRequired">
+        <p
+            v-if="props.showTheoryEndRequired"
+            id="course-create-theory-end-error"
+            class="text-destructive text-sm"
+            role="alert"
+        >
             {{ formMessages.theoryEndRequired }}
-        </span>
-    </p>
-    <p
-        v-else-if="props.showTheoryRangeInvalid"
-        class="text-destructive text-sm"
-        role="alert"
-    >
-        {{ formMessages.theoryRangeInvalid }}
-    </p>
+        </p>
+        <p
+            v-else-if="props.showTheoryRangeInvalid"
+            id="course-create-theory-range-error"
+            class="text-destructive text-sm"
+            role="alert"
+        >
+            {{ formMessages.theoryRangeInvalid }}
+        </p>
+    </div>
 
     <div class="space-y-2">
         <UiLabel for="course-create-capacity">

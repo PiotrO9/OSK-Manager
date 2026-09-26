@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CalendarDays, Plus } from 'lucide-vue-next';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { CourseCreatePayload } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
@@ -44,6 +43,9 @@ const schoolContextError = ref<string | null>(null);
 const isSchoolContextLoading = ref(false);
 
 const apiError = ref<string | null>(null);
+const isCreated = ref(false);
+let schoolRequestId = 0;
+let instructorRequestId = 0;
 
 const currentSchool = computed(() => {
     const sid = schoolId.value;
@@ -72,36 +74,51 @@ const schoolMissingFromContext = computed(
 );
 
 async function loadInstructors(sid: string) {
+    const requestId = ++instructorRequestId;
+
     instructorsLoadError.value = null;
     isInstructorsLoading.value = true;
+    instructors.value = [];
 
     try {
-        instructors.value = await fetchInstructorsList(sid);
+        const result = await fetchInstructorsList(sid);
+
+        if (requestId === instructorRequestId) instructors.value = result;
     } catch (e) {
+        if (requestId !== instructorRequestId) return;
+
         instructors.value = [];
         instructorsLoadError.value = getApiFetchErrorMessage(
             e,
             'Nie udało się pobrać listy instruktorów.',
         );
     } finally {
-        isInstructorsLoading.value = false;
+        if (requestId === instructorRequestId)
+            isInstructorsLoading.value = false;
     }
 }
 
 async function loadSchoolContext() {
+    const requestId = ++schoolRequestId;
+
     schoolContextError.value = null;
     isSchoolContextLoading.value = true;
+    drivingSchools.value = [];
 
     try {
-        drivingSchools.value = await fetchDrivingSchoolsList();
+        const result = await fetchDrivingSchoolsList();
+
+        if (requestId === schoolRequestId) drivingSchools.value = result;
     } catch (e) {
+        if (requestId !== schoolRequestId) return;
+
         drivingSchools.value = [];
         schoolContextError.value = getApiFetchErrorMessage(
             e,
             'Nie udało się pobrać listy szkół jazdy.',
         );
     } finally {
-        isSchoolContextLoading.value = false;
+        if (requestId === schoolRequestId) isSchoolContextLoading.value = false;
     }
 }
 
@@ -112,18 +129,25 @@ watch(
             loadSchoolContext();
             loadInstructors(sid);
         } else {
+            schoolRequestId++;
+            instructorRequestId++;
             drivingSchools.value = [];
             instructors.value = [];
+            isSchoolContextLoading.value = false;
+            isInstructorsLoading.value = false;
         }
     },
     { immediate: true },
 );
 
 async function handleCourseSubmit(payload: CourseCreatePayload) {
+    if (isCreateLoading.value) return;
+
     apiError.value = null;
 
     try {
         await createCourse(payload);
+        isCreated.value = true;
 
         addToast({
             title: 'Kurs został utworzony',
@@ -162,68 +186,84 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
         >
             <template #actions>
                 <UiButton
-                    variant="outline"
-                    type="button"
-                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    disabled
-                    aria-label="Bieżący tydzień"
-                >
-                    <CalendarDays class="size-4" aria-hidden="true" />
-                    22-28 czerwca
-                </UiButton>
-                <UiButton
                     type="submit"
                     form="course-create-form"
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    :disabled="isCreateLoading || schoolId === null"
+                    :disabled="
+                        isCreateLoading ||
+                        isSchoolContextLoading ||
+                        schoolId === null ||
+                        schoolContextError !== null ||
+                        schoolMissingFromContext ||
+                        (enabledCourseKinds?.length ?? 0) === 0
+                    "
+                    :aria-busy="isCreateLoading"
                 >
-                    <Plus class="size-4" aria-hidden="true" />
-                    Zapisz zmiany
+                    {{ isCreateLoading ? 'Tworzenie…' : 'Zapisz' }}
                 </UiButton>
             </template>
         </PageHeader>
 
-        <p
+        <div
             v-if="schoolId === null"
-            class="text-muted-foreground text-sm"
-            role="status"
+            class="border-border bg-background rounded-2xl border p-6"
         >
-            Brak parametru szkoły. Otwórz tę stronę z listy kursów (przycisk
-            „Dodaj kurs”) lub dodaj
-            <span class="font-mono">?schoolId=…</span> w adresie URL.
-        </p>
+            <h2 class="text-foreground font-semibold">Wybierz szkołę</h2>
+            <p class="text-muted-foreground mt-2 text-sm">
+                Otwórz dodawanie kursu z listy kursów wybranej szkoły.
+            </p>
+            <UiButton as-child variant="outline" class="mt-4">
+                <NuxtLink to="/manager/courses">Przejdź do kursów</NuxtLink>
+            </UiButton>
+        </div>
 
         <template v-else>
-            <p
-                v-if="schoolContextError"
-                class="text-destructive text-sm"
-                role="alert"
-                aria-live="polite"
+            <div
+                v-if="isSchoolContextLoading"
+                class="border-border bg-background rounded-2xl border p-6"
+                role="status"
             >
-                {{ schoolContextError }}
-            </p>
+                <p class="text-muted-foreground text-sm">
+                    Wczytywanie ustawień szkoły…
+                </p>
+            </div>
 
-            <p
+            <div
+                v-else-if="schoolContextError"
+                class="border-border bg-background rounded-2xl border p-6"
+                role="alert"
+            >
+                <h2 class="text-foreground font-semibold">
+                    Nie można wczytać szkoły
+                </h2>
+                <p class="text-muted-foreground mt-2 text-sm">
+                    {{ schoolContextError }}
+                </p>
+                <UiButton
+                    type="button"
+                    variant="outline"
+                    class="mt-4"
+                    @click="loadSchoolContext"
+                >
+                    Spróbuj ponownie
+                </UiButton>
+            </div>
+
+            <div
                 v-else-if="schoolMissingFromContext"
-                class="text-destructive text-sm"
+                class="border-border bg-background rounded-2xl border p-6"
                 role="alert"
-                aria-live="polite"
             >
-                Nie znaleziono tej szkoły na liście Twoich OSK albo nie masz do
-                niej dostępu. Wróć do listy kursów i wybierz szkołę ponownie.
-            </p>
-
-            <p
-                v-if="instructorsLoadError"
-                class="text-destructive text-sm"
-                role="alert"
-                aria-live="polite"
-            >
-                {{ instructorsLoadError }}
-            </p>
+                <h2 class="text-foreground font-semibold">
+                    Szkoła niedostępna
+                </h2>
+                <p class="text-muted-foreground mt-2 text-sm">
+                    Nie znaleziono tej szkoły na liście Twoich OSK albo nie masz
+                    do niej dostępu.
+                </p>
+            </div>
 
             <CourseCreateForm
-                v-if="!schoolContextError && !schoolMissingFromContext"
+                v-else
                 id="course-create-form"
                 :school-id="schoolId"
                 :offered-course-types="offeredCourseTypes"
@@ -231,9 +271,12 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
                 :is-school-context-loading="isSchoolContextLoading"
                 :instructors="instructors"
                 :is-instructors-loading="isInstructorsLoading"
+                :instructors-load-error="instructorsLoadError"
                 :is-saving="isCreateLoading"
+                :is-created="isCreated"
                 :api-error="apiError"
                 @submit="handleCourseSubmit"
+                @retry-instructors="loadInstructors(schoolId)"
             />
 
             <NuxtLink

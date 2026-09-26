@@ -81,6 +81,30 @@ describe('course body parsers', () => {
         });
     });
 
+    it('rejects fractional hours and capacity without changing their values', () => {
+        const base = {
+            schoolId: SCHOOL_ID,
+            name: 'Kurs B',
+            category: 'B',
+            kind: 'THEORY_GROUP',
+            theoryStartDate: '2026-09-01',
+            theoryEndDate: '2026-09-14',
+        };
+
+        expect(parseCourseCreateBody({ ...base, totalHours: '30.5' })).toEqual({
+            error: 'Pole totalHours jest wymagane i musi być liczbą całkowitą co najmniej 1.',
+        });
+        expect(
+            parseCourseCreateBody({
+                ...base,
+                totalHours: 30,
+                capacity: 12.5,
+            }),
+        ).toEqual({
+            error: 'Pole capacity musi być liczbą całkowitą większą lub równą 0 lub null.',
+        });
+    });
+
     it('parses patch instructor body without changing no-op and null handling', () => {
         expect(parseCoursePatchInstructorBody({})).toEqual({ record: {} });
         expect(parseCoursePatchInstructorBody({ instructorId: '' })).toEqual({

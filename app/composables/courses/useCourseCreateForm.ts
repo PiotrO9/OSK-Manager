@@ -29,7 +29,7 @@ function numericFieldInputToTrimmedString(
             return '';
         }
 
-        return String(Math.trunc(raw));
+        return String(raw);
     }
 
     return String(raw).trim();
@@ -58,21 +58,16 @@ export function useCourseCreateForm(
     const showCapacityInvalid = ref(false);
 
     const kindOptions = computed(() => {
-        const allow = props.enabledCourseKinds;
+        const allow = props.enabledCourseKinds ?? [];
 
-        if (allow !== undefined && allow.length > 0) {
-            const filtered = ALL_KINDS.filter((k) => allow.includes(k));
-
-            if (filtered.length > 0) {
-                return filtered;
-            }
-        }
-
-        return ALL_KINDS;
+        return ALL_KINDS.filter((kind) => allow.includes(kind));
     });
 
     const isFormBlocked = computed(
-        () => props.isSchoolContextLoading || kindOptions.value.length === 0,
+        () =>
+            props.isSchoolContextLoading ||
+            props.isSaving ||
+            kindOptions.value.length === 0,
     );
 
     const hasOfferedCategoryList = computed(
@@ -82,14 +77,12 @@ export function useCourseCreateForm(
     const showNoOfferedCategoriesHint = computed(
         () =>
             !props.isSchoolContextLoading &&
-            props.offeredCourseTypes.length === 0,
+            props.offeredCourseTypes.length === 0 &&
+            kindOptions.value.length > 0,
     );
 
     const showNoEnabledKindsMessage = computed(
-        () =>
-            !props.isSchoolContextLoading &&
-            props.offeredCourseTypes.length > 0 &&
-            kindOptions.value.length === 0,
+        () => !props.isSchoolContextLoading && kindOptions.value.length === 0,
     );
 
     const qualifiedInstructors = computed((): InstructorListItem[] => {
@@ -157,7 +150,7 @@ export function useCourseCreateForm(
 
     function handleSubmit() {
         if (isFormBlocked.value) {
-            return;
+            return false;
         }
 
         const nameOk = nameModel.value.trim().length > 0;
@@ -172,8 +165,7 @@ export function useCourseCreateForm(
         const hoursStr = numericFieldInputToTrimmedString(
             totalHoursModel.value,
         );
-        const hoursParsed =
-            hoursStr.length > 0 ? Number.parseInt(hoursStr, 10) : Number.NaN;
+        const hoursParsed = hoursStr.length > 0 ? Number(hoursStr) : Number.NaN;
         const hoursOk =
             Number.isInteger(hoursParsed) &&
             Number.isFinite(hoursParsed) &&
@@ -207,7 +199,7 @@ export function useCourseCreateForm(
             );
 
             if (capStr.length > 0) {
-                const cap = Number.parseInt(capStr, 10);
+                const cap = Number(capStr);
 
                 showCapacityInvalid.value =
                     !Number.isInteger(cap) || !Number.isFinite(cap) || cap < 0;
@@ -225,7 +217,7 @@ export function useCourseCreateForm(
         }
 
         if (!nameOk || !catOk || !kindOk || !hoursOk || !theoryOk) {
-            return;
+            return false;
         }
 
         const payload: CourseCreatePayload = {
@@ -244,8 +236,7 @@ export function useCourseCreateForm(
                 capacityModel.value,
             );
 
-            payload.capacity =
-                capStr.length > 0 ? Number.parseInt(capStr, 10) : null;
+            payload.capacity = capStr.length > 0 ? Number(capStr) : null;
         }
 
         const inst = instructorIdModel.value.trim();
@@ -255,6 +246,8 @@ export function useCourseCreateForm(
         }
 
         submit(payload);
+
+        return true;
     }
 
     return {

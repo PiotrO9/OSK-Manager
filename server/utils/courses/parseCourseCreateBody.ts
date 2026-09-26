@@ -57,20 +57,15 @@ export function courseCreateBodyToUpstreamRecord(
 function parseTotalHours(body: Record<string, unknown>): number | null {
     const raw = body.totalHours;
 
-    if (typeof raw === 'number' && Number.isFinite(raw)) {
-        const n = Math.trunc(raw);
-
-        if (n >= 1) {
-            return n;
-        }
-
-        return null;
+    if (typeof raw === 'number') {
+        return Number.isInteger(raw) && raw >= 1 ? raw : null;
     }
 
     if (typeof raw === 'string') {
-        const parsed = Number.parseInt(raw.trim(), 10);
+        const trimmed = raw.trim();
+        const parsed = Number(trimmed);
 
-        if (!Number.isNaN(parsed) && parsed >= 1) {
+        if (trimmed && Number.isInteger(parsed) && parsed >= 1) {
             return parsed;
         }
     }
@@ -91,14 +86,8 @@ function parseCapacityForTheory(
         return null;
     }
 
-    if (typeof raw === 'number' && Number.isFinite(raw)) {
-        const n = Math.trunc(raw);
-
-        if (n < 0) {
-            return 'invalid';
-        }
-
-        return n;
+    if (typeof raw === 'number') {
+        return Number.isInteger(raw) && raw >= 0 ? raw : 'invalid';
     }
 
     if (typeof raw === 'string') {
@@ -108,9 +97,9 @@ function parseCapacityForTheory(
             return null;
         }
 
-        const parsed = Number.parseInt(t, 10);
+        const parsed = Number(t);
 
-        if (Number.isNaN(parsed) || parsed < 0) {
+        if (!Number.isInteger(parsed) || parsed < 0) {
             return 'invalid';
         }
 

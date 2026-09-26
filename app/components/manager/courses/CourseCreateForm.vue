@@ -2,23 +2,27 @@
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
 import type { CourseCreatePayload, CourseKind } from '~/types/courses/course';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 
 const props = defineProps<{
     id?: string;
     schoolId: string;
     /** Kategorie z oferty OSK (`GET /driving-schools` -> `offeredCourseTypes`). */
     offeredCourseTypes: OfferedCourseType[];
-    /** Dozwolone rodzaje kursow z ustawien OSK - brak / pusto = pokazuj wszystkie (kompatybilnosc wsteczna). */
+    /** Dozwolone rodzaje kursów z ustawień OSK. Pusta lista blokuje zapis. */
     enabledCourseKinds?: CourseKind[];
     isSchoolContextLoading: boolean;
     instructors: InstructorListItem[];
     isInstructorsLoading: boolean;
+    instructorsLoadError: string | null;
     isSaving: boolean;
+    isCreated: boolean;
     apiError: string | null;
 }>();
 
 const emit = defineEmits<{
     submit: [payload: CourseCreatePayload];
+    retryInstructors: [];
 }>();
 
 const {
@@ -49,36 +53,78 @@ const {
 } = useCourseCreateForm(props, (payload) => emit('submit', payload));
 
 const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
+const formElement = useTemplateRef<HTMLFormElement>('formElement');
+
+const hasUnsavedChanges = computed(
+    () =>
+        !props.isCreated &&
+        (nameModel.value.trim() !== '' ||
+            totalHoursModel.value !== '30' ||
+            capacityModel.value !== '' ||
+            theoryStartModel.value !== '' ||
+            theoryEndModel.value !== '' ||
+            instructorIdModel.value !== '' ||
+            (props.offeredCourseTypes[0]?.code ?? '') !== categoryModel.value ||
+            (kindOptions.value[0] ?? 'THEORY_GROUP') !== kindModel.value),
+);
+
+function confirmLeave() {
+    return (
+        !hasUnsavedChanges.value ||
+        !import.meta.client ||
+        window.confirm(
+            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić formularz?',
+        )
+    );
+}
+
+onBeforeRouteLeave(confirmLeave);
+onBeforeRouteUpdate(confirmLeave);
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+    if (hasUnsavedChanges.value) {
+        event.preventDefault();
+        event.returnValue = '';
+    }
+}
+
+onMounted(() => window.addEventListener('beforeunload', handleBeforeUnload));
+onBeforeUnmount(() =>
+    window.removeEventListener('beforeunload', handleBeforeUnload),
+);
+
+async function submitForm() {
+    if (!handleSubmit()) {
+        await nextTick();
+        const invalid = formElement.value?.querySelector<HTMLElement>(
+            '[aria-invalid="true"]',
+        );
+
+        invalid?.focus();
+    }
+}
 </script>
 
 <template>
     <form
         :id="props.id"
+        ref="formElement"
         class="border-border bg-background overflow-hidden rounded-2xl border shadow-sm"
         novalidate
-        @submit.prevent="handleSubmit"
+        @submit.prevent="submitForm"
     >
         <div
             class="border-border flex flex-col gap-3 border-b px-4 py-4 sm:flex-row sm:items-start sm:justify-between md:px-5"
         >
             <div class="min-w-0">
-                <h2 class="text-foreground text-lg font-extrabold">
-                    Dodaj kurs
-                </h2>
+                <h2 class="text-foreground text-lg font-bold">Dane kursu</h2>
                 <p class="text-muted-foreground mt-1 text-sm leading-relaxed">
-                    Formularz podzielony na logiczne sekcje, bez zmiany
-                    walidacji i flow.
+                    Podstawowe informacje o nowym kursie.
                 </p>
             </div>
-            <UiBadge
-                variant="outline"
-                class="w-fit rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"
-            >
-                FormSection
-            </UiBadge>
         </div>
 
-        <div class="space-y-5 px-4 py-4 md:px-5">
+        <div class="space-y-5 px-4 py-5 md:px-5">
             <p
                 v-if="apiError"
                 class="text-destructive text-sm"
@@ -89,15 +135,7 @@ const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
             </p>
 
             <p
-                v-if="isSchoolContextLoading"
-                class="text-muted-foreground text-sm"
-                role="status"
-            >
-                Wczytywanie oferty kategorii i ustawień szkoły…
-            </p>
-
-            <p
-                v-else-if="showNoOfferedCategoriesHint"
+                v-if="showNoOfferedCategoriesHint"
                 class="text-muted-foreground text-sm"
                 role="status"
             >
@@ -107,7 +145,7 @@ const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
             </p>
 
             <p
-                v-else-if="showNoEnabledKindsMessage"
+                v-if="showNoEnabledKindsMessage"
                 class="text-destructive text-sm"
                 role="alert"
                 aria-live="polite"
@@ -117,7 +155,7 @@ const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
                 rodzaje kursów” w konfiguracji OSK.
             </p>
 
-            <div class="grid gap-4 lg:grid-cols-2">
+            <div class="grid gap-x-5 gap-y-4 lg:grid-cols-2">
                 <CourseCreateBasicFields
                     v-model:name="nameModel"
                     v-model:category="categoryModel"
@@ -132,39 +170,47 @@ const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
                     :show-kind-required="showKindRequired"
                     :show-total-hours-invalid="showTotalHoursInvalid"
                 />
+            </div>
+        </div>
 
-                <template v-if="isTheoryKind">
-                    <CourseCreateTheoryFields
-                        v-model:theory-start="theoryStartModel"
-                        v-model:theory-end="theoryEndModel"
-                        v-model:capacity="capacityModel"
-                        :is-disabled="isDisabled"
-                        :show-theory-start-required="showTheoryStartRequired"
-                        :show-theory-end-required="showTheoryEndRequired"
-                        :show-theory-range-invalid="showTheoryRangeInvalid"
-                        :show-capacity-invalid="showCapacityInvalid"
-                    />
-                </template>
+        <section
+            v-if="isTheoryKind"
+            class="border-border border-t px-4 py-5 md:px-5"
+        >
+            <h2 class="text-foreground text-base font-semibold">
+                Terminy i miejsca
+            </h2>
+            <p class="text-muted-foreground mt-1 text-sm">
+                Ustawienia kursu teoretycznego.
+            </p>
+            <div class="mt-4 grid gap-x-5 gap-y-4 lg:grid-cols-2">
+                <CourseCreateTheoryFields
+                    v-model:theory-start="theoryStartModel"
+                    v-model:theory-end="theoryEndModel"
+                    v-model:capacity="capacityModel"
+                    :is-disabled="isDisabled"
+                    :show-theory-start-required="showTheoryStartRequired"
+                    :show-theory-end-required="showTheoryEndRequired"
+                    :show-theory-range-invalid="showTheoryRangeInvalid"
+                    :show-capacity-invalid="showCapacityInvalid"
+                />
+            </div>
+        </section>
 
+        <section class="border-border border-t px-4 py-5 md:px-5">
+            <h2 class="text-foreground text-base font-semibold">Prowadzący</h2>
+            <div class="mt-4 max-w-2xl">
                 <CourseCreateInstructorField
                     v-model:instructor-id="instructorIdModel"
                     :instructors="props.instructors"
                     :qualified-instructors="qualifiedInstructors"
                     :is-instructors-loading="props.isInstructorsLoading"
+                    :instructors-load-error="props.instructorsLoadError"
                     :is-disabled="isDisabled"
+                    @retry="emit('retryInstructors')"
                 />
             </div>
-
-            <div class="space-y-2">
-                <UiLabel for="course-create-description">Opis kursu</UiLabel>
-                <UiTextarea
-                    id="course-create-description"
-                    class="bg-background min-h-24 rounded-xl"
-                    placeholder="Krótki opis widoczny w panelu..."
-                    disabled
-                />
-            </div>
-        </div>
+        </section>
 
         <CourseCreateFormActions
             :school-id="props.schoolId"

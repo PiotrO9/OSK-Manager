@@ -124,4 +124,51 @@ describe('useCourseCreateForm', () => {
         expect(form.showTheoryStartRequired.value).toBe(true);
         expect(form.showTheoryEndRequired.value).toBe(true);
     });
+
+    it('does not offer disabled course kinds or submit without school configuration', async () => {
+        const submit = vi.fn<(payload: CourseCreatePayload) => void>();
+        const { useCourseCreateForm } = await import('./useCourseCreateForm');
+        const form = useCourseCreateForm(
+            createProps({ enabledCourseKinds: [] }),
+            submit,
+        );
+
+        expect(form.kindOptions.value).toEqual([]);
+        expect(form.isFormBlocked.value).toBe(true);
+        form.handleSubmit();
+        expect(submit).not.toHaveBeenCalled();
+    });
+
+    it('blocks a second submission while saving', async () => {
+        const submit = vi.fn<(payload: CourseCreatePayload) => void>();
+        const { useCourseCreateForm } = await import('./useCourseCreateForm');
+        const form = useCourseCreateForm(
+            createProps({ isSaving: true }),
+            submit,
+        );
+
+        form.nameModel.value = 'Kurs B';
+        form.theoryStartModel.value = '2026-09-01';
+        form.theoryEndModel.value = '2026-09-14';
+
+        expect(form.handleSubmit()).toBe(false);
+        expect(submit).not.toHaveBeenCalled();
+    });
+
+    it('rejects fractional hours and capacity instead of silently truncating', async () => {
+        const submit = vi.fn<(payload: CourseCreatePayload) => void>();
+        const { useCourseCreateForm } = await import('./useCourseCreateForm');
+        const form = useCourseCreateForm(createProps(), submit);
+
+        form.nameModel.value = 'Kurs B';
+        form.theoryStartModel.value = '2026-09-01';
+        form.theoryEndModel.value = '2026-09-14';
+        form.totalHoursModel.value = '30.5';
+        form.capacityModel.value = '12.5';
+        form.handleSubmit();
+
+        expect(submit).not.toHaveBeenCalled();
+        expect(form.showTotalHoursInvalid.value).toBe(true);
+        expect(form.showCapacityInvalid.value).toBe(true);
+    });
 });
