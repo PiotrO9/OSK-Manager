@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ArrowLeft, Gauge, Pencil, Wrench } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
+import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import type { RouteLocationRaw } from 'vue-router';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
+
+type VehicleDetailsTab = 'overview' | 'documents' | 'details';
 
 const props = defineProps<{
     vehicle: VehicleDetail;
@@ -10,33 +13,79 @@ const props = defineProps<{
 }>();
 
 const {
-    activityItems,
     availability,
-    overviewItems,
+    deadlineItems,
     profileRows,
     registrationNumberLabel,
-    relatedItems,
+    technicalRows,
     vehicleInitials,
     vehicleTitle,
 } = useVehicleDetailsPresentation({
     vehicle: toRef(props, 'vehicle'),
-    backToListHref: toRef(props, 'backToListHref'),
-    editHref: toRef(props, 'editHref'),
 });
+
+const tabs: Array<{ value: VehicleDetailsTab; label: string }> = [
+    { value: 'overview', label: 'Przegląd' },
+    { value: 'documents', label: 'Dokumenty' },
+    { value: 'details', label: 'Dane' },
+];
+
+const activeTab = shallowRef<VehicleDetailsTab>('overview');
+const visitedTabs = reactive<Record<VehicleDetailsTab, boolean>>({
+    overview: true,
+    documents: false,
+    details: false,
+});
+
+watch(
+    activeTab,
+    (tab) => {
+        visitedTabs[tab] = true;
+    },
+    { immediate: true },
+);
+
+watch(
+    () => props.vehicle.id,
+    () => {
+        activeTab.value = 'overview';
+        visitedTabs.overview = true;
+        visitedTabs.documents = false;
+        visitedTabs.details = false;
+    },
+);
+
+function normalizeTab(value: string): VehicleDetailsTab {
+    if (value === 'documents' || value === 'details') return value;
+
+    return 'overview';
+}
+
+function getTabTriggerId(tab: VehicleDetailsTab): string {
+    return `vehicle-details-tab-${tab}`;
+}
+
+function getTabPanelId(tab: VehicleDetailsTab): string {
+    return `vehicle-details-panel-${tab}`;
+}
+
+function isTabVisible(tab: VehicleDetailsTab): boolean {
+    return activeTab.value === tab;
+}
+
+function handleTabChange(value: string | number): void {
+    activeTab.value = normalizeTab(String(value));
+}
 </script>
 
 <template>
-    <div class="space-y-5">
-        <PageHeader
-            :title="vehicleTitle"
-            description="Szczegóły pojazdu, status i najważniejsze dane techniczne."
-            eyebrow="Pojazd"
-        >
+    <div class="space-y-6">
+        <PageHeader :title="vehicleTitle" eyebrow="Pojazd">
             <template #actions>
                 <UiButton
                     as-child
                     variant="outline"
-                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
+                    class="h-10 rounded-lg px-4 font-semibold shadow-xs"
                 >
                     <NuxtLink
                         :to="props.backToListHref"
@@ -46,226 +95,86 @@ const {
                         Lista pojazdów
                     </NuxtLink>
                 </UiButton>
-                <UiButton
-                    as-child
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                >
-                    <NuxtLink :to="props.editHref" aria-label="Edytuj pojazd">
-                        <Pencil class="mr-2 size-4" aria-hidden="true" />
-                        Edytuj
-                    </NuxtLink>
-                </UiButton>
             </template>
         </PageHeader>
 
-        <div class="grid min-w-0 gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                <UiCardContent class="space-y-5 p-5">
-                    <div class="flex items-start gap-4 xl:flex-col">
-                        <div
-                            class="bg-muted relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl text-xl font-extrabold text-sky-700"
-                            aria-hidden="true"
-                        >
-                            <img
-                                v-if="props.vehicle.photoUrl"
-                                :src="props.vehicle.photoUrl"
-                                :alt="`Zdjecie pojazdu ${vehicleTitle}`"
-                                class="size-full object-cover"
-                            />
-                            <span v-else>{{ vehicleInitials }}</span>
-                        </div>
+        <div
+            class="grid min-w-0 gap-5 xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]"
+        >
+            <aside class="min-w-0 space-y-5 xl:sticky xl:top-6 xl:self-start">
+                <VehicleProfileCard
+                    :photo-url="props.vehicle.photoUrl"
+                    :initials="vehicleInitials"
+                    :name="vehicleTitle"
+                    :registration-number="registrationNumberLabel"
+                    :availability-label="availability.label"
+                    :availability-tone="availability.tone"
+                    :is-default="props.vehicle.isDefault"
+                    :profile-rows="profileRows"
+                />
+            </aside>
 
-                        <div class="min-w-0">
-                            <h2
-                                class="text-foreground truncate text-xl font-extrabold"
-                            >
-                                {{ vehicleTitle }}
-                            </h2>
-                            <p class="text-muted-foreground mt-1 text-sm">
-                                Pojazd szkoleniowy
-                                <span
-                                    v-if="
-                                        props.vehicle.registrationNumber.trim()
-                                            .length > 0
-                                    "
-                                >
-                                    -
-                                    {{ registrationNumberLabel }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <dl class="divide-border divide-y">
-                        <div
-                            v-for="row in profileRows"
-                            :key="row.label"
-                            class="flex items-center justify-between gap-4 py-3"
-                        >
-                            <dt class="text-muted-foreground text-sm">
-                                {{ row.label }}
-                            </dt>
-                            <dd
-                                class="text-foreground max-w-[180px] min-w-0 truncate text-right text-sm font-bold"
-                            >
-                                {{ row.value }}
-                            </dd>
-                        </div>
-                    </dl>
-
-                    <div class="flex flex-wrap gap-2">
-                        <StatusBadge
-                            :label="availability.label"
-                            :tone="availability.tone"
-                        />
-                        <StatusBadge
-                            v-if="props.vehicle.isDefault"
-                            label="Domyślny"
-                            tone="info"
-                            subtle
-                        />
-                    </div>
-                </UiCardContent>
-            </UiCard>
-
-            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                <UiCardHeader
-                    class="border-border flex flex-row items-start justify-between gap-4 border-b p-5"
+            <main class="min-w-0">
+                <TabsRoot
+                    :model-value="activeTab"
+                    class="min-w-0 space-y-5"
+                    @update:model-value="handleTabChange"
                 >
-                    <div class="min-w-0">
-                        <UiCardTitle class="text-xl font-extrabold">
-                            Przeglad
-                        </UiCardTitle>
-                        <UiCardDescription>
-                            Najważniejsze dane i akcje dla tego widoku.
-                        </UiCardDescription>
-                    </div>
-                    <StatusBadge label="Aktualne" tone="info" subtle />
-                </UiCardHeader>
-
-                <UiCardContent class="space-y-3 p-4">
                     <div
-                        v-for="item in overviewItems"
-                        :key="item.label"
-                        class="border-border flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between"
+                        class="border-border overflow-x-auto overflow-y-hidden border-b"
+                        aria-label="Sekcje kartoteki pojazdu"
                     >
-                        <div class="flex min-w-0 gap-3">
-                            <span
-                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700"
-                                aria-hidden="true"
+                        <TabsList class="flex min-w-max gap-5">
+                            <TabsTrigger
+                                v-for="tab in tabs"
+                                :id="getTabTriggerId(tab.value)"
+                                :key="tab.value"
+                                :value="tab.value"
+                                :aria-controls="getTabPanelId(tab.value)"
+                                class="text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground focus-visible:ring-ring -mb-px cursor-pointer border-b-2 border-transparent px-1 py-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                             >
-                                <component :is="item.icon" class="size-4" />
-                            </span>
-                            <span class="min-w-0">
-                                <span class="text-foreground block font-bold">
-                                    {{ item.label }}
-                                </span>
-                                <span
-                                    class="text-muted-foreground mt-1 block text-sm"
-                                >
-                                    {{ item.description }}
-                                </span>
-                            </span>
-                        </div>
-                        <StatusBadge
-                            :label="item.badge"
-                            :tone="item.tone"
-                            subtle
-                        />
+                                {{ tab.label }}
+                            </TabsTrigger>
+                        </TabsList>
                     </div>
-                </UiCardContent>
-            </UiCard>
-        </div>
 
-        <div class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
-            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                <UiCardHeader class="border-border border-b p-5">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <UiCardTitle class="text-xl font-extrabold">
-                                Dane techniczne
-                            </UiCardTitle>
-                            <UiCardDescription>
-                                Daty, przebieg i parametry zachowane po
-                                redesignie.
-                            </UiCardDescription>
-                        </div>
-                        <Wrench
-                            class="text-muted-foreground size-5 shrink-0"
-                            aria-hidden="true"
-                        />
-                    </div>
-                </UiCardHeader>
-
-                <UiCardContent class="space-y-3 p-4">
-                    <div
-                        v-for="item in activityItems"
-                        :key="item.label"
-                        class="border-border flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-start sm:justify-between"
+                    <section
+                        v-if="visitedTabs.overview"
+                        :id="getTabPanelId('overview')"
+                        role="tabpanel"
+                        :aria-labelledby="getTabTriggerId('overview')"
+                        :hidden="!isTabVisible('overview')"
                     >
-                        <div class="min-w-0">
-                            <p class="font-extrabold">{{ item.label }}</p>
-                            <p class="text-muted-foreground mt-1 text-sm">
-                                {{ item.description }}
-                            </p>
-                        </div>
-                        <StatusBadge
-                            :label="item.badge"
-                            :tone="item.tone"
-                            subtle
-                        />
-                    </div>
-                </UiCardContent>
-            </UiCard>
+                        <VehicleOverviewTab :availability="availability" />
+                    </section>
 
-            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                <UiCardHeader class="border-border border-b p-5">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <UiCardTitle class="text-xl font-extrabold">
-                                Powiazane dane
-                            </UiCardTitle>
-                            <UiCardDescription>
-                                Elementy, ktorych nie można zgubic po
-                                redesignie.
-                            </UiCardDescription>
-                        </div>
-                        <Gauge
-                            class="text-muted-foreground size-5 shrink-0"
-                            aria-hidden="true"
-                        />
-                    </div>
-                </UiCardHeader>
-
-                <UiCardContent class="space-y-3 p-4">
-                    <NuxtLink
-                        v-for="item in relatedItems"
-                        :key="item.label"
-                        :to="item.to"
-                        class="border-border hover:bg-muted/40 focus-visible:ring-ring flex min-w-0 items-center justify-between gap-3 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    <section
+                        v-if="visitedTabs.documents"
+                        :id="getTabPanelId('documents')"
+                        role="tabpanel"
+                        :aria-labelledby="getTabTriggerId('documents')"
+                        :hidden="!isTabVisible('documents')"
                     >
-                        <span class="flex min-w-0 items-center gap-3">
-                            <span
-                                class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700"
-                                aria-hidden="true"
-                            >
-                                <component :is="item.icon" class="size-4" />
-                            </span>
-                            <span class="min-w-0">
-                                <span class="text-foreground block font-bold">
-                                    {{ item.label }}
-                                </span>
-                                <span
-                                    class="text-muted-foreground mt-1 block text-sm"
-                                >
-                                    {{ item.description }}
-                                </span>
-                            </span>
-                        </span>
-                        <StatusBadge :label="item.badge" subtle />
-                    </NuxtLink>
-                </UiCardContent>
-            </UiCard>
+                        <VehicleDocumentsTab
+                            :deadline-items="deadlineItems"
+                            :edit-href="props.editHref"
+                        />
+                    </section>
+
+                    <section
+                        v-if="visitedTabs.details"
+                        :id="getTabPanelId('details')"
+                        role="tabpanel"
+                        :aria-labelledby="getTabTriggerId('details')"
+                        :hidden="!isTabVisible('details')"
+                    >
+                        <VehicleTechnicalDetailsCard
+                            :rows="technicalRows"
+                            :edit-href="props.editHref"
+                        />
+                    </section>
+                </TabsRoot>
+            </main>
         </div>
     </div>
 </template>

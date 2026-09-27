@@ -1,14 +1,10 @@
-import {
-    CalendarCheck,
-    Car,
-    ListChecks,
-    Pencil,
-    ShieldCheck,
-} from 'lucide-vue-next';
-import type { Component, Ref } from 'vue';
-import type { RouteLocationRaw } from 'vue-router';
+import type { Ref } from 'vue';
 import type { StatusTone } from '~/types/ui';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
+import {
+    formatVehicleOptionalDate,
+    getVehicleDeadlinePresentation,
+} from '~/utils/vehicles/display';
 import {
     vehicleAvailabilityDescription,
     vehicleAvailabilityLabel,
@@ -16,42 +12,29 @@ import {
 } from '~/utils/vehicles/availability';
 
 interface UseVehicleDetailsPresentationOptions {
-    backToListHref: Ref<RouteLocationRaw>;
-    editHref: Ref<RouteLocationRaw>;
     vehicle: Ref<VehicleDetail>;
 }
 
-interface VehicleDetailsOverviewItem {
+export interface VehicleDetailsStatusPresentation {
     label: string;
     description: string;
-    badge: string;
     tone: StatusTone;
-    icon: Component;
 }
 
-interface VehicleDetailsProfileRow {
+export interface VehicleDetailsRow {
     label: string;
     value: string;
+    copyable?: boolean;
 }
 
-interface VehicleDetailsActivityItem {
+export interface VehicleDetailsDeadlineItem {
     label: string;
-    description: string;
-    badge: string;
+    value: string;
+    state: 'missing' | 'expired' | 'soon' | 'valid';
     tone: StatusTone;
-}
-
-interface VehicleDetailsRelatedItem {
-    label: string;
-    description: string;
-    to: RouteLocationRaw;
-    badge: string;
-    icon: Component;
 }
 
 export function useVehicleDetailsPresentation({
-    backToListHref,
-    editHref,
     vehicle,
 }: UseVehicleDetailsPresentationOptions) {
     const vehicleTitle = computed(() =>
@@ -64,56 +47,64 @@ export function useVehicleDetailsPresentation({
             vehicle.value.registrationNumber,
         ),
     );
+
     const registrationNumberLabel = computed(() =>
         displayVehicleDetailsText(vehicle.value.registrationNumber),
     );
 
-    const availability = computed(() => ({
+    const availability = computed<VehicleDetailsStatusPresentation>(() => ({
         label: vehicleAvailabilityLabel(vehicle.value),
-        tone: vehicleAvailabilityTone(vehicle.value) as StatusTone,
+        tone: vehicleAvailabilityTone(vehicle.value),
         description: vehicleAvailabilityDescription(vehicle.value),
     }));
 
-    const overviewItems = computed<VehicleDetailsOverviewItem[]>(() => [
+    const profileRows = computed<VehicleDetailsRow[]>(() => [
         {
-            label: 'Status techniczny',
-            description:
-                vehicle.value.inspectionDate || vehicle.value.insuranceDate
-                    ? 'Przeglad i OC sa zapisane w danych pojazdu.'
-                    : 'Brak dat przegladu lub OC w danych pojazdu.',
-            badge:
-                vehicle.value.inspectionDate && vehicle.value.insuranceDate
-                    ? 'OK'
-                    : 'Uzupelnij',
-            tone:
-                vehicle.value.inspectionDate && vehicle.value.insuranceDate
-                    ? 'success'
-                    : 'warning',
-            icon: ShieldCheck,
+            label: 'Rocznik',
+            value: displayVehicleDetailsOptional(vehicle.value.modelYear),
         },
         {
-            label: 'Dostepnosc',
-            description: availability.value.description,
-            badge: availability.value.label,
-            tone: availability.value.tone,
-            icon: CalendarCheck,
-        },
-        {
-            label: 'Domyślny pojazd',
-            description: vehicle.value.isDefault
-                ? 'Ten pojazd jest domyslny dla OSK.'
-                : 'Domyślny pojazd można ustawić z listy pojazdów.',
-            badge: vehicle.value.isDefault ? 'Tak' : 'Nie',
-            tone: vehicle.value.isDefault ? 'info' : 'neutral',
-            icon: Car,
+            label: 'Przebieg',
+            value:
+                vehicle.value.mileageKm === null
+                    ? 'Brak danych'
+                    : `${displayVehicleDetailsOptional(vehicle.value.mileageKm)} km`,
         },
     ]);
 
-    const profileRows = computed<VehicleDetailsProfileRow[]>(() => [
-        { label: 'Status', value: availability.value.label },
+    const deadlineItems = computed<VehicleDetailsDeadlineItem[]>(() => {
+        const inspection = getVehicleDeadlinePresentation(
+            vehicle.value.inspectionDate,
+        );
+        const insurance = getVehicleDeadlinePresentation(
+            vehicle.value.insuranceDate,
+        );
+
+        return [
+            {
+                label: 'Przegląd techniczny',
+                value: inspection.label,
+                state: inspection.state,
+                tone: inspection.tone,
+            },
+            {
+                label: 'Ubezpieczenie OC',
+                value: insurance.label,
+                state: insurance.state,
+                tone: insurance.tone,
+            },
+        ];
+    });
+
+    const technicalRows = computed<VehicleDetailsRow[]>(() => [
         {
-            label: 'Rejestracja',
-            value: displayVehicleDetailsText(vehicle.value.registrationNumber),
+            label: 'Nazwa pojazdu',
+            value: vehicleTitle.value,
+        },
+        {
+            label: 'Numer rejestracyjny',
+            value: registrationNumberLabel.value,
+            copyable: true,
         },
         {
             label: 'Rocznik',
@@ -123,65 +114,27 @@ export function useVehicleDetailsPresentation({
             label: 'Przebieg',
             value:
                 vehicle.value.mileageKm === null
-                    ? '--'
+                    ? 'Brak danych'
                     : `${displayVehicleDetailsOptional(vehicle.value.mileageKm)} km`,
         },
-    ]);
-
-    const activityItems = computed<VehicleDetailsActivityItem[]>(() => [
         {
-            label: 'Data przegladu',
-            description: displayVehicleDetailsDate(
-                vehicle.value.inspectionDate,
-            ),
-            badge: vehicle.value.inspectionDate ? 'Zapisana' : 'Brak',
-            tone: vehicle.value.inspectionDate ? 'success' : 'warning',
+            label: 'Niedostępny do',
+            value: vehicle.value.unavailableUntil
+                ? formatVehicleOptionalDate(vehicle.value.unavailableUntil)
+                : 'Nie dotyczy',
         },
         {
-            label: 'Data ubezpieczenia',
-            description: displayVehicleDetailsDate(vehicle.value.insuranceDate),
-            badge: vehicle.value.insuranceDate ? 'Zapisana' : 'Brak',
-            tone: vehicle.value.insuranceDate ? 'success' : 'warning',
-        },
-        {
-            label: 'Dane eksploatacyjne',
-            description: `Rocznik: ${displayVehicleDetailsOptional(
-                vehicle.value.modelYear,
-            )}; przebieg: ${
-                vehicle.value.mileageKm === null
-                    ? '--'
-                    : `${displayVehicleDetailsOptional(vehicle.value.mileageKm)} km`
-            }`,
-            badge: 'Widoczne',
-            tone: 'neutral',
-        },
-    ]);
-
-    const relatedItems = computed<VehicleDetailsRelatedItem[]>(() => [
-        {
-            label: 'Edycja danych',
-            description: 'Formularz edycji zachowuje pola pojazdu i zdjecie.',
-            to: editHref.value,
-            badge: 'Dostepna',
-            icon: Pencil,
-        },
-        {
-            label: 'Lista pojazdów',
-            description:
-                'Status, domyslnosc i usuwanie zostaja w panelu listy.',
-            to: backToListHref.value,
-            badge: 'Widoczna',
-            icon: ListChecks,
+            label: 'Pojazd domyślny',
+            value: vehicle.value.isDefault ? 'Tak' : 'Nie',
         },
     ]);
 
     return {
-        activityItems,
         availability,
-        overviewItems,
+        deadlineItems,
         profileRows,
         registrationNumberLabel,
-        relatedItems,
+        technicalRows,
         vehicleInitials,
         vehicleTitle,
     };
@@ -190,13 +143,13 @@ export function useVehicleDetailsPresentation({
 export function displayVehicleDetailsText(value: string): string {
     const trimmed = value.trim();
 
-    return trimmed.length > 0 ? trimmed : '--';
+    return trimmed.length > 0 ? trimmed : 'Brak danych';
 }
 
 export function displayVehicleDetailsOptional(
     value: string | number | null,
 ): string {
-    if (value === null) return '--';
+    if (value === null) return 'Brak danych';
 
     if (typeof value === 'number') {
         return new Intl.NumberFormat('pl-PL').format(value);
@@ -204,11 +157,11 @@ export function displayVehicleDetailsOptional(
 
     const trimmed = value.trim();
 
-    return trimmed.length > 0 ? trimmed : '--';
+    return trimmed.length > 0 ? trimmed : 'Brak danych';
 }
 
 export function displayVehicleDetailsDate(value: string | null): string {
-    if (!value) return '--';
+    if (!value) return 'Brak danych';
 
     const date = new Date(`${value}T00:00:00Z`);
 

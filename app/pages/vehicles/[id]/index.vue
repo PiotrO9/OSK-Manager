@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { RouteLocationRaw } from 'vue-router';
 import VehicleDetailsContent from '~/components/vehicles/VehicleDetailsContent.vue';
 import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
@@ -12,19 +11,14 @@ definePageMeta({
 const route = useRoute();
 const { fetchVehicleById, isDetailLoading } = useVehiclesApi();
 
-const vehicleId = computed(() => {
-    const raw = route.params.id;
-    const s = Array.isArray(raw) ? raw[0] : raw;
-
-    if (typeof s !== 'string') return null;
-
-    const trimmed = s.trim();
-
-    return trimmed.length > 0 ? trimmed : null;
+onMounted(() => {
+    if (Object.keys(route.query).length > 0) {
+        void navigateTo(route.path, { replace: true });
+    }
 });
 
-const schoolId = computed(() => {
-    const raw = route.query.schoolId;
+const vehicleId = computed(() => {
+    const raw = route.params.id;
     const s = Array.isArray(raw) ? raw[0] : raw;
 
     if (typeof s !== 'string') return null;
@@ -44,25 +38,11 @@ const vehicleTitle = computed(() => {
     return name && name.length > 0 ? name : 'Szczegóły pojazdu';
 });
 
-const backToListHref = computed<RouteLocationRaw>(() => {
-    if (schoolId.value === null) {
-        return '/vehicles';
-    }
-
-    return {
-        path: '/vehicles',
-        query: { schoolId: schoolId.value },
-    };
-});
-
-const editHref = computed<RouteLocationRaw>(() => {
+const backToListHref = '/vehicles';
+const editHref = computed(() => {
     const id = vehicleId.value ?? '';
-    const query = schoolId.value === null ? {} : { schoolId: schoolId.value };
 
-    return {
-        path: `/vehicles/${id}/edit`,
-        query,
-    };
+    return `/vehicles/${id}/edit`;
 });
 
 usePageMeta({
@@ -116,7 +96,7 @@ watch(
     <div class="space-y-6">
         <ErrorState
             v-if="vehicleId === null"
-            title="Nieprawidlowy adres strony"
+            title="Nieprawidłowy adres strony"
             description="Nie znaleziono identyfikatora pojazdu w adresie."
         >
             <template #action>
@@ -136,7 +116,7 @@ watch(
         <LoadingState
             v-else-if="isDetailLoading"
             title="Wczytywanie pojazdu"
-            description="Pobieram status, rejestracje i dane techniczne."
+            description="Pobieram status, rejestrację i dane techniczne."
         />
 
         <VehicleDetailsContent

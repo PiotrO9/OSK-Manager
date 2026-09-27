@@ -111,14 +111,7 @@ defineEmits<{
                     size="sm"
                     class="rounded-full"
                 >
-                    <NuxtLink
-                        :to="{
-                            path: `/vehicles/${vehicle.id}`,
-                            query: {
-                                schoolId: resolvedSchoolId,
-                            },
-                        }"
-                    >
+                    <NuxtLink :to="`/vehicles/${vehicle.id}`">
                         <Eye class="size-4" aria-hidden="true" />
                         Szczegóły
                     </NuxtLink>
@@ -130,12 +123,7 @@ defineEmits<{
                     class="size-9 rounded-full"
                 >
                     <NuxtLink
-                        :to="{
-                            path: `/vehicles/${vehicle.id}/edit`,
-                            query: {
-                                schoolId: resolvedSchoolId,
-                            },
-                        }"
+                        :to="`/vehicles/${vehicle.id}/edit`"
                         class="inline-flex size-9 items-center justify-center"
                         :aria-label="`Edytuj pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                     >
