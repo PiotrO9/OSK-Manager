@@ -74,6 +74,10 @@ export function useEventsDayDateSelection(
         selectedDate.value = formatDateOnly(getNow());
     }
 
+    function selectDate(date: string): void {
+        selectedDate.value = date;
+    }
+
     function handleCalendarUpdate(
         val: DateValue | DateValue[] | undefined,
     ): void {
@@ -98,6 +102,7 @@ export function useEventsDayDateSelection(
         handlePrevDay,
         handleTodayClick,
         isCalendarOpen,
+        selectDate,
         selectedDate: readonly(selectedDate),
         selectedDateLabel,
     };

@@ -1,4 +1,5 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { buildEventsDayReturnRoute } from '~/utils/events/eventsDayNavigation';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { dateValueToIsoDateString } from '~/utils/date/weeklyCalendarDates';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
@@ -110,6 +111,16 @@ export function useManagerLessonEditPage() {
     let loadSeq = 0;
 
     const scheduleBackHref = computed(() => {
+        const eventsDayRoute = buildEventsDayReturnRoute(
+            route.query.from,
+            route.query.date,
+            schoolId.value,
+        );
+
+        if (eventsDayRoute) {
+            return eventsDayRoute;
+        }
+
         const sid = schoolId.value.trim();
 
         if (sid) {
@@ -231,12 +242,17 @@ export function useManagerLessonEditPage() {
                     variant: 'info',
                 });
                 await navigateTo(
-                    lesson.schoolId
-                        ? {
-                              path: '/manager/schedule',
-                              query: { schoolId: lesson.schoolId },
-                          }
-                        : '/manager/schedule',
+                    buildEventsDayReturnRoute(
+                        route.query.from,
+                        route.query.date,
+                        lesson.schoolId ?? '',
+                    ) ??
+                        (lesson.schoolId
+                            ? {
+                                  path: '/manager/schedule',
+                                  query: { schoolId: lesson.schoolId },
+                              }
+                            : '/manager/schedule'),
                     { replace: true },
                 );
 

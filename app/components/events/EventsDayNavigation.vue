@@ -15,53 +15,56 @@ defineEmits<{
 
 <template>
     <div
-        class="border-border bg-background flex flex-col gap-3 rounded-2xl border p-3 shadow-sm md:flex-row md:items-center md:justify-between"
+        class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[1fr_auto_1fr]"
+        role="toolbar"
+        aria-label="Nawigacja dnia wydarzeń"
     >
-        <div class="flex flex-wrap items-center gap-2">
+        <div
+            class="border-border bg-background inline-flex h-10 min-w-0 items-center overflow-hidden rounded-lg border shadow-xs sm:col-start-2"
+        >
             <UiButton
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="rounded-xl"
+                class="border-border h-full shrink-0 rounded-none border-r px-2.5"
                 aria-label="Poprzedni dzień"
                 :disabled="isLoading"
                 @click="$emit('previous')"
             >
-                <ChevronLeft class="mr-1 size-4" aria-hidden="true" />
-                Poprzedni
+                <ChevronLeft class="size-4" aria-hidden="true" />
             </UiButton>
 
-            <UiButton
-                type="button"
-                variant="secondary"
-                size="sm"
-                class="rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100"
-                aria-label="Dzisiaj"
-                :disabled="isLoading"
-                @click="$emit('today')"
+            <p
+                class="text-foreground min-w-0 flex-1 truncate px-3 text-center text-sm font-semibold capitalize sm:min-w-56 sm:flex-none"
+                :title="selectedDateLabel"
+                aria-live="polite"
             >
-                Dziś
-            </UiButton>
+                {{ selectedDateLabel }}
+            </p>
 
             <UiButton
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="rounded-xl"
+                class="border-border h-full shrink-0 rounded-none border-l px-2.5"
                 aria-label="Następny dzień"
                 :disabled="isLoading"
                 @click="$emit('next')"
             >
-                Następny
-                <ChevronRight class="ml-1 size-4" aria-hidden="true" />
+                <ChevronRight class="size-4" aria-hidden="true" />
             </UiButton>
         </div>
 
-        <p
-            class="text-foreground min-w-0 text-sm font-semibold capitalize"
-            aria-live="polite"
+        <UiButton
+            type="button"
+            variant="secondary"
+            size="sm"
+            class="justify-self-end rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 sm:col-start-3"
+            aria-label="Dzisiaj"
+            :disabled="isLoading"
+            @click="$emit('today')"
         >
-            {{ selectedDateLabel }}
-        </p>
+            Dziś
+        </UiButton>
     </div>
 </template>

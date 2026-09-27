@@ -12,6 +12,7 @@ import {
     getEventsDayManagerScheduleRows,
     getEventsDayPageDescription,
     getEventsDayParticipantTotal,
+    getEventsDayPositionedEvents,
     getEventsDayPlannedEventsCount,
     getEventsDayScheduleHourRange,
     getEventsDaySortedEvents,
@@ -87,6 +88,12 @@ describe('eventsDayScheduleGrid', () => {
         ).toEqual(['cancelled']);
         expect(getEventsDayPlannedEventsCount(events)).toBe(1);
         expect(getEventsDayParticipantTotal(events)).toBe(4);
+        expect(
+            getEventsDayFilteredEvents({
+                events: [makeEvent({ kind: 'lesson', status: 'SCHEDULED' })],
+                selectedStatus: 'PLANNED',
+            }),
+        ).toHaveLength(1);
     });
 
     it('liczy label widocznych wyników i wymusza listę poza desktop managerem', () => {
@@ -130,6 +137,7 @@ describe('eventsDayScheduleGrid', () => {
                     lastName: 'Kowal',
                     avatarUrl: 'https://cdn.example/instructor.png',
                 }),
+                makeInstructor({ id: 'profile-idle', userId: 'user-idle' }),
             ],
             events: [
                 makeEvent({
@@ -193,9 +201,60 @@ describe('eventsDayScheduleGrid', () => {
         });
 
         expect(rows[0]?.label).toBe('06:00');
-        expect(rows.at(-1)?.label).toBe('20:00');
+        expect(rows.at(-1)?.label).toBe('19:00');
         expect(rows[13]?.cells[0]?.events.map((event) => event.id)).toEqual([
             'late',
         ]);
+    });
+
+    it('pozycjonuje wydarzenia według minut i rozdziela nakładające się bloki', () => {
+        const positioned = getEventsDayPositionedEvents(
+            [
+                makeEvent({
+                    id: 'long',
+                    startTime: '2026-08-20T08:30:00',
+                    endTime: '2026-08-20T10:00:00',
+                }),
+                makeEvent({
+                    id: 'overlap',
+                    startTime: '2026-08-20T09:00:00',
+                    endTime: '2026-08-20T09:30:00',
+                }),
+                makeEvent({
+                    id: 'later',
+                    startTime: '2026-08-20T10:00:00',
+                    endTime: '2026-08-20T11:00:00',
+                }),
+            ],
+            7,
+        );
+
+        expect(
+            positioned.map((entry) => [
+                entry.event.id,
+                entry.topPx,
+                entry.heightPx,
+                entry.lane,
+                entry.laneCount,
+            ]),
+        ).toEqual([
+            ['long', 144, 144, 0, 2],
+            ['overlap', 192, 48, 1, 2],
+            ['later', 288, 96, 0, 1],
+        ]);
+    });
+
+    it('kończy blok dnia na północy, gdy wydarzenie trwa do następnego dnia', () => {
+        const [positioned] = getEventsDayPositionedEvents(
+            [
+                makeEvent({
+                    startTime: '2026-08-20T23:00:00',
+                    endTime: '2026-08-21T01:00:00',
+                }),
+            ],
+            7,
+        );
+
+        expect(positioned?.heightPx).toBe(96);
     });
 });

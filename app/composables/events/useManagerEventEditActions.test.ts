@@ -32,6 +32,7 @@ function installNuxtGlobals(): void {
         isCheckingStudentsAvailability,
     }));
     vi.stubGlobal('useAppToast', () => ({ addToast }));
+    vi.stubGlobal('useRoute', () => ({ query: {} }));
     vi.stubGlobal('navigateTo', navigateTo);
 }
 

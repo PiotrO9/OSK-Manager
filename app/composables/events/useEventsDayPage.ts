@@ -2,6 +2,8 @@ import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
+import { readEventsDayDate } from '~/utils/events/eventsDayNavigation';
 import type { EventsDayStatusFilterOption } from '~/utils/events/eventsDayPage';
 import { useEventsDayDateSelection } from './useEventsDayDateSelection';
 import {
@@ -27,6 +29,8 @@ export type InstructorScheduleColumn = EventsDayGridInstructorColumn;
 export type InstructorScheduleRow = EventsDayGridInstructorRow;
 
 export function useEventsDayPage() {
+    const route = useRoute();
+    const router = useRouter();
     const { session } = useAuthSession();
     const { fetchSchoolSchedule, isLoading: isSchoolLoading } =
         useSchoolScheduleApi();
@@ -41,6 +45,14 @@ export function useEventsDayPage() {
     });
 
     const schoolId = computed((): string => {
+        const fromQuery = Array.isArray(route.query.schoolId)
+            ? route.query.schoolId[0]
+            : route.query.schoolId;
+
+        if (typeof fromQuery === 'string' && fromQuery.trim()) {
+            return fromQuery.trim();
+        }
+
         const id = session.value?.defaultOskId;
 
         return typeof id === 'string' ? id.trim() : '';
@@ -59,7 +71,10 @@ export function useEventsDayPage() {
         isCalendarOpen,
         selectedDate,
         selectedDateLabel,
-    } = useEventsDayDateSelection();
+        selectDate,
+    } = useEventsDayDateSelection({
+        initialDate: readEventsDayDate(route.query.date) ?? undefined,
+    });
     const selectedStatus = ref<EventsDayStatusFilterOption>('ALL');
     const viewMode = ref<EventsDayViewMode>('grid');
     const isCompactViewport = ref(false);
@@ -124,12 +139,6 @@ export function useEventsDayPage() {
             .endHour;
     });
 
-    const managerScheduleGridColumns = computed(() => {
-        const count = Math.max(managerScheduleColumns.value.length, 1);
-
-        return `72px repeat(${count}, minmax(190px, 1fr))`;
-    });
-
     const managerScheduleRows = computed<InstructorScheduleRow[]>(() => {
         return getEventsDayManagerScheduleRows({
             columns: managerScheduleColumns.value,
@@ -190,7 +199,12 @@ export function useEventsDayPage() {
                 return;
             }
 
-            events.value = raw.filter(isScheduleInstructorEvent);
+            events.value = raw.filter(
+                (item) =>
+                    isScheduleInstructorEvent(item) ||
+                    item.kind?.trim().toLowerCase() === 'lesson' ||
+                    isScheduleBookedPracticalLesson(item),
+            );
         } catch (err: unknown) {
             if (seq !== loadSeq) {
                 return;
@@ -240,7 +254,33 @@ export function useEventsDayPage() {
         isCompactViewport.value = window.innerWidth < 768;
     }
 
+    function syncDateQuery(): void {
+        if (route.query.date === selectedDate.value) {
+            return;
+        }
+
+        void router.replace({
+            query: { ...route.query, date: selectedDate.value },
+        });
+    }
+
     watch(selectedDate, () => {
+        syncDateQuery();
+        void loadEvents();
+    });
+
+    watch(
+        () => route.query.date,
+        (raw) => {
+            const day = readEventsDayDate(raw);
+
+            if (day && day !== selectedDate.value) {
+                selectDate(day);
+            }
+        },
+    );
+
+    watch(schoolId, () => {
         void loadEvents();
     });
 
@@ -248,6 +288,7 @@ export function useEventsDayPage() {
         updateViewportMode();
         window.addEventListener('resize', updateViewportMode);
 
+        syncDateQuery();
         void loadEvents();
     });
 
@@ -279,7 +320,6 @@ export function useEventsDayPage() {
         isSchoolLoading,
         loadEvents,
         managerScheduleColumns,
-        managerScheduleGridColumns,
         managerScheduleRows,
         pageDescription,
         participantTotal,
@@ -287,6 +327,7 @@ export function useEventsDayPage() {
         selectedDate,
         selectedDateLabel,
         selectedStatus,
+        schoolId,
         sortedFilteredEvents,
         viewMode,
         visibleEventsLabel,

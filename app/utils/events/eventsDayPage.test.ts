@@ -6,6 +6,8 @@ import {
     displayParticipantCount,
     eventTypeBadgeClasses,
     eventTypeLabel,
+    eventsDayStatusCode,
+    eventsDayStatusLabel,
     statusFilterLabel,
 } from './eventsDayPage';
 
@@ -58,5 +60,23 @@ describe('eventsDayPage utils', () => {
         ).toBe('0/4');
         expect(eventTypeLabel('WORKSHOP')).toBe('WORKSHOP');
         expect(eventTypeBadgeClasses('WORKSHOP')).toBe('');
+    });
+
+    it('shows lesson status and its single student correctly', () => {
+        const lesson = scheduleEvent({
+            kind: 'lesson',
+            type: 'PRACTICE',
+            status: 'SCHEDULED',
+            participantCount: undefined,
+            capacity: undefined,
+            student: { id: 's-1', firstName: 'Jan', lastName: 'Kowalski' },
+        });
+
+        expect(displayParticipantCount(lesson)).toBe('1');
+        expect(eventsDayStatusCode(lesson)).toBe('PLANNED');
+        expect(eventsDayStatusLabel(lesson)).toBe('Zaplanowane');
+        expect(eventsDayStatusCode({ ...lesson, status: 'COMPLETED' })).toBe(
+            'DONE',
+        );
     });
 });

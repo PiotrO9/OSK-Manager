@@ -1,8 +1,10 @@
 import type { EventStatusCode } from '~/types/events/instructorEvent';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import {
     INSTRUCTOR_EVENT_STATUS_LABELS,
     INSTRUCTOR_EVENT_STATUS_OPTIONS,
+    normalizeInstructorEventStatus,
 } from '~/utils/events/instructorEventStatusDisplay';
 
 export type EventsDayStatusFilterOption = 'ALL' | EventStatusCode;
@@ -60,7 +62,37 @@ export function displayParticipantCount(item: ScheduleLessonItem): string {
         return `0/${item.capacity}`;
     }
 
+    if (item.student) {
+        return '1';
+    }
+
     return '-';
+}
+
+export function displayParticipantCountLabel(item: ScheduleLessonItem): string {
+    const count = displayParticipantCount(item);
+
+    return `${count} ${count === '1' ? 'kursant' : 'kursantów'}`;
+}
+
+export function eventsDayStatusCode(item: ScheduleLessonItem): EventStatusCode {
+    if (isScheduleInstructorEvent(item)) {
+        return normalizeInstructorEventStatus(item.status);
+    }
+
+    const status = item.status.trim().toUpperCase();
+
+    if (status === 'COMPLETED') return 'DONE';
+
+    if (status === 'CANCELLED' || status === 'CANCELED') return 'CANCELLED';
+
+    if (status === 'NO_SHOW') return 'NO_SHOW';
+
+    return 'PLANNED';
+}
+
+export function eventsDayStatusLabel(item: ScheduleLessonItem): string {
+    return INSTRUCTOR_EVENT_STATUS_LABELS[eventsDayStatusCode(item)];
 }
 
 export function displayEventPrimary(
@@ -84,7 +116,7 @@ export function displayEventPrimary(
 export function displayEventMeta(item: ScheduleLessonItem): string {
     const parts = [
         `${eventIsoToHm(item.startTime)}-${eventIsoToHm(item.endTime)}`,
-        `${displayParticipantCount(item)} kursantów`,
+        displayParticipantCountLabel(item),
     ];
 
     if (item.vehicle?.name || item.vehicle?.registrationNumber) {

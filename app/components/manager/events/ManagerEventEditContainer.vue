@@ -267,6 +267,12 @@ const {
         <ManagerEventEditBackLink
             v-if="loadedEvent || notFound"
             :to="scheduleBackHref"
+            :label="
+                typeof scheduleBackHref === 'object' &&
+                scheduleBackHref.path === '/events'
+                    ? 'Wróć do wydarzeń dnia'
+                    : undefined
+            "
         />
     </div>
 </template>

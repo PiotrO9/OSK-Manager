@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { CalendarDays } from 'lucide-vue-next';
-import EventsDayNavigation from '~/components/events/EventsDayNavigation.vue';
 import EventsDaySchedulePanel from '~/components/events/EventsDaySchedulePanel.vue';
-import EventsDaySummary from '~/components/events/EventsDaySummary.vue';
 import {
     WEEK_PICKER_CALENDAR_MAX,
     WEEK_PICKER_CALENDAR_MIN,
@@ -63,55 +61,32 @@ const eventsDay = useEventsDayPage();
             </template>
         </PageHeader>
 
-        <EventsDayNavigation
-            :selected-date-label="eventsDay.selectedDateLabel.value"
+        <EventsDaySchedulePanel
+            v-model:view-mode="eventsDay.viewMode.value"
+            :attention-events="eventsDay.attentionEvents.value"
+            :effective-view-mode="eventsDay.effectiveViewMode.value"
+            :error-message="eventsDay.errorMessage.value"
+            :events="eventsDay.events.value"
+            :filtered-events="eventsDay.filteredEvents.value"
+            :is-compact-viewport="eventsDay.isCompactViewport.value"
+            :is-instructors-loading="eventsDay.isInstructorsLoading.value"
             :is-loading="eventsDay.isLoading.value"
+            :is-manager="eventsDay.isManager.value"
+            :is-school-loading="eventsDay.isSchoolLoading.value"
+            :school-id="eventsDay.schoolId.value"
+            :selected-date="eventsDay.selectedDate.value"
+            :selected-date-label="eventsDay.selectedDateLabel.value"
+            :manager-schedule-columns="eventsDay.managerScheduleColumns.value"
+            :manager-schedule-rows="eventsDay.managerScheduleRows.value"
+            :selected-status="eventsDay.selectedStatus.value"
+            :sorted-filtered-events="eventsDay.sortedFilteredEvents.value"
+            :visible-events-label="eventsDay.visibleEventsLabel.value"
             @previous="eventsDay.handlePrevDay"
             @today="eventsDay.handleTodayClick"
             @next="eventsDay.handleNextDay"
+            @retry="eventsDay.loadEvents"
+            @select-status="eventsDay.handleStatusFilterOptionSelect"
+            @status-changed="eventsDay.handleStatusChanged"
         />
-        <div
-            class="grid gap-4"
-            :class="
-                eventsDay.effectiveViewMode.value === 'grid'
-                    ? ''
-                    : 'xl:grid-cols-[minmax(0,1.08fr)_minmax(340px,0.92fr)]'
-            "
-        >
-            <EventsDaySchedulePanel
-                v-model:view-mode="eventsDay.viewMode.value"
-                :attention-events="eventsDay.attentionEvents.value"
-                :effective-view-mode="eventsDay.effectiveViewMode.value"
-                :error-message="eventsDay.errorMessage.value"
-                :events="eventsDay.events.value"
-                :filtered-events="eventsDay.filteredEvents.value"
-                :is-compact-viewport="eventsDay.isCompactViewport.value"
-                :is-instructors-loading="eventsDay.isInstructorsLoading.value"
-                :is-loading="eventsDay.isLoading.value"
-                :is-manager="eventsDay.isManager.value"
-                :is-school-loading="eventsDay.isSchoolLoading.value"
-                :manager-schedule-columns="
-                    eventsDay.managerScheduleColumns.value
-                "
-                :manager-schedule-grid-columns="
-                    eventsDay.managerScheduleGridColumns.value
-                "
-                :manager-schedule-rows="eventsDay.managerScheduleRows.value"
-                :page-description="eventsDay.pageDescription.value"
-                :selected-status="eventsDay.selectedStatus.value"
-                :sorted-filtered-events="eventsDay.sortedFilteredEvents.value"
-                :visible-events-label="eventsDay.visibleEventsLabel.value"
-                @retry="eventsDay.loadEvents"
-                @select-status="eventsDay.handleStatusFilterOptionSelect"
-                @status-changed="eventsDay.handleStatusChanged"
-            />
-
-            <EventsDaySummary
-                :attention-events="eventsDay.attentionEvents.value"
-                :event-count="eventsDay.events.value.length"
-                :participant-total="eventsDay.participantTotal.value"
-                :planned-events="eventsDay.plannedEvents.value"
-            />
-        </div>
     </div>
 </template>

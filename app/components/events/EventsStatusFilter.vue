@@ -21,7 +21,7 @@ defineEmits<{
             v-for="opt in options"
             :key="opt"
             type="button"
-            class="focus-visible:ring-ring rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            class="focus-visible:ring-ring cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
             :class="
                 selected === opt
                     ? 'border-primary-200 bg-primary-50 text-primary-700'

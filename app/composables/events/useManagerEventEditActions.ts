@@ -1,6 +1,7 @@
 import type { ComputedRef, Ref } from 'vue';
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
+import { buildEventsDayReturnRoute } from '~/utils/events/eventsDayNavigation';
 import { useManagerEventEditActionLabels } from './useManagerEventEditActionLabels';
 import { useManagerEventEditDeleteAction } from './useManagerEventEditDeleteAction';
 import { useManagerEventEditFieldSave } from './useManagerEventEditFieldSave';
@@ -43,6 +44,7 @@ export function useManagerEventEditActions(input: {
         isCheckingStudentsAvailability,
     } = useEventApi();
     const { addToast } = useAppToast();
+    const route = useRoute();
 
     const isFormDirty = computed(
         () =>
@@ -55,14 +57,25 @@ export function useManagerEventEditActions(input: {
             isCheckingStudentsAvailability.value,
     );
 
-    const { scheduleBackHref, deleteDialogTimeLabel, headerDateRangeLabel } =
-        useManagerEventEditActionLabels({
-            schoolId: input.schoolId,
-            loadedEvent: input.loadedEvent,
-            formStartLocal: input.formStartLocal,
-            formEndLocal: input.formEndLocal,
-            formInstructorId: input.formInstructorId,
-        });
+    const {
+        scheduleBackHref: defaultScheduleBackHref,
+        deleteDialogTimeLabel,
+        headerDateRangeLabel,
+    } = useManagerEventEditActionLabels({
+        schoolId: input.schoolId,
+        loadedEvent: input.loadedEvent,
+        formStartLocal: input.formStartLocal,
+        formEndLocal: input.formEndLocal,
+        formInstructorId: input.formInstructorId,
+    });
+    const scheduleBackHref = computed(
+        () =>
+            buildEventsDayReturnRoute(
+                route.query.from,
+                route.query.date,
+                input.schoolId.value,
+            ) ?? defaultScheduleBackHref.value,
+    );
 
     const {
         deleteDialogOpen,

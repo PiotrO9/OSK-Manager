@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowUpRight } from 'lucide-vue-next';
+import EventsDayNavigation from '~/components/events/EventsDayNavigation.vue';
 import EventsDayScheduleGrid from '~/components/events/EventsDayScheduleGrid.vue';
 import EventsStatusFilter from '~/components/events/EventsStatusFilter.vue';
 import EventsViewModeToggle from '~/components/events/EventsViewModeToggle.vue';
@@ -13,15 +15,15 @@ import {
     displayEventPrimary,
     eventTypeBadgeClasses,
     eventTypeLabel,
+    eventsDayStatusCode,
+    eventsDayStatusLabel,
     statusFilterLabelForOption,
     type EventsDayStatusFilterOption,
 } from '~/utils/events/eventsDayPage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import {
-    instructorEventStatusBadgeVariant,
-    labelForInstructorEventStatusRaw,
-    normalizeInstructorEventStatus,
-} from '~/utils/events/instructorEventStatusDisplay';
+import { buildEventsDayEditRoute } from '~/utils/events/eventsDayNavigation';
+import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { instructorEventStatusBadgeVariant } from '~/utils/events/instructorEventStatusDisplay';
 
 defineProps<{
     attentionEvents: ScheduleLessonItem[];
@@ -34,16 +36,20 @@ defineProps<{
     isLoading: boolean;
     isManager: boolean;
     isSchoolLoading: boolean;
+    schoolId: string;
+    selectedDate: string;
+    selectedDateLabel: string;
     managerScheduleColumns: InstructorScheduleColumn[];
-    managerScheduleGridColumns: string;
     managerScheduleRows: InstructorScheduleRow[];
-    pageDescription: string;
     selectedStatus: EventsDayStatusFilterOption;
     sortedFilteredEvents: ScheduleLessonItem[];
     visibleEventsLabel: string;
 }>();
 
 defineEmits<{
+    previous: [];
+    today: [];
+    next: [];
     retry: [];
     selectStatus: [option: string];
     statusChanged: [payload: { id: string; status: string }];
@@ -61,11 +67,8 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
         >
             <div class="space-y-1">
                 <UiCardTitle class="text-xl font-extrabold">
-                    Wydarzenia dnia
+                    Plan dnia
                 </UiCardTitle>
-                <UiCardDescription>
-                    {{ pageDescription }}
-                </UiCardDescription>
             </div>
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
                 <EventsViewModeToggle
@@ -90,6 +93,13 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                 :label-for-option="statusFilterLabelForOption"
                 @select="$emit('selectStatus', $event)"
             />
+            <EventsDayNavigation
+                :selected-date-label="selectedDateLabel"
+                :is-loading="isLoading"
+                @previous="$emit('previous')"
+                @today="$emit('today')"
+                @next="$emit('next')"
+            />
             <div
                 v-if="isLoading || isSchoolLoading || isInstructorsLoading"
                 class="space-y-3"
@@ -108,11 +118,7 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
             />
 
             <EmptyState
-                v-else-if="
-                    filteredEvents.length === 0 &&
-                    (effectiveViewMode !== 'grid' ||
-                        managerScheduleColumns.length === 0)
-                "
+                v-else-if="filteredEvents.length === 0"
                 :title="
                     events.length === 0
                         ? 'Brak wydarzeń w wybranym dniu'
@@ -128,9 +134,9 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
             <EventsDayScheduleGrid
                 v-else-if="effectiveViewMode === 'grid'"
                 :columns="managerScheduleColumns"
-                :grid-columns="managerScheduleGridColumns"
                 :rows="managerScheduleRows"
-                :week-range-label="pageDescription"
+                :school-id="schoolId"
+                :selected-date="selectedDate"
                 @status-changed="$emit('statusChanged', $event)"
             />
 
@@ -147,7 +153,33 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                             <div
                                 class="flex min-w-0 flex-wrap items-center gap-2"
                             >
+                                <NuxtLink
+                                    v-if="
+                                        isManager &&
+                                        buildEventsDayEditRoute(
+                                            event,
+                                            schoolId,
+                                            selectedDate,
+                                        )
+                                    "
+                                    :to="
+                                        buildEventsDayEditRoute(
+                                            event,
+                                            schoolId,
+                                            selectedDate,
+                                        )!
+                                    "
+                                    class="text-foreground focus-visible:ring-ring min-w-0 rounded-sm font-extrabold underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                                    :aria-label="`Edytuj ${isScheduleInstructorEvent(event) ? 'wydarzenie' : 'jazdę'} o ${displayEventPrimary(event, false)}`"
+                                >
+                                    {{ displayEventPrimary(event, isManager) }}
+                                    <ArrowUpRight
+                                        class="ml-1 inline size-3.5 align-baseline"
+                                        aria-hidden="true"
+                                    />
+                                </NuxtLink>
                                 <p
+                                    v-else
                                     class="text-foreground min-w-0 font-extrabold"
                                 >
                                     {{ displayEventPrimary(event, isManager) }}
@@ -172,7 +204,10 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                             @click.stop
                         >
                             <ManagerEventStatusSelect
-                                v-if="isManager"
+                                v-if="
+                                    isManager &&
+                                    isScheduleInstructorEvent(event)
+                                "
                                 :event-id="event.id"
                                 :status="event.status"
                                 compact
@@ -182,18 +217,12 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                                 v-else
                                 :variant="
                                     instructorEventStatusBadgeVariant(
-                                        normalizeInstructorEventStatus(
-                                            event.status,
-                                        ),
+                                        eventsDayStatusCode(event),
                                     )
                                 "
                                 class="shrink-0 rounded-full text-xs font-normal"
                             >
-                                {{
-                                    labelForInstructorEventStatusRaw(
-                                        event.status,
-                                    )
-                                }}
+                                {{ eventsDayStatusLabel(event) }}
                             </UiBadge>
                         </div>
                     </div>

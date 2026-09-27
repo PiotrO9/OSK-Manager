@@ -3,13 +3,22 @@ import {
     type InstructorListItem,
 } from '~/types/instructors/instructor';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import { normalizeInstructorEventStatus } from '~/utils/events/instructorEventStatusDisplay';
 import {
     displayEventsDayInstructorName,
+    eventsDayStatusCode,
     type EventsDayStatusFilterOption,
 } from '~/utils/events/eventsDayPage';
 
 export type EventsDayGridViewMode = 'grid' | 'list';
+export const EVENTS_DAY_HOUR_HEIGHT_PX = 96;
+
+export interface EventsDayPositionedEvent {
+    event: ScheduleLessonItem;
+    topPx: number;
+    heightPx: number;
+    lane: number;
+    laneCount: number;
+}
 
 export interface EventsDayGridInstructorColumn {
     id: string;
@@ -44,7 +53,7 @@ export function getEventsDayFilteredEvents(options: {
     }
 
     return options.events.filter(
-        (event) => event.status === options.selectedStatus,
+        (event) => eventsDayStatusCode(event) === options.selectedStatus,
     );
 }
 
@@ -52,7 +61,7 @@ export function getEventsDayAttentionEvents(
     events: ScheduleLessonItem[],
 ): ScheduleLessonItem[] {
     return events.filter((event) => {
-        const status = normalizeInstructorEventStatus(event.status);
+        const status = eventsDayStatusCode(event);
 
         return status === 'NO_SHOW' || status === 'CANCELLED';
     });
@@ -61,9 +70,8 @@ export function getEventsDayAttentionEvents(
 export function getEventsDayPlannedEventsCount(
     events: ScheduleLessonItem[],
 ): number {
-    return events.filter(
-        (event) => normalizeInstructorEventStatus(event.status) === 'PLANNED',
-    ).length;
+    return events.filter((event) => eventsDayStatusCode(event) === 'PLANNED')
+        .length;
 }
 
 export function getEventsDayParticipantTotal(
@@ -78,6 +86,10 @@ export function getEventsDayParticipantTotal(
             return sum + event.students.length;
         }
 
+        if (event.student) {
+            return sum + 1;
+        }
+
         return sum;
     }, 0);
 }
@@ -85,7 +97,7 @@ export function getEventsDayParticipantTotal(
 export function getEventsDayPageDescription(isManager: boolean): string {
     return isManager
         ? 'Dzienne lekcje, teoria i bloki czasu instruktorów.'
-        : 'Twoje bloki czasu w wybranym dniu.';
+        : 'Twoje lekcje i bloki czasu w wybranym dniu.';
 }
 
 export function getEventsDayVisibleEventsLabel(options: {
@@ -198,7 +210,9 @@ export function getEventsDayManagerScheduleColumns(options: {
 
     return Array.from(
         new Map(columns.values().map((column) => [column.id, column])).values(),
-    ).sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+    )
+        .filter((column) => column.events.length > 0)
+        .sort((a, b) => a.name.localeCompare(b.name, 'pl'));
 }
 
 export function getEventsDayScheduleHourRange(events: ScheduleLessonItem[]): {
@@ -210,13 +224,113 @@ export function getEventsDayScheduleHourRange(events: ScheduleLessonItem[]): {
         .filter((hour): hour is number => hour !== null);
 
     const ends = events
-        .map((event) => getEventsDayHourFromIso(event.endTime))
+        .map((event) => {
+            const start = new Date(event.startTime);
+            const end = new Date(event.endTime);
+
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+                return null;
+            }
+
+            const startMinute = start.getHours() * 60 + start.getMinutes();
+            const durationMinutes = Math.max(
+                0,
+                (end.getTime() - start.getTime()) / 60_000,
+            );
+
+            return Math.min(
+                24,
+                Math.ceil((startMinute + durationMinutes) / 60),
+            );
+        })
         .filter((hour): hour is number => hour !== null);
 
     return {
         startHour: Math.min(7, ...starts),
         endHour: Math.max(18, ...ends),
     };
+}
+
+export function getEventsDayPositionedEvents(
+    events: ScheduleLessonItem[],
+    startHour: number,
+): EventsDayPositionedEvent[] {
+    const valid = events
+        .flatMap((event) => {
+            const start = new Date(event.startTime);
+            const end = new Date(event.endTime);
+
+            if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+                return [];
+            }
+
+            const startMinute = start.getHours() * 60 + start.getMinutes();
+            const durationMinutes = Math.min(
+                24 * 60 - startMinute,
+                Math.max(15, (end.getTime() - start.getTime()) / 60_000),
+            );
+
+            return [
+                {
+                    event,
+                    startMinute,
+                    endMinute: startMinute + durationMinutes,
+                },
+            ];
+        })
+        .sort(
+            (a, b) =>
+                a.startMinute - b.startMinute || a.endMinute - b.endMinute,
+        );
+
+    const result: EventsDayPositionedEvent[] = [];
+    let group: EventsDayPositionedEvent[] = [];
+    let groupEnd = -1;
+    let laneEnds: number[] = [];
+
+    function finishGroup(): void {
+        for (const item of group) {
+            item.laneCount = laneEnds.length;
+        }
+
+        group = [];
+        laneEnds = [];
+    }
+
+    for (const item of valid) {
+        if (item.startMinute >= groupEnd) {
+            finishGroup();
+            groupEnd = -1;
+        }
+
+        let lane = laneEnds.findIndex((end) => end <= item.startMinute);
+
+        if (lane < 0) {
+            lane = laneEnds.length;
+        }
+
+        laneEnds[lane] = item.endMinute;
+        groupEnd = Math.max(groupEnd, item.endMinute);
+
+        const positioned = {
+            event: item.event,
+            topPx:
+                ((item.startMinute - startHour * 60) / 60) *
+                EVENTS_DAY_HOUR_HEIGHT_PX,
+            heightPx:
+                ((item.endMinute - item.startMinute) / 60) *
+                EVENTS_DAY_HOUR_HEIGHT_PX,
+            lane,
+            laneCount: 1,
+        };
+
+        group.push(positioned);
+        result.push(positioned);
+    }
+
+    finishGroup();
+
+    return result;
 }
 
 export function getEventsDayManagerScheduleRows(options: {
@@ -226,7 +340,7 @@ export function getEventsDayManagerScheduleRows(options: {
 }): EventsDayGridInstructorRow[] {
     const rows: EventsDayGridInstructorRow[] = [];
 
-    for (let hour = options.startHour; hour <= options.endHour; hour += 1) {
+    for (let hour = options.startHour; hour < options.endHour; hour += 1) {
         rows.push({
             hour,
             label: `${String(hour).padStart(2, '0')}:00`,

@@ -17,6 +17,8 @@ function installNuxtEventsDayGlobals(sessionValue: {
     vi.stubGlobal('watch', vi.fn());
     vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', vi.fn());
+    vi.stubGlobal('useRoute', () => ({ query: {} }));
+    vi.stubGlobal('useRouter', () => ({ replace: vi.fn() }));
     vi.stubGlobal('useAuthSession', () => ({ session: ref(sessionValue) }));
     vi.stubGlobal('useSchoolScheduleApi', () => ({
         fetchSchoolSchedule,
@@ -73,17 +75,30 @@ describe('useEventsDayPage', () => {
 
     it('loads manager day events and preserves the grid contract', async () => {
         const event = scheduleEvent();
-        const filteredLesson = scheduleEvent({
+        const lesson = scheduleEvent({
             id: 'lesson-1',
             kind: 'lesson',
+            type: 'PRACTICE',
+            status: 'SCHEDULED',
             instructor: {
                 id: 'user-1',
                 firstName: 'Anna',
                 lastName: 'Nowak',
             },
         });
+        const legacyLesson = scheduleEvent({
+            id: 'legacy-lesson',
+            kind: undefined,
+            type: 'PRACTICE',
+            status: 'SCHEDULED',
+            student: {
+                id: 'student-1',
+                firstName: 'Jan',
+                lastName: 'Kowalski',
+            },
+        });
 
-        fetchSchoolSchedule.mockResolvedValue([filteredLesson, event]);
+        fetchSchoolSchedule.mockResolvedValue([lesson, legacyLesson, event]);
         fetchInstructorsList.mockResolvedValue([
             instructor(),
             instructor({
@@ -116,10 +131,10 @@ describe('useEventsDayPage', () => {
             expect.objectContaining({ signal: expect.any(AbortSignal) }),
         );
         expect(fetchMySchedule).not.toHaveBeenCalled();
-        expect(page.events.value).toEqual([event]);
+        expect(page.events.value).toEqual([lesson, legacyLesson, event]);
         expect(
             page.managerScheduleColumns.value.map((column) => column.id),
-        ).toEqual(['user-1', 'user-2']);
+        ).toEqual(['user-1']);
 
         const eventRow = page.managerScheduleRows.value.find(
             (row) => row.hour === 8,
@@ -128,7 +143,7 @@ describe('useEventsDayPage', () => {
             (cell) => cell.columnId === 'user-1',
         );
 
-        expect(eventCell?.events).toEqual([event]);
+        expect(eventCell?.events).toEqual([lesson, legacyLesson, event]);
     });
 
     it('ignores stale manager day responses from older requests', async () => {

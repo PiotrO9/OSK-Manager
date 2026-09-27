@@ -30,7 +30,9 @@ defineProps<{
                         <ListChecks class="size-5" aria-hidden="true" />
                     </div>
                     <div>
-                        <p class="font-extrabold">{{ eventCount }} wydarzeń</p>
+                        <p class="font-extrabold">
+                            Wydarzenia: {{ eventCount }}
+                        </p>
                         <p class="text-muted-foreground text-sm">
                             Wszystkie wczytane dla wybranego dnia
                         </p>
@@ -47,7 +49,7 @@ defineProps<{
                     </div>
                     <div>
                         <p class="font-extrabold">
-                            {{ plannedEvents }} zaplanowane
+                            Zaplanowane: {{ plannedEvents }}
                         </p>
                         <p class="text-muted-foreground text-sm">
                             Status: zaplanowane
@@ -65,7 +67,7 @@ defineProps<{
                     </div>
                     <div>
                         <p class="font-extrabold">
-                            {{ participantTotal }} kursantów
+                            Kursanci: {{ participantTotal }}
                         </p>
                         <p class="text-muted-foreground text-sm">
                             Suma uczestników w wydarzeniach

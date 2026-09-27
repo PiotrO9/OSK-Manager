@@ -17,7 +17,7 @@ const model = defineModel<EventsViewMode>({ required: true });
     >
         <button
             type="button"
-            class="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
             :class="
                 model === 'grid'
                     ? 'bg-background text-foreground shadow-sm'
@@ -30,7 +30,7 @@ const model = defineModel<EventsViewMode>({ required: true });
         </button>
         <button
             type="button"
-            class="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+            class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
             :class="
                 model === 'list'
                     ? 'bg-background text-foreground shadow-sm'
