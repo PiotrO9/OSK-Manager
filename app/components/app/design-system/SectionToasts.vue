@@ -4,7 +4,7 @@ const { addToast } = useAppToast();
 function handleToast(variant: ToastVariant) {
     const title =
         variant === 'success'
-            ? 'Sukces'
+            ? 'Zapisano zmiany'
             : variant === 'warning'
               ? 'Ostrzeżenie'
               : variant === 'error'
@@ -15,7 +15,7 @@ function handleToast(variant: ToastVariant) {
         title,
         description:
             variant === 'success'
-                ? 'Zmiany zostały zapisane.'
+                ? 'Dane są aktualne.'
                 : variant === 'warning'
                   ? 'Termin koliduje z dostępnością instruktora.'
                   : variant === 'error'

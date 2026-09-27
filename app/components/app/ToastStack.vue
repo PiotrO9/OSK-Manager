@@ -19,12 +19,12 @@ function getToastUi(variant: ToastVariant): ToastUi {
     if (variant === 'success') {
         return {
             containerClass:
-                'border-success-600/60 bg-success-50/90 text-secondary-900 dark:border-success-500/60 dark:bg-success-950/90 dark:text-success-50',
+                'border-success-600/35 bg-success-50/95 text-secondary-900 dark:border-success-500/40 dark:bg-success-950/90 dark:text-success-50',
             iconWrapperClass:
                 'bg-success-500/15 text-success-700 dark:bg-success-500/30 dark:text-success-300',
             iconClass: 'text-success-700 dark:text-success-300',
             closeButtonClass:
-                'text-success-700/70 hover:text-success-800 hover:bg-success-100/50 active:bg-success-200/50 dark:text-success-300/70 dark:hover:text-success-200 dark:hover:bg-success-900/30 dark:active:bg-success-800/40',
+                'text-success-800 hover:text-success-900 hover:bg-success-100/70 active:bg-success-200/70 dark:text-success-200 dark:hover:text-success-100 dark:hover:bg-success-900/40 dark:active:bg-success-800/50',
             closeRingClass:
                 'focus-visible:ring-success-400 focus-visible:ring-offset-2',
             a11y: { role: 'status', ariaLive: 'polite' },
@@ -34,12 +34,12 @@ function getToastUi(variant: ToastVariant): ToastUi {
     if (variant === 'warning') {
         return {
             containerClass:
-                'border-warning-600/60 bg-warning-50/90 text-secondary-900 dark:border-warning-500/60 dark:bg-warning-950/90 dark:text-warning-50',
+                'border-warning-600/35 bg-warning-50/95 text-secondary-900 dark:border-warning-500/40 dark:bg-warning-950/90 dark:text-warning-50',
             iconWrapperClass:
                 'bg-warning-500/15 text-warning-800 dark:bg-warning-500/30 dark:text-warning-300',
             iconClass: 'text-warning-800 dark:text-warning-300',
             closeButtonClass:
-                'text-warning-800/70 hover:text-warning-900 hover:bg-warning-100/50 active:bg-warning-200/50 dark:text-warning-300/70 dark:hover:text-warning-200 dark:hover:bg-warning-900/30 dark:active:bg-warning-800/40',
+                'text-warning-900 hover:text-warning-950 hover:bg-warning-100/70 active:bg-warning-200/70 dark:text-warning-200 dark:hover:text-warning-100 dark:hover:bg-warning-900/40 dark:active:bg-warning-800/50',
             closeRingClass:
                 'focus-visible:ring-warning-400 focus-visible:ring-offset-2',
             a11y: { role: 'status', ariaLive: 'polite' },
@@ -49,12 +49,12 @@ function getToastUi(variant: ToastVariant): ToastUi {
     if (variant === 'error') {
         return {
             containerClass:
-                'border-danger-600/60 bg-danger-50/90 text-secondary-900 dark:border-danger-500/60 dark:bg-danger-950/90 dark:text-danger-50',
+                'border-danger-600/35 bg-danger-50/95 text-secondary-900 dark:border-danger-500/40 dark:bg-danger-950/90 dark:text-danger-50',
             iconWrapperClass:
                 'bg-danger-500/15 text-danger-800 dark:bg-danger-500/30 dark:text-danger-300',
             iconClass: 'text-danger-800 dark:text-danger-300',
             closeButtonClass:
-                'text-danger-800/70 hover:text-danger-900 hover:bg-danger-100/50 active:bg-danger-200/50 dark:text-danger-300/70 dark:hover:text-danger-200 dark:hover:bg-danger-900/30 dark:active:bg-danger-800/40',
+                'text-danger-900 hover:text-danger-950 hover:bg-danger-100/70 active:bg-danger-200/70 dark:text-danger-200 dark:hover:text-danger-100 dark:hover:bg-danger-900/40 dark:active:bg-danger-800/50',
             closeRingClass:
                 'focus-visible:ring-danger-400 focus-visible:ring-offset-2',
             a11y: { role: 'alert', ariaLive: 'assertive' },
@@ -63,12 +63,12 @@ function getToastUi(variant: ToastVariant): ToastUi {
 
     return {
         containerClass:
-            'border-primary-600/60 bg-white/90 text-secondary-900 dark:border-primary-500/60 dark:bg-secondary-900/90 dark:text-primary-50',
+            'border-primary-600/35 bg-white/95 text-secondary-900 dark:border-primary-500/40 dark:bg-secondary-900/90 dark:text-primary-50',
         iconWrapperClass:
             'bg-primary-500/15 text-primary-800 dark:bg-primary-500/30 dark:text-primary-300',
         iconClass: 'text-primary-800 dark:text-primary-300',
         closeButtonClass:
-            'text-secondary-700/70 hover:text-secondary-900 hover:bg-secondary-100/50 active:bg-secondary-200/50 dark:text-secondary-300/70 dark:hover:text-secondary-200 dark:hover:bg-secondary-800/50 dark:active:bg-secondary-700/60',
+            'text-secondary-700 hover:text-secondary-900 hover:bg-secondary-100/70 active:bg-secondary-200/70 dark:text-secondary-200 dark:hover:text-secondary-50 dark:hover:bg-secondary-800/60 dark:active:bg-secondary-700/70',
         closeRingClass:
             'focus-visible:ring-primary-400 focus-visible:ring-offset-2',
         a11y: { role: 'status', ariaLive: 'polite' },
@@ -88,20 +88,11 @@ function getToastIcon(variant: ToastVariant): string {
 function handleClose(toastId: string) {
     removeToast(toastId);
 }
-
-function handleCloseKeyDown(event: KeyboardEvent, toastId: string) {
-    if (!event) return;
-
-    if (!isEnterOrSpaceKey(event)) return;
-
-    event.preventDefault();
-    handleClose(toastId);
-}
 </script>
 
 <template>
     <div
-        class="pointer-events-none fixed top-4 right-4 z-50 w-full max-w-sm space-y-3"
+        class="pointer-events-none fixed top-4 right-4 left-4 z-50 sm:left-auto sm:w-full sm:max-w-sm"
         aria-label="Powiadomienia"
     >
         <TransitionGroup
@@ -118,7 +109,7 @@ function handleCloseKeyDown(event: KeyboardEvent, toastId: string) {
             <div
                 v-for="toast in toasts"
                 :key="toast.id"
-                class="pointer-events-auto rounded-2xl border p-4 shadow-lg backdrop-blur"
+                class="pointer-events-auto rounded-2xl border p-4 shadow-md backdrop-blur"
                 :class="getToastUi(toast.variant).containerClass"
                 :role="getToastUi(toast.variant).a11y.role"
                 :aria-live="getToastUi(toast.variant).a11y.ariaLive"
@@ -157,18 +148,17 @@ function handleCloseKeyDown(event: KeyboardEvent, toastId: string) {
                     <button
                         type="button"
                         tabindex="0"
-                        class="group relative inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 motion-reduce:transition-none"
+                        class="group relative inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors duration-200 focus:outline-none focus-visible:ring-2 motion-reduce:transition-none"
                         :class="[
                             getToastUi(toast.variant).closeButtonClass,
                             getToastUi(toast.variant).closeRingClass,
                         ]"
                         aria-label="Zamknij powiadomienie"
                         @click="handleClose(toast.id)"
-                        @keydown="handleCloseKeyDown($event, toast.id)"
                     >
                         <Icon
                             name="heroicons:x-mark"
-                            class="size-4 transition-transform duration-200 group-hover:scale-110 group-active:scale-95 motion-reduce:transition-none"
+                            class="size-5"
                             aria-hidden="true"
                         />
                     </button>
@@ -177,5 +167,3 @@ function handleCloseKeyDown(event: KeyboardEvent, toastId: string) {
         </TransitionGroup>
     </div>
 </template>
-
-<style scoped></style>
