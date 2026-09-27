@@ -3,6 +3,12 @@ import type { Vehicle, VehicleWritePayload } from '~/types/vehicles/vehicle';
 export const VEHICLE_MODEL_YEAR_MIN = 1900;
 export const VEHICLE_MODEL_YEAR_MAX = 2100;
 export const VEHICLE_MILEAGE_KM_MAX = 99_999_999;
+export const VEHICLE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+export const VEHICLE_PHOTO_ACCEPTED_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+] as const;
 
 export interface VehicleFormDraft {
     name: string;
@@ -16,6 +22,11 @@ export interface VehicleFormDraft {
 export interface VehicleOptionalNumberParseResult {
     isValid: boolean;
     value: number | null;
+}
+
+export interface VehiclePhotoFileLike {
+    size: number;
+    type: string;
 }
 
 export function getEmptyVehicleFormDraft(): VehicleFormDraft {
@@ -61,7 +72,7 @@ export function numericFieldInputToTrimmedString(
     if (typeof raw === 'number') {
         if (!Number.isFinite(raw)) return '';
 
-        return String(Math.trunc(raw));
+        return String(raw);
     }
 
     return String(raw).trim();
@@ -76,7 +87,11 @@ export function parseOptionalVehicleModelYear(
         return { isValid: true, value: null };
     }
 
-    const y = parseInt(yearStr, 10);
+    if (!/^\d+$/.test(yearStr)) {
+        return { isValid: false, value: null };
+    }
+
+    const y = Number(yearStr);
 
     if (
         !Number.isInteger(y) ||
@@ -98,13 +113,39 @@ export function parseOptionalVehicleMileageKm(
         return { isValid: true, value: null };
     }
 
-    const m = parseInt(mileageStr, 10);
+    if (!/^\d+$/.test(mileageStr)) {
+        return { isValid: false, value: null };
+    }
+
+    const m = Number(mileageStr);
 
     if (!Number.isInteger(m) || m < 0 || m > VEHICLE_MILEAGE_KM_MAX) {
         return { isValid: false, value: null };
     }
 
     return { isValid: true, value: m };
+}
+
+export function normalizeVehicleRegistrationNumber(value: string): string {
+    return value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('pl-PL');
+}
+
+export function validateVehiclePhotoFile(
+    file: VehiclePhotoFileLike,
+): string | null {
+    if (
+        !VEHICLE_PHOTO_ACCEPTED_TYPES.includes(
+            file.type as (typeof VEHICLE_PHOTO_ACCEPTED_TYPES)[number],
+        )
+    ) {
+        return 'Wybierz plik JPEG, PNG lub WebP.';
+    }
+
+    if (file.size > VEHICLE_PHOTO_MAX_BYTES) {
+        return 'Plik jest za duży. Maksymalny rozmiar to 5 MB.';
+    }
+
+    return null;
 }
 
 export function buildVehicleWritePayload(
@@ -114,7 +155,9 @@ export function buildVehicleWritePayload(
 ): VehicleWritePayload {
     return {
         name: draft.name.trim(),
-        registrationNumber: draft.registrationNumber.trim(),
+        registrationNumber: normalizeVehicleRegistrationNumber(
+            draft.registrationNumber,
+        ),
         inspectionDate: dateInputToPayload(draft.inspectionDate),
         insuranceDate: dateInputToPayload(draft.insuranceDate),
         modelYear,

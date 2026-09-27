@@ -3,6 +3,7 @@ import { useSlots } from 'vue';
 import type { Vehicle, VehicleWritePayload } from '~/types/vehicles/vehicle';
 import {
     buildVehicleWritePayload,
+    normalizeVehicleRegistrationNumber,
     parseOptionalVehicleMileageKm,
     parseOptionalVehicleModelYear,
     vehicleToFormDraft,
@@ -16,6 +17,7 @@ const props = defineProps<{
     initialVehicle: Vehicle | null;
     isSaving: boolean;
     apiError: string | null;
+    registrationNumberError?: string | null;
     formId?: string;
     hideDefaultActions?: boolean;
     submitLabel?: string;
@@ -24,6 +26,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     submit: [payload: VehicleWritePayload];
+    dirtyChange: [isDirty: boolean];
+    registrationNumberChange: [];
 }>();
 
 const slots = useSlots();
@@ -38,6 +42,26 @@ const showNameRequired = ref(false);
 const showRegistrationRequired = ref(false);
 const showModelYearInvalid = ref(false);
 const showMileageKmInvalid = ref(false);
+const formElement = useTemplateRef<HTMLFormElement>('formElement');
+
+const currentDraft = computed(() => ({
+    name: nameModel.value,
+    registrationNumber: registrationNumberModel.value,
+    inspectionDate: inspectionDateModel.value,
+    insuranceDate: insuranceDateModel.value,
+    modelYear: modelYearModel.value,
+    mileageKm: mileageKmModel.value,
+}));
+
+const initialDraft = computed(() =>
+    vehicleToFormDraft(props.mode, props.initialVehicle),
+);
+
+const isDirty = computed(
+    () =>
+        JSON.stringify(currentDraft.value) !==
+        JSON.stringify(initialDraft.value),
+);
 
 function syncFromProps() {
     const draft = vehicleToFormDraft(props.mode, props.initialVehicle);
@@ -62,34 +86,74 @@ watch(
     { immediate: true },
 );
 
-function handleSubmit() {
+watch(isDirty, (value) => emit('dirtyChange', value), { immediate: true });
+
+watch(nameModel, (value) => {
+    if (value.trim().length > 0) {
+        showNameRequired.value = false;
+    }
+});
+
+watch(registrationNumberModel, (value) => {
+    if (value.trim().length > 0) {
+        showRegistrationRequired.value = false;
+    }
+
+    emit('registrationNumberChange');
+});
+
+watch(modelYearModel, (value) => {
+    if (parseOptionalVehicleModelYear(value).isValid) {
+        showModelYearInvalid.value = false;
+    }
+});
+
+watch(mileageKmModel, (value) => {
+    if (parseOptionalVehicleMileageKm(value).isValid) {
+        showMileageKmInvalid.value = false;
+    }
+});
+
+watch(
+    () => props.registrationNumberError,
+    async (error) => {
+        if (!error) return;
+
+        await nextTick();
+        formElement.value
+            ?.querySelector<HTMLElement>('#vehicle-registration')
+            ?.focus();
+    },
+);
+
+async function handleSubmit() {
+    registrationNumberModel.value = normalizeVehicleRegistrationNumber(
+        registrationNumberModel.value,
+    );
+
     const nameOk = nameModel.value.trim().length > 0;
     const regOk = registrationNumberModel.value.trim().length > 0;
+    const modelYearResult = parseOptionalVehicleModelYear(modelYearModel.value);
+    const mileageKmResult = parseOptionalVehicleMileageKm(mileageKmModel.value);
 
     showNameRequired.value = !nameOk;
     showRegistrationRequired.value = !regOk;
+    showModelYearInvalid.value = !modelYearResult.isValid;
+    showMileageKmInvalid.value = !mileageKmResult.isValid;
 
-    if (!nameOk || !regOk) return;
-
-    const modelYearResult = parseOptionalVehicleModelYear(modelYearModel.value);
-
-    if (!modelYearResult.isValid) {
-        showModelYearInvalid.value = true;
-
-        return;
-    }
-
-    showModelYearInvalid.value = false;
-
-    const mileageKmResult = parseOptionalVehicleMileageKm(mileageKmModel.value);
-
-    if (!mileageKmResult.isValid) {
-        showMileageKmInvalid.value = true;
+    if (
+        !nameOk ||
+        !regOk ||
+        !modelYearResult.isValid ||
+        !mileageKmResult.isValid
+    ) {
+        await nextTick();
+        formElement.value
+            ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+            ?.focus();
 
         return;
     }
-
-    showMileageKmInvalid.value = false;
 
     emit(
         'submit',
@@ -112,6 +176,7 @@ function handleSubmit() {
 <template>
     <form
         :id="props.formId"
+        ref="formElement"
         class="space-y-5"
         novalidate
         @submit.prevent="handleSubmit"
@@ -135,6 +200,7 @@ function handleSubmit() {
             :is-saving="isSaving"
             :show-name-required="showNameRequired"
             :show-registration-required="showRegistrationRequired"
+            :registration-number-error="props.registrationNumberError"
             :show-model-year-invalid="showModelYearInvalid"
             :show-mileage-km-invalid="showMileageKmInvalid"
             :model-year-min="VEHICLE_MODEL_YEAR_MIN"
@@ -151,10 +217,11 @@ function handleSubmit() {
             type="submit"
             class="w-full sm:w-auto"
             :disabled="isSaving"
+            :aria-busy="isSaving"
         >
             {{
                 isSaving
-                    ? (props.savingLabel ?? 'Zapisywanie...')
+                    ? (props.savingLabel ?? 'Zapisywanie…')
                     : (props.submitLabel ?? 'Zapisz')
             }}
         </UiButton>

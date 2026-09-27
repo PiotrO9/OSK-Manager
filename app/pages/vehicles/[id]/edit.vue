@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ArrowLeft, Save } from 'lucide-vue-next';
+import { Save } from 'lucide-vue-next';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleEditPhotoSection from '~/components/vehicles/VehicleEditPhotoSection.vue';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
 import { useVehicleEditPage } from '~/composables/vehicles/useVehicleEditPage';
@@ -11,62 +12,98 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Edycja pojazdu',
-    description: () => 'Zmien dane pojazdu.',
+    description: () => 'Zmień dane pojazdu.',
 });
+
+const route = useRoute();
 
 const {
     apiError,
-    detailLoadError,
+    canRetryPhotoUpload,
+    clearPendingPhoto,
+    clearRegistrationNumberError,
     formId,
     handlePhotoFileInputChange,
     handleVehicleSubmit,
-    headerMeta,
     initialVehicle,
     isDetailLoading,
-    isListBootloading,
+    hasPendingPhoto,
     isSaveBusy,
     loadError,
-    loadList,
+    isSaveNavigationAllowed,
+    loadVehicleDetail,
     pendingPhotoFileName,
+    pendingPhotoFileSize,
     photoUploadError,
     previewPhotoSrc,
-    schoolId,
+    registrationNumberError,
+    retryPhotoUpload,
     vehicleId,
     vehicleTitle,
     vehiclesListRoute,
 } = useVehicleEditPage();
+
+const isFormDirty = ref(false);
+const hasUnsavedChanges = computed(
+    () => isFormDirty.value || hasPendingPhoto.value,
+);
+
+function confirmLeave(): boolean {
+    return (
+        isSaveNavigationAllowed.value ||
+        !hasUnsavedChanges.value ||
+        !import.meta.client ||
+        window.confirm(
+            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić formularz?',
+        )
+    );
+}
+
+onBeforeRouteLeave(confirmLeave);
+onBeforeRouteUpdate(confirmLeave);
+
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!isSaveNavigationAllowed.value && hasUnsavedChanges.value) {
+        event.preventDefault();
+        event.returnValue = '';
+    }
+}
+
+onMounted(() => {
+    if (Object.keys(route.query).length > 0) {
+        void navigateTo(route.path, { replace: true });
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+});
+onBeforeUnmount(() =>
+    window.removeEventListener('beforeunload', handleBeforeUnload),
+);
 </script>
 
 <template>
     <div class="space-y-6">
         <PageHeader
             :title="vehicleTitle"
-            description="Zaktualizuj dane pojazdu i zdjecie widoczne w panelu OSK."
-            eyebrow="Edycja pojazdu"
-            :meta="headerMeta"
+            description="Zaktualizuj dane pojazdu i zdjęcie widoczne w panelu OSK."
         >
             <template #actions>
-                <UiButton as-child variant="outline">
-                    <NuxtLink :to="vehiclesListRoute">
-                        <ArrowLeft class="size-4" aria-hidden="true" />
-                        Anuluj
-                    </NuxtLink>
-                </UiButton>
                 <UiButton
                     type="submit"
                     :form="formId"
                     :disabled="isSaveBusy || initialVehicle === null"
+                    :aria-busy="isSaveBusy"
                 >
                     <Save class="size-4" aria-hidden="true" />
-                    {{ isSaveBusy ? 'Zapisywanie...' : 'Zapisz zmiany' }}
+                    {{ isSaveBusy ? 'Zapisywanie…' : 'Zapisz zmiany' }}
                 </UiButton>
             </template>
         </PageHeader>
 
         <ErrorState
-            v-if="schoolId === null || vehicleId === null"
-            title="Nieprawidlowy adres strony"
-            description="Otwórz edycję z listy pojazdów, aby zachować kontekst OSK i identyfikator pojazdu."
+            v-if="vehicleId === null"
+            title="Nieprawidłowy adres strony"
+            description="Nie znaleziono identyfikatora pojazdu w adresie."
         >
             <template #action>
                 <UiButton as-child variant="outline" class="bg-background">
@@ -79,11 +116,11 @@ const {
             v-else-if="loadError"
             title="Nie udało się wczytać pojazdu"
             :description="loadError"
-            @retry="loadList"
+            @retry="loadVehicleDetail"
         />
 
         <LoadingState
-            v-else-if="isListBootloading && initialVehicle === null"
+            v-else-if="isDetailLoading && initialVehicle === null"
             title="Wczytywanie pojazdu"
             description="Pobieramy dane potrzebne do edycji formularza."
         />
@@ -102,8 +139,8 @@ const {
 
         <FormSection
             v-else
-            title="Edytuj pojazd"
-            description="Formularz jest podzielony na logiczne sekcje bez zmiany walidacji i flow zapisu."
+            title="Dane pojazdu"
+            description="Uzupełnij dane identyfikacyjne, terminy dokumentów i aktualny przebieg."
         >
             <VehicleForm
                 :form-id="formId"
@@ -111,25 +148,35 @@ const {
                 :initial-vehicle="initialVehicle"
                 :is-saving="isSaveBusy"
                 :api-error="apiError"
+                :registration-number-error="registrationNumberError"
                 hide-default-actions
                 @submit="handleVehicleSubmit"
+                @dirty-change="isFormDirty = $event"
+                @registration-number-change="clearRegistrationNumberError"
             >
                 <template #afterFields>
                     <VehicleEditPhotoSection
-                        :detail-load-error="detailLoadError"
+                        :can-retry="canRetryPhotoUpload"
                         :file-name="pendingPhotoFileName"
+                        :file-size="pendingPhotoFileSize"
+                        :has-pending-file="hasPendingPhoto"
                         :is-busy="isSaveBusy"
-                        :is-detail-loading="isDetailLoading"
                         :photo-upload-error="photoUploadError"
                         :preview-photo-src="previewPhotoSrc"
                         :vehicle-name="initialVehicle.name"
+                        @clear-file="clearPendingPhoto"
                         @file-change="handlePhotoFileInputChange"
+                        @retry-photo-upload="retryPhotoUpload"
                     />
                 </template>
             </VehicleForm>
 
             <template #footer>
-                <ActionGroup label="Akcje formularza" align="end">
+                <ActionGroup
+                    label="Akcje formularza"
+                    align="end"
+                    class="max-sm:[&>*]:w-full"
+                >
                     <UiButton as-child variant="outline">
                         <NuxtLink :to="vehiclesListRoute">Anuluj</NuxtLink>
                     </UiButton>
@@ -137,8 +184,9 @@ const {
                         type="submit"
                         :form="formId"
                         :disabled="isSaveBusy"
+                        :aria-busy="isSaveBusy"
                     >
-                        {{ isSaveBusy ? 'Zapisywanie...' : 'Zapisz' }}
+                        {{ isSaveBusy ? 'Zapisywanie…' : 'Zapisz zmiany' }}
                     </UiButton>
                 </ActionGroup>
             </template>

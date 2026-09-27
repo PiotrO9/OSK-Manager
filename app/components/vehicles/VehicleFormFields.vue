@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
+import { normalizeVehicleRegistrationNumber } from '~/utils/vehicles/vehicleForm';
 
 defineProps<{
     isSaving: boolean;
     showNameRequired: boolean;
     showRegistrationRequired: boolean;
+    registrationNumberError?: string | null;
     showModelYearInvalid: boolean;
     showMileageKmInvalid: boolean;
     modelYearMin: number;
@@ -28,6 +30,12 @@ const mileageKmModel = defineModel<string>('mileageKm', { required: true });
 function formatPlInt(n: number): string {
     return new Intl.NumberFormat('pl-PL').format(n);
 }
+
+function normalizeRegistrationNumber(): void {
+    registrationNumberModel.value = normalizeVehicleRegistrationNumber(
+        registrationNumberModel.value,
+    );
+}
 </script>
 
 <template>
@@ -40,6 +48,8 @@ function formatPlInt(n: number): string {
                 type="text"
                 name="name"
                 autocomplete="off"
+                maxlength="100"
+                placeholder="np. Hyundai i20"
                 :aria-invalid="showNameRequired"
                 :aria-describedby="
                     showNameRequired ? 'vehicle-name-error' : undefined
@@ -64,13 +74,21 @@ function formatPlInt(n: number): string {
                 type="text"
                 name="registrationNumber"
                 autocomplete="off"
-                :aria-invalid="showRegistrationRequired"
+                maxlength="20"
+                placeholder="np. DW 00001"
+                spellcheck="false"
+                :aria-invalid="
+                    showRegistrationRequired || Boolean(registrationNumberError)
+                "
                 :aria-describedby="
                     showRegistrationRequired
                         ? 'vehicle-registration-error'
-                        : undefined
+                        : registrationNumberError
+                          ? 'vehicle-registration-api-error'
+                          : undefined
                 "
                 :disabled="isSaving"
+                @blur="normalizeRegistrationNumber"
             />
             <p
                 v-if="showRegistrationRequired"
@@ -80,26 +98,38 @@ function formatPlInt(n: number): string {
             >
                 Numer rejestracyjny jest wymagany.
             </p>
+            <p
+                v-else-if="registrationNumberError"
+                id="vehicle-registration-api-error"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                {{ registrationNumberError }}
+            </p>
         </div>
 
         <div class="space-y-2">
-            <UiLabel for="vehicle-inspection">Data przegladu</UiLabel>
+            <UiLabel for="vehicle-inspection">
+                Badanie techniczne ważne do
+            </UiLabel>
             <UiDatePicker
                 id="vehicle-inspection"
                 v-model="inspectionDateModel"
                 :disabled="isSaving"
-                placeholder="Data przegladu (opcjonalnie)"
+                placeholder="Wybierz datę…"
                 clearable
             />
         </div>
 
         <div class="space-y-2">
-            <UiLabel for="vehicle-insurance">Data ubezpieczenia</UiLabel>
+            <UiLabel for="vehicle-insurance">
+                Ubezpieczenie OC ważne do
+            </UiLabel>
             <UiDatePicker
                 id="vehicle-insurance"
                 v-model="insuranceDateModel"
                 :disabled="isSaving"
-                placeholder="Data ubezpieczenia (opcjonalnie)"
+                placeholder="Wybierz datę…"
                 clearable
             />
         </div>

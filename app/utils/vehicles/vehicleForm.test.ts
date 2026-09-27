@@ -6,6 +6,8 @@ import {
     numericFieldInputToTrimmedString,
     parseOptionalVehicleMileageKm,
     parseOptionalVehicleModelYear,
+    normalizeVehicleRegistrationNumber,
+    validateVehiclePhotoFile,
     vehicleToFormDraft,
     VEHICLE_MILEAGE_KM_MAX,
     VEHICLE_MODEL_YEAR_MAX,
@@ -56,7 +58,7 @@ describe('vehicle form utilities', () => {
 
     it('normalizes numeric field input values before parsing', () => {
         expect(numericFieldInputToTrimmedString(' 2020 ')).toBe('2020');
-        expect(numericFieldInputToTrimmedString(2020.9)).toBe('2020');
+        expect(numericFieldInputToTrimmedString(2020.9)).toBe('2020.9');
         expect(numericFieldInputToTrimmedString(Number.NaN)).toBe('');
         expect(numericFieldInputToTrimmedString(null)).toBe('');
     });
@@ -80,6 +82,9 @@ describe('vehicle form utilities', () => {
         expect(
             parseOptionalVehicleModelYear(VEHICLE_MODEL_YEAR_MAX + 1),
         ).toMatchObject({ isValid: false });
+        expect(parseOptionalVehicleModelYear('2020.5')).toMatchObject({
+            isValid: false,
+        });
     });
 
     it('parses optional mileage range', () => {
@@ -101,6 +106,36 @@ describe('vehicle form utilities', () => {
         expect(
             parseOptionalVehicleMileageKm(VEHICLE_MILEAGE_KM_MAX + 1),
         ).toMatchObject({ isValid: false });
+        expect(parseOptionalVehicleMileageKm('123.5')).toMatchObject({
+            isValid: false,
+        });
+    });
+
+    it('normalizes a registration number without changing its grouping', () => {
+        expect(normalizeVehicleRegistrationNumber('  dw  00001 ')).toBe(
+            'DW 00001',
+        );
+    });
+
+    it('validates vehicle photo type and size before upload', () => {
+        expect(
+            validateVehiclePhotoFile({
+                type: 'text/plain',
+                size: 100,
+            }),
+        ).toBe('Wybierz plik JPEG, PNG lub WebP.');
+        expect(
+            validateVehiclePhotoFile({
+                type: 'image/jpeg',
+                size: 5 * 1024 * 1024 + 1,
+            }),
+        ).toBe('Plik jest za duży. Maksymalny rozmiar to 5 MB.');
+        expect(
+            validateVehiclePhotoFile({
+                type: 'image/webp',
+                size: 5 * 1024 * 1024,
+            }),
+        ).toBeNull();
     });
 
     it('builds trimmed write payload with optional dates and numbers', () => {
