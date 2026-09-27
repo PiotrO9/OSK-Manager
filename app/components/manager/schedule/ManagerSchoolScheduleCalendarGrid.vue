@@ -5,10 +5,12 @@ import type {
     ManagerSchoolScheduleCalendarGridLayout,
     ManagerSchoolScheduleCalendarGridState,
 } from '~/types/schedule/managerSchoolScheduleCalendarComponents';
+import type { ScheduleSameStartGroup } from '~/utils/schedule/managerScheduleSameStartGroups';
 
-defineProps<{
+const props = defineProps<{
     blockActions: ManagerSchoolScheduleCalendarBlockActions;
     compact?: boolean;
+    groupSameStart?: boolean;
     layout: ManagerSchoolScheduleCalendarGridLayout;
     state: ManagerSchoolScheduleCalendarGridState;
 }>();
@@ -17,6 +19,20 @@ const emit = defineEmits<{
     blockKeydown: [event: KeyboardEvent, lesson: ScheduleLessonItem];
     blockSelect: [lesson: ScheduleLessonItem];
 }>();
+
+const selectedGroup = shallowRef<ScheduleSameStartGroup | null>(null);
+
+watch(
+    () => props.state.weekRangeLabel,
+    () => {
+        selectedGroup.value = null;
+    },
+);
+
+function selectGroupLesson(lesson: ScheduleLessonItem): void {
+    selectedGroup.value = null;
+    emit('blockSelect', lesson);
+}
 
 function emitBlockKeydown(
     event: KeyboardEvent,
@@ -104,13 +120,24 @@ function emitBlockKeydown(
                         :lesson-block-height-px="layout.lessonBlockHeightPx"
                         :lesson-block-top-px="layout.lessonBlockTopPx"
                         :lessons="layout.lessonsForDate(day.dateStr)"
+                        :group-same-start="props.groupSameStart ?? false"
                         :practice-primary-line="state.practicePrimaryLine"
                         :show-instructor-subtitle="state.showInstructorSubtitle"
                         @block-select="emit('blockSelect', $event)"
                         @block-keydown="emitBlockKeydown"
+                        @group-select="selectedGroup = $event"
                     />
                 </div>
             </div>
         </div>
+
+        <ManagerScheduleSameStartDialog
+            v-if="props.groupSameStart"
+            :group="selectedGroup"
+            :block-actions="blockActions"
+            :practice-primary-line="state.practicePrimaryLine"
+            @close="selectedGroup = null"
+            @select="selectGroupLesson"
+        />
     </div>
 </template>

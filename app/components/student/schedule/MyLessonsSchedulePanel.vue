@@ -123,6 +123,7 @@ const weekStart = defineModel<Date>('weekStart', {
                 <ManagerSchoolScheduleCalendar
                     v-model:week-start="weekStart"
                     parent-schedule
+                    group-same-start
                     :school-id="''"
                     :parent-items="items"
                     :parent-loading="isLoading"

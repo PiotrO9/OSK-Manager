@@ -35,6 +35,8 @@ const props = withDefaults(
         showInstructorCount?: boolean;
         scopeBadgeLabel?: string;
         compactChrome?: boolean;
+        /** Zwija lekcje zaczynające się o tej samej porze w jeden blok. */
+        groupSameStart?: boolean;
     }>(),
     {
         eventEditEnabled: false,
@@ -52,6 +54,7 @@ const props = withDefaults(
         showInstructorCount: true,
         scopeBadgeLabel: 'Wszyscy instruktorzy',
         compactChrome: false,
+        groupSameStart: false,
     },
 );
 
@@ -172,6 +175,7 @@ defineExpose({
 
             <ManagerSchoolScheduleCalendarGrid
                 :compact="compactChrome"
+                :group-same-start="groupSameStart"
                 :state="calendarGridState"
                 :layout="calendarGridLayout"
                 :block-actions="calendarBlockActions"

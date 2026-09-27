@@ -41,11 +41,11 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-2 py-1.5 text-xs leading-tight shadow-sm"
+        class="schedule-lesson-block absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-2 py-1.5 text-xs leading-tight shadow-sm hover:shadow-lg focus-visible:shadow-lg"
         :class="[lessonBlockClasses(lesson.type), interactiveClasses]"
         :style="{
             top: `${topPx}px`,
-            height: `${heightPx}px`,
+            '--schedule-block-height': `${heightPx}px`,
         }"
         :title="accessibilityLabel"
         :role="isClickable ? 'button' : 'group'"
@@ -56,7 +56,7 @@ const emit = defineEmits<{
     >
         <div
             v-if="isTheoryLessonType(lesson.type)"
-            class="mb-0.5 flex items-center gap-1"
+            class="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5"
         >
             <BookOpen
                 class="text-warning-700 size-3 shrink-0"
@@ -68,7 +68,7 @@ const emit = defineEmits<{
             >
                 Teoria
             </UiBadge>
-            <span class="ml-auto shrink-0 font-medium tabular-nums">
+            <span class="ml-auto max-w-full shrink-0 font-medium tabular-nums">
                 {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
             </span>
         </div>
@@ -129,3 +129,23 @@ const emit = defineEmits<{
         </span>
     </div>
 </template>
+
+<style scoped>
+.schedule-lesson-block {
+    height: var(--schedule-block-height);
+    min-height: var(--schedule-block-height);
+}
+
+.schedule-lesson-block:hover,
+.schedule-lesson-block:focus-visible {
+    z-index: 30;
+    height: auto;
+}
+
+.schedule-lesson-block:hover .truncate,
+.schedule-lesson-block:focus-visible .truncate {
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+</style>

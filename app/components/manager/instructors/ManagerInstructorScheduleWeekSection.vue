@@ -139,6 +139,7 @@ function setScheduleView(value: ScheduleViewMode): void {
                 <ManagerSchoolScheduleCalendar
                     v-model:week-start="calendarWeekStart"
                     parent-schedule
+                    group-same-start
                     event-action-mode="select"
                     compact-chrome
                     :school-id="schoolId"

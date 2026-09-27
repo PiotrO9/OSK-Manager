@@ -2,6 +2,10 @@
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import type { ManagerSchoolScheduleCalendarBlockActions } from '~/types/schedule/managerSchoolScheduleCalendarComponents';
 import type { ManagerSchoolScheduleWeekDay } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
+import {
+    buildScheduleSameStartGroups,
+    type ScheduleSameStartGroup,
+} from '~/utils/schedule/managerScheduleSameStartGroups';
 
 const props = defineProps<{
     blockActions: ManagerSchoolScheduleCalendarBlockActions;
@@ -16,6 +20,7 @@ const props = defineProps<{
     ) => number;
     lessonBlockTopPx: (lesson: ScheduleLessonItem, dateStr: string) => number;
     lessons: ScheduleLessonItem[];
+    groupSameStart: boolean;
     practicePrimaryLine: 'student' | 'instructor';
     showInstructorSubtitle: boolean;
 }>();
@@ -23,7 +28,12 @@ const props = defineProps<{
 const emit = defineEmits<{
     blockKeydown: [event: KeyboardEvent, lesson: ScheduleLessonItem];
     blockSelect: [lesson: ScheduleLessonItem];
+    groupSelect: [group: ScheduleSameStartGroup];
 }>();
+
+const groups = computed(() =>
+    props.groupSameStart ? buildScheduleSameStartGroups(props.lessons) : [],
+);
 
 function emitBlockKeydown(
     event: KeyboardEvent,
@@ -52,7 +62,44 @@ function emitBlockKeydown(
                 />
             </div>
 
-            <template v-for="lesson in lessons" :key="lesson.id">
+            <template v-if="groupSameStart">
+                <template v-for="group in groups" :key="group.startHm">
+                    <ManagerScheduleLessonBlock
+                        v-if="group.items.length === 1"
+                        :lesson="group.items[0]!"
+                        :top-px="group.topPx"
+                        :height-px="group.heightPx"
+                        :accessibility-label="
+                            blockActions.blockAccessibilityLabel(
+                                group.items[0]!,
+                            )
+                        "
+                        :interactive-classes="
+                            blockActions.lessonBlockInteractiveClasses(
+                                group.items[0]!,
+                            )
+                        "
+                        :is-clickable="
+                            blockActions.blockIsClickable(group.items[0]!)
+                        "
+                        :practice-primary-line="practicePrimaryLine"
+                        :show-instructor-subtitle="showInstructorSubtitle"
+                        @select="emit('blockSelect', $event)"
+                        @keydown="emitBlockKeydown"
+                    />
+                    <ManagerScheduleSameStartBlock
+                        v-else
+                        :group="group"
+                        :day-label="day.header"
+                        @select="emit('groupSelect', $event)"
+                    />
+                </template>
+            </template>
+
+            <template
+                v-for="lesson in groupSameStart ? [] : lessons"
+                :key="lesson.id"
+            >
                 <ManagerScheduleLessonBlock
                     :lesson="lesson"
                     :top-px="lessonBlockTopPx(lesson, props.day.dateStr)"

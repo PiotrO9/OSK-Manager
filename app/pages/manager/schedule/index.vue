@@ -171,6 +171,7 @@ usePageMeta({
             v-if="schoolId && !schoolIdError"
             :school-id="schoolId"
             event-edit-enabled
+            group-same-start
         />
     </div>
 </template>
