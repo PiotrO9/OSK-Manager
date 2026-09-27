@@ -1,6 +1,9 @@
 import type { Ref } from 'vue';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
+import type {
+    AssignedCourseInstructor,
+    ManagerLessonDetail,
+} from '~/types/lessons/managerLesson';
 import {
     normalizeStudentDetail,
     type StudentDetail,
@@ -20,6 +23,7 @@ interface UseManagerLessonEditReferencesOptions {
     schoolId: Ref<string>;
     loadedLesson: Ref<ManagerLessonDetail | null>;
     formInstructorId: Ref<string>;
+    assignedCourseInstructor: Ref<AssignedCourseInstructor | null>;
     formVehicleId: Ref<string>;
     fetchVehiclesList: (schoolId: string) => Promise<Vehicle[]>;
     fetchVehicleById: (id: string) => Promise<Vehicle>;
@@ -142,10 +146,16 @@ export function useManagerLessonEditReferences(
             return;
         }
 
-        const userId = lesson.studentId.trim();
+        const userId = lesson.studentUserId?.trim() ?? '';
 
         if (!userId) {
-            studentDisplayName.value = null;
+            const profileId = lesson.studentId.trim();
+
+            studentDisplayName.value = profileId
+                ? profileId.length > 12
+                    ? `${profileId.slice(0, 8)}…`
+                    : profileId
+                : null;
 
             return;
         }
@@ -260,6 +270,8 @@ export function useManagerLessonEditReferences(
         buildManagerLessonInstructorsForSelect({
             instructors: instructors.value,
             selectedInstructorId: options.formInstructorId.value,
+            assignedInstructorId: options.assignedCourseInstructor.value?.id,
+            assignedInstructor: options.assignedCourseInstructor.value,
             embeddedInstructor: options.loadedLesson.value?.lessonInstructor,
             fallbackLabel: instructorNameFallback.value,
         }),

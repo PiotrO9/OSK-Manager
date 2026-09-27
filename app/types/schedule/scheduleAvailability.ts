@@ -136,6 +136,14 @@ export interface ScheduleAvailabilityOptionsResult {
         minDurationMinutes: number;
         maxDurationMinutes: number;
     };
+    emptyReason?:
+        | 'SCHOOL_CLOSED'
+        | 'DATE_NOT_BOOKABLE'
+        | 'INSTRUCTOR_UNAVAILABLE'
+        | 'COURSE_LIMIT_EXCEEDED'
+        | 'STUDENT_BUSY'
+        | 'VEHICLE_UNAVAILABLE'
+        | 'NO_FREE_TIME';
 }
 
 const ISSUE_MESSAGES: Record<ScheduleAvailabilityIssueCode, string> = {

@@ -1,16 +1,24 @@
-import type { Ref } from 'vue';
+import { onScopeDispose, shallowRef, type Ref } from 'vue';
+import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
 import type {
+    AssignedCourseInstructor,
     ManagerLessonDetail,
     PatchManagerLessonPayload,
 } from '~/types/lessons/managerLesson';
-import { isoInstantToDatetimeLocalString } from '~/utils/date/weeklyCalendarDates';
+import {
+    isoInstantToDatetimeLocalString,
+    dateValueToIsoDateString,
+} from '~/utils/date/weeklyCalendarDates';
 import { polishLocalDateTimeToIso } from '~/utils/date/polishScheduleTime';
 import { useScheduleAvailabilityCheck } from '~/composables/schedule/useScheduleAvailabilityCheck';
 import { useScheduleAvailabilityOptions } from '~/composables/schedule/useScheduleAvailabilityOptions';
 import type {
     LessonEditAvailabilityOptionsRequest,
     LessonEditAvailabilityRequest,
+    ScheduleAvailabilityOptionsResult,
 } from '~/types/schedule/scheduleAvailability';
+import { isManagerLessonInstructorEligible } from '~/utils/lessons/managerLessonEditReferences';
+import { managerLessonNoHoursMessage } from '~/utils/lessons/managerLessonAvailabilityMessage';
 
 export interface ManagerLessonEditSnapshot {
     start: string;
@@ -140,6 +148,7 @@ export function buildManagerLessonPatchPayload(
 
 export function useManagerLessonEditForm(
     loadedLesson: Ref<ManagerLessonDetail | null>,
+    assignedCourseInstructor: Ref<AssignedCourseInstructor | null>,
 ) {
     const formStartLocal = ref('');
     const formEndLocal = ref('');
@@ -180,6 +189,12 @@ export function useManagerLessonEditForm(
         );
     });
 
+    const isFormComplete = computed(
+        () =>
+            Boolean(formStartLocal.value.split('T')[1]) &&
+            Boolean(formEndLocal.value.split('T')[1]),
+    );
+
     const availabilityCandidate =
         computed<LessonEditAvailabilityRequest | null>(() => {
             const lesson = loadedLesson.value;
@@ -195,6 +210,10 @@ export function useManagerLessonEditForm(
                 !endTime ||
                 endDate !== date ||
                 !instructorId ||
+                !isManagerLessonInstructorEligible(
+                    instructorId,
+                    assignedCourseInstructor.value?.id,
+                ) ||
                 !vehicleId
             ) {
                 return null;
@@ -221,7 +240,17 @@ export function useManagerLessonEditForm(
             const instructorId = formInstructorId.value.trim();
             const vehicleId = formVehicleId.value.trim();
 
-            if (!lesson || !date || !instructorId) return null;
+            if (
+                !lesson ||
+                !date ||
+                !instructorId ||
+                !isManagerLessonInstructorEligible(
+                    instructorId,
+                    assignedCourseInstructor.value?.id,
+                )
+            ) {
+                return null;
+            }
 
             return {
                 intent: 'lesson_edit',
@@ -234,6 +263,89 @@ export function useManagerLessonEditForm(
     const availabilityOptions = useScheduleAvailabilityOptions({
         candidate: availabilityOptionsCandidate,
     });
+    const nextAvailableDay = shallowRef<{
+        date: string;
+        startTime: string;
+    } | null>(null);
+    const nextAvailableStatus = shallowRef<
+        'idle' | 'loading' | 'found' | 'none' | 'error'
+    >('idle');
+    let nextAvailableController: AbortController | null = null;
+
+    watch(availabilityOptionsCandidate, () => {
+        nextAvailableController?.abort();
+        nextAvailableController = null;
+        nextAvailableDay.value = null;
+        nextAvailableStatus.value = 'idle';
+    });
+
+    onScopeDispose(() => nextAvailableController?.abort());
+
+    async function findNextAvailableDay(): Promise<void> {
+        const candidate = availabilityOptionsCandidate.value;
+
+        if (!candidate?.vehicleId || nextAvailableStatus.value === 'loading')
+            return;
+
+        const controller = new AbortController();
+
+        nextAvailableController = controller;
+        nextAvailableDay.value = null;
+        nextAvailableStatus.value = 'loading';
+        const maxDate = dateValueToIsoDateString(
+            today(getLocalTimeZone()).add({
+                days: loadedLesson.value?.bookingMaxDaysAhead ?? 30,
+            }),
+        );
+        const selectedDate = parseDate(candidate.date);
+
+        try {
+            for (let day = 1; day <= 14; day += 1) {
+                const date = dateValueToIsoDateString(
+                    selectedDate.add({ days: day }),
+                );
+
+                if (date > maxDate) break;
+
+                const result =
+                    await requestBffData<ScheduleAvailabilityOptionsResult>(
+                        'POST',
+                        '/api/schedule/availability-options',
+                        {
+                            body: { ...candidate, date },
+                            signal: controller.signal,
+                            fallbackMessage:
+                                'Nie udało się znaleźć kolejnego terminu.',
+                        },
+                    );
+
+                if (controller.signal.aborted) return;
+
+                const first = result.options.find(
+                    (option) => option.endTimes.length > 0,
+                );
+
+                if (first) {
+                    nextAvailableDay.value = {
+                        date,
+                        startTime: first.startTime,
+                    };
+                    nextAvailableStatus.value = 'found';
+
+                    return;
+                }
+            }
+
+            nextAvailableStatus.value = 'none';
+        } catch {
+            if (!controller.signal.aborted) nextAvailableStatus.value = 'error';
+        } finally {
+            if (nextAvailableController === controller) {
+                nextAvailableController = null;
+            }
+        }
+    }
+
     const availableStartTimes = computed<readonly string[] | undefined>(() =>
         availabilityOptions.status.value === 'success'
             ? (availabilityOptions.result.value?.options.map(
@@ -265,6 +377,13 @@ export function useManagerLessonEditForm(
             ? 'Nie udało się pobrać dostępnych godzin. Termin zostanie sprawdzony przy zapisie.'
             : '',
     );
+    const noHoursMessage = computed(() =>
+        availableStartTimes.value?.length === 0
+            ? managerLessonNoHoursMessage(
+                  availabilityOptions.result.value?.emptyReason,
+              )
+            : '',
+    );
     const lessonAvailabilityStatus = computed(() =>
         isFormDirty.value ? availability.status.value : 'idle',
     );
@@ -277,16 +396,23 @@ export function useManagerLessonEditForm(
         (next) => {
             if (!next || !formVehicleId.value.trim()) return;
 
-            const first = next.options[0];
+            const date = availabilityOptionsCandidate.value?.date ?? '';
 
-            if (!first) {
-                formStartLocal.value = '';
-                formEndLocal.value = '';
+            if (next.options.length === 0) {
+                if (
+                    formStartLocal.value === baselineSnapshot.value?.start &&
+                    formEndLocal.value === baselineSnapshot.value?.end
+                )
+                    return;
+
+                if (!date) return;
+
+                formStartLocal.value = `${date}T`;
+                formEndLocal.value = `${date}T`;
 
                 return;
             }
 
-            const date = availabilityOptionsCandidate.value?.date ?? '';
             const currentStart = formStartLocal.value.split('T')[1] ?? '';
             const currentEnd = formEndLocal.value.split('T')[1] ?? '';
             const selected = next.options.find(
@@ -294,20 +420,14 @@ export function useManagerLessonEditForm(
             );
 
             if (!selected) {
-                const firstEnd = first.endTimes[0];
-
-                if (!firstEnd) return;
-
-                formStartLocal.value = `${date}T${first.startTime}`;
-                formEndLocal.value = `${date}T${firstEnd}`;
+                formStartLocal.value = `${date}T`;
+                formEndLocal.value = `${date}T`;
 
                 return;
             }
 
             if (!selected.endTimes.includes(currentEnd)) {
-                const firstEnd = selected.endTimes[0];
-
-                if (firstEnd) formEndLocal.value = `${date}T${firstEnd}`;
+                formEndLocal.value = `${date}T`;
             }
         },
     );
@@ -330,6 +450,7 @@ export function useManagerLessonEditForm(
         baselineSnapshot,
         currentSnapshot,
         isFormDirty,
+        isFormComplete,
         applyPrefill,
         buildPatchPayload,
         lessonAvailabilityStatus,
@@ -339,6 +460,10 @@ export function useManagerLessonEditForm(
         availableVehicleIds,
         isAvailabilityOptionsLoading,
         availabilityOptionsError,
+        noHoursMessage,
+        nextAvailableDay,
+        nextAvailableStatus,
+        findNextAvailableDay,
         lessonMinDurationMinutes: computed(
             () =>
                 availabilityOptions.result.value?.policy.minDurationMinutes ??

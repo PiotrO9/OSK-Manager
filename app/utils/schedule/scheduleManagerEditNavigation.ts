@@ -1,6 +1,7 @@
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
+import { isManagerLessonEditable } from '~/utils/lessons/managerLessonEditability';
 
 export function isScheduleManagerItemEditable(
     eventEditEnabled: boolean,
@@ -11,7 +12,9 @@ export function isScheduleManagerItemEditable(
     }
 
     return (
-        isScheduleInstructorEvent(item) || isScheduleBookedPracticalLesson(item)
+        isScheduleInstructorEvent(item) ||
+        (isScheduleBookedPracticalLesson(item) &&
+            isManagerLessonEditable(item.status, item.endTime))
     );
 }
 
@@ -22,10 +25,12 @@ export function buildScheduleManagerItemEditRoute(
     const sid = schoolId.trim();
     const query = sid.length > 0 ? { schoolId: sid } : undefined;
 
-    if (isScheduleBookedPracticalLesson(item)) {
+    if (
+        isScheduleBookedPracticalLesson(item) &&
+        isManagerLessonEditable(item.status, item.endTime)
+    ) {
         return {
             path: `/manager/lessons/${encodeURIComponent(item.id)}/edit`,
-            ...(query ? { query } : {}),
         };
     }
 

@@ -16,8 +16,8 @@ function lesson(
         kind: 'lesson',
         type: 'PRACTICE',
         status: 'SCHEDULED',
-        startTime: '2026-08-10T09:00:00',
-        endTime: '2026-08-10T10:00:00',
+        startTime: '2099-08-10T09:00:00.000Z',
+        endTime: '2099-08-10T10:00:00.000Z',
         instructor: {
             id: 'instructor-1',
             firstName: 'Jan',
@@ -85,6 +85,34 @@ describe('managerSchoolScheduleCalendarInteractions', () => {
                 studentRatingSelectionEnabled: false,
             }),
         ).toBe(false);
+        expect(
+            isManagerSchoolScheduleBlockClickable(
+                lesson({ endTime: '2026-09-20T10:00:00.000Z' }),
+                {
+                    eventEditEnabled: true,
+                    studentRatingSelectionEnabled: false,
+                },
+            ),
+        ).toBe(false);
+        expect(
+            isManagerSchoolScheduleBlockClickable(
+                lesson({ endTime: '2026-09-20T10:00:00.000Z' }),
+                {
+                    eventActionMode: 'select',
+                    eventEditEnabled: true,
+                    studentRatingSelectionEnabled: false,
+                },
+            ),
+        ).toBe(true);
+        expect(
+            isManagerSchoolScheduleBlockClickable(
+                lesson({ status: 'COMPLETED' }),
+                {
+                    eventEditEnabled: true,
+                    studentRatingSelectionEnabled: false,
+                },
+            ),
+        ).toBe(false);
     });
 
     it('builds accessibility labels for rating, event edit and non-clickable blocks', () => {
@@ -115,6 +143,16 @@ describe('managerSchoolScheduleCalendarInteractions', () => {
                 practicePrimaryLine: 'student',
             }),
         ).not.toContain('Naciśnij Enter');
+        expect(
+            getManagerSchoolScheduleBlockAccessibilityLabel(
+                lesson({ status: 'COMPLETED' }),
+                {
+                    eventEditEnabled: true,
+                    studentRatingSelectionEnabled: false,
+                    practicePrimaryLine: 'student',
+                },
+            ),
+        ).not.toContain('edytować jazdę');
     });
 
     it('returns interactive classes only for clickable blocks', () => {

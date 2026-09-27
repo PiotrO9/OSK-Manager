@@ -30,10 +30,13 @@ export function isManagerSchoolScheduleBlockClickable(
     lesson: ScheduleLessonItem,
     options: Pick<
         ManagerSchoolScheduleBlockInteractionOptions,
-        'eventEditEnabled' | 'studentRatingSelectionEnabled'
+        'eventActionMode' | 'eventEditEnabled' | 'studentRatingSelectionEnabled'
     >,
 ): boolean {
     return (
+        (options.eventActionMode === 'select' &&
+            Boolean(options.eventEditEnabled) &&
+            isScheduleBookedPracticalLesson(lesson)) ||
         isScheduleManagerItemEditable(
             Boolean(options.eventEditEnabled),
             lesson,
@@ -72,7 +75,11 @@ export function getManagerSchoolScheduleBlockAccessibilityLabel(
         return `${base}. Naciśnij Enter lub Spację, aby edytować blok czasu.`;
     }
 
-    if (isScheduleBookedPracticalLesson(lesson)) {
+    if (
+        isScheduleBookedPracticalLesson(lesson) &&
+        (options.eventActionMode === 'select' ||
+            isScheduleManagerItemEditable(true, lesson))
+    ) {
         if (options.eventActionMode === 'select') {
             return `${base}. Naciśnij Enter lub Spację, aby wybrać jazdę praktyczną.`;
         }
@@ -87,7 +94,7 @@ export function getManagerSchoolScheduleBlockInteractiveClasses(
     lesson: ScheduleLessonItem,
     options: Pick<
         ManagerSchoolScheduleBlockInteractionOptions,
-        'eventEditEnabled' | 'studentRatingSelectionEnabled'
+        'eventActionMode' | 'eventEditEnabled' | 'studentRatingSelectionEnabled'
     >,
 ): string {
     if (!isManagerSchoolScheduleBlockClickable(lesson, options)) {

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, LoaderCircle } from 'lucide-vue-next';
 
 defineProps<{
     formId: string;
     canSave: boolean;
     isAvailabilityBlocking: boolean;
+    isCheckingAvailability: boolean;
     isSaving: boolean;
 }>();
 
@@ -23,9 +24,20 @@ defineEmits<{
             type="submit"
             :form="formId"
             :disabled="!canSave || isAvailabilityBlocking || isSaving"
-            :aria-busy="isSaving"
+            :aria-busy="isCheckingAvailability || isSaving"
         >
-            {{ isSaving ? 'Zapisywanie...' : 'Zapisz' }}
+            <LoaderCircle
+                v-if="isCheckingAvailability || isSaving"
+                class="size-4 animate-spin"
+                aria-hidden="true"
+            />
+            {{
+                isCheckingAvailability
+                    ? 'Sprawdzanie terminu...'
+                    : isSaving
+                      ? 'Zapisywanie...'
+                      : 'Zapisz'
+            }}
         </UiButton>
     </ActionGroup>
 </template>

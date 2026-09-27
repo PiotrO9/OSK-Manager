@@ -4,6 +4,34 @@ import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
 export type WeeklyEntryResponse = MockWeeklyEntry;
 
+export interface ExceptionEntryResponse {
+    date: string;
+    isDayOff: boolean;
+}
+
+export async function bffExceptionsGet(
+    event: H3Event,
+    upstreamBase: string,
+    instructorId: string,
+    from: string,
+    to: string,
+): Promise<{ success: true; data: { exceptions: ExceptionEntryResponse[] } }> {
+    const { data } = await upstreamRequest<{
+        exceptions?: ExceptionEntryResponse[];
+    }>(event, upstreamBase, {
+        path: `/instructors/${encodeURIComponent(instructorId)}/availability/exceptions`,
+        query: { from, to },
+        fallbackError: 'Nie udało się pobrać wyjątków dostępności',
+    });
+
+    return {
+        success: true,
+        data: {
+            exceptions: Array.isArray(data?.exceptions) ? data.exceptions : [],
+        },
+    };
+}
+
 export interface SlotsEntryResponse {
     date: string;
     startTime: string;

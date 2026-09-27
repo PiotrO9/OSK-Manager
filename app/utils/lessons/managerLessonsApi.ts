@@ -37,9 +37,11 @@ export function normalizeManagerLesson(
 
     const id = readStringField(o, 'id');
     const courseId = readAliasedStringField(o, 'courseId', 'course_id');
+    const schoolId = readAliasedStringField(o, 'schoolId', 'school_id');
     const studentId =
         readAliasedStringField(o, 'studentId', 'student_id') ||
         readManagerLessonIdFromNestedObject(o.student);
+    const studentUserId = readNestedManagerLessonUserId(o.student);
     const instructorId =
         readAliasedStringField(o, 'instructorId', 'instructor_id') ||
         readManagerLessonIdFromNestedObject(o.instructor);
@@ -54,6 +56,9 @@ export function normalizeManagerLesson(
     }
 
     const student = readNestedManagerLessonStudent(o);
+    const assignedCourseInstructor = readNestedAssignedCourseInstructor(
+        o.assignedCourseInstructor,
+    );
 
     let lessonInstructor = readNestedManagerLessonInstructorItem(o.instructor);
 
@@ -76,7 +81,9 @@ export function normalizeManagerLesson(
     return {
         id,
         courseId,
+        ...(schoolId ? { schoolId } : {}),
         studentId,
+        ...(studentUserId ? { studentUserId } : {}),
         instructorId,
         vehicleId,
         lessonType: lessonType || 'PRACTICE',
@@ -86,6 +93,52 @@ export function normalizeManagerLesson(
         ...(student ? { student } : {}),
         ...(lessonInstructor ? { lessonInstructor } : {}),
         ...(lessonVehicle ? { lessonVehicle } : {}),
+        ...(assignedCourseInstructor ? { assignedCourseInstructor } : {}),
+        ...(typeof o.bookingMaxDaysAhead === 'number' &&
+        Number.isInteger(o.bookingMaxDaysAhead) &&
+        o.bookingMaxDaysAhead >= 0
+            ? { bookingMaxDaysAhead: o.bookingMaxDaysAhead }
+            : {}),
+        ...(typeof o.schoolWorkingDaysMask === 'number' &&
+        Number.isInteger(o.schoolWorkingDaysMask) &&
+        o.schoolWorkingDaysMask >= 0 &&
+        o.schoolWorkingDaysMask <= 127
+            ? { schoolWorkingDaysMask: o.schoolWorkingDaysMask }
+            : {}),
+    };
+}
+
+/** PATCH zwraca tylko identyfikatory; zachowaj dane opisowe z GET dla niezmienionych relacji. */
+export function mergeManagerLessonAfterUpdate(
+    previous: ManagerLessonDetail,
+    updated: ManagerLessonDetail,
+): ManagerLessonDetail {
+    return {
+        ...updated,
+        schoolId: updated.schoolId ?? previous.schoolId,
+        bookingMaxDaysAhead:
+            updated.bookingMaxDaysAhead ?? previous.bookingMaxDaysAhead,
+        schoolWorkingDaysMask:
+            updated.schoolWorkingDaysMask ?? previous.schoolWorkingDaysMask,
+        ...(updated.studentId === previous.studentId
+            ? {
+                  student: updated.student ?? previous.student,
+                  studentUserId:
+                      updated.studentUserId ?? previous.studentUserId,
+              }
+            : {}),
+        ...(updated.instructorId === previous.instructorId
+            ? {
+                  lessonInstructor:
+                      updated.lessonInstructor ?? previous.lessonInstructor,
+              }
+            : {}),
+        ...(updated.vehicleId === previous.vehicleId
+            ? { lessonVehicle: updated.lessonVehicle ?? previous.lessonVehicle }
+            : {}),
+        assignedCourseInstructor:
+            updated.assignedCourseInstructor ??
+            previous.assignedCourseInstructor,
     };
 }
 
@@ -195,4 +248,28 @@ function readNestedManagerLessonStudent(
     }
 
     return { firstName, lastName };
+}
+
+function readNestedManagerLessonUserId(raw: unknown): string {
+    if (!raw || typeof raw !== 'object') {
+        return '';
+    }
+
+    return readAliasedStringField(
+        raw as Record<string, unknown>,
+        'userId',
+        'user_id',
+    );
+}
+
+function readNestedAssignedCourseInstructor(
+    raw: unknown,
+): { id: string; name: string } | null {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const item = raw as Record<string, unknown>;
+    const id = readStringField(item, 'id');
+    const name = readStringField(item, 'name');
+
+    return id && name ? { id, name } : null;
 }

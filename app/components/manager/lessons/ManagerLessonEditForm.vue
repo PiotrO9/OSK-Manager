@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import { LoaderCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
+import type { DateValue } from '@internationalized/date';
+import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
+import {
+    dateValueToIsoDateString,
+    buildDatetimeLocal,
+    isoDateStringToCalendarDate,
+    parseDatetimeLocalParts,
+    isoInstantToDatetimeLocalString,
+} from '~/utils/date/weeklyCalendarDates';
+import { isManagerLessonDateDisabled } from '~/utils/lessons/managerLessonDatePolicy';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
 } from '~/types/instructors/instructor';
-import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
+import type {
+    AssignedCourseInstructor,
+    ManagerLessonDetail,
+} from '~/types/lessons/managerLesson';
 import type { StatusTone } from '~/components/app/ui/types';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { ScheduleAvailabilityStatus } from '~/types/schedule/scheduleAvailability';
-import {
-    buildDatetimeLocal,
-    isoDateStringToCalendarDate,
-    parseDatetimeLocalParts,
-} from '~/utils/date/weeklyCalendarDates';
 
 const props = defineProps<{
     formId: string;
@@ -25,12 +33,12 @@ const props = defineProps<{
     lessonStatusTone: StatusTone;
     instructorsForSelect: InstructorListItem[];
     instructorSelectLabel: string;
+    assignedCourseInstructor: AssignedCourseInstructor | null;
     isInstructorsLoading: boolean;
     instructorsError: string | null;
     vehiclesForSelect: Vehicle[];
     isVehiclesLoading: boolean;
     vehiclesError: string | null;
-    schoolId: string;
     formError: string | null;
     availabilityStatus: ScheduleAvailabilityStatus;
     availabilityMessage: string;
@@ -40,10 +48,19 @@ const props = defineProps<{
     availableVehicleIds?: readonly string[];
     isAvailabilityOptionsLoading: boolean;
     availabilityOptionsError: string;
+    noHoursMessage: string;
+    nextAvailableDay: { date: string; startTime: string } | null;
+    nextAvailableStatus: 'idle' | 'loading' | 'found' | 'none' | 'error';
+    bookingMaxDaysAhead?: number;
+    schoolWorkingDaysMask?: number;
+    workingWeekdays?: readonly number[];
+    dayOffDates?: readonly string[];
+    workingExceptionDates?: readonly string[];
 }>();
 
 defineEmits<{
     submit: [];
+    findNextAvailable: [];
 }>();
 
 const formStartLocal = defineModel<string>('startLocal', { required: true });
@@ -52,8 +69,21 @@ const formVehicleId = defineModel<string>('vehicleId', { required: true });
 const formInstructorId = defineModel<string>('instructorId', {
     required: true,
 });
+const isOriginalSchedule = computed(
+    () =>
+        formStartLocal.value ===
+            isoInstantToDatetimeLocalString(props.loadedLesson.startTime) &&
+        formEndLocal.value ===
+            isoInstantToDatetimeLocalString(props.loadedLesson.endTime),
+);
 
 function datePartFromDatetimeLocal(value: string): string {
+    const dateOnly = /^(\d{4}-\d{2}-\d{2})T$/.exec(value);
+
+    if (dateOnly && isoDateStringToCalendarDate(dateOnly[1] ?? '')) {
+        return dateOnly[1] ?? '';
+    }
+
     const parsed = parseDatetimeLocalParts(value);
 
     if (!parsed) {
@@ -116,7 +146,10 @@ function mergeDatetimeLocal(
     const date =
         updates.date !== undefined
             ? isoDateStringToCalendarDate(updates.date)
-            : current?.date;
+            : (current?.date ??
+              isoDateStringToCalendarDate(
+                  datePartFromDatetimeLocal(currentValue),
+              ));
     const time =
         updates.time !== undefined
             ? parseTimePart(updates.time)
@@ -124,9 +157,11 @@ function mergeDatetimeLocal(
               ? { hour: current.hour, minute: current.minute }
               : null;
 
-    if (!date || !time) {
+    if (!date) {
         return currentValue;
     }
+
+    if (!time) return `${dateValueToIsoDateString(date)}T`;
 
     return buildDatetimeLocal(date, time.hour, time.minute);
 }
@@ -136,11 +171,36 @@ const lessonDateModel = computed({
         datePartFromDatetimeLocal(formStartLocal.value) ||
         datePartFromDatetimeLocal(formEndLocal.value),
     set: (date: string) => {
-        formStartLocal.value = mergeDatetimeLocal(formStartLocal.value, {
-            date,
-        });
-        formEndLocal.value = mergeDatetimeLocal(formEndLocal.value, { date });
+        if (date === lessonDateModel.value) return;
+
+        formStartLocal.value = `${date}T`;
+        formEndLocal.value = `${date}T`;
     },
+});
+
+const todayDate = today(getLocalTimeZone());
+const minLessonDate = dateValueToIsoDateString(todayDate);
+const maxLessonDate = computed(() =>
+    dateValueToIsoDateString(
+        todayDate.add({ days: props.bookingMaxDaysAhead ?? 30 }),
+    ),
+);
+
+function isLessonDateDisabled(date: DateValue): boolean {
+    return isManagerLessonDateDisabled(date, props);
+}
+
+const nextAvailableLabel = computed(() => {
+    if (!props.nextAvailableDay) return '';
+
+    const formattedDate = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+    }).format(
+        parseDate(props.nextAvailableDay.date).toDate(getLocalTimeZone()),
+    );
+
+    return `${formattedDate}, od ${props.nextAvailableDay.startTime}`;
 });
 
 const startTimeModel = computed({
@@ -212,7 +272,8 @@ function formatVehicleOptionLabel(vehicle: Vehicle): string {
 function isVehicleDisabled(vehicle: Vehicle): boolean {
     return (
         vehicle.status === 'UNAVAILABLE' ||
-        (props.availableVehicleIds !== undefined &&
+        (!isOriginalSchedule.value &&
+            props.availableVehicleIds !== undefined &&
             !props.availableVehicleIds.includes(vehicle.id))
     );
 }
@@ -224,6 +285,14 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
         class="grid gap-4 lg:grid-cols-2"
         @submit.prevent="$emit('submit')"
     >
+        <p
+            v-if="formError"
+            class="border-destructive/20 bg-destructive/5 text-destructive rounded-xl border px-3 py-2 text-sm lg:col-span-2"
+            role="alert"
+        >
+            {{ formError }}
+        </p>
+
         <div class="space-y-2">
             <UiLabel for="lesson-student">Kursant</UiLabel>
             <UiInput
@@ -285,6 +354,14 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     </UiSelectGroup>
                 </UiSelectContent>
             </UiSelect>
+            <p
+                v-if="assignedCourseInstructor"
+                class="text-muted-foreground text-xs"
+            >
+                Ten kurs jest przypisany do instruktora
+                {{ assignedCourseInstructor.name }}. Aby wybrać inną osobę,
+                zmień najpierw instruktora kursu.
+            </p>
         </div>
 
         <div class="space-y-2">
@@ -329,16 +406,30 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             </UiSelect>
         </div>
 
-        <fieldset class="space-y-3 lg:col-span-2">
+        <fieldset class="relative space-y-3 lg:col-span-2">
             <legend class="text-foreground text-sm font-semibold">
                 Termin
             </legend>
+            <div
+                v-if="isAvailabilityOptionsLoading"
+                class="text-muted-foreground absolute top-0 right-0 flex items-center gap-1.5 text-xs"
+                role="status"
+            >
+                <LoaderCircle
+                    class="size-3.5 animate-spin"
+                    aria-hidden="true"
+                />
+                <span>Sprawdzam godziny...</span>
+            </div>
             <div class="space-y-2">
                 <UiLabel for="lesson-date">Data</UiLabel>
                 <UiDatePicker
                     id="lesson-date"
                     v-model="lessonDateModel"
                     placeholder="Wybierz dzień lekcji"
+                    :min="minLessonDate"
+                    :max="maxLessonDate"
+                    :is-date-disabled="isLessonDateDisabled"
                     trigger-class="h-10 max-w-none rounded-xl bg-background"
                 />
             </div>
@@ -370,61 +461,84 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     />
                 </div>
             </div>
+            <p
+                v-if="!isAvailabilityOptionsLoading && availabilityOptionsError"
+                class="text-muted-foreground text-xs"
+                role="status"
+            >
+                {{ availabilityOptionsError }}
+            </p>
+            <p
+                v-else-if="
+                    !isAvailabilityOptionsLoading &&
+                    availableStartTimes?.length === 0
+                "
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                {{ noHoursMessage }}
+            </p>
+
+            <div
+                v-if="
+                    !isAvailabilityOptionsLoading &&
+                    availableStartTimes?.length === 0 &&
+                    formVehicleId
+                "
+                class="flex flex-wrap items-center gap-2"
+            >
+                <UiButton
+                    v-if="
+                        nextAvailableStatus === 'idle' ||
+                        nextAvailableStatus === 'error'
+                    "
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="$emit('findNextAvailable')"
+                >
+                    Znajdź najbliższy wolny dzień
+                </UiButton>
+                <p
+                    v-if="nextAvailableStatus === 'loading'"
+                    class="text-muted-foreground text-xs"
+                    role="status"
+                >
+                    Szukam wolnego terminu...
+                </p>
+                <p
+                    v-if="nextAvailableStatus === 'none'"
+                    class="text-muted-foreground text-xs"
+                    role="status"
+                >
+                    Nie znaleziono terminu w kolejnych 14 dniach lub przed
+                    końcem okna rezerwacji.
+                </p>
+                <p
+                    v-if="nextAvailableStatus === 'error'"
+                    class="text-destructive text-xs"
+                    role="alert"
+                >
+                    Nie udało się sprawdzić kolejnych dni. Spróbuj ponownie.
+                </p>
+                <UiButton
+                    v-if="nextAvailableStatus === 'found' && nextAvailableDay"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="lessonDateModel = nextAvailableDay.date"
+                >
+                    Sprawdź {{ nextAvailableLabel }}
+                </UiButton>
+            </div>
+
+            <p
+                v-if="availabilityStatus === 'unavailable'"
+                class="text-destructive text-sm"
+                role="alert"
+            >
+                {{ availabilityMessage }}
+            </p>
         </fieldset>
-
-        <div
-            v-if="isAvailabilityOptionsLoading"
-            class="text-muted-foreground flex items-center lg:col-span-2"
-            role="status"
-        >
-            <LoaderCircle class="size-4 animate-spin" aria-hidden="true" />
-            <span class="sr-only">Aktualizacja dostępnych godzin</span>
-        </div>
-
-        <p
-            v-else-if="availabilityOptionsError"
-            class="text-muted-foreground text-xs lg:col-span-2"
-            role="status"
-        >
-            {{ availabilityOptionsError }}
-        </p>
-
-        <p
-            v-else-if="availableStartTimes?.length === 0"
-            class="text-destructive text-sm lg:col-span-2"
-            role="alert"
-        >
-            Brak dostępnych godzin w wybranym dniu.
-        </p>
-
-        <p
-            v-if="availabilityStatus !== 'idle'"
-            :class="[
-                'text-sm lg:col-span-2',
-                availabilityStatus === 'unavailable'
-                    ? 'text-destructive'
-                    : 'text-muted-foreground',
-            ]"
-            :role="availabilityStatus === 'unavailable' ? 'alert' : 'status'"
-        >
-            {{ availabilityMessage }}
-        </p>
-
-        <p
-            v-if="!schoolId"
-            class="text-warning-800 bg-warning-50 border-warning-200 rounded-xl border px-3 py-2 text-sm lg:col-span-2"
-            role="status"
-        >
-            Dodaj <code class="text-xs">?schoolId=</code> w adresie, aby wybrac
-            pojazd i instruktora z list OSK.
-        </p>
-
-        <p
-            v-if="formError"
-            class="text-destructive text-sm lg:col-span-2"
-            role="alert"
-        >
-            {{ formError }}
-        </p>
     </form>
 </template>

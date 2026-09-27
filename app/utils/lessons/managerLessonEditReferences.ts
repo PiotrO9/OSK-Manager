@@ -1,4 +1,5 @@
 import type { InstructorListItem } from '~/types/instructors/instructor';
+import type { AssignedCourseInstructor } from '~/types/lessons/managerLesson';
 import type { StudentDetail } from '~/types/students/student';
 import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type { Vehicle } from '~/types/vehicles/vehicle';
@@ -68,11 +69,33 @@ export function parseInstructorListItemFromApi(
 export function buildManagerLessonInstructorsForSelect(params: {
     instructors: readonly InstructorListItem[];
     selectedInstructorId: string;
+    assignedInstructorId?: string | null;
+    assignedInstructor?: AssignedCourseInstructor | null;
     embeddedInstructor?: InstructorListItem;
     fallbackLabel?: string | null;
 }): InstructorListItem[] {
-    const list = [...params.instructors];
+    const assignedId = params.assignedInstructorId?.trim() ?? '';
+    const list = assignedId
+        ? params.instructors.filter(
+              (item) =>
+                  item.id === assignedId ||
+                  item.id === params.selectedInstructorId.trim(),
+          )
+        : [...params.instructors];
     const id = params.selectedInstructorId.trim();
+
+    if (assignedId && !list.some((item) => item.id === assignedId)) {
+        const assignedName =
+            params.assignedInstructor?.name.trim() || 'Instruktor kursu';
+
+        list.push({
+            id: assignedId,
+            firstName: assignedName,
+            lastName: '',
+            email: '',
+            avatarUrl: null,
+        });
+    }
 
     if (!id || list.some((item) => item.id === id)) {
         return list;
@@ -90,6 +113,15 @@ export function buildManagerLessonInstructorsForSelect(params: {
     };
 
     return [synthetic, ...list];
+}
+
+export function isManagerLessonInstructorEligible(
+    instructorId: string,
+    assignedInstructorId: string | null | undefined,
+): boolean {
+    const assignedId = assignedInstructorId?.trim() ?? '';
+
+    return !assignedId || instructorId.trim() === assignedId;
 }
 
 export function buildManagerLessonVehiclesForSelect(params: {

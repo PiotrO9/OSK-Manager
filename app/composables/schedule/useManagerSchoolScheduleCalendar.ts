@@ -156,6 +156,7 @@ export function useManagerSchoolScheduleCalendar(
 
     function blockIsClickable(lesson: ScheduleLessonItem): boolean {
         return isManagerSchoolScheduleBlockClickable(lesson, {
+            eventActionMode: props.eventActionMode,
             eventEditEnabled: props.eventEditEnabled,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
         });
@@ -172,6 +173,7 @@ export function useManagerSchoolScheduleCalendar(
 
     function lessonBlockInteractiveClasses(lesson: ScheduleLessonItem): string {
         return getManagerSchoolScheduleBlockInteractiveClasses(lesson, {
+            eventActionMode: props.eventActionMode,
             eventEditEnabled: props.eventEditEnabled,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
         });

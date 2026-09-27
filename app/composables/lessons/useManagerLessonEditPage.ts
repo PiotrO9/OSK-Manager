@@ -1,9 +1,15 @@
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { getLocalTimeZone, today } from '@internationalized/date';
+import { dateValueToIsoDateString } from '~/utils/date/weeklyCalendarDates';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
-import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
+import type {
+    AssignedCourseInstructor,
+    ManagerLessonDetail,
+} from '~/types/lessons/managerLesson';
+import { isManagerLessonInstructorEligible } from '~/utils/lessons/managerLessonEditReferences';
+import { isManagerLessonEditable } from '~/utils/lessons/managerLessonEditability';
+import { mergeManagerLessonAfterUpdate } from '~/utils/lessons/managerLessonsApi';
 import {
-    buildManagerLessonHeaderMeta,
-    formatManagerLessonDateRangeLabel,
     getManagerLessonStatusLabel,
     getManagerLessonStatusTone,
 } from '~/utils/lessons/managerLessonEditPresentation';
@@ -12,12 +18,16 @@ const FORM_ID = 'manager-lesson-edit-form';
 
 export function useManagerLessonEditPage() {
     const route = useRoute();
-    const { session } = useAuthSession();
     const { addToast } = useAppToast();
     const { fetchLesson, updateLesson, isFetchLoading, isUpdateLoading } =
         useManagerLessonsApi();
     const { fetchList: fetchVehiclesList, fetchVehicleById } = useVehiclesApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
+
+    const workingWeekdays = ref<number[] | undefined>();
+    const dayOffDates = ref<string[]>([]);
+    const workingExceptionDates = ref<string[]>([]);
+    let availabilityDaysSeq = 0;
 
     function getLessonIdFromRoute(): string {
         const raw = route.params.id;
@@ -33,38 +43,19 @@ export function useManagerLessonEditPage() {
         return '';
     }
 
-    function readSchoolIdFromQuery(): string {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
-
-        if (typeof s !== 'string') {
-            return '';
-        }
-
-        return s.trim();
-    }
-
+    const loadedLesson = ref<ManagerLessonDetail | null>(null);
     const lessonId = computed(getLessonIdFromRoute);
-    const schoolId = computed((): string => {
-        const q = readSchoolIdFromQuery();
-
-        if (q) {
-            return q;
-        }
-
-        const def = session.value?.defaultOskId;
-
-        return typeof def === 'string' ? def.trim() : '';
-    });
+    const schoolId = computed(() => loadedLesson.value?.schoolId?.trim() ?? '');
 
     usePageMeta({
         title: () => 'Edycja jazdy praktycznej',
         description: () => 'Zmień termin, pojazd lub instruktora lekcji.',
     });
 
-    const loadedLesson = ref<ManagerLessonDetail | null>(null);
+    const assignedCourseInstructor = ref<AssignedCourseInstructor | null>(null);
     const loadError = ref<string | null>(null);
     const notFound = ref(false);
+    const isNotEditable = ref(false);
     const isSaving = computed(() => isUpdateLoading.value);
 
     const {
@@ -74,6 +65,7 @@ export function useManagerLessonEditPage() {
         formInstructorId,
         formError,
         isFormDirty,
+        isFormComplete,
         applyPrefill,
         buildPatchPayload,
         lessonAvailabilityStatus,
@@ -83,9 +75,13 @@ export function useManagerLessonEditPage() {
         availableVehicleIds,
         isAvailabilityOptionsLoading,
         availabilityOptionsError,
+        noHoursMessage,
+        nextAvailableDay,
+        nextAvailableStatus,
+        findNextAvailableDay,
         lessonMinDurationMinutes,
         recheckLessonAvailability,
-    } = useManagerLessonEditForm(loadedLesson);
+    } = useManagerLessonEditForm(loadedLesson, assignedCourseInstructor);
 
     const {
         vehiclesError,
@@ -104,6 +100,7 @@ export function useManagerLessonEditPage() {
         schoolId,
         loadedLesson,
         formInstructorId,
+        assignedCourseInstructor,
         formVehicleId,
         fetchVehiclesList,
         fetchVehicleById,
@@ -132,18 +129,72 @@ export function useManagerLessonEditPage() {
         getManagerLessonStatusTone(loadedLesson.value?.status),
     );
 
-    const lessonDateLabel = computed(() =>
-        formatManagerLessonDateRangeLabel(
-            loadedLesson.value?.startTime,
-            loadedLesson.value?.endTime,
-        ),
-    );
+    watch(
+        [formInstructorId, () => loadedLesson.value?.bookingMaxDaysAhead],
+        async () => {
+            const seq = ++availabilityDaysSeq;
+            const instructorId = formInstructorId.value.trim();
 
-    const lessonHeaderMeta = computed(() =>
-        buildManagerLessonHeaderMeta(
-            loadedLesson.value,
-            studentDisplayName.value,
-        ),
+            workingWeekdays.value = undefined;
+            dayOffDates.value = [];
+            workingExceptionDates.value = [];
+
+            if (!instructorId) return;
+
+            const base = `/api/instructors/${encodeURIComponent(instructorId)}/availability`;
+            const from = dateValueToIsoDateString(today(getLocalTimeZone()));
+            const to = dateValueToIsoDateString(
+                today(getLocalTimeZone()).add({
+                    days: loadedLesson.value?.bookingMaxDaysAhead ?? 30,
+                }),
+            );
+
+            try {
+                const [weekly, exceptions] = await Promise.all([
+                    requestBffData<{ dayOfWeek: number }[]>(
+                        'GET',
+                        `${base}/weekly`,
+                        {
+                            fallbackMessage:
+                                'Nie udało się pobrać grafiku instruktora.',
+                            normalize: (raw) =>
+                                (raw as { weekly?: { dayOfWeek: number }[] })
+                                    ?.weekly ?? [],
+                        },
+                    ),
+                    requestBffData<{ date: string; isDayOff: boolean }[]>(
+                        'GET',
+                        `${base}/exceptions?from=${from}&to=${to}`,
+                        {
+                            fallbackMessage:
+                                'Nie udało się pobrać wyjątków grafiku.',
+                            normalize: (raw) =>
+                                (
+                                    raw as {
+                                        exceptions?: {
+                                            date: string;
+                                            isDayOff: boolean;
+                                        }[];
+                                    }
+                                )?.exceptions ?? [],
+                        },
+                    ),
+                ]);
+
+                if (seq !== availabilityDaysSeq) return;
+
+                workingWeekdays.value = weekly.map((entry) => entry.dayOfWeek);
+                dayOffDates.value = exceptions
+                    .filter((entry) => entry.isDayOff)
+                    .map((entry) => entry.date);
+                workingExceptionDates.value = exceptions
+                    .filter((entry) => !entry.isDayOff)
+                    .map((entry) => entry.date);
+            } catch {
+                // Gdy grafik nie jest dostępny, walidacja API nadal sprawdza termin.
+            }
+        },
+        { immediate: true },
     );
 
     async function loadLesson(): Promise<void> {
@@ -161,7 +212,9 @@ export function useManagerLessonEditPage() {
 
         loadError.value = null;
         notFound.value = false;
+        isNotEditable.value = false;
         loadedLesson.value = null;
+        assignedCourseInstructor.value = null;
 
         try {
             const lesson = await fetchLesson(id);
@@ -170,6 +223,28 @@ export function useManagerLessonEditPage() {
                 return;
             }
 
+            if (!isManagerLessonEditable(lesson.status, lesson.endTime)) {
+                isNotEditable.value = true;
+                addToast({
+                    title: 'Nie można edytować tej jazdy',
+                    description: 'Jazda została zakończona lub anulowana.',
+                    variant: 'info',
+                });
+                await navigateTo(
+                    lesson.schoolId
+                        ? {
+                              path: '/manager/schedule',
+                              query: { schoolId: lesson.schoolId },
+                          }
+                        : '/manager/schedule',
+                    { replace: true },
+                );
+
+                return;
+            }
+
+            assignedCourseInstructor.value =
+                lesson.assignedCourseInstructor ?? null;
             loadedLesson.value = lesson;
             clearFallbacks();
             applyPrefill(lesson);
@@ -213,6 +288,18 @@ export function useManagerLessonEditPage() {
     async function handleSubmit(): Promise<void> {
         formError.value = null;
 
+        if (
+            loadedLesson.value &&
+            !isManagerLessonEditable(
+                loadedLesson.value.status,
+                loadedLesson.value.endTime,
+            )
+        ) {
+            formError.value = 'Zakończonej jazdy nie można już edytować.';
+
+            return;
+        }
+
         if (!isFormDirty.value) {
             return;
         }
@@ -233,6 +320,18 @@ export function useManagerLessonEditPage() {
             return;
         }
 
+        if (
+            !isManagerLessonInstructorEligible(
+                formInstructorId.value,
+                assignedCourseInstructor.value?.id,
+            )
+        ) {
+            formError.value =
+                'Ten kurs ma przypisanego instruktora. Wybierz go, aby zapisać jazdę.';
+
+            return;
+        }
+
         if (Object.keys(result.payload).length === 0) {
             return;
         }
@@ -240,20 +339,19 @@ export function useManagerLessonEditPage() {
         const availabilityStatus = await recheckLessonAvailability();
 
         if (availabilityStatus === 'unavailable') {
-            formError.value =
-                lessonAvailabilityMessage.value ||
-                'Wybrany termin jest niedostępny.';
-
             return;
         }
 
         try {
             const updated = await updateLesson(id, result.payload);
+            const lesson = loadedLesson.value
+                ? mergeManagerLessonAfterUpdate(loadedLesson.value, updated)
+                : updated;
 
-            loadedLesson.value = updated;
+            loadedLesson.value = lesson;
             clearFallbacks();
             applyPrefill(updated);
-            loadLessonReferences(updated);
+            loadLessonReferences(lesson);
 
             addToast({
                 title: 'Zapisano lekcję',
@@ -271,8 +369,13 @@ export function useManagerLessonEditPage() {
     return {
         FORM_ID,
         loadedLesson,
+        assignedCourseInstructor,
+        workingWeekdays,
+        dayOffDates,
+        workingExceptionDates,
         loadError,
         notFound,
+        isNotEditable,
         formStartLocal,
         formEndLocal,
         formVehicleId,
@@ -288,13 +391,12 @@ export function useManagerLessonEditPage() {
         schoolId,
         lessonStatusLabel,
         lessonStatusTone,
-        lessonDateLabel,
-        lessonHeaderMeta,
         instructorsForSelect,
         vehiclesForSelect,
         instructorSelectLabel,
         scheduleBackHref,
         isFormDirty,
+        isFormComplete,
         lessonAvailabilityStatus,
         lessonAvailabilityMessage,
         availableStartTimes,
@@ -302,6 +404,10 @@ export function useManagerLessonEditPage() {
         availableVehicleIds,
         isAvailabilityOptionsLoading,
         availabilityOptionsError,
+        noHoursMessage,
+        nextAvailableDay,
+        nextAvailableStatus,
+        findNextAvailableDay,
         lessonMinDurationMinutes,
         loadLesson,
         handleCancel,

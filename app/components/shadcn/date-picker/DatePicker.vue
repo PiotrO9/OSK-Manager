@@ -29,6 +29,7 @@ const props = withDefaults(
         ariaDescribedby?: string;
         min?: string;
         max?: string;
+        isDateDisabled?: (date: DateValue) => boolean;
         clearable?: boolean;
         showTodayButton?: boolean;
         triggerClass?: string;
@@ -43,6 +44,7 @@ const props = withDefaults(
         ariaDescribedby: undefined,
         min: undefined,
         max: undefined,
+        isDateDisabled: undefined,
         clearable: false,
         showTodayButton: true,
         triggerClass: undefined,
@@ -99,7 +101,16 @@ function handleDateUpdate(value: DateValue | DateValue[] | undefined): void {
         return;
     }
 
-    emit('update:modelValue', dateValueToIsoDateString(value));
+    const iso = dateValueToIsoDateString(value);
+
+    if (
+        (props.min && iso < props.min) ||
+        (props.max && iso > props.max) ||
+        props.isDateDisabled?.(value)
+    )
+        return;
+
+    emit('update:modelValue', iso);
     isOpen.value = false;
 }
 
@@ -109,12 +120,19 @@ function handleClear(): void {
 }
 
 function handleToday(): void {
-    emit(
-        'update:modelValue',
-        dateValueToIsoDateString(today(getLocalTimeZone())),
-    );
-    isOpen.value = false;
+    handleDateUpdate(today(getLocalTimeZone()));
 }
+
+const isTodayDisabled = computed(() => {
+    const value = today(getLocalTimeZone());
+    const iso = dateValueToIsoDateString(value);
+
+    return Boolean(
+        (props.min && iso < props.min) ||
+        (props.max && iso > props.max) ||
+        props.isDateDisabled?.(value),
+    );
+});
 </script>
 
 <template>
@@ -184,6 +202,7 @@ function handleToday(): void {
                     :week-starts-on="1"
                     :min-value="minValueCal"
                     :max-value="maxValueCal"
+                    :is-date-disabled="isDateDisabled"
                     :disable-days-outside-current-view="false"
                     :model-value="calendarValue"
                     :locale="locale"
@@ -202,7 +221,7 @@ function handleToday(): void {
                     variant="ghost"
                     size="sm"
                     class="h-8 font-semibold"
-                    :disabled="disabled"
+                    :disabled="disabled || isTodayDisabled"
                     @click="handleToday"
                 >
                     Dzisiaj
