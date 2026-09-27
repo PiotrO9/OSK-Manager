@@ -1,5 +1,11 @@
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import {
+    filterVehicles,
+    formatVehiclesResultsLabel,
+    type VehicleStatusFilter,
+} from '~/utils/vehicles/filters';
 
 export type VehiclesListPanelId = 'simple' | 'manager';
 
@@ -16,34 +22,97 @@ export function useVehiclesListPage() {
         isSetDefaultLoading,
         updateVehicleStatus,
     } = useVehiclesApi();
-    const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
+    const {
+        fetchDefaultDrivingSchool,
+        fetchList: fetchSchoolsList,
+        isListLoading: isSchoolsLoading,
+    } = useDrivingSchoolsApi();
 
     const isManager = computed(() => session.value?.role === 'MANAGER');
 
     const resolvedSchoolId = ref<string | null>(null);
+    const schools = ref<DrivingSchool[]>([]);
+    const defaultSchool = ref<DrivingSchool | null>(null);
+    const schoolsLoadError = ref<string | null>(null);
     const contextMessage = ref<string | null>(null);
     const loadError = ref<string | null>(null);
     const deleteActionError = ref<string | null>(null);
     const vehicles = ref<Vehicle[]>([]);
     const vehiclePendingDelete = ref<Vehicle | null>(null);
     const statusUpdatingVehicleId = ref<string | null>(null);
+    const isPageInitializing = shallowRef(true);
 
-    const activePanel = ref<VehiclesListPanelId>('simple');
+    const searchTerm = shallowRef('');
+    const statusFilter = shallowRef<VehicleStatusFilter>('all');
+    const activePanel = shallowRef<VehiclesListPanelId>('simple');
     let pageLoadSeq = 0;
     let vehiclesLoadSeq = 0;
+
+    const filteredVehicles = computed(() =>
+        filterVehicles(vehicles.value, searchTerm.value, statusFilter.value),
+    );
+    const hasActiveFilters = computed(
+        () =>
+            searchTerm.value.trim().length > 0 || statusFilter.value !== 'all',
+    );
+    const resultsLabel = computed(() => {
+        const visible = filteredVehicles.value.length;
+        const total = vehicles.value.length;
+        const visibleLabel = formatVehiclesResultsLabel(visible);
+
+        return hasActiveFilters.value
+            ? `${visibleLabel} z ${total}`
+            : visibleLabel;
+    });
+    const activeSchool = computed(() => {
+        const sid = resolvedSchoolId.value;
+
+        if (!sid) return null;
+
+        return (
+            schools.value.find((school) => school.id === sid) ??
+            (defaultSchool.value?.id === sid ? defaultSchool.value : null)
+        );
+    });
+    const activeSchoolName = computed(() => {
+        if (activeSchool.value) {
+            return activeSchool.value.city
+                ? `${activeSchool.value.name} (${activeSchool.value.city})`
+                : activeSchool.value.name;
+        }
+
+        return resolvedSchoolId.value
+            ? 'Wybrana szkoła'
+            : 'Brak wybranej szkoły';
+    });
+    const isPageLoading = computed(
+        () => isPageInitializing.value || isListLoading.value,
+    );
 
     function handleTabSelect(panel: VehiclesListPanelId) {
         activePanel.value = panel;
     }
 
-    function handleTabKeydown(
-        event: KeyboardEvent,
-        panel: VehiclesListPanelId,
-    ) {
-        if (isEnterOrSpaceKey(event)) {
-            event.preventDefault();
-            activePanel.value = panel;
-        }
+    function handleSearchChange(value: string) {
+        searchTerm.value = value;
+    }
+
+    function handleStatusFilterChange(value: VehicleStatusFilter) {
+        statusFilter.value = value;
+    }
+
+    function handleClearFilters() {
+        searchTerm.value = '';
+        statusFilter.value = 'all';
+    }
+
+    async function handleSchoolChange(schoolId: string) {
+        const value = schoolId.trim();
+
+        if (!value || value === resolvedSchoolId.value) return;
+
+        resolvedSchoolId.value = value;
+        await loadVehicles();
     }
 
     function readSchoolIdFromQuery(): string | null {
@@ -94,7 +163,24 @@ export function useVehiclesListPage() {
             return null;
         }
 
+        defaultSchool.value = result.school;
+
         return result.school.id;
+    }
+
+    async function loadSchools(force = false) {
+        if (!isManager.value || (!force && schools.value.length > 0)) return;
+
+        schoolsLoadError.value = null;
+
+        try {
+            schools.value = await fetchSchoolsList();
+        } catch (err) {
+            schoolsLoadError.value =
+                err instanceof Error
+                    ? err.message
+                    : 'Nie udało się pobrać listy OSK.';
+        }
     }
 
     async function loadVehicles() {
@@ -132,6 +218,10 @@ export function useVehiclesListPage() {
 
     async function runPageLoad() {
         const seq = ++pageLoadSeq;
+
+        isPageInitializing.value = true;
+
+        await loadSchools();
         const sid = await resolveSchoolId();
 
         if (seq !== pageLoadSeq) {
@@ -144,10 +234,16 @@ export function useVehiclesListPage() {
             vehiclesLoadSeq += 1;
             vehicles.value = [];
 
+            isPageInitializing.value = false;
+
             return;
         }
 
         await loadVehicles();
+
+        if (seq === pageLoadSeq) {
+            isPageInitializing.value = false;
+        }
     }
 
     onMounted(() => {
@@ -160,6 +256,25 @@ export function useVehiclesListPage() {
             void runPageLoad();
         },
     );
+
+    onBeforeUnmount(() => {
+        pageLoadSeq += 1;
+        vehiclesLoadSeq += 1;
+    });
+
+    async function handleRetryLoad() {
+        if (schoolsLoadError.value) {
+            await loadSchools(true);
+        }
+
+        if (resolvedSchoolId.value) {
+            await loadVehicles();
+
+            return;
+        }
+
+        await runPageLoad();
+    }
 
     function handleRequestDeleteVehicle(vehicle: Vehicle) {
         deleteActionError.value = null;
@@ -188,6 +303,11 @@ export function useVehiclesListPage() {
         try {
             await deleteVehicle(target.id);
             await loadVehicles();
+            addToast({
+                title: 'Pojazd usunięty',
+                description: `${target.name} został usunięty z floty.`,
+                variant: 'success',
+            });
         } catch (err) {
             if (getApiErrorStatusCode(err) === 404) {
                 await loadVehicles();
@@ -210,6 +330,11 @@ export function useVehiclesListPage() {
         try {
             await setVehicleAsDefault(sid, vehicle.id);
             await loadVehicles();
+            addToast({
+                title: 'Domyślny pojazd zmieniony',
+                description: `${vehicle.name} jest teraz domyślnym pojazdem.`,
+                variant: 'success',
+            });
         } catch (err) {
             addToast({
                 title: 'Błąd',
@@ -269,18 +394,31 @@ export function useVehiclesListPage() {
     return {
         isManager,
         resolvedSchoolId,
+        schools,
+        isSchoolsLoading,
+        schoolsLoadError,
+        activeSchoolName,
         contextMessage,
         loadError,
         deleteActionError,
         vehicles,
+        filteredVehicles,
+        searchTerm,
+        statusFilter,
+        hasActiveFilters,
+        resultsLabel,
         vehiclePendingDelete,
         statusUpdatingVehicleId,
         activePanel,
-        isListLoading,
+        isListLoading: isPageLoading,
         isDeleteLoading,
         isSetDefaultLoading,
         handleTabSelect,
-        handleTabKeydown,
+        handleSearchChange,
+        handleStatusFilterChange,
+        handleClearFilters,
+        handleSchoolChange,
+        handleRetryLoad,
         handleRequestDeleteVehicle,
         handleVehicleDeleteDialogOpen,
         handleCancelDeleteVehicle,

@@ -77,7 +77,7 @@ function handleCheckedChange(checked: boolean) {
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Zapisywanie...
+            Zapisywanie…
         </span>
     </div>
 </template>

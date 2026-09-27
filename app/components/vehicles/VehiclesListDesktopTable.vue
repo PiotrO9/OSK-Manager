@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { Pencil, Star, Trash2 } from 'lucide-vue-next';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import {
     displayVehicleText,
     formatVehicleMeta,
-    formatVehicleOptionalDate,
+    getVehicleDeadlinePresentation,
     vehicleStatusLabel,
     vehicleStatusTone,
 } from '~/utils/vehicles/display';
@@ -14,16 +14,18 @@ defineProps<{
     resolvedSchoolId: string | null;
     vehicles: Vehicle[];
     isDeleteLoading: boolean;
+    isSetDefaultLoading: boolean;
     statusUpdatingVehicleId: string | null;
 }>();
 
 defineEmits<{
     requestDelete: [vehicle: Vehicle];
+    setDefault: [vehicle: Vehicle];
 }>();
 </script>
 
 <template>
-    <table class="w-full min-w-[900px] text-left text-sm">
+    <table class="w-full min-w-[980px] text-left text-sm">
         <thead class="bg-muted/35 text-muted-foreground border-b">
             <tr>
                 <th scope="col" class="px-4 py-3 font-semibold">Nazwa</th>
@@ -79,26 +81,30 @@ defineEmits<{
                             class="text-muted-foreground text-xs"
                             role="status"
                         >
-                            Zapisywanie...
+                            Zapisywanie…
                         </span>
                     </div>
                 </td>
                 <td class="text-muted-foreground px-4 py-3">
-                    <div class="space-y-1 text-xs">
-                        <p>
-                            Przeglad:
-                            {{
-                                formatVehicleOptionalDate(
+                    <div class="flex flex-col items-start gap-1.5">
+                        <StatusBadge
+                            :label="`Przegląd: ${getVehicleDeadlinePresentation(vehicle.inspectionDate).label}`"
+                            :tone="
+                                getVehicleDeadlinePresentation(
                                     vehicle.inspectionDate,
-                                )
-                            }}
-                        </p>
-                        <p>
-                            OC:
-                            {{
-                                formatVehicleOptionalDate(vehicle.insuranceDate)
-                            }}
-                        </p>
+                                ).tone
+                            "
+                            subtle
+                        />
+                        <StatusBadge
+                            :label="`OC: ${getVehicleDeadlinePresentation(vehicle.insuranceDate).label}`"
+                            :tone="
+                                getVehicleDeadlinePresentation(
+                                    vehicle.insuranceDate,
+                                ).tone
+                            "
+                            subtle
+                        />
                     </div>
                 </td>
                 <td class="px-4 py-3">
@@ -108,6 +114,20 @@ defineEmits<{
                         align="end"
                         density="compact"
                     >
+                        <UiButton
+                            v-if="!vehicle.isDefault"
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            class="size-9 rounded-full"
+                            :disabled="isSetDefaultLoading"
+                            :aria-busy="isSetDefaultLoading"
+                            :aria-label="`Ustaw jako domyślny pojazd: ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
+                            title="Ustaw jako domyślny"
+                            @click="$emit('setDefault', vehicle)"
+                        >
+                            <Star class="size-4" aria-hidden="true" />
+                        </UiButton>
                         <UiButton
                             as-child
                             variant="outline"
@@ -151,7 +171,7 @@ defineEmits<{
                             size="icon"
                             class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
                             :disabled="isDeleteLoading"
-                            :aria-label="`Usun pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
+                            :aria-label="`Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                             @click="$emit('requestDelete', vehicle)"
                         >
                             <Trash2 class="size-4" aria-hidden="true" />

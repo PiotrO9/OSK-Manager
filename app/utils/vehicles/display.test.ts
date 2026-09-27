@@ -4,6 +4,7 @@ import {
     displayVehicleText,
     formatVehicleMeta,
     formatVehicleOptionalDate,
+    getVehicleDeadlinePresentation,
     vehicleStatusLabel,
     vehicleStatusTone,
 } from './display';
@@ -29,7 +30,32 @@ describe('vehicle display helpers', () => {
         expect(displayVehicleText(' Toyota Yaris ')).toBe('Toyota Yaris');
         expect(displayVehicleText('   ')).toBe('-');
         expect(formatVehicleOptionalDate(null)).toBe('Brak terminu');
-        expect(formatVehicleOptionalDate('2026-09-03')).toBe('2026-09-03');
+        expect(formatVehicleOptionalDate('2026-09-03')).toBe('03.09.2026');
+    });
+
+    it('distinguishes expired, upcoming, valid and missing document dates', () => {
+        const now = new Date('2026-09-27T12:00:00Z');
+
+        expect(getVehicleDeadlinePresentation(null, now)).toEqual({
+            label: 'Brak terminu',
+            state: 'missing',
+            tone: 'neutral',
+        });
+        expect(getVehicleDeadlinePresentation('2026-09-20', now)).toEqual({
+            label: '20.09.2026 · po terminie',
+            state: 'expired',
+            tone: 'danger',
+        });
+        expect(getVehicleDeadlinePresentation('2026-10-10', now)).toEqual({
+            label: '10.10.2026 · wkrótce',
+            state: 'soon',
+            tone: 'warning',
+        });
+        expect(getVehicleDeadlinePresentation('2026-12-01', now)).toEqual({
+            label: '01.12.2026',
+            state: 'valid',
+            tone: 'success',
+        });
     });
 
     it('formats vehicle metadata from year and mileage', () => {

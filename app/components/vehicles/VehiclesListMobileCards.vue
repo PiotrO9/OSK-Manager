@@ -1,27 +1,23 @@
 <script setup lang="ts">
 import { Car, Eye, Pencil, Trash2 } from 'lucide-vue-next';
-import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
-import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import {
     displayVehicleText,
     formatVehicleMeta,
+    getVehicleDeadlinePresentation,
     vehicleStatusLabel,
     vehicleStatusTone,
 } from '~/utils/vehicles/display';
 
 defineProps<{
     isManager: boolean;
-    activePanel: VehiclesListPanelId;
     resolvedSchoolId: string | null;
     vehicles: Vehicle[];
     isDeleteLoading: boolean;
     isSetDefaultLoading: boolean;
-    statusUpdatingVehicleId: string | null;
 }>();
 
 defineEmits<{
-    statusChange: [vehicle: Vehicle, payload: VehicleStatusUpdateBody];
     requestDelete: [vehicle: Vehicle];
     setDefault: [vehicle: Vehicle];
 }>();
@@ -68,18 +64,39 @@ defineEmits<{
                 />
             </div>
 
-            <div
-                v-if="isManager && activePanel === 'manager'"
-                class="mt-4 flex flex-wrap items-center justify-between gap-3"
-            >
-                <VehicleAvailabilityControl
-                    id-prefix="vehicle-status-mobile"
-                    :vehicle="vehicle"
-                    :disabled="statusUpdatingVehicleId === vehicle.id"
-                    :busy="statusUpdatingVehicleId === vehicle.id"
-                    :control-label="`Zmien status pojazdu ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
-                    @status-change="$emit('statusChange', vehicle, $event)"
-                />
+            <div class="border-border mt-4 grid gap-2 border-t pt-3 text-xs">
+                <div class="flex min-w-0 items-center justify-between gap-3">
+                    <span class="text-muted-foreground">Przegląd</span>
+                    <StatusBadge
+                        :label="
+                            getVehicleDeadlinePresentation(
+                                vehicle.inspectionDate,
+                            ).label
+                        "
+                        :tone="
+                            getVehicleDeadlinePresentation(
+                                vehicle.inspectionDate,
+                            ).tone
+                        "
+                        subtle
+                    />
+                </div>
+                <div class="flex min-w-0 items-center justify-between gap-3">
+                    <span class="text-muted-foreground">OC</span>
+                    <StatusBadge
+                        :label="
+                            getVehicleDeadlinePresentation(
+                                vehicle.insuranceDate,
+                            ).label
+                        "
+                        :tone="
+                            getVehicleDeadlinePresentation(
+                                vehicle.insuranceDate,
+                            ).tone
+                        "
+                        subtle
+                    />
+                </div>
             </div>
 
             <ActionGroup
@@ -131,7 +148,7 @@ defineEmits<{
                     size="icon"
                     class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
                     :disabled="isDeleteLoading"
-                    :aria-label="`Usun pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
+                    :aria-label="`Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                     @click="$emit('requestDelete', vehicle)"
                 >
                     <Trash2 class="size-4" aria-hidden="true" />
@@ -146,10 +163,10 @@ defineEmits<{
                 class="mt-3 w-full rounded-xl"
                 :disabled="isSetDefaultLoading"
                 :aria-busy="isSetDefaultLoading"
-                :aria-label="`Ustaw jako domyslny: ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
+                :aria-label="`Ustaw jako domyślny: ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                 @click="$emit('setDefault', vehicle)"
             >
-                Ustaw jako domyslny
+                Ustaw jako domyślny
             </UiButton>
         </article>
     </div>

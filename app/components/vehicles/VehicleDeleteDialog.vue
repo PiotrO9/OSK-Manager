@@ -32,7 +32,7 @@ function handleOpenChange(open: boolean) {
                 <UiDialogDescription id="confirm-delete-vehicle-description">
                     Pojazd
                     <span class="text-foreground font-medium">
-                        „{{ vehicleName }}"
+                        „{{ vehicleName }}”
                     </span>
                     <span v-if="registrationNumber.trim().length > 0">
                         ({{ registrationNumber }})

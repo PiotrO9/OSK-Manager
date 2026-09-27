@@ -1,17 +1,28 @@
 <script setup lang="ts">
-import { CalendarDays, Plus } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
+import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import { displayVehicleText } from '~/utils/vehicles/display';
+import type { VehicleStatusFilter } from '~/utils/vehicles/filters';
 
 const props = defineProps<{
     isManager: boolean;
     activePanel: VehiclesListPanelId;
     resolvedSchoolId: string | null;
+    schools: DrivingSchool[];
+    isSchoolsLoading: boolean;
+    activeSchoolName: string;
     loadError: string | null;
     deleteActionError: string | null;
     isListLoading: boolean;
     vehicles: Vehicle[];
+    filteredVehicles: Vehicle[];
+    searchTerm: string;
+    statusFilter: VehicleStatusFilter;
+    hasActiveFilters: boolean;
+    resultsLabel: string;
     isDeleteLoading: boolean;
     isSetDefaultLoading: boolean;
     vehiclePendingDelete: Vehicle | null;
@@ -20,7 +31,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     tabSelect: [panel: VehiclesListPanelId];
-    tabKeydown: [event: KeyboardEvent, panel: VehiclesListPanelId];
+    searchChange: [value: string];
+    statusFilterChange: [value: VehicleStatusFilter];
+    clearFilters: [];
+    schoolChange: [schoolId: string];
+    retry: [];
     requestDelete: [vehicle: Vehicle];
     deleteDialogOpen: [open: boolean];
     cancelDelete: [];
@@ -29,38 +44,23 @@ const emit = defineEmits<{
     statusChange: [vehicle: Vehicle, payload: VehicleStatusUpdateBody];
 }>();
 
-const {
-    activePanelLabel,
-    createVehicleTarget,
-    displayText,
-    resultsLabel,
-    summaryItems,
-} = useVehiclesListPanelSummary(props);
+const createVehicleTarget = computed(() => ({
+    path: '/vehicles/new',
+    query: props.resolvedSchoolId ? { schoolId: props.resolvedSchoolId } : {},
+}));
+
+const displayText = displayVehicleText;
 </script>
 
 <template>
     <div class="space-y-5">
         <PageHeader
             title="Pojazdy"
-            description="Flota OSK, statusy techniczne i przypisanie do szkoły."
+            description="Zarządzaj flotą, dostępnością i terminami dokumentów."
         >
             <template #actions>
-                <UiButton
-                    variant="outline"
-                    class="h-10 rounded-xl px-4 font-semibold"
-                >
-                    <CalendarDays class="size-4" aria-hidden="true" />
-                    Aktualna flota
-                </UiButton>
-                <UiButton
-                    v-if="isManager && resolvedSchoolId"
-                    as-child
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                >
-                    <NuxtLink
-                        :to="createVehicleTarget"
-                        class="inline-flex items-center justify-center gap-2"
-                    >
+                <UiButton v-if="isManager && resolvedSchoolId" as-child>
+                    <NuxtLink :to="createVehicleTarget">
                         <Plus class="size-4" aria-hidden="true" />
                         Dodaj pojazd
                     </NuxtLink>
@@ -68,95 +68,131 @@ const {
             </template>
         </PageHeader>
 
-        <SummaryStrip :items="summaryItems" />
-
-        <FilterBar :result-label="resultsLabel" :is-loading="isListLoading">
-            <StatusBadge label="Wybrana OSK" tone="info" subtle />
-            <StatusBadge
-                :label="`Tryb: ${activePanelLabel}`"
-                tone="neutral"
-                subtle
-            />
-            <StatusBadge
-                label="Zakres: wszystkie pojazdy"
-                tone="neutral"
-                subtle
-            />
-
-            <template v-if="isManager" #actions>
-                <VehiclesListModeTabs
-                    :active-panel="activePanel"
-                    @tab-select="emit('tabSelect', $event)"
-                    @tab-keydown="
-                        (event, panel) => emit('tabKeydown', event, panel)
-                    "
-                />
-            </template>
-        </FilterBar>
-
-        <p
-            v-if="deleteActionError"
-            class="text-destructive text-sm"
-            role="alert"
+        <section
+            class="border-border bg-card min-w-0 overflow-hidden rounded-xl border shadow-xs"
+            aria-label="Flota pojazdów"
+            :aria-busy="isListLoading"
         >
-            {{ deleteActionError }}
-        </p>
-
-        <DataTableShell
-            v-if="loadError || (isListLoading && vehicles.length === 0)"
-            :is-loading="isListLoading && vehicles.length === 0"
-            :error-message="loadError"
-        />
-
-        <EmptyState
-            v-else-if="vehicles.length === 0"
-            title="Brak pojazdów"
-            description="Nie zarejestrowano jeszcze żadnego pojazdu dla tej szkoły."
-        >
-            <template v-if="isManager && resolvedSchoolId" #action>
-                <UiButton as-child variant="secondary" size="sm">
-                    <NuxtLink :to="createVehicleTarget">Dodaj pojazd</NuxtLink>
-                </UiButton>
-            </template>
-        </EmptyState>
-
-        <DataTableShell v-else>
-            <VehiclesListDesktopTable
+            <VehiclesListToolbar
                 :is-manager="isManager"
-                :resolved-school-id="resolvedSchoolId"
-                :vehicles="vehicles"
-                :is-delete-loading="isDeleteLoading"
-                :status-updating-vehicle-id="statusUpdatingVehicleId"
-                @request-delete="emit('requestDelete', $event)"
+                :schools="schools"
+                :selected-school-id="resolvedSchoolId"
+                :selected-school-name="activeSchoolName"
+                :is-schools-loading="isSchoolsLoading"
+                :search-term="searchTerm"
+                :status-filter="statusFilter"
+                :active-panel="activePanel"
+                :results-label="resultsLabel"
+                :has-active-filters="hasActiveFilters"
+                @school-change="emit('schoolChange', $event)"
+                @search-change="emit('searchChange', $event)"
+                @status-filter-change="emit('statusFilterChange', $event)"
+                @clear-filters="emit('clearFilters')"
+                @tab-select="emit('tabSelect', $event)"
             />
 
-            <template #mobile>
-                <VehiclesListMobileCards
-                    :is-manager="isManager"
-                    :active-panel="activePanel"
-                    :resolved-school-id="resolvedSchoolId"
-                    :vehicles="vehicles"
-                    :is-delete-loading="isDeleteLoading"
-                    :is-set-default-loading="isSetDefaultLoading"
-                    :status-updating-vehicle-id="statusUpdatingVehicleId"
-                    @status-change="
-                        (vehicle, payload) =>
-                            emit('statusChange', vehicle, payload)
-                    "
-                    @request-delete="emit('requestDelete', $event)"
-                    @set-default="emit('setDefault', $event)"
-                />
-            </template>
-        </DataTableShell>
+            <p
+                v-if="deleteActionError"
+                class="text-destructive border-border border-b px-4 py-3 text-sm sm:px-5"
+                role="alert"
+            >
+                {{ deleteActionError }}
+            </p>
 
-        <VehicleManagerStatusGrid
-            v-if="isManager && activePanel === 'manager' && vehicles.length > 0"
-            :vehicles="vehicles"
-            :status-updating-vehicle-id="statusUpdatingVehicleId"
-            @status-change="
-                (vehicle, payload) => emit('statusChange', vehicle, payload)
-            "
-        />
+            <LoadingState
+                v-if="isListLoading && vehicles.length === 0"
+                title="Wczytywanie floty…"
+                class="m-4"
+            />
+
+            <ErrorState
+                v-else-if="loadError"
+                title="Nie udało się wczytać floty"
+                :description="`${loadError} Spróbuj ponownie.`"
+                class="m-4"
+                @retry="emit('retry')"
+            />
+
+            <EmptyState
+                v-else-if="filteredVehicles.length === 0"
+                :title="
+                    hasActiveFilters
+                        ? 'Brak pasujących pojazdów'
+                        : 'Brak pojazdów'
+                "
+                :description="
+                    hasActiveFilters
+                        ? 'Zmień kryteria wyszukiwania lub wyczyść filtry.'
+                        : 'Nie zarejestrowano jeszcze żadnego pojazdu dla tej szkoły.'
+                "
+                class="m-4"
+            >
+                <template #action>
+                    <UiButton
+                        v-if="hasActiveFilters"
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        @click="emit('clearFilters')"
+                    >
+                        Wyczyść filtry
+                    </UiButton>
+                    <UiButton
+                        v-else-if="isManager && resolvedSchoolId"
+                        as-child
+                        variant="secondary"
+                        size="sm"
+                    >
+                        <NuxtLink :to="createVehicleTarget">
+                            Dodaj pojazd
+                        </NuxtLink>
+                    </UiButton>
+                </template>
+            </EmptyState>
+
+            <VehicleManagerStatusGrid
+                v-else-if="isManager && activePanel === 'manager'"
+                id="vehicles-status-panel"
+                role="tabpanel"
+                aria-labelledby="vehicles-status-tab"
+                :vehicles="filteredVehicles"
+                :status-updating-vehicle-id="statusUpdatingVehicleId"
+                @status-change="
+                    (vehicle, payload) => emit('statusChange', vehicle, payload)
+                "
+            />
+
+            <div
+                v-else
+                id="vehicles-list-panel"
+                role="tabpanel"
+                aria-labelledby="vehicles-list-tab"
+            >
+                <div class="hidden overflow-x-auto md:block">
+                    <VehiclesListDesktopTable
+                        :is-manager="isManager"
+                        :resolved-school-id="resolvedSchoolId"
+                        :vehicles="filteredVehicles"
+                        :is-delete-loading="isDeleteLoading"
+                        :is-set-default-loading="isSetDefaultLoading"
+                        :status-updating-vehicle-id="statusUpdatingVehicleId"
+                        @request-delete="emit('requestDelete', $event)"
+                        @set-default="emit('setDefault', $event)"
+                    />
+                </div>
+                <div class="md:hidden">
+                    <VehiclesListMobileCards
+                        :is-manager="isManager"
+                        :resolved-school-id="resolvedSchoolId"
+                        :vehicles="filteredVehicles"
+                        :is-delete-loading="isDeleteLoading"
+                        :is-set-default-loading="isSetDefaultLoading"
+                        @request-delete="emit('requestDelete', $event)"
+                        @set-default="emit('setDefault', $event)"
+                    />
+                </div>
+            </div>
+        </section>
 
         <VehicleDeleteDialog
             :open="vehiclePendingDelete !== null"

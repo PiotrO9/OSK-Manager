@@ -19,11 +19,11 @@ function displayText(value: string): string {
 </script>
 
 <template>
-    <div class="border-border bg-card rounded-xl border p-4 shadow-xs">
+    <div class="p-4 sm:p-5">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="min-w-0">
                 <p class="text-foreground text-sm font-semibold">
-                    Szybka kontrola statusow
+                    Szybka kontrola statusów
                 </p>
                 <p class="text-muted-foreground mt-1 text-xs">
                     Przełącz dostępność pojazdów bez wchodzenia w edycję.
@@ -34,7 +34,7 @@ function displayText(value: string): string {
             <div
                 v-for="vehicle in vehicles"
                 :key="`status-control-${vehicle.id}`"
-                class="border-border bg-background flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
+                class="border-border bg-background flex min-w-0 flex-col items-stretch justify-between gap-3 rounded-xl border px-3 py-3 sm:flex-row sm:items-start"
             >
                 <span class="min-w-0">
                     <span
@@ -51,7 +51,7 @@ function displayText(value: string): string {
                     :vehicle="vehicle"
                     :disabled="statusUpdatingVehicleId === vehicle.id"
                     :busy="statusUpdatingVehicleId === vehicle.id"
-                    :control-label="`Zmien status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
+                    :control-label="`Zmień status pojazdu ${displayText(vehicle.name)}, ${displayText(vehicle.registrationNumber)}`"
                     @status-change="$emit('statusChange', vehicle, $event)"
                 />
             </div>
