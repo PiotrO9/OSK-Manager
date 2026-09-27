@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, CalendarDays, MapPin } from 'lucide-vue-next';
+import { Building2 } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
@@ -9,6 +9,7 @@ definePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const { session } = useAuthSession();
 const { fetchList: fetchSchoolsList, isListLoading: isSchoolsLoading } =
     useDrivingSchoolsApi();
@@ -40,23 +41,28 @@ const schoolId = computed((): string => {
     return typeof def === 'string' ? def.trim() : '';
 });
 
-const activeSchool = computed(
-    () => schools.value.find((school) => school.id === schoolId.value) ?? null,
-);
-
-const schoolLocationLabel = computed(() => {
-    const school = activeSchool.value;
-
-    if (!school) {
-        return 'Wybrana szkóła jazdy';
-    }
-
+function getSchoolLocationLabel(school: DrivingSchool): string {
     const parts = [school.city, school.address]
         .map((part) => part?.trim() ?? '')
         .filter((part) => part.length > 0);
 
-    return parts.length > 0 ? parts.join(' · ') : 'Brak adresu w profilu OSK';
-});
+    return parts.join(' · ');
+}
+
+async function handleSchoolChange(value: string): Promise<void> {
+    const nextSchoolId = value.trim();
+
+    if (!nextSchoolId || nextSchoolId === schoolId.value) {
+        return;
+    }
+
+    await router.replace({
+        query: {
+            ...route.query,
+            schoolId: nextSchoolId,
+        },
+    });
+}
 
 async function loadSchools(): Promise<void> {
     schoolsLoadError.value = null;
@@ -101,14 +107,44 @@ usePageMeta({
             title="Harmonogram OSK"
             description="Tygodniowy plan jazd, teorii i blokow czasu."
         >
-            <template #actions>
-                <UiBadge
-                    variant="outline"
-                    class="bg-background rounded-xl px-3 py-2 text-sm font-semibold"
+            <template v-if="schools.length > 1" #actions>
+                <UiSelect
+                    :model-value="schoolId"
+                    :disabled="isSchoolsLoading"
+                    @update:model-value="handleSchoolChange(String($event))"
                 >
-                    <CalendarDays class="mr-1.5 size-4" aria-hidden="true" />
-                    Widok tygodnia
-                </UiBadge>
+                    <UiSelectTrigger
+                        class="bg-card h-10 w-auto min-w-56 gap-2 rounded-xl px-3 font-semibold shadow-xs"
+                        aria-label="Wybierz OSK"
+                    >
+                        <Building2
+                            class="text-primary size-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <UiSelectValue placeholder="Wybierz OSK" />
+                    </UiSelectTrigger>
+                    <UiSelectContent>
+                        <UiSelectGroup>
+                            <UiSelectItem
+                                v-for="school in schools"
+                                :key="school.id"
+                                :value="school.id"
+                            >
+                                <span class="flex min-w-0 flex-col text-left">
+                                    <span class="truncate">{{
+                                        school.name
+                                    }}</span>
+                                    <span
+                                        v-if="getSchoolLocationLabel(school)"
+                                        class="text-muted-foreground truncate text-xs font-normal"
+                                    >
+                                        {{ getSchoolLocationLabel(school) }}
+                                    </span>
+                                </span>
+                            </UiSelectItem>
+                        </UiSelectGroup>
+                    </UiSelectContent>
+                </UiSelect>
             </template>
         </PageHeader>
 
@@ -130,46 +166,6 @@ usePageMeta({
             :description="schoolsLoadError"
             @retry="loadSchools"
         />
-
-        <section
-            v-else
-            class="border-border bg-background rounded-2xl border p-4 shadow-sm"
-            :aria-busy="isSchoolsLoading"
-        >
-            <div class="flex items-center">
-                <div class="flex min-w-0 items-center gap-3">
-                    <div
-                        class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"
-                        aria-hidden="true"
-                    >
-                        <Building2 class="size-5" />
-                    </div>
-                    <div class="min-w-0">
-                        <p
-                            class="text-foreground truncate text-lg font-extrabold"
-                        >
-                            {{
-                                activeSchool?.name ??
-                                (isSchoolsLoading
-                                    ? 'Wczytywanie OSK...'
-                                    : 'Wybrana OSK')
-                            }}
-                        </p>
-                        <p
-                            class="text-muted-foreground mt-1 flex min-w-0 items-center gap-1.5 text-sm"
-                        >
-                            <MapPin
-                                class="size-4 shrink-0"
-                                aria-hidden="true"
-                            />
-                            <span class="truncate">{{
-                                schoolLocationLabel
-                            }}</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <ManagerSchoolScheduleCalendar
             v-if="schoolId && !schoolIdError"
