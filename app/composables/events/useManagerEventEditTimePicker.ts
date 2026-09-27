@@ -28,12 +28,9 @@ export function useManagerEventEditTimePicker(input: {
         pickerConstraintsEnabled,
         hydrateStartSplitFromLocal,
         hydrateEndSplitFromLocal,
-        handleStartDateChange,
-        handleStartHourChange,
-        handleStartMinuteChange,
-        handleEndDateChange,
-        handleEndHourChange,
-        handleEndMinuteChange,
+        handleDateChange,
+        handleStartTimeChange,
+        handleEndTimeChange,
     } = useManagerEventEditTimeSplit(input);
     const fullHourOptions = Array.from({ length: 24 }, (_, i) => i);
     const fullMinuteOptions = Array.from({ length: 60 }, (_, i) => i);
@@ -210,11 +207,8 @@ export function useManagerEventEditTimePicker(input: {
         startMinuteOptionsResolved,
         endHourOptionsResolved,
         endMinuteOptionsResolved,
-        handleStartDateChange,
-        handleStartHourChange,
-        handleStartMinuteChange,
-        handleEndDateChange,
-        handleEndHourChange,
-        handleEndMinuteChange,
+        handleDateChange,
+        handleStartTimeChange,
+        handleEndTimeChange,
     };
 }

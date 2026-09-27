@@ -13,7 +13,7 @@ describe('events day navigation', () => {
         expect(readEventsDayDate('x')).toBeNull();
     });
 
-    it('opens a manager event with day and school context', () => {
+    it('opens a manager event with day context and without schoolId', () => {
         expect(
             buildEventsDayEditRoute(
                 {
@@ -24,12 +24,11 @@ describe('events day navigation', () => {
                     startTime: '2099-09-27T08:00:00Z',
                     endTime: '2099-09-27T09:00:00Z',
                 },
-                's-1',
                 '2099-09-27',
             ),
         ).toEqual({
             path: '/manager/events/e-1/edit',
-            query: { schoolId: 's-1', from: 'events', date: '2099-09-27' },
+            query: { from: 'events', date: '2099-09-27' },
         });
         expect(
             buildEventsDayReturnRoute('events', '2099-09-27', 's-1'),
@@ -50,7 +49,6 @@ describe('events day navigation', () => {
                     startTime: '2099-09-27T08:00:00Z',
                     endTime: '2099-09-27T09:00:00Z',
                 },
-                's-1',
                 '2099-09-27',
             ),
         ).toEqual({

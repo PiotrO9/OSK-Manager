@@ -160,10 +160,6 @@ const handStyle = computed(() => ({
     transform: `rotate(${clockAngle.value}deg)`,
 }));
 
-const handleDotStyle = computed(() => ({
-    transform: clockOptionTransform(clockAngle.value, handRadius.value),
-}));
-
 const boundsHint = computed(() => {
     if (isDraftAllowed.value) {
         return '';
@@ -592,11 +588,6 @@ function clampDraftToOptions(): void {
                         :style="handStyle"
                         aria-hidden="true"
                     />
-                    <div
-                        class="time-picker-handle"
-                        :style="handleDotStyle"
-                        aria-hidden="true"
-                    />
                     <button
                         v-for="option in currentClockOptions"
                         :key="`${activePart}-${option.value}`"
@@ -748,24 +739,6 @@ function clampDraftToOptions(): void {
     transition: height 180ms ease;
 }
 
-.time-picker-handle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    z-index: 2;
-    width: 1.1rem;
-    height: 1.1rem;
-    border: 3px solid var(--background);
-    border-radius: 999px;
-    background: var(--primary);
-    box-shadow: 0 7px 18px color-mix(in srgb, var(--primary) 35%, transparent);
-    transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.time-picker-clock[data-dragging='true'] .time-picker-handle {
-    transition: none;
-}
-
 .time-picker-option {
     position: absolute;
     top: 50%;
@@ -847,7 +820,6 @@ function clampDraftToOptions(): void {
 @media (prefers-reduced-motion: reduce) {
     .time-picker-display-segment,
     .time-picker-hand,
-    .time-picker-handle,
     .time-picker-option,
     .time-picker-preset {
         transition: none;

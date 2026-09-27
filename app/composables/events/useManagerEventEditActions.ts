@@ -57,17 +57,14 @@ export function useManagerEventEditActions(input: {
             isCheckingStudentsAvailability.value,
     );
 
-    const {
-        scheduleBackHref: defaultScheduleBackHref,
-        deleteDialogTimeLabel,
-        headerDateRangeLabel,
-    } = useManagerEventEditActionLabels({
-        schoolId: input.schoolId,
-        loadedEvent: input.loadedEvent,
-        formStartLocal: input.formStartLocal,
-        formEndLocal: input.formEndLocal,
-        formInstructorId: input.formInstructorId,
-    });
+    const { scheduleBackHref: defaultScheduleBackHref, deleteDialogTimeLabel } =
+        useManagerEventEditActionLabels({
+            schoolId: input.schoolId,
+            loadedEvent: input.loadedEvent,
+            formStartLocal: input.formStartLocal,
+            formEndLocal: input.formEndLocal,
+            formInstructorId: input.formInstructorId,
+        });
     const scheduleBackHref = computed(
         () =>
             buildEventsDayReturnRoute(
@@ -204,7 +201,6 @@ export function useManagerEventEditActions(input: {
     return {
         deleteDialogOpen,
         deleteDialogTimeLabel,
-        headerDateRangeLabel,
         isFormDirty,
         isSaving,
         isUpdateLoading,

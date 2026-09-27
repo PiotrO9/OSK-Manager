@@ -21,50 +21,22 @@ function formatLocalDateTimeRange(startRaw: string, endRaw: string): string {
         return '';
     }
 
-    const formatter = new Intl.DateTimeFormat('pl-PL', {
-        dateStyle: 'short',
-        timeStyle: 'short',
-    });
-
-    return `${formatter.format(start)} — ${formatter.format(end)}`;
-}
-
-function formatHeaderDateRange(startRaw: string, endRaw: string): string {
-    if (!startRaw || !endRaw) {
-        return 'Termin';
-    }
-
-    const start = new Date(startRaw);
-    const end = new Date(endRaw);
-
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        return 'Termin';
-    }
-
-    const sameDay = start.toDateString() === end.toDateString();
-    const sameMonth =
-        start.getFullYear() === end.getFullYear() &&
-        start.getMonth() === end.getMonth();
-    const dayFormatter = new Intl.DateTimeFormat('pl-PL', {
-        day: '2-digit',
-    });
-    const monthFormatter = new Intl.DateTimeFormat('pl-PL', {
+    const dateFormatter = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
         month: 'long',
+        year: 'numeric',
     });
-    const compactFormatter = new Intl.DateTimeFormat('pl-PL', {
-        day: '2-digit',
-        month: 'short',
+    const timeFormatter = new Intl.DateTimeFormat('pl-PL', {
+        hour: '2-digit',
+        minute: '2-digit',
     });
+    const startLabel = `${dateFormatter.format(start)} · ${timeFormatter.format(start)}`;
 
-    if (sameDay) {
-        return `${dayFormatter.format(start)} ${monthFormatter.format(start)}`;
+    if (start.toDateString() === end.toDateString()) {
+        return `${startLabel}–${timeFormatter.format(end)}`;
     }
 
-    if (sameMonth) {
-        return `${dayFormatter.format(start)}-${dayFormatter.format(end)} ${monthFormatter.format(end)}`;
-    }
-
-    return `${compactFormatter.format(start)} - ${compactFormatter.format(end)}`;
+    return `${startLabel} – ${dateFormatter.format(end)} · ${timeFormatter.format(end)}`;
 }
 
 export function useManagerEventEditActionLabels(
@@ -97,16 +69,8 @@ export function useManagerEventEditActionLabels(
         );
     });
 
-    const headerDateRangeLabel = computed(() => {
-        return formatHeaderDateRange(
-            input.formStartLocal.value.trim(),
-            input.formEndLocal.value.trim(),
-        );
-    });
-
     return {
         scheduleBackHref,
         deleteDialogTimeLabel,
-        headerDateRangeLabel,
     };
 }

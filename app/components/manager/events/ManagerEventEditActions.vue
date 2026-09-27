@@ -8,7 +8,6 @@ defineProps<{
 
 defineEmits<{
     cancel: [];
-    delete: [];
 }>();
 </script>
 

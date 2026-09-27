@@ -5,10 +5,10 @@ import type {
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
 import { formatStudentDisplayName } from '~/types/students/student';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import AppListAvatar from '~/components/app/AppListAvatar.vue';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
-defineProps<{
+const props = defineProps<{
     loadedEvent: InstructorEvent;
     linkedCourseLabel: string | null;
     theoryCapacitySummary: string | null;
@@ -32,7 +32,19 @@ defineProps<{
 
 const emit = defineEmits<{
     toggleStudent: [row: TheoryEventEligibleStudentRow, checked: boolean];
+    refreshEligible: [];
 }>();
+
+const allEligibleStudentsSelected = computed(() => {
+    const rows = props.theoryEligibleData?.students;
+
+    return Boolean(
+        rows?.length &&
+        rows.every((row) =>
+            props.isTheoryRowChecked(theoryEligibleRowToStudentListItem(row)),
+        ),
+    );
+});
 
 function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
     const first = row.firstName.trim().charAt(0);
@@ -46,7 +58,7 @@ function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
 <template>
     <FormSection
         title="Kursanci (teoria)"
-        description="Zarządzaj realną listą kursantów z kursu, z zachowaniem limitów i kolizji grafiku."
+        description="Lista aktywnych uczestników kursu powiązanego z wydarzeniem."
     >
         <div class="space-y-6">
             <p
@@ -116,85 +128,141 @@ function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
                 >
                     {{ theoryEligibleError }}
                 </p>
-                <ul
+                <template
                     v-else-if="
                         theoryEligibleData &&
                         theoryEligibleData.students.length > 0
                     "
-                    class="space-y-2"
-                    role="list"
-                    aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
                 >
-                    <li
-                        v-for="row in theoryEligibleData.students"
-                        :key="row.userId"
-                        class="border-input flex flex-col gap-2 rounded-md border px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
+                    <p
+                        id="theory-event-students-instruction"
+                        class="text-muted-foreground text-sm"
                     >
-                        <div class="flex min-w-0 flex-1 items-start gap-3">
-                            <UiCheckbox
-                                :id="`theory-student-${row.userId}`"
-                                :model-value="
-                                    isTheoryRowChecked(
-                                        theoryEligibleRowToStudentListItem(row),
-                                    )
-                                "
-                                :disabled="
-                                    isSaving ||
-                                    !schoolId ||
-                                    !isTheoryEligibleRowInteractive(row)
-                                "
-                                :aria-label="`Zapis na wydarzenie: ${formatStudentDisplayName(theoryEligibleRowToStudentListItem(row))}`"
-                                @update:model-value="
-                                    emit('toggleStudent', row, $event === true)
-                                "
-                            />
-                            <UiLabel
-                                :for="`theory-student-${row.userId}`"
-                                class="text-foreground flex min-w-0 flex-1 cursor-pointer items-start gap-2 text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
-                            >
-                                <ProfileAvatar
-                                    :src="row.avatarUrl"
-                                    :initials="theoryStudentInitials(row)"
-                                    :size="24"
-                                    class="border-border bg-muted/40 text-muted-foreground mt-0.5 border"
-                                />
-                                <span class="min-w-0">
-                                    <span class="block">
-                                        {{
-                                            formatStudentDisplayName(
-                                                theoryEligibleRowToStudentListItem(
-                                                    row,
-                                                ),
-                                            )
-                                        }}
-                                    </span>
-                                    <span
-                                        v-if="row.email?.trim()"
-                                        class="text-muted-foreground block text-xs font-normal"
-                                    >
-                                        {{ row.email.trim() }}
-                                    </span>
-                                </span>
-                            </UiLabel>
-                        </div>
-                        <div
-                            class="flex shrink-0 flex-wrap gap-1 sm:justify-end"
+                        Zaznacz kursanta, aby dodać go do tego wydarzenia.
+                        Odznacz, aby go usunąć. Wybór zatwierdź przyciskiem
+                        „Zapisz zmiany”.
+                    </p>
+                    <ul
+                        class="space-y-2"
+                        role="list"
+                        aria-label="Kursanci kursu — zaznacz uczestników wydarzenia"
+                    >
+                        <li
+                            v-for="row in theoryEligibleData.students"
+                            :key="row.userId"
+                            class="border-input flex flex-col gap-3 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                         >
-                            <UiBadge
-                                v-if="row.hasScheduleConflict"
-                                variant="destructive"
+                            <div class="flex min-w-0 flex-1 items-center gap-3">
+                                <UiCheckbox
+                                    :id="`theory-student-${row.userId}`"
+                                    :model-value="
+                                        isTheoryRowChecked(
+                                            theoryEligibleRowToStudentListItem(
+                                                row,
+                                            ),
+                                        )
+                                    "
+                                    :disabled="
+                                        isSaving ||
+                                        !schoolId ||
+                                        !isTheoryEligibleRowInteractive(row)
+                                    "
+                                    :aria-label="`Zapis na wydarzenie: ${formatStudentDisplayName(theoryEligibleRowToStudentListItem(row))}`"
+                                    aria-describedby="theory-event-students-instruction"
+                                    @update:model-value="
+                                        emit(
+                                            'toggleStudent',
+                                            row,
+                                            $event === true,
+                                        )
+                                    "
+                                />
+                                <UiLabel
+                                    :for="`theory-student-${row.userId}`"
+                                    class="text-foreground flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                                >
+                                    <AppListAvatar
+                                        :src="row.avatarUrl"
+                                        :initials="theoryStudentInitials(row)"
+                                        :size="40"
+                                    />
+                                    <span class="min-w-0">
+                                        <span
+                                            class="block font-semibold wrap-anywhere"
+                                        >
+                                            {{
+                                                formatStudentDisplayName(
+                                                    theoryEligibleRowToStudentListItem(
+                                                        row,
+                                                    ),
+                                                )
+                                            }}
+                                        </span>
+                                        <span
+                                            v-if="row.email?.trim()"
+                                            class="text-muted-foreground mt-0.5 block text-sm font-normal wrap-anywhere"
+                                        >
+                                            {{ row.email.trim() }}
+                                        </span>
+                                    </span>
+                                </UiLabel>
+                            </div>
+                            <div
+                                class="flex shrink-0 flex-wrap gap-1 sm:justify-end"
                             >
-                                Kolizja grafiku
-                            </UiBadge>
-                            <UiBadge
-                                v-if="!row.canAssign && !row.isAssignedToEvent"
-                                variant="secondary"
-                            >
-                                Niedostępny
-                            </UiBadge>
-                        </div>
-                    </li>
-                </ul>
+                                <UiBadge
+                                    v-if="row.hasScheduleConflict"
+                                    variant="destructive"
+                                >
+                                    Kolizja grafiku
+                                </UiBadge>
+                                <UiBadge
+                                    v-if="
+                                        !row.hasScheduleConflict &&
+                                        !isTheoryEligibleRowInteractive(row)
+                                    "
+                                    variant="secondary"
+                                >
+                                    Brak miejsc
+                                </UiBadge>
+                            </div>
+                        </li>
+                    </ul>
+                    <div
+                        v-if="allEligibleStudentsSelected && schoolId"
+                        class="border-border bg-muted/30 rounded-md border px-4 py-3 text-sm"
+                    >
+                        <p>
+                            Wszyscy kursanci z listy są już wybrani. Aby dodać
+                            kolejną osobę, przypisz ją najpierw do tego kursu.
+                        </p>
+                        <NuxtLink
+                            :to="{
+                                path: '/manager/students',
+                                query: { schoolId },
+                            }"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-primary mt-2 inline-block font-medium underline underline-offset-2"
+                        >
+                            Otwórz listę kursantów w nowej karcie
+                        </NuxtLink>
+                        <p class="text-muted-foreground mt-2">
+                            Po przypisaniu kursanta do kursu odśwież listę
+                            poniżej.
+                        </p>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            class="mt-3"
+                            :disabled="isSaving || isTheoryEligibleLoading"
+                            @click="emit('refreshEligible')"
+                        >
+                            Odśwież listę kursantów
+                        </UiButton>
+                    </div>
+                </template>
                 <p v-else class="text-muted-foreground text-sm" role="status">
                     Brak kursantów na kursie lub lista nie została wczytana.
                 </p>

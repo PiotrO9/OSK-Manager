@@ -2,20 +2,32 @@
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
-const { eventId, schoolId } = useManagerEventEditPage();
+const { eventId } = useManagerEventEditPage();
 
 const loadedEvent = ref<InstructorEvent | null>(null);
+const eventInstructorId = computed(
+    () => loadedEvent.value?.instructorId?.trim() ?? '',
+);
+const {
+    schoolId: resolvedSchoolId,
+    isSchoolContextLoading,
+    schoolContextError,
+    loadInstructorSchoolContext,
+} = useManagerInstructorSchoolContext({ instructorId: eventInstructorId });
+const schoolId = computed(() => resolvedSchoolId.value);
+
+watch(
+    eventInstructorId,
+    () => {
+        void loadInstructorSchoolContext();
+    },
+    { immediate: true },
+);
 
 const {
     formType,
     formStartLocal,
     formEndLocal,
-    formStartDate,
-    formStartHour,
-    formStartMinute,
-    formEndDate,
-    formEndHour,
-    formEndMinute,
     formVehicleId,
     formInstructorId,
     formCapacityInput,
@@ -27,6 +39,8 @@ const {
     startMinuteOptionsResolved,
     endHourOptionsResolved,
     endMinuteOptionsResolved,
+    availableStartTimes,
+    availableEndTimes,
     applyPrefill,
     parseCapacity,
     localDatetimeToIso,
@@ -36,12 +50,9 @@ const {
     isAvailabilityOptionsLoading,
     availabilityOptionsError,
     recheckEventAvailability,
-    handleStartDateChange,
-    handleStartHourChange,
-    handleStartMinuteChange,
-    handleEndDateChange,
-    handleEndHourChange,
-    handleEndMinuteChange,
+    handleDateChange,
+    handleStartTimeChange,
+    handleEndTimeChange,
 } = useManagerEventEditForm({
     loadedEvent,
 });
@@ -84,6 +95,7 @@ const {
     isTheoryRowChecked,
     isTheoryEligibleRowInteractive,
     handleToggleTheoryStudent,
+    reloadTheoryEligibleStudents,
     refreshEligibleForCurrentTime,
 } = useManagerEventParticipants({
     eventId,
@@ -99,7 +111,6 @@ const {
 const {
     deleteDialogOpen,
     deleteDialogTimeLabel,
-    headerDateRangeLabel,
     isFormDirty,
     isSaving,
     isDeleteLoading,
@@ -139,7 +150,6 @@ const {
 <template>
     <div class="space-y-5">
         <ManagerEventEditHeader
-            :date-range-label="headerDateRangeLabel"
             :can-save="Boolean(loadedEvent) && isFormDirty"
             :is-availability-blocking="
                 eventAvailabilityStatus === 'checking' ||
@@ -149,7 +159,12 @@ const {
             :is-delete-loading="isDeleteLoading"
         />
 
-        <ManagerEventEditMissingSchoolNotice v-if="!schoolId" />
+        <ManagerEventEditMissingSchoolNotice
+            v-if="loadedEvent && !schoolId"
+            :is-loading="isSchoolContextLoading"
+            :error="schoolContextError"
+            @retry="loadInstructorSchoolContext"
+        />
 
         <ManagerEventEditReturnErrorState
             v-if="!eventId"
@@ -186,7 +201,6 @@ const {
                 :event-status="loadedEvent.status"
                 :form-type="formType"
                 :school-id="schoolId"
-                :header-date-range-label="headerDateRangeLabel"
                 :form-error="formError"
                 :event-availability-status="eventAvailabilityStatus"
                 :event-availability-message="eventAvailabilityMessage"
@@ -203,28 +217,23 @@ const {
                 :vehicles="vehicles"
                 :is-vehicles-loading="isVehiclesLoading"
                 :vehicles-error="vehiclesError"
-                :start-date="formStartDate"
-                :start-hour="formStartHour"
-                :start-minute="formStartMinute"
-                :end-date="formEndDate"
-                :end-hour="formEndHour"
-                :end-minute="formEndMinute"
+                :date="formStartLocal.slice(0, 10)"
+                :start-time="formStartLocal.slice(11, 16)"
+                :end-time="formEndLocal.slice(11, 16)"
                 :start-hour-options="startHourOptionsResolved"
                 :start-minute-options="startMinuteOptionsResolved"
                 :end-hour-options="endHourOptionsResolved"
                 :end-minute-options="endMinuteOptionsResolved"
+                :available-start-times="availableStartTimes"
+                :available-end-times="availableEndTimes"
                 :min-date="pickerMinDate"
                 :max-date="pickerMaxDate"
                 @submit="handleSubmit"
                 @cancel="handleCancel"
-                @delete="handleOpenDeleteDialog"
                 @status-patched="handleEventStatusPatched"
-                @start-date-change="handleStartDateChange"
-                @start-hour-change="handleStartHourChange"
-                @start-minute-change="handleStartMinuteChange"
-                @end-date-change="handleEndDateChange"
-                @end-hour-change="handleEndHourChange"
-                @end-minute-change="handleEndMinuteChange"
+                @date-change="handleDateChange"
+                @start-time-change="handleStartTimeChange"
+                @end-time-change="handleEndTimeChange"
             />
 
             <ManagerEventTheoryStudentsSection
@@ -253,7 +262,19 @@ const {
                             checked,
                         )
                 "
+                @refresh-eligible="reloadTheoryEligibleStudents"
             />
+
+            <section
+                aria-label="Usuwanie wydarzenia"
+                class="border-border bg-card rounded-lg border px-4 py-3 shadow-xs md:px-5"
+            >
+                <ManagerEventDeleteAction
+                    :is-saving="isSaving"
+                    :is-delete-loading="isDeleteLoading"
+                    @delete="handleOpenDeleteDialog"
+                />
+            </section>
 
             <ManagerInstructorEventDeleteDialog
                 v-model:open="deleteDialogOpen"

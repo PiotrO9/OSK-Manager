@@ -18,6 +18,8 @@ const props = defineProps<{
     status?: string | null;
     /** Kompaktowy układ (np. w tabeli). */
     compact?: boolean;
+    showBadge?: boolean;
+    triggerId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -115,6 +117,7 @@ async function handleStatusUpdate(value: unknown): Promise<void> {
         :class="compact ? 'min-w-0' : 'gap-3'"
     >
         <UiBadge
+            v-if="showBadge !== false"
             :variant="instructorEventStatusBadgeVariant(localStatus)"
             class="shrink-0 font-normal"
         >
@@ -130,8 +133,12 @@ async function handleStatusUpdate(value: unknown): Promise<void> {
             @update:model-value="handleStatusUpdate"
         >
             <UiSelectTrigger
+                :id="triggerId"
                 class="max-w-full min-w-38"
-                :class="compact ? 'h-8 text-xs' : ''"
+                :class="[
+                    compact ? 'h-8 text-xs' : 'bg-background h-10 rounded-xl',
+                    showBadge === false ? 'w-full' : '',
+                ]"
                 @click.stop
             >
                 <UiSelectValue

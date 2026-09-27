@@ -197,73 +197,44 @@ export function useManagerEventEditTimeSplit(
         );
     }
 
-    function handleStartDateChange(event: Event): void {
-        formStartDate.value = (event.target as HTMLInputElement).value.trim();
-        clampStartTimeParts();
+    function handleDateChange(value: string): void {
+        const date = value.trim();
+
+        if (!isoDateStringToCalendarDate(date)) return;
+
+        formStartDate.value = date;
+        formEndDate.value = date;
         commitStartLocal();
-    }
-
-    function handleStartHourChange(event: Event): void {
-        const h = Number.parseInt(
-            (event.target as HTMLSelectElement).value,
-            10,
-        );
-
-        if (!Number.isFinite(h) || h < 0 || h > 23) {
-            return;
-        }
-
-        formStartHour.value = h;
-        clampStartTimeParts();
-        commitStartLocal();
-    }
-
-    function handleStartMinuteChange(event: Event): void {
-        const m = Number.parseInt(
-            (event.target as HTMLSelectElement).value,
-            10,
-        );
-
-        if (!Number.isFinite(m) || m < 0 || m > 59) {
-            return;
-        }
-
-        formStartMinute.value = m;
-        commitStartLocal();
-    }
-
-    function handleEndDateChange(event: Event): void {
-        formEndDate.value = (event.target as HTMLInputElement).value.trim();
-        clampEndTimeParts();
         commitEndLocal();
     }
 
-    function handleEndHourChange(event: Event): void {
-        const h = Number.parseInt(
-            (event.target as HTMLSelectElement).value,
-            10,
-        );
+    function handleStartTimeChange(value: string): void {
+        const match = /^(\d{2}):(\d{2})$/.exec(value.trim());
 
-        if (!Number.isFinite(h) || h < 0 || h > 23) {
-            return;
-        }
+        if (!match) return;
 
-        formEndHour.value = h;
-        clampEndTimeParts();
-        commitEndLocal();
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+
+        if (hour > 23 || minute > 59) return;
+
+        formStartHour.value = hour;
+        formStartMinute.value = minute;
+        commitStartLocal();
     }
 
-    function handleEndMinuteChange(event: Event): void {
-        const m = Number.parseInt(
-            (event.target as HTMLSelectElement).value,
-            10,
-        );
+    function handleEndTimeChange(value: string): void {
+        const match = /^(\d{2}):(\d{2})$/.exec(value.trim());
 
-        if (!Number.isFinite(m) || m < 0 || m > 59) {
-            return;
-        }
+        if (!match) return;
 
-        formEndMinute.value = m;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+
+        if (hour > 23 || minute > 59) return;
+
+        formEndHour.value = hour;
+        formEndMinute.value = minute;
         commitEndLocal();
     }
 
@@ -278,11 +249,8 @@ export function useManagerEventEditTimeSplit(
         pickerConstraintsEnabled,
         hydrateStartSplitFromLocal,
         hydrateEndSplitFromLocal,
-        handleStartDateChange,
-        handleStartHourChange,
-        handleStartMinuteChange,
-        handleEndDateChange,
-        handleEndHourChange,
-        handleEndMinuteChange,
+        handleDateChange,
+        handleStartTimeChange,
+        handleEndTimeChange,
     };
 }

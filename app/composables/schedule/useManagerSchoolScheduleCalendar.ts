@@ -196,10 +196,7 @@ export function useManagerSchoolScheduleCalendar(
             return;
         }
 
-        const target = buildScheduleManagerItemEditRoute(
-            lesson,
-            props.schoolId,
-        );
+        const target = buildScheduleManagerItemEditRoute(lesson);
 
         if (!target) {
             return;

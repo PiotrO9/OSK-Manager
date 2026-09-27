@@ -158,14 +158,12 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                                         isManager &&
                                         buildEventsDayEditRoute(
                                             event,
-                                            schoolId,
                                             selectedDate,
                                         )
                                     "
                                     :to="
                                         buildEventsDayEditRoute(
                                             event,
-                                            schoolId,
                                             selectedDate,
                                         )!
                                     "

@@ -62,12 +62,9 @@ export function useManagerEventEditForm(input: {
         startMinuteOptionsResolved: freeWindowStartMinuteOptions,
         endHourOptionsResolved: freeWindowEndHourOptions,
         endMinuteOptionsResolved: freeWindowEndMinuteOptions,
-        handleStartDateChange,
-        handleStartHourChange,
-        handleStartMinuteChange,
-        handleEndDateChange,
-        handleEndHourChange,
-        handleEndMinuteChange,
+        handleDateChange,
+        handleStartTimeChange,
+        handleEndTimeChange,
     } = useManagerEventEditTimePicker({
         formStartLocal,
         formEndLocal,
@@ -209,6 +206,16 @@ export function useManagerEventEditForm(input: {
 
         return optionStarts.value.find((option) => option.startTime === value);
     });
+    const availableStartTimes = computed<readonly string[] | undefined>(() =>
+        availabilityOptions.status.value === 'success'
+            ? optionStarts.value.map((option) => option.startTime)
+            : undefined,
+    );
+    const availableEndTimes = computed<readonly string[] | undefined>(() =>
+        availabilityOptions.status.value === 'success'
+            ? (selectedStartOption.value?.endTimes ?? [])
+            : undefined,
+    );
     const optionStartHours = computed(() =>
         uniqueTimeParts(
             optionStarts.value.map((option) => option.startTime),
@@ -332,6 +339,8 @@ export function useManagerEventEditForm(input: {
         startMinuteOptionsResolved,
         endHourOptionsResolved,
         endMinuteOptionsResolved,
+        availableStartTimes,
+        availableEndTimes,
         applyPrefill,
         parseCapacity,
         localDatetimeToIso,
@@ -341,11 +350,8 @@ export function useManagerEventEditForm(input: {
         isAvailabilityOptionsLoading,
         availabilityOptionsError,
         recheckEventAvailability: availability.recheck,
-        handleStartDateChange,
-        handleStartHourChange,
-        handleStartMinuteChange,
-        handleEndDateChange,
-        handleEndHourChange,
-        handleEndMinuteChange,
+        handleDateChange,
+        handleStartTimeChange,
+        handleEndTimeChange,
     };
 }

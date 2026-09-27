@@ -26,10 +26,9 @@ export function readEventsDayDate(value: unknown): string | null {
 
 export function buildEventsDayEditRoute(
     item: ScheduleLessonItem,
-    schoolId: string,
     date: string,
 ) {
-    const destination = buildScheduleManagerItemEditRoute(item, schoolId);
+    const destination = buildScheduleManagerItemEditRoute(item);
 
     if (!destination) {
         return null;
@@ -38,7 +37,6 @@ export function buildEventsDayEditRoute(
     return {
         path: destination.path,
         query: {
-            ...destination.query,
             from: 'events',
             date,
         },

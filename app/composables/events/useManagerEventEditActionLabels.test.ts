@@ -82,7 +82,7 @@ describe('useManagerEventEditActionLabels', () => {
         expect(labels.scheduleBackHref.value).toBe('/manager/instructors');
     });
 
-    it('formats delete dialog time label and header range labels', () => {
+    it('formats delete dialog time label', () => {
         const sameDay = setupLabels({
             formStartLocal: '2026-08-16T10:00',
             formEndLocal: '2026-08-16T11:00',
@@ -90,30 +90,15 @@ describe('useManagerEventEditActionLabels', () => {
 
         expect(sameDay.deleteDialogTimeLabel.value).toContain('10:00');
         expect(sameDay.deleteDialogTimeLabel.value).toContain('11:00');
-        expect(sameDay.headerDateRangeLabel.value).toContain('16');
-
-        const sameMonth = setupLabels({
-            formStartLocal: '2026-08-16T10:00',
-            formEndLocal: '2026-08-18T11:00',
-        });
-
-        expect(sameMonth.headerDateRangeLabel.value).toContain('16-18');
-
-        const differentMonth = setupLabels({
-            formStartLocal: '2026-08-31T10:00',
-            formEndLocal: '2026-09-02T11:00',
-        });
-
-        expect(differentMonth.headerDateRangeLabel.value).toContain('-');
+        expect(sameDay.deleteDialogTimeLabel.value).toContain('10:00–11:00');
     });
 
-    it('returns empty/default labels for invalid dates', () => {
+    it('returns an empty delete label for invalid dates', () => {
         const labels = setupLabels({
             formStartLocal: 'invalid',
             formEndLocal: '2026-08-16T11:00',
         });
 
         expect(labels.deleteDialogTimeLabel.value).toBe('');
-        expect(labels.headerDateRangeLabel.value).toBe('Termin');
     });
 });

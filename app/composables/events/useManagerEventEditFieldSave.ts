@@ -61,8 +61,7 @@ export function useManagerEventEditFieldSave(
             const vehicleId = input.formVehicleId.value.trim();
 
             if (!vehicleId) {
-                input.formError.value =
-                    'Dla jazdy wybierz pojazd (parametr ?schoolId= w adresie strony i lista pojazdów OSK).';
+                input.formError.value = 'Dla jazdy wybierz pojazd.';
 
                 return false;
             }

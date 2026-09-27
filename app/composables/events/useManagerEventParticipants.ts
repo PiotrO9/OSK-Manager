@@ -6,6 +6,7 @@ import type {
 } from '~/types/events/instructorEvent';
 import type { StudentListItem } from '~/types/students/student';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 import {
     formatManagerEventTheoryCapacitySummary,
     buildManagerEventTheoryStudentDraft,
@@ -54,12 +55,6 @@ export function useManagerEventParticipants(input: {
         });
     }
 
-    const theoryCapacitySummary = computed((): string | null => {
-        return formatManagerEventTheoryCapacitySummary(
-            theoryEligibleData.value,
-        );
-    });
-
     const studentAttendanceKnown = computed(
         (): boolean => input.loadedEvent.value?.studentAttendanceKnown ?? false,
     );
@@ -83,10 +78,28 @@ export function useManagerEventParticipants(input: {
         });
     });
 
-    async function loadTheoryEligibleStudents(): Promise<void> {
+    const theoryCapacitySummary = computed((): string | null => {
+        if (!studentAttendanceKnown.value) {
+            return null;
+        }
+
+        return formatManagerEventTheoryCapacitySummary(
+            theoryEligibleData.value,
+            draftTheoryStudentUserIds.value.length,
+            capacityForStudentPicker.value,
+        );
+    });
+
+    async function loadTheoryEligibleStudents(options?: {
+        startTime: string;
+        endTime: string;
+    }): Promise<void> {
+        const seq = ++eligibleSeq;
+
         theoryEligibleError.value = null;
         theoryEligibleData.value = null;
         theoryEligibleNoCourse.value = false;
+        isTheoryEligibleLoading.value = false;
 
         const id = input.eventId.value.trim();
         const ev = input.loadedEvent.value;
@@ -104,17 +117,46 @@ export function useManagerEventParticipants(input: {
         isTheoryEligibleLoading.value = true;
 
         try {
-            theoryEligibleData.value =
-                await input.fetchTheoryEventEligibleStudents(id);
-        } catch (err: unknown) {
-            theoryEligibleData.value = null;
-            theoryEligibleError.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się wczytać listy kwalifikacji kursantów (kurs).',
+            const data = await input.fetchTheoryEventEligibleStudents(
+                id,
+                options,
             );
+
+            if (seq === eligibleSeq) {
+                theoryEligibleData.value = data;
+            }
+        } catch (err: unknown) {
+            if (seq === eligibleSeq) {
+                theoryEligibleData.value = null;
+                theoryEligibleError.value = getApiFetchErrorMessage(
+                    err,
+                    'Nie udało się wczytać listy kursantów tego kursu.',
+                );
+            }
         } finally {
-            isTheoryEligibleLoading.value = false;
+            if (seq === eligibleSeq) {
+                isTheoryEligibleLoading.value = false;
+            }
         }
+    }
+
+    async function reloadTheoryEligibleStudents(): Promise<void> {
+        if (eligibleDebounceTimer) {
+            clearTimeout(eligibleDebounceTimer);
+            eligibleDebounceTimer = null;
+        }
+
+        const startTime = input.localDatetimeToIso(input.formStartLocal.value);
+        const endTime = input.localDatetimeToIso(input.formEndLocal.value);
+
+        if (!startTime || !endTime) {
+            theoryEligibleError.value =
+                'Uzupełnij prawidłowy termin wydarzenia przed odświeżeniem listy.';
+
+            return;
+        }
+
+        await loadTheoryEligibleStudents({ startTime, endTime });
     }
 
     function resetStudentDraftFromEvent(ev: InstructorEvent | null): void {
@@ -153,7 +195,12 @@ export function useManagerEventParticipants(input: {
     function isTheoryEligibleRowInteractive(
         row: TheoryEventEligibleStudentRow,
     ): boolean {
-        return isManagerEventEligibleRowInteractive(row);
+        return isManagerEventEligibleRowInteractive(
+            row,
+            isTheoryRowChecked(theoryEligibleRowToStudentListItem(row)),
+            capacityForStudentPicker.value,
+            draftTheoryStudentUserIds.value.length,
+        );
     }
 
     function handleToggleTheoryStudent(
@@ -267,6 +314,10 @@ export function useManagerEventParticipants(input: {
                     err,
                     'Nie udało się odświeżyć listy kursantów.',
                 );
+            } finally {
+                if (seq === eligibleSeq) {
+                    isTheoryEligibleLoading.value = false;
+                }
             }
         }, 400);
     });
@@ -294,6 +345,7 @@ export function useManagerEventParticipants(input: {
         isTheoryEligibleRowInteractive,
         handleToggleTheoryStudent,
         loadTheoryEligibleStudents,
+        reloadTheoryEligibleStudents,
         resetStudentDraftFromEvent,
         refreshEligibleForCurrentTime,
     };

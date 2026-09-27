@@ -156,14 +156,12 @@ const gridTemplateColumns = computed(
                                     v-if="
                                         buildEventsDayEditRoute(
                                             positioned.event,
-                                            schoolId,
                                             selectedDate,
                                         )
                                     "
                                     :to="
                                         buildEventsDayEditRoute(
                                             positioned.event,
-                                            schoolId,
                                             selectedDate,
                                         )!
                                     "

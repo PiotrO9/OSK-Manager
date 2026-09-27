@@ -1,10 +1,11 @@
 <script setup lang="ts">
 const props = withDefaults(
     defineProps<{
-        title: string;
+        title?: string;
         description?: string;
     }>(),
     {
+        title: '',
         description: '',
     },
 );
@@ -12,8 +13,14 @@ const props = withDefaults(
 
 <template>
     <section class="border-border bg-card rounded-lg border shadow-xs">
-        <div class="border-border border-b px-4 py-4 md:px-5">
-            <h2 class="text-foreground text-base font-semibold">
+        <div
+            v-if="props.title || props.description"
+            class="border-border border-b px-4 py-4 md:px-5"
+        >
+            <h2
+                v-if="props.title"
+                class="text-foreground text-base font-semibold"
+            >
                 {{ props.title }}
             </h2>
             <p

@@ -13,35 +13,35 @@ const lesson: ScheduleLessonItem = {
 
 describe('schedule manager edit navigation', () => {
     it('opens lesson editing without schoolId in the URL', () => {
-        expect(buildScheduleManagerItemEditRoute(lesson, 'school-1')).toEqual({
+        expect(buildScheduleManagerItemEditRoute(lesson)).toEqual({
             path: '/manager/lessons/lesson-1/edit',
         });
     });
 
-    it('keeps school context for instructor event editing', () => {
+    it('opens instructor event editing without schoolId in the URL', () => {
         expect(
-            buildScheduleManagerItemEditRoute(
-                { ...lesson, id: 'event-1', kind: 'instructor_event' },
-                'school-1',
-            ),
+            buildScheduleManagerItemEditRoute({
+                ...lesson,
+                id: 'event-1',
+                kind: 'instructor_event',
+            }),
         ).toEqual({
             path: '/manager/events/event-1/edit',
-            query: { schoolId: 'school-1' },
         });
     });
 
     it('does not link to completed or past lessons', () => {
         expect(
-            buildScheduleManagerItemEditRoute(
-                { ...lesson, status: 'COMPLETED' },
-                'school-1',
-            ),
+            buildScheduleManagerItemEditRoute({
+                ...lesson,
+                status: 'COMPLETED',
+            }),
         ).toBeNull();
         expect(
-            buildScheduleManagerItemEditRoute(
-                { ...lesson, endTime: '2026-09-20T08:00:00.000Z' },
-                'school-1',
-            ),
+            buildScheduleManagerItemEditRoute({
+                ...lesson,
+                endTime: '2026-09-20T08:00:00.000Z',
+            }),
         ).toBeNull();
     });
 });

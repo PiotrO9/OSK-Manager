@@ -2,6 +2,7 @@ import { usePageMeta } from '../core/usePageMeta';
 
 export function useManagerEventEditPage() {
     const route = useRoute();
+    const router = useRouter();
 
     function getEventIdFromRoute(): string {
         const raw = route.params.id;
@@ -17,19 +18,19 @@ export function useManagerEventEditPage() {
         return '';
     }
 
-    function readSchoolIdFromQuery(): string {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
+    const eventId = computed(getEventIdFromRoute);
 
-        if (typeof s !== 'string') {
-            return '';
+    onMounted(() => {
+        if (!('schoolId' in route.query)) {
+            return;
         }
 
-        return s.trim();
-    }
+        const query = { ...route.query };
 
-    const eventId = computed(getEventIdFromRoute);
-    const schoolId = computed(readSchoolIdFromQuery);
+        delete query.schoolId;
+
+        void router.replace({ path: route.path, query, hash: route.hash });
+    });
 
     usePageMeta({
         title: () => 'Edycja wydarzenia',
@@ -38,6 +39,5 @@ export function useManagerEventEditPage() {
 
     return {
         eventId,
-        schoolId,
     };
 }

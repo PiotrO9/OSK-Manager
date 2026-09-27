@@ -20,11 +20,7 @@ export function isScheduleManagerItemEditable(
 
 export function buildScheduleManagerItemEditRoute(
     item: ScheduleLessonItem,
-    schoolId: string,
-): { path: string; query?: { schoolId: string } } | null {
-    const sid = schoolId.trim();
-    const query = sid.length > 0 ? { schoolId: sid } : undefined;
-
+): { path: string } | null {
     if (
         isScheduleBookedPracticalLesson(item) &&
         isManagerLessonEditable(item.status, item.endTime)
@@ -37,7 +33,6 @@ export function buildScheduleManagerItemEditRoute(
     if (isScheduleInstructorEvent(item)) {
         return {
             path: `/manager/events/${encodeURIComponent(item.id)}/edit`,
-            ...(query ? { query } : {}),
         };
     }
 

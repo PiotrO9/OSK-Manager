@@ -8,11 +8,12 @@ defineProps<{
 </script>
 
 <template>
-    <NuxtLink
-        :to="to"
-        class="text-primary focus-visible:ring-ring inline-flex rounded-sm text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-        :aria-label="label ?? 'Wróć do terminarza instruktora'"
-    >
-        {{ label ?? 'Wróć do terminarza instruktora' }}
-    </NuxtLink>
+    <UiButton as-child variant="link" class="h-auto justify-start px-0">
+        <NuxtLink
+            :to="to"
+            :aria-label="label ?? 'Wróć do terminarza instruktora'"
+        >
+            {{ label ?? 'Wróć do terminarza instruktora' }}
+        </NuxtLink>
+    </UiButton>
 </template>

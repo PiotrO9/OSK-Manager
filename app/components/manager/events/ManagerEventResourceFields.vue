@@ -43,7 +43,10 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
 </script>
 
 <template>
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div
+        class="grid min-w-0 gap-4"
+        :class="eventType === 'DRIVE' ? 'lg:grid-cols-2' : 'grid-cols-1'"
+    >
         <div class="space-y-2">
             <UiLabel for="edit-event-instructor">Instruktor</UiLabel>
             <p
@@ -66,7 +69,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="edit-event-instructor"
-                    class="w-full"
+                    class="bg-background h-10 w-full rounded-xl"
                     aria-label="Instruktor prowadzący blok"
                 >
                     <UiSelectValue placeholder="Wybierz instruktora" />
@@ -94,14 +97,6 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     </UiSelectGroup>
                 </UiSelectContent>
             </UiSelect>
-            <p
-                v-if="!schoolId"
-                class="text-muted-foreground text-xs"
-                role="status"
-            >
-                Dodaj <code class="text-xs">?schoolId=</code> w adresie, aby
-                zmienić instruktora z listy OSK.
-            </p>
         </div>
 
         <div v-if="eventType === 'DRIVE'" class="space-y-2">
@@ -131,7 +126,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="edit-event-vehicle"
-                    class="w-full"
+                    class="bg-background h-10 w-full rounded-xl"
                     aria-label="Pojazd dla bloku jazdy"
                 >
                     <UiSelectValue placeholder="- Wybierz pojazd -" />

@@ -92,21 +92,18 @@ export function getManagerEventCanonicalParticipantUserId(
 
 export function formatManagerEventTheoryCapacitySummary(
     data: TheoryEventEligibleStudentsData | null,
+    selectedCount: number,
+    capacity: number | null,
 ): string | null {
     if (!data) {
         return null;
     }
 
-    const { limit, used, remaining } = data.capacity;
-
-    if (limit === null) {
-        return `Miejsca na evencie: ${used} (bez limitu)`;
+    if (capacity === null) {
+        return `Miejsca: ${selectedCount} (bez limitu)`;
     }
 
-    const rem =
-        remaining === null ? '---' : String(Math.max(0, Math.trunc(remaining)));
-
-    return `Miejsca: ${used} / ${limit} (wolnych: ${rem})`;
+    return `Miejsca: ${selectedCount} / ${capacity}`;
 }
 
 export function isManagerEventTheoryStudentsDirty(params: {
@@ -141,8 +138,15 @@ export function resolveManagerEventCapacityForStudentPicker(params: {
 
 export function isManagerEventEligibleRowInteractive(
     row: TheoryEventEligibleStudentRow,
+    isChecked: boolean,
+    capacity: number | null,
+    selectedCount: number,
 ): boolean {
-    return row.isAssignedToEvent || row.canAssign;
+    return (
+        isChecked ||
+        (!row.hasScheduleConflict &&
+            (capacity === null || selectedCount < capacity))
+    );
 }
 
 export function getManagerEventCapacityLimitError(params: {

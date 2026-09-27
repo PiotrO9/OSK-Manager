@@ -53,7 +53,7 @@ const selectedItemEditRoute = computed(() => {
         return null;
     }
 
-    return buildScheduleManagerItemEditRoute(item, props.schoolId);
+    return buildScheduleManagerItemEditRoute(item);
 });
 
 watch(
@@ -180,7 +180,6 @@ function setScheduleView(value: ScheduleViewMode): void {
                     event-edit-enabled
                     event-delete-enabled
                     event-status-change-enabled
-                    :school-id="schoolId"
                     @request-delete="emit('requestDelete', $event)"
                     @status-changed="emit('statusChanged', $event)"
                 />

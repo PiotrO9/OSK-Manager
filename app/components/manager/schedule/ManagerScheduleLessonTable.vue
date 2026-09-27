@@ -37,8 +37,6 @@ const props = withDefaults(
         eventStatusChangeEnabled?: boolean;
         studentLessonCancelEnabled?: boolean;
         cancellingLessonId?: string | null;
-        /** Przekazywane do `/manager/events/:id/edit` jako `?schoolId=` (np. wybór pojazdu). */
-        schoolId?: string;
     }>(),
     {
         emptyMessage: undefined,
@@ -47,7 +45,6 @@ const props = withDefaults(
         eventStatusChangeEnabled: false,
         studentLessonCancelEnabled: false,
         cancellingLessonId: null,
-        schoolId: '',
     },
 );
 
@@ -70,10 +67,7 @@ function handleRowClick(item: ScheduleLessonItem): void {
         return;
     }
 
-    const target = buildScheduleManagerItemEditRoute(
-        item,
-        props.schoolId ?? '',
-    );
+    const target = buildScheduleManagerItemEditRoute(item);
 
     if (!target) {
         return;

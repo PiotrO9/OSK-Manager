@@ -128,13 +128,18 @@ describe('manager event participants model', () => {
         expect(
             formatManagerEventTheoryCapacitySummary(
                 eligibleData({ limit: null, used: 3, remaining: null }),
+                4,
+                null,
             ),
-        ).toBe('Miejsca na evencie: 3 (bez limitu)');
+        ).toBe('Miejsca: 4 (bez limitu)');
         expect(
             formatManagerEventTheoryCapacitySummary(
                 eligibleData({ limit: 8, used: 5, remaining: 3 }),
+                6,
+                8,
             ),
-        ).toBe('Miejsca: 5 / 8 (wolnych: 3)');
+        ).toBe('Miejsca: 6 / 8');
+        expect(formatManagerEventTheoryCapacitySummary(null, 0, 8)).toBeNull();
     });
 
     it('detects dirty theory student draft only for theory events', () => {
@@ -211,15 +216,37 @@ describe('manager event participants model', () => {
         ).toEqual(['user-2']);
     });
 
-    it('keeps assigned rows interactive even when they cannot be newly assigned', () => {
+    it('lets a selected student be removed and frees a place for another student', () => {
         expect(
             isManagerEventEligibleRowInteractive(
                 eligibleRow({ isAssignedToEvent: true, canAssign: false }),
+                true,
+                2,
+                2,
             ),
         ).toBe(true);
         expect(
             isManagerEventEligibleRowInteractive(
                 eligibleRow({ isAssignedToEvent: false, canAssign: false }),
+                false,
+                2,
+                2,
+            ),
+        ).toBe(false);
+        expect(
+            isManagerEventEligibleRowInteractive(
+                eligibleRow({ isAssignedToEvent: false, canAssign: false }),
+                false,
+                2,
+                1,
+            ),
+        ).toBe(true);
+        expect(
+            isManagerEventEligibleRowInteractive(
+                eligibleRow({ hasScheduleConflict: true }),
+                false,
+                2,
+                1,
             ),
         ).toBe(false);
     });
