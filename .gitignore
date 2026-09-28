@@ -13,8 +13,10 @@ dist/
 coverage/
 .cache/
 
-# Playwright CLI debug logs
-.playwright-cli/console-*.log
+# Local browser-test artifacts
+.playwright-cli/
+output/playwright/
+test-results/
 
 # Temporary Codex dependency backups
 node_modules.codex-backup*
