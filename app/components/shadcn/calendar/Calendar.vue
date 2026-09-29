@@ -9,10 +9,6 @@ import { createYear, createYearRange, toDate } from 'reka-ui/date';
 import { computed, toRaw } from 'vue';
 import { cn } from '@/lib/utils';
 import {
-    NativeSelect,
-    NativeSelectOption,
-} from '@/components/shadcn/native-select';
-import {
     CalendarCell,
     CalendarCellTrigger,
     CalendarGrid,
@@ -83,75 +79,73 @@ const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{
 }>();
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+function updateDisplayedMonth(value: unknown): void {
+    const month = Number(value);
+
+    if (!Number.isInteger(month) || month < 1 || month > 12) return;
+
+    placeholder.value = placeholder.value.set({ month });
+}
+
+function updateDisplayedYear(value: unknown): void {
+    const year = Number(value);
+
+    if (!Number.isInteger(year)) return;
+
+    placeholder.value = placeholder.value.set({ year });
+}
 </script>
 
 <template>
     <DefineMonthTemplate #default="{ date }">
-        <div class="**:data-[slot=native-select-icon]:right-1">
-            <div class="relative">
-                <div
-                    class="pointer-events-none absolute inset-0 flex h-full items-center pl-2 text-sm"
+        <UiSelect
+            :model-value="String(date.month)"
+            :disabled="props.disabled"
+            @update:model-value="updateDisplayedMonth"
+        >
+            <UiSelectTrigger
+                size="sm"
+                aria-label="Wybierz miesiąc"
+                class="w-28 min-w-0 px-2"
+            >
+                <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent class="min-w-36">
+                <UiSelectItem
+                    v-for="month in createYear({ dateObj: date })"
+                    :key="month.toString()"
+                    :value="String(month.month)"
                 >
-                    {{ formatter.custom(toDate(date), { month: 'short' }) }}
-                </div>
-                <NativeSelect
-                    class="relative h-8 pr-6 pl-2 text-xs text-transparent"
-                    :model-value="date.month"
-                    @change="
-                        (e: Event) => {
-                            placeholder = placeholder.set({
-                                month: Number((e?.target as any)?.value),
-                            });
-                        }
-                    "
-                >
-                    <NativeSelectOption
-                        v-for="month in createYear({ dateObj: date })"
-                        :key="month.toString()"
-                        :value="month.month"
-                        :selected="date.month === month.month"
-                    >
-                        {{
-                            formatter.custom(toDate(month), { month: 'short' })
-                        }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
-        </div>
+                    {{ formatter.custom(toDate(month), { month: 'long' }) }}
+                </UiSelectItem>
+            </UiSelectContent>
+        </UiSelect>
     </DefineMonthTemplate>
 
     <DefineYearTemplate #default="{ date }">
-        <div class="**:data-[slot=native-select-icon]:right-1">
-            <div class="relative">
-                <div
-                    class="pointer-events-none absolute inset-0 flex h-full items-center pl-2 text-sm"
+        <UiSelect
+            :model-value="String(date.year)"
+            :disabled="props.disabled"
+            @update:model-value="updateDisplayedYear"
+        >
+            <UiSelectTrigger
+                size="sm"
+                aria-label="Wybierz rok"
+                class="w-20 min-w-0 px-2"
+            >
+                <UiSelectValue />
+            </UiSelectTrigger>
+            <UiSelectContent class="min-w-24">
+                <UiSelectItem
+                    v-for="year in yearRange"
+                    :key="year.toString()"
+                    :value="String(year.year)"
                 >
-                    {{ formatter.custom(toDate(date), { year: 'numeric' }) }}
-                </div>
-                <NativeSelect
-                    class="relative h-8 pr-6 pl-2 text-xs text-transparent"
-                    :model-value="date.year"
-                    @change="
-                        (e: Event) => {
-                            placeholder = placeholder.set({
-                                year: Number((e?.target as any)?.value),
-                            });
-                        }
-                    "
-                >
-                    <NativeSelectOption
-                        v-for="year in yearRange"
-                        :key="year.toString()"
-                        :value="year.year"
-                        :selected="date.year === year.year"
-                    >
-                        {{
-                            formatter.custom(toDate(year), { year: 'numeric' })
-                        }}
-                    </NativeSelectOption>
-                </NativeSelect>
-            </div>
-        </div>
+                    {{ formatter.custom(toDate(year), { year: 'numeric' }) }}
+                </UiSelectItem>
+            </UiSelectContent>
+        </UiSelect>
     </DefineYearTemplate>
 
     <CalendarRoot
@@ -163,12 +157,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     >
         <CalendarHeader class="pt-0">
             <nav
-                class="absolute inset-x-0 top-0 flex items-center justify-between gap-1"
+                class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1"
             >
-                <CalendarPrevButton>
+                <CalendarPrevButton class="pointer-events-auto">
                     <slot name="calendar-prev-icon" />
                 </CalendarPrevButton>
-                <CalendarNextButton>
+                <CalendarNextButton class="pointer-events-auto">
                     <slot name="calendar-next-icon" />
                 </CalendarNextButton>
             </nav>

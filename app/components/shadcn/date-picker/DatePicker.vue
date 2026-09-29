@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
-import { getLocalTimeZone, today } from '@internationalized/date';
+import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date';
 import {
     Calendar as CalendarIcon,
     ChevronDown,
     RotateCcw,
     X,
 } from 'lucide-vue-next';
-import { computed, shallowRef } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
     dateValueToIsoDateString,
     isoDateStringToCalendarDate,
 } from '~/utils/date/weeklyCalendarDates';
+import {
+    createDatePickerYearList,
+    resolveDatePickerYearRange,
+    type DatePickerNavigationMode,
+    type DatePickerYearRange,
+} from '~/utils/date/datePickerNavigation';
 
 defineOptions({
     name: 'UiDatePicker',
@@ -32,6 +38,8 @@ const props = withDefaults(
         isDateDisabled?: (date: DateValue) => boolean;
         clearable?: boolean;
         showTodayButton?: boolean;
+        navigationMode?: DatePickerNavigationMode;
+        yearRange?: DatePickerYearRange;
         triggerClass?: string;
         open?: boolean;
     }>(),
@@ -47,6 +55,8 @@ const props = withDefaults(
         isDateDisabled: undefined,
         clearable: false,
         showTodayButton: true,
+        navigationMode: 'step',
+        yearRange: undefined,
         triggerClass: undefined,
         open: undefined,
     },
@@ -71,6 +81,9 @@ const selectedDate = computed(() =>
 );
 
 const calendarValue = computed<DateValue | undefined>(() => selectedDate.value);
+const calendarPlaceholder = shallowRef<DateValue>(
+    selectedDate.value ?? today(getLocalTimeZone()),
+);
 
 const displayLabel = computed(() => {
     if (!selectedDate.value) {
@@ -94,6 +107,33 @@ const maxValueCal = computed(() => {
     const t = props.max?.trim();
 
     return t && t.length > 0 ? isoDateStringToCalendarDate(t) : undefined;
+});
+
+const calendarLayout = computed(() =>
+    props.navigationMode === 'month-year' ? 'month-and-year' : undefined,
+);
+
+const calendarYearRange = computed<DateValue[] | undefined>(() => {
+    if (props.navigationMode !== 'month-year') return undefined;
+
+    const currentYear = today(getLocalTimeZone()).year;
+    const range = resolveDatePickerYearRange({
+        currentYear,
+        selectedYear: selectedDate.value?.year,
+        minYear: minValueCal.value?.year,
+        maxYear: maxValueCal.value?.year,
+        configuredRange: props.yearRange,
+    });
+
+    return createDatePickerYearList(range).map(
+        (year) => new CalendarDate(year, 1, 1),
+    );
+});
+
+watch([isOpen, selectedDate], ([open, date]) => {
+    if (open) {
+        calendarPlaceholder.value = date ?? today(getLocalTimeZone());
+    }
 });
 
 function handleDateUpdate(value: DateValue | DateValue[] | undefined): void {
@@ -177,27 +217,9 @@ const isTodayDisabled = computed(() => {
             :collision-padding="12"
             :side-offset="8"
         >
-            <div
-                class="border-border bg-muted/25 flex items-start gap-3 border-b px-4 py-3"
-            >
-                <div
-                    class="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg"
-                    aria-hidden="true"
-                >
-                    <CalendarIcon class="size-4" />
-                </div>
-                <div class="min-w-0">
-                    <p class="text-foreground text-sm font-bold">
-                        Wybierz datę
-                    </p>
-                    <p class="text-muted-foreground mt-0.5 text-xs">
-                        {{ displayLabel || placeholder }}
-                    </p>
-                </div>
-            </div>
-
             <div class="p-3">
                 <UiCalendar
+                    v-model:placeholder="calendarPlaceholder"
                     fixed-weeks
                     :week-starts-on="1"
                     :min-value="minValueCal"
@@ -207,6 +229,8 @@ const isTodayDisabled = computed(() => {
                     :model-value="calendarValue"
                     :locale="locale"
                     :disabled="disabled"
+                    :layout="calendarLayout"
+                    :year-range="calendarYearRange"
                     class="date-picker-calendar"
                     @update:model-value="handleDateUpdate"
                 />

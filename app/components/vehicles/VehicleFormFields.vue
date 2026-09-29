@@ -41,7 +41,7 @@ function normalizeRegistrationNumber(): void {
 <template>
     <div class="grid gap-4 md:grid-cols-2">
         <div class="space-y-2">
-            <UiLabel for="vehicle-name">Nazwa</UiLabel>
+            <UiLabel for="vehicle-name">Nazwa pojazdu</UiLabel>
             <UiInput
                 id="vehicle-name"
                 v-model="nameModel"
@@ -49,7 +49,7 @@ function normalizeRegistrationNumber(): void {
                 name="name"
                 autocomplete="off"
                 maxlength="100"
-                placeholder="np. Hyundai i20"
+                placeholder="np. Hyundai i20 — Auto 1"
                 :aria-invalid="showNameRequired"
                 :aria-describedby="
                     showNameRequired ? 'vehicle-name-error' : undefined
@@ -110,12 +110,13 @@ function normalizeRegistrationNumber(): void {
 
         <div class="space-y-2">
             <UiLabel for="vehicle-inspection">
-                Badanie techniczne ważne do
+                Badanie techniczne ważne do (opcjonalnie)
             </UiLabel>
             <UiDatePicker
                 id="vehicle-inspection"
                 v-model="inspectionDateModel"
                 :disabled="isSaving"
+                navigation-mode="month-year"
                 placeholder="Wybierz datę…"
                 clearable
             />
@@ -123,12 +124,13 @@ function normalizeRegistrationNumber(): void {
 
         <div class="space-y-2">
             <UiLabel for="vehicle-insurance">
-                Ubezpieczenie OC ważne do
+                Ubezpieczenie OC ważne do (opcjonalnie)
             </UiLabel>
             <UiDatePicker
                 id="vehicle-insurance"
                 v-model="insuranceDateModel"
                 :disabled="isSaving"
+                navigation-mode="month-year"
                 placeholder="Wybierz datę…"
                 clearable
             />

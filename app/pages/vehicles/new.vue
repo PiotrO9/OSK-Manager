@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ArrowLeft, Save } from 'lucide-vue-next';
+import { Building2, Save } from 'lucide-vue-next';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
-import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
-import type { VehicleWritePayload } from '~/types/vehicles/vehicle';
+import { useVehicleCreatePage } from '~/composables/vehicles/useVehicleCreatePage';
 
 definePageMeta({
     layout: 'app-shell',
@@ -14,116 +14,147 @@ usePageMeta({
     description: () => 'Dodaj pojazd do szkoły jazdy.',
 });
 
-const route = useRoute();
-const { createVehicle, isCreateLoading } = useVehiclesApi();
+const {
+    apiError,
+    canSubmit,
+    clearRegistrationNumberError,
+    currentSchool,
+    formId,
+    handleVehicleSubmit,
+    isCreateLoading,
+    isCreateNavigationAllowed,
+    isSchoolContextLoading,
+    loadSchoolContext,
+    registrationNumberError,
+    schoolContextError,
+    vehiclesListRoute,
+} = useVehicleCreatePage();
 
-const FORM_ID = 'vehicle-create-form';
+const isFormDirty = shallowRef(false);
+const hasUnsavedChanges = computed(
+    () => !isCreateNavigationAllowed.value && isFormDirty.value,
+);
 
-const apiError = ref<string | null>(null);
+function confirmLeave(): boolean {
+    return (
+        !hasUnsavedChanges.value ||
+        !import.meta.client ||
+        window.confirm(
+            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić formularz?',
+        )
+    );
+}
 
-const schoolId = computed(() => {
-    const raw = route.query.schoolId;
-    const s = Array.isArray(raw) ? raw[0] : raw;
+onBeforeRouteLeave(confirmLeave);
+onBeforeRouteUpdate(confirmLeave);
 
-    if (typeof s !== 'string') return null;
-
-    const t = s.trim();
-
-    return t.length > 0 ? t : null;
-});
-
-const vehiclesListRoute = computed(() => ({
-    path: '/vehicles',
-    query: schoolId.value !== null ? { schoolId: schoolId.value } : undefined,
-}));
-
-async function handleVehicleSubmit(payload: VehicleWritePayload) {
-    const sid = schoolId.value;
-
-    if (!sid) return;
-
-    apiError.value = null;
-
-    try {
-        await createVehicle({
-            schoolId: sid,
-            ...payload,
-        });
-
-        await navigateTo({
-            path: '/vehicles',
-            query: { schoolId: sid },
-        });
-    } catch (err) {
-        apiError.value =
-            err instanceof Error ? err.message : 'Nie udało się dodać pojazdu.';
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+    if (hasUnsavedChanges.value) {
+        event.preventDefault();
+        event.returnValue = '';
     }
 }
+
+onMounted(() => window.addEventListener('beforeunload', handleBeforeUnload));
+onBeforeUnmount(() =>
+    window.removeEventListener('beforeunload', handleBeforeUnload),
+);
 </script>
 
 <template>
     <div class="space-y-6">
         <PageHeader
             title="Dodaj pojazd"
-            description="Wprowadz dane nowego pojazdu szkoleniowego."
+            description="Uzupełnij dane pojazdu i przypisz go do wybranej szkoły jazdy."
             eyebrow="Nowy pojazd"
         >
             <template #actions>
-                <UiButton as-child variant="outline">
-                    <NuxtLink :to="vehiclesListRoute">
-                        <ArrowLeft class="size-4" aria-hidden="true" />
-                        Anuluj
-                    </NuxtLink>
-                </UiButton>
                 <UiButton
                     type="submit"
-                    :form="FORM_ID"
-                    :disabled="isCreateLoading || schoolId === null"
+                    :form="formId"
+                    :disabled="!canSubmit"
+                    :aria-busy="isCreateLoading"
                 >
                     <Save class="size-4" aria-hidden="true" />
-                    {{ isCreateLoading ? 'Zapisywanie...' : 'Zapisz pojazd' }}
+                    {{ isCreateLoading ? 'Dodawanie…' : 'Dodaj pojazd' }}
                 </UiButton>
             </template>
         </PageHeader>
 
-        <ErrorState
-            v-if="schoolId === null"
-            title="Brak kontekstu OSK"
-            description="Otwórz te stronę z listy pojazdów, aby zachować identyfikator szkoły jazdy."
-        >
-            <template #action>
-                <UiButton as-child variant="outline" class="bg-background">
-                    <NuxtLink to="/vehicles">Wróć do listy</NuxtLink>
-                </UiButton>
-            </template>
-        </ErrorState>
+        <LoadingState
+            v-if="isSchoolContextLoading"
+            title="Wczytywanie szkoły"
+            description="Wczytujemy domyślną szkołę, do której zostanie przypisany pojazd."
+        />
 
-        <FormSection
-            v-else
-            title="Dodaj pojazd"
-            description="Formularz jest podzielony na logiczne pola bez zmiany walidacji i flow zapisu."
-        >
+        <ErrorState
+            v-else-if="schoolContextError"
+            title="Nie udało się wczytać szkoły"
+            :description="schoolContextError"
+            @retry="loadSchoolContext"
+        />
+
+        <FormSection v-else-if="currentSchool">
+            <div
+                class="border-border mb-5 flex min-w-0 items-start gap-3 border-b pb-4"
+                role="status"
+            >
+                <span
+                    class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
+                    aria-hidden="true"
+                >
+                    <Building2 class="size-4" />
+                </span>
+                <div class="min-w-0">
+                    <p class="text-muted-foreground text-xs">Szkoła jazdy</p>
+                    <p
+                        class="text-foreground text-sm font-semibold wrap-anywhere"
+                    >
+                        {{ currentSchool.name }}
+                    </p>
+                    <p
+                        v-if="currentSchool.city || currentSchool.address"
+                        class="text-muted-foreground mt-0.5 text-xs wrap-anywhere"
+                    >
+                        {{
+                            [currentSchool.address, currentSchool.city]
+                                .filter(Boolean)
+                                .join(', ')
+                        }}
+                    </p>
+                </div>
+            </div>
+
             <VehicleForm
-                :form-id="FORM_ID"
+                :key="currentSchool.id"
+                :form-id="formId"
                 mode="create"
                 :initial-vehicle="null"
                 :is-saving="isCreateLoading"
                 :api-error="apiError"
+                :registration-number-error="registrationNumberError"
                 hide-default-actions
                 @submit="handleVehicleSubmit"
+                @dirty-change="isFormDirty = $event"
+                @registration-number-change="clearRegistrationNumberError"
             />
 
             <template #footer>
-                <ActionGroup label="Akcje formularza" align="end">
+                <ActionGroup
+                    label="Akcje formularza"
+                    align="end"
+                    class="max-sm:[&>*]:w-full"
+                >
                     <UiButton as-child variant="outline">
                         <NuxtLink :to="vehiclesListRoute">Anuluj</NuxtLink>
                     </UiButton>
                     <UiButton
                         type="submit"
-                        :form="FORM_ID"
-                        :disabled="isCreateLoading"
+                        :form="formId"
+                        :disabled="!canSubmit"
+                        :aria-busy="isCreateLoading"
                     >
-                        {{ isCreateLoading ? 'Zapisywanie...' : 'Zapisz' }}
+                        {{ isCreateLoading ? 'Dodawanie…' : 'Dodaj pojazd' }}
                     </UiButton>
                 </ActionGroup>
             </template>

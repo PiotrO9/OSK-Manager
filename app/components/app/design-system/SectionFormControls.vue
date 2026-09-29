@@ -26,6 +26,7 @@ const password = shallowRef('Tymczasowe-2026');
 const hoursLimit = shallowRef(30);
 const birthDate = shallowRef('2001-04-18');
 const examDate = shallowRef('2026-09-18');
+const longTermDate = shallowRef('2031-11-30');
 const optionalExamDate = shallowRef('');
 const boundedDate = shallowRef('2026-09-12');
 const lessonDateRange = shallowRef({
@@ -49,6 +50,7 @@ const demoWeekOpen = shallowRef(false);
 const notificationChannel = shallowRef('sms');
 const sms = shallowRef(true);
 const urgent = shallowRef(false);
+const LONG_TERM_DATE_YEAR_RANGE = Object.freeze({ start: 2020, end: 2040 });
 
 const demoWeekSelected = computed(() =>
     weekCalendarDatesFromMonday(demoWeekStart.value),
@@ -255,6 +257,21 @@ function handleDemoWeekUpdate(
                             />
                             <p class="text-muted-foreground text-xs">
                                 Podstawowy wybór pojedynczej daty.
+                            </p>
+                        </div>
+                        <div class="space-y-1.5">
+                            <UiLabel for="ds-picker-date-long-term">
+                                Data z szybką nawigacją
+                            </UiLabel>
+                            <UiDatePicker
+                                id="ds-picker-date-long-term"
+                                v-model="longTermDate"
+                                navigation-mode="month-year"
+                                :year-range="LONG_TERM_DATE_YEAR_RANGE"
+                                trigger-class="max-w-none"
+                            />
+                            <p class="text-muted-foreground text-xs">
+                                Listy miesiąca i roku dla odległych terminów.
                             </p>
                         </div>
                         <div class="space-y-1.5">

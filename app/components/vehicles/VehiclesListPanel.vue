@@ -7,7 +7,7 @@ import type { Vehicle } from '~/types/vehicles/vehicle';
 import { displayVehicleText } from '~/utils/vehicles/display';
 import type { VehicleStatusFilter } from '~/utils/vehicles/filters';
 
-const props = defineProps<{
+defineProps<{
     isManager: boolean;
     activePanel: VehiclesListPanelId;
     resolvedSchoolId: string | null;
@@ -44,10 +44,7 @@ const emit = defineEmits<{
     statusChange: [vehicle: Vehicle, payload: VehicleStatusUpdateBody];
 }>();
 
-const createVehicleTarget = computed(() => ({
-    path: '/vehicles/new',
-    query: props.resolvedSchoolId ? { schoolId: props.resolvedSchoolId } : {},
-}));
+const createVehicleTarget = '/vehicles/new';
 
 const displayText = displayVehicleText;
 </script>

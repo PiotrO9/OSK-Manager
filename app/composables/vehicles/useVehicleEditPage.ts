@@ -2,7 +2,10 @@ import type {
     VehicleDetail,
     VehicleWritePayload,
 } from '~/types/vehicles/vehicle';
-import { validateVehiclePhotoFile } from '~/utils/vehicles/vehicleForm';
+import {
+    isVehicleRegistrationConflict,
+    validateVehiclePhotoFile,
+} from '~/utils/vehicles/vehicleForm';
 
 export const VEHICLE_EDIT_FORM_ID = 'vehicle-edit-form';
 
@@ -16,16 +19,6 @@ function formatPhotoFileSize(size: number): string {
     }
 
     return `${formatter.format(Math.max(1, size / 1024))} kB`;
-}
-
-function isRegistrationConflict(message: string): boolean {
-    const normalized = message.toLocaleLowerCase('en-US');
-
-    return (
-        normalized.includes('registrationnumber') &&
-        (normalized.includes('already exists') ||
-            normalized.includes('conflict'))
-    );
 }
 
 export function useVehicleEditPage() {
@@ -258,7 +251,7 @@ export function useVehicleEditPage() {
                     ? err.message
                     : 'Nie udało się zapisać pojazdu.';
 
-            if (isRegistrationConflict(message)) {
+            if (isVehicleRegistrationConflict(message)) {
                 registrationNumberError.value =
                     'Pojazd z tym numerem rejestracyjnym już istnieje w tej szkole.';
 

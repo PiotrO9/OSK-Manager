@@ -130,6 +130,22 @@ export function normalizeVehicleRegistrationNumber(value: string): string {
     return value.trim().replace(/\s+/g, ' ').toLocaleUpperCase('pl-PL');
 }
 
+export function isVehicleRegistrationConflict(message: string): boolean {
+    const normalized = message.toLocaleLowerCase('pl-PL');
+    const mentionsRegistration =
+        normalized.includes('registrationnumber') ||
+        normalized.includes('registration number') ||
+        normalized.includes('numer rejestracyjny') ||
+        normalized.includes('rejestrac');
+    const mentionsConflict =
+        normalized.includes('already exists') ||
+        normalized.includes('conflict') ||
+        normalized.includes('już istnieje') ||
+        normalized.includes('juz istnieje');
+
+    return mentionsRegistration && mentionsConflict;
+}
+
 export function validateVehiclePhotoFile(
     file: VehiclePhotoFileLike,
 ): string | null {

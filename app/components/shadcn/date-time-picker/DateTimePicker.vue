@@ -4,6 +4,10 @@ import { computed, nextTick, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
+import type {
+    DatePickerNavigationMode,
+    DatePickerYearRange,
+} from '~/utils/date/datePickerNavigation';
 import {
     buildDatetimeLocal,
     dateValueToIsoDateString,
@@ -30,6 +34,8 @@ const props = withDefaults(
         minuteOptions?: number[];
         clearable?: boolean;
         showTodayButton?: boolean;
+        navigationMode?: DatePickerNavigationMode;
+        yearRange?: DatePickerYearRange;
         triggerClass?: string;
     }>(),
     {
@@ -45,6 +51,8 @@ const props = withDefaults(
         minuteOptions: undefined,
         clearable: false,
         showTodayButton: true,
+        navigationMode: 'step',
+        yearRange: undefined,
         triggerClass: undefined,
     },
 );
@@ -164,6 +172,8 @@ watch(
             :max="maxDate"
             :clearable="clearable"
             :show-today-button="showTodayButton"
+            :navigation-mode="navigationMode"
+            :year-range="yearRange"
             trigger-class="h-10 max-w-none"
             @update:model-value="handleDateUpdate"
         />

@@ -3,6 +3,7 @@ import type { Vehicle } from '~/types/vehicles/vehicle';
 import {
     buildVehicleWritePayload,
     getEmptyVehicleFormDraft,
+    isVehicleRegistrationConflict,
     numericFieldInputToTrimmedString,
     parseOptionalVehicleMileageKm,
     parseOptionalVehicleModelYear,
@@ -114,6 +115,22 @@ describe('vehicle form utilities', () => {
     it('normalizes a registration number without changing its grouping', () => {
         expect(normalizeVehicleRegistrationNumber('  dw  00001 ')).toBe(
             'DW 00001',
+        );
+    });
+
+    it('recognizes registration number conflicts returned by the API', () => {
+        expect(
+            isVehicleRegistrationConflict(
+                'Vehicle registrationNumber already exists (conflict)',
+            ),
+        ).toBe(true);
+        expect(
+            isVehicleRegistrationConflict(
+                'Pojazd z tym numerem rejestracyjnym już istnieje.',
+            ),
+        ).toBe(true);
+        expect(isVehicleRegistrationConflict('Backend unavailable')).toBe(
+            false,
         );
     });
 
