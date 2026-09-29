@@ -22,13 +22,14 @@ export function useManagerOskFormDialogState({
     isSetDefaultLoading,
     isLocalCreateSaving,
 }: UseManagerOskFormDialogStateOptions) {
-    const formDialogOpen = ref(false);
-    const formDialogMode = ref<'create' | 'edit'>('create');
-    const formName = ref('');
-    const formCity = ref('');
-    const formAddress = ref('');
-    const formAsDefault = ref(false);
-    const editTarget = ref<DrivingSchool | null>(null);
+    const formDialogOpen = shallowRef(false);
+    const formDialogMode = shallowRef<'create' | 'edit'>('create');
+    const formName = shallowRef('');
+    const formCity = shallowRef('');
+    const formAddress = shallowRef('');
+    const formAsDefault = shallowRef(false);
+    const editTarget = shallowRef<DrivingSchool | null>(null);
+    const initialFormSnapshot = shallowRef('');
 
     const isEditSaving = computed(
         () => isUpdateLoading.value || isSetDefaultLoading.value,
@@ -36,8 +37,23 @@ export function useManagerOskFormDialogState({
     const isFormSaving = computed(
         () => isLocalCreateSaving.value || isEditSaving.value,
     );
-    const isDefaultSwitchLocked = computed(() =>
-        isOskDefaultSwitchLocked(schools.value, editTarget.value),
+    const isDefaultSwitchLocked = computed(
+        () =>
+            (formDialogMode.value === 'create' && schools.value.length === 0) ||
+            isOskDefaultSwitchLocked(schools.value, editTarget.value),
+    );
+    const formSnapshot = computed(() =>
+        JSON.stringify({
+            name: formName.value,
+            city: formCity.value,
+            address: formAddress.value,
+            asDefault: formAsDefault.value,
+        }),
+    );
+    const isFormDirty = computed(
+        () =>
+            formDialogOpen.value &&
+            formSnapshot.value !== initialFormSnapshot.value,
     );
 
     function applyFormValues(values: ManagerOskFormValues) {
@@ -45,6 +61,10 @@ export function useManagerOskFormDialogState({
         formCity.value = values.city;
         formAddress.value = values.address;
         formAsDefault.value = values.asDefault;
+    }
+
+    function markFormClean() {
+        initialFormSnapshot.value = formSnapshot.value;
     }
 
     function resetFormFields() {
@@ -63,6 +83,7 @@ export function useManagerOskFormDialogState({
         formDialogMode.value = 'edit';
         editTarget.value = school;
         applyFormValues(buildManagerOskEditFormValues(school));
+        markFormClean();
         formDialogOpen.value = true;
     }
 
@@ -78,15 +99,34 @@ export function useManagerOskFormDialogState({
         editTarget.value = null;
         formDialogMode.value = 'create';
         resetFormFields();
+        formAsDefault.value = schools.value.length === 0;
+        markFormClean();
         formDialogOpen.value = true;
     }
 
-    function handleFormDialogOpenChange(open: boolean) {
+    function handleFormDialogOpenChange(open: boolean): boolean {
+        if (!open && isFormSaving.value) {
+            return false;
+        }
+
+        if (
+            !open &&
+            isFormDirty.value &&
+            import.meta.client &&
+            !window.confirm(
+                'Masz niezapisane zmiany. Czy na pewno chcesz zamknąć formularz?',
+            )
+        ) {
+            return false;
+        }
+
         formDialogOpen.value = open;
 
         if (!open) {
             editTarget.value = null;
         }
+
+        return true;
     }
 
     watch(
@@ -108,7 +148,9 @@ export function useManagerOskFormDialogState({
         editTarget,
         isFormSaving,
         isDefaultSwitchLocked,
+        isFormDirty,
         resetFormFields,
+        markFormClean,
         openCreateFormDialog,
         openEditFormDialog,
         handleFormDialogOpenChange,

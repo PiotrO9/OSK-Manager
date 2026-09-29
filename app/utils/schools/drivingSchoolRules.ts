@@ -14,11 +14,3 @@ export function isOskDefaultSwitchLocked(
 
     return editingSchool.isDefault === true;
 }
-
-export function getOskClearDefaultBlockedMessage(schoolCount: number): string {
-    if (schoolCount === 1) {
-        return 'Przy jednej szkole jazdy na koncie nie można wyłączyć statusu domyślnej.';
-    }
-
-    return 'Aby wyłączyć status domyślnej dla tej szkoły, najpierw ustaw inną szkołę jako domyślną i zapisz zmiany.';
-}

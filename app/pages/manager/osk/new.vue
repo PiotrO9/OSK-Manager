@@ -8,15 +8,17 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Dodawanie OSK',
-    description: () =>
-        'Ten adres przekierowuje do listy szkół z modalem tworzenia.',
+    description: () => 'Przejście do formularza nowej szkoły jazdy.',
 });
 
 const redirectDelayMs = 1400;
 let redirectTimer: number | undefined;
 
 function goToOskList() {
-    void navigateTo('/manager/osk', { replace: true });
+    void navigateTo(
+        { path: '/manager/osk', query: { action: 'create' } },
+        { replace: true },
+    );
 }
 
 onMounted(() => {
@@ -34,7 +36,7 @@ onBeforeUnmount(() => {
     <div class="flex min-h-[calc(100svh-8rem)] flex-col gap-12">
         <PageHeader
             title="Dodawanie OSK"
-            description="Ten adres przekierowuje do listy szkół z modalem tworzenia."
+            description="Przejście do formularza nowej szkoły jazdy."
         />
 
         <section
@@ -61,8 +63,7 @@ onBeforeUnmount(() => {
                         Dodawanie OSK
                     </h1>
                     <p class="text-muted-foreground text-sm leading-relaxed">
-                        Ten adres przekierowuje do listy szkół z modalem
-                        tworzenia.
+                        Za chwilę otworzymy formularz nowej szkoły jazdy.
                     </p>
                 </div>
 
@@ -77,7 +78,7 @@ onBeforeUnmount(() => {
                         </NuxtLink>
                     </UiButton>
                     <UiButton type="button" @click="goToOskList">
-                        Otwórz listę
+                        Otwórz formularz
                     </UiButton>
                 </ActionGroup>
             </div>

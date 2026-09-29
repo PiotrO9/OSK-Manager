@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Plus } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 
 definePageMeta({
     layout: 'app-shell',
@@ -13,26 +13,27 @@ usePageMeta({
 
 const {
     schools,
+    defaultSchool,
     loadError,
-    statsError,
     isListLoading,
-    isStatsLoading,
-    instructorCount,
-    studentCount,
-    defaultSchoolCount,
+    loadSchools,
     deletingId,
+    settingDefaultId,
     confirmTarget,
     isConfirmOpen,
     handleRequestDelete,
     handleCancelDelete,
     handleConfirmOpenChange,
     handleConfirmDelete,
+    handleSetDefault,
     formDialogOpen,
     formDialogMode,
     formName,
     formCity,
     formAddress,
     formAsDefault,
+    formErrors,
+    formSubmitError,
     isFormSaving,
     isDefaultSwitchLocked,
     openCreateFormDialog,
@@ -40,67 +41,21 @@ const {
     handleFormDialogOpenChange,
     submitFormDialog,
 } = useManagerOskPage();
-
-const summaryItems = computed(() => [
-    {
-        label: 'Szkoły',
-        value: schools.value.length,
-    },
-    {
-        label: 'Domyślna',
-        value: defaultSchoolCount.value,
-    },
-    {
-        label: 'Instruktorzy',
-        value:
-            isStatsLoading.value && instructorCount.value === null
-                ? '...'
-                : (instructorCount.value ?? '—'),
-    },
-    {
-        label: 'Kursanci',
-        value:
-            isStatsLoading.value && studentCount.value === null
-                ? '...'
-                : (studentCount.value ?? '—'),
-    },
-]);
-
-const defaultSchoolName = computed(
-    () =>
-        schools.value.find((school) => school.isDefault === true)?.name ??
-        'Brak domyślnej',
-);
-
-const resultLabel = computed(() => {
-    const count = schools.value.length;
-
-    if (count === 1) return '1 wynik';
-
-    if ([2, 3, 4].includes(count)) return `${count} wyniki`;
-
-    return `${count} wyników`;
-});
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="min-w-0 space-y-5">
         <PageHeader
             title="Szkoły jazdy"
-            description="Zarządzaj szkołami przypisanymi do konta managera."
+            description="Zarządzaj danymi szkół i wybierz domyślny kontekst pracy."
         >
             <template #actions>
                 <UiButton
-                    variant="outline"
-                    class="bg-card shadow-xs"
                     type="button"
-                >
-                    <CalendarDays class="size-4" aria-hidden="true" />
-                    22-28 czerwca
-                </UiButton>
-                <UiButton
-                    type="button"
-                    :disabled="deletingId !== null || isFormSaving"
+                    class="h-11 w-full px-4 sm:h-10 sm:w-auto"
+                    :disabled="
+                        isListLoading || deletingId !== null || isFormSaving
+                    "
                     @click="openCreateFormDialog"
                 >
                     <Plus class="size-4" aria-hidden="true" />
@@ -109,41 +64,27 @@ const resultLabel = computed(() => {
             </template>
         </PageHeader>
 
-        <p v-if="loadError" class="text-destructive text-sm" role="alert">
-            {{ loadError }}
-        </p>
-
-        <template v-else>
-            <SummaryStrip :items="summaryItems" />
-
-            <p
-                v-if="statsError"
-                class="text-muted-foreground text-xs"
-                role="status"
-            >
-                {{ statsError }}
-            </p>
-
-            <FilterBar :result-label="resultLabel" :is-loading="isListLoading">
-                <StatusBadge :label="defaultSchoolName" tone="info" subtle />
-                <StatusBadge label="Typ: wszystkie" subtle />
-                <StatusBadge label="Status: aktywne" subtle />
-            </FilterBar>
-
-            <ManagerOskListGrid
-                :schools="schools"
-                :is-list-loading="isListLoading"
-                :deleting-id="deletingId"
-                :is-form-saving="isFormSaving"
-                @request-add="openCreateFormDialog"
-                @request-edit="openEditFormDialog"
-                @request-delete="handleRequestDelete"
-            />
-        </template>
+        <ManagerOskListPanel
+            :schools="schools"
+            :default-school="defaultSchool"
+            :load-error="loadError"
+            :is-loading="isListLoading"
+            :deleting-id="deletingId"
+            :setting-default-id="settingDefaultId"
+            :is-form-saving="isFormSaving"
+            @retry="loadSchools"
+            @request-add="openCreateFormDialog"
+            @request-edit="openEditFormDialog"
+            @request-delete="handleRequestDelete"
+            @set-default="handleSetDefault"
+        />
 
         <ManagerOskDeleteDialog
             :open="isConfirmOpen"
             :school-name="confirmTarget?.name ?? ''"
+            :is-deleting="deletingId !== null"
+            :is-default="confirmTarget?.isDefault === true"
+            :is-only-school="schools.length === 1"
             @update:open="handleConfirmOpenChange"
             @cancel="handleCancelDelete"
             @confirm="handleConfirmDelete"
@@ -158,6 +99,8 @@ const resultLabel = computed(() => {
             :as-default="formAsDefault"
             :is-saving="isFormSaving"
             :default-switch-locked="isDefaultSwitchLocked"
+            :name-error="formErrors.name"
+            :submit-error="formSubmitError"
             @update:open="handleFormDialogOpenChange"
             @update:name="formName = $event"
             @update:city="formCity = $event"

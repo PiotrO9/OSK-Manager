@@ -2,12 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
     buildManagerOskEditFormValues,
     buildManagerOskCreateBody,
-    buildManagerOskStatsSummary,
     buildManagerOskUpdateBody,
-    countManagerOskDefaultSchools,
     getManagerOskBlankFormValues,
     getManagerOskErrorMessage,
-    removeManagerOskSchoolById,
 } from './managerOskPage';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
@@ -20,30 +17,6 @@ const school = (overrides: Partial<DrivingSchool> = {}): DrivingSchool => ({
 });
 
 describe('manager OSK page model', () => {
-    it('counts schools marked as default', () => {
-        expect(
-            countManagerOskDefaultSchools([
-                school({ id: 'school-1', isDefault: true }),
-                school({ id: 'school-2', isDefault: false }),
-                school({ id: 'school-3', isDefault: true }),
-            ]),
-        ).toBe(2);
-    });
-
-    it('removes a school by id without mutating the source list', () => {
-        const source = [
-            school({ id: 'school-1' }),
-            school({ id: 'school-2' }),
-            school({ id: 'school-3' }),
-        ];
-
-        expect(removeManagerOskSchoolById(source, 'school-2')).toEqual([
-            source[0],
-            source[2],
-        ]);
-        expect(source).toHaveLength(3);
-    });
-
     it('normalizes form values for blank and edit modes', () => {
         expect(getManagerOskBlankFormValues()).toEqual({
             name: '',
@@ -77,26 +50,6 @@ describe('manager OSK page model', () => {
             ),
         ).toBe('Backend unavailable');
         expect(getManagerOskErrorMessage('boom', 'Fallback')).toBe('Fallback');
-    });
-
-    it('sums fulfilled stats and reports rejected partial results', () => {
-        const summary = buildManagerOskStatsSummary({
-            instructorResults: [
-                { status: 'fulfilled', value: 2 },
-                { status: 'rejected', reason: new Error('x') },
-                { status: 'fulfilled', value: 3 },
-            ],
-            studentResults: [
-                { status: 'fulfilled', value: 10 },
-                { status: 'fulfilled', value: 5 },
-            ],
-        });
-
-        expect(summary).toEqual({
-            instructorCount: 5,
-            studentCount: 15,
-            hasRejected: true,
-        });
     });
 
     it('builds create body without empty optional fields', () => {

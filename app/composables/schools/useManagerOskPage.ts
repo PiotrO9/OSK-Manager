@@ -1,16 +1,18 @@
+import { onBeforeRouteLeave } from 'vue-router';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-import { getOskClearDefaultBlockedMessage } from '~/utils/schools/drivingSchoolRules';
-import { toastFormZodError } from '~/utils/forms/formToast';
 import { oskFormSchema } from '~/utils/forms/oskFormSchema';
 import {
     buildManagerOskCreateBody,
     buildManagerOskUpdateBody,
-    countManagerOskDefaultSchools,
     getManagerOskErrorMessage,
-    removeManagerOskSchoolById,
 } from '~/utils/schools/managerOskPage';
 
+interface ManagerOskFormErrors {
+    name: string;
+}
+
 export function useManagerOskPage() {
+    const route = useRoute();
     const toast = useAppToast();
 
     const {
@@ -25,24 +27,28 @@ export function useManagerOskPage() {
     } = useDrivingSchoolsApi();
 
     const schools = ref<DrivingSchool[]>([]);
-    const loadError = ref<string | null>(null);
-    const deletingId = ref<string | null>(null);
-    const confirmTarget = ref<DrivingSchool | null>(null);
-
-    const isLocalCreateSaving = ref(false);
-    const {
-        statsError,
-        instructorCount,
-        studentCount,
-        isStatsLoading,
-        loadSchoolStats,
-        clearSchoolStats,
-    } = useManagerOskStats();
+    const loadError = shallowRef<string | null>(null);
+    const deletingId = shallowRef<string | null>(null);
+    const settingDefaultId = shallowRef<string | null>(null);
+    const confirmTarget = shallowRef<DrivingSchool | null>(null);
+    const isLocalCreateSaving = shallowRef(false);
+    const formSubmitError = shallowRef('');
+    const hasLoadedSchools = shallowRef(false);
+    const formErrors = reactive<ManagerOskFormErrors>({ name: '' });
+    let loadRequestId = 0;
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
-    const defaultSchoolCount = computed(() =>
-        countManagerOskDefaultSchools(schools.value),
+    const defaultSchool = computed(
+        () => schools.value.find((school) => school.isDefault === true) ?? null,
     );
+    const isMutating = computed(
+        () =>
+            deletingId.value !== null ||
+            settingDefaultId.value !== null ||
+            isLocalCreateSaving.value ||
+            isUpdateLoading.value,
+    );
+
     const {
         formDialogOpen,
         formDialogMode,
@@ -53,10 +59,12 @@ export function useManagerOskPage() {
         editTarget,
         isFormSaving,
         isDefaultSwitchLocked,
+        isFormDirty,
         resetFormFields,
-        openCreateFormDialog,
-        openEditFormDialog,
-        handleFormDialogOpenChange,
+        markFormClean,
+        openCreateFormDialog: openCreateFormDialogState,
+        openEditFormDialog: openEditFormDialogState,
+        handleFormDialogOpenChange: handleFormDialogStateOpenChange,
     } = useManagerOskFormDialogState({
         schools,
         deletingId,
@@ -65,14 +73,55 @@ export function useManagerOskPage() {
         isLocalCreateSaving,
     });
 
+    function clearFormFeedback() {
+        formErrors.name = '';
+        formSubmitError.value = '';
+    }
+
+    function openCreateFormDialog() {
+        clearFormFeedback();
+        openCreateFormDialogState();
+    }
+
+    function openEditFormDialog(school: DrivingSchool) {
+        clearFormFeedback();
+        openEditFormDialogState(school);
+    }
+
+    async function clearCreateActionQuery() {
+        if (route.query.action !== 'create') return;
+
+        const query = { ...route.query };
+
+        delete query.action;
+
+        await navigateTo({ path: route.path, query }, { replace: true });
+    }
+
+    function handleFormDialogOpenChange(open: boolean) {
+        const changed = handleFormDialogStateOpenChange(open);
+
+        if (changed && !open) {
+            clearFormFeedback();
+            void clearCreateActionQuery();
+        }
+    }
+
     async function loadSchools() {
+        const requestId = ++loadRequestId;
+
         loadError.value = null;
 
         try {
-            schools.value = await fetchList();
-            await loadSchoolStats(schools.value);
+            const nextSchools = await fetchList();
+
+            if (requestId === loadRequestId) {
+                schools.value = nextSchools;
+                hasLoadedSchools.value = true;
+            }
         } catch (err) {
-            clearSchoolStats();
+            if (requestId !== loadRequestId) return;
+
             loadError.value = getManagerOskErrorMessage(
                 err,
                 'Nie udało się wczytać listy OSK.',
@@ -81,48 +130,46 @@ export function useManagerOskPage() {
     }
 
     function handleRequestDelete(school: DrivingSchool) {
-        if (deletingId.value !== null) return;
+        if (isMutating.value) return;
 
         confirmTarget.value = school;
     }
 
     function handleCancelDelete() {
+        if (deletingId.value !== null) return;
+
         confirmTarget.value = null;
     }
 
     function handleConfirmOpenChange(open: boolean) {
         if (!open) {
-            confirmTarget.value = null;
+            handleCancelDelete();
         }
     }
 
     async function handleConfirmDelete() {
         const school = confirmTarget.value;
 
-        if (!school) return;
+        if (!school || deletingId.value !== null) return;
 
-        confirmTarget.value = null;
         deletingId.value = school.id;
 
         try {
             await remove(school.id);
-
-            schools.value = removeManagerOskSchoolById(
-                schools.value,
-                school.id,
-            );
+            confirmTarget.value = null;
+            await loadSchools();
 
             toast.addToast({
-                title: 'Usunięto',
-                description: `Szkoła „${school.name}" została usunięta.`,
+                title: 'Usunięto szkołę',
+                description: `Szkoła „${school.name}” została usunięta z listy.`,
                 variant: 'success',
             });
         } catch (err) {
             toast.addToast({
-                title: 'Błąd',
+                title: 'Nie udało się usunąć szkoły',
                 description: getManagerOskErrorMessage(
                     err,
-                    'Nie udało się usunąć OSK.',
+                    'Spróbuj ponownie za chwilę.',
                 ),
                 variant: 'error',
             });
@@ -131,8 +178,39 @@ export function useManagerOskPage() {
         }
     }
 
-    async function submitFormDialog() {
-        if (isFormSaving.value) return;
+    async function handleSetDefault(school: DrivingSchool) {
+        if (school.isDefault === true || isMutating.value) return;
+
+        settingDefaultId.value = school.id;
+
+        try {
+            await setAsDefault(school.id);
+            schools.value = schools.value.map((item) => ({
+                ...item,
+                isDefault: item.id === school.id,
+            }));
+
+            toast.addToast({
+                title: 'Zmieniono domyślną szkołę',
+                description: `„${school.name}” będzie domyślnym kontekstem w aplikacji.`,
+                variant: 'success',
+            });
+        } catch (err) {
+            toast.addToast({
+                title: 'Nie udało się zmienić domyślnej szkoły',
+                description: getManagerOskErrorMessage(
+                    err,
+                    'Spróbuj ponownie za chwilę.',
+                ),
+                variant: 'error',
+            });
+        } finally {
+            settingDefaultId.value = null;
+        }
+    }
+
+    function validateForm() {
+        clearFormFeedback();
 
         const parsed = oskFormSchema.safeParse({
             name: formName.value,
@@ -141,117 +219,170 @@ export function useManagerOskPage() {
         });
 
         if (!parsed.success) {
-            toastFormZodError(toast.addToast, parsed.error);
-
-            return;
+            formErrors.name =
+                parsed.error.flatten().fieldErrors.name?.[0] ??
+                'Podaj nazwę szkoły jazdy.';
         }
 
-        if (formDialogMode.value === 'edit') {
-            const school = editTarget.value;
+        return parsed;
+    }
 
-            if (!school) return;
+    async function submitEditForm() {
+        const school = editTarget.value;
 
-            if (!formAsDefault.value && school.isDefault === true) {
-                toast.addToast({
-                    title: 'Domyślna OSK',
-                    description: getOskClearDefaultBlockedMessage(
-                        schools.value.length,
-                    ),
-                    variant: 'error',
-                });
+        if (!school) return;
 
-                return;
-            }
+        const parsed = validateForm();
 
-            try {
-                await update(school.id, {
-                    ...buildManagerOskUpdateBody(parsed.data),
-                });
+        if (!parsed.success) return;
 
-                if (formAsDefault.value) {
-                    await setAsDefault(school.id);
-                }
+        try {
+            await update(school.id, buildManagerOskUpdateBody(parsed.data));
+            await loadSchools();
+            markFormClean();
+            handleFormDialogOpenChange(false);
 
-                await loadSchools();
-
-                toast.addToast({
-                    title: 'Zapisano',
-                    description: `Dane szkoły „${parsed.data.name}" zostały zaktualizowane.`,
-                    variant: 'success',
-                });
-
-                formDialogOpen.value = false;
-                editTarget.value = null;
-            } catch (err) {
-                toast.addToast({
-                    title: 'Błąd',
-                    description: getManagerOskErrorMessage(
-                        err,
-                        'Nie udało się zapisać zmian.',
-                    ),
-                    variant: 'error',
-                });
-            }
-
-            return;
+            toast.addToast({
+                title: 'Zapisano zmiany',
+                description: `Dane szkoły „${parsed.data.name}” zostały zaktualizowane.`,
+                variant: 'success',
+            });
+        } catch (err) {
+            formSubmitError.value = getManagerOskErrorMessage(
+                err,
+                'Nie udało się zapisać zmian. Spróbuj ponownie.',
+            );
         }
+    }
+
+    async function submitCreateForm() {
+        const parsed = validateForm();
+
+        if (!parsed.success) return;
 
         isLocalCreateSaving.value = true;
 
         try {
-            await create(buildManagerOskCreateBody(parsed.data));
+            const createdSchool = await create(
+                buildManagerOskCreateBody(parsed.data),
+            );
+            let defaultChangeError: unknown = null;
+
+            if (formAsDefault.value && schools.value.length > 0) {
+                try {
+                    await setAsDefault(createdSchool.id);
+                } catch (err) {
+                    defaultChangeError = err;
+                }
+            }
 
             await loadSchools();
-
-            toast.addToast({
-                title: 'Dodano',
-                description: `Szkoła „${parsed.data.name}" została utworzona.`,
-                variant: 'success',
-            });
-
-            formDialogOpen.value = false;
+            isLocalCreateSaving.value = false;
+            markFormClean();
+            handleFormDialogOpenChange(false);
             resetFormFields();
+
+            if (defaultChangeError) {
+                toast.addToast({
+                    title: 'Szkoła została dodana',
+                    description:
+                        'Nie udało się ustawić jej jako domyślnej. Możesz zrobić to z poziomu listy.',
+                    variant: 'warning',
+                });
+            } else {
+                toast.addToast({
+                    title: 'Dodano szkołę',
+                    description: `Szkoła „${parsed.data.name}” jest gotowa do konfiguracji.`,
+                    variant: 'success',
+                });
+            }
         } catch (err) {
-            toast.addToast({
-                title: 'Błąd',
-                description: getManagerOskErrorMessage(
-                    err,
-                    'Nie udało się dodać OSK.',
-                ),
-                variant: 'error',
-            });
+            formSubmitError.value = getManagerOskErrorMessage(
+                err,
+                'Nie udało się dodać szkoły. Spróbuj ponownie.',
+            );
         } finally {
             isLocalCreateSaving.value = false;
         }
     }
 
+    async function submitFormDialog() {
+        if (isFormSaving.value) return;
+
+        if (formDialogMode.value === 'edit') {
+            await submitEditForm();
+
+            return;
+        }
+
+        await submitCreateForm();
+    }
+
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+        if (!isFormDirty.value) return;
+
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    watch([formName, formCity, formAddress, formAsDefault], () => {
+        if (formErrors.name) {
+            formErrors.name = '';
+        }
+
+        formSubmitError.value = '';
+    });
+
+    watch(
+        [() => route.query.action, hasLoadedSchools],
+        ([action, hasLoaded]) => {
+            if (action === 'create' && hasLoaded && !formDialogOpen.value) {
+                openCreateFormDialog();
+            }
+        },
+        { immediate: true },
+    );
+
+    onBeforeRouteLeave(() => {
+        if (!isFormDirty.value || !import.meta.client) return true;
+
+        return window.confirm(
+            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić stronę?',
+        );
+    });
+
     onMounted(() => {
-        loadSchools();
+        void loadSchools();
+        window.addEventListener('beforeunload', handleBeforeUnload);
+    });
+
+    onBeforeUnmount(() => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
     return {
         schools,
+        defaultSchool,
         loadError,
-        statsError,
         isListLoading,
-        isStatsLoading,
-        instructorCount,
-        studentCount,
-        defaultSchoolCount,
         loadSchools,
         deletingId,
+        settingDefaultId,
         confirmTarget,
         isConfirmOpen,
         handleRequestDelete,
         handleCancelDelete,
         handleConfirmOpenChange,
         handleConfirmDelete,
+        handleSetDefault,
         formDialogOpen,
         formDialogMode,
         formName,
         formCity,
         formAddress,
         formAsDefault,
+        formErrors,
+        formSubmitError,
         isFormSaving,
         isDefaultSwitchLocked,
         openCreateFormDialog,
