@@ -12,11 +12,29 @@ export interface MyPaymentResponse {
     date: string | null;
     dueDate: string | null;
     paidAt: string | null;
+    method: string | null;
 }
 
 export interface MyPaymentsPayload {
     payments: MyPaymentResponse[];
+    summary: {
+        paidAmount: string;
+        unpaidAmount: string;
+        overdueAmount: string;
+        overdueCount: number;
+        nextDueDate: string | null;
+        currency: string;
+    };
 }
+
+const emptyPaymentsSummary: MyPaymentsPayload['summary'] = {
+    paidAmount: '0.00',
+    unpaidAmount: '0.00',
+    overdueAmount: '0.00',
+    overdueCount: 0,
+    nextDueDate: null,
+    currency: 'PLN',
+};
 
 export async function bffUpstreamMyPaymentsList(
     event: H3Event,
@@ -36,6 +54,7 @@ export async function bffUpstreamMyPaymentsList(
         success: true,
         data: {
             payments: Array.isArray(data?.payments) ? data.payments : [],
+            summary: data?.summary ?? emptyPaymentsSummary,
         },
     };
 }

@@ -1,8 +1,6 @@
 import {
     normalizeStudentPaymentsPayload,
-    normalizeStudentPayments,
     type CreateStudentPaymentPayload,
-    type StudentPaymentItem,
     type StudentPaymentsPayload,
     type UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
@@ -12,13 +10,13 @@ type StudentPaymentActionPayload =
     | UpdateStudentPaymentPayload;
 
 export function usePaymentsApi() {
-    async function fetchMyPayments(): Promise<StudentPaymentItem[]> {
-        return await requestBffData<StudentPaymentItem[]>(
+    async function fetchMyPayments(): Promise<StudentPaymentsPayload> {
+        return await requestBffData<StudentPaymentsPayload>(
             'GET',
             '/api/me/payments',
             {
                 fallbackMessage: 'Nie udało się pobrać listy opłat.',
-                normalize: (data) => normalizeStudentPayments(data),
+                normalize: (data) => normalizeStudentPaymentsPayload(data),
             },
         );
     }

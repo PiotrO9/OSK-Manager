@@ -16,7 +16,17 @@ interface MyPaymentsResponse {
 
 function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
     if (role.trim().toUpperCase() !== 'STUDENT') {
-        return { payments: [] };
+        return {
+            payments: [],
+            summary: {
+                paidAmount: '0.00',
+                unpaidAmount: '0.00',
+                overdueAmount: '0.00',
+                overdueCount: 0,
+                nextDueDate: null,
+                currency: 'PLN',
+            },
+        };
     }
 
     return {
@@ -32,6 +42,7 @@ function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
                 date: '2026-06-20T12:00:00.000Z',
                 dueDate: '2026-06-10T00:00:00.000Z',
                 paidAt: '2026-06-20T12:00:00.000Z',
+                method: 'Przelew',
             },
             {
                 id: '44444444-4444-4444-8444-444444444444',
@@ -44,8 +55,17 @@ function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
                 date: '2026-07-10T00:00:00.000Z',
                 dueDate: '2026-07-10T00:00:00.000Z',
                 paidAt: null,
+                method: null,
             },
         ],
+        summary: {
+            paidAmount: '1200.00',
+            unpaidAmount: '500.00',
+            overdueAmount: '500.00',
+            overdueCount: 1,
+            nextDueDate: null,
+            currency: 'PLN',
+        },
     };
 }
 
