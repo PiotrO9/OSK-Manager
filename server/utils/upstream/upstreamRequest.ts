@@ -32,7 +32,9 @@ export async function upstreamRequest<T = unknown>(
     const headers: Record<string, string> = { ...options.headers };
 
     if (options.auth !== false) {
-        headers.Authorization = `Bearer ${readAccessToken(event)}`;
+        const accessToken = options.accessToken ?? readAccessToken(event);
+
+        headers.Authorization = `Bearer ${accessToken}`;
     }
 
     if (options.refreshCookie) {

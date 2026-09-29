@@ -198,7 +198,7 @@ const showAvatarImage = computed(
             <UiSidebarMenu>
                 <UiSidebarMenuItem>
                     <UiSidebarMenuButton
-                        tooltip="Wyloguj"
+                        :tooltip="showNavItemTooltip ? 'Wyloguj' : undefined"
                         class="text-sidebar-foreground cursor-pointer"
                         @click="handleLogoutClick"
                     >

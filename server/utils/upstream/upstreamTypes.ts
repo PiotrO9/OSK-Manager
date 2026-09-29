@@ -15,6 +15,7 @@ export interface UpstreamRequestOptions {
     headers?: Record<string, string>;
     body?: unknown;
     auth?: boolean;
+    accessToken?: string;
     refreshCookie?: boolean;
     fallbackError: string;
     invalidJsonError?: string;

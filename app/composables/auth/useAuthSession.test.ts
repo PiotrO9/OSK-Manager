@@ -149,6 +149,20 @@ describe('useAuthSession', () => {
         });
     });
 
+    it('delegates refresh handling to the atomic session endpoint', async () => {
+        bff.requestData.mockRejectedValue(fetchError(401));
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        await expect(auth.checkSession()).resolves.toBe(false);
+
+        expect(bff.requestData).toHaveBeenCalledTimes(1);
+        expect(bff.requestData).toHaveBeenCalledWith('/api/auth/me', {
+            method: 'GET',
+            retryUnauthorized: false,
+        });
+    });
+
     it('maps unavailable backend login failures to a connection error', async () => {
         bff.requestData.mockRejectedValue(new TypeError('fetch failed'));
         const { useAuthSession } = await import('./useAuthSession');

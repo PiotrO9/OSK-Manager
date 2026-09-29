@@ -8,6 +8,16 @@ import {
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 import type { BffAuthUserResponse } from './authTypes';
 
+function getStatusCode(error: unknown): number | undefined {
+    if (!error || typeof error !== 'object' || !('statusCode' in error)) {
+        return undefined;
+    }
+
+    const statusCode = (error as { statusCode?: unknown }).statusCode;
+
+    return typeof statusCode === 'number' ? statusCode : undefined;
+}
+
 export async function bffUpstreamLogin(
     event: H3Event,
     upstreamBase: string,
@@ -46,10 +56,10 @@ export async function bffUpstreamLogin(
     };
 }
 
-export async function bffUpstreamRefresh(
+export async function refreshUpstreamSession(
     event: H3Event,
     upstreamBase: string,
-): Promise<{ success: true; data: object }> {
+): Promise<string> {
     const { data, response } = await upstreamRequest<{
         access_token: string;
     }>(event, upstreamBase, {
@@ -72,12 +82,22 @@ export async function bffUpstreamRefresh(
     setAccessTokenCookie(event, data.access_token);
     syncRefreshCookieFromResponse(event, response);
 
+    return data.access_token;
+}
+
+export async function bffUpstreamRefresh(
+    event: H3Event,
+    upstreamBase: string,
+): Promise<{ success: true; data: object }> {
+    await refreshUpstreamSession(event, upstreamBase);
+
     return { success: true, data: {} };
 }
 
 export async function bffUpstreamMe(
     event: H3Event,
     upstreamBase: string,
+    accessToken?: string,
 ): Promise<{ success: true; data: { user: BffAuthUserResponse } }> {
     const { data } = await upstreamRequest<{ user: BffAuthUserResponse }>(
         event,
@@ -85,6 +105,7 @@ export async function bffUpstreamMe(
         {
             path: '/auth/me',
             method: 'GET',
+            accessToken,
             fallbackError: 'Sesja nieważna',
             clearCookiesOnUnauthorized: 'access',
         },
@@ -102,6 +123,34 @@ export async function bffUpstreamMe(
         success: true,
         data: { user: data.user },
     };
+}
+
+export async function bffUpstreamResolveSession(
+    event: H3Event,
+    upstreamBase: string,
+): Promise<{ success: true; data: { user: BffAuthUserResponse } }> {
+    try {
+        return await bffUpstreamMe(event, upstreamBase);
+    } catch (error) {
+        if (
+            getStatusCode(error) !== 401 ||
+            !getCookie(event, 'refresh_token')
+        ) {
+            throw error;
+        }
+    }
+
+    const accessToken = await refreshUpstreamSession(event, upstreamBase);
+
+    try {
+        return await bffUpstreamMe(event, upstreamBase, accessToken);
+    } catch (error) {
+        if (getStatusCode(error) === 401) {
+            clearSessionCookies(event);
+        }
+
+        throw error;
+    }
 }
 
 export async function bffUpstreamLogout(

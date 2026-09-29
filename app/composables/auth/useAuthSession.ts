@@ -167,31 +167,9 @@ export function useAuthSession() {
         isCheckingSession.value = true;
 
         try {
-            try {
-                await loadMeIntoSession();
+            await loadMeIntoSession();
 
-                return true;
-            } catch (err: unknown) {
-                const status = getFetchStatusCode(err);
-
-                if (sessionLoadShouldSkipRefresh(status)) {
-                    session.value = null;
-
-                    return false;
-                }
-
-                const refreshed = await refreshAccessToken();
-
-                if (!refreshed) {
-                    session.value = null;
-
-                    return false;
-                }
-
-                await loadMeIntoSession();
-
-                return true;
-            }
+            return true;
         } catch {
             session.value = null;
 

@@ -6,7 +6,10 @@ import {
 } from '~~/server/utils/upstream/upstreamCookies';
 import { parseBackendEnvelopeFromResponseText } from '~~/server/utils/upstream/upstreamEnvelope';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
-import { bffUpstreamRefresh } from '~~/server/utils/auth/authUpstreamSession';
+import {
+    bffUpstreamRefresh,
+    bffUpstreamResolveSession,
+} from '~~/server/utils/auth/authUpstreamSession';
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
     return new Response(JSON.stringify(body), {
@@ -144,6 +147,24 @@ describe('upstreamRequest', () => {
         );
     });
 
+    it('prefers an explicitly supplied access token over the request cookie', async () => {
+        const { event } = mockEvent();
+        const fetchImpl: typeof fetch = vi.fn(async (_url, init) => {
+            expect(
+                (init?.headers as Record<string, string>).Authorization,
+            ).toBe('Bearer refreshed-access');
+
+            return jsonResponse({ success: true, data: { ok: true } });
+        });
+
+        await upstreamRequest(event, 'https://api.example.test', {
+            path: '/auth/me',
+            accessToken: 'refreshed-access',
+            fallbackError: 'failed',
+            fetchImpl,
+        });
+    });
+
     it('maps success:false envelopes to errors', async () => {
         const { event } = mockEvent();
 
@@ -245,6 +266,81 @@ describe('refresh cookie propagation', () => {
 
         expect(headers['set-cookie']).toContain('access_token=');
         expect(headers['set-cookie']).toContain('refresh_token=next-refresh');
+
+        vi.unstubAllGlobals();
+    });
+
+    it('uses the refreshed access token for the session retry', async () => {
+        const { event, headers } = mockEvent();
+        const user = {
+            id: 'user-1',
+            email: 'manager@example.com',
+            role: 'MANAGER',
+        };
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                jsonResponse(
+                    { success: false, error: 'expired' },
+                    { status: 401 },
+                ),
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({
+                    success: true,
+                    data: { access_token: 'refreshed-access' },
+                }),
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({ success: true, data: { user } }),
+            );
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(
+            bffUpstreamResolveSession(event, 'https://api.example.test'),
+        ).resolves.toEqual({ success: true, data: { user } });
+
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+        expect(fetchMock.mock.calls[2]?.[1]?.headers).toMatchObject({
+            Authorization: 'Bearer refreshed-access',
+        });
+        expect(headers['set-cookie']).toContain('access_token=');
+
+        vi.unstubAllGlobals();
+    });
+
+    it('does not retry refresh when the retried session is still unauthorized', async () => {
+        const { event, headers } = mockEvent();
+        const fetchMock = vi
+            .fn<typeof fetch>()
+            .mockResolvedValueOnce(
+                jsonResponse(
+                    { success: false, error: 'expired' },
+                    { status: 401 },
+                ),
+            )
+            .mockResolvedValueOnce(
+                jsonResponse({
+                    success: true,
+                    data: { access_token: 'refreshed-access' },
+                }),
+            )
+            .mockResolvedValueOnce(
+                jsonResponse(
+                    { success: false, error: 'still unauthorized' },
+                    { status: 401 },
+                ),
+            );
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        await expect(
+            bffUpstreamResolveSession(event, 'https://api.example.test'),
+        ).rejects.toThrow('still unauthorized');
+
+        expect(fetchMock).toHaveBeenCalledTimes(3);
+        expect(headers['set-cookie']).toContain('refresh_token=');
 
         vi.unstubAllGlobals();
     });
