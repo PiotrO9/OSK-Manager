@@ -3,7 +3,7 @@ import type {
     ScheduleLessonItem,
     SchedulePersonRef,
 } from '~/types/schedule/schedule';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerScheduleVehicleIcon from './ManagerScheduleVehicleIcon.vue';
 import {
     buildScheduleManagerItemEditRoute,
@@ -233,41 +233,27 @@ function schedulePersonInitials(person: SchedulePersonRef | undefined): string {
                         }}</span>
                     </td>
                     <td class="px-4 py-3">
-                        <div
+                        <AppUserIdentity
                             v-if="item.instructor"
-                            class="flex min-w-0 items-center gap-2"
-                        >
-                            <ProfileAvatar
-                                :src="item.instructor.avatarUrl"
-                                :initials="
-                                    schedulePersonInitials(item.instructor)
-                                "
-                                :size="24"
-                                class="border-border bg-muted/40 text-muted-foreground border"
-                            />
-                            <span class="min-w-0 truncate">
-                                {{ displaySchedulePerson(item.instructor) }}
-                            </span>
-                        </div>
+                            :avatar-src="item.instructor.avatarUrl"
+                            :initials="schedulePersonInitials(item.instructor)"
+                            :name="displaySchedulePerson(item.instructor)"
+                            :avatar-size="24"
+                            truncate
+                        />
                         <span v-else class="text-muted-foreground">
                             {{ displaySchedulePerson(item.instructor) }}
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <div
+                        <AppUserIdentity
                             v-if="item.student"
-                            class="flex min-w-0 items-center gap-2"
-                        >
-                            <ProfileAvatar
-                                :src="item.student.avatarUrl"
-                                :initials="schedulePersonInitials(item.student)"
-                                :size="24"
-                                class="border-border bg-muted/40 text-muted-foreground border"
-                            />
-                            <span class="min-w-0 truncate">
-                                {{ displaySchedulePerson(item.student) }}
-                            </span>
-                        </div>
+                            :avatar-src="item.student.avatarUrl"
+                            :initials="schedulePersonInitials(item.student)"
+                            :name="displaySchedulePerson(item.student)"
+                            :avatar-size="24"
+                            truncate
+                        />
                         <span v-else class="text-muted-foreground">
                             {{ displaySchedulePerson(item.student) }}
                         </span>

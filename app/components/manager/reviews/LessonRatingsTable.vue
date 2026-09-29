@@ -4,7 +4,7 @@ import {
     type LessonRatingPerson,
     type LessonRatingListItem,
 } from '~/types/lessons/lessonRating';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 
 const props = withDefaults(
     defineProps<{
@@ -123,23 +123,25 @@ function visiblePeople(
                         v-if="visiblePeople(rating).length > 0"
                         class="flex min-w-0 flex-wrap items-center gap-2"
                     >
-                        <span
+                        <AppUserIdentity
                             v-for="entry in visiblePeople(rating)"
                             :key="entry.key"
-                            class="flex min-w-0 items-center gap-1.5"
+                            :avatar-src="entry.person.avatarUrl"
+                            :initials="personInitials(entry.person)"
+                            :avatar-size="24"
                         >
-                            <ProfileAvatar
-                                :src="entry.person.avatarUrl"
-                                :initials="personInitials(entry.person)"
-                                :size="24"
-                                class="border-border bg-muted/40 text-muted-foreground border"
-                            />
-                            <span
-                                class="text-muted-foreground max-w-40 truncate text-xs"
-                            >
-                                {{ formatLessonRatingPersonName(entry.person) }}
-                            </span>
-                        </span>
+                            <template #details>
+                                <span
+                                    class="text-muted-foreground block max-w-40 truncate text-xs"
+                                >
+                                    {{
+                                        formatLessonRatingPersonName(
+                                            entry.person,
+                                        )
+                                    }}
+                                </span>
+                            </template>
+                        </AppUserIdentity>
                     </div>
                     <p class="text-foreground text-sm leading-snug font-bold">
                         <span v-if="rating.comment">

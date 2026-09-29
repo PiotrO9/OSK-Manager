@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ExternalLink, UserCheck } from 'lucide-vue-next';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
@@ -72,35 +73,40 @@ const currentInstructorInitials = computed(() => {
             <div
                 class="border-border bg-muted/20 flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
             >
-                <div class="flex min-w-0 items-center gap-3">
-                    <AppListAvatar
-                        :src="course.instructor?.avatarUrl ?? null"
-                        :initials="currentInstructorInitials"
-                        :size="40"
-                    />
-                    <div class="min-w-0">
-                        <p class="text-muted-foreground text-xs font-medium">
-                            Aktualnie prowadzi
-                        </p>
-                        <NuxtLink
-                            v-if="instructorDetailsRoute"
-                            :to="instructorDetailsRoute"
-                            class="text-foreground hover:text-primary mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-sm font-semibold"
-                        >
-                            <span class="truncate">{{ instructorName }}</span>
-                            <ExternalLink
-                                class="size-3 shrink-0"
-                                aria-hidden="true"
-                            />
-                        </NuxtLink>
-                        <p
-                            v-else
-                            class="text-foreground mt-0.5 text-sm font-semibold"
-                        >
-                            {{ instructorName }}
-                        </p>
-                    </div>
-                </div>
+                <AppUserIdentity
+                    :avatar-src="course.instructor?.avatarUrl ?? null"
+                    :initials="currentInstructorInitials"
+                    :avatar-size="40"
+                >
+                    <template #details>
+                        <div>
+                            <p
+                                class="text-muted-foreground text-xs font-medium"
+                            >
+                                Aktualnie prowadzi
+                            </p>
+                            <NuxtLink
+                                v-if="instructorDetailsRoute"
+                                :to="instructorDetailsRoute"
+                                class="text-foreground hover:text-primary mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-sm font-semibold"
+                            >
+                                <span class="truncate">{{
+                                    instructorName
+                                }}</span>
+                                <ExternalLink
+                                    class="size-3 shrink-0"
+                                    aria-hidden="true"
+                                />
+                            </NuxtLink>
+                            <p
+                                v-else
+                                class="text-foreground mt-0.5 text-sm font-semibold"
+                            >
+                                {{ instructorName }}
+                            </p>
+                        </div>
+                    </template>
+                </AppUserIdentity>
             </div>
 
             <p

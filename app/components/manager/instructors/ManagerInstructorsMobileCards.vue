@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpRight } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerInstructorQualificationBadges from './ManagerInstructorQualificationBadges.vue';
 import {
     formatInstructorDisplayName,
@@ -24,21 +24,13 @@ defineProps<{
             class="space-y-4 p-4 sm:p-5"
         >
             <div class="flex items-start justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-3">
-                    <AppListAvatar
-                        :src="instructor.avatarUrl"
-                        :initials="instructorInitials(instructor)"
-                        :size="36"
-                    />
-                    <div class="min-w-0 space-y-1">
-                        <h2 class="text-sm font-semibold wrap-anywhere">
-                            {{ formatInstructorDisplayName(instructor) }}
-                        </h2>
-                        <p class="text-muted-foreground text-xs">
-                            Instruktor OSK
-                        </p>
-                    </div>
-                </div>
+                <AppUserIdentity
+                    :avatar-src="instructor.avatarUrl"
+                    :initials="instructorInitials(instructor)"
+                    :name="formatInstructorDisplayName(instructor)"
+                    subtitle="Instruktor OSK"
+                    :avatar-size="36"
+                />
                 <StatusBadge label="Konto" tone="success" subtle />
             </div>
 

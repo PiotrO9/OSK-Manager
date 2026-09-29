@@ -5,7 +5,7 @@ import type {
     TheoryEventEligibleStudentsData,
 } from '~/types/events/instructorEvent';
 import { formatStudentDisplayName } from '~/types/students/student';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
 const props = defineProps<{
@@ -179,32 +179,35 @@ function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
                                 />
                                 <UiLabel
                                     :for="`theory-student-${row.userId}`"
-                                    class="text-foreground flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
+                                    class="text-foreground min-w-0 flex-1 cursor-pointer text-sm leading-snug font-normal peer-disabled:cursor-not-allowed"
                                 >
-                                    <AppListAvatar
-                                        :src="row.avatarUrl"
+                                    <AppUserIdentity
+                                        :avatar-src="row.avatarUrl"
                                         :initials="theoryStudentInitials(row)"
-                                        :size="40"
-                                    />
-                                    <span class="min-w-0">
-                                        <span
-                                            class="block font-semibold wrap-anywhere"
-                                        >
-                                            {{
-                                                formatStudentDisplayName(
-                                                    theoryEligibleRowToStudentListItem(
-                                                        row,
-                                                    ),
-                                                )
-                                            }}
-                                        </span>
-                                        <span
-                                            v-if="row.email?.trim()"
-                                            class="text-muted-foreground mt-0.5 block text-sm font-normal wrap-anywhere"
-                                        >
-                                            {{ row.email.trim() }}
-                                        </span>
-                                    </span>
+                                        :avatar-size="40"
+                                    >
+                                        <template #details>
+                                            <span class="min-w-0">
+                                                <span
+                                                    class="block font-semibold wrap-anywhere"
+                                                >
+                                                    {{
+                                                        formatStudentDisplayName(
+                                                            theoryEligibleRowToStudentListItem(
+                                                                row,
+                                                            ),
+                                                        )
+                                                    }}
+                                                </span>
+                                                <span
+                                                    v-if="row.email?.trim()"
+                                                    class="text-muted-foreground mt-0.5 block text-sm font-normal wrap-anywhere"
+                                                >
+                                                    {{ row.email.trim() }}
+                                                </span>
+                                            </span>
+                                        </template>
+                                    </AppUserIdentity>
                                 </UiLabel>
                             </div>
                             <div

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-vue-next';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';
 import { formatStudentDisplayName } from '~/types/students/student';
 
@@ -92,24 +93,22 @@ function studentTo(student: StudentListItem): string {
                     :key="student.id"
                     class="border-border flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                    <div class="flex min-w-0 items-center gap-3">
-                        <AppListAvatar
-                            :src="student.avatarUrl"
-                            :initials="studentInitials(student)"
-                            :size="36"
-                        />
-                        <div class="min-w-0">
+                    <AppUserIdentity
+                        :avatar-src="student.avatarUrl"
+                        :initials="studentInitials(student)"
+                        :subtitle="student.email"
+                        :avatar-size="36"
+                        truncate
+                    >
+                        <template #name>
                             <NuxtLink
                                 :to="studentTo(student)"
                                 class="text-foreground hover:text-primary truncate text-sm font-semibold"
                             >
                                 {{ formatStudentDisplayName(student) }}
                             </NuxtLink>
-                            <p class="text-muted-foreground truncate text-xs">
-                                {{ student.email }}
-                            </p>
-                        </div>
-                    </div>
+                        </template>
+                    </AppUserIdentity>
 
                     <NuxtLink
                         :to="studentTo(student)"

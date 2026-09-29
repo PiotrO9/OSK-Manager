@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowUpRight } from 'lucide-vue-next';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatCourseKindLabel,
     type CourseListItem,
@@ -76,16 +76,14 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                     <span class="text-muted-foreground font-normal">h</span>
                 </td>
                 <td class="px-3 py-3">
-                    <div
+                    <AppUserIdentity
                         v-if="course.instructor"
-                        class="flex min-w-0 items-center gap-3"
+                        :avatar-src="course.instructor.avatarUrl"
+                        :initials="getCourseInstructorInitials(course)"
+                        subtitle="Instruktor OSK"
+                        :avatar-size="36"
                     >
-                        <AppListAvatar
-                            :src="course.instructor.avatarUrl"
-                            :initials="getCourseInstructorInitials(course)"
-                            :size="36"
-                        />
-                        <div class="min-w-0 space-y-1">
+                        <template #name>
                             <NuxtLink
                                 :to="{
                                     path: `/manager/instructors/${course.instructor.id}`,
@@ -97,11 +95,8 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                                 :aria-label="`Otwórz szczegóły instruktora ${course.instructor.name}`"
                                 >{{ course.instructor.name }}</NuxtLink
                             >
-                            <p class="text-muted-foreground text-xs">
-                                Instruktor OSK
-                            </p>
-                        </div>
-                    </div>
+                        </template>
+                    </AppUserIdentity>
                     <span
                         v-else
                         class="text-muted-foreground text-sm wrap-anywhere"

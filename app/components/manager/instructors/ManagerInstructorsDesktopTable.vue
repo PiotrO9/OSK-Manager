@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerInstructorQualificationBadges from './ManagerInstructorQualificationBadges.vue';
 import {
     formatInstructorDisplayName,
@@ -48,13 +48,13 @@ defineProps<{
                 class="group hover:bg-muted/30 focus-within:bg-muted/30 transition-colors"
             >
                 <th scope="row" class="px-5 py-3 text-left font-normal">
-                    <div class="flex min-w-0 items-center gap-3">
-                        <AppListAvatar
-                            :src="instructor.avatarUrl"
-                            :initials="instructorInitials(instructor)"
-                            :size="36"
-                        />
-                        <div class="min-w-0 space-y-1">
+                    <AppUserIdentity
+                        :avatar-src="instructor.avatarUrl"
+                        :initials="instructorInitials(instructor)"
+                        subtitle="Instruktor OSK"
+                        :avatar-size="36"
+                    >
+                        <template #name>
                             <NuxtLink
                                 :to="instructorDetailsTo(instructor)"
                                 target="_blank"
@@ -65,11 +65,8 @@ defineProps<{
                                     formatInstructorDisplayName(instructor)
                                 }}</NuxtLink
                             >
-                            <p class="text-muted-foreground text-xs">
-                                Instruktor OSK
-                            </p>
-                        </div>
-                    </div>
+                        </template>
+                    </AppUserIdentity>
                 </th>
                 <td class="px-4 py-3">
                     <div class="space-y-1.5 text-xs">

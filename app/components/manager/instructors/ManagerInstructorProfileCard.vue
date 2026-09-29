@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 
 interface ProfileRow {
     label: string;
@@ -19,22 +19,13 @@ defineProps<{
 <template>
     <UiCard class="overflow-hidden rounded-lg shadow-xs">
         <UiCardContent class="space-y-3 p-4">
-            <div class="flex items-center gap-3">
-                <AppListAvatar
-                    :src="avatarUrl"
-                    :initials="initials"
-                    :size="36"
-                />
-
-                <div class="min-w-0">
-                    <p class="text-foreground text-sm font-semibold">
-                        Dane instruktora
-                    </p>
-                    <p class="text-muted-foreground text-sm wrap-break-word">
-                        {{ name }}
-                    </p>
-                </div>
-            </div>
+            <AppUserIdentity
+                :avatar-src="avatarUrl"
+                :initials="initials"
+                name="Dane instruktora"
+                :subtitle="name"
+                :avatar-size="36"
+            />
 
             <div class="grid gap-3">
                 <div

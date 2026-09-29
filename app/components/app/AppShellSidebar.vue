@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
+import AppUserIdentity from './AppUserIdentity.vue';
 import {
     BookOpen,
     Building2,
@@ -73,6 +74,10 @@ const userInitials = computed(() =>
     getAppShellUserInitials(displayUserLabel.value),
 );
 
+const sidebarAvatarSize = computed<32 | 40>(() =>
+    state.value === 'collapsed' && !isMobile.value ? 32 : 40,
+);
+
 const avatarSrc = computed(() => {
     const raw = session.value?.avatarUrl;
 
@@ -82,20 +87,6 @@ const avatarSrc = computed(() => {
 
     return raw.trim();
 });
-
-const avatarImageFailed = ref(false);
-
-watch(avatarSrc, () => {
-    avatarImageFailed.value = false;
-});
-
-function handleAvatarImageError() {
-    avatarImageFailed.value = true;
-}
-
-const showAvatarImage = computed(
-    () => Boolean(avatarSrc.value) && !avatarImageFailed.value,
-);
 </script>
 
 <template>
@@ -103,47 +94,18 @@ const showAvatarImage = computed(
         <UiSidebarHeader>
             <UiSidebarMenu>
                 <UiSidebarMenuItem>
-                    <div
-                        class="text-muted-foreground flex items-center gap-2 px-2 py-2 text-xs"
-                    >
-                        <span class="sr-only">
-                            Zalogowany użytkownik: {{ displayUserLabel }}
-                        </span>
-                        <div
-                            class="border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border"
-                            aria-hidden="true"
-                        >
-                            <img
-                                v-if="showAvatarImage"
-                                :src="avatarSrc"
-                                alt=""
-                                class="size-full object-cover"
-                                loading="lazy"
-                                @error="handleAvatarImageError"
-                            />
-                            <span
-                                v-else
-                                class="text-[0.65rem] font-semibold tracking-tight"
-                            >
-                                {{ userInitials }}
-                            </span>
-                        </div>
-                        <div
-                            class="min-w-0 flex-1 group-data-[collapsible=icon]:hidden"
-                        >
-                            <span
-                                class="text-sidebar-foreground block truncate font-medium"
-                            >
-                                {{ displayUserLabel }}
-                            </span>
-                            <span
-                                v-if="session?.role"
-                                class="block truncate text-[0.7rem] opacity-80"
-                            >
-                                {{ session.role }}
-                            </span>
-                        </div>
-                    </div>
+                    <AppUserIdentity
+                        :avatar-src="avatarSrc"
+                        :initials="userInitials"
+                        :name="displayUserLabel"
+                        :subtitle="session?.role"
+                        :avatar-size="sidebarAvatarSize"
+                        avatar-tone="sidebar"
+                        :compact="state === 'collapsed' && !isMobile"
+                        truncate
+                        class="px-2 py-3"
+                        :aria-label="`Zalogowany użytkownik: ${displayUserLabel}`"
+                    />
                 </UiSidebarMenuItem>
             </UiSidebarMenu>
         </UiSidebarHeader>

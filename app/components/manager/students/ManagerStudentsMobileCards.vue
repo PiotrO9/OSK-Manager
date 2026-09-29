@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpRight, Mail, Phone, Plus } from 'lucide-vue-next';
 import ManagerStudentPkkCopy from './ManagerStudentPkkCopy.vue';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';
 import type { StudentListRow } from '~/types/students/studentListView';
 
@@ -21,21 +21,13 @@ const emit = defineEmits<{ assignCourse: [student: StudentListItem] }>();
             class="space-y-4 p-4 sm:p-5"
         >
             <div class="flex items-start justify-between gap-3">
-                <div class="flex min-w-0 items-center gap-3">
-                    <AppListAvatar
-                        :src="row.student.avatarUrl"
-                        :initials="row.initials"
-                        :size="36"
-                    />
-                    <div class="min-w-0 space-y-1">
-                        <h2 class="text-sm font-semibold wrap-anywhere">
-                            {{ row.name }}
-                        </h2>
-                        <p class="text-muted-foreground text-xs">
-                            Dodano {{ row.dateLabel }}
-                        </p>
-                    </div>
-                </div>
+                <AppUserIdentity
+                    :avatar-src="row.student.avatarUrl"
+                    :initials="row.initials"
+                    :name="row.name"
+                    :subtitle="`Dodano ${row.dateLabel}`"
+                    :avatar-size="36"
+                />
                 <StatusBadge
                     :label="row.student.isActive ? 'Aktywny' : 'Nieaktywny'"
                     :tone="row.student.isActive ? 'success' : 'neutral'"

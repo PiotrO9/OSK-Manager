@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Plus } from 'lucide-vue-next';
 import ManagerStudentPkkCopy from './ManagerStudentPkkCopy.vue';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';
 import type { StudentListRow } from '~/types/students/studentListView';
 
@@ -50,38 +50,39 @@ const emit = defineEmits<{ assignCourse: [student: StudentListItem] }>();
                 class="group hover:bg-muted/30 focus-within:bg-muted/30 transition-colors"
             >
                 <th scope="row" class="px-5 py-3 text-left font-normal">
-                    <div class="flex min-w-0 items-center gap-3">
-                        <AppListAvatar
-                            :src="row.student.avatarUrl"
-                            :initials="row.initials"
-                            :size="36"
-                        />
-                        <div class="min-w-0 space-y-1">
-                            <NuxtLink
-                                v-if="row.detailsTo"
-                                :to="row.detailsTo"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
-                                :aria-label="`Otwórz szczegóły kursanta ${row.name} w nowej karcie`"
-                                >{{ row.name }}</NuxtLink
-                            >
-                            <p
-                                v-else
-                                class="text-foreground font-semibold wrap-anywhere"
-                            >
-                                {{ row.name }}
-                            </p>
-                            <p
-                                class="text-muted-foreground text-xs wrap-anywhere tabular-nums"
-                            >
-                                PKK:
-                                <ManagerStudentPkkCopy
-                                    :pkk-number="row.student.pkkNumber"
-                                />
-                            </p>
-                        </div>
-                    </div>
+                    <AppUserIdentity
+                        :avatar-src="row.student.avatarUrl"
+                        :initials="row.initials"
+                        :avatar-size="36"
+                    >
+                        <template #details>
+                            <div class="space-y-1">
+                                <NuxtLink
+                                    v-if="row.detailsTo"
+                                    :to="row.detailsTo"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
+                                    :aria-label="`Otwórz szczegóły kursanta ${row.name} w nowej karcie`"
+                                    >{{ row.name }}</NuxtLink
+                                >
+                                <p
+                                    v-else
+                                    class="text-foreground font-semibold wrap-anywhere"
+                                >
+                                    {{ row.name }}
+                                </p>
+                                <p
+                                    class="text-muted-foreground text-xs wrap-anywhere tabular-nums"
+                                >
+                                    PKK:
+                                    <ManagerStudentPkkCopy
+                                        :pkk-number="row.student.pkkNumber"
+                                    />
+                                </p>
+                            </div>
+                        </template>
+                    </AppUserIdentity>
                 </th>
                 <td class="px-4 py-3">
                     <div class="space-y-1.5 text-xs">

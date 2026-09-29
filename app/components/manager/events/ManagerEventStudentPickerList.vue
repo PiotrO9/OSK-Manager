@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { StudentListItem } from '~/types/students/student';
 import { formatStudentDisplayName } from '~/types/students/student';
-import ProfileAvatar from '~/components/app/ProfileAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import { isEventStudentPickerRowSelectionBlocked } from '~/utils/events/eventStudentPickerStudents';
 
 const props = defineProps<{
@@ -77,25 +77,17 @@ function studentInitials(student: StudentListItem): string {
                     @change="emit('toggleStudent', student.userId)"
                 />
                 <label
-                    class="flex min-w-0 flex-1 cursor-pointer items-start gap-2 text-sm leading-snug"
+                    class="min-w-0 flex-1 cursor-pointer text-sm leading-snug"
                     :for="`event-student-cb-${student.userId}`"
                 >
-                    <ProfileAvatar
-                        :src="student.avatarUrl"
+                    <AppUserIdentity
+                        :avatar-src="student.avatarUrl"
                         :initials="studentInitials(student)"
-                        :size="24"
-                        class="border-border bg-muted/40 text-muted-foreground mt-0.5 border"
+                        :name="formatStudentDisplayName(student)"
+                        :subtitle="student.email"
+                        :avatar-size="24"
+                        truncate
                     />
-                    <span class="min-w-0">
-                        <span class="block font-medium">{{
-                            formatStudentDisplayName(student)
-                        }}</span>
-                        <span
-                            class="text-muted-foreground block truncate text-xs"
-                        >
-                            {{ student.email }}
-                        </span>
-                    </span>
                 </label>
             </li>
         </ul>

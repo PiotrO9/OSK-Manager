@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowUpRight } from 'lucide-vue-next';
-import AppListAvatar from '~/components/app/AppListAvatar.vue';
+import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatCourseKindLabel,
     type CourseListItem,
@@ -46,14 +46,16 @@ defineProps<{ courses: CourseListItem[] }>();
                     >{{ course.totalHours }} h</span
                 >
             </div>
-            <div class="flex min-w-0 items-center gap-2">
-                <AppListAvatar
+            <div>
+                <AppUserIdentity
                     v-if="course.instructor"
-                    :src="course.instructor.avatarUrl"
+                    :avatar-src="course.instructor.avatarUrl"
                     :initials="getCourseInstructorInitials(course)"
-                    :size="32"
+                    :avatar-size="32"
+                    :name="formatInstructorCell(course)"
                 />
                 <span
+                    v-else
                     class="text-muted-foreground min-w-0 text-sm wrap-anywhere"
                     >{{ formatInstructorCell(course) }}</span
                 >
