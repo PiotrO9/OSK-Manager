@@ -12,7 +12,9 @@ function isPublicPath(path: string): boolean {
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {
-    if (isPublicPath(to.path)) return;
+    const isLoginPath = to.path === '/login' || to.path.startsWith('/login/');
+
+    if (isPublicPath(to.path) && !isLoginPath) return;
 
     const { checkSession } = useAuthSession();
 
@@ -21,6 +23,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
      * useState z pamięci — inaczej po wygaśnięciu access tokena UI zostaje „zalogowane”.
      */
     const hasSession = await checkSession();
+
+    if (isLoginPath) return;
 
     if (hasSession) return;
 

@@ -8,10 +8,7 @@ import LoginPosterArt from './LoginPosterArt.vue';
     <div class="login-layout">
         <div class="login-stage">
             <div class="login-card">
-                <section
-                    class="login-story"
-                    aria-label="OSK Manager — funkcje aplikacji"
-                >
+                <section class="login-story" aria-label="OSK Manager">
                     <div class="login-brand">
                         <span class="brand-symbol"
                             ><Route
@@ -22,7 +19,9 @@ import LoginPosterArt from './LoginPosterArt.vue';
                         <span><strong>OSK</strong> Manager</span>
                     </div>
                     <LoginPosterArt />
-                    <p class="story-modules">Panel zarządzania szkołą jazdy</p>
+                    <p class="story-modules">
+                        Jazdy, kursy i rozliczenia w jednym miejscu
+                    </p>
                 </section>
                 <LoginPanel class="poster-form-panel" />
             </div>
@@ -40,6 +39,11 @@ import LoginPosterArt from './LoginPosterArt.vue';
     --login-accent: var(--primary);
     --login-accent-hover: var(--color-primary-700);
     --login-accent-soft: var(--accent);
+    --login-error-foreground: color-mix(
+        in srgb,
+        var(--destructive) 72%,
+        var(--foreground)
+    );
     --login-story: var(--primary);
     --login-story-deep: var(--color-primary-950);
     --login-story-muted: var(--color-primary-200);
@@ -118,7 +122,7 @@ import LoginPosterArt from './LoginPosterArt.vue';
     padding-top: 20px;
     border-top: 1px solid
         color-mix(in srgb, var(--color-primary-200) 24%, transparent);
-    font-size: 10px;
+    font-size: 12px;
     color: var(--login-story-muted);
 }
 .poster-form-panel {
@@ -139,9 +143,6 @@ import LoginPosterArt from './LoginPosterArt.vue';
 }
 .poster-form-panel :deep(.demo-role) {
     min-height: 68px;
-}
-.login-layout {
-    background: var(--background);
 }
 .login-layout .login-card {
     border: 1px solid var(--border);
@@ -189,7 +190,7 @@ import LoginPosterArt from './LoginPosterArt.vue';
 .login-layout .poster-form-panel :deep(.demo-role) {
     min-height: 72px;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 12px;
 }
 @keyframes poster-form-enter {
     from {
@@ -250,6 +251,11 @@ import LoginPosterArt from './LoginPosterArt.vue';
     }
     .login-layout .poster-form-panel :deep(.panel-title) {
         font-size: 26px;
+    }
+}
+@media (max-width: 479px) {
+    .login-layout .login-story {
+        padding: 18px;
     }
 }
 @media (prefers-reduced-motion: reduce) {

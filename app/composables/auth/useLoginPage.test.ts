@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, ref } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
 const addToast = vi.fn();
@@ -26,6 +26,8 @@ const runtimeConfig = {
 function installGlobals(): void {
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('ref', ref);
+    vi.stubGlobal('shallowRef', shallowRef);
+    vi.stubGlobal('watch', watch);
     vi.stubGlobal('onMounted', (callback: () => void) => callback());
     vi.stubGlobal('useRoute', () => route);
     vi.stubGlobal('useRouter', () => ({ replace }));
@@ -46,10 +48,6 @@ function installGlobals(): void {
     }));
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('navigateTo', navigateTo);
-    vi.stubGlobal(
-        'isEnterOrSpaceKey',
-        (event: KeyboardEvent) => event.key === 'Enter' || event.key === ' ',
-    );
 }
 
 function resetState(): void {
@@ -108,11 +106,41 @@ describe('useLoginPage', () => {
         await page.handleLogin();
 
         expect(login).not.toHaveBeenCalled();
-        expect(addToast).toHaveBeenCalledWith({
-            title: 'Formularz',
-            description: 'Nieprawidłowy format e-mail',
-            variant: 'error',
-        });
+        expect(page.emailError.value).toBe('Nieprawidłowy format e-mail');
+        expect(page.passwordError.value).toBe('Podaj hasło');
+        expect(page.submitError.value).toBeNull();
+        expect(addToast).not.toHaveBeenCalled();
+    });
+
+    it('shows a persistent form error when login fails', async () => {
+        login.mockRejectedValue(new Error('Nieprawidłowy e-mail lub hasło'));
+
+        const { useLoginPage } = await import('./useLoginPage');
+        const page = useLoginPage();
+
+        page.email.value = 'manager@example.com';
+        page.password.value = 'wrong-password';
+
+        await page.handleLogin();
+
+        expect(page.submitError.value).toBe('Nieprawidłowy e-mail lub hasło');
+        expect(addToast).not.toHaveBeenCalled();
+    });
+
+    it('clears the submit error after the user edits credentials', async () => {
+        login.mockRejectedValue(new Error('Nieprawidłowy e-mail lub hasło'));
+
+        const { useLoginPage } = await import('./useLoginPage');
+        const page = useLoginPage();
+
+        page.email.value = 'manager@example.com';
+        page.password.value = 'wrong-password';
+        await page.handleLogin();
+
+        page.password.value = 'new-password';
+        await Promise.resolve();
+
+        expect(page.submitError.value).toBeNull();
     });
 
     it('ignores duplicate login submits while login is already pending', async () => {
@@ -189,11 +217,26 @@ describe('useLoginPage', () => {
         expect(navigateTo).toHaveBeenCalledWith('/manager/students');
     });
 
+    it('exposes a real continuation link and consumes its saved target', async () => {
+        returnToCookie.value = '/manager/students';
+
+        const { useLoginPage } = await import('./useLoginPage');
+        const page = useLoginPage();
+
+        expect(page.authenticatedContinueTarget.value).toBe(
+            '/manager/students',
+        );
+
+        page.handleContinueClick();
+
+        expect(consumeReturnTo).toHaveBeenCalledOnce();
+    });
+
     it('delegates logout from the logged-in state', async () => {
         const { useLoginPage } = await import('./useLoginPage');
         const page = useLoginPage();
 
-        page.handleLogoutClick();
+        await page.handleLogoutClick();
 
         expect(handleLogout).toHaveBeenCalledOnce();
     });

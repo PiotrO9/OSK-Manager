@@ -64,7 +64,7 @@ Po zakończeniu pracy nad widokiem AI powinno zaktualizować tę checklistę ora
 
 - [ ] **W01 — Pulpit** — `/` — warianty ról; u managera także dialogi rezerwacji jazdy, tworzenia teorii i wyboru uczestników.
 - [ ] **W02 — Konto użytkownika** — `/account` — razem z edycją profilu i avatarem.
-- [ ] **W03 — Logowanie** — `/login`.
+- [x] **W03 — Logowanie** — `/login` — 2026-09-29: zaakceptowany i ukończony; zachowano charakterystyczny układ z motywem drogi, dodano dostępną walidację inline bez skoków layoutu, kontrolowane komunikaty błędów, bezpieczny powrót po logowaniu oraz poprawną obsługę aktywnej sesji.
 
 ### Przekierowania
 
@@ -111,7 +111,7 @@ Ten dokument jest mapą i checklistą **kolejnej rundy**. Przy następnych zmian
 | --------------------- | ------------- | --------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
 | W01 Pulpit            | `/`           | [index.vue](../app/pages/index.vue)           | Sesja; osobne warianty M, S/I i pozostałych ról                    | M: domyślna szkoła, sprawy wymagające obsługi, dostępne okna i rozpoczęcie rezerwacji. S/I: przypisane szkoły. Pozostałe role: treść zastępcza.         | Dashboard; `ManagerDefaultSchoolCard`, `ManagerAttentionItemsPanel`, `ManagerDashboardAvailabilitySection`, `UserDrivingSchoolsSection`; powiązany z OSK, harmonogramami i dialogami rezerwacji. | do przeglądu        |
 | W02 Konto użytkownika | `/account`    | [index.vue](../app/pages/account/index.vue)   | Sesja; edycja zależy od roli i trybu demo                          | Profil, avatar i PKK kursanta. M/A: edycja imienia i nazwiska; S/I: telefonu i bio; zapis/anulowanie edycji inline.                                     | Szczegóły + formularz; `AccountPageHeader`, `AccountProfileCard`, `AccountProfileAvatarSection`; dane sesji i panel boczny.                                                                      | do przeglądu        |
-| W03 Logowanie         | `/login`      | [login.vue](../app/pages/login.vue)           | Publiczny                                                          | Logowanie, błędy formularza, powrót do żądanej strony; warunkowe wypełnienie kont demo.                                                                 | Formularz uwierzytelnienia; `LoginLayout`, `LoginPanel`, `LoginForm`; `useLoginPage`, `useAuthReturnTo`.                                                                                         | do przeglądu        |
+| W03 Logowanie         | `/login`      | [login.vue](../app/pages/login.vue)           | Publiczny                                                          | Logowanie, błędy formularza, powrót do żądanej strony; warunkowe wypełnienie kont demo.                                                                 | Formularz uwierzytelnienia; `LoginLayout`, `LoginPanel`, `LoginForm`; `useLoginPage`, `useAuthReturnTo`.                                                                                         | gotowe — 2026-09-29 |
 | W04 Moje kursy        | `/my-courses` | [my-courses.vue](../app/pages/my-courses.vue) | Sesja; przycisk rezerwacji tylko S                                 | Przegląd kursów, postępu i godzin; S przechodzi do rezerwacji jazdy.                                                                                    | Lista + podsumowanie; `PageHeader`, `StatusBadge`, `MyCoursesList`; `/book-lesson`.                                                                                                              | do przeglądu        |
 | W05 Pojazdy           | `/vehicles`   | [index.vue](../app/pages/vehicles/index.vue)  | Sesja; funkcje zarządcze w tym widoku warunkowane dokładnie rolą M | Lista pojazdów szkoły; M: tryb zarządzania, tworzenie, szczegóły/edycja, status, wybór domyślnego, usuwanie. Pozostali potrzebują kontekstu `schoolId`. | Lista + panel statusów; `VehiclesListPanel`, `VehiclesListDesktopTable`, `VehiclesListMobileCards`, `VehicleManagerStatusGrid`, `VehicleDeleteDialog`; W24–W26.                                  | gotowe — 2026-09-27 |
 | W06 Wydarzenia dnia   | `/events`     | [index.vue](../app/pages/events/index.vue)    | M/A/I, middleware `manager-or-instructor`                          | Wybór dnia, filtr statusu, siatka/lista zależna od roli i szerokości, obsługa statusów i wejść w edycję według uprawnień.                               | Harmonogram dzienny; `EventsDayNavigation`, `EventsDaySchedulePanel`, `EventsDayScheduleGrid`; edycja wydarzeń/jazd.                                                                             | gotowe — 2026-09-27 |
@@ -506,3 +506,17 @@ Weryfikacja:
 - Nie wykonano rzeczywistego utworzenia, edycji, zmiany domyślnej ani usunięcia na danych użytkownika. Przebiegi zapisu pokrywają testy z mockowanym API. Na świeżym wejściu mobilnym nadal pojawia się wcześniejsze ostrzeżenie hydratacji w shellu aplikacji; nie pochodzi z komponentów W17 i wymaga osobnej diagnozy.
 
 Status: **zaakceptowane przez użytkownika i odhaczone 2026-09-29 — W17, W23, D06 i D07 są wykonane**.
+
+## 19. W03 — logowanie, zaakceptowane i ukończone, 2026-09-29
+
+Cel: zapewnić czytelne, dostępne i odporne logowanie dla wszystkich ról bez utraty charakterystycznej identyfikacji wizualnej ekranu.
+
+Wdrożenie: zachowano dwukolumnowy układ z ilustracją drogi, a formularz otrzymał walidację inline, fokus pierwszego błędnego pola oraz kontrolowane polskie komunikaty błędów API. Przycisk logowania pozostaje dostępny do rozpoczęcia żądania, a komunikat nieprawidłowych danych pojawia się w stałej strefie statusu bez przesuwania przycisku i sekcji demo. Utwardzono walidację ścieżki powrotnej, poprawiono powrót do chronionego widoku oraz rozpoznawanie aktywnej sesji po bezpośrednim wejściu na `/login`. Stan zalogowanego użytkownika korzysta z semantycznego linku powrotu i pokazuje postęp wylogowania. Drobne korekty mobilne skracają hero i zwiększają czytelność tekstów pomocniczych.
+
+Weryfikacja:
+
+- Vitest: 157 plików, 750 testów zaliczonych, w tym nowe przypadki middleware sesji, walidacji formularza, mapowania błędów 401 i bezpiecznych ścieżek powrotu.
+- `npm run typecheck`, ESLint, Prettier i `git diff --check` — kody wyjścia 0.
+- Headless Playwright na desktopie 1440 px i telefonie 390 px, w jasnym i ciemnym motywie: sprawdzono błędy pól, błędne dane logowania, konta demo, przekierowanie do zapamiętanego widoku, aktywną sesję i wylogowanie. Pozycja przycisku oraz sekcji demo pozostaje identyczna przed i po pokazaniu błędu uwierzytelnienia.
+
+Status: **zaakceptowane przez użytkownika i odhaczone 2026-09-29 — W03 jest wykonane**.

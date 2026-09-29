@@ -54,4 +54,20 @@ describe('useAuthReturnTo', () => {
         expect(returnTo.consumeReturnTo()).toBeNull();
         expect(returnTo.cookie.value).toBeNull();
     });
+
+    it('rejects ambiguous paths and the login page as return targets', async () => {
+        const { useAuthReturnTo } = await import('./useAuthReturnTo');
+        const returnTo = useAuthReturnTo();
+
+        returnTo.setReturnTo('/\\evil.example');
+        expect(returnTo.cookie.value).toBeNull();
+
+        returnTo.setReturnTo('/login?redirect=/manager');
+        expect(returnTo.cookie.value).toBeNull();
+
+        returnTo.setReturnTo('/manager/students?status=active#list');
+        expect(returnTo.cookie.value).toBe(
+            '/manager/students?status=active#list',
+        );
+    });
 });

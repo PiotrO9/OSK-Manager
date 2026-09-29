@@ -20,13 +20,16 @@ export const DEMO_MOCK_LOGIN_CREDENTIALS: Record<
 
 const redirectQuerySchema = z.string().min(1).optional();
 
+const emailFieldSchema = z
+    .string()
+    .trim()
+    .min(1, 'Podaj adres e-mail')
+    .email('Nieprawidłowy format e-mail');
+const passwordFieldSchema = z.string().trim().min(1, 'Podaj hasło');
+
 const loginFieldsSchema = z.object({
-    email: z
-        .string()
-        .trim()
-        .min(1, 'Podaj adres e-mail')
-        .email('Nieprawidłowy format e-mail'),
-    password: z.string().min(1, 'Podaj hasło'),
+    email: emailFieldSchema,
+    password: passwordFieldSchema,
 });
 
 export function useLoginPage() {
@@ -47,19 +50,43 @@ export function useLoginPage() {
         () => import.meta.dev || Boolean(runtimeConfig.public.demoMockLogin),
     );
 
-    const email = ref('');
-    const password = ref('');
-    const isLoading = ref(false);
+    const email = shallowRef('');
+    const password = shallowRef('');
+    const isLoading = shallowRef(false);
+    const isLoggingOut = shallowRef(false);
+    const validationEnabled = shallowRef(false);
+    const submitError = shallowRef<string | null>(null);
 
     const emailTrimmed = computed(() => email.value.trim());
     const passwordTrimmed = computed(() => password.value.trim());
-    const isFormValid = computed(() => {
-        const parsed = loginFieldsSchema.safeParse({
-            email: emailTrimmed.value,
-            password: passwordTrimmed.value,
-        });
+    const emailError = computed(() => {
+        if (!validationEnabled.value) return null;
 
-        return parsed.success;
+        const result = emailFieldSchema.safeParse(emailTrimmed.value);
+
+        return result.success
+            ? null
+            : (result.error.issues[0]?.message ?? null);
+    });
+    const passwordError = computed(() => {
+        if (!validationEnabled.value) return null;
+
+        const result = passwordFieldSchema.safeParse(passwordTrimmed.value);
+
+        return result.success
+            ? null
+            : (result.error.issues[0]?.message ?? null);
+    });
+    const authenticatedContinueTarget = computed(() => {
+        const storedTarget = returnToCookie.value;
+
+        return storedTarget && isSafeRelativeRedirectPath(storedTarget)
+            ? storedTarget
+            : '/';
+    });
+
+    watch([email, password], () => {
+        submitError.value = null;
     });
 
     function resolveRedirectTarget(): string {
@@ -162,20 +189,15 @@ export function useLoginPage() {
             return;
         }
 
+        validationEnabled.value = true;
+        submitError.value = null;
+
         const parsedFields = loginFieldsSchema.safeParse({
             email: emailTrimmed.value,
             password: passwordTrimmed.value,
         });
 
         if (!parsedFields.success) {
-            const firstIssue = parsedFields.error.issues[0];
-
-            addToast({
-                title: 'Formularz',
-                description: firstIssue?.message ?? 'Uzupełnij pola poprawnie.',
-                variant: 'error',
-            });
-
             return;
         }
 
@@ -194,31 +216,27 @@ export function useLoginPage() {
 
             navigateTo(landing);
         } catch (err) {
-            const errorMessage =
+            submitError.value =
                 err instanceof Error ? err.message : 'Błąd logowania';
-
-            addToast({
-                title: 'Błąd logowania',
-                description: errorMessage,
-                variant: 'error',
-            });
         } finally {
             isLoading.value = false;
         }
     }
 
-    function handleKeyDown(event: KeyboardEvent) {
-        if (isEnterOrSpaceKey(event)) {
-            handleLogin();
+    function handleContinueClick() {
+        consumeReturnTo();
+    }
+
+    async function handleLogoutClick() {
+        if (isLoggingOut.value) return;
+
+        isLoggingOut.value = true;
+
+        try {
+            await handleLogout();
+        } finally {
+            isLoggingOut.value = false;
         }
-    }
-
-    function handleGoHome() {
-        navigateTo('/');
-    }
-
-    function handleLogoutClick() {
-        handleLogout();
     }
 
     function handleDemoMockFill(role: DemoMockLoginRole) {
@@ -226,20 +244,25 @@ export function useLoginPage() {
 
         email.value = creds.email;
         password.value = creds.password;
+        validationEnabled.value = false;
+        submitError.value = null;
     }
 
     return {
+        authenticatedContinueTarget,
         email,
+        emailError,
         handleDemoMockFill,
-        handleGoHome,
-        handleKeyDown,
+        handleContinueClick,
         handleLogin,
         handleLogoutClick,
         isAuthenticated,
-        isFormValid,
         isLoading,
+        isLoggingOut,
         password,
+        passwordError,
         session,
         showDemoMockLoginUi,
+        submitError,
     };
 }

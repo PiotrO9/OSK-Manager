@@ -3,6 +3,7 @@ import {
     ArrowRight,
     BriefcaseBusiness,
     CarFront,
+    CircleAlert,
     Eye,
     EyeOff,
     GraduationCap,
@@ -13,11 +14,18 @@ import {
 import type { DemoMockLoginRole } from '~/composables/auth/useLoginPage';
 import { DEMO_MOCK_LOGIN_CREDENTIALS } from '~/composables/auth/useLoginPage';
 
-defineProps<{ isFormValid: boolean; isLoading: boolean; showDemo: boolean }>();
+defineProps<{
+    emailError: string | null;
+    isLoading: boolean;
+    passwordError: string | null;
+    showDemo: boolean;
+    submitError: string | null;
+}>();
 const emit = defineEmits<{ submit: []; fillDemo: [role: DemoMockLoginRole] }>();
 const email = defineModel<string>('email', { required: true });
 const password = defineModel<string>('password', { required: true });
 const passwordVisible = shallowRef(false);
+const formRef = useTemplateRef<HTMLFormElement>('loginForm');
 const demoRoles = [
     {
         role: 'manager',
@@ -55,13 +63,22 @@ function fillDemo(role: DemoMockLoginRole) {
     passwordVisible.value = false;
     emit('fillDemo', role);
 }
+
+async function handleSubmit() {
+    emit('submit');
+    await nextTick();
+
+    formRef.value?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+}
 </script>
 
 <template>
     <form
+        ref="loginForm"
         class="login-form"
         :aria-busy="isLoading"
-        @submit.prevent="emit('submit')"
+        novalidate
+        @submit.prevent="handleSubmit"
     >
         <div class="form-field">
             <label class="field-label" for="emailInput">Adres e-mail</label>
@@ -78,10 +95,22 @@ function fillDemo(role: DemoMockLoginRole) {
                     :spellcheck="false"
                     autocapitalize="none"
                     placeholder="np. jan@example.com"
+                    :aria-describedby="
+                        emailError ? 'emailInputError' : undefined
+                    "
+                    :aria-invalid="Boolean(emailError)"
                     :disabled="isLoading"
                     required
                 />
             </div>
+            <p
+                v-if="emailError"
+                id="emailInputError"
+                class="field-error"
+                role="alert"
+            >
+                {{ emailError }}
+            </p>
         </div>
         <div class="form-field">
             <label class="field-label" for="passwordInput">Hasło</label>
@@ -95,6 +124,10 @@ function fillDemo(role: DemoMockLoginRole) {
                     name="password"
                     autocomplete="current-password"
                     placeholder="Wprowadź hasło"
+                    :aria-describedby="
+                        passwordError ? 'passwordInputError' : undefined
+                    "
+                    :aria-invalid="Boolean(passwordError)"
                     :disabled="isLoading"
                     required
                 />
@@ -117,12 +150,27 @@ function fillDemo(role: DemoMockLoginRole) {
                     <Eye v-else :size="18" aria-hidden="true" />
                 </button>
             </div>
+            <p
+                v-if="passwordError"
+                id="passwordInputError"
+                class="field-error"
+                role="alert"
+            >
+                {{ passwordError }}
+            </p>
         </div>
-        <UiButton
-            class="login-submit"
-            type="submit"
-            :disabled="!isFormValid || isLoading"
-        >
+        <div class="submit-feedback" role="status" aria-live="polite">
+            <div
+                id="loginSubmitError"
+                class="form-error"
+                :class="{ 'is-visible': submitError }"
+                :aria-hidden="!submitError"
+            >
+                <CircleAlert :size="16" aria-hidden="true" />
+                <p>{{ submitError || '' }}</p>
+            </div>
+        </div>
+        <UiButton class="login-submit" type="submit" :disabled="isLoading">
             <span>{{ isLoading ? 'Logowanie…' : 'Zaloguj się' }}</span>
             <LoaderCircle
                 v-if="isLoading"
@@ -173,6 +221,13 @@ function fillDemo(role: DemoMockLoginRole) {
     margin-bottom: 9px;
     font-size: 12px;
     font-weight: 800;
+}
+.field-error {
+    margin-top: 7px;
+    color: var(--login-error-foreground);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.4;
 }
 .input-wrap {
     position: relative;
@@ -241,7 +296,7 @@ function fillDemo(role: DemoMockLoginRole) {
     justify-content: space-between;
     width: 100%;
     height: 52px;
-    margin-top: 26px;
+    margin-top: 4px;
     padding-inline: 20px;
     border: 1px solid var(--primary);
     border-radius: 8px;
@@ -253,6 +308,37 @@ function fillDemo(role: DemoMockLoginRole) {
     transition:
         background 0.18s,
         box-shadow 0.18s;
+}
+.submit-feedback {
+    display: grid;
+    align-items: center;
+    height: 32px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+.form-error {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+    padding-inline: 2px;
+    color: var(--login-error-foreground);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.3;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-2px);
+    transition:
+        opacity 140ms ease,
+        transform 140ms ease,
+        visibility 0s linear 140ms;
+}
+.form-error.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
 }
 .login-submit:hover {
     background: var(--login-accent-hover);
@@ -292,7 +378,7 @@ function fillDemo(role: DemoMockLoginRole) {
 .demo-description {
     margin-top: 6px;
     color: var(--login-muted);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.65;
 }
 .demo-roles {
@@ -313,7 +399,7 @@ function fillDemo(role: DemoMockLoginRole) {
     border-radius: 8px;
     background: var(--login-surface);
     color: var(--login-muted);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     cursor: pointer;
     transition:
@@ -356,7 +442,8 @@ function fillDemo(role: DemoMockLoginRole) {
 }
 @media (prefers-reduced-motion: reduce) {
     .login-submit,
-    .demo-role {
+    .demo-role,
+    .form-error {
         transition: none;
     }
     .loading-icon {

@@ -116,7 +116,9 @@ describe('useAuthSession', () => {
     });
 
     it('maps 401 login failures to invalid credentials', async () => {
-        bff.requestData.mockRejectedValue(fetchError(401));
+        bff.requestData.mockRejectedValue(
+            fetchError(401, { message: 'Invalid login credentials' }),
+        );
         const { useAuthSession } = await import('./useAuthSession');
         const auth = useAuthSession();
 

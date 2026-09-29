@@ -199,12 +199,6 @@ export function useAuthSession() {
                 /* Sesja już ustawiona z odpowiedzi loginu — pełny `/me` opcjonalny. */
             }
         } catch (error: unknown) {
-            const fromBody = getServerJsonErrorMessage(error);
-
-            if (fromBody) {
-                throw new Error(fromBody);
-            }
-
             const status = getFetchStatusCode(error);
 
             if (status === 401) {

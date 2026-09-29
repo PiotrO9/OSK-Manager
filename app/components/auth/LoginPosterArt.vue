@@ -152,10 +152,29 @@
         opacity: 0.85;
     }
 }
+@media (max-width: 479px) {
+    .poster-art {
+        min-height: 128px;
+    }
+    .poster-copy {
+        padding-top: 14px;
+    }
+    .poster-title {
+        font-size: 30px;
+        line-height: 1.08;
+        letter-spacing: -1.2px;
+    }
+    .poster-road {
+        width: 340px;
+        height: 374px;
+        top: -84px;
+        right: -72px;
+    }
+}
 @media (max-width: 380px) {
     .poster-road {
-        right: -120px;
-        opacity: 0.65;
+        right: -105px;
+        opacity: 0.72;
     }
 }
 </style>
