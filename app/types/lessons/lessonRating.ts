@@ -1,6 +1,11 @@
 import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
-export type LessonRatingsPeriod = 'latest' | 'yesterday' | 'last7days' | 'all';
+export type LessonRatingsPeriod =
+    | 'latest'
+    | 'yesterday'
+    | 'last7days'
+    | 'last30days'
+    | 'all';
 
 export interface LessonRatingPerson {
     id: string;
@@ -39,6 +44,12 @@ export interface LessonRatingsListPayload {
 
 export interface InstructorOwnLessonRatingsPayload {
     ratings: LessonRatingListItem[];
+    summary: LessonRatingsSummary;
+    pagination: {
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
 }
 
 function readString(o: Record<string, unknown>, key: string): string {
@@ -189,15 +200,38 @@ export function normalizeInstructorOwnLessonRatingsPayload(
     data: unknown,
 ): InstructorOwnLessonRatingsPayload {
     if (!data || typeof data !== 'object') {
-        return { ratings: [] };
+        return {
+            ratings: [],
+            summary: { averageRating: null, totalCount: 0 },
+            pagination: { page: 1, limit: 20, totalPages: 1 },
+        };
     }
 
     const o = data as Record<string, unknown>;
-    const ratingsRaw = Array.isArray(o.ratings) ? o.ratings : [];
+    const normalizedList = normalizeLessonRatingsListPayload(o);
+    const ratings = normalizedList.ratings.map(
+        ({ student: _student, ...item }) => item,
+    );
+    const pagination =
+        o.pagination && typeof o.pagination === 'object'
+            ? (o.pagination as Record<string, unknown>)
+            : {};
+    const readPositiveInt = (value: unknown, fallback: number): number => {
+        const parsed = Number.parseInt(String(value ?? ''), 10);
+
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+    };
+
+    const page = readPositiveInt(pagination.page, 1);
+    const limit = readPositiveInt(pagination.limit, 20);
+    const totalPages = readPositiveInt(
+        pagination.totalPages ?? pagination.total_pages,
+        Math.max(1, Math.ceil(normalizedList.summary.totalCount / limit)),
+    );
 
     return {
-        ratings: ratingsRaw
-            .map((item) => normalizeLessonRatingListItem(item))
-            .filter((item): item is LessonRatingListItem => item !== null),
+        ratings,
+        summary: normalizedList.summary,
+        pagination: { page, limit, totalPages },
     };
 }

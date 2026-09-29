@@ -14,7 +14,19 @@ export interface paths {
         /** Test połączenia */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @enum {string} */
+                    period?:
+                        | 'latest'
+                        | 'yesterday'
+                        | 'last7days'
+                        | 'last30days'
+                        | 'all';
+                    dateFrom?: string;
+                    dateTo?: string;
+                    page?: number;
+                    limit?: number;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1997,7 +2009,12 @@ export interface paths {
             parameters: {
                 query: {
                     schoolId: string;
-                    period?: 'latest' | 'yesterday' | 'last7days' | 'all';
+                    period?:
+                        | 'latest'
+                        | 'yesterday'
+                        | 'last7days'
+                        | 'last30days'
+                        | 'all';
                     dateFrom?: string | null;
                     dateTo?: string | null;
                     limit?: number;
@@ -5753,7 +5770,12 @@ export interface paths {
                 query: {
                     schoolId: string;
                     instructorId?: string | null;
-                    period?: 'latest' | 'yesterday' | 'last7days' | 'all';
+                    period?:
+                        | 'latest'
+                        | 'yesterday'
+                        | 'last7days'
+                        | 'last30days'
+                        | 'all';
                     dateFrom?: string | null;
                     dateTo?: string | null;
                     limit?: number;
@@ -5859,7 +5881,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Lista opinii instruktora */
+                /** @description Lista opinii instruktora + summary i paginacja */
                 200: {
                     headers: {
                         [name: string]: unknown;

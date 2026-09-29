@@ -15,6 +15,12 @@ export interface FetchLessonRatingsInput {
     limit?: number;
 }
 
+export interface FetchOwnLessonRatingsInput {
+    period?: LessonRatingsPeriod;
+    page?: number;
+    limit?: number;
+}
+
 function appendOptionalParam(
     qs: URLSearchParams,
     key: string,
@@ -75,10 +81,18 @@ export function useLessonRatingsListApi() {
         );
     }
 
-    async function fetchOwnInstructorRatings(): Promise<InstructorOwnLessonRatingsPayload> {
+    async function fetchOwnInstructorRatings(
+        input: FetchOwnLessonRatingsInput = {},
+    ): Promise<InstructorOwnLessonRatingsPayload> {
+        const qs = new URLSearchParams({
+            period: input.period ?? 'all',
+            page: String(input.page ?? 1),
+            limit: String(input.limit ?? 20),
+        });
+
         return await requestBffData<InstructorOwnLessonRatingsPayload>(
             'GET',
-            '/api/ratings/me',
+            `/api/ratings/me?${qs.toString()}`,
             {
                 fallbackMessage: 'Nie udało się pobrać Twoich ocen.',
                 normalize: normalizeInstructorOwnLessonRatingsPayload,

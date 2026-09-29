@@ -90,7 +90,7 @@ describe('GET /api/ratings/me', () => {
 
         await expect(handler(event)).resolves.toBe(mockResult);
         expect(requireInstructorFromCookie).toHaveBeenCalledWith(event);
-        expect(bffMocks.mockRatingsList).toHaveBeenCalledOnce();
+        expect(bffMocks.mockRatingsList).toHaveBeenCalledWith(event);
         expect(bffMocks.upstreamRatingsList).not.toHaveBeenCalled();
     });
 });

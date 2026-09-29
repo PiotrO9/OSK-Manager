@@ -64,8 +64,21 @@ export async function bffUpstreamOwnLessonRatingsList(
     event: H3Event,
     upstreamBase: string,
 ): Promise<{ success: true; data: unknown }> {
+    const rawQuery = getQuery(event);
+    const qs = new URLSearchParams();
+
+    for (const key of ['period', 'page', 'limit'] as const) {
+        const raw = rawQuery[key];
+        const value = Array.isArray(raw) ? raw[0] : raw;
+
+        if (value !== undefined && value !== null && String(value).trim()) {
+            qs.set(key, String(value).trim());
+        }
+    }
+
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: '/ratings/me',
+        query: qs,
         fallbackError: 'Nie udalo sie pobrac Twoich opinii.',
     });
 
@@ -136,12 +149,76 @@ export function mockLessonRatingsListPayload(
     };
 }
 
-export function mockOwnLessonRatingsPayload() {
+export function mockOwnLessonRatingsPayload(
+    options: {
+        page?: number;
+        limit?: number;
+        period?: string;
+    } = {},
+) {
     const payload = mockLessonRatingsListPayload('own', crypto.randomUUID());
+    const page = Math.max(1, options.page ?? 1);
+    const limit = Math.max(1, options.limit ?? 20);
+    const start = (page - 1) * limit;
+    const periodDays =
+        options.period === 'last7days'
+            ? 7
+            : options.period === 'last30days'
+              ? 30
+              : null;
+    const cutoff = new Date();
+
+    cutoff.setUTCHours(0, 0, 0, 0);
+
+    if (periodDays !== null) {
+        cutoff.setUTCDate(cutoff.getUTCDate() - periodDays);
+    }
+
+    const ownRatings = payload.ratings.map((rating, index) => {
+        const daysAgo = index === 2 ? 12 : index + 1;
+        const lessonDate = new Date();
+
+        lessonDate.setUTCHours(8, 0, 0, 0);
+        lessonDate.setUTCDate(lessonDate.getUTCDate() - daysAgo);
+
+        const createdAt = new Date(lessonDate);
+        const lessonEnd = new Date(lessonDate);
+
+        createdAt.setUTCHours(12, 0, 0, 0);
+        lessonEnd.setUTCHours(9, 0, 0, 0);
+
+        return {
+            ...rating,
+            createdAt: createdAt.toISOString(),
+            lesson: {
+                ...rating.lesson,
+                startTime: lessonDate.toISOString(),
+                endTime: lessonEnd.toISOString(),
+            },
+        };
+    });
+    const filteredRatings =
+        periodDays === null
+            ? ownRatings
+            : ownRatings.filter(
+                  (rating) => new Date(rating.createdAt) >= cutoff,
+              );
+    const totalCount = filteredRatings.length;
+    const averageRating =
+        totalCount > 0
+            ? filteredRatings.reduce((sum, item) => sum + item.rating, 0) /
+              totalCount
+            : null;
 
     return {
-        ratings: payload.ratings.map(
-            ({ student: _student, ...rating }) => rating,
-        ),
+        ratings: filteredRatings
+            .slice(start, start + limit)
+            .map(({ student: _student, ...rating }) => rating),
+        summary: { averageRating, totalCount },
+        pagination: {
+            page,
+            limit,
+            totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+        },
     };
 }

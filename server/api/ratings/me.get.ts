@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
         mock: async () => {
             await requireInstructorFromCookie(event);
 
-            return bffMockOwnLessonRatingsList();
+            return bffMockOwnLessonRatingsList(event);
         },
     });
 });
