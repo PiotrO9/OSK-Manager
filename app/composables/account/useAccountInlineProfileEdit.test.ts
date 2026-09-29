@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
 const addToastMock = vi.hoisted(() => vi.fn());
@@ -12,6 +12,7 @@ vi.mock('../core/useAppToast', () => ({
 
 function installVueGlobals(): void {
     vi.stubGlobal('ref', ref);
+    vi.stubGlobal('shallowRef', shallowRef);
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('watch', watch);
 }
@@ -52,10 +53,12 @@ describe('useAccountInlineProfileEdit', () => {
         profile.handleStartInlineProfileEdit();
 
         expect(profile.inlineProfileEditing.value).toBe(true);
+        expect(profile.isInlineProfileDirty.value).toBe(false);
         expect(profile.editFirstName.value).toBe('Jan');
         expect(profile.editLastName.value).toBe('Kowalski');
 
         profile.editFirstName.value = '';
+        expect(profile.isInlineProfileDirty.value).toBe(true);
         profile.handleCancelInlineProfileEdit();
 
         expect(profile.inlineProfileEditing.value).toBe(false);
@@ -77,8 +80,47 @@ describe('useAccountInlineProfileEdit', () => {
 
         await profile.handleInlineProfileSubmit();
 
-        expect(profile.profileNamesError.value).toBe('Imię jest wymagane.');
+        expect(profile.editFirstNameError.value).toBe('Imię jest wymagane.');
         expect(patchProfile).not.toHaveBeenCalled();
+    });
+
+    it('does not save when the profile draft has not changed', async () => {
+        const { useAccountInlineProfileEdit } =
+            await import('./useAccountInlineProfileEdit');
+        const patchProfile = vi.fn();
+        const profile = useAccountInlineProfileEdit({
+            session: ref<AuthSession | null>(session()),
+            isDemoSession: computed(() => false),
+            patchProfile,
+        });
+
+        profile.handleStartInlineProfileEdit();
+        await profile.handleInlineProfileSubmit();
+
+        expect(profile.isInlineProfileDirty.value).toBe(false);
+        expect(patchProfile).not.toHaveBeenCalled();
+    });
+
+    it('keeps a dirty draft when discarding is rejected', async () => {
+        const confirm = vi.fn(() => false);
+
+        vi.stubGlobal('window', { confirm });
+
+        const { useAccountInlineProfileEdit } =
+            await import('./useAccountInlineProfileEdit');
+        const profile = useAccountInlineProfileEdit({
+            session: ref<AuthSession | null>(session()),
+            isDemoSession: computed(() => false),
+            patchProfile: vi.fn(),
+        });
+
+        profile.handleStartInlineProfileEdit();
+        profile.editFirstName.value = 'Anna';
+
+        expect(profile.handleCancelInlineProfileEdit()).toBe(false);
+        expect(profile.inlineProfileEditing.value).toBe(true);
+        expect(profile.editFirstName.value).toBe('Anna');
+        expect(confirm).toHaveBeenCalledOnce();
     });
 
     it('saves manager profile names and emits success toast', async () => {
@@ -151,6 +193,7 @@ describe('useAccountInlineProfileEdit', () => {
         });
 
         profile.handleStartInlineProfileEdit();
+        profile.editFirstName.value = 'Anna';
         await profile.handleInlineProfileSubmit();
 
         expect(addToastMock).toHaveBeenCalledWith({

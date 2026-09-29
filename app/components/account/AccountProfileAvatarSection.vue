@@ -7,7 +7,7 @@ import {
     TooltipTrigger,
 } from '@/components/shadcn/tooltip';
 
-defineProps<{
+const props = defineProps<{
     avatarSrc: string;
     isAvatarUploadLoading: boolean;
     isDemoSession: boolean;
@@ -15,36 +15,35 @@ defineProps<{
     userInitials: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
     avatarError: [];
     avatarFileChange: [event: Event];
-    chooseAvatar: [];
-    chooseAvatarKeydown: [event: KeyboardEvent];
 }>();
 
-const avatarFileInputRef = defineModel<HTMLInputElement | null>(
-    'avatarFileInputRef',
-    {
-        required: true,
-    },
-);
+const avatarFileInput = useTemplateRef<HTMLInputElement>('avatarFileInput');
+
+function chooseAvatar(): void {
+    if (props.isDemoSession || props.isAvatarUploadLoading) return;
+
+    avatarFileInput.value?.click();
+}
 </script>
 
 <template>
-    <div
-        class="border-border/70 bg-muted/20 flex flex-col gap-4 rounded-2xl border px-4 py-4 sm:flex-row sm:items-center"
-    >
+    <div class="flex flex-col items-center text-center">
         <div
-            class="border-border bg-muted/40 relative flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border"
+            class="border-border bg-muted/40 relative flex size-28 items-center justify-center overflow-hidden rounded-full border shadow-xs"
             aria-hidden="true"
         >
             <img
                 v-if="showAvatarImage"
                 :src="avatarSrc"
                 alt=""
+                width="112"
+                height="112"
                 class="size-full object-cover"
-                loading="lazy"
-                @error="$emit('avatarError')"
+                loading="eager"
+                @error="emit('avatarError')"
             />
             <span
                 v-else
@@ -52,63 +51,55 @@ const avatarFileInputRef = defineModel<HTMLInputElement | null>(
             >
                 {{ userInitials }}
             </span>
-            <span
-                class="bg-primary text-primary-foreground absolute right-2 bottom-2 inline-flex size-8 items-center justify-center rounded-full shadow-sm"
-                aria-hidden="true"
-            >
-                <Camera class="size-4" />
-            </span>
         </div>
-        <div class="min-w-0 flex-1 space-y-3">
-            <input
-                ref="avatarFileInputRef"
-                type="file"
-                class="sr-only"
-                accept="image/jpeg,image/png,image/webp"
-                aria-label="Wybierz plik obrazu avatara"
-                :disabled="isDemoSession || isAvatarUploadLoading"
-                @change="$emit('avatarFileChange', $event)"
-            />
-            <div class="space-y-1">
-                <div class="flex items-center gap-2">
-                    <p class="text-foreground text-sm font-semibold">
-                        Zdjęcie profilowe
-                    </p>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <button
-                                    type="button"
-                                    class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-5 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-                                    aria-label="Wymagania zdjęcia profilowego"
-                                >
-                                    <Info class="size-4" aria-hidden="true" />
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" align="center">
-                                JPEG, PNG lub WebP, do 5 MB.
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                </div>
-                <p
-                    v-if="isDemoSession"
-                    class="text-muted-foreground text-sm"
-                    role="status"
-                >
-                    W trybie demo nie można przesłać avatara.
-                </p>
-            </div>
+
+        <input
+            ref="avatarFileInput"
+            type="file"
+            name="avatar"
+            class="sr-only"
+            accept="image/jpeg,image/png,image/webp"
+            aria-label="Wybierz plik zdjęcia profilowego"
+            :disabled="isDemoSession || isAvatarUploadLoading"
+            @change="emit('avatarFileChange', $event)"
+        />
+
+        <div class="mt-4 flex w-full items-center gap-1.5">
             <UiButton
                 type="button"
                 variant="secondary"
+                class="min-w-0 flex-1"
                 :disabled="isDemoSession || isAvatarUploadLoading"
                 :aria-busy="isAvatarUploadLoading"
-                @click="$emit('chooseAvatar')"
-                @keydown="$emit('chooseAvatarKeydown', $event)"
+                @click="chooseAvatar"
             >
-                {{ isAvatarUploadLoading ? 'Wysyłanie…' : 'Zmień avatar' }}
+                <Camera class="size-4" aria-hidden="true" />
+                {{ isAvatarUploadLoading ? 'Wysyłanie…' : 'Zmień zdjęcie' }}
             </UiButton>
+
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <button
+                            type="button"
+                            class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-6 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                            aria-label="Wymagania dotyczące zdjęcia profilowego"
+                        >
+                            <Info class="size-3.5" aria-hidden="true" />
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" align="end">
+                        JPEG, PNG lub WebP, maksymalnie 5 MB.
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
+        <p
+            v-if="isDemoSession"
+            class="text-warning-700 dark:text-warning-300 mt-2 text-xs font-medium"
+            role="status"
+        >
+            Zmiana zdjęcia jest wyłączona w trybie demo.
+        </p>
     </div>
 </template>

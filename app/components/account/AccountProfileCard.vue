@@ -1,239 +1,158 @@
 <script setup lang="ts">
-import AccountProfileAvatarSection from '~/components/account/AccountProfileAvatarSection.vue';
-import { IdCard, Mail, Phone, UserRound } from 'lucide-vue-next';
-import type { RoleBadgePresentation } from '~/composables/account/useAccountPage';
-import {
-    PROFILE_BIO_MAX_LEN,
-    PROFILE_NAME_MAX_LEN,
-} from '~/utils/account/accountProfileEdit';
+import { Save, X } from 'lucide-vue-next';
+import AccountBioSection from './AccountBioSection.vue';
+import AccountContactSection from './AccountContactSection.vue';
+import AccountPersonalDataSection from './AccountPersonalDataSection.vue';
+import AccountStudentDataSection from './AccountStudentDataSection.vue';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
-defineProps<{
+const props = defineProps<{
     accountPkkNumber: string;
-    avatarSrc: string;
     canEditPhoneAndBio: boolean;
     canEditProfileNames: boolean;
-    displayName: string;
+    editBioError: string;
+    editFirstNameError: string;
+    editLastNameError: string;
+    firstName: string | null | undefined;
     formatProfileField: (value: string | null | undefined) => string;
     inlineProfileEditing: boolean;
     isAccountPkkMissing: boolean;
-    isAvatarUploadLoading: boolean;
-    isDemoSession: boolean;
+    isInlineProfileDirty: boolean;
     isInlineProfileSaving: boolean;
     isStudentSession: boolean;
-    profileContactError: string;
-    profileNamesError: string;
+    lastName: string | null | undefined;
     session: AuthSession | null;
-    sessionRoleBadge: RoleBadgePresentation;
-    showAvatarImage: boolean;
-    userInitials: string;
 }>();
-defineEmits<{
-    avatarError: [];
-    avatarFileChange: [event: Event];
-    chooseAvatar: [];
-    chooseAvatarKeydown: [event: KeyboardEvent];
+
+const emit = defineEmits<{
+    cancelEdit: [];
+    save: [];
 }>();
-const avatarFileInputRef = defineModel<HTMLInputElement | null>(
-    'avatarFileInputRef',
-    {
-        required: true,
-    },
-);
+
 const editFirstName = defineModel<string>('editFirstName', { required: true });
 const editLastName = defineModel<string>('editLastName', { required: true });
 const editPhone = defineModel<string>('editPhone', { required: true });
 const editBio = defineModel<string>('editBio', { required: true });
+
+const profileForm = useTemplateRef<HTMLFormElement>('profileForm');
+
+function focusField(name: string): void {
+    void nextTick(() => {
+        profileForm.value
+            ?.querySelector<
+                HTMLInputElement | HTMLTextAreaElement
+            >(`[name="${name}"]`)
+            ?.focus();
+    });
+}
+
+watch(
+    () => props.editFirstNameError,
+    (error) => {
+        if (error) focusField('firstName');
+    },
+);
+watch(
+    () => props.editLastNameError,
+    (error) => {
+        if (error) focusField('lastName');
+    },
+);
+watch(
+    () => props.editBioError,
+    (error) => {
+        if (error) focusField('bio');
+    },
+);
 </script>
 
 <template>
-    <UiCard
-        class="border-border bg-card overflow-hidden rounded-2xl shadow-sm"
-        aria-label="Karta: dane konta"
-    >
-        <UiCardContent class="flex flex-col gap-4 px-6 py-0">
-            <AccountProfileAvatarSection
-                v-model:avatar-file-input-ref="avatarFileInputRef"
-                :avatar-src="avatarSrc"
-                :is-avatar-upload-loading="isAvatarUploadLoading"
-                :is-demo-session="isDemoSession"
-                :show-avatar-image="showAvatarImage"
-                :user-initials="userInitials"
-                @avatar-error="$emit('avatarError')"
-                @avatar-file-change="$emit('avatarFileChange', $event)"
-                @choose-avatar="$emit('chooseAvatar')"
-                @choose-avatar-keydown="$emit('chooseAvatarKeydown', $event)"
-            />
+    <form ref="profileForm" novalidate @submit.prevent="emit('save')">
+        <UiCard class="border-border bg-card gap-0 rounded-2xl py-0 shadow-sm">
+            <UiCardHeader class="border-border border-b px-5 py-4">
+                <h2 class="text-foreground text-lg font-bold">Dane profilu</h2>
+            </UiCardHeader>
 
-            <dl class="grid gap-4 text-sm sm:grid-cols-2">
-                <div
-                    class="flex flex-wrap items-start justify-between gap-3 sm:col-span-2"
+            <UiCardContent class="divide-border divide-y px-5 py-0">
+                <AccountPersonalDataSection
+                    v-model:edit-first-name="editFirstName"
+                    v-model:edit-last-name="editLastName"
+                    class="py-3 first:pt-5 last:pb-5"
+                    :can-edit-profile-names="canEditProfileNames"
+                    :edit-first-name-error="editFirstNameError"
+                    :edit-last-name-error="editLastNameError"
+                    :first-name="firstName"
+                    :format-profile-field="formatProfileField"
+                    :inline-profile-editing="inlineProfileEditing"
+                    :is-inline-profile-saving="isInlineProfileSaving"
+                    :last-name="lastName"
+                />
+
+                <AccountContactSection
+                    v-model:edit-phone="editPhone"
+                    class="py-3 first:pt-5 last:pb-5"
+                    :can-edit-phone-and-bio="canEditPhoneAndBio"
+                    :format-profile-field="formatProfileField"
+                    :inline-profile-editing="inlineProfileEditing"
+                    :is-inline-profile-saving="isInlineProfileSaving"
+                    :session="session"
+                />
+
+                <AccountBioSection
+                    v-model:edit-bio="editBio"
+                    class="py-3 first:pt-5 last:pb-5"
+                    :can-edit-phone-and-bio="canEditPhoneAndBio"
+                    :edit-bio-error="editBioError"
+                    :format-profile-field="formatProfileField"
+                    :inline-profile-editing="inlineProfileEditing"
+                    :is-inline-profile-saving="isInlineProfileSaving"
+                    :session="session"
+                />
+
+                <AccountStudentDataSection
+                    v-if="isStudentSession"
+                    class="py-3 first:pt-5 last:pb-5"
+                    :account-pkk-number="accountPkkNumber"
+                    :is-account-pkk-missing="isAccountPkkMissing"
+                />
+            </UiCardContent>
+
+            <div
+                v-if="inlineProfileEditing"
+                class="border-border bg-muted/20 flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+                <p
+                    v-if="isInlineProfileDirty"
+                    class="text-muted-foreground text-xs leading-relaxed"
                 >
-                    <div class="min-w-0 flex-1">
-                        <dt
-                            class="text-foreground flex items-center gap-2 text-xs font-semibold"
-                        >
-                            <UserRound
-                                class="text-muted-foreground size-4"
-                                aria-hidden="true"
-                            />
-                            Imię i nazwisko
-                        </dt>
-                        <div
-                            v-if="inlineProfileEditing && canEditProfileNames"
-                            class="mt-2 grid gap-3 sm:grid-cols-2"
-                        >
-                            <label class="grid gap-1.5">
-                                <span
-                                    class="text-muted-foreground text-xs font-medium"
-                                >
-                                    Imię
-                                </span>
-                                <UiInput
-                                    v-model="editFirstName"
-                                    :maxlength="PROFILE_NAME_MAX_LEN"
-                                    autocomplete="given-name"
-                                    :disabled="isInlineProfileSaving"
-                                    aria-label="Imię"
-                                />
-                            </label>
-                            <label class="grid gap-1.5">
-                                <span
-                                    class="text-muted-foreground text-xs font-medium"
-                                >
-                                    Nazwisko
-                                </span>
-                                <UiInput
-                                    v-model="editLastName"
-                                    :maxlength="PROFILE_NAME_MAX_LEN"
-                                    autocomplete="family-name"
-                                    :disabled="isInlineProfileSaving"
-                                    aria-label="Nazwisko"
-                                />
-                            </label>
-                            <p
-                                v-if="profileNamesError"
-                                class="text-destructive text-xs font-medium sm:col-span-2"
-                            >
-                                {{ profileNamesError }}
-                            </p>
-                        </div>
-                        <dd
-                            v-else
-                            class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 font-medium"
-                        >
-                            {{ displayName }}
-                        </dd>
-                    </div>
-                </div>
-                <div v-if="session?.email">
-                    <dt
-                        class="text-foreground flex items-center gap-2 text-xs font-semibold"
-                    >
-                        <Mail
-                            class="text-muted-foreground size-4"
-                            aria-hidden="true"
-                        />
-                        Email
-                    </dt>
-                    <dd
-                        class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 break-all"
-                    >
-                        {{ session.email }}
-                    </dd>
-                </div>
-                <div v-if="session?.role">
-                    <dt
-                        class="text-foreground flex items-center gap-2 text-xs font-semibold"
-                    >
-                        <IdCard
-                            class="text-muted-foreground size-4"
-                            aria-hidden="true"
-                        />
-                        Rola
-                    </dt>
-                    <dd class="mt-2">
-                        <UiBadge
-                            :variant="sessionRoleBadge.variant"
-                            :class="sessionRoleBadge.class"
-                            class="cursor-default text-xs"
-                        >
-                            {{ sessionRoleBadge.label }}
-                        </UiBadge>
-                    </dd>
-                </div>
-                <div v-if="isStudentSession">
-                    <dt class="text-foreground text-xs font-semibold">
-                        Numer PKK
-                    </dt>
-                    <dd
-                        class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5 font-medium"
-                        :class="{
-                            'text-muted-foreground': isAccountPkkMissing,
-                        }"
-                    >
-                        {{ accountPkkNumber }}
-                    </dd>
-                </div>
-                <div v-if="session && session.phone !== undefined">
-                    <dt
-                        class="text-foreground flex items-center gap-2 text-xs font-semibold"
-                    >
-                        <Phone
-                            class="text-muted-foreground size-4"
-                            aria-hidden="true"
-                        />
-                        Telefon
-                    </dt>
-                    <UiInput
-                        v-if="inlineProfileEditing && canEditPhoneAndBio"
-                        v-model="editPhone"
-                        type="tel"
-                        autocomplete="tel"
-                        class="mt-2"
-                        :disabled="isInlineProfileSaving"
-                        aria-label="Telefon"
-                    />
-                    <dd
-                        v-else
-                        class="border-border bg-background text-foreground mt-2 min-h-10 rounded-xl border px-3 py-2.5"
-                    >
-                        {{ formatProfileField(session.phone) }}
-                    </dd>
-                </div>
-                <div
-                    v-if="session && session.bio !== undefined"
-                    class="sm:col-span-2"
+                    Masz niezapisane zmiany.
+                </p>
+                <ActionGroup
+                    label="Akcje edycji profilu"
+                    align="end"
+                    class="sm:ml-auto"
                 >
-                    <dt class="text-foreground text-xs font-semibold">
-                        O mnie
-                    </dt>
-                    <UiTextarea
-                        v-if="inlineProfileEditing && canEditPhoneAndBio"
-                        v-model="editBio"
-                        class="mt-2 min-h-28 resize-y"
-                        :maxlength="PROFILE_BIO_MAX_LEN"
+                    <UiButton
+                        type="button"
+                        variant="outline"
                         :disabled="isInlineProfileSaving"
-                        aria-label="O mnie"
-                    />
-                    <dd
-                        v-else
-                        class="border-border bg-background text-foreground mt-2 min-h-24 rounded-xl border px-3 py-2.5 leading-relaxed whitespace-pre-wrap"
+                        @click="$emit('cancelEdit')"
                     >
-                        {{ formatProfileField(session.bio) }}
-                    </dd>
-                    <p
-                        v-if="
-                            inlineProfileEditing &&
-                            canEditPhoneAndBio &&
-                            profileContactError
+                        <X class="size-4" aria-hidden="true" />
+                        Anuluj
+                    </UiButton>
+                    <UiButton
+                        type="submit"
+                        :disabled="
+                            isInlineProfileSaving || !isInlineProfileDirty
                         "
-                        class="text-destructive mt-2 text-xs font-medium"
+                        :aria-busy="isInlineProfileSaving"
                     >
-                        {{ profileContactError }}
-                    </p>
-                </div>
-            </dl>
-        </UiCardContent>
-    </UiCard>
+                        <Save class="size-4" aria-hidden="true" />
+                        {{ isInlineProfileSaving ? 'Zapisywanie…' : 'Zapisz' }}
+                    </UiButton>
+                </ActionGroup>
+            </div>
+        </UiCard>
+    </form>
 </template>

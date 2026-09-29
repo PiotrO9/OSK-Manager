@@ -16,29 +16,20 @@ interface UseAccountAvatarUploadInput {
 export function useAccountAvatarUpload(input: UseAccountAvatarUploadInput) {
     const { addToast } = useAppToast();
 
-    const avatarFileInputRef = ref<HTMLInputElement | null>(null);
-    const isAvatarUploadLoading = ref(false);
-    const avatarImageFailed = ref(false);
+    const uploadedAvatarSrc = shallowRef('');
+    const isAvatarUploadLoading = shallowRef(false);
+    const avatarImageFailed = shallowRef(false);
+
+    const avatarSrc = computed(
+        () => uploadedAvatarSrc.value || input.avatarSrc.value,
+    );
 
     const showAvatarImage = computed(
-        () => Boolean(input.avatarSrc.value) && !avatarImageFailed.value,
+        () => Boolean(avatarSrc.value) && !avatarImageFailed.value,
     );
 
     function handleAvatarImageError() {
         avatarImageFailed.value = true;
-    }
-
-    function handleChooseAvatarClick() {
-        if (input.isDemoSession.value || isAvatarUploadLoading.value) return;
-
-        avatarFileInputRef.value?.click();
-    }
-
-    function handleChooseAvatarKeyDown(event: KeyboardEvent) {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-
-        event.preventDefault();
-        handleChooseAvatarClick();
     }
 
     async function handleAvatarFileChange(event: Event) {
@@ -76,14 +67,29 @@ export function useAccountAvatarUpload(input: UseAccountAvatarUploadInput) {
 
             body.append('file', file, file.name);
 
-            await requestBffData<string>('POST', '/api/auth/profile/avatar', {
-                body,
-                fallbackMessage: 'Upload nie powiódł się.',
-                invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
-                normalize: normalizeBffPhotoUrl,
-            });
+            uploadedAvatarSrc.value = await requestBffData<string>(
+                'POST',
+                '/api/auth/profile/avatar',
+                {
+                    body,
+                    fallbackMessage: 'Upload nie powiódł się.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera.',
+                    normalize: normalizeBffPhotoUrl,
+                },
+            );
 
-            await input.refreshProfileFromServer();
+            try {
+                await input.refreshProfileFromServer();
+            } catch {
+                addToast({
+                    variant: 'warning',
+                    title: 'Zdjęcie zostało zapisane',
+                    description:
+                        'Nie udało się odświeżyć profilu. Nowe zdjęcie zobaczysz także po ponownym wejściu na stronę.',
+                });
+
+                return;
+            }
 
             addToast({
                 variant: 'success',
@@ -104,15 +110,17 @@ export function useAccountAvatarUpload(input: UseAccountAvatarUploadInput) {
     }
 
     watch(input.avatarSrc, () => {
+        uploadedAvatarSrc.value = '';
+    });
+
+    watch(avatarSrc, () => {
         avatarImageFailed.value = false;
     });
 
     return {
-        avatarFileInputRef,
+        avatarSrc,
         handleAvatarFileChange,
         handleAvatarImageError,
-        handleChooseAvatarClick,
-        handleChooseAvatarKeyDown,
         isAvatarUploadLoading,
         showAvatarImage,
     };
