@@ -15,6 +15,12 @@ export interface ManagerSchoolAvailabilityWeekDay {
     isToday: boolean;
 }
 
+export interface ManagerSchoolAvailabilitySlotLayout {
+    slot: LessonBookingAggregatedSlot;
+    lane: number;
+    laneCount: number;
+}
+
 export const MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR = 7;
 export const MANAGER_SCHOOL_AVAILABILITY_END_HOUR = 19;
 export const MANAGER_SCHOOL_AVAILABILITY_PX_PER_MINUTE = 1;
@@ -153,6 +159,95 @@ export function getSchoolAvailabilitySlotTopPx(startTime: string): number {
     const baseMin = MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR * 60;
 
     return (startMin - baseMin) * MANAGER_SCHOOL_AVAILABILITY_PX_PER_MINUTE;
+}
+
+export function getSchoolAvailabilitySlotHeightPx(
+    startTime: string,
+    endTime: string,
+): number {
+    const startMin = schoolAvailabilityTimeToMinutes(startTime);
+    const endMin = schoolAvailabilityTimeToMinutes(endTime);
+
+    if (startMin === null || endMin === null || endMin <= startMin) {
+        return 44;
+    }
+
+    return Math.max(44, endMin - startMin - 8);
+}
+
+export function isSchoolAvailabilitySlotInPast(
+    slot: LessonBookingAggregatedSlot,
+    now = new Date(),
+): boolean {
+    const start = new Date(`${slot.date}T${slot.startTime}:00`);
+
+    return Number.isNaN(start.getTime()) || start.getTime() <= now.getTime();
+}
+
+export function buildSchoolAvailabilitySlotLayouts(
+    slots: readonly LessonBookingAggregatedSlot[],
+): ManagerSchoolAvailabilitySlotLayout[] {
+    const sorted = [...slots]
+        .map((slot) => ({
+            slot,
+            start: schoolAvailabilityTimeToMinutes(slot.startTime),
+            end: schoolAvailabilityTimeToMinutes(slot.endTime),
+        }))
+        .filter(
+            (
+                item,
+            ): item is {
+                slot: LessonBookingAggregatedSlot;
+                start: number;
+                end: number;
+            } =>
+                item.start !== null &&
+                item.end !== null &&
+                item.end > item.start,
+        )
+        .sort((a, b) => a.start - b.start || a.end - b.end);
+    const output: ManagerSchoolAvailabilitySlotLayout[] = [];
+    let cluster: typeof sorted = [];
+    let clusterEnd = -1;
+
+    function flushCluster(): void {
+        if (cluster.length === 0) return;
+
+        const laneEnds: number[] = [];
+        const assigned = cluster.map((item) => {
+            let lane = laneEnds.findIndex((end) => end <= item.start);
+
+            if (lane < 0) {
+                lane = laneEnds.length;
+                laneEnds.push(item.end);
+            } else {
+                laneEnds[lane] = item.end;
+            }
+
+            return { item, lane };
+        });
+        const laneCount = laneEnds.length;
+
+        for (const { item, lane } of assigned) {
+            output.push({ slot: item.slot, lane, laneCount });
+        }
+
+        cluster = [];
+        clusterEnd = -1;
+    }
+
+    for (const item of sorted) {
+        if (cluster.length > 0 && item.start >= clusterEnd) {
+            flushCluster();
+        }
+
+        cluster.push(item);
+        clusterEnd = Math.max(clusterEnd, item.end);
+    }
+
+    flushCluster();
+
+    return output;
 }
 
 export function buildSchoolAvailabilityAggregatedSlots(

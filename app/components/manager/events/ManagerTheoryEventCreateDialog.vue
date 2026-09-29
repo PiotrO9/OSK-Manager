@@ -5,10 +5,12 @@ const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;
     /** Do listy kursów (opcjonalny `courseId` przy POST THEORY). */
     schoolId: string;
+    showBack?: boolean;
 }>();
 
 const emit = defineEmits<{
     created: [payload: { eventId: string; capacity: number | null }];
+    back: [];
 }>();
 
 const open = defineModel<boolean>('open', { required: true });
@@ -38,6 +40,11 @@ const {
     slotCtx: toRef(props, 'slotCtx'),
     emitCreated: (payload) => emit('created', payload),
 });
+
+function handleBack(): void {
+    handleClose();
+    emit('back');
+}
 </script>
 
 <template>
@@ -49,14 +56,10 @@ const {
             class="max-h-[90vh] max-w-lg overflow-y-auto"
         >
             <UiDialogHeader>
-                <UiDialogTitle>Blok teorii (wiele kursantów)</UiDialogTitle>
+                <UiDialogTitle>Nowe zajęcia teoretyczne</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Utworzenie wydarzenia
-                    <span class="font-mono">POST /api/events</span> (typ THEORY)
-                    z limitem miejsc. Opcjonalnie powiąż z kursem (kontekst
-                    bloku). Kursantów na blok nie zapisuje się automatycznie z
-                    kursu — skład grupy ustawisz osobno po utworzeniu (edycja
-                    bloku / endpoint uczestników).
+                    Wybierz instruktora, opcjonalny kurs oraz limit miejsc.
+                    Uczestników dodasz w następnym kroku.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -162,9 +165,8 @@ const {
                         </UiSelectContent>
                     </UiSelect>
                     <p class="text-muted-foreground text-xs">
-                        Powiązanie z kursem nie dodaje kursantów na ten blok —
-                        lista uczestników zaczyna się pusta; przypisania robisz
-                        osobno (zgodnie z limitem miejsc).
+                        Powiązanie z kursem nie zapisuje automatycznie jego
+                        uczestników na te zajęcia.
                     </p>
                 </div>
 
@@ -191,8 +193,8 @@ const {
                         id="theory-event-capacity-hint"
                         class="text-muted-foreground text-xs"
                     >
-                        Puste pole = brak limitu w MVP. Wpisz np. 20, aby
-                        ograniczyć liczbę zapisów w UI i na backendzie.
+                        Pozostaw puste, jeśli liczba uczestników nie ma być
+                        ograniczona.
                     </p>
                 </div>
 
@@ -226,9 +228,9 @@ const {
                         type="button"
                         variant="outline"
                         :disabled="isLoading"
-                        @click="handleClose"
+                        @click="props.showBack ? handleBack() : handleClose()"
                     >
-                        Anuluj
+                        {{ props.showBack ? 'Wstecz' : 'Anuluj' }}
                     </UiButton>
                     <UiButton
                         type="submit"

@@ -5,10 +5,12 @@ import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';
 const props = defineProps<{
     slotCtx: LessonBookingSlotContext | null;
     schoolCourses: readonly CourseListItem[];
+    showBack?: boolean;
 }>();
 
 const emit = defineEmits<{
     booked: [];
+    back: [];
 }>();
 
 const open = defineModel<boolean>('open', { required: true });
@@ -41,6 +43,11 @@ const {
     schoolCourses: toRef(props, 'schoolCourses'),
     emitBooked: () => emit('booked'),
 });
+
+function handleBack(): void {
+    handleClose();
+    emit('back');
+}
 </script>
 
 <template>
@@ -156,9 +163,9 @@ const {
                         type="button"
                         variant="outline"
                         :disabled="isCreating"
-                        @click="handleClose"
+                        @click="props.showBack ? handleBack() : handleClose()"
                     >
-                        Anuluj
+                        {{ props.showBack ? 'Wstecz' : 'Anuluj' }}
                     </UiButton>
                     <UiButton
                         type="submit"

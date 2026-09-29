@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import UserDrivingSchoolsSection from '~/components/dashboard/UserDrivingSchoolsSection.vue';
-import type { ManagerAttentionPayload } from '~/types/manager/attentionItem';
-import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import { ShieldAlert } from 'lucide-vue-next';
+import RoleDashboardContent from '~/components/dashboard/RoleDashboardContent.vue';
 
 definePageMeta({
     layout: 'app-shell',
@@ -9,150 +8,84 @@ definePageMeta({
 
 usePageMeta({
     title: () => 'Pulpit',
-    description: () => 'Panel zarządzania OSK.',
+    description: () => 'Najważniejsze informacje i działania w OSK Manager.',
 });
 
 const { session } = useAuthSession();
-const { fetchDefaultDrivingSchool, isDefaultLoading } = useDrivingSchoolsApi();
-const { fetchAttentionItems, isLoading: isAttentionLoading } =
-    useManagerAttentionItemsApi();
 
-const isManager = computed(() => session.value?.role === 'MANAGER');
+const normalizedRole = computed(() =>
+    session.value?.role?.trim().toUpperCase(),
+);
+const isManager = computed(() => normalizedRole.value === 'MANAGER');
+const userDashboardRole = computed(() => {
+    if (normalizedRole.value === 'STUDENT') return 'STUDENT' as const;
 
-const isInstructorOrStudent = computed(() => {
-    const r = session.value?.role?.trim().toUpperCase();
+    if (normalizedRole.value === 'INSTRUCTOR') return 'INSTRUCTOR' as const;
 
-    return r === 'INSTRUCTOR' || r === 'STUDENT';
+    return null;
 });
-
 const sessionDrivingSchools = computed(
     () => session.value?.drivingSchools ?? [],
 );
-
-const defaultOsk = ref<DrivingSchool | null>(null);
-const defaultOskError = ref<string | null>(null);
-const attentionItems = ref<ManagerAttentionPayload>({
-    items: [],
-    total: 0,
-    hiddenCount: 0,
-});
-const attentionError = shallowRef<string | null>(null);
-
-async function loadAttentionItems(schoolId: string) {
-    attentionError.value = null;
-
-    try {
-        attentionItems.value = await fetchAttentionItems(schoolId);
-    } catch (err) {
-        attentionError.value =
-            err instanceof Error
-                ? err.message
-                : 'Nie udało się pobrać spraw do obsługi.';
-    }
-}
-
-async function loadDefaultOsk() {
-    if (!isManager.value) return;
-
-    defaultOskError.value = null;
-
-    const result = await fetchDefaultDrivingSchool();
-
-    if (result.outcome === 'empty_response') {
-        defaultOskError.value = 'Nie udało się pobrać domyślnego OSK.';
-
-        return;
-    }
-
-    if (result.outcome === 'not_configured') {
-        await navigateTo('/manager/osk');
-
-        return;
-    }
-
-    if (result.outcome === 'unreadable') {
-        defaultOskError.value = 'Nie udało się wczytać danych OSK.';
-
-        return;
-    }
-
-    defaultOsk.value = result.school;
-    await loadAttentionItems(result.school.id);
-}
-
-onMounted(() => {
-    loadDefaultOsk();
-});
 </script>
 
 <template>
     <div class="space-y-5 md:space-y-6">
-        <div
-            class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
+        <header class="space-y-1.5">
+            <h1
+                class="text-foreground text-2xl leading-tight font-bold tracking-tight text-balance md:text-3xl"
+            >
+                Witaj{{ session?.userName ? `, ${session.userName}` : '' }}
+            </h1>
+            <p class="text-muted-foreground text-sm leading-relaxed">
+                {{
+                    isManager
+                        ? 'Najważniejsze sprawy i wolne terminy w Twojej szkole.'
+                        : userDashboardRole === 'STUDENT'
+                          ? 'Twój kurs, najbliższe zajęcia i rozliczenia w jednym miejscu.'
+                          : userDashboardRole === 'INSTRUCTOR'
+                            ? 'Dzisiejszy plan, najbliższe zajęcia i opinie kursantów.'
+                            : 'Najważniejsze informacje o Twoim koncie.'
+                }}
+            </p>
+        </header>
+
+        <ManagerDashboardContent v-if="isManager" />
+
+        <RoleDashboardContent
+            v-else-if="userDashboardRole"
+            :role="userDashboardRole"
+            :schools="sessionDrivingSchools"
+        />
+
+        <section
+            v-else
+            class="border-border bg-card rounded-2xl border p-5 shadow-sm md:p-6"
+            aria-labelledby="dashboard-role-heading"
         >
-            <div class="space-y-1.5">
-                <h1
-                    class="text-foreground text-2xl leading-tight font-bold tracking-tight md:text-3xl"
+            <div class="flex items-start gap-4">
+                <span
+                    class="bg-muted text-muted-foreground flex size-11 shrink-0 items-center justify-center rounded-xl"
                 >
-                    Witaj{{ session?.userName ? `, ${session.userName}` : '' }}
-                </h1>
-                <p class="text-muted-foreground text-sm leading-relaxed">
-                    {{
-                        isManager
-                            ? 'Twój panel zarządzania szkołą jazdy.'
-                            : isInstructorOrStudent
-                              ? 'Twój panel w szkole jazdy.'
-                              : 'Panel aplikacji.'
-                    }}
-                </p>
-            </div>
-        </div>
-
-        <template v-if="isManager">
-            <div
-                v-if="isDefaultLoading"
-                class="border-border bg-card text-muted-foreground rounded-2xl border p-5 text-sm shadow-sm"
-                role="status"
-            >
-                Wczytywanie danych OSK…
-            </div>
-
-            <p
-                v-else-if="defaultOskError"
-                class="border-destructive/30 bg-destructive/5 text-destructive rounded-2xl border p-5 text-sm"
-                role="alert"
-            >
-                {{ defaultOskError }}
-            </p>
-
-            <template v-else-if="defaultOsk">
-                <div class="space-y-4 md:space-y-5">
-                    <ManagerDefaultSchoolCard :school="defaultOsk" />
-
-                    <ManagerAttentionItemsPanel
-                        :items="attentionItems.items"
-                        :hidden-count="attentionItems.hiddenCount"
-                        :is-loading="isAttentionLoading"
-                        :error="attentionError"
-                        @retry="loadAttentionItems(defaultOsk.id)"
-                    />
-
-                    <ManagerDashboardAvailabilitySection
-                        :school-id="defaultOsk.id"
-                    />
+                    <ShieldAlert class="size-5" aria-hidden="true" />
+                </span>
+                <div class="space-y-1">
+                    <h2
+                        id="dashboard-role-heading"
+                        class="text-foreground text-lg font-bold"
+                    >
+                        Brak dostępnego pulpitu
+                    </h2>
+                    <p class="text-muted-foreground text-sm leading-relaxed">
+                        Twoja rola nie ma jeszcze przypisanego widoku
+                        startowego. Skorzystaj z nawigacji lub przejdź do
+                        ustawień konta.
+                    </p>
+                    <UiButton as-child variant="outline" class="mt-3 min-h-11">
+                        <NuxtLink to="/account">Przejdź do konta</NuxtLink>
+                    </UiButton>
                 </div>
-            </template>
-        </template>
-
-        <template v-else-if="isInstructorOrStudent">
-            <UserDrivingSchoolsSection :schools="sessionDrivingSchools" />
-        </template>
-
-        <template v-else>
-            <p class="text-muted-foreground max-w-2xl text-sm leading-relaxed">
-                Szkielet aplikacji z lewym panelem nawigacji. Treść modułów i
-                statystyki możesz dodać tutaj później.
-            </p>
-        </template>
+            </div>
+        </section>
     </div>
 </template>

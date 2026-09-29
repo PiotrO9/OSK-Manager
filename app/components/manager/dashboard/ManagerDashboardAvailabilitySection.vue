@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays } from 'lucide-vue-next';
+import { CalendarDays, ChevronRight } from 'lucide-vue-next';
 
 defineProps<{
     schoolId: string;
@@ -25,16 +25,24 @@ defineProps<{
                         id="dashboard-school-availability-heading"
                         class="text-foreground text-xl leading-tight font-semibold tracking-tight"
                     >
-                        Dostępność instruktorów
+                        Wolne terminy instruktorów
                     </h2>
                     <p
                         class="text-muted-foreground max-w-2xl text-sm leading-relaxed"
                     >
-                        Wolne sloty wszystkich instruktorów przypisanych do
-                        szkoły (widok tygodniowy).
+                        Wybierz termin, aby zarezerwować jazdę lub utworzyć
+                        zajęcia teoretyczne.
                     </p>
                 </div>
             </div>
+
+            <NuxtLink
+                to="/manager/schedule"
+                class="border-border text-foreground hover:bg-muted/60 focus-visible:ring-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            >
+                Pełny harmonogram
+                <ChevronRight class="size-4" aria-hidden="true" />
+            </NuxtLink>
         </div>
 
         <ManagerSchoolWeeklyAvailabilityCalendar :school-id="schoolId" />

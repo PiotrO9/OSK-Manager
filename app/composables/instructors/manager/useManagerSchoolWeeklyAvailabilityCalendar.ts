@@ -15,8 +15,11 @@ import {
 import {
     buildSchoolAvailabilityAggregatedSlots,
     buildSchoolAvailabilityCalendarFiltersPayload,
+    buildSchoolAvailabilitySlotLayouts,
     buildSchoolAvailabilityWeekDays,
     getSchoolAvailabilitySlotTopPx,
+    getSchoolAvailabilitySlotHeightPx,
+    isSchoolAvailabilitySlotInPast,
     isSchoolAvailabilitySlotInsideTimeline,
     MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
     MANAGER_SCHOOL_AVAILABILITY_END_HOUR,
@@ -59,7 +62,9 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     }
 
     const slots = ref<SchoolAvailabilitySlot[]>([]);
-    const errorMessage = ref<string | null>(null);
+    const errorMessage = shallowRef<string | null>(null);
+    const selectedMobileDate = shallowRef('');
+    const referenceNow = shallowRef(new Date());
     const { fetchSlots, isLoading } = useSchoolAvailabilitySlotsApi();
     const {
         weekStart,
@@ -91,7 +96,9 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
 
     const aggregatedSlotsFlat = computed((): LessonBookingAggregatedSlot[] =>
         buildSchoolAvailabilityAggregatedSlots(slots.value).filter(
-            isSchoolAvailabilitySlotInsideTimeline,
+            (slot) =>
+                isSchoolAvailabilitySlotInsideTimeline(slot) &&
+                !isSchoolAvailabilitySlotInPast(slot, referenceNow.value),
         ),
     );
 
@@ -117,6 +124,20 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         dateStr: string,
     ): LessonBookingAggregatedSlot[] {
         return aggregatedSlotsByDate.value.get(dateStr) ?? [];
+    }
+
+    function slotLayoutsForDate(dateStr: string) {
+        return buildSchoolAvailabilitySlotLayouts(
+            aggregatedSlotsForDate(dateStr),
+        );
+    }
+
+    const mobileSlots = computed(() =>
+        aggregatedSlotsForDate(selectedMobileDate.value),
+    );
+
+    function selectMobileDate(dateStr: string): void {
+        selectedMobileDate.value = dateStr;
     }
 
     function handleSlotClick(slot: LessonBookingAggregatedSlot): void {
@@ -184,6 +205,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         const seq = ++fetchSeq;
 
         errorMessage.value = null;
+        referenceNow.value = new Date();
 
         const { dateFrom, dateTo } = weekRangeFromMonday(weekStart.value);
 
@@ -229,6 +251,28 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         { immediate: true },
     );
 
+    watch(
+        weekDays,
+        (days) => {
+            const currentSelectionExists = days.some(
+                (day) => day.dateStr === selectedMobileDate.value,
+            );
+
+            if (currentSelectionExists) return;
+
+            selectedMobileDate.value =
+                days.find((day) => day.isToday)?.dateStr ??
+                days.find(
+                    (day) =>
+                        new Date(`${day.dateStr}T23:59:59`).getTime() >
+                        Date.now(),
+                )?.dateStr ??
+                days[0]?.dateStr ??
+                '';
+        },
+        { immediate: true },
+    );
+
     return {
         BASE_HOUR: MANAGER_SCHOOL_AVAILABILITY_BASE_HOUR,
         END_HOUR: MANAGER_SCHOOL_AVAILABILITY_END_HOUR,
@@ -251,7 +295,13 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         weekRangeLabel,
         aggregatedSlotsFlat,
         aggregatedSlotsForDate,
+        mobileSlots,
+        selectedMobileDate,
+        selectMobileDate,
+        slotLayoutsForDate,
+        slotHeightPx: getSchoolAvailabilitySlotHeightPx,
         slotTopPx: getSchoolAvailabilitySlotTopPx,
+        reload: loadWeek,
         handleSlotClick,
         handlePickLessonFromChoice,
         handlePickTheoryFromChoice,

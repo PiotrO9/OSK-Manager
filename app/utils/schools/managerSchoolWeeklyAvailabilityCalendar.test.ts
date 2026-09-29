@@ -5,10 +5,13 @@ import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilityS
 import {
     buildSchoolAvailabilityAggregatedSlots,
     buildSchoolAvailabilityCalendarFiltersPayload,
+    buildSchoolAvailabilitySlotLayouts,
     buildSchoolAvailabilityWeekDays,
     formatSchoolAvailabilityWeekRangeLabel,
     getSchoolAvailabilitySelectedWeekMonday,
+    getSchoolAvailabilitySlotHeightPx,
     getSchoolAvailabilitySlotTopPx,
+    isSchoolAvailabilitySlotInPast,
     isSchoolAvailabilitySlotInsideTimeline,
     schoolAvailabilityTimeToMinutes,
 } from './managerSchoolWeeklyAvailabilityCalendar';
@@ -170,5 +173,51 @@ describe('manager school weekly availability calendar utilities', () => {
         expect(getSchoolAvailabilitySlotTopPx('07:00')).toBe(0);
         expect(getSchoolAvailabilitySlotTopPx('08:30')).toBe(90);
         expect(getSchoolAvailabilitySlotTopPx('invalid')).toBe(0);
+    });
+
+    it('filters slots whose start is not in the future', () => {
+        const now = new Date('2026-09-29T10:00:00');
+
+        expect(
+            isSchoolAvailabilitySlotInPast(
+                aggregatedSlot({
+                    date: '2026-09-29',
+                    startTime: '09:00',
+                    endTime: '10:00',
+                }),
+                now,
+            ),
+        ).toBe(true);
+        expect(
+            isSchoolAvailabilitySlotInPast(
+                aggregatedSlot({
+                    date: '2026-09-29',
+                    startTime: '10:30',
+                    endTime: '11:30',
+                }),
+                now,
+            ),
+        ).toBe(false);
+    });
+
+    it('assigns overlapping slots to separate lanes', () => {
+        const layouts = buildSchoolAvailabilitySlotLayouts([
+            aggregatedSlot({ startTime: '09:00', endTime: '10:00' }),
+            aggregatedSlot({ startTime: '09:30', endTime: '10:30' }),
+            aggregatedSlot({ startTime: '10:30', endTime: '11:30' }),
+        ]);
+
+        expect(layouts.map(({ lane, laneCount }) => [lane, laneCount])).toEqual(
+            [
+                [0, 2],
+                [1, 2],
+                [0, 1],
+            ],
+        );
+    });
+
+    it('uses the real slot duration with a usable minimum height', () => {
+        expect(getSchoolAvailabilitySlotHeightPx('09:00', '10:00')).toBe(52);
+        expect(getSchoolAvailabilitySlotHeightPx('09:00', '09:30')).toBe(44);
     });
 });

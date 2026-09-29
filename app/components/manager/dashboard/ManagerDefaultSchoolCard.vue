@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, ExternalLink, MapPin } from 'lucide-vue-next';
+import { Building2, ChevronRight, MapPin } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 defineProps<{
@@ -23,6 +23,11 @@ defineProps<{
                 </div>
 
                 <div class="min-w-0 flex-1 space-y-1">
+                    <p
+                        class="text-primary text-[11px] font-bold tracking-wide uppercase"
+                    >
+                        Domyślna szkoła
+                    </p>
                     <p
                         class="text-foreground truncate text-lg font-semibold tracking-tight"
                     >
@@ -49,10 +54,10 @@ defineProps<{
 
             <NuxtLink
                 to="/manager/osk"
-                class="border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary inline-flex size-9 shrink-0 items-center justify-center rounded-xl border bg-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:bg-transparent"
-                aria-label="Przejdź do listy szkół jazdy"
+                class="border-border text-foreground hover:bg-muted/60 focus-visible:ring-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border bg-white px-3 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:bg-transparent"
             >
-                <ExternalLink class="size-4" aria-hidden="true" />
+                Zarządzaj szkołami
+                <ChevronRight class="size-4" aria-hidden="true" />
             </NuxtLink>
         </div>
     </div>

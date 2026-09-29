@@ -56,14 +56,14 @@ function handleClose(): void {
     <UiDialog v-model:open="open">
         <UiDialogContent :aria-describedby="DESCRIPTION_ID" class="max-w-md">
             <UiDialogHeader>
-                <UiDialogTitle>Wybierz rodzaj rezerwacji</UiDialogTitle>
+                <UiDialogTitle>Co chcesz zaplanować?</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Slot
+                    Wybrany termin:
                     <span v-if="slotWhenLabel" class="font-medium">{{
                         slotWhenLabel
                     }}</span>
-                    — jedna lekcja to jeden kursant; blok teorii pozwala zapisać
-                    wielu kursantów (limit miejsc).
+                    . Jazda praktyczna jest przeznaczona dla jednego kursanta, a
+                    zajęcia teoretyczne mogą mieć wielu uczestników.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -73,7 +73,7 @@ function handleClose(): void {
                     class="flex-1"
                     @click="handlePickLesson"
                 >
-                    Rezerwuj lekcję (1 kursant)
+                    Zarezerwuj jazdę
                 </UiButton>
                 <UiButton
                     type="button"
@@ -81,7 +81,7 @@ function handleClose(): void {
                     class="flex-1"
                     @click="handlePickTheoryBlock"
                 >
-                    Blok teorii (wiele osób)
+                    Utwórz zajęcia teoretyczne
                 </UiButton>
             </div>
 

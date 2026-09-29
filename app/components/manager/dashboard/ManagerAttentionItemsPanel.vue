@@ -13,24 +13,27 @@ import type {
 
 interface Props {
     items: readonly ManagerAttentionItem[];
-    hiddenCount: number;
+    total: number;
     isLoading: boolean;
     error: string | null;
 }
 
-interface Emits {
-    retry: [];
-}
-
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
+const emit = defineEmits<{ retry: [] }>();
+const showAll = shallowRef(false);
+const initialLimit = 4;
 const hasItems = computed(() => props.items.length > 0);
+const visibleItems = computed(() =>
+    showAll.value ? props.items : props.items.slice(0, initialLimit),
+);
+const remainingLoadedCount = computed(() =>
+    Math.max(0, props.items.length - visibleItems.value.length),
+);
 
 const priorityLabels: Record<ManagerAttentionItemPriority, string> = {
     urgent: 'Pilne',
     todo: 'Do zrobienia',
-    info: 'Info',
+    info: 'Informacja',
 };
 
 const priorityClasses: Record<ManagerAttentionItemPriority, string> = {
@@ -42,23 +45,15 @@ const priorityClasses: Record<ManagerAttentionItemPriority, string> = {
 function formatDueDate(date: string | null): string | null {
     if (!date) return null;
 
-    try {
-        return new Intl.DateTimeFormat('pl-PL', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-        }).format(new Date(`${date}T00:00:00`));
-    } catch {
-        return date;
-    }
-}
+    const parsed = new Date(`${date}T00:00:00`);
 
-function priorityClass(priority: ManagerAttentionItemPriority): string {
-    return priorityClasses[priority];
-}
+    if (Number.isNaN(parsed.getTime())) return date;
 
-function priorityLabel(priority: ManagerAttentionItemPriority): string {
-    return priorityLabels[priority];
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    }).format(parsed);
 }
 </script>
 
@@ -68,33 +63,37 @@ function priorityLabel(priority: ManagerAttentionItemPriority): string {
         aria-labelledby="manager-attention-heading"
     >
         <div
-            class="border-border flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between md:p-5"
+            class="border-border flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between md:p-5"
         >
             <div class="flex min-w-0 items-start gap-3">
                 <div
-                    class="bg-primary-50 text-primary-600 flex size-10 shrink-0 items-center justify-center rounded-xl"
+                    class="bg-primary-50 text-primary-700 flex size-11 shrink-0 items-center justify-center rounded-xl"
                 >
                     <AlertTriangle class="size-5" aria-hidden="true" />
                 </div>
-
                 <div class="min-w-0 space-y-1">
-                    <h2
-                        id="manager-attention-heading"
-                        class="text-foreground text-xl leading-tight font-semibold tracking-tight"
-                    >
-                        Wymaga uwagi
-                    </h2>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2
+                            id="manager-attention-heading"
+                            class="text-foreground text-xl leading-tight font-semibold tracking-tight"
+                        >
+                            Wymaga uwagi
+                        </h2>
+                        <UiBadge v-if="total > 0" variant="secondary">
+                            {{ total }}
+                        </UiBadge>
+                    </div>
                     <p
                         class="text-muted-foreground max-w-2xl text-sm leading-relaxed"
                     >
-                        Najważniejsze sprawy operacyjne dla aktywnej OSK.
+                        Najważniejsze sprawy do obsługi w domyślnej szkole.
                     </p>
                 </div>
             </div>
 
             <button
                 type="button"
-                class="border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary inline-flex size-9 shrink-0 items-center justify-center rounded-xl border bg-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-transparent"
+                class="border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground focus-visible:ring-primary inline-flex size-11 shrink-0 items-center justify-center rounded-xl border bg-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-transparent"
                 :disabled="isLoading"
                 aria-label="Odśwież sprawy wymagające uwagi"
                 @click="emit('retry')"
@@ -107,25 +106,37 @@ function priorityLabel(priority: ManagerAttentionItemPriority): string {
             </button>
         </div>
 
-        <div class="p-4 md:p-5">
+        <div class="space-y-4 p-4 md:p-5">
             <div
-                v-if="isLoading && !hasItems"
-                class="text-muted-foreground text-sm"
-                role="status"
-            >
-                Wczytywanie spraw wymagających uwagi…
-            </div>
-
-            <div
-                v-else-if="error"
-                class="border-destructive/30 bg-destructive/5 text-destructive rounded-xl border p-4 text-sm"
+                v-if="error"
+                class="border-destructive/30 bg-destructive/5 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
                 role="alert"
             >
-                {{ error }}
+                <p class="text-destructive text-sm">{{ error }}</p>
+                <UiButton
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    class="min-h-11 shrink-0"
+                    :disabled="isLoading"
+                    @click="emit('retry')"
+                >
+                    Spróbuj ponownie
+                </UiButton>
             </div>
 
             <div
-                v-else-if="!hasItems"
+                v-if="isLoading && !hasItems"
+                class="space-y-2"
+                role="status"
+                aria-label="Wczytywanie spraw wymagających uwagi"
+            >
+                <UiSkeleton class="h-24 w-full rounded-xl" />
+                <UiSkeleton class="h-24 w-full rounded-xl" />
+            </div>
+
+            <div
+                v-else-if="!hasItems && !error"
                 class="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"
                 role="status"
             >
@@ -135,33 +146,32 @@ function priorityLabel(priority: ManagerAttentionItemPriority): string {
                 />
                 <div class="space-y-1">
                     <p class="text-sm font-semibold">
-                        Brak spraw wymagających reakcji
+                        Wszystko jest pod kontrolą
                     </p>
                     <p class="text-sm leading-relaxed text-emerald-700">
-                        Na ten moment dashboard nie wykrył pilnych alertów dla
-                        tej OSK.
+                        Nie znaleziono spraw wymagających reakcji w tej szkole.
                     </p>
                 </div>
             </div>
 
-            <div v-else class="space-y-3">
+            <div v-else-if="hasItems" class="space-y-2">
                 <NuxtLink
-                    v-for="item in items"
+                    v-for="item in visibleItems"
                     :key="item.id"
                     :to="item.actionTo"
-                    class="border-border hover:border-primary/40 hover:bg-primary-50/30 focus-visible:ring-primary group flex flex-col gap-3 rounded-xl border p-4 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 md:flex-row md:items-start md:justify-between"
+                    class="border-border hover:border-primary/40 hover:bg-primary-50/30 focus-visible:ring-primary group flex min-h-20 items-start justify-between gap-3 rounded-xl border p-4 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                 >
                     <div class="min-w-0 space-y-2">
                         <div class="flex flex-wrap items-center gap-2">
                             <span
                                 class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium"
-                                :class="priorityClass(item.priority)"
+                                :class="priorityClasses[item.priority]"
                             >
-                                {{ priorityLabel(item.priority) }}
+                                {{ priorityLabels[item.priority] }}
                             </span>
                             <span
                                 v-if="formatDueDate(item.dueDate)"
-                                class="text-muted-foreground inline-flex items-center gap-1 text-xs"
+                                class="text-muted-foreground inline-flex items-center gap-1 text-xs tabular-nums"
                             >
                                 <CalendarClock
                                     class="size-3.5"
@@ -170,7 +180,6 @@ function priorityLabel(priority: ManagerAttentionItemPriority): string {
                                 {{ formatDueDate(item.dueDate) }}
                             </span>
                         </div>
-
                         <div class="space-y-1">
                             <p
                                 class="text-foreground text-sm leading-snug font-semibold"
@@ -178,25 +187,36 @@ function priorityLabel(priority: ManagerAttentionItemPriority): string {
                                 {{ item.title }}
                             </p>
                             <p
-                                class="text-muted-foreground text-sm leading-relaxed"
+                                class="text-muted-foreground line-clamp-2 text-sm leading-relaxed"
                             >
                                 {{ item.description }}
                             </p>
                         </div>
                     </div>
-
                     <ChevronRight
-                        class="text-muted-foreground group-hover:text-primary mt-0.5 size-4 shrink-0 transition md:mt-1"
+                        class="text-muted-foreground group-hover:text-primary mt-1 size-4 shrink-0 transition-colors"
                         aria-hidden="true"
                     />
                 </NuxtLink>
 
-                <p
-                    v-if="hiddenCount > 0"
-                    class="text-muted-foreground px-1 text-sm"
-                >
-                    +{{ hiddenCount }} kolejnych spraw wymaga uwagi.
-                </p>
+                <div v-if="remainingLoadedCount > 0 || showAll" class="pt-1">
+                    <button
+                        v-if="remainingLoadedCount > 0"
+                        type="button"
+                        class="text-primary hover:text-primary-700 focus-visible:ring-primary min-h-11 w-fit cursor-pointer rounded-lg px-2 text-sm font-semibold focus-visible:ring-2 focus-visible:outline-none"
+                        @click="showAll = true"
+                    >
+                        Pokaż kolejne {{ remainingLoadedCount }}
+                    </button>
+                    <button
+                        v-else-if="showAll && items.length > initialLimit"
+                        type="button"
+                        class="text-primary hover:text-primary-700 focus-visible:ring-primary min-h-11 w-fit cursor-pointer rounded-lg px-2 text-sm font-semibold focus-visible:ring-2 focus-visible:outline-none"
+                        @click="showAll = false"
+                    >
+                        Pokaż mniej
+                    </button>
+                </div>
             </div>
         </div>
     </section>
