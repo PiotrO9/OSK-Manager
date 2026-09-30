@@ -39,13 +39,6 @@ export function buildAppShellSidebarNavItems(
             iconKey: 'user',
             tooltip: 'Konto',
         },
-        {
-            to: '/my-courses',
-            label: 'Moje kursy',
-            ariaLabel: 'Przejdź do listy moich kursów',
-            iconKey: 'bookOpen',
-            tooltip: 'Moje kursy',
-        },
     ];
 
     const normalizedRole = roleRaw?.trim().toUpperCase();
@@ -74,6 +67,13 @@ export function buildAppShellSidebarNavItems(
             ariaLabel: 'Przejdź do listy moich opłat',
             iconKey: 'creditCard',
             tooltip: 'Moje opłaty',
+        });
+        items.push({
+            to: '/my-courses',
+            label: 'Moje kursy',
+            ariaLabel: 'Przejdź do listy moich kursów',
+            iconKey: 'bookOpen',
+            tooltip: 'Moje kursy',
         });
     }
 

@@ -11,12 +11,8 @@ function navPaths(role?: string): string[] {
 
 describe('app shell sidebar navigation model', () => {
     it('builds base navigation for unauthenticated or unknown roles', () => {
-        expect(navPaths()).toEqual(['/', '/account', '/my-courses']);
-        expect(navPaths('ADMINISTRATOR')).toEqual([
-            '/',
-            '/account',
-            '/my-courses',
-        ]);
+        expect(navPaths()).toEqual(['/', '/account']);
+        expect(navPaths('ADMINISTRATOR')).toEqual(['/', '/account']);
     });
 
     it('builds student navigation in the expected order', () => {
@@ -30,15 +26,16 @@ describe('app shell sidebar navigation model', () => {
         ]);
     });
 
-    it('builds instructor navigation in the expected order', () => {
+    it('keeps the student-only courses link out of other roles', () => {
         expect(navPaths('INSTRUCTOR')).toEqual([
             '/',
             '/my-lessons',
             '/my-reviews',
             '/events',
             '/account',
-            '/my-courses',
         ]);
+        expect(navPaths('MANAGER')).not.toContain('/my-courses');
+        expect(navPaths('ADMIN')).not.toContain('/my-courses');
     });
 
     it('builds manager navigation using the exact current role contract', () => {
@@ -46,7 +43,6 @@ describe('app shell sidebar navigation model', () => {
             '/',
             '/vehicles',
             '/account',
-            '/my-courses',
             '/manager/osk',
             '/manager/instructors',
             '/manager/students',
@@ -63,7 +59,6 @@ describe('app shell sidebar navigation model', () => {
         expect(navPaths('ADMIN')).toEqual([
             '/',
             '/account',
-            '/my-courses',
             '/manager/instructors',
             '/manager/students',
             '/manager/courses',

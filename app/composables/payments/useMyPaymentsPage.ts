@@ -5,11 +5,11 @@ import type {
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     filterMyPayments,
-    formatPolishCount,
     getMyPaymentDisplayStatus,
     sortMyPayments,
     type MyPaymentsFilter,
 } from '~/utils/payments/myPaymentsPage';
+import { formatPolishCount } from '~/utils/text/polishPlural';
 
 export interface MyPaymentsToolbarSummary {
     primary: string;

@@ -54,7 +54,7 @@ Po zakończeniu pracy nad widokiem AI powinno zaktualizować tę checklistę ora
 
 ### Własne kursy, lekcje i rozliczenia
 
-- [ ] **W04 — Moje kursy** — `/my-courses`.
+- [x] **W04 — Moje kursy** — `/my-courses` — zaakceptowane i ukończone 2026-09-30: usunięte kafle metryk i atrapa filtra, działające widoki Wszystkie / Aktywne / Ukończone ze zwartym podsumowaniem, jeden pusty stan rozróżniający brak kursów od pustego filtra oraz dostęp ograniczony do kursanta.
 - [ ] **W27 — Rezerwacja jazdy** — `/book-lesson` — widok kursanta.
 - [ ] **W28 — Moje lekcje** — `/my-lessons` — wariant kursanta i instruktora; anulowanie jazdy i wystawianie opinii.
 - [x] **W29 — Moje opłaty** — `/my-payments` — widok kursanta.
@@ -112,7 +112,7 @@ Ten dokument jest mapą i checklistą **kolejnej rundy**. Przy następnych zmian
 | W01 Pulpit            | `/`           | [index.vue](../app/pages/index.vue)           | Sesja; osobne warianty M, S, I i pozostałych ról                   | M: domyślna szkoła, skróty, sprawy wymagające obsługi i wolne terminy. S: najbliższe zajęcia, kurs, opłaty i rezerwacja. I: plan dnia, terminarz i oceny. | Dashboard zależny od roli; osobne komponenty zawartości, wspólna karta najbliższych zajęć, kalendarz dostępności i dialogi rezerwacji. | gotowe — 2026-09-29 |
 | W02 Konto użytkownika | `/account`    | [index.vue](../app/pages/account/index.vue)   | Sesja; edycja zależy od roli i trybu demo                          | Profil, avatar i PKK kursanta. M/A: edycja imienia i nazwiska; S/I: telefonu i bio; zapis/anulowanie edycji inline.                                     | Szczegóły + formularz; `AccountPageHeader`, `AccountProfileCard`, `AccountProfileAvatarSection`; dane sesji i panel boczny.                                                                      | gotowe — 2026-09-29 |
 | W03 Logowanie         | `/login`      | [login.vue](../app/pages/login.vue)           | Publiczny                                                          | Logowanie, błędy formularza, powrót do żądanej strony; warunkowe wypełnienie kont demo.                                                                 | Formularz uwierzytelnienia; `LoginLayout`, `LoginPanel`, `LoginForm`; `useLoginPage`, `useAuthReturnTo`.                                                                                         | gotowe — 2026-09-29 |
-| W04 Moje kursy        | `/my-courses` | [my-courses.vue](../app/pages/my-courses.vue) | Sesja; przycisk rezerwacji tylko S                                 | Przegląd kursów, postępu i godzin; S przechodzi do rezerwacji jazdy.                                                                                    | Lista + podsumowanie; `PageHeader`, `StatusBadge`, `MyCoursesList`; `/book-lesson`.                                                                                                              | do przeglądu        |
+| W04 Moje kursy        | `/my-courses` | [my-courses.vue](../app/pages/my-courses.vue) | S, middleware `student`                                            | Przegląd przypisanych kursów, postępu i godzin programu; filtr widoku i przejście do rezerwacji jazdy.                                                   | Lista + zwarte podsumowanie w filtrach; `PageHeader`, `MyCoursesFilters`, `MyCoursesList`, `useMyCoursesPage`; W27.                                            | gotowe — 2026-09-30                 |
 | W05 Pojazdy           | `/vehicles`   | [index.vue](../app/pages/vehicles/index.vue)  | Sesja; funkcje zarządcze w tym widoku warunkowane dokładnie rolą M | Lista pojazdów szkoły; M: tryb zarządzania, tworzenie, szczegóły/edycja, status, wybór domyślnego, usuwanie. Pozostali potrzebują kontekstu `schoolId`. | Lista + panel statusów; `VehiclesListPanel`, `VehiclesListDesktopTable`, `VehiclesListMobileCards`, `VehicleManagerStatusGrid`, `VehicleDeleteDialog`; W24–W26.                                  | gotowe — 2026-09-27 |
 | W06 Wydarzenia dnia   | `/events`     | [index.vue](../app/pages/events/index.vue)    | M/A/I, middleware `manager-or-instructor`                          | Wybór dnia, filtr statusu, siatka/lista zależna od roli i szerokości, obsługa statusów i wejść w edycję według uprawnień.                               | Harmonogram dzienny; `EventsDayNavigation`, `EventsDaySchedulePanel`, `EventsDayScheduleGrid`; edycja wydarzeń/jazd.                                                                             | gotowe — 2026-09-27 |
 
@@ -520,3 +520,34 @@ Weryfikacja:
 - Headless Playwright na desktopie 1440 px i telefonie 390 px, w jasnym i ciemnym motywie: sprawdzono błędy pól, błędne dane logowania, konta demo, przekierowanie do zapamiętanego widoku, aktywną sesję i wylogowanie. Pozycja przycisku oraz sekcji demo pozostaje identyczna przed i po pokazaniu błędu uwierzytelnienia.
 
 Status: **zaakceptowane przez użytkownika i odhaczone 2026-09-29 — W03 jest wykonane**.
+
+## 21. W04 — moje kursy, zaakceptowane i ukończone, 2026-09-30
+
+Cel: kursant ma po wejściu zobaczyć swoje kursy razem z postępem i statusem, bez przewijania przez metryki i bez kontrolek, które nic nie robią.
+
+Problemy zaobserwowane w widoku:
+
+1. Sześć kafli w dwóch rzędach spychało listę poniżej pierwszego ekranu.
+2. Kafel wyróżnionego kursu powtarzał pasek postępu z wiersza listy oraz kartę kursu na pulpicie W01.
+3. „Średni postęp” mieszał kursy aktywne z ukończonymi, więc nie opisywał żadnego realnego stanu szkolenia.
+4. W pasku listy stała atrapa `StatusBadge` z napisem „Filtry”, mimo braku jakiegokolwiek filtrowania.
+5. Widok renderował dwa puste stany naraz, a `DataTableShell` nigdy nie pokazywał własnego.
+6. Teksty gubiły polskie znaki („Dodaj jazde”, „Sredni postep”, „5 wynikow”), a licznik wyników miał błędną odmianę.
+
+Wdrożenie: strona jest cienkim kontenerem, a stan trzyma `useMyCoursesPage`. Układ to nagłówek z jedną akcją „Rezerwuj jazdę”, zwarty pasek filtrów z podsumowaniem po prawej i jedna lista. Filtry Wszystkie / Aktywne / Ukończone mają liczniki i działają lokalnie na pobranej liście, zgodnie ze wzorcem zaakceptowanym w W29. Podsumowanie mówi tylko to, co wynika z danych: liczbę kursów, liczbę aktywnych i sumę godzin programu. Kursy są sortowane aktywnymi do góry, dalej po postępie malejąco, a przy równym postępie po nazwie. Pusty stan jest jeden i rozróżnia brak przypisanych kursów od pustego wyniku filtra, który dostaje akcję „Pokaż wszystkie kursy”. Licznik wyników występuje wyłącznie w pasku filtrów. Lokalne kolory ikony zastąpiono tokenami `primary` z wariantem ciemnym, a wymuszona minimalna szerokość tabeli 760 px została usunięta, bo przy otwartym sidebarze powodowała poziome przewijanie przy czterech kolumnach.
+
+Zakres danych pozostał nietknięty: `/api/me/courses` zwraca `id`, `schoolId`, `name`, `status`, `type`, `totalHours` i `progress`, więc widok nie pokazuje kategorii, instruktora ani zrealizowanych godzin. Kolumna godzin została jawnie opisana jako „godz. programu”, żeby nie sugerować czasu już przejeżdżonego.
+
+Uprawnienia: `/my-courses` dostaje middleware `student`, a pozycja „Moje kursy” znika z menu ról innych niż kursant. Wcześniej link widziały wszystkie role, choć endpoint zwraca kursy wyłącznie kursantowi, więc manager i instruktor trafiali na zawsze pusty ekran. Kolejność pozostałych pozycji menu kursanta nie uległa zmianie.
+
+Porządek kodu: czyste funkcje widoku przeniesiono z `useMyCoursesPresentation` do `app/utils/courses/myCoursesPage.ts`, zgodnie z konwencją `utils/payments/myPaymentsPage.ts`; pulpit W01 korzysta z `getMyCoursesFeaturedCourse` z nowej lokalizacji. Wspólny `formatPolishCount` wydzielono do `app/utils/text/polishPlural.ts`, żeby odmiana liczebników nie była duplikowana między płatnościami a kursami.
+
+Weryfikacja:
+
+- Vitest: 165 plików i 782 testy zaliczone, w tym nowe zestawy dla czystych funkcji kursów i `useMyCoursesPage` (sortowanie, filtry, podsumowanie, oba puste stany, błąd i udane ponowienie) oraz zaktualizowany model nawigacji.
+- `npm run typecheck`, ESLint i Prettier dla zakresu W04 oraz `git diff --check` — kody wyjścia 0.
+- Przeglądarka na lokalnej sesji kursanta (5 realnych kursów, 150 godz.): desktop 1440 px oraz telefon 390 px w jasnym i ciemnym motywie, przełączanie wszystkich filtrów, pusty wynik „Ukończone” z powrotem przez „Pokaż wszystkie kursy”, karty zamiast tabeli na telefonie, brak poziomego przepełnienia i brak błędów konsoli.
+- Kontrola dostępu sprawdzona na żywo: manager wchodzący na `/my-courses` jest przekierowany na `/`, a jego menu nie zawiera pozycji „Moje kursy”.
+- Nie zapisano trwałych zrzutów: lokalna instalacja Playwrighta nie ma pobranych przeglądarek, więc weryfikację wykonano w sesji przeglądarki IDE. Nie testowano zachowania przy bardzo długiej liście kursów, bo dane demonstracyjne mają ich pięć.
+
+Status: **zaakceptowane przez użytkownika i odhaczone 2026-09-30 — W04 jest wykonane**.

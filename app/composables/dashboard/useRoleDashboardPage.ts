@@ -2,7 +2,7 @@ import type { CurrentUserCourseItem } from '~/types/courses/course';
 import type { LessonRatingListItem } from '~/types/lessons/lessonRating';
 import type { StudentPaymentsSummary } from '~/types/payments/payment';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import { getMyCoursesFeaturedCourse } from '~/composables/courses/useMyCoursesPresentation';
+import { getMyCoursesFeaturedCourse } from '~/utils/courses/myCoursesPage';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 type DashboardRole = 'STUDENT' | 'INSTRUCTOR';

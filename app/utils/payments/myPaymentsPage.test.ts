@@ -3,11 +3,11 @@ import type { StudentPaymentItem } from '~/types/payments/payment';
 import {
     filterMyPayments,
     formatPaymentMethod,
-    formatPolishCount,
     getMyPaymentDisplayStatus,
     getMyPaymentPaidDate,
     sortMyPayments,
 } from './myPaymentsPage';
+import { formatPolishCount } from '~/utils/text/polishPlural';
 
 function payment(
     overrides: Partial<StudentPaymentItem> = {},

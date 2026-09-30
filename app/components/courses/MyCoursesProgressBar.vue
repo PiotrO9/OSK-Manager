@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CurrentUserCourseItem } from '~/types/courses/course';
+import { formatMyCoursesProgressLabel } from '~/utils/courses/myCoursesPage';
 
 defineProps<{
     course: CurrentUserCourseItem;

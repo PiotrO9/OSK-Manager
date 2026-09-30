@@ -4,11 +4,11 @@ import type { StudentPaymentItem } from '~/types/payments/payment';
 import type { StatusTone } from '~/types/ui';
 import {
     formatPaymentMethod,
-    formatPolishCount,
     getMyPaymentDisplayStatus,
     getMyPaymentPaidDate,
     type MyPaymentDisplayStatus,
 } from '~/utils/payments/myPaymentsPage';
+import { formatPolishCount } from '~/utils/text/polishPlural';
 
 interface Props {
     payments: readonly StudentPaymentItem[];
