@@ -1,9 +1,11 @@
 import {
     normalizeInstructorOwnLessonRatingsPayload,
     normalizeLessonRatingsListPayload,
+    normalizePaginatedLessonRatingsPayload,
     type InstructorOwnLessonRatingsPayload,
     type LessonRatingsListPayload,
     type LessonRatingsPeriod,
+    type PaginatedLessonRatingsPayload,
 } from '~/types/lessons/lessonRating';
 
 export interface FetchLessonRatingsInput {
@@ -12,6 +14,7 @@ export interface FetchLessonRatingsInput {
     period?: LessonRatingsPeriod;
     dateFrom?: string;
     dateTo?: string;
+    page?: number;
     limit?: number;
 }
 
@@ -46,6 +49,7 @@ function buildRatingsQuery(input: FetchLessonRatingsInput): string {
     appendOptionalParam(qs, 'instructorId', input.instructorId);
     appendOptionalParam(qs, 'dateFrom', input.dateFrom);
     appendOptionalParam(qs, 'dateTo', input.dateTo);
+    appendOptionalParam(qs, 'page', input.page);
     appendOptionalParam(qs, 'limit', input.limit);
 
     return qs.toString();
@@ -54,13 +58,13 @@ function buildRatingsQuery(input: FetchLessonRatingsInput): string {
 export function useLessonRatingsListApi() {
     async function fetchManagerRatings(
         input: FetchLessonRatingsInput,
-    ): Promise<LessonRatingsListPayload> {
-        return await requestBffData<LessonRatingsListPayload>(
+    ): Promise<PaginatedLessonRatingsPayload> {
+        return await requestBffData<PaginatedLessonRatingsPayload>(
             'GET',
             `/api/ratings?${buildRatingsQuery(input)}`,
             {
                 fallbackMessage: 'Nie udało się pobrać listy ocen.',
-                normalize: normalizeLessonRatingsListPayload,
+                normalize: normalizePaginatedLessonRatingsPayload,
             },
         );
     }

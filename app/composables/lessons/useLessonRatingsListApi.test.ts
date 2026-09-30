@@ -34,4 +34,26 @@ describe('useLessonRatingsListApi', () => {
             }),
         );
     });
+
+    it('forwards manager filters and pagination to the BFF', async () => {
+        const { useLessonRatingsListApi } =
+            await import('./useLessonRatingsListApi');
+        const api = useLessonRatingsListApi();
+
+        await api.fetchManagerRatings({
+            schoolId: 'school-1',
+            instructorId: 'instructor-1',
+            period: 'last7days',
+            page: 2,
+            limit: 20,
+        });
+
+        expect(requestBffData).toHaveBeenCalledWith(
+            'GET',
+            '/api/ratings?schoolId=school-1&period=last7days&instructorId=instructor-1&page=2&limit=20',
+            expect.objectContaining({
+                normalize: expect.any(Function),
+            }),
+        );
+    });
 });

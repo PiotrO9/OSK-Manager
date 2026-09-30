@@ -1,6 +1,26 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { mockOwnLessonRatingsPayload } from './lessonRatingsBff';
+import {
+    mockLessonRatingsListPayload,
+    mockOwnLessonRatingsPayload,
+} from './lessonRatingsBff';
+
+describe('mockLessonRatingsListPayload', () => {
+    it('paginates the manager list without changing the filtered summary', () => {
+        const payload = mockLessonRatingsListPayload('school-1', undefined, {
+            page: 2,
+            limit: 2,
+        });
+
+        expect(payload.ratings).toHaveLength(1);
+        expect(payload.summary.totalCount).toBe(3);
+        expect(payload.pagination).toEqual({
+            page: 2,
+            limit: 2,
+            totalPages: 2,
+        });
+    });
+});
 
 describe('mockOwnLessonRatingsPayload', () => {
     afterEach(() => {

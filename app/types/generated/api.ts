@@ -2017,6 +2017,7 @@ export interface paths {
                         | 'all';
                     dateFrom?: string | null;
                     dateTo?: string | null;
+                    page?: number;
                     limit?: number;
                 };
                 header?: never;
@@ -5778,6 +5779,7 @@ export interface paths {
                         | 'all';
                     dateFrom?: string | null;
                     dateTo?: string | null;
+                    page?: number;
                     limit?: number;
                 };
                 header?: never;

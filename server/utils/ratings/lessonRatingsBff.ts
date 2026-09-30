@@ -10,6 +10,7 @@ function copyRatingQuery(rawQuery: Record<string, unknown>): URLSearchParams {
         'period',
         'dateFrom',
         'dateTo',
+        'page',
         'limit',
     ] as const) {
         const raw = rawQuery[key];
@@ -102,6 +103,21 @@ function makeMockRating(id: string, instructorId: string, index: number) {
             id: crypto.randomUUID(),
             startTime: `2026-06-${isoDay}T08:00:00.000Z`,
             endTime: `2026-06-${isoDay}T09:00:00.000Z`,
+            sequenceNumber: index + 4,
+            course: {
+                id: `${id}-course`,
+                name: 'Kurs prawa jazdy kat. B',
+                category: 'B',
+                totalHours: 30,
+                courseType: { code: 'B', name: 'Kategoria B' },
+            },
+            vehicle: {
+                id: `${id}-vehicle`,
+                name: 'Toyota Yaris',
+                registrationNumber: 'WA 12345',
+                brand: 'Toyota',
+                model: 'Yaris',
+            },
         },
         instructor: {
             id: instructorId,
@@ -123,6 +139,7 @@ function makeMockRating(id: string, instructorId: string, index: number) {
 export function mockLessonRatingsListPayload(
     schoolId: string,
     instructorId?: string,
+    options: { page?: number; limit?: number } = {},
 ) {
     const baseInstructorId = instructorId?.trim() || crypto.randomUUID();
     const ratings = [
@@ -131,6 +148,9 @@ export function mockLessonRatingsListPayload(
         makeMockRating(`${schoolId}-rating-3`, baseInstructorId, 2),
     ];
     const total = ratings.length;
+    const page = Math.max(1, options.page ?? 1);
+    const limit = Math.max(1, options.limit ?? 50);
+    const start = (page - 1) * limit;
     const average =
         total > 0
             ? Math.round(
@@ -141,10 +161,15 @@ export function mockLessonRatingsListPayload(
             : null;
 
     return {
-        ratings,
+        ratings: ratings.slice(start, start + limit),
         summary: {
             averageRating: average,
             totalCount: total,
+        },
+        pagination: {
+            page,
+            limit,
+            totalPages: Math.max(1, Math.ceil(total / limit)),
         },
     };
 }

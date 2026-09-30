@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
         mock: async () => {
             await requireManagerFromCookie(event);
 
-            return bffMockLessonRatingsList({
+            return bffMockLessonRatingsList(event, {
                 schoolId,
                 ...(instructorId ? { instructorId } : {}),
             });

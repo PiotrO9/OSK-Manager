@@ -22,7 +22,10 @@ export default defineEventHandler(async (event) => {
         mock: async () => {
             await requireManagerFromCookie(event);
 
-            return bffMockLessonRatingsList({ schoolId, instructorId: id });
+            return bffMockLessonRatingsList(event, {
+                schoolId,
+                instructorId: id,
+            });
         },
     });
 });

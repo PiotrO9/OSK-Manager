@@ -1,50 +1,72 @@
 <script setup lang="ts">
+import { Building2, CalendarRange, GraduationCap } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,
     type InstructorListItem,
 } from '~/types/instructors/instructor';
-import type { LessonRatingsPeriod } from '~/types/lessons/lessonRating';
+import {
+    MANAGER_REVIEWS_PERIOD_OPTIONS,
+    type ManagerReviewsPeriod,
+} from '~/utils/lessons/managerReviews';
 
 const props = defineProps<{
-    schools: DrivingSchool[];
-    instructors: InstructorListItem[];
+    schools: readonly DrivingSchool[];
+    instructors: readonly InstructorListItem[];
     schoolId: string;
     instructorId: string;
-    period: LessonRatingsPeriod;
-    isLoading: boolean;
+    period: ManagerReviewsPeriod;
+    isSchoolsLoading: boolean;
     isInstructorsLoading: boolean;
+    isRatingsLoading: boolean;
+    instructorsErrorMessage: string | null;
 }>();
 
 const emit = defineEmits<{
     schoolChange: [schoolId: string];
     instructorChange: [instructorId: string];
-    periodChange: [period: LessonRatingsPeriod];
+    periodChange: [period: ManagerReviewsPeriod];
+    retryInstructors: [];
 }>();
-
-const periodOptions: Array<{ value: LessonRatingsPeriod; label: string }> = [
-    { value: 'latest', label: 'Ostatnie' },
-    { value: 'yesterday', label: 'Ubiegly dzien' },
-    { value: 'last7days', label: 'Ostatni tydzien' },
-    { value: 'all', label: 'Wszystkie' },
-];
 </script>
 
 <template>
-    <div class="border-border rounded-lg border p-4">
-        <div class="grid gap-4 md:grid-cols-3">
-            <div class="space-y-2">
-                <UiLabel for="ratings-school-filter">Szkola jazdy</UiLabel>
+    <section
+        class="border-border bg-card overflow-hidden rounded-2xl border shadow-xs"
+        aria-labelledby="manager-reviews-filters-title"
+    >
+        <div class="border-border border-b px-4 py-4 sm:px-5">
+            <h2
+                id="manager-reviews-filters-title"
+                class="text-foreground text-base font-bold tracking-tight text-balance"
+            >
+                Zakres opinii
+            </h2>
+            <p class="text-muted-foreground mt-1 text-sm leading-relaxed">
+                Wybierz szkołę, instruktora i okres uwzględniony w wynikach.
+            </p>
+        </div>
+
+        <div class="grid gap-4 p-4 sm:p-5 md:grid-cols-3 xl:grid-cols-1">
+            <div class="min-w-0 space-y-2">
+                <UiLabel for="ratings-school-filter">Szkoła jazdy</UiLabel>
                 <UiSelect
                     :model-value="props.schoolId"
-                    :disabled="props.isLoading || props.schools.length === 0"
+                    :disabled="
+                        props.isSchoolsLoading || props.schools.length === 0
+                    "
                     @update:model-value="emit('schoolChange', String($event))"
                 >
                     <UiSelectTrigger
                         id="ratings-school-filter"
-                        aria-label="Wybierz szkole jazdy do listy opinii"
+                        class="bg-background h-11 w-full"
+                        aria-label="Wybierz szkołę jazdy"
                     >
-                        <UiSelectValue placeholder="Wybierz szkole" />
+                        <Building2
+                            class="text-muted-foreground size-4"
+                            aria-hidden="true"
+                        />
+                        <UiSelectValue placeholder="Wybierz szkołę" />
                     </UiSelectTrigger>
                     <UiSelectContent>
                         <UiSelectGroup>
@@ -60,46 +82,14 @@ const periodOptions: Array<{ value: LessonRatingsPeriod; label: string }> = [
                 </UiSelect>
             </div>
 
-            <div class="space-y-2">
-                <UiLabel for="ratings-period-filter">Okres</UiLabel>
-                <UiSelect
-                    :model-value="props.period"
-                    :disabled="props.isLoading"
-                    @update:model-value="
-                        emit(
-                            'periodChange',
-                            String($event) as LessonRatingsPeriod,
-                        )
-                    "
-                >
-                    <UiSelectTrigger
-                        id="ratings-period-filter"
-                        aria-label="Wybierz okres opinii"
-                    >
-                        <UiSelectValue placeholder="Okres" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem
-                                v-for="option in periodOptions"
-                                :key="option.value"
-                                :value="option.value"
-                            >
-                                {{ option.label }}
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
-            </div>
-
-            <div class="space-y-2">
+            <div class="min-w-0 space-y-2">
                 <UiLabel for="ratings-instructor-filter">Instruktor</UiLabel>
                 <UiSelect
                     :model-value="props.instructorId || 'all'"
                     :disabled="
-                        props.isLoading ||
+                        !props.schoolId ||
                         props.isInstructorsLoading ||
-                        props.instructors.length === 0
+                        props.isRatingsLoading
                     "
                     @update:model-value="
                         emit(
@@ -110,8 +100,13 @@ const periodOptions: Array<{ value: LessonRatingsPeriod; label: string }> = [
                 >
                     <UiSelectTrigger
                         id="ratings-instructor-filter"
-                        aria-label="Wybierz instruktora do filtrowania opinii"
+                        class="bg-background h-11 w-full"
+                        aria-label="Wybierz instruktora"
                     >
+                        <GraduationCap
+                            class="text-muted-foreground size-4"
+                            aria-hidden="true"
+                        />
                         <UiSelectValue placeholder="Wszyscy instruktorzy" />
                     </UiSelectTrigger>
                     <UiSelectContent>
@@ -129,7 +124,61 @@ const periodOptions: Array<{ value: LessonRatingsPeriod; label: string }> = [
                         </UiSelectGroup>
                     </UiSelectContent>
                 </UiSelect>
+                <div
+                    v-if="props.instructorsErrorMessage"
+                    class="text-danger-700 dark:text-danger-300 flex items-start justify-between gap-2 text-xs leading-relaxed"
+                    role="status"
+                >
+                    <span>
+                        {{ props.instructorsErrorMessage }} Możesz nadal
+                        przeglądać opinie wszystkich instruktorów.
+                    </span>
+                    <button
+                        type="button"
+                        class="focus-visible:ring-ring shrink-0 rounded-sm font-bold underline underline-offset-2 focus-visible:ring-2 focus-visible:outline-none"
+                        @click="emit('retryInstructors')"
+                    >
+                        Ponów
+                    </button>
+                </div>
+            </div>
+
+            <div class="min-w-0 space-y-2">
+                <UiLabel for="ratings-period-filter">Okres</UiLabel>
+                <UiSelect
+                    :model-value="props.period"
+                    :disabled="props.isRatingsLoading || !props.schoolId"
+                    @update:model-value="
+                        emit(
+                            'periodChange',
+                            String($event) as ManagerReviewsPeriod,
+                        )
+                    "
+                >
+                    <UiSelectTrigger
+                        id="ratings-period-filter"
+                        class="bg-background h-11 w-full"
+                        aria-label="Wybierz okres opinii"
+                    >
+                        <CalendarRange
+                            class="text-muted-foreground size-4"
+                            aria-hidden="true"
+                        />
+                        <UiSelectValue placeholder="Wybierz okres" />
+                    </UiSelectTrigger>
+                    <UiSelectContent>
+                        <UiSelectGroup>
+                            <UiSelectItem
+                                v-for="option in MANAGER_REVIEWS_PERIOD_OPTIONS"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </UiSelectItem>
+                        </UiSelectGroup>
+                    </UiSelectContent>
+                </UiSelect>
             </div>
         </div>
-    </div>
+    </section>
 </template>

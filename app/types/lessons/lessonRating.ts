@@ -19,6 +19,29 @@ export interface LessonRatingLesson {
     id: string;
     startTime: string;
     endTime: string;
+    sequenceNumber: number | null;
+    completedMinutesAfterLesson: number | null;
+    course: LessonRatingCourse | null;
+    vehicle: LessonRatingVehicle | null;
+}
+
+export interface LessonRatingCourse {
+    id: string;
+    name: string;
+    category: string;
+    totalHours: number;
+    courseType: {
+        code: string;
+        name: string;
+    };
+}
+
+export interface LessonRatingVehicle {
+    id: string;
+    name: string;
+    registrationNumber: string;
+    brand: string | null;
+    model: string | null;
 }
 
 export interface LessonRatingListItem {
@@ -42,9 +65,17 @@ export interface LessonRatingsListPayload {
     summary: LessonRatingsSummary;
 }
 
-export interface InstructorOwnLessonRatingsPayload {
-    ratings: LessonRatingListItem[];
-    summary: LessonRatingsSummary;
+export interface LessonRatingsPagination {
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface PaginatedLessonRatingsPayload extends LessonRatingsListPayload {
+    pagination: LessonRatingsPagination;
+}
+
+export interface InstructorOwnLessonRatingsPayload extends LessonRatingsListPayload {
     pagination: {
         page: number;
         limit: number;
@@ -80,6 +111,61 @@ function normalizePerson(raw: unknown): LessonRatingPerson | null {
     };
 }
 
+function normalizeCourse(raw: unknown): LessonRatingCourse | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+    const courseType =
+        o.courseType && typeof o.courseType === 'object'
+            ? (o.courseType as Record<string, unknown>)
+            : {};
+    const id = readString(o, 'id');
+    const name = readString(o, 'name');
+    const totalHours = Number(o.totalHours ?? o.total_hours);
+
+    if (!id || !name || !Number.isFinite(totalHours)) {
+        return null;
+    }
+
+    return {
+        id,
+        name,
+        category: readString(o, 'category'),
+        totalHours,
+        courseType: {
+            code: readString(courseType, 'code'),
+            name: readString(courseType, 'name'),
+        },
+    };
+}
+
+function normalizeVehicle(raw: unknown): LessonRatingVehicle | null {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const o = raw as Record<string, unknown>;
+    const id = readString(o, 'id');
+    const name = readString(o, 'name');
+    const registrationNumber =
+        readString(o, 'registrationNumber') ||
+        readString(o, 'registration_number');
+
+    if (!id || !name || !registrationNumber) {
+        return null;
+    }
+
+    return {
+        id,
+        name,
+        registrationNumber,
+        brand: readString(o, 'brand') || null,
+        model: readString(o, 'model') || null,
+    };
+}
+
 function normalizeLesson(raw: unknown): LessonRatingLesson | null {
     if (!raw || typeof raw !== 'object') {
         return null;
@@ -89,12 +175,36 @@ function normalizeLesson(raw: unknown): LessonRatingLesson | null {
     const id = readString(o, 'id');
     const startTime = readString(o, 'startTime') || readString(o, 'start_time');
     const endTime = readString(o, 'endTime') || readString(o, 'end_time');
+    const sequenceNumberRaw = o.sequenceNumber ?? o.sequence_number;
+    const sequenceNumber = Number(sequenceNumberRaw);
+    const completedMinutesRaw =
+        o.completedMinutesAfterLesson ?? o.completed_minutes_after_lesson;
+    const completedMinutesAfterLesson =
+        completedMinutesRaw === null || completedMinutesRaw === undefined
+            ? null
+            : Number(completedMinutesRaw);
 
     if (!id || !startTime || !endTime) {
         return null;
     }
 
-    return { id, startTime, endTime };
+    return {
+        id,
+        startTime,
+        endTime,
+        sequenceNumber:
+            Number.isInteger(sequenceNumber) && sequenceNumber > 0
+                ? sequenceNumber
+                : null,
+        completedMinutesAfterLesson:
+            completedMinutesAfterLesson !== null &&
+            Number.isFinite(completedMinutesAfterLesson) &&
+            completedMinutesAfterLesson >= 0
+                ? completedMinutesAfterLesson
+                : null,
+        course: normalizeCourse(o.course),
+        vehicle: normalizeVehicle(o.vehicle),
+    };
 }
 
 export function formatLessonRatingPersonName(
@@ -196,6 +306,50 @@ export function normalizeLessonRatingsListPayload(
     };
 }
 
+function normalizeLessonRatingsPagination(
+    data: unknown,
+    defaultLimit: number,
+): LessonRatingsPagination {
+    const o =
+        data && typeof data === 'object'
+            ? (data as Record<string, unknown>)
+            : {};
+    const pagination =
+        o.pagination && typeof o.pagination === 'object'
+            ? (o.pagination as Record<string, unknown>)
+            : {};
+    const readPositiveInt = (value: unknown, fallback: number): number => {
+        const parsed = Number.parseInt(String(value ?? ''), 10);
+
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+    };
+
+    const page = readPositiveInt(pagination.page, 1);
+    const limit = readPositiveInt(pagination.limit, defaultLimit);
+    const totalCount =
+        normalizeLessonRatingsListPayload(data).summary.totalCount;
+
+    return {
+        page,
+        limit,
+        totalPages: readPositiveInt(
+            pagination.totalPages ?? pagination.total_pages,
+            Math.max(1, Math.ceil(totalCount / limit)),
+        ),
+    };
+}
+
+export function normalizePaginatedLessonRatingsPayload(
+    data: unknown,
+): PaginatedLessonRatingsPayload {
+    const normalizedList = normalizeLessonRatingsListPayload(data);
+
+    return {
+        ...normalizedList,
+        pagination: normalizeLessonRatingsPagination(data, 20),
+    };
+}
+
 export function normalizeInstructorOwnLessonRatingsPayload(
     data: unknown,
 ): InstructorOwnLessonRatingsPayload {
@@ -212,26 +366,10 @@ export function normalizeInstructorOwnLessonRatingsPayload(
     const ratings = normalizedList.ratings.map(
         ({ student: _student, ...item }) => item,
     );
-    const pagination =
-        o.pagination && typeof o.pagination === 'object'
-            ? (o.pagination as Record<string, unknown>)
-            : {};
-    const readPositiveInt = (value: unknown, fallback: number): number => {
-        const parsed = Number.parseInt(String(value ?? ''), 10);
-
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-    };
-
-    const page = readPositiveInt(pagination.page, 1);
-    const limit = readPositiveInt(pagination.limit, 20);
-    const totalPages = readPositiveInt(
-        pagination.totalPages ?? pagination.total_pages,
-        Math.max(1, Math.ceil(normalizedList.summary.totalCount / limit)),
-    );
 
     return {
         ratings,
         summary: normalizedList.summary,
-        pagination: { page, limit, totalPages },
+        pagination: normalizeLessonRatingsPagination(data, 20),
     };
 }
