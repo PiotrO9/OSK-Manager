@@ -1,5 +1,6 @@
 import { computed } from 'vue';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
+import { getStudentLessonBookingInstructorName } from '~/utils/student/studentLessonBookingPage';
 
 export interface StudentLessonBookingSlotGroup {
     date: string;
@@ -81,12 +82,6 @@ export function getStudentLessonBookingHourFromTime(
     const hour = Number(match[1]);
 
     return Number.isFinite(hour) ? hour : null;
-}
-
-export function getStudentLessonBookingInstructorName(
-    slot: SchoolAvailabilitySlot,
-): string {
-    return `${slot.instructorFirstName} ${slot.instructorLastName}`.trim();
 }
 
 export function getStudentLessonBookingSlotListSlotKey(

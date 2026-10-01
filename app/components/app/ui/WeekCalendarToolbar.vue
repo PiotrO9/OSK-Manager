@@ -11,10 +11,14 @@ const props = withDefaults(
         maxValue: DateValue;
         compact?: boolean;
         ariaLabel?: string;
+        previousDisabled?: boolean;
+        nextDisabled?: boolean;
     }>(),
     {
         compact: false,
         ariaLabel: 'Nawigacja tygodnia kalendarza',
+        previousDisabled: false,
+        nextDisabled: false,
     },
 );
 
@@ -53,7 +57,7 @@ const spacedWeekRangeLabel = computed(() =>
                 size="sm"
                 class="border-border h-full shrink-0 rounded-none border-r px-2.5"
                 aria-label="Poprzedni tydzień"
-                :disabled="props.isLoading"
+                :disabled="props.isLoading || props.previousDisabled"
                 @click="emit('previous', $event)"
                 @keydown="emit('previousKeydown', $event)"
             >
@@ -72,7 +76,7 @@ const spacedWeekRangeLabel = computed(() =>
                 size="sm"
                 class="border-border h-full shrink-0 rounded-none border-l px-2.5"
                 aria-label="Następny tydzień"
-                :disabled="props.isLoading"
+                :disabled="props.isLoading || props.nextDisabled"
                 @click="emit('next', $event)"
                 @keydown="emit('nextKeydown', $event)"
             >

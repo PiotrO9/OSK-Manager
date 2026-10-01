@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BookOpen } from 'lucide-vue-next';
 import type { CurrentUserCourseItem } from '~/types/courses/course';
+import { formatStudentLessonBookingCourseCountLabel } from '~/utils/student/studentLessonBookingPage';
 
 const props = defineProps<{
     courses: CurrentUserCourseItem[];
@@ -11,10 +12,18 @@ const props = defineProps<{
 const selectedCourseId = defineModel<string>({ required: true });
 
 const hasCourses = computed(() => props.courses.length > 0);
+
+const courseCountLabel = computed(() => {
+    if (props.isLoading) {
+        return 'Wczytywanie kursów…';
+    }
+
+    return formatStudentLessonBookingCourseCountLabel(props.courses.length);
+});
 </script>
 
 <template>
-    <section class="border-border bg-muted/20 rounded-2xl border p-3">
+    <section class="border-border bg-muted/20 rounded-xl border p-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div class="min-w-0 flex-1 space-y-1.5">
                 <label
@@ -52,8 +61,7 @@ const hasCourses = computed(() => props.courses.length > 0);
                 aria-live="polite"
             >
                 <BookOpen class="size-4 shrink-0" aria-hidden="true" />
-                <span v-if="isLoading">Wczytywanie kursów...</span>
-                <span v-else>{{ courses.length }} aktywne</span>
+                <span>{{ courseCountLabel }}</span>
             </div>
         </div>
 

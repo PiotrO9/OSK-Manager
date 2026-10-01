@@ -1,7 +1,12 @@
+import type { CalendarDate, DateValue } from '@internationalized/date';
+import { toDate } from 'reka-ui/date';
 import {
     buildSlotIsoUTC,
     getMonday,
+    weekCalendarDatesFromMonday,
     weekRangeFromMonday,
+    WEEK_PICKER_CALENDAR_MAX,
+    WEEK_PICKER_CALENDAR_MIN,
 } from '~/utils/date/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
@@ -11,6 +16,22 @@ import {
 } from '~/types/courses/course';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 import type { LessonSelfBookAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
+import { scheduleAvailabilityIssueMessage } from '~/types/schedule/scheduleAvailability';
+import {
+    canStudentBookSlotWithCourseHours,
+    filterStudentLessonBookableSlots,
+    formatStudentLessonBookingAvailableSlotsLabel,
+    formatStudentLessonBookingRemainingHoursLabel,
+    getStudentLessonBookingMaxWeekStart,
+    getStudentLessonBookingMinWeekStart,
+    isStudentLessonBookingNextWeekDisabled,
+    isStudentLessonBookingPrevWeekDisabled,
+    isStudentLessonBookingWeekBeyondWindow,
+} from '~/utils/student/studentLessonBookingPage';
+import {
+    formatManagerInstructorWeekRangeCompactLabel,
+    formatManagerInstructorWeekRangeLabel,
+} from '~/utils/instructors/managerInstructorWeeklyCalendar';
 
 export function getStudentLessonBookingSlotKey(
     slot: SchoolAvailabilitySlot,
@@ -28,12 +49,22 @@ export function useStudentLessonBookingPage() {
     const courses = shallowRef<CurrentUserCourseItem[]>([]);
     const selectedCourseId = shallowRef('');
     const weekStart = shallowRef<Date>(getMonday(new Date()));
-    const slots = shallowRef<SchoolAvailabilitySlot[]>([]);
+    const rawSlots = shallowRef<SchoolAvailabilitySlot[]>([]);
+    const slotsTotal = shallowRef(0);
     const isCoursesLoading = shallowRef(false);
     const coursesErrorMessage = shallowRef<string | null>(null);
     const slotsErrorMessage = shallowRef<string | null>(null);
+    const bookingFeedbackMessage = shallowRef<string | null>(null);
+    const bookingFeedbackTone = shallowRef<'success' | 'error'>('success');
     const bookingSlotKey = shallowRef<string | null>(null);
-    const successMessage = shallowRef<string | null>(null);
+    const pendingConfirmationSlot = shallowRef<SchoolAvailabilitySlot | null>(
+        null,
+    );
+    const isConfirmDialogOpen = shallowRef(false);
+    const isCalendarOpen = shallowRef(false);
+    const calendarSelected = shallowRef<CalendarDate[]>(
+        weekCalendarDatesFromMonday(getMonday(new Date())),
+    );
     const availabilityCandidate =
         shallowRef<LessonSelfBookAvailabilityRequest | null>(null);
     const availability = useScheduleAvailabilityCheck({
@@ -60,46 +91,37 @@ export function useStudentLessonBookingPage() {
 
     const weekRange = computed(() => weekRangeFromMonday(weekStart.value));
 
-    const weekLabel = computed(() => {
-        const start = weekStart.value;
-        const end = new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate() + 6,
-        );
-        const formatter = new Intl.DateTimeFormat('pl-PL', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        });
+    const weekLabel = computed(() =>
+        formatManagerInstructorWeekRangeLabel(weekStart.value),
+    );
 
-        return `${formatter.format(start)} - ${formatter.format(end)}`;
-    });
+    const weekShortLabel = computed(() =>
+        formatManagerInstructorWeekRangeCompactLabel(weekStart.value),
+    );
 
-    const weekShortLabel = computed(() => {
-        const start = weekStart.value;
-        const end = new Date(
-            start.getFullYear(),
-            start.getMonth(),
-            start.getDate() + 6,
-        );
-        const formatter = new Intl.DateTimeFormat('pl-PL', {
-            day: '2-digit',
-            month: '2-digit',
-        });
+    const slots = computed(() =>
+        filterStudentLessonBookableSlots(rawSlots.value),
+    );
 
-        return `${formatter.format(start)} - ${formatter.format(end)}`;
-    });
+    const isWeekBeyondBookingWindow = computed(() =>
+        isStudentLessonBookingWeekBeyondWindow(weekStart.value),
+    );
 
-    const selectedCourseProgressLabel = computed(() => {
-        const course = selectedCourse.value;
+    const isPrevWeekDisabled = computed(
+        () =>
+            bookingSlotKey.value !== null ||
+            isStudentLessonBookingPrevWeekDisabled(weekStart.value),
+    );
 
-        if (!course) {
-            return 'Wybierz kurs, żeby zobaczyć postęp.';
-        }
+    const isNextWeekDisabled = computed(
+        () =>
+            bookingSlotKey.value !== null ||
+            isStudentLessonBookingNextWeekDisabled(weekStart.value),
+    );
 
-        return `${course.progress} z ${course.totalHours} godzin wykorzystane`;
-    });
+    const selectedCourseProgressLabel = computed(() =>
+        formatStudentLessonBookingRemainingHoursLabel(selectedCourse.value),
+    );
 
     const selectedCourseTypeLabel = computed(() => {
         const course = selectedCourse.value;
@@ -109,16 +131,29 @@ export function useStudentLessonBookingPage() {
             : 'Brak wybranego kursu';
     });
 
-    const availableSlotsLabel = computed(() => {
-        if (!selectedCourse.value) {
-            return 'Najpierw wybierz kurs';
+    const availableSlotsLabel = computed(() =>
+        formatStudentLessonBookingAvailableSlotsLabel(slots.value.length, {
+            hasCourse: Boolean(selectedCourse.value),
+            isLoading: isSlotsLoading.value,
+        }),
+    );
+
+    const slotsTruncatedLabel = computed(() => {
+        if (slotsTotal.value <= rawSlots.value.length) {
+            return null;
         }
 
-        if (isSlotsLoading.value) {
-            return 'Wczytywanie terminów';
+        return `Pokazano ${rawSlots.value.length} z ${slotsTotal.value} terminów w tym tygodniu. Zawęź okres lub skontaktuj się ze szkołą, jeśli brakuje terminu.`;
+    });
+
+    const remainingCourseHours = computed(() => {
+        const course = selectedCourse.value;
+
+        if (!course) {
+            return null;
         }
 
-        return `${slots.value.length} dostępnych terminów`;
+        return Math.max(0, course.totalHours - course.progress);
     });
 
     async function loadCourses(): Promise<void> {
@@ -134,6 +169,8 @@ export function useStudentLessonBookingPage() {
             if (!currentStillAvailable) {
                 selectedCourseId.value = bookableCourses.value[0]?.id ?? '';
             }
+
+            await loadSlots();
         } catch (err: unknown) {
             courses.value = [];
             selectedCourseId.value = '';
@@ -155,10 +192,18 @@ export function useStudentLessonBookingPage() {
         slotsAbortController = controller;
 
         slotsErrorMessage.value = null;
-        successMessage.value = null;
 
         if (!course) {
-            slots.value = [];
+            rawSlots.value = [];
+            slotsTotal.value = 0;
+            slotsAbortController = null;
+
+            return;
+        }
+
+        if (isWeekBeyondBookingWindow.value) {
+            rawSlots.value = [];
+            slotsTotal.value = 0;
             slotsAbortController = null;
 
             return;
@@ -182,13 +227,15 @@ export function useStudentLessonBookingPage() {
                 return;
             }
 
-            slots.value = data.slots;
+            rawSlots.value = data.slots;
+            slotsTotal.value = data.total;
         } catch (err: unknown) {
             if (seq !== slotsLoadSeq) {
                 return;
             }
 
-            slots.value = [];
+            rawSlots.value = [];
+            slotsTotal.value = 0;
             slotsErrorMessage.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się pobrać wolnych terminów.',
@@ -196,18 +243,136 @@ export function useStudentLessonBookingPage() {
         }
     }
 
+    function clearBookingFeedback(): void {
+        bookingFeedbackMessage.value = null;
+    }
+
     function handlePrevWeek(): void {
+        if (isPrevWeekDisabled.value) {
+            return;
+        }
+
         const date = new Date(weekStart.value);
 
         date.setDate(date.getDate() - 7);
         weekStart.value = getMonday(date);
+        calendarSelected.value = weekCalendarDatesFromMonday(weekStart.value);
+        clearBookingFeedback();
     }
 
     function handleNextWeek(): void {
+        if (isNextWeekDisabled.value) {
+            return;
+        }
+
         const date = new Date(weekStart.value);
 
         date.setDate(date.getDate() + 7);
         weekStart.value = getMonday(date);
+        calendarSelected.value = weekCalendarDatesFromMonday(weekStart.value);
+        clearBookingFeedback();
+    }
+
+    function handleCalendarUpdate(
+        value: DateValue | DateValue[] | undefined,
+    ): void {
+        if (value === undefined || bookingSlotKey.value !== null) {
+            return;
+        }
+
+        const arr = Array.isArray(value) ? value : [value];
+
+        if (arr.length === 0) {
+            return;
+        }
+
+        let anchor = arr[0]!;
+
+        for (const entry of arr) {
+            if (toDate(entry).getTime() > toDate(anchor).getTime()) {
+                anchor = entry;
+            }
+        }
+
+        const monday = getMonday(toDate(anchor));
+        const minStart = getStudentLessonBookingMinWeekStart();
+        const maxStart = getStudentLessonBookingMaxWeekStart();
+
+        if (monday.getTime() < minStart.getTime()) {
+            weekStart.value = minStart;
+        } else if (monday.getTime() > maxStart.getTime()) {
+            weekStart.value = maxStart;
+        } else {
+            weekStart.value = monday;
+        }
+
+        calendarSelected.value = weekCalendarDatesFromMonday(weekStart.value);
+        isCalendarOpen.value = false;
+        clearBookingFeedback();
+    }
+
+    function handleKeyDownWeekNav(
+        event: KeyboardEvent,
+        direction: 'prev' | 'next',
+    ): void {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (direction === 'prev') {
+            handlePrevWeek();
+        } else {
+            handleNextWeek();
+        }
+    }
+
+    function handleRequestBookSlot(slot: SchoolAvailabilitySlot): void {
+        const course = selectedCourse.value;
+
+        if (!course || bookingSlotKey.value !== null) {
+            return;
+        }
+
+        if (!canStudentBookSlotWithCourseHours(course, slot)) {
+            const message =
+                'Ta jazda przekroczyłaby dostępny pakiet godzin na kursie.';
+
+            bookingFeedbackMessage.value = message;
+            bookingFeedbackTone.value = 'error';
+            addToast({
+                title: 'Brak wystarczających godzin',
+                description: message,
+                variant: 'error',
+            });
+
+            return;
+        }
+
+        pendingConfirmationSlot.value = slot;
+        isConfirmDialogOpen.value = true;
+    }
+
+    function handleCloseConfirmDialog(): void {
+        if (bookingSlotKey.value !== null) {
+            return;
+        }
+
+        isConfirmDialogOpen.value = false;
+        pendingConfirmationSlot.value = null;
+    }
+
+    async function handleConfirmBookSlot(): Promise<void> {
+        const slot = pendingConfirmationSlot.value;
+
+        if (!slot) {
+            return;
+        }
+
+        isConfirmDialogOpen.value = false;
+        await handleBookSlot(slot);
+        pendingConfirmationSlot.value = null;
     }
 
     async function handleBookSlot(slot: SchoolAvailabilitySlot): Promise<void> {
@@ -218,8 +383,7 @@ export function useStudentLessonBookingPage() {
         }
 
         bookingSlotKey.value = getStudentLessonBookingSlotKey(slot);
-        successMessage.value = null;
-        slotsErrorMessage.value = null;
+        bookingFeedbackMessage.value = null;
         availabilityCandidate.value = {
             intent: 'lesson_self_book',
             courseId: course.id,
@@ -233,11 +397,16 @@ export function useStudentLessonBookingPage() {
             const availabilityStatus = await availability.recheck();
 
             if (availabilityStatus === 'unavailable') {
+                const firstIssue = availability.result.value?.issues[0];
                 const message =
+                    (firstIssue
+                        ? scheduleAvailabilityIssueMessage(firstIssue)
+                        : null) ||
                     availability.message.value ||
                     'Wybrany termin nie jest już dostępny.';
 
-                slotsErrorMessage.value = message;
+                bookingFeedbackMessage.value = message;
+                bookingFeedbackTone.value = 'error';
                 addToast({
                     title: 'Termin jest niedostępny',
                     description: message,
@@ -254,9 +423,11 @@ export function useStudentLessonBookingPage() {
                 endTime: buildSlotIsoUTC(slot.date, slot.endTime),
             });
 
-            successMessage.value = 'Jazda zostala zarezerwowana.';
+            const successText = 'Jazda została zarezerwowana.';
+            bookingFeedbackMessage.value = successText;
+            bookingFeedbackTone.value = 'success';
             addToast({
-                title: 'Jazda zostala zarezerwowana',
+                title: successText,
                 variant: 'success',
             });
             await loadSlots();
@@ -269,7 +440,8 @@ export function useStudentLessonBookingPage() {
                       'Nie udało się zarezerwować jazdy.',
                   );
 
-            slotsErrorMessage.value = message;
+            bookingFeedbackMessage.value = message;
+            bookingFeedbackTone.value = 'error';
             addToast({
                 title: 'Nie udało się zarezerwować jazdy',
                 description: message,
@@ -278,7 +450,6 @@ export function useStudentLessonBookingPage() {
 
             if (isConflict) {
                 await loadSlots();
-                slotsErrorMessage.value = message;
             }
         } finally {
             availabilityCandidate.value = null;
@@ -292,6 +463,10 @@ export function useStudentLessonBookingPage() {
             void loadSlots();
         },
     );
+
+    watch(weekStart, (value) => {
+        calendarSelected.value = weekCalendarDatesFromMonday(value);
+    });
 
     onMounted(() => {
         void loadCourses();
@@ -307,23 +482,44 @@ export function useStudentLessonBookingPage() {
         courses,
         selectedCourseId,
         slots,
+        rawSlots,
+        slotsTotal,
         isCoursesLoading,
         coursesErrorMessage,
         slotsErrorMessage,
+        bookingFeedbackMessage,
+        bookingFeedbackTone,
         bookingSlotKey,
-        successMessage,
+        pendingConfirmationSlot,
+        isConfirmDialogOpen,
+        isCalendarOpen,
+        calendarSelected,
         isSlotsLoading,
         bookableCourses,
         selectedCourse,
+        weekStart,
         weekRange,
         weekLabel,
         weekShortLabel,
         selectedCourseProgressLabel,
         selectedCourseTypeLabel,
         availableSlotsLabel,
+        slotsTruncatedLabel,
+        remainingCourseHours,
+        isWeekBeyondBookingWindow,
+        isPrevWeekDisabled,
+        isNextWeekDisabled,
+        WEEK_PICKER_CALENDAR_MIN,
+        WEEK_PICKER_CALENDAR_MAX,
         loadCourses,
+        loadSlots,
         handlePrevWeek,
         handleNextWeek,
-        handleBookSlot,
+        handleCalendarUpdate,
+        handleKeyDownWeekNav,
+        handleRequestBookSlot,
+        handleCloseConfirmDialog,
+        handleConfirmBookSlot,
+        clearBookingFeedback,
     };
 }

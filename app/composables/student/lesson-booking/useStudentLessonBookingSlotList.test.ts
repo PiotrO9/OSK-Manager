@@ -5,13 +5,13 @@ import {
     formatStudentLessonBookingDateLabel,
     getStudentLessonBookingBestDayLabel,
     getStudentLessonBookingHourFromTime,
-    getStudentLessonBookingInstructorName,
     getStudentLessonBookingScheduleHourRange,
     getStudentLessonBookingScheduleRows,
     getStudentLessonBookingSlotGroups,
     getStudentLessonBookingSlotListSlotKey,
     getStudentLessonBookingWeekDays,
 } from './useStudentLessonBookingSlotList';
+import { getStudentLessonBookingInstructorName } from '~/utils/student/studentLessonBookingPage';
 
 function makeSlot(
     overrides: Partial<SchoolAvailabilitySlot>,

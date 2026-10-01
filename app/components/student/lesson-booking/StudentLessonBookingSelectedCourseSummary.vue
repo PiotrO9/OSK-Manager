@@ -1,115 +1,119 @@
 <script setup lang="ts">
-import {
-    CalendarCheck,
-    CalendarDays,
-    Clock3,
-    GraduationCap,
-} from 'lucide-vue-next';
+import { GraduationCap } from 'lucide-vue-next';
 import type { CurrentUserCourseItem } from '~/types/courses/course';
 
-defineProps<{
+const props = defineProps<{
     selectedCourse: CurrentUserCourseItem | null;
     selectedCourseTypeLabel: string;
-    selectedCourseProgressLabel: string;
-    weekLabel: string;
-    availableSlotsLabel: string;
-    successMessage: string | null;
+    remainingCourseHours: number | null;
 }>();
+
+const programHours = computed(() => props.selectedCourse?.totalHours ?? 0);
+
+const usedHours = computed(() => props.selectedCourse?.progress ?? 0);
+
+const remainingHours = computed(() => {
+    if (props.remainingCourseHours !== null) {
+        return props.remainingCourseHours;
+    }
+
+    return Math.max(0, programHours.value - usedHours.value);
+});
+
+const usedPercent = computed(() => {
+    if (programHours.value <= 0) {
+        return 0;
+    }
+
+    return Math.min(
+        100,
+        Math.round((usedHours.value / programHours.value) * 100),
+    );
+});
+
+const progressBarLabel = computed(() => {
+    if (!props.selectedCourse) {
+        return 'Postęp godzin programu kursu';
+    }
+
+    return `Wykorzystano ${usedHours.value} z ${programHours.value} godzin programu`;
+});
 </script>
 
 <template>
-    <UiCard class="self-start overflow-hidden rounded-2xl shadow-sm">
-        <UiCardHeader class="border-border border-b p-5 pt-0">
-            <UiCardTitle class="text-xl font-extrabold">
-                Wybrany kurs
-            </UiCardTitle>
-            <UiCardDescription>
-                Kontekst rezerwacji przed wyborem slotu.
-            </UiCardDescription>
-        </UiCardHeader>
+    <UiCard
+        class="gap-0 self-start overflow-hidden rounded-xl py-0 shadow-xs"
+    >
+        <div class="border-border border-b px-4 py-3 sm:px-5">
+            <h2 class="text-foreground text-base font-semibold">
+                Kontekst rezerwacji
+            </h2>
+            <p class="text-muted-foreground mt-0.5 text-sm">
+                Aktywny kurs i postęp programu.
+            </p>
+        </div>
 
-        <UiCardContent class="space-y-3 px-4 py-0">
-            <div class="border-border rounded-xl border p-4">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600"
-                    >
-                        <GraduationCap class="size-5" aria-hidden="true" />
-                    </div>
-                    <div class="min-w-0">
-                        <p class="truncate font-extrabold">
-                            {{ selectedCourse?.name ?? 'Nie wybrano kursu' }}
-                        </p>
-                        <p class="text-muted-foreground text-sm">
-                            {{ selectedCourseTypeLabel }}
-                        </p>
-                    </div>
+        <UiCardContent class="space-y-4 px-4 py-4 sm:px-5">
+            <div class="flex items-start gap-3">
+                <div
+                    class="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-xl"
+                    aria-hidden="true"
+                >
+                    <GraduationCap class="size-5" />
                 </div>
-            </div>
-
-            <div class="border-border rounded-xl border p-4">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"
-                    >
-                        <Clock3 class="size-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                        <p class="font-extrabold">Saldo godzin</p>
-                        <p class="text-muted-foreground text-sm">
-                            {{ selectedCourseProgressLabel }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-border rounded-xl border p-4">
-                <div class="flex items-start gap-3">
-                    <div
-                        class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600"
-                    >
-                        <CalendarDays class="size-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                        <p class="font-extrabold">Tydzień</p>
-                        <p class="text-muted-foreground text-sm">
-                            {{ weekLabel }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div
-                class="rounded-xl border border-sky-200 bg-sky-50/70 p-4 text-sky-950"
-            >
-                <p class="font-extrabold">
-                    {{ availableSlotsLabel }}
-                </p>
-                <p class="text-sm text-sky-700">
-                    Rezerwacja działa bezpośrednio na wybranym slocie.
-                </p>
-            </div>
-
-            <div
-                v-if="successMessage"
-                class="border-border bg-muted/40 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"
-                role="status"
-            >
-                <div class="flex min-w-0 items-center gap-3">
-                    <span
-                        class="bg-primary text-primary-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                        aria-hidden="true"
-                    >
-                        <CalendarCheck class="size-4" />
-                    </span>
-                    <p class="text-foreground text-sm font-medium">
-                        {{ successMessage }}
+                <div class="min-w-0 space-y-1">
+                    <p class="truncate font-semibold">
+                        {{ selectedCourse?.name ?? 'Nie wybrano kursu' }}
+                    </p>
+                    <p class="text-muted-foreground text-sm">
+                        {{ selectedCourseTypeLabel }}
                     </p>
                 </div>
-                <UiButton as-child size="sm" variant="outline">
-                    <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
-                </UiButton>
             </div>
+
+            <div v-if="selectedCourse" class="space-y-2">
+                <div
+                    class="text-muted-foreground flex items-center justify-between gap-3 text-xs tabular-nums"
+                >
+                    <span class="text-foreground font-medium">
+                        Postęp programu
+                    </span>
+                    <span>
+                        Wykorzystano
+                        <span class="text-foreground font-medium">
+                            {{ usedHours }}
+                        </span>
+                        / {{ programHours }} godz.
+                    </span>
+                </div>
+
+                <div
+                    class="bg-muted h-2.5 w-full overflow-hidden rounded-full"
+                    role="progressbar"
+                    :aria-valuenow="usedHours"
+                    :aria-valuemin="0"
+                    :aria-valuemax="programHours"
+                    :aria-label="progressBarLabel"
+                >
+                    <div
+                        class="bg-primary h-full rounded-full transition-[width]"
+                        :style="{ width: `${usedPercent}%` }"
+                    />
+                </div>
+
+                <p
+                    v-if="remainingHours === 0"
+                    class="text-destructive text-xs font-medium"
+                    role="status"
+                >
+                    Brak godzin do wykorzystania — wybierz inny kurs lub
+                    skontaktuj się ze szkołą.
+                </p>
+            </div>
+
+            <p v-else class="text-muted-foreground text-sm">
+                Wybierz kurs praktyczny, aby zobaczyć postęp programu.
+            </p>
         </UiCardContent>
     </UiCard>
 </template>

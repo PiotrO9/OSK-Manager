@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { CalendarDays } from 'lucide-vue-next';
-
 definePageMeta({
     layout: 'app-shell',
     middleware: ['student'],
@@ -11,102 +9,96 @@ usePageMeta({
     description: () => 'Samodzielna rezerwacja jazdy praktycznej.',
 });
 
-const {
-    selectedCourseId,
-    slots,
-    isCoursesLoading,
-    coursesErrorMessage,
-    slotsErrorMessage,
-    bookingSlotKey,
-    successMessage,
-    isSlotsLoading,
-    bookableCourses,
-    selectedCourse,
-    weekRange,
-    weekLabel,
-    weekShortLabel,
-    selectedCourseProgressLabel,
-    selectedCourseTypeLabel,
-    availableSlotsLabel,
-    loadCourses,
-    handlePrevWeek,
-    handleNextWeek,
-    handleBookSlot,
-} = useStudentLessonBookingPage();
+const page = useStudentLessonBookingPage();
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="w-full min-w-0 space-y-5 md:space-y-6">
         <PageHeader
             title="Rezerwacja jazdy"
-            description="Wybierz kurs, sprawdź dostępność i zarezerwuj pasujący slot."
-        >
-            <template #actions>
-                <UiBadge
-                    variant="outline"
-                    class="bg-background h-10 rounded-xl px-4 text-sm font-semibold shadow-sm"
-                >
-                    <CalendarDays class="mr-2 size-4" aria-hidden="true" />
-                    {{ weekShortLabel }}
-                </UiBadge>
-            </template>
-        </PageHeader>
+            description="Wybierz kurs, sprawdź wolne terminy i zarezerwuj jazdę praktyczną."
+        />
 
-        <div
-            class="grid gap-4 xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.72fr)]"
-        >
-            <UiCard class="overflow-hidden rounded-2xl shadow-sm">
-                <UiCardHeader class="border-border border-b p-5 pt-0">
-                    <UiCardTitle class="text-xl font-extrabold">
-                        Dostępne terminy
-                    </UiCardTitle>
-                    <UiCardDescription>
-                        Sloty zgodne z kursem i filtrami kursanta.
-                    </UiCardDescription>
-                </UiCardHeader>
+        <ErrorState
+            v-if="page.coursesErrorMessage.value"
+            title="Nie udało się wczytać kursów"
+            :description="page.coursesErrorMessage.value"
+            @retry="page.loadCourses"
+        />
 
-                <UiCardContent class="space-y-4 px-4 py-0">
-                    <ErrorState
-                        v-if="coursesErrorMessage"
-                        title="Nie udało się wczytać kursów"
-                        :description="coursesErrorMessage"
-                        @retry="loadCourses"
-                    />
-
-                    <StudentLessonBookingCourseSelect
-                        v-model="selectedCourseId"
-                        :courses="bookableCourses"
-                        :is-loading="isCoursesLoading"
-                        :disabled="bookingSlotKey !== null"
-                    />
-
-                    <StudentLessonBookingWeekNav
-                        :label="weekLabel"
-                        :disabled="bookingSlotKey !== null"
-                        @prev="handlePrevWeek"
-                        @next="handleNextWeek"
-                    />
-
-                    <StudentLessonBookingSlotList
-                        :slots="slots"
-                        :is-loading="isSlotsLoading"
-                        :error-message="slotsErrorMessage"
-                        :selected-course-id="selectedCourseId"
-                        :booking-slot-key="bookingSlotKey"
-                        :week-start-date="weekRange.dateFrom"
-                        @book="handleBookSlot"
-                    />
-                </UiCardContent>
-            </UiCard>
-
-            <StudentLessonBookingSelectedCourseSummary
-                :selected-course="selectedCourse"
-                :selected-course-type-label="selectedCourseTypeLabel"
-                :selected-course-progress-label="selectedCourseProgressLabel"
-                :week-label="weekLabel"
-                :available-slots-label="availableSlotsLabel"
-                :success-message="successMessage"
+        <template v-else>
+            <StudentLessonBookingCourseSelect
+                v-model="page.selectedCourseId.value"
+                :courses="page.bookableCourses.value"
+                :is-loading="page.isCoursesLoading.value"
+                :disabled="page.bookingSlotKey.value !== null"
             />
-        </div>
+
+            <StudentLessonBookingFeedbackBanner
+                v-if="page.bookingFeedbackMessage.value"
+                :message="page.bookingFeedbackMessage.value"
+                :tone="page.bookingFeedbackTone.value"
+            />
+
+            <div
+                class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.65fr)]"
+            >
+                <StudentLessonBookingSchedulePanel
+                    :slots="page.slots.value"
+                    :week-start="page.weekStart.value"
+                    :is-loading="page.isSlotsLoading.value"
+                    :error-message="page.slotsErrorMessage.value"
+                    :selected-course-id="page.selectedCourseId.value"
+                    :booking-slot-key="page.bookingSlotKey.value"
+                    :is-week-beyond-booking-window="
+                        page.isWeekBeyondBookingWindow.value
+                    "
+                    :week-range-compact-label="page.weekShortLabel.value"
+                    :calendar-selected="page.calendarSelected.value"
+                    :calendar-open="page.isCalendarOpen.value"
+                    :is-prev-week-disabled="page.isPrevWeekDisabled.value"
+                    :is-next-week-disabled="page.isNextWeekDisabled.value"
+                    :calendar-min="page.WEEK_PICKER_CALENDAR_MIN"
+                    :calendar-max="page.WEEK_PICKER_CALENDAR_MAX"
+                    :truncated-label="page.slotsTruncatedLabel.value"
+                    @retry="page.loadSlots"
+                    @book="page.handleRequestBookSlot"
+                    @prev-week="page.handlePrevWeek"
+                    @next-week="page.handleNextWeek"
+                    @calendar-update="page.handleCalendarUpdate"
+                    @key-down-week-nav="page.handleKeyDownWeekNav"
+                    @update:calendar-open="
+                        (value) => {
+                            page.isCalendarOpen.value = value;
+                        }
+                    "
+                />
+
+                <StudentLessonBookingSelectedCourseSummary
+                    :selected-course="page.selectedCourse.value"
+                    :selected-course-type-label="
+                        page.selectedCourseTypeLabel.value
+                    "
+                    :remaining-course-hours="page.remainingCourseHours.value"
+                />
+            </div>
+        </template>
+
+        <StudentLessonBookingConfirmDialog
+            :open="page.isConfirmDialogOpen.value"
+            :slot="page.pendingConfirmationSlot.value"
+            :course="page.selectedCourse.value"
+            :is-submitting="page.bookingSlotKey.value !== null"
+            @update:open="
+                (value) => {
+                    page.isConfirmDialogOpen.value = value;
+                    if (!value) {
+                        page.handleCloseConfirmDialog();
+                    }
+                }
+            "
+            @confirm="page.handleConfirmBookSlot"
+            @cancel="page.handleCloseConfirmDialog"
+        />
     </div>
 </template>

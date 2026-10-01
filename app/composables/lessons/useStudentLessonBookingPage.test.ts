@@ -8,6 +8,9 @@ const fetchSlots = vi.fn();
 const addToast = vi.fn();
 const recheckAvailability = vi.fn();
 const availabilityMessage = ref('Wybrany pojazd jest zajęty.');
+const availabilityResult = ref<{ available: boolean; issues: [] } | null>(
+    null,
+);
 
 const slot: SchoolAvailabilitySlot = {
     instructorId: '11111111-1111-4111-8111-111111111111',
@@ -33,6 +36,7 @@ function installGlobals(): void {
     vi.stubGlobal('useAppToast', () => ({ addToast }));
     vi.stubGlobal('useScheduleAvailabilityCheck', () => ({
         message: availabilityMessage,
+        result: availabilityResult,
         recheck: recheckAvailability,
     }));
 }
@@ -63,13 +67,15 @@ describe('useStudentLessonBookingPage', () => {
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
 
-        await page.handleBookSlot(slot);
+        page.pendingConfirmationSlot.value = slot;
+        await page.handleConfirmBookSlot();
 
         expect(recheckAvailability).toHaveBeenCalledOnce();
         expect(bookOwnLesson).not.toHaveBeenCalled();
-        expect(page.slotsErrorMessage.value).toBe(
+        expect(page.bookingFeedbackMessage.value).toBe(
             'Wybrany pojazd jest zajęty.',
         );
+        expect(page.slotsErrorMessage.value).toBeNull();
         expect(page.bookingSlotKey.value).toBeNull();
     });
 });
