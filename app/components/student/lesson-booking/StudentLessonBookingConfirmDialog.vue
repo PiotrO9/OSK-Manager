@@ -9,7 +9,7 @@ import { formatStudentLessonBookingDateLabel } from '~/composables/student/lesso
 
 const props = defineProps<{
     open: boolean;
-    slot: SchoolAvailabilitySlot | null;
+    bookingSlot: SchoolAvailabilitySlot | null;
     course: CurrentUserCourseItem | null;
     isSubmitting: boolean;
 }>();
@@ -21,6 +21,10 @@ const emit = defineEmits<{
 }>();
 
 function handleCancel(): void {
+    if (props.isSubmitting) {
+        return;
+    }
+
     emit('cancel');
 }
 
@@ -29,27 +33,27 @@ function handleConfirm(): void {
 }
 
 function handleOpenChange(value: boolean): void {
-    emit('update:open', value);
-
-    if (!value) {
-        handleCancel();
+    if (!value && props.isSubmitting) {
+        return;
     }
+
+    emit('update:open', value);
 }
 
 const dateLabel = computed(() => {
-    if (!props.slot) {
+    if (!props.bookingSlot) {
         return '';
     }
 
-    return formatStudentLessonBookingDateLabel(props.slot.date);
+    return formatStudentLessonBookingDateLabel(props.bookingSlot.date);
 });
 
 const durationLabel = computed(() => {
-    if (!props.slot) {
+    if (!props.bookingSlot) {
         return '';
     }
 
-    const hours = getStudentLessonBookingSlotDurationHours(props.slot);
+    const hours = getStudentLessonBookingSlotDurationHours(props.bookingSlot);
 
     if (hours <= 0) {
         return '';
@@ -61,20 +65,20 @@ const durationLabel = computed(() => {
 
 <template>
     <UiDialog :open="props.open" @update:open="handleOpenChange">
-        <UiDialogContent class="max-w-md gap-0 p-0">
+        <UiDialogContent
+            class="max-w-md gap-0 p-0"
+            :show-close-button="!isSubmitting"
+            :close-on-outside-click="!isSubmitting"
+            @escape-key-down="isSubmitting && $event.preventDefault()"
+        >
             <UiDialogHeader class="border-border space-y-2 border-b p-5">
                 <UiDialogTitle>Potwierdź rezerwację jazdy</UiDialogTitle>
-                <UiDialogDescription id="student-booking-confirm-description">
-                    Sprawdź szczegóły terminu. Pojazd zostanie dobrany
-                    automatycznie przez szkołę.
+                <UiDialogDescription class="sr-only">
+                    Potwierdź szczegóły wybranego terminu jazdy.
                 </UiDialogDescription>
             </UiDialogHeader>
 
-            <div
-                v-if="slot && course"
-                class="space-y-4 p-5"
-                aria-describedby="student-booking-confirm-description"
-            >
+            <div v-if="bookingSlot && course" class="space-y-4 p-5">
                 <dl class="space-y-3 text-sm">
                     <div class="flex flex-col gap-0.5">
                         <dt class="text-muted-foreground">Kurs</dt>
@@ -82,10 +86,14 @@ const durationLabel = computed(() => {
                     </div>
                     <div class="flex flex-col gap-0.5">
                         <dt class="text-muted-foreground">Termin</dt>
-                        <dd class="font-semibold capitalize">{{ dateLabel }}</dd>
+                        <dd class="font-semibold">{{ dateLabel }}</dd>
                         <dd class="tabular-nums">
-                            {{ slot.startTime }} – {{ slot.endTime }}
-                            <span v-if="durationLabel" class="text-muted-foreground">
+                            {{ bookingSlot.startTime }} –
+                            {{ bookingSlot.endTime }}
+                            <span
+                                v-if="durationLabel"
+                                class="text-muted-foreground"
+                            >
                                 ({{ durationLabel }})
                             </span>
                         </dd>
@@ -93,13 +101,19 @@ const durationLabel = computed(() => {
                     <div class="flex flex-col gap-0.5">
                         <dt class="text-muted-foreground">Instruktor</dt>
                         <dd class="font-semibold">
-                            {{ getStudentLessonBookingInstructorName(slot) }}
+                            {{
+                                getStudentLessonBookingInstructorName(
+                                    bookingSlot,
+                                )
+                            }}
                         </dd>
                     </div>
                 </dl>
             </div>
 
-            <UiDialogFooter class="border-border gap-2 border-t p-4 sm:justify-end">
+            <UiDialogFooter
+                class="border-border gap-2 border-t p-4 sm:justify-end"
+            >
                 <UiButton
                     type="button"
                     variant="outline"
@@ -110,7 +124,7 @@ const durationLabel = computed(() => {
                 </UiButton>
                 <UiButton
                     type="button"
-                    :disabled="isSubmitting || !slot"
+                    :disabled="isSubmitting || !bookingSlot"
                     :aria-busy="isSubmitting"
                     @click="handleConfirm"
                 >

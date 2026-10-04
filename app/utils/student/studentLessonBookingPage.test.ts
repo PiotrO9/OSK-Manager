@@ -4,8 +4,10 @@ import {
     canStudentBookSlotWithCourseHours,
     filterStudentLessonBookableSlots,
     formatStudentLessonBookingAvailableSlotsLabel,
+    formatStudentLessonBookingWeekRangeCompactLabel,
     isStudentLessonBookingNextWeekDisabled,
     isStudentLessonBookingPrevWeekDisabled,
+    positionStudentLessonBookingOverlappingSlots,
 } from './studentLessonBookingPage';
 import { getMonday } from '~/utils/date/weeklyCalendarDates';
 
@@ -56,15 +58,56 @@ describe('studentLessonBookingPage utils', () => {
         ).toBe('2 dostępne terminy');
     });
 
+    it('formats week ranges across one or two months', () => {
+        expect(
+            formatStudentLessonBookingWeekRangeCompactLabel(
+                new Date(2026, 9, 5),
+            ),
+        ).toBe('5–11 października');
+        expect(
+            formatStudentLessonBookingWeekRangeCompactLabel(
+                new Date(2026, 8, 28),
+            ),
+        ).toBe('28 września – 4 października');
+    });
+
+    it('places overlapping instructors in separate lanes', () => {
+        const positioned = positionStudentLessonBookingOverlappingSlots([
+            slot,
+            {
+                ...slot,
+                instructorId: '22222222-2222-4222-8222-222222222222',
+                instructorFirstName: 'Anna',
+            },
+            {
+                ...slot,
+                instructorId: '33333333-3333-4333-8333-333333333333',
+                startTime: '11:00',
+                endTime: '12:00',
+            },
+        ]);
+
+        expect(
+            positioned.map(({ laneIndex, laneCount }) => ({
+                laneIndex,
+                laneCount,
+            })),
+        ).toEqual([
+            { laneIndex: 0, laneCount: 2 },
+            { laneIndex: 1, laneCount: 2 },
+            { laneIndex: 0, laneCount: 1 },
+        ]);
+    });
+
     it('disables previous week navigation on the current week', () => {
         const today = new Date('2026-09-30T10:00:00');
         const currentWeek = getMonday(today);
 
-        expect(
-            isStudentLessonBookingPrevWeekDisabled(currentWeek, today),
-        ).toBe(true);
-        expect(
-            isStudentLessonBookingNextWeekDisabled(currentWeek, today),
-        ).toBe(false);
+        expect(isStudentLessonBookingPrevWeekDisabled(currentWeek, today)).toBe(
+            true,
+        );
+        expect(isStudentLessonBookingNextWeekDisabled(currentWeek, today)).toBe(
+            false,
+        );
     });
 });

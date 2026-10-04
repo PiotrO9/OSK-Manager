@@ -8,9 +8,7 @@ const fetchSlots = vi.fn();
 const addToast = vi.fn();
 const recheckAvailability = vi.fn();
 const availabilityMessage = ref('Wybrany pojazd jest zajęty.');
-const availabilityResult = ref<{ available: boolean; issues: [] } | null>(
-    null,
-);
+const availabilityResult = ref<{ available: boolean; issues: [] } | null>(null);
 
 const slot: SchoolAvailabilitySlot = {
     instructorId: '11111111-1111-4111-8111-111111111111',
@@ -77,5 +75,63 @@ describe('useStudentLessonBookingPage', () => {
         );
         expect(page.slotsErrorMessage.value).toBeNull();
         expect(page.bookingSlotKey.value).toBeNull();
+    });
+
+    it('keeps the confirmation dialog open while booking is pending', async () => {
+        let resolveAvailability!: (value: string) => void;
+        const pendingAvailability = new Promise<string>((resolve) => {
+            resolveAvailability = resolve;
+        });
+
+        recheckAvailability.mockReturnValueOnce(pendingAvailability);
+
+        const page = useStudentLessonBookingPage();
+
+        page.courses.value = [
+            {
+                id: '22222222-2222-4222-8222-222222222222',
+                schoolId: '33333333-3333-4333-8333-333333333333',
+                name: 'Kurs B',
+                status: 'ACTIVE',
+                type: 'PRACTICAL',
+                totalHours: 30,
+                progress: 0,
+            },
+        ];
+        page.selectedCourseId.value = page.courses.value[0]!.id;
+        page.pendingConfirmationSlot.value = slot;
+        page.isConfirmDialogOpen.value = true;
+
+        const booking = page.handleConfirmBookSlot();
+
+        expect(page.isConfirmDialogOpen.value).toBe(true);
+        expect(page.bookingSlotKey.value).not.toBeNull();
+
+        resolveAvailability('unavailable');
+        await booking;
+
+        expect(page.isConfirmDialogOpen.value).toBe(false);
+        expect(page.bookingSlotKey.value).toBeNull();
+    });
+
+    it('excludes active practical courses with no remaining hours', () => {
+        const page = useStudentLessonBookingPage();
+
+        page.courses.value = [
+            {
+                id: '22222222-2222-4222-8222-222222222222',
+                schoolId: '33333333-3333-4333-8333-333333333333',
+                name: 'Ukończony pakiet',
+                status: 'ACTIVE',
+                type: 'PRACTICAL',
+                totalHours: 30,
+                progress: 30,
+            },
+        ];
+
+        expect(page.bookableCourses.value).toHaveLength(0);
+        expect(page.noBookableCoursesState.value.title).toBe(
+            'Wykorzystano dostępne godziny',
+        );
     });
 });

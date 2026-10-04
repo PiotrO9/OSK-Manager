@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BookOpen } from 'lucide-vue-next';
 import type { CurrentUserCourseItem } from '~/types/courses/course';
 import { formatStudentLessonBookingCourseCountLabel } from '~/utils/student/studentLessonBookingPage';
 
@@ -24,53 +23,41 @@ const courseCountLabel = computed(() => {
 
 <template>
     <section class="border-border bg-muted/20 rounded-xl border p-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div class="min-w-0 flex-1 space-y-1.5">
+        <div class="min-w-0 space-y-1.5">
+            <div class="flex items-center justify-between gap-3">
                 <label
                     for="student-booking-course"
                     class="text-foreground text-sm font-medium"
                 >
                     Kurs
                 </label>
-                <UiSelect
-                    v-model="selectedCourseId"
-                    :disabled="disabled || isLoading || !hasCourses"
-                >
-                    <UiSelectTrigger
-                        id="student-booking-course"
-                        class="bg-background h-11 w-full rounded-xl"
-                    >
-                        <UiSelectValue placeholder="Wybierz kurs" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem
-                                v-for="course in courses"
-                                :key="course.id"
-                                :value="course.id"
-                            >
-                                {{ course.name }}
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
+                <span class="text-muted-foreground text-xs" aria-live="polite">
+                    {{ courseCountLabel }}
+                </span>
             </div>
 
-            <div
-                class="bg-background text-muted-foreground flex min-h-11 items-center gap-2 rounded-xl border px-3 text-sm"
-                aria-live="polite"
+            <UiSelect
+                v-model="selectedCourseId"
+                :disabled="disabled || isLoading || !hasCourses"
             >
-                <BookOpen class="size-4 shrink-0" aria-hidden="true" />
-                <span>{{ courseCountLabel }}</span>
-            </div>
+                <UiSelectTrigger
+                    id="student-booking-course"
+                    class="bg-background h-11 w-full rounded-xl"
+                >
+                    <UiSelectValue placeholder="Wybierz kurs" />
+                </UiSelectTrigger>
+                <UiSelectContent>
+                    <UiSelectGroup>
+                        <UiSelectItem
+                            v-for="course in courses"
+                            :key="course.id"
+                            :value="course.id"
+                        >
+                            {{ course.name }}
+                        </UiSelectItem>
+                    </UiSelectGroup>
+                </UiSelectContent>
+            </UiSelect>
         </div>
-
-        <p
-            v-if="!isLoading && !hasCourses"
-            class="text-muted-foreground mt-3 text-sm"
-            role="status"
-        >
-            Brak aktywnych kursów praktycznych do rezerwacji.
-        </p>
     </section>
 </template>

@@ -28,11 +28,29 @@ const page = useStudentLessonBookingPage();
 
         <template v-else>
             <StudentLessonBookingCourseSelect
+                v-if="
+                    page.isCoursesLoading.value ||
+                    page.bookableCourses.value.length > 0
+                "
                 v-model="page.selectedCourseId.value"
                 :courses="page.bookableCourses.value"
                 :is-loading="page.isCoursesLoading.value"
                 :disabled="page.bookingSlotKey.value !== null"
             />
+
+            <EmptyState
+                v-else
+                :title="page.noBookableCoursesState.value.title"
+                :description="page.noBookableCoursesState.value.description"
+            >
+                <template #action>
+                    <UiButton as-child variant="outline" size="sm">
+                        <NuxtLink to="/my-courses"
+                            >Przejdź do moich kursów</NuxtLink
+                        >
+                    </UiButton>
+                </template>
+            </EmptyState>
 
             <StudentLessonBookingFeedbackBanner
                 v-if="page.bookingFeedbackMessage.value"
@@ -40,9 +58,15 @@ const page = useStudentLessonBookingPage();
                 :tone="page.bookingFeedbackTone.value"
             />
 
-            <div
-                class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.65fr)]"
-            >
+            <template v-if="page.selectedCourse.value">
+                <StudentLessonBookingSelectedCourseSummary
+                    :selected-course="page.selectedCourse.value"
+                    :selected-course-type-label="
+                        page.selectedCourseTypeLabel.value
+                    "
+                    :remaining-course-hours="page.remainingCourseHours.value"
+                />
+
                 <StudentLessonBookingSchedulePanel
                     :slots="page.slots.value"
                     :week-start="page.weekStart.value"
@@ -61,6 +85,8 @@ const page = useStudentLessonBookingPage();
                     :calendar-min="page.WEEK_PICKER_CALENDAR_MIN"
                     :calendar-max="page.WEEK_PICKER_CALENDAR_MAX"
                     :truncated-label="page.slotsTruncatedLabel.value"
+                    :available-slots-label="page.availableSlotsLabel.value"
+                    :remaining-course-hours="page.remainingCourseHours.value"
                     @retry="page.loadSlots"
                     @book="page.handleRequestBookSlot"
                     @prev-week="page.handlePrevWeek"
@@ -73,30 +99,15 @@ const page = useStudentLessonBookingPage();
                         }
                     "
                 />
-
-                <StudentLessonBookingSelectedCourseSummary
-                    :selected-course="page.selectedCourse.value"
-                    :selected-course-type-label="
-                        page.selectedCourseTypeLabel.value
-                    "
-                    :remaining-course-hours="page.remainingCourseHours.value"
-                />
-            </div>
+            </template>
         </template>
 
         <StudentLessonBookingConfirmDialog
             :open="page.isConfirmDialogOpen.value"
-            :slot="page.pendingConfirmationSlot.value"
+            :booking-slot="page.pendingConfirmationSlot.value"
             :course="page.selectedCourse.value"
             :is-submitting="page.bookingSlotKey.value !== null"
-            @update:open="
-                (value) => {
-                    page.isConfirmDialogOpen.value = value;
-                    if (!value) {
-                        page.handleCloseConfirmDialog();
-                    }
-                }
-            "
+            @update:open="(value) => !value && page.handleCloseConfirmDialog()"
             @confirm="page.handleConfirmBookSlot"
             @cancel="page.handleCloseConfirmDialog"
         />

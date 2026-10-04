@@ -51,7 +51,7 @@ function resolveShellHeading(): string {
     }
 
     if (route.path === '/book-lesson') {
-        return 'Rezerwuj jazde';
+        return 'Rezerwuj jazdę';
     }
 
     return map[route.path] ?? 'Panel';

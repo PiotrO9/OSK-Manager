@@ -54,7 +54,7 @@ function handlePointerDownOutside(event: Event) {
         <DialogOverlay />
         <DialogContent
             data-slot="dialog-content"
-            v-bind="{ ...$attrs, ...forwarded }"
+            v-bind="{ ...forwarded, ...$attrs }"
             :class="
                 cn(
                     'osk-dialog-content bg-background fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg sm:max-w-lg',
@@ -71,7 +71,7 @@ function handlePointerDownOutside(event: Event) {
                 class="ring-offset-background focus-visible:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 cursor-pointer rounded-xs opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
             >
                 <X />
-                <span class="sr-only">Close</span>
+                <span class="sr-only">Zamknij</span>
             </DialogClose>
         </DialogContent>
     </DialogPortal>

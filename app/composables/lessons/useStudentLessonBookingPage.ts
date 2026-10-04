@@ -22,16 +22,17 @@ import {
     filterStudentLessonBookableSlots,
     formatStudentLessonBookingAvailableSlotsLabel,
     formatStudentLessonBookingRemainingHoursLabel,
+    formatStudentLessonBookingWeekRangeCompactLabel,
+    getStudentLessonBookingInstructorName,
     getStudentLessonBookingMaxWeekStart,
     getStudentLessonBookingMinWeekStart,
+    getStudentLessonBookingRemainingHours,
     isStudentLessonBookingNextWeekDisabled,
     isStudentLessonBookingPrevWeekDisabled,
     isStudentLessonBookingWeekBeyondWindow,
 } from '~/utils/student/studentLessonBookingPage';
-import {
-    formatManagerInstructorWeekRangeCompactLabel,
-    formatManagerInstructorWeekRangeLabel,
-} from '~/utils/instructors/managerInstructorWeeklyCalendar';
+import { formatManagerInstructorWeekRangeLabel } from '~/utils/instructors/managerInstructorWeeklyCalendar';
+import { formatStudentLessonBookingDateLabel } from '~/composables/student/lesson-booking/useStudentLessonBookingSlotList';
 
 export function getStudentLessonBookingSlotKey(
     slot: SchoolAvailabilitySlot,
@@ -78,8 +79,31 @@ export function useStudentLessonBookingPage() {
         courses.value.filter(
             (course) =>
                 course.status === 'ACTIVE' &&
+                (course.type === 'PRACTICAL' || course.type === 'EXTRA') &&
+                getStudentLessonBookingRemainingHours(course) > 0,
+        ),
+    );
+
+    const hasActivePracticalCourse = computed(() =>
+        courses.value.some(
+            (course) =>
+                course.status === 'ACTIVE' &&
                 (course.type === 'PRACTICAL' || course.type === 'EXTRA'),
         ),
+    );
+
+    const noBookableCoursesState = computed(() =>
+        hasActivePracticalCourse.value
+            ? {
+                  title: 'Wykorzystano dostępne godziny',
+                  description:
+                      'Aktywne kursy nie mają już godzin, które można przeznaczyć na kolejną jazdę. Sprawdź szczegóły kursu lub skontaktuj się ze szkołą.',
+              }
+            : {
+                  title: 'Brak kursu do rezerwacji',
+                  description:
+                      'Nie masz aktywnego kursu praktycznego, dla którego można zarezerwować jazdę.',
+              },
     );
 
     const selectedCourse = computed(
@@ -96,7 +120,7 @@ export function useStudentLessonBookingPage() {
     );
 
     const weekShortLabel = computed(() =>
-        formatManagerInstructorWeekRangeCompactLabel(weekStart.value),
+        formatStudentLessonBookingWeekRangeCompactLabel(weekStart.value),
     );
 
     const slots = computed(() =>
@@ -228,7 +252,7 @@ export function useStudentLessonBookingPage() {
             }
 
             rawSlots.value = data.slots;
-            slotsTotal.value = data.total;
+            slotsTotal.value = data.total ?? data.slots.length;
         } catch (err: unknown) {
             if (seq !== slotsLoadSeq) {
                 return;
@@ -370,16 +394,18 @@ export function useStudentLessonBookingPage() {
             return;
         }
 
-        isConfirmDialogOpen.value = false;
         await handleBookSlot(slot);
+        isConfirmDialogOpen.value = false;
         pendingConfirmationSlot.value = null;
     }
 
-    async function handleBookSlot(slot: SchoolAvailabilitySlot): Promise<void> {
+    async function handleBookSlot(
+        slot: SchoolAvailabilitySlot,
+    ): Promise<boolean> {
         const course = selectedCourse.value;
 
         if (!course || bookingSlotKey.value !== null) {
-            return;
+            return false;
         }
 
         bookingSlotKey.value = getStudentLessonBookingSlotKey(slot);
@@ -413,7 +439,7 @@ export function useStudentLessonBookingPage() {
                     variant: 'error',
                 });
 
-                return;
+                return false;
             }
 
             await bookOwnLesson({
@@ -423,7 +449,8 @@ export function useStudentLessonBookingPage() {
                 endTime: buildSlotIsoUTC(slot.date, slot.endTime),
             });
 
-            const successText = 'Jazda została zarezerwowana.';
+            const successText = `Zarezerwowano jazdę: ${formatStudentLessonBookingDateLabel(slot.date)}, ${slot.startTime}–${slot.endTime}, ${getStudentLessonBookingInstructorName(slot)}.`;
+
             bookingFeedbackMessage.value = successText;
             bookingFeedbackTone.value = 'success';
             addToast({
@@ -431,6 +458,8 @@ export function useStudentLessonBookingPage() {
                 variant: 'success',
             });
             await loadSlots();
+
+            return true;
         } catch (err: unknown) {
             const isConflict = getApiErrorStatusCode(err) === 409;
             const message = isConflict
@@ -451,6 +480,8 @@ export function useStudentLessonBookingPage() {
             if (isConflict) {
                 await loadSlots();
             }
+
+            return false;
         } finally {
             availabilityCandidate.value = null;
             bookingSlotKey.value = null;
@@ -496,6 +527,7 @@ export function useStudentLessonBookingPage() {
         calendarSelected,
         isSlotsLoading,
         bookableCourses,
+        noBookableCoursesState,
         selectedCourse,
         weekStart,
         weekRange,

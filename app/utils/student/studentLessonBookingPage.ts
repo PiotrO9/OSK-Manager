@@ -1,9 +1,6 @@
 import type { CurrentUserCourseItem } from '~/types/courses/course';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
-import {
-    formatDateOnly,
-    getMonday,
-} from '~/utils/date/weeklyCalendarDates';
+import { formatDateOnly, getMonday } from '~/utils/date/weeklyCalendarDates';
 import type { ConnectedInstructorSlot } from '~/utils/instructors/managerInstructorWeeklyCalendar';
 import { formatPolishCount } from '~/utils/text/polishPlural';
 
@@ -32,7 +29,114 @@ function parseTimeToMinutes(time: string): number | null {
     return hours * 60 + minutes;
 }
 
-export function addDaysToDateString(isoDate: string, offsetDays: number): string {
+export interface StudentLessonBookingPositionedSlot {
+    slot: SchoolAvailabilitySlot;
+    laneIndex: number;
+    laneCount: number;
+}
+
+export function formatStudentLessonBookingWeekRangeCompactLabel(
+    weekStart: Date,
+): string {
+    const weekEnd = new Date(
+        weekStart.getFullYear(),
+        weekStart.getMonth(),
+        weekStart.getDate() + 6,
+    );
+    const dayFormatter = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+    });
+    const dayMonthFormatter = new Intl.DateTimeFormat('pl-PL', {
+        day: 'numeric',
+        month: 'long',
+    });
+    const startDay = dayFormatter.format(weekStart);
+    const endLabel = dayMonthFormatter.format(weekEnd);
+
+    if (
+        weekStart.getMonth() === weekEnd.getMonth() &&
+        weekStart.getFullYear() === weekEnd.getFullYear()
+    ) {
+        return `${startDay}–${endLabel}`;
+    }
+
+    return `${dayMonthFormatter.format(weekStart)} – ${endLabel}`;
+}
+
+function positionOverlappingSlotGroup(
+    slots: readonly SchoolAvailabilitySlot[],
+): StudentLessonBookingPositionedSlot[] {
+    const laneEndMinutes: number[] = [];
+    const positioned = slots.map((slot) => {
+        const startMinutes = parseTimeToMinutes(slot.startTime) ?? 0;
+        const endMinutes = parseTimeToMinutes(slot.endTime) ?? startMinutes;
+        let laneIndex = laneEndMinutes.findIndex(
+            (laneEnd) => laneEnd <= startMinutes,
+        );
+
+        if (laneIndex === -1) {
+            laneIndex = laneEndMinutes.length;
+        }
+
+        laneEndMinutes[laneIndex] = endMinutes;
+
+        return { slot, laneIndex, laneCount: 1 };
+    });
+    const laneCount = Math.max(1, laneEndMinutes.length);
+
+    return positioned.map((item) => ({ ...item, laneCount }));
+}
+
+export function positionStudentLessonBookingOverlappingSlots(
+    slots: readonly SchoolAvailabilitySlot[],
+): StudentLessonBookingPositionedSlot[] {
+    const sorted = [...slots].sort(
+        (a, b) =>
+            a.date.localeCompare(b.date) ||
+            a.startTime.localeCompare(b.startTime) ||
+            a.endTime.localeCompare(b.endTime) ||
+            a.instructorId.localeCompare(b.instructorId),
+    );
+    const result: StudentLessonBookingPositionedSlot[] = [];
+    let group: SchoolAvailabilitySlot[] = [];
+    let groupDate = '';
+    let groupEndMinutes = -1;
+
+    function flushGroup(): void {
+        result.push(...positionOverlappingSlotGroup(group));
+        group = [];
+        groupDate = '';
+        groupEndMinutes = -1;
+    }
+
+    for (const slot of sorted) {
+        const startMinutes = parseTimeToMinutes(slot.startTime) ?? 0;
+        const endMinutes = parseTimeToMinutes(slot.endTime) ?? startMinutes;
+        const joinsGroup =
+            group.length > 0 &&
+            slot.date === groupDate &&
+            startMinutes < groupEndMinutes;
+
+        if (!joinsGroup && group.length > 0) {
+            flushGroup();
+        }
+
+        group.push(slot);
+        groupDate = slot.date;
+        groupEndMinutes = Math.max(groupEndMinutes, endMinutes);
+    }
+
+    if (group.length > 0) {
+        flushGroup();
+    }
+
+    return result;
+}
+
+export function addDaysToDateString(
+    isoDate: string,
+    offsetDays: number,
+): string {
     const date = new Date(`${isoDate}T00:00:00`);
 
     if (Number.isNaN(date.getTime())) {
@@ -147,7 +251,9 @@ export function canStudentBookSlotWithCourseHours(
     return duration > 0 && duration <= remaining + 1e-9;
 }
 
-export function formatStudentLessonBookingCourseCountLabel(count: number): string {
+export function formatStudentLessonBookingCourseCountLabel(
+    count: number,
+): string {
     return formatPolishCount(count, [
         'kurs do rezerwacji',
         'kursy do rezerwacji',

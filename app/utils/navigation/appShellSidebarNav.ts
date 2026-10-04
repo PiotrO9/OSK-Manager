@@ -57,7 +57,7 @@ export function buildAppShellSidebarNavItems(
         items.splice(2, 0, {
             to: '/book-lesson',
             label: 'Rezerwuj jazdę',
-            ariaLabel: 'Przejdz do rezerwacji jazdy',
+            ariaLabel: 'Przejdź do rezerwacji jazdy',
             iconKey: 'calendarPlus',
             tooltip: 'Rezerwuj jazdę',
         });
