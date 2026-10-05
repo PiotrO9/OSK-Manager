@@ -10,7 +10,7 @@ Przebuduj design system OSK Manager zgodnie z `docs/DESIGN_SYSTEM_REBUILD_PLAN.m
 
 Zbuduj dzialajacy `/design-system` dopasowany do CRM dla szkoly jazdy. To ma byc zestaw rzeczywistych, ponownie uzywalnych komponentow oraz interaktywnych przykladow na danych testowych, nie statyczne makiety i nie katalog dekoracyjnych kart.
 
-Uzyj wybranego lokalnego Satoshi i zaakceptowanej palety Cobalt + Graphite + Orange z `/palette-test`. Nie dodawaj wyboru fontu ani nowej palety. Zachowaj jasny i ciemny motyw oraz subtelne zaakceptowane statusy.
+Uzyj wybranego lokalnego Satoshi i zaakceptowanej palety Cobalt + Graphite + Orange z globalnych tokenow CSS i sekcji kolorow `/design-system`. Nie dodawaj wyboru fontu ani nowej palety. Zachowaj jasny i ciemny motyw oraz subtelne zaakceptowane statusy.
 
 ## Najpierw audyt
 

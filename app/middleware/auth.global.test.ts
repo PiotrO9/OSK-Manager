@@ -47,14 +47,6 @@ describe('global auth middleware', () => {
         expect(authMocks.setReturnTo).not.toHaveBeenCalled();
     });
 
-    it('keeps non-authentication public pages free of session requests', async () => {
-        const middleware = await loadMiddleware();
-
-        await middleware({ path: '/palette-test', fullPath: '/palette-test' });
-
-        expect(authMocks.checkSession).not.toHaveBeenCalled();
-    });
-
     it('stores the protected destination before redirecting to login', async () => {
         authMocks.checkSession.mockResolvedValue(false);
         authMocks.navigateTo.mockResolvedValue(undefined);

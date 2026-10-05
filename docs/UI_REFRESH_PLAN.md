@@ -6,7 +6,7 @@ Rekomendacja: zacząć od listy kursantów, sprawdzić wybrany kierunek na szcze
 
 ## Checklista widoków — bieżący postęp
 
-To główna lista do odhaczania kolejnej rundy odświeżania UI. Każdy z 32 widoków ma jedno pole i identyfikator zgodny ze szczegółową inwentaryzacją poniżej.
+To główna lista do odhaczania kolejnej rundy odświeżania UI. Każdy z 31 aktywnych widoków ma jedno pole i identyfikator zgodny ze szczegółową inwentaryzacją poniżej. Usunięty T02 pozostaje w checkliście jako zakończone zadanie porządkowe.
 
 Jeżeli szukasz listy widoków do przerobienia, zacznij tutaj. To jest bieżące źródło prawdy dla rundy odświeżania UI: po każdej zaakceptowanej zmianie aktualizuj poniższy wpis W/D/F/T, dopisz datę, zakres i ważne decyzje.
 
@@ -74,7 +74,7 @@ Po zakończeniu pracy nad widokiem AI powinno zaktualizować tę checklistę ora
 ### Widoki pomocnicze
 
 - [ ] **T01 — Design system** — `/design-system`.
-- [ ] **T02 — Test palety** — `/palette-test`.
+- [x] **T02 — Test palety** — 2026-10-05: usunięto widok i jego adres, komponent podglądu oraz wyjątek publicznego dostępu; paleta pozostaje w tokenach CSS i T01.
 
 Nawigacja, layouty, globalne błędy i powiadomienia są opisane oddzielnie w sekcji 2.6. Sprawdzaj je przy zmianach ekranów, na które wpływają. Powyższa lista liczy strony; dialogi i formularze pozostają częścią ich akceptacji.
 
@@ -103,7 +103,7 @@ Ten dokument jest mapą i checklistą **kolejnej rundy**. Przy następnych zmian
 
 ## 2. Inwentaryzacja stron
 
-**[KOD] 32 pliki w `app/pages`: 28 ekranów produktu, 2 strony przekierowujące i 2 widoki pomocnicze.** Warianty ról, dialogi i formularze osadzone na stronach opisano dodatkowo, bez zwiększania liczby adresów.
+**[KOD] 31 plików w `app/pages`: 28 ekranów produktu, 2 strony przekierowujące i 1 widok pomocniczy.** Warianty ról, dialogi i formularze osadzone na stronach opisano dodatkowo, bez zwiększania liczby adresów.
 
 ### 2.1. Ekrany wspólne i wejście do aplikacji — 6
 
@@ -159,19 +159,18 @@ Numery W22–W23 należą do procesu zarządczego, ale zostały wydzielone, aby 
 | W22 Przejście do dodawania instruktora | `/manager/instructors/new` | [new.vue](../app/pages/manager/instructors/new.vue) | M/A              | Po 1400 ms od montowania przejście do `/manager/instructors`, z zachowaniem query. Docelowy composable otwiera tworzenie, gdy jest `prefillSchoolId`. `PageHeader`, `ActionGroup`; W09, D03. | Przekierowanie z widocznym ekranem przejściowym | do przeglądu        |
 | W23 Przejście do listy OSK             | `/manager/osk/new`         | [new.vue](../app/pages/manager/osk/new.vue)         | M/A              | Po 1400 ms przejście do `/manager/osk?action=create`; lista otwiera dialog tworzenia i usuwa parametr po jego zamknięciu. `PageHeader`, `ActionGroup`; W17, D06.                             | Przekierowanie z widocznym ekranem przejściowym | gotowe — 2026-09-29 |
 
-### 2.5. Widoki pomocnicze — 2
+### 2.5. Widoki pomocnicze — 1
 
 | ID / widok        | URL              | Plik źródłowy                                       | Dostęp FE                  | Cel i akcje                                                                                                                                              | Typ / komponenty                                                                                                                                                       | Status       |
 | ----------------- | ---------------- | --------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
 | T01 Design system | `/design-system` | [design-system.vue](../app/pages/design-system.vue) | Sesja, bez dodatkowej roli | Przegląd fundamentów, kontrolek, danych, harmonogramów, komunikatów i wzorców ekranów; wybór sekcji przez `?section=...`, przełącznik motywu w layoucie. | Warsztat UI; `DesignSystemNavigation`, `Colors`, `Typography`, `SectionScreenPatterns` i pozostałe sekcje. Dane demonstracyjne nie dowodzą istnienia funkcji produktu. | do przeglądu |
-| T02 Test palety   | `/palette-test`  | [palette-test.vue](../app/pages/palette-test.vue)   | Publiczny                  | Podgląd jasnej/ciemnej palety, przejście do design systemu.                                                                                              | Demo kolorów; `PalettePreviewShowcase`, layout `design-system`; osobny cookie i `data-theme`.                                                                          | do przeglądu |
 
 ### 2.6. Powierzchnie globalne bez osobnej trasy
 
 | Powierzchnia                         | Źródło                                                                                                                                                                                  | Znaczenie / akcje                                                                                                                                      | Status       |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
 | Rama aplikacji i nawigacja           | [app-shell.vue](../app/layouts/app-shell.vue), [AppShellSidebar.vue](../app/components/app/AppShellSidebar.vue), [appShellSidebarNav.ts](../app/utils/navigation/appShellSidebarNav.ts) | Nawigacja zależna od roli, zwijanie panelu, konto i wylogowanie; wpływa na przestrzeń każdego ekranu produktu poza logowaniem.                         | do przeglądu |
-| Layout warsztatu i layout domyślny   | [design-system.vue](../app/layouts/design-system.vue), [default.vue](../app/layouts/default.vue)                                                                                        | Warsztat i paleta współdzielą layout. Layout domyślny ma `AppFooter`; bieżące strony jawnie wybierają inne layouty albo wyłączają automatyczny layout. | do przeglądu |
+| Layout warsztatu i layout domyślny   | [design-system.vue](../app/layouts/design-system.vue), [default.vue](../app/layouts/default.vue)                                                                                        | Warsztat używa własnego layoutu. Layout domyślny ma `AppFooter`; bieżące strony jawnie wybierają inne layouty albo wyłączają automatyczny layout. | do przeglądu |
 | Globalny błąd / 404                  | [error.vue](../app/error.vue)                                                                                                                                                           | Powrót do strony głównej i ponowienie; teksty domyślne po angielsku i własne klasy kolorystyczne. Nie liczyć jako plik w `app/pages`.                  | do przeglądu |
 | Powiadomienia i ogłaszanie nawigacji | [app.vue](../app/app.vue), [ToastStack.vue](../app/components/app/ToastStack.vue)                                                                                                       | `ToastStack` i `NuxtRouteAnnouncer`; komunikaty sukcesu/błędu oraz zmiany strony.                                                                      | do przeglądu |
 
@@ -244,7 +243,7 @@ W repo są też [AccountProfileNamesFormDialog.vue](../app/components/app/Accoun
 1. **[KOD] Wspólne tokeny i lokalne kolory współistnieją.** `ManagerStudentsList` ma statusy w klasach emerald/slate, a [ManagerInstructorWeeklyCalendar.vue](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue) używa m.in. `bg-white` i sky. Wspólny `StatusBadge` już używa semantycznych palet. **[DO SPRAWDZENIA]** rzeczywisty kontrast i spójność obu motywów.
 2. **[KOD] Podstawowe tokeny są zadeklarowane w obu globalnych CSS.** Obecność dwóch źródeł oznacza zależność od kolejności importu. Nie jest sama w sobie dowodem błędu; przy późniejszej edycji trzeba sprawdzić oba pliki.
 3. **[KOD] Różne promienie i lokalne wysokości kontrolek.** Wspólny `DataTableShell` ma `rounded-lg`; listy domenowe często `rounded-2xl`, a pola lokalnie `h-11 rounded-xl`. **[PROPOZYCJA]** ustalić wariant standard/compact na rzeczywistych listach i formularzach, bez globalnego zamieniania wszystkich klas naraz.
-4. **[KOD] Motyw warsztatu i palety ma różne mechanizmy.** [useDarkMode.ts](../app/composables/core/useDarkMode.ts) korzysta z `.dark` i localStorage; `/palette-test` ma cookie `osk-palette-preview-mode` i `data-theme`. **[DO SPRAWDZENIA]** przejścia między stronami, odświeżenie i stan motywu w CRM.
+4. **[KOD] Motyw warsztatu.** [useDarkMode.ts](../app/composables/core/useDarkMode.ts) korzysta z `.dark` i localStorage. **[DO SPRAWDZENIA]** odświeżenie i stan motywu w CRM.
 5. **[KOD] Role w menu i renderowaniu nie są wszędzie równoważne.** Middleware `manager` dopuszcza M/A, lecz pulpit i zarządzanie pojazdami sprawdzają dokładnie M; pozycje OSK/pojazdów w menu również są dodawane tylko dla M. `/my-courses` i `/vehicles` nie mają middleware roli. Źródła: [authRole.ts](../app/utils/auth/authRole.ts), [auth.global.ts](../app/middleware/auth.global.ts), [appShellSidebarNav.ts](../app/utils/navigation/appShellSidebarNav.ts), [useVehiclesListPage.ts](../app/composables/vehicles/useVehiclesListPage.ts). **[DO SPRAWDZENIA]** docelowe zachowanie ADMIN; nie zmieniać uprawnień przy okazji stylowania.
 6. **[KOD] Część tekstów UI opisuje implementację.** Np. opisy `FormSection` na W25–W26 mówią o „walidacji i flow”, a globalny błąd jest po angielsku. **[PROPOZYCJA]** przy odświeżaniu tych ekranów zastosować krótkie teksty opisujące zadanie użytkownika.
 7. **[DOK/KOD] Historyczne opisy nie zawsze oddają dzisiejsze funkcje.** Tracker konta wspomina brak akcji zapisu profilu w poprzedniej iteracji; aktualny W02 ma edycję inline. Plan design systemu opisuje starszy stan fundamentów, choć część nowych elementów jest już w kodzie. Aktualny kod trzeba sprawdzać przed każdą makietą.
@@ -259,7 +258,7 @@ W repo są też [AccountProfileNamesFormDialog.vue](../app/components/app/Accoun
 | Formularze i dialogi       | W16, W19–W20, W25–W26, D01–D14, F01–F05                | Etykiety, błędy przy polach, akcje zapisu/anulowania, stan oczekiwania i focus. | Kolejność i zależności pól, walidacja domenowa, rodzaj operacji i ograniczenia edycji.                        |
 | Czas i dostępność          | W06, W11–W13, W18, W27–W28, sekcja W01                 | Nawigacja daty/tygodnia, legenda, typ zajęć, status, stan braku terminów.       | Dostępność cykliczna, wolny slot, blok instruktora i zarezerwowana jazda są różnymi obiektami.                |
 | Płatności i opinie         | W08/F02, W29, W21, W30, W28/F03                        | Skanowalne listy, kwoty/daty/oceny, podsumowania i stany.                       | Odczyt kursanta/instruktora versus akcje managera; brak płatności online.                                     |
-| Szkoły, pulpit i otoczenie | W17, W01–W03, W22–W23, layouty, T01–T02, globalny błąd | Kontekst szkoły, nawigacja, tożsamość użytkownika, kolory i komunikaty.         | Pulpit zależny od roli; strony demonstracyjne nie są ekranami produktu.                                       |
+| Szkoły, pulpit i otoczenie | W17, W01–W03, W22–W23, layouty, T01, globalny błąd | Kontekst szkoły, nawigacja, tożsamość użytkownika, kolory i komunikaty.         | Pulpit zależny od roli; strona demonstracyjna nie jest ekranem produktu.                                       |
 
 Procesy do sprawdzania łącznie:
 
@@ -286,7 +285,7 @@ Procesy do sprawdzania łącznie:
 | E4 Czas i rezerwacje managera        | W06, W11–W13, W19–W20, sekcja dostępności W01, D09–D13       | Spójny proces przeglądania dostępności, rezerwacji i edycji zajęć.                                | W06 jest ukończony; zachować różnice obiektów i reguły czasu w pozostałych widokach oraz oprzeć się na E2.                                                                       |
 | E5 Kursant i instruktor              | W04, W27–W30, W21, D14/F03                                   | Własne kursy, lekcje, rezerwacja, opłaty i opinie.                                                | Mniejsza gęstość może być uzasadniona zadaniem, ale stylistyka pozostaje wspólna. Zmiany opinii/płatności sprawdzić również w widokach managera.                                 |
 | E6 Domknięcie otoczenia              | W17, pozostałe warianty W01, W02–W03, W22–W23, błąd globalny | Spójny kontekst szkoły, konto, wejście/wyjście i sytuacje wyjątkowe.                              | Login i fundamenty mają aktualne niezacommitowane zmiany — rozpocząć od sprawdzenia ich aktualnego stanu. Shell kontrolować od E0, nie odkładać blokujących problemów na koniec. |
-| Ciągle                               | T01–T02 i dokumentacja wzorców                               | Zaakceptowane reguły, przykłady i odnotowane odstępstwa.                                          | Aktualizować przy zatwierdzeniu wzorca, a nie dopiero po przebudowie całej aplikacji.                                                                                            |
+| Ciągle                               | T01 i dokumentacja wzorców                                   | Zaakceptowane reguły, przykłady i odnotowane odstępstwa.                                          | Aktualizować przy zatwierdzeniu wzorca, a nie dopiero po przebudowie całej aplikacji.                                                                                            |
 
 ### Dlaczego te trzy ekrany na start
 
@@ -307,7 +306,7 @@ Wszystkie pola są początkowo puste, bo dotyczą nowej rundy. „Przegląd” o
 | E4 Czas i rezerwacje            | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
 | E5 Kursant i instruktor         | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
 | E6 Otoczenie aplikacji          | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
-| T01–T02 Dokumentacja i warsztat | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
+| T01 Dokumentacja i warsztat     | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
 
 Każde pojedyncze zadanie wdrożeniowe powinno mieć następujący zakres akceptacji:
 

@@ -11,7 +11,7 @@ Zmienic `/design-system` z katalogu biblioteki w dzialajacy warsztat interfejsu 
 Ustalone decyzje:
 
 - Jedyny font interfejsu: lokalny Satoshi. Bez wyboru fontow i bez powrotu odrzuconych kandydatow.
-- Paleta: Cobalt + Graphite + Orange, zgodna z aktualnym `/palette-test`.
+- Paleta: Cobalt + Graphite + Orange, zapisana w globalnych tokenach CSS i sekcji kolorów `/design-system`.
 - Jasny i ciemny motyw od pierwszego etapu.
 - Zachowac delikatny wyglad zaakceptowanej etykiety Aktywne; nie zmieniac jej nasycenia bez powodu.
 - Nuxt 4, Vue 3, TypeScript, Tailwind 4, istniejace shadcn-vue/Reka UI i Lucide.
@@ -24,15 +24,14 @@ Ten dokument uzupelnia `docs/UI_COMPONENT_PATTERNS.md` i `docs/UI_REFRESH_PLAN.m
 ## 2. Stan zastany
 
 - `app/pages/design-system.vue`: sklada sekcje foundation i demo biblioteki.
-- `app/layouts/design-system.vue`: wspolny naglowek i glowny kontener; korzysta z niego rowniez paleta.
+- `app/layouts/design-system.vue`: naglowek i glowny kontener warsztatu.
 - `app/components/app/design-system/`: istniejace sekcje z prawdziwymi kontrolkami.
 - `app/components/app/ui/`: PageHeader, FilterBar, DataTableShell, StatusBadge, FormSection, ActionGroup, SummaryStrip oraz LoadingState, EmptyState i ErrorState.
 - `app/components/shadcn/`: przyciski, pola, wybor, dialogi, sheet, tooltip, popover, kalendarz, sidebar i pozostale prymitywy.
-- `app/pages/palette-test.vue` i `app/components/app/palette-test/PalettePreviewShowcase.vue`: zaakceptowany podglad kolorow i fontu. Przyklady formularzy w palecie nie sa automatycznie wzorcem implementacji wszystkich prymitywow.
 - `app/assets/css/tailwind.css`: obecne globalne tokeny nadal roznia sie od wybranej palety.
-- `app/composables/core/useDarkMode.ts`: obecny mechanizm klasy `.dark` i localStorage; paleta ma osobny cookie motywu. Wymaga ujednolicenia, nie dodania trzeciego mechanizmu.
+- `app/composables/core/useDarkMode.ts`: mechanizm klasy `.dark` i localStorage dla motywu aplikacji.
 - Nie wszystkie elementy domenowe sa czysto prezentacyjne. Np. ManagerLessonBookingDialog korzysta z composable pobierajacego i zapisujacego dane.
-- `/design-system` jest chroniony przez `app/middleware/auth.global.ts`; `/palette-test` jest publiczny. Plan nie zmienia tej polityki.
+- `/design-system` jest chroniony przez `app/middleware/auth.global.ts`.
 
 Obecnosc pliku nie oznacza potwierdzenia wszystkich stanow. Kazdy ponizej wymieniony komponent trzeba uruchomic w docelowym przykladzie i zweryfikowac przed uznaniem go za gotowy.
 
@@ -116,13 +115,12 @@ Pola kwoty i godzin nie wymagaja osobnych globalnych komponentow, dopoki istniej
 Istniejace pliki do zmiany w przyszlej implementacji:
 
 - `app/pages/design-system.vue`: tylko kompozycja, wybor sekcji i lokalne ustawienia prezentacji.
-- `app/layouts/design-system.vue`: responsywna rama z miejscem na nawigacje; zachowac poprawny pelnoszeroki widok `/palette-test`.
+- `app/layouts/design-system.vue`: responsywna rama z miejscem na nawigacje.
 - `app/components/app/design-system/Typography.vue`, `Colors.vue`, `DesignSystemNavigation.vue`, `SectionActions.vue`, `SectionFormControls.vue`, `SectionData.vue`, `SectionSchedule.vue`, `SectionFoundationStates.vue`, `SectionToasts.vue`, `SectionDialog.vue`, `SectionScreenPatterns.vue` i przykłady w `examples/`: rozwijać jako aktualny katalog showcase, bez równoległego starego katalogu.
 - `app/components/app/ui/*`: zmiany wspolnych wzorcow tylko w uzasadnionym zakresie; domyslne zachowanie zgodne z istniejacymi konsumentami.
 - `app/components/shadcn/*`: rozszerzenia bazowych kontrolek, jesli potrzebne; nie reinstalowac biblioteki i nie nadpisywac lokalnych modyfikacji generatorem.
 - `app/assets/css/tailwind.css` i `app/assets/css/osk-design-tokens.css`: globalne tokeny aplikacji. Zmiana palety ma zaczynac sie tutaj, a nie w pojedynczych ekranach.
 - `app/data/design-system/colors.ts`: dane palety pokazywane w `/design-system`. Warto utrzymywac je zgodnie z globalnymi tokenami CSS.
-- `app/pages/palette-test.vue`, `app/components/app/palette-test/PalettePreviewShowcase.vue`: pozniej wspolne zrodlo kolorow/fontu; bez ponownego selektora fontow.
 - `app/composables/core/useDarkMode.ts`: ujednolicenie stanu i SSR z zachowaniem obecnego API composable.
 
 Zasada wdrozenia w aplikacji: `/design-system` pokazuje realne komponenty
@@ -152,13 +150,12 @@ Nie tworzyc wszystkich plikow z gory jako pustych szkieletow. Dodawac wraz z dzi
 
 ## 7. Motyw, portale i brak regresji
 
-Nowe tokeny najpierw wlaczyc przez jawny scope design systemu i palety, nie podmieniac od razu wszystkich globalnych wartosci.
+Nowe tokeny najpierw wlaczyc przez jawny scope design systemu, nie podmieniac od razu wszystkich globalnych wartosci.
 
 - Scope musi obejmowac takze portale UiDialog, UiSelect, UiPopover, UiSheet i tooltip. Aktualny DialogContent uzywa DialogPortal do domyslnego miejsca poza komponentem.
-- Preferowany kierunek: zarzadzany przez layout atrybut scope na korzeniu dokumentu, obejmujacy body i portale; aktywny tylko podczas wizyty w design systemie/palecie. Sprzatac po nawigacji, uwzglednic SSR i brak wycieku stylow na inne trasy.
-- Motyw nadal ma jedno wspolne zrodlo w `useDarkMode`, z SSR-safe inicjalizacja i zgodnoscia z dotychczas zapisana preferencja. Nie zostawiac `.dark` oraz `data-theme` wskazujacych przeciwne tryby.
-- Zachowac kompatybilnosc lokalnego cookie palety przez migracje/ustalona kolejnosc odczytu, nie przez dwa konkurujace watchery.
-- Priorytet i cykl zycia scope trzeba sprawdzic na przejsciu paleta -> design system -> aplikacja oraz przy otwartym/zamykanym portalu.
+- Preferowany kierunek: zarzadzany przez layout atrybut scope na korzeniu dokumentu, obejmujacy body i portale; aktywny tylko podczas wizyty w design systemie. Sprzatac po nawigacji, uwzglednic SSR i brak wycieku stylow na inne trasy.
+- Motyw nadal ma jedno wspolne zrodlo w `useDarkMode`, z SSR-safe inicjalizacja i zgodnoscia z dotychczas zapisana preferencja.
+- Priorytet i cykl zycia scope trzeba sprawdzic na przejsciu design system -> aplikacja oraz przy otwartym/zamykanym portalu.
 - Nie zmieniac statusu publicznego zadnej trasy. Testy przegladarkowe design systemu wymagaja dostepnej sesji testowej; brak sesji raportowac zamiast omijac middleware.
 
 ## 8. Izolacja i interaktywnosc przykladow
@@ -177,7 +174,7 @@ Nowe tokeny najpierw wlaczyc przez jawny scope design systemu i palety, nie podm
 | Etap                 | Zakres                                                                                             | Warunek zakonczenia                                                                      |
 | -------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | 0. Audyt             | Porownac ten plan z aktualnym kodem; spis kontraktow i konsumentow; sprawdzic istniejace dokumenty | Potwierdzona mapa reuse/rozszerzenie/brak; brak zmian biznesowych                        |
-| 1. Rama i fundamenty | Sekcje, nawigacja, Satoshi, tokeny scope, theme/portale                                            | Design system i paleta spojne; pozostale trasy bez niezamierzonego restylingu            |
+| 1. Rama i fundamenty | Sekcje, nawigacja, Satoshi, tokeny scope, theme/portale                                            | Design system spojny; pozostale trasy bez niezamierzonego restylingu            |
 | 2. Prymitywy i stany | Akcje, formularze, statusy, komunikaty                                                             | Warianty dzialaja z klawiatury w obu motywach; kompatybilne API                          |
 | 3. Dane              | Tabela/lista kursantow, filtry, paginacja, empty/error/loading                                     | Pelny lokalny scenariusz na rzeczywistych komponentach, bez domenowego I/O               |
 | 4. Harmonogram       | Siatka/lista, blok zajec, toolbar, termin i rezerwacja                                             | Godziny i dane czytelne; brak utraty informacji; konflikt i brak dostepnosci obslugiwane |
