@@ -14,6 +14,11 @@ useHead({
 
 <template>
     <div class="bg-background min-h-dvh">
+        <a
+            href="#design-system-content"
+            class="bg-card text-foreground focus-visible:ring-ring sr-only fixed top-2 left-2 z-50 rounded-md px-4 py-2 focus:not-sr-only focus:ring-2"
+            >Przejdź do treści</a
+        >
         <header
             class="border-border bg-background/95 sticky top-0 z-20 border-b backdrop-blur"
         >
@@ -56,6 +61,8 @@ useHead({
             </div>
         </header>
         <main
+            id="design-system-content"
+            tabindex="-1"
             class="mx-auto w-full max-w-[1440px] min-w-0 px-4 py-6 md:px-6 md:py-8"
         >
             <slot />

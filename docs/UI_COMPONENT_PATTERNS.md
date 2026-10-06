@@ -39,22 +39,22 @@ Preferuj nazwy opisujace wzorce, np. `PageHeader`, `FilterBar`, `DataTableShell`
 
 Stosuj ponizsze mapowanie jako punkt startowy. Konkretna implementacja moze sie roznic, ale odstepstwo powinno miec powod.
 
-| Typ widoku                     | Rekomendowane wzorce                                                               |
-| ------------------------------ | ---------------------------------------------------------------------------------- |
-| Pulpit managera                | `PageHeader`, `SummaryStrip`, `ScheduleLayout`, `EntitySummaryCard`                |
-| Lista kursantow                | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
-| Szczegoly kursanta             | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `DataTableShell`, `StatusBadge` |
-| Lista instruktorow             | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
-| Szczegoly instruktora          | `PageHeader`, `DetailLayout`, `EntitySummaryCard`, `ScheduleLayout`, `StatusBadge` |
-| Harmonogram managera           | `PageHeader`, `FilterBar`, `ScheduleLayout`, `StatusBadge`, `EmptyState`           |
-| Moje lekcje                    | `PageHeader`, `ScheduleLayout`, `StatusBadge`, `EmptyState`                        |
-| Rezerwacja lekcji              | `PageHeader`, `FilterBar`, `ScheduleLayout`, `EmptyState`, `LoadingState`          |
-| Kursy                          | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`          |
-| Pojazdy                        | `PageHeader`, `DataTableShell`, `EntitySummaryCard`, `StatusBadge`, `ActionGroup`  |
-| Platnosci                      | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge`         |
-| Opinie                         | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`                         |
-| Konto                          | `PageHeader`, `DetailLayout`, `FormSection`, `EntitySummaryCard`                   |
-| Formularz tworzenia lub edycji | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                           |
+| Typ widoku                     | Rekomendowane wzorce                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| Pulpit managera                | `PageHeader`, `SummaryStrip`, panel harmonogramu, panel profilu                 |
+| Lista kursantow                | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`       |
+| Szczegoly kursanta             | `PageHeader`, układ kartoteki, panel profilu, `DataTableShell`, `StatusBadge`   |
+| Lista instruktorow             | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`       |
+| Szczegoly instruktora          | `PageHeader`, układ kartoteki, panel profilu, panel harmonogramu, `StatusBadge` |
+| Harmonogram managera           | `PageHeader`, `FilterBar`, panel harmonogramu, `StatusBadge`, `EmptyState`      |
+| Moje lekcje                    | `PageHeader`, panel harmonogramu, `StatusBadge`, `EmptyState`                   |
+| Rezerwacja lekcji              | `PageHeader`, `FilterBar`, panel harmonogramu, `EmptyState`, `LoadingState`     |
+| Kursy                          | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`, `ActionGroup`       |
+| Pojazdy                        | `PageHeader`, `DataTableShell`, panel profilu, `StatusBadge`, `ActionGroup`     |
+| Platnosci                      | `PageHeader`, `FilterBar`, `SummaryStrip`, `DataTableShell`, `StatusBadge`      |
+| Opinie                         | `PageHeader`, `FilterBar`, `DataTableShell`, `StatusBadge`                      |
+| Konto                          | `PageHeader`, układ kartoteki, `FormSection`, panel profilu                     |
+| Formularz tworzenia lub edycji | `PageHeader`, `FormSection`, `ActionGroup`, `ErrorState`                        |
 
 ## PageHeader
 
@@ -132,7 +132,7 @@ Zasady:
 - statusy powinny uzywac wspolnego komponentu badge;
 - kolumny na mobile powinny miec przemyslany fallback, np. lista rekordow zamiast scisnietej tabeli.
 
-## EntitySummaryCard
+## Panel profilu — wzorzec kompozycji
 
 Karta podsumowania encji powinna prezentowac najwazniejsze informacje o obiekcie.
 
@@ -281,14 +281,14 @@ W formularzach używaj nowych pickerów opisanych w [`DATE_TIME_PICKERS.md`](./D
 
 Nie dodawaj lokalnych wersji `V2`, natywnych `input[type="date"]` ani `input[type="time"]` w przebudowywanych widokach. Jeżeli formularz trzyma datę i godzinę osobno w modelu, stosuj dwa pola (`UiDatePicker` + `UiTimePicker`). Jeżeli model domenowy ma jeden termin, stosuj `UiDateTimePicker`.
 
-## DetailLayout
+## Układ kartoteki — wzorzec kompozycji
 
 Widoki szczegolow encji powinny miec wspolny uklad.
 
 Rekomendowany uklad desktop:
 
-- lewa/glowna kolumna: dane operacyjne, historia, listy, kursy, lekcje;
-- prawa kolumna: profil encji, statusy, szybkie akcje, metadane.
+- lewa kolumna: profil encji, notatka lub kontekst, metadane;
+- prawa kolumna: lokalne zakładki i dane operacyjne, historia, kursy, lekcje.
 
 Rekomendowany uklad mobile:
 
@@ -304,7 +304,7 @@ Stosuj dla:
 - szczegolow kursu;
 - widoku konta.
 
-## ScheduleLayout
+## Panel harmonogramu — wzorzec kompozycji
 
 Harmonogramy sa kluczowe dla OSK Managera i powinny miec dopracowany wzorzec.
 
@@ -364,8 +364,8 @@ Rekomendowana kolejnosc:
 4. `FilterBar`
 5. `DataTableShell`
 6. `SummaryStrip`
-7. `DetailLayout`
-8. `ScheduleLayout`
+7. układ kartoteki
+8. panel harmonogramu
 9. `FormSection`
 10. `ActionGroup`
 
@@ -373,7 +373,7 @@ Ta kolejnosc pozwala najpierw ustabilizowac najbardziej widoczne i najczesciej p
 
 ## Wariant roboczy listy CRM — W07, 2026-09-09
 
-Wdrożony na `/manager/students`, czeka na ocenę użytkownika. Nie zastępuje jeszcze zasad wszystkich list.
+Zaakceptowany na `/manager/students` 2026-09-10; poniższy zapis dokumentuje fundament układu. Bieżąca lista obejmuje także wyszukiwanie oraz szybkie i zaawansowane filtry.
 
 - `PageHeader`: tytuł, krótki opis i jeden przycisk główny.
 - Jeden panel `bg-card` łączy kontekst OSK, filtr, statystyki, rekordy i paginację. Bez powtórzonego tytułu listy i zagnieżdżonych ramek.
@@ -432,3 +432,9 @@ Te zasady opisują to, co z aktualnego `/manager/students` warto traktować jako
 3. Zastosuj strukturę: nagłówek → jeden panel roboczy → filtry/search/statystyki → rekordy → paginacja/stany → dialogi.
 4. Zostaw różnice domenowe w adapterach, composables i komponentach feature, nie w globalnym shellu.
 5. Po wdrożeniu zaktualizuj bieżącą checklistę w `UI_REFRESH_PLAN.md` i dopisz decyzje, ograniczenia oraz zakres weryfikacji przy danym widoku.
+
+## Warsztat T01 — 2026-10-05
+
+Przyciski demonstracyjne prezentują wygląd i mogą pozostać bez działania. Scenariusze, sekcje i zakładki są kontrolkami warsztatu. Pełne przykłady używają rzeczywistych komponentów W07/W08/W18/W27/W29. Dane/loading/error/empty/no-results dotyczą tego samego panelu i podsumowania. Fixture płatności mają wspólną datę odniesienia.
+
+Nazwy panel profilu, układ kartoteki i panel harmonogramu opisują kompozycję; nie są gotowymi importami komponentów. Kartoteka ma profil po lewej i treść zakładek po prawej. Przy osadzaniu komponentu z API wykorzystaj jego warstwę prezentacyjną lub slot z kompatybilną zawartością domyślną.

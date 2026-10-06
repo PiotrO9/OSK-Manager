@@ -1,4 +1,8 @@
-import type { StudentPaymentItem } from '~/types/payments/payment';
+import { formatPolishCount } from '~/utils/text/polishPlural';
+import type {
+    StudentPaymentItem,
+    StudentPaymentsSummary,
+} from '~/types/payments/payment';
 
 export type MyPaymentDisplayStatus = 'OVERDUE' | 'UNPAID' | 'PAID';
 export type MyPaymentsFilter = 'UNPAID' | 'ALL' | 'PAID';
@@ -110,4 +114,118 @@ export function formatPaymentMethod(value: string | null): string | null {
     };
 
     return labels[method.toLocaleLowerCase('pl-PL')] ?? method;
+}
+
+export interface MyPaymentsToolbarSummary {
+    primary: string;
+    secondary: string;
+    tone: 'danger' | 'neutral' | 'success';
+}
+
+function parseAmount(value: string): number {
+    const amount = Number.parseFloat(value.replace(',', '.'));
+
+    return Number.isFinite(amount) ? amount : 0;
+}
+
+function formatCurrency(value: string, currency: string): string {
+    const amount = parseAmount(value);
+
+    return new Intl.NumberFormat('pl-PL', {
+        style: 'currency',
+        currency: currency || 'PLN',
+        maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    }).format(amount);
+}
+
+function formatDate(value: string | null): string {
+    if (!value) {
+        return 'Brak';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Brak';
+    }
+
+    return new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    }).format(date);
+}
+
+function formatOverdueCount(count: number): string {
+    const absoluteCount = Math.abs(count);
+    const lastTwoDigits = absoluteCount % 100;
+    const lastDigit = absoluteCount % 10;
+
+    if (count === 1) {
+        return '1 zaległa';
+    }
+
+    if (lastTwoDigits < 12 || lastTwoDigits > 14) {
+        if (lastDigit >= 2 && lastDigit <= 4) {
+            return `${count} zaległe`;
+        }
+    }
+
+    return `${count} zaległych`;
+}
+
+export function getMyPaymentsToolbarSummary(
+    payments: readonly StudentPaymentItem[],
+    summary: StudentPaymentsSummary,
+    activeFilter: MyPaymentsFilter,
+): MyPaymentsToolbarSummary {
+    const paidCount = payments.filter(
+        (payment) => payment.status === 'PAID',
+    ).length;
+    const unpaidCount = payments.length - paidCount;
+    const currency = summary.currency;
+
+    if (activeFilter === 'PAID') {
+        return {
+            primary: `${formatCurrency(summary.paidAmount, currency)} opłacono`,
+            secondary: formatPolishCount(paidCount, [
+                'pozycja',
+                'pozycje',
+                'pozycji',
+            ]),
+            tone: 'success',
+        };
+    }
+
+    if (activeFilter === 'ALL') {
+        return {
+            primary: formatPolishCount(payments.length, [
+                'płatność',
+                'płatności',
+                'płatności',
+            ]),
+            secondary: `${formatCurrency(summary.unpaidAmount, currency)} do opłacenia · ${formatCurrency(summary.paidAmount, currency)} opłacono`,
+            tone: 'neutral',
+        };
+    }
+
+    const details: string[] = [];
+
+    if (summary.overdueCount > 0) {
+        details.push(
+            `${formatOverdueCount(summary.overdueCount)} · ${formatCurrency(summary.overdueAmount, currency)}`,
+        );
+    }
+
+    if (summary.nextDueDate) {
+        details.push(`najbliższy termin ${formatDate(summary.nextDueDate)}`);
+    }
+
+    return {
+        primary: `${formatCurrency(summary.unpaidAmount, currency)} do opłacenia`,
+        secondary:
+            details.join(' · ') ||
+            formatPolishCount(unpaidCount, ['pozycja', 'pozycje', 'pozycji']),
+        tone: summary.overdueCount > 0 ? 'danger' : 'neutral',
+    };
 }

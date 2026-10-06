@@ -9,10 +9,8 @@ import {
 } from '~/utils/schedule/managerScheduleCalendarUtils';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 
-type DemoScenario = 'data' | 'empty' | 'loading' | 'error';
-
 const weekStart = shallowRef(getMonday(new Date(2026, 8, 21)));
-const scenario = shallowRef<DemoScenario>('data');
+const scenario = shallowRef('data');
 const selectedLesson = shallowRef<ScheduleLessonItem | null>(null);
 
 const demoItems = computed(() =>
@@ -26,10 +24,9 @@ watch(weekStart, () => {
     selectedLesson.value = null;
 });
 
-function selectScenario(value: DemoScenario): void {
-    scenario.value = value;
+watch(scenario, () => {
     selectedLesson.value = null;
-}
+});
 
 function selectLesson(lesson: ScheduleLessonItem): void {
     selectedLesson.value = lesson;
@@ -52,30 +49,11 @@ function selectLesson(lesson: ScheduleLessonItem): void {
             <UiBadge variant="secondary">Przykład bez zapisu danych</UiBadge>
         </div>
 
-        <div
-            class="flex flex-wrap gap-2"
-            role="group"
-            aria-label="Stan harmonogramu"
-        >
-            <UiButton
-                v-for="option in ['data', 'empty', 'loading', 'error'] as const"
-                :key="option"
-                size="sm"
-                :variant="scenario === option ? 'default' : 'outline'"
-                :aria-pressed="scenario === option"
-                @click="selectScenario(option)"
-            >
-                {{
-                    option === 'data'
-                        ? 'Zajęcia'
-                        : option === 'empty'
-                          ? 'Pusty tydzień'
-                          : option === 'loading'
-                            ? 'Ładowanie'
-                            : 'Błąd'
-                }}
-            </UiButton>
-        </div>
+        <DesignSystemScenarioControls
+            v-model="scenario"
+            label="Stan harmonogramu"
+            :scenarios="['data', 'empty', 'loading', 'error']"
+        />
 
         <ManagerSchoolScheduleCalendar
             v-model:week-start="weekStart"

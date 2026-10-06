@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { MyPaymentsToolbarSummary } from '~/composables/payments/useMyPaymentsPage';
-import type { MyPaymentsFilter } from '~/utils/payments/myPaymentsPage';
+import type {
+    MyPaymentsToolbarSummary,
+    MyPaymentsFilter,
+} from '~/utils/payments/myPaymentsPage';
 
 interface FilterOption {
     value: MyPaymentsFilter;

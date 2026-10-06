@@ -33,14 +33,16 @@ defineProps<{
         <p class="text-foreground min-w-0 text-sm font-medium sm:text-center">
             {{ message }}
         </p>
-        <UiButton
-            v-if="tone === 'success'"
-            as-child
-            size="sm"
-            variant="outline"
-            class="col-span-2 w-full shrink-0 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:w-auto sm:justify-self-end"
-        >
-            <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
-        </UiButton>
+        <slot name="action">
+            <UiButton
+                v-if="tone === 'success'"
+                as-child
+                size="sm"
+                variant="outline"
+                class="col-span-2 w-full shrink-0 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:w-auto sm:justify-self-end"
+            >
+                <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
+            </UiButton>
+        </slot>
     </div>
 </template>

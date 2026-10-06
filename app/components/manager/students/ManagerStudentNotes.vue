@@ -20,7 +20,6 @@ const draftNotes = ref('');
 const isSaving = ref(false);
 const saveError = ref<string | null>(null);
 
-const sectionHeadingId = 'student-notes-heading';
 const { updateNotes } = useStudentsApi();
 
 function getDisplayNotes(): string {
@@ -31,16 +30,6 @@ function getDisplayNotes(): string {
     }
 
     return String(n);
-}
-
-function getReadModeLabel(): string {
-    const t = getDisplayNotes().trim();
-
-    if (t.length === 0) {
-        return 'Brak notatki.';
-    }
-
-    return t;
 }
 
 function handleStartEdit() {
@@ -106,106 +95,18 @@ async function handleSaveNotes() {
         isSaving.value = false;
     }
 }
-
-function handleDraftKeydown(event: KeyboardEvent) {
-    if (event.key !== 'Escape') {
-        return;
-    }
-
-    event.preventDefault();
-    handleCancelEdit();
-}
 </script>
 
 <template>
-    <section
-        class="border-border bg-card rounded-lg border shadow-xs"
-        :aria-labelledby="sectionHeadingId"
-        :data-context-school-id="schoolId.trim() || undefined"
-    >
-        <div
-            class="border-border flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4"
-        >
-            <div class="min-w-0">
-                <h2
-                    :id="sectionHeadingId"
-                    class="text-foreground text-base font-semibold"
-                >
-                    Notatka o kursancie
-                </h2>
-                <p class="text-muted-foreground mt-1 text-sm">
-                    Wewnętrzny kontekst dla obsługi kursanta.
-                </p>
-            </div>
-            <UiButton
-                v-if="!isEditing"
-                type="button"
-                variant="outline"
-                size="sm"
-                class="shrink-0 rounded-lg"
-                aria-label="Edytuj notatkę o kursancie"
-                @click="handleStartEdit"
-            >
-                Edytuj
-            </UiButton>
-        </div>
-
-        <div class="p-5">
-            <template v-if="!isEditing">
-                <p
-                    class="text-foreground min-h-16 text-sm whitespace-pre-wrap"
-                    :class="{
-                        'text-muted-foreground':
-                            getDisplayNotes().trim().length === 0,
-                    }"
-                >
-                    {{ getReadModeLabel() }}
-                </p>
-            </template>
-
-            <template v-else>
-                <div class="space-y-3">
-                    <UiTextarea
-                        v-model="draftNotes"
-                        :maxlength="NOTES_MAX_LEN"
-                        rows="6"
-                        class="min-h-32"
-                        aria-label="Treść notatki o kursancie"
-                        :disabled="isSaving"
-                        @keydown="handleDraftKeydown"
-                    />
-                    <p class="text-muted-foreground text-xs" aria-live="polite">
-                        {{ draftNotes.length }} / {{ NOTES_MAX_LEN }} znaków
-                    </p>
-                    <p
-                        v-if="saveError"
-                        class="text-destructive text-sm"
-                        role="alert"
-                        aria-live="assertive"
-                    >
-                        {{ saveError }}
-                    </p>
-                    <div class="flex flex-wrap gap-2">
-                        <UiButton
-                            type="button"
-                            :disabled="isSaving"
-                            aria-label="Zapisz notatkę"
-                            @click="handleSaveNotes"
-                        >
-                            {{ isSaving ? 'Zapisywanie…' : 'Zapisz' }}
-                        </UiButton>
-                        <UiButton
-                            type="button"
-                            variant="outline"
-                            :disabled="isSaving"
-                            aria-label="Anuluj edycję notatki"
-                            @click="handleCancelEdit"
-                        >
-                            Anuluj
-                        </UiButton>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </section>
+    <ManagerStudentNotesContent
+        v-model:draft-notes="draftNotes"
+        :notes="initialNotes"
+        :school-id="schoolId"
+        :is-editing="isEditing"
+        :is-saving="isSaving"
+        :save-error="saveError"
+        @edit="handleStartEdit"
+        @save="handleSaveNotes"
+        @cancel="handleCancelEdit"
+    />
 </template>

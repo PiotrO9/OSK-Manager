@@ -16,11 +16,13 @@ interface Props {
     error: string | null;
     emptyLabel?: string;
     showOverview?: boolean;
+    referenceDate?: Date;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     emptyLabel: 'Brak opłat',
     showOverview: true,
+    referenceDate: undefined,
 });
 
 const emit = defineEmits<{
@@ -90,11 +92,13 @@ const statusMeta: Record<
 };
 
 function getStatusMeta(payment: StudentPaymentItem) {
-    return statusMeta[getMyPaymentDisplayStatus(payment)];
+    return statusMeta[getMyPaymentDisplayStatus(payment, props.referenceDate)];
 }
 
 function isOverdue(payment: StudentPaymentItem): boolean {
-    return getMyPaymentDisplayStatus(payment) === 'OVERDUE';
+    return (
+        getMyPaymentDisplayStatus(payment, props.referenceDate) === 'OVERDUE'
+    );
 }
 </script>
 

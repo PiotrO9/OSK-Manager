@@ -73,7 +73,7 @@ Po zakończeniu pracy nad widokiem AI powinno zaktualizować tę checklistę ora
 
 ### Widoki pomocnicze
 
-- [ ] **T01 — Design system** — `/design-system`.
+- [x] **T01 — Design system** — `/design-system` — zaakceptowane i ukończone 2026-10-06: aktualne wzorce W07/W08/W27/W29, wspólne scenariusze, dostępna nawigacja i kolory z CSS; odbiór opisany w sekcji 23. Przyciski demonstracyjne pozostają wizualne.
 - [x] **T02 — Test palety** — 2026-10-05: usunięto widok i jego adres, komponent podglądu oraz wyjątek publicznego dostępu; paleta pozostaje w tokenach CSS i T01.
 
 Nawigacja, layouty, globalne błędy i powiadomienia są opisane oddzielnie w sekcji 2.6. Sprawdzaj je przy zmianach ekranów, na które wpływają. Powyższa lista liczy strony; dialogi i formularze pozostają częścią ich akceptacji.
@@ -163,7 +163,7 @@ Numery W22–W23 należą do procesu zarządczego, ale zostały wydzielone, aby 
 
 | ID / widok        | URL              | Plik źródłowy                                       | Dostęp FE                  | Cel i akcje                                                                                                                                              | Typ / komponenty                                                                                                                                                       | Status       |
 | ----------------- | ---------------- | --------------------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| T01 Design system | `/design-system` | [design-system.vue](../app/pages/design-system.vue) | Sesja, bez dodatkowej roli | Przegląd fundamentów, kontrolek, danych, harmonogramów, komunikatów i wzorców ekranów; wybór sekcji przez `?section=...`, przełącznik motywu w layoucie. | Warsztat UI; `DesignSystemNavigation`, `Colors`, `Typography`, `SectionScreenPatterns` i pozostałe sekcje. Dane demonstracyjne nie dowodzą istnienia funkcji produktu. | do przeglądu |
+| T01 Design system | `/design-system` | [design-system.vue](../app/pages/design-system.vue) | Sesja, bez dodatkowej roli | Przegląd fundamentów, kontrolek, danych, harmonogramów, komunikatów i wzorców ekranów; wybór sekcji przez `#section`, zgodność z `?section=...`, przełącznik motywu w layoucie. | Warsztat UI; `DesignSystemNavigation`, `Colors`, `Typography`, `SectionScreenPatterns` i pozostałe sekcje. Dane demonstracyjne nie dowodzą istnienia funkcji produktu. | gotowe — 2026-10-06; zaakceptowane |
 
 ### 2.6. Powierzchnie globalne bez osobnej trasy
 
@@ -306,7 +306,7 @@ Wszystkie pola są początkowo puste, bo dotyczą nowej rundy. „Przegląd” o
 | E4 Czas i rezerwacje            | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
 | E5 Kursant i instruktor         | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
 | E6 Otoczenie aplikacji          | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
-| T01 Dokumentacja i warsztat     | [ ]                    | [ ]                              | [ ]                    | [ ]                                   | [ ]                                          | [ ]                    |
+| T01 Dokumentacja i warsztat | [x] 2026-10-05         | [x] zaakceptowano 2026-10-06     | [x] 2026-10-05         | [x] 390–1440 px, light/dark           | [x] scenariusze, klawiatura i regresja W08   | [x] sekcja 23          |
 
 Każde pojedyncze zadanie wdrożeniowe powinno mieć następujący zakres akceptacji:
 
@@ -567,3 +567,30 @@ Weryfikacja:
 - Nie zapisano trwałych zrzutów: lokalna instalacja Playwrighta nie ma pobranych przeglądarek, więc weryfikację wykonano w sesji przeglądarki IDE. Nie testowano zachowania przy bardzo długiej liście kursów, bo dane demonstracyjne mają ich pięć.
 
 Status: **zaakceptowane przez użytkownika i odhaczone 2026-09-30 — W04 jest wykonane**.
+
+## 23. T01 — warsztat design systemu, 2026-10-05
+
+Decyzja użytkownika: akcje demonstracyjne pokazują wygląd i mogą pozostać bez działania. Nawigacja, motyw, zakładki i scenariusze służą oglądaniu przykładów.
+
+Wdrożenie: kompozycja listy CRM W07, pełna kartoteka W08 ze slotami notatki/akcji, oddzielny pokaz rezerwacji kursanta W27 i zachowany formularz managera, zwarty przykład opłat W29. Stany korzystają ze wspólnego DesignSystemScenarioControls. Statusy płatności i saldo używają jednej daty odniesienia 2026-09-10; podsumowania są wyliczane z fixture.
+
+Zakładki korzystają z Reka UI. Sekcje mają linki hash obsługiwane przez router, zgodność ze starszym ?section, mobilną nawigację sticky i jeden main ze skip linkiem. Kolory odczytywane są z aktywnych zmiennych CSS; źródło wartości stanowi osk-design-tokens.css importowane przez tailwind.css. Dodano podgląd odstępów, promieni i wysokości oraz aktualne pickery daty/czasu.
+
+Wspólne zmiany: prezentacja ManagerStudentNotesContent przy zachowanym API w wrapperze, sloty kartoteki, wspólne getMyPaymentsToolbarSummary, opcjonalna data odniesienia płatności, slot akcji komunikatu rezerwacji, prawidłowe stany całego managerskiego panelu płatności.
+
+Weryfikacja:
+
+- Celowany Vitest: **5 plików, 18 testów zaliczonych** — fixture, statusy i podsumowania opłat, `useMyPaymentsPage`, prezentacja oraz composable managerskich płatności.
+- Pełny Vitest: **166 plików i 791 testów zaliczonych; 2 pliki i 4 testy niezaliczone**. Błędy dotyczą osobnych zmian instruktorów: trzy przypadki `useManagerInstructorForm.test.ts` nie przekazują nowego `birthDate`, a `useManagerInstructorsPage.test.ts` nie zapewnia autoimportu `onBeforeUnmount` dla `useManagerInstructorCreatePage`.
+- Ostatni `nuxi typecheck` zgłasza **4 błędy poza T01**: brak `birthDate` w trzech draftach `useManagerInstructorForm.test.ts` oraz payloadzie `useManagerInstructorsPage.test.ts`. Zmieniane pliki T01 nie są wskazane w diagnostyce.
+- ESLint dla zakresu T01: **kod 0**. Pełny ESLint zgłosił **61 błędów poza zakresem T01**, w plikach instruktorów oraz wcześniejszym formatowaniu listy kursantów, composables harmonogramu/kartoteki i mock BFF kursantów.
+- Headless Playwright: **5 testów zaliczonych** w `e2e/specs/ui/design-system.spec.ts`. Pokrycie: starszy link `?section`, hash i odświeżenie, zakładki klawiaturą, skip link, mobilne menu z powrotem fokusu, stany opłat, zapis i anulowanie notatki w rzeczywistym W08, brak domenowych żądań z warsztatu oraz brak błędów konsoli w sprawdzanym przepływie.
+- Wszystkie pięć wzorców sprawdzono przy **1440, 1024, 768 i 390 px w obu motywach**; brak poziomego przepełnienia strony. Długie nazwisko sprawdzono na drugiej stronie listy przy 390 px. Dialog rezerwacji kursanta mieści się na telefonie i dziedziczy kolory obu motywów przez portal.
+- Układ dla powiększenia 200% sprawdzono przez viewport **720 CSS px**, odpowiadający reflow okna 1440 px przy takim powiększeniu. Nie sterowano zoomem interfejsu przeglądarki. Font Satoshi jest załadowany; wartości próbek odpowiadają CSS aktywnego motywu.
+- Zrzuty pięciu wzorców przy 390 i 1440 px zapisano w `output/playwright/test-results`; wykonano przegląd obrazów listy, kartoteki, rezerwacji i opłat.
+- Produkcyjny `nuxi build`: **kod 0**. Pozostały ostrzeżenia zależności dotyczące adnotacji Rollupa, sourcemap i przestarzałego mapowania `exports`; nie przerwały budowania.
+- Prettier dla kodu, CSS i dokumentacji T01 oraz `git diff --check`: **kody 0**.
+
+Ograniczenia istniejących tokenów: pomiar kontrastu wykazał **4,23:1** dla `muted-foreground` na `muted` w jasnym motywie oraz **3,76:1** dla `destructive-foreground` na `destructive` w ciemnym motywie, poniżej 4,5:1 dla zwykłego tekstu. Globalne wartości palety zostały zachowane zgodnie z zakresem. Próbki nowych par `status-*` mają co najmniej 4,79:1 w jasnym i 8,15:1 w ciemnym motywie. Nie oznacza to pełnego audytu WCAG całej aplikacji.
+
+Status: **zaakceptowane przez użytkownika i odhaczone 2026-10-06 — T01 jest wykonane**.

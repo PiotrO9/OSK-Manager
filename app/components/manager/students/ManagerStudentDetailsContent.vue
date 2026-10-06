@@ -32,6 +32,7 @@ const props = defineProps<{
     paymentsError: string | null;
     paymentsSaving: boolean;
     paymentsActionError: string | null;
+    paymentsReferenceDate?: Date;
     scheduleWeekStart: Date;
     scheduleItems: readonly ScheduleLessonItem[];
     scheduleLoading: boolean;
@@ -107,19 +108,21 @@ function handleTabChange(value: string | number): void {
     <div class="space-y-6">
         <PageHeader :title="props.studentDisplayName" eyebrow="Kursant">
             <template #actions>
-                <UiButton
-                    as-child
-                    variant="outline"
-                    class="h-10 rounded-lg px-4 font-semibold shadow-xs"
-                >
-                    <NuxtLink
-                        :to="props.backToListHref"
-                        aria-label="Wróć do listy kursantów"
+                <slot name="header-actions">
+                    <UiButton
+                        as-child
+                        variant="outline"
+                        class="h-10 rounded-lg px-4 font-semibold shadow-xs"
                     >
-                        <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
-                        Lista kursantów
-                    </NuxtLink>
-                </UiButton>
+                        <NuxtLink
+                            :to="props.backToListHref"
+                            aria-label="Wróć do listy kursantów"
+                        >
+                            <ArrowLeft class="mr-2 size-4" aria-hidden="true" />
+                            Lista kursantów
+                        </NuxtLink>
+                    </UiButton>
+                </slot>
             </template>
         </PageHeader>
 
@@ -137,15 +140,17 @@ function handleTabChange(value: string | number): void {
                     :show-identity="false"
                 />
 
-                <ManagerStudentNotes
-                    :user-id="props.student.userId"
-                    :school-id="props.schoolId"
-                    :initial-notes="props.student.notes"
-                    @update:notes="emit('updateNotes', $event)"
-                />
+                <slot name="notes">
+                    <ManagerStudentNotes
+                        :user-id="props.student.userId"
+                        :school-id="props.schoolId"
+                        :initial-notes="props.student.notes"
+                        @update:notes="emit('updateNotes', $event)"
+                    />
+                </slot>
             </aside>
 
-            <main class="min-w-0">
+            <div class="min-w-0">
                 <TabsRoot
                     :model-value="activeTab"
                     class="min-w-0 space-y-5"
@@ -230,6 +235,7 @@ function handleTabChange(value: string | number): void {
                             :error="props.paymentsError"
                             :is-saving="props.paymentsSaving"
                             :action-error="props.paymentsActionError"
+                            :reference-date="props.paymentsReferenceDate"
                             @create="emit('createPayment', $event)"
                             @update="
                                 (paymentId, payload) =>
@@ -252,7 +258,7 @@ function handleTabChange(value: string | number): void {
                         />
                     </section>
                 </TabsRoot>
-            </main>
+            </div>
         </div>
     </div>
 </template>

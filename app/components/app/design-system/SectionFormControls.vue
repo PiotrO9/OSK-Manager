@@ -200,18 +200,19 @@ function handleDemoWeekUpdate(
                 </div>
                 <div class="space-y-1.5">
                     <UiLabel for="ds-birth-date">Data urodzenia</UiLabel>
-                    <UiInput
+                    <UiDatePicker
                         id="ds-birth-date"
                         v-model="birthDate"
-                        type="date"
+                        trigger-class="max-w-none"
                     />
                 </div>
                 <div class="space-y-1.5">
                     <UiLabel for="ds-start-time">Godzina jazdy</UiLabel>
-                    <UiInput
+                    <UiTimePicker
                         id="ds-start-time"
                         v-model="startTime"
-                        type="time"
+                        label="Godzina jazdy"
+                        trigger-class="max-w-none"
                     />
                 </div>
                 <div class="space-y-1.5">

@@ -8,14 +8,46 @@ import {
 const { isDark } = useDarkMode();
 const { addToast } = useAppToast();
 
-const families = DESIGN_SYSTEM_COLOR_FAMILIES;
-const semanticColors = computed(() =>
-    DESIGN_SYSTEM_THEME_TOKENS.map((token) => ({
-        name: token.name,
-        variable: token.variable,
-        value: isDark.value ? token.dark : token.light,
+const values = shallowRef<Record<string, string>>({});
+const readValue = (variable: string) =>
+    values.value[variable] || `var(${variable})`;
+const families = computed(() =>
+    DESIGN_SYSTEM_COLOR_FAMILIES.map((family) => ({
+        ...family,
+        steps: family.steps.map((step) => ({
+            ...step,
+            value: readValue(step.variable),
+            foreground: `var(${step.foreground})`,
+        })),
     })),
 );
+const semanticColors = computed(() =>
+    DESIGN_SYSTEM_THEME_TOKENS.map((token) => ({
+        ...token,
+        value: readValue(token.variable),
+    })),
+);
+
+async function refreshValues() {
+    await nextTick();
+    const styles = getComputedStyle(document.documentElement);
+    const variables = [
+        ...DESIGN_SYSTEM_COLOR_FAMILIES.flatMap((family) =>
+            family.steps.map((step) => step.variable),
+        ),
+        ...DESIGN_SYSTEM_THEME_TOKENS.map((token) => token.variable),
+    ];
+
+    values.value = Object.fromEntries(
+        variables.map((variable) => [
+            variable,
+            styles.getPropertyValue(variable).trim(),
+        ]),
+    );
+}
+
+onMounted(refreshValues);
+watch(isDark, refreshValues);
 
 function formatHex(value: string): string {
     return value.toLowerCase();
@@ -35,8 +67,11 @@ async function copyColor(value: string) {
             textarea.style.opacity = '0';
             document.body.append(textarea);
             textarea.select();
-            document.execCommand('copy');
+            const copied = document.execCommand('copy');
+
             textarea.remove();
+
+            if (!copied) throw new Error('Clipboard unavailable');
         }
 
         addToast({
@@ -65,15 +100,16 @@ async function copyColor(value: string) {
                 Skale kolorów
             </h3>
             <p class="text-muted-foreground mt-1 text-sm">
-                Pełne rodziny do budowania stanów, kontrastu i hierarchii.
-                Oznaczenie „bazowy” wskazuje główny odcień danej roli.
+                Wartości z tokenów CSS aplikacji. Orange opisuje ostrzeżenia;
+                token accent jest tłem interakcji. Oznaczenie „bazowy” wskazuje
+                główny odcień danej roli.
             </p>
         </div>
 
         <div class="border-border bg-card rounded-lg border p-4 md:p-5">
             <div class="overflow-x-auto pb-2">
                 <div
-                    class="grid min-w-[820px] grid-cols-5 gap-3 xl:min-w-0 xl:gap-4"
+                    class="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
                 >
                     <article v-for="family in families" :key="family.token">
                         <header class="mb-3 min-h-14">

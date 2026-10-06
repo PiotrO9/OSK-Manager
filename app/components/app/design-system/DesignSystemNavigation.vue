@@ -23,15 +23,17 @@ function selectSection(id: DesignSystemSectionId) {
 </script>
 
 <template>
-    <aside class="min-w-0 lg:sticky lg:top-20 lg:self-start">
+    <aside
+        class="bg-background sticky top-14 z-10 min-w-0 py-2 lg:top-20 lg:self-start lg:py-0"
+    >
         <nav
             class="border-border bg-card hidden rounded-lg border p-2 lg:block"
             aria-label="Sekcje design systemu"
         >
-            <button
+            <a
                 v-for="(section, index) in sections"
                 :key="section.id"
-                type="button"
+                :href="`#${section.id}`"
                 class="focus-visible:ring-ring flex w-full cursor-pointer items-start gap-3 rounded-md px-3 py-2.5 text-left outline-none focus-visible:ring-2"
                 :class="
                     section.id === activeSection
@@ -39,9 +41,9 @@ function selectSection(id: DesignSystemSectionId) {
                         : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 "
                 :aria-current="
-                    section.id === activeSection ? 'page' : undefined
+                    section.id === activeSection ? 'location' : undefined
                 "
-                @click="selectSection(section.id)"
+                @click.prevent="selectSection(section.id)"
             >
                 <span class="mt-0.5 text-xs font-semibold tabular-nums">
                     {{ String(index + 1).padStart(2, '0') }}
@@ -61,7 +63,7 @@ function selectSection(id: DesignSystemSectionId) {
                         {{ section.description }}
                     </span>
                 </span>
-            </button>
+            </a>
         </nav>
 
         <UiSheet v-model:open="isMobileOpen">
@@ -85,20 +87,25 @@ function selectSection(id: DesignSystemSectionId) {
                     class="space-y-1 overflow-y-auto p-3"
                     aria-label="Sekcje design systemu"
                 >
-                    <button
+                    <a
                         v-for="section in sections"
                         :key="section.id"
-                        type="button"
-                        class="focus-visible:ring-ring w-full cursor-pointer rounded-md px-3 py-3 text-left text-sm font-medium outline-none focus-visible:ring-2"
+                        :href="`#${section.id}`"
+                        :aria-current="
+                            section.id === activeSection
+                                ? 'location'
+                                : undefined
+                        "
+                        class="focus-visible:ring-ring block w-full cursor-pointer rounded-md px-3 py-3 text-left text-sm font-medium outline-none focus-visible:ring-2"
                         :class="
                             section.id === activeSection
                                 ? 'bg-primary text-primary-foreground'
                                 : 'hover:bg-accent'
                         "
-                        @click="selectSection(section.id)"
+                        @click.prevent="selectSection(section.id)"
                     >
                         {{ section.label }}
-                    </button>
+                    </a>
                 </nav>
             </UiSheetContent>
         </UiSheet>

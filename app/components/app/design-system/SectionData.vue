@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { RotateCcw, Search } from 'lucide-vue-next';
+import { formatPolishCount } from '~/utils/text/polishPlural';
+import type { SummaryStripItem } from '~/components/app/ui/types';
 import { designSystemStudents } from '~/data/design-system/fixtures';
 
 const query = shallowRef('');
 const status = shallowRef<'all' | 'active' | 'inactive'>('all');
-const scenario = shallowRef<'data' | 'loading' | 'error'>('data');
+const scenario = shallowRef('data');
 
 const statusLabel = computed(() => {
     if (status.value === 'active') return 'Aktywni';
@@ -16,6 +18,9 @@ const statusLabel = computed(() => {
 
 const visibleStudents = computed(() => {
     const normalizedQuery = query.value.trim().toLocaleLowerCase('pl-PL');
+
+    if (scenario.value === 'empty' || scenario.value === 'no-results')
+        return [];
 
     return designSystemStudents.filter((student) => {
         const matchesQuery =
@@ -36,22 +41,54 @@ function reset() {
     status.value = 'all';
     scenario.value = 'data';
 }
+
+const summaryItems = computed<SummaryStripItem[]>(() => {
+    const unavailable =
+        scenario.value === 'loading' || scenario.value === 'error';
+    const rows = visibleStudents.value;
+
+    return [
+        { label: 'Wyniki', value: unavailable ? '—' : rows.length },
+        {
+            label: 'Aktywni w wyniku',
+            value: unavailable
+                ? '—'
+                : rows.filter((row) => row.isActive).length,
+            tone: 'success',
+        },
+        {
+            label: 'Bez PKK w wyniku',
+            value: unavailable
+                ? '—'
+                : rows.filter((row) => !row.pkkNumber).length,
+            tone: 'warning',
+        },
+        {
+            label: 'Nieaktywni w wyniku',
+            value: unavailable
+                ? '—'
+                : rows.filter((row) => !row.isActive).length,
+            tone: 'neutral',
+        },
+    ];
+});
 </script>
 
 <template>
     <section class="space-y-5" aria-label="Wzorce danych">
-        <SummaryStrip
-            :items="[
-                { label: 'Kursanci', value: designSystemStudents.length },
-                { label: 'Aktywni', value: 2, tone: 'success' },
-                { label: 'Bez PKK', value: 1, tone: 'warning' },
-                { label: 'Nieaktywni', value: 1, tone: 'neutral' },
-            ]"
-        />
+        <SummaryStrip :items="summaryItems" />
 
         <FilterBar
             title="Kursanci"
-            :result-label="`${visibleStudents.length} wyników`"
+            :result-label="
+                scenario === 'error'
+                    ? '—'
+                    : formatPolishCount(visibleStudents.length, [
+                          'wynik',
+                          'wyniki',
+                          'wyników',
+                      ])
+            "
             :is-loading="scenario === 'loading'"
         >
             <div class="relative min-w-[220px] flex-1 sm:max-w-xs">
@@ -85,27 +122,10 @@ function reset() {
             </template>
         </FilterBar>
 
-        <div
-            class="flex flex-wrap gap-2"
-            role="group"
-            aria-label="Scenariusz tabeli"
-        >
-            <UiButton
-                v-for="option in ['data', 'loading', 'error'] as const"
-                :key="option"
-                size="sm"
-                :variant="scenario === option ? 'default' : 'outline'"
-                @click="scenario = option"
-            >
-                {{
-                    option === 'data'
-                        ? 'Dane'
-                        : option === 'loading'
-                          ? 'Ładowanie'
-                          : 'Błąd'
-                }}
-            </UiButton>
-        </div>
+        <DesignSystemScenarioControls
+            v-model="scenario"
+            label="Scenariusz tabeli"
+        />
 
         <DataTableShell
             :is-loading="scenario === 'loading'"
@@ -125,9 +145,15 @@ function reset() {
                 @assign-course="() => undefined"
             />
             <EmptyState
-                v-else-if="scenario === 'data'"
-                title="Brak wyników"
-                description="Zmień filtry lub wyczyść wyszukiwanie."
+                v-else-if="scenario !== 'loading' && scenario !== 'error'"
+                :title="
+                    scenario === 'empty' ? 'Brak kursantów' : 'Brak wyników'
+                "
+                :description="
+                    scenario === 'empty'
+                        ? 'Dodaj pierwszego kursanta do szkoły.'
+                        : 'Zmień filtry lub wyczyść wyszukiwanie.'
+                "
                 class="m-4"
             >
                 <template #action

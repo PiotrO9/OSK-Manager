@@ -5,12 +5,22 @@ import type {
 import type {
     StudentListItem,
     StudentProcessStatusStep,
+    StudentDetail,
 } from '~/types/students/student';
 import type {
     LessonBookingInstructorOption,
     LessonBookingSlotContext,
 } from '~/types/lessons/lessonBooking';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import type {
+    CourseListItem,
+    CurrentUserCourseItem,
+} from '~/types/courses/course';
+import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
+import { getMyPaymentDisplayStatus } from '~/utils/payments/myPaymentsPage';
+
+/** Fixed reference day keeps demonstrations independent of the current clock. */
+export const designSystemReferenceDate = new Date('2026-09-10T10:00:00Z');
 
 export const designSystemStudents: readonly StudentListItem[] = [
     {
@@ -78,16 +88,59 @@ export const designSystemPayments: readonly StudentPaymentItem[] = [
         paidAt: null,
         method: null,
     },
+    {
+        id: 'payment-3',
+        courseId: 'course-1',
+        courseName: 'Kurs prawa jazdy kat. B',
+        paymentPlanId: 'plan-3',
+        amount: '350.00',
+        currency: 'PLN',
+        status: 'UNPAID',
+        date: null,
+        dueDate: '2026-09-08',
+        paidAt: null,
+        method: null,
+    },
 ] as const;
 
-export const designSystemPaymentsSummary: StudentPaymentsSummary = {
-    paidAmount: '1250.00',
-    unpaidAmount: '850.00',
-    overdueAmount: '0.00',
-    overdueCount: 0,
-    nextDueDate: '2026-09-15',
-    currency: 'PLN',
-};
+export function buildDesignSystemPaymentsSummary(
+    payments: readonly StudentPaymentItem[],
+    referenceDate = designSystemReferenceDate,
+): StudentPaymentsSummary {
+    const paid = payments.filter((payment) => payment.status === 'PAID');
+    const unpaid = payments.filter((payment) => payment.status === 'UNPAID');
+    const overdue = unpaid.filter(
+        (payment) =>
+            getMyPaymentDisplayStatus(payment, referenceDate) === 'OVERDUE',
+    );
+    const amount = (items: readonly StudentPaymentItem[]) =>
+        (
+            items.reduce(
+                (sum, item) => sum + Math.round(Number(item.amount) * 100),
+                0,
+            ) / 100
+        ).toFixed(2);
+    const upcomingDates = unpaid
+        .filter(
+            (payment) =>
+                getMyPaymentDisplayStatus(payment, referenceDate) !== 'OVERDUE',
+        )
+        .map((payment) => payment.dueDate)
+        .filter((date): date is string => Boolean(date))
+        .sort();
+
+    return {
+        paidAmount: amount(paid),
+        unpaidAmount: amount(unpaid),
+        overdueAmount: amount(overdue),
+        overdueCount: overdue.length,
+        nextDueDate: upcomingDates[0] ?? null,
+        currency: 'PLN',
+    };
+}
+
+export const designSystemPaymentsSummary =
+    buildDesignSystemPaymentsSummary(designSystemPayments);
 
 export const designSystemProcessSteps: readonly StudentProcessStatusStep[] = [
     {
@@ -152,3 +205,87 @@ export const designSystemVehicles: readonly Vehicle[] = [
         mileageKm: 26700,
     },
 ] as const;
+
+export const designSystemSchool = {
+    id: 'design-system',
+    name: 'OSK Przykładowa',
+    city: 'Zgierz',
+};
+export const designSystemCourses: CourseListItem[] = [
+    {
+        id: 'course-1',
+        name: 'Kurs prawa jazdy kat. B',
+        category: 'B',
+        courseType: null,
+        type: 'PRACTICAL',
+        totalHours: 30,
+        instructor: null,
+    },
+];
+export const designSystemStudentProfile: StudentDetail = {
+    id: 'student-1',
+    userId: 'user-1',
+    schoolId: 'design-system',
+    firstName: 'Anna',
+    lastName: 'Kowalska',
+    email: 'anna.kowalska@example.com',
+    pkkNumber: '12345678901234567890',
+    notes: 'Parkowanie równoległe do przećwiczenia. Kolejna jazda: trasa egzaminacyjna.',
+    courses: [
+        {
+            id: 'course-1',
+            name: 'Kurs prawa jazdy kat. B',
+            category: 'B',
+            status: 'ACTIVE',
+        },
+    ],
+};
+export const designSystemBookingCourses: CurrentUserCourseItem[] = [
+    {
+        id: 'course-1',
+        schoolId: 'design-system',
+        name: 'Kurs prawa jazdy kat. B',
+        status: 'ACTIVE',
+        type: 'PRACTICAL',
+        totalHours: 30,
+        progress: 18,
+    },
+];
+
+export function buildDesignSystemBookingSlots(
+    monday: Date,
+): SchoolAvailabilitySlot[] {
+    const date = new Date(
+        monday.getFullYear(),
+        monday.getMonth(),
+        monday.getDate() + 3,
+    );
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    return [
+        {
+            instructorId: 'instructor-1',
+            instructorFirstName: 'Marek',
+            instructorLastName: 'Nowak',
+            date: dateKey,
+            startTime: '08:00',
+            endTime: '09:30',
+        },
+        {
+            instructorId: 'instructor-2',
+            instructorFirstName: 'Joanna',
+            instructorLastName: 'Lis',
+            date: dateKey,
+            startTime: '08:30',
+            endTime: '10:00',
+        },
+        {
+            instructorId: 'instructor-1',
+            instructorFirstName: 'Marek',
+            instructorLastName: 'Nowak',
+            date: dateKey,
+            startTime: '10:00',
+            endTime: '11:00',
+        },
+    ];
+}

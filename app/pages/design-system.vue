@@ -14,69 +14,80 @@ usePageMeta({
 });
 
 const route = useRoute();
+const router = useRouter();
 const activeSection = shallowRef<DesignSystemSectionId>('foundations');
-let sectionObserver: IntersectionObserver | null = null;
+let scrollFrame = 0;
 
-function resolveRequestedSection(): DesignSystemSectionId {
-    const hash = route.hash.replace('#', '');
+function resolveRequestedSection(): DesignSystemSectionId | null {
+    const hash = route.hash.slice(1);
 
-    if (isDesignSystemSectionId(hash)) {
-        return hash;
-    }
+    if (isDesignSystemSectionId(hash)) return hash;
 
     const section = Array.isArray(route.query.section)
         ? route.query.section[0]
         : route.query.section;
 
-    return isDesignSystemSectionId(section) ? section : 'foundations';
+    return isDesignSystemSectionId(section) ? section : null;
 }
 
-function scrollToSection(id: DesignSystemSectionId, behavior: ScrollBehavior) {
+function scrollToSection(id: DesignSystemSectionId) {
     const element = document.getElementById(id);
 
-    if (!element) {
-        return;
-    }
+    if (!element) return;
 
     activeSection.value = id;
-    element.scrollIntoView({ behavior, block: 'start' });
-    window.history.replaceState(null, '', `${route.path}#${id}`);
+    element.scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
-function selectSection(id: DesignSystemSectionId) {
-    scrollToSection(id, 'smooth');
+async function selectSection(id: DesignSystemSectionId) {
+    const query = { ...route.query };
+
+    delete query.section;
+    await router.replace({ path: route.path, query, hash: `#${id}` });
+    scrollToSection(id);
 }
 
-onMounted(() => {
-    scrollToSection(resolveRequestedSection(), 'auto');
-
-    sectionObserver = new IntersectionObserver(
-        (entries) => {
-            const visibleEntry = entries
-                .filter((entry) => entry.isIntersecting)
-                .sort(
-                    (current, next) =>
-                        current.boundingClientRect.top -
-                        next.boundingClientRect.top,
-                )[0];
-
-            if (isDesignSystemSectionId(visibleEntry?.target.id)) {
-                activeSection.value = visibleEntry.target.id;
-            }
-        },
-        { rootMargin: '-96px 0px -62% 0px', threshold: 0.01 },
-    );
+function updateActiveSection() {
+    scrollFrame = 0;
+    let current: DesignSystemSectionId = 'foundations';
 
     for (const section of DESIGN_SYSTEM_SECTIONS) {
         const element = document.getElementById(section.id);
 
-        if (element) {
-            sectionObserver.observe(element);
-        }
+        if (element && element.getBoundingClientRect().top <= 140)
+            current = section.id;
     }
+
+    activeSection.value = current;
+}
+
+function handleScroll() {
+    if (!scrollFrame)
+        scrollFrame = window.requestAnimationFrame(updateActiveSection);
+}
+
+watch(
+    () => route.fullPath,
+    async () => {
+        await nextTick();
+        const section = resolveRequestedSection();
+
+        if (section) scrollToSection(section);
+    },
+);
+
+onMounted(() => {
+    const section = resolveRequestedSection();
+
+    if (section) scrollToSection(section);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
 });
 
-onBeforeUnmount(() => sectionObserver?.disconnect());
+onBeforeUnmount(() => {
+    window.removeEventListener('scroll', handleScroll);
+    window.cancelAnimationFrame(scrollFrame);
+});
 </script>
 
 <template>
@@ -87,10 +98,10 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
                 :active-section="activeSection"
                 @select="selectSection"
             />
-            <main class="min-w-0 space-y-6">
+            <div class="min-w-0 space-y-6">
                 <section
                     id="foundations"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="foundations-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -106,11 +117,12 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
                     </header>
                     <Colors />
                     <Typography />
+                    <SectionSpacing />
                 </section>
 
                 <section
                     id="actions"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="actions-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -129,7 +141,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
 
                 <section
                     id="forms"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="forms-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -148,7 +160,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
 
                 <section
                     id="data"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="data-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -167,7 +179,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
 
                 <section
                     id="schedule"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="schedule-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -186,7 +198,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
 
                 <section
                     id="feedback"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="feedback-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -208,7 +220,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
 
                 <section
                     id="patterns"
-                    class="scroll-mt-24 space-y-6"
+                    class="scroll-mt-36 space-y-6 lg:scroll-mt-24"
                     aria-labelledby="patterns-title"
                 >
                     <header class="border-border border-b pb-4">
@@ -224,7 +236,7 @@ onBeforeUnmount(() => sectionObserver?.disconnect());
                     </header>
                     <SectionScreenPatterns />
                 </section>
-            </main>
+            </div>
         </div>
     </div>
 </template>

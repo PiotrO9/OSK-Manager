@@ -63,7 +63,7 @@ export default defineNuxtConfig({
             pathPrefix: false,
         },
     ],
-    css: ['~/assets/css/tailwind.css', '~/assets/css/osk-design-tokens.css'],
+    css: ['~/assets/css/tailwind.css'],
     imports: {
         dirs: ['composables', 'composables/**', 'utils', 'utils/**'],
     },
