@@ -87,6 +87,8 @@ export interface paths {
                         lastName: string;
                         phone?: string | null;
                         licenseNumber?: string | null;
+                        /** @description Required for INSTRUCTOR after rollout; calendar date YYYY-MM-DD, not in the future. */
+                        birthDate?: string | null;
                         schoolId?: string | null;
                     };
                 };

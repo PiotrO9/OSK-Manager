@@ -26,10 +26,6 @@ const {
     visibleInstructors,
     isInstructorsLoading,
     instructorsLoadError,
-    formDialogOpen,
-    isFormSaving,
-    apiError,
-    prefillSchoolId,
     visibleInstructorsLabel,
     qualificationFilterLabel,
     instructorsWithQualificationsCount,
@@ -48,9 +44,7 @@ const {
     instructorDetailsTo,
     instructorQualificationLabel,
     instructorInitials,
-    handleOpenCreateDialog,
-    handleFormDialogOpenChange,
-    handleInstructorSubmit,
+    handleOpenCreatePage,
 } = useManagerInstructorsPage();
 </script>
 
@@ -62,13 +56,14 @@ const {
         >
             <template #actions>
                 <UiButton
-                    type="button"
+                    as-child
                     class="h-11 w-full px-4 sm:h-10 sm:w-auto"
                     aria-label="Otwórz formularz dodawania instruktora"
-                    @click="handleOpenCreateDialog"
                 >
-                    <Plus class="size-4" aria-hidden="true" />
-                    Dodaj instruktora
+                    <NuxtLink to="/manager/instructors/new">
+                        <Plus class="size-4" aria-hidden="true" />
+                        Dodaj instruktora
+                    </NuxtLink>
                 </UiButton>
             </template>
         </PageHeader>
@@ -99,7 +94,7 @@ const {
             :instructor-qualification-label="instructorQualificationLabel"
             :instructor-initials="instructorInitials"
             @active-school-change="handleActiveSchoolChange"
-            @create-instructor="handleOpenCreateDialog"
+            @create-instructor="handleOpenCreatePage"
             @start-new-advanced-filter="startNewAdvancedFilter"
             @start-edit-advanced-filter="startEditAdvancedFilter"
             @update-advanced-filter-draft="updateAdvancedFilterDraft"
@@ -109,18 +104,6 @@ const {
             @clear-filters="clearInstructorFilters"
             @retry-schools="loadSchools"
             @retry-instructors="loadInstructors"
-        />
-
-        <ManagerInstructorFormDialog
-            :open="formDialogOpen"
-            :schools="schools"
-            :is-schools-loading="isSchoolsLoading"
-            :schools-load-error="schoolsLoadError"
-            :is-saving="isFormSaving"
-            :api-error="apiError"
-            :prefill-school-id="prefillSchoolId"
-            @update:open="handleFormDialogOpenChange"
-            @submit="handleInstructorSubmit"
         />
     </div>
 </template>

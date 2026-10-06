@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { onMounted } from 'vue';
-import { computed, readonly, ref } from 'vue';
+import { computed, reactive, readonly, ref, watch } from 'vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 
@@ -12,6 +12,10 @@ const navigateTo = vi.fn();
 
 vi.mock('../../core/useApi', () => ({
     requestBffSuccess,
+}));
+vi.mock('vue-router', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('vue-router')>()),
+    onBeforeRouteLeave: vi.fn(),
 }));
 
 function deferred<T>() {
@@ -62,9 +66,14 @@ describe('useManagerInstructorsPage', () => {
         fetchInstructorsList.mockResolvedValue([]);
         vi.stubGlobal('ref', ref);
         vi.stubGlobal('computed', computed);
+        vi.stubGlobal('reactive', reactive);
         vi.stubGlobal('readonly', readonly);
+        vi.stubGlobal('watch', watch);
         vi.stubGlobal('onMounted', vi.fn<typeof onMounted>());
-        vi.stubGlobal('useRoute', () => ({ query: {} }));
+        vi.stubGlobal('onBeforeUnmount', vi.fn());
+        vi.stubGlobal('useState', (_key: string, init: () => string) =>
+            ref(init()),
+        );
         vi.stubGlobal('useDrivingSchoolsApi', () => ({
             fetchList: fetchSchoolsList,
         }));
@@ -78,9 +87,9 @@ describe('useManagerInstructorsPage', () => {
     it('creates instructor accounts through the success-only BFF helper', async () => {
         requestBffSuccess.mockResolvedValue(undefined);
         navigateTo.mockResolvedValue(undefined);
-        const { useManagerInstructorsPage } =
-            await import('./useManagerInstructorsPage');
-        const page = useManagerInstructorsPage();
+        const { useManagerInstructorCreatePage } =
+            await import('./useManagerInstructorCreatePage');
+        const page = useManagerInstructorCreatePage();
 
         await page.handleInstructorSubmit({
             email: 'instructor@example.com',
@@ -88,6 +97,7 @@ describe('useManagerInstructorsPage', () => {
             firstName: 'Anna',
             lastName: 'Nowak',
             licenseNumber: 'LIC-123',
+            birthDate: '2000-02-29',
             schoolId: 'school-1',
         });
 
@@ -102,6 +112,7 @@ describe('useManagerInstructorsPage', () => {
                     firstName: 'Anna',
                     lastName: 'Nowak',
                     licenseNumber: 'LIC-123',
+                    birthDate: '2000-02-29',
                     schoolId: 'school-1',
                 },
                 fallbackMessage: 'Nie udało się utworzyć konta instruktora.',
