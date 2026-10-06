@@ -150,16 +150,16 @@ export function useVehicleEditPage() {
     }
 
     function handlePhotoFileInputChange(event: Event) {
-        clearPendingPhoto();
-
         const input =
             event.target instanceof HTMLInputElement ? event.target : null;
+        const file = input?.files?.[0] ?? null;
+
+        clearPendingPhoto();
 
         if (!input) return;
 
         photoFileInput.value = input;
-
-        const file = input.files?.[0] ?? null;
+        input.value = '';
 
         if (!file) return;
 
@@ -167,7 +167,6 @@ export function useVehicleEditPage() {
 
         if (validationError) {
             photoUploadError.value = validationError;
-            input.value = '';
 
             return;
         }

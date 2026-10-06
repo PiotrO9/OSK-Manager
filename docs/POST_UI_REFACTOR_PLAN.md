@@ -16,7 +16,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 ### Grupa 2. Lokalne formularze i prezentacja danych
 
-- [ ] **[BUG-01 — Zdjęcie pojazdu — ponowny wybór](#task-bug-01)** — do wykonania.
+- [x] **[BUG-01 — Zdjęcie pojazdu — ponowny wybór](#task-bug-01)** — wykonano 2026-10-06; drugi wybór i ponowny wybór tego samego pliku działają.
 - [ ] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — do wykonania.
 - [ ] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — do wykonania.
 - [ ] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — do wykonania.
@@ -158,16 +158,16 @@ Odczytać File przed resetem albo oddzielić sprzątanie preview od resetu kontr
 
 **Kryteria odbioru:**
 
-- [ ] Drugi poprawny wybór pozostaje wybrany i można go wysłać.
-- [ ] Invalid→valid, wybór tego samego pliku, clear, MIME/limit rozmiaru i retry działają; object URL są zwalniane.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Drugi poprawny wybór pozostaje wybrany i można go wysłać.
+- [x] Invalid→valid, wybór tego samego pliku, clear, MIME/limit rozmiaru i retry działają; object URL są zwalniane.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-06; handler zachowuje nowy `File` przed resetem inputu, a input jest czyszczony po każdym wyborze, aby można było wybrać ten sam plik ponownie. Podgląd poprzedniego pliku jest zwalniany.
+- Faktycznie zmienione pliki: `app/composables/vehicles/useVehicleEditPage.ts`, `app/composables/vehicles/useVehicleEditPage.test.ts`, `e2e/specs/ui/vehicle-edit-photo.spec.ts` oraz ten plan (status i dziennik). Sprawdzono konsumentów `VehicleEditPhotoSection.vue`, stronę edycji i kontrakt `useVehiclesApi.ts`; nie wymagały zmiany.
+- Kontrole / komendy / wyniki: test regresji przed poprawką — exit 1 na drugim wyborze; po poprawce FE `vitest run --reporter=dot` — 170 plików, 816 testów, exit 0; `eslint .` — exit 0; `nuxi typecheck` — exit 0; `nuxt build` — exit 0; Prettier `--check` trzech zmienionych plików kodu — exit 0; Playwright UI Chromium z atrapą API — 3/3 scenariusze, desktop 1440 px i mobile 390 px, exit 0; `git diff --check` — exit 0. Zweryfikowano diff.
+- Ograniczenia lub następny krok: testy przeglądarkowe używają atrap odpowiedzi API; nie weryfikują rzeczywistego storage BE. Pierwszy start Chromium trafił na przygotowanie zależności Vite; po rozgrzaniu serwera scenariusze przeszły. Build wymagał uruchomienia poza ograniczeniem zapisu sandboxa do wygenerowanego cache Nuxta. Pełny FE `format:check` nadal ma dwa odchylenia dokumentacji odnotowane w QUAL-01; pliki nie należą do BUG-01.
 
 <a id="task-bug-02"></a>
 
