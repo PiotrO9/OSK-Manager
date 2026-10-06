@@ -35,6 +35,7 @@ const props = withDefaults(
         showInstructorCount?: boolean;
         scopeBadgeLabel?: string;
         compactChrome?: boolean;
+        showScheduleCountBadge?: boolean;
         /** Zwija lekcje zaczynające się o tej samej porze w jeden blok. */
         groupSameStart?: boolean;
     }>(),
@@ -54,6 +55,7 @@ const props = withDefaults(
         showInstructorCount: true,
         scopeBadgeLabel: 'Wszyscy instruktorzy',
         compactChrome: false,
+        showScheduleCountBadge: true,
         groupSameStart: false,
     },
 );
@@ -168,7 +170,7 @@ defineExpose({
             </p>
 
             <ManagerScheduleMetaBar
-                v-if="!compactChrome"
+                v-if="!compactChrome && showScheduleCountBadge"
                 :schedule-count-badge-label="scheduleCountBadgeLabel"
                 :display-items-count="displayItems.length"
             />

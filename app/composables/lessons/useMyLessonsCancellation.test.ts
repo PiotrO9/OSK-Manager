@@ -29,8 +29,8 @@ function lesson(
         kind: 'lesson',
         type: 'PRACTICE',
         status: 'SCHEDULED',
-        startTime: '2026-08-16T10:00:00.000Z',
-        endTime: '2026-08-16T11:00:00.000Z',
+        startTime: '2099-08-16T10:00:00.000Z',
+        endTime: '2099-08-16T11:00:00.000Z',
         ...overrides,
     };
 }
@@ -72,6 +72,22 @@ describe('useMyLessonsCancellation', () => {
         });
 
         cancellation.handleCancelLessonRequested(lesson());
+
+        expect(cancellation.isCancelDialogOpen.value).toBe(false);
+    });
+
+    it('ignores cancel requests for lessons that already started', async () => {
+        installVueGlobals({});
+        const { useMyLessonsCancellation } =
+            await import('./useMyLessonsCancellation');
+        const cancellation = useMyLessonsCancellation({
+            isStudent: computed(() => true),
+            loadWeek: vi.fn(),
+        });
+
+        cancellation.handleCancelLessonRequested(
+            lesson({ startTime: '2000-08-16T10:00:00.000Z' }),
+        );
 
         expect(cancellation.isCancelDialogOpen.value).toBe(false);
     });

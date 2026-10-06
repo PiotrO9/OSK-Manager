@@ -42,6 +42,7 @@ function isStudentCancellableLesson(item: ScheduleLessonItem): boolean {
     return isStudentScheduleCancellableLesson({
         item,
         studentLessonCancelEnabled: props.studentLessonCancelEnabled,
+        now: new Date(),
     });
 }
 

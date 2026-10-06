@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import {
-    formatWeekLabel,
-    type MyLessonsScheduleView,
-} from '~/composables/lessons/useMyLessonsPage';
+import type { MyLessonsScheduleView } from '~/composables/lessons/useMyLessonsPage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { formatManagerSchoolScheduleCompactWeekRangeLabel } from '~/utils/schedule/managerSchoolScheduleCalendarWeek';
 
 defineProps<{
     cancellingLessonId: string | null;
@@ -11,13 +9,15 @@ defineProps<{
     isLoading: boolean;
     isStudent: boolean;
     items: ScheduleLessonItem[];
-    pageDescription: string;
+    savingEventId?: string | null;
 }>();
 defineEmits<{
     lessonSelected: [lesson: ScheduleLessonItem];
     nextWeek: [];
     previousWeek: [];
+    today: [];
     requestCancelLesson: [lesson: ScheduleLessonItem];
+    eventStatusChange: [payload: { id: string; status: string }];
 }>();
 const scheduleView = defineModel<MyLessonsScheduleView>('scheduleView', {
     required: true,
@@ -30,23 +30,9 @@ const weekStart = defineModel<Date>('weekStart', {
 <template>
     <section
         class="border-border bg-background overflow-hidden rounded-xl border shadow-xs"
-        aria-labelledby="my-lessons-panel-title"
+        aria-label="Harmonogram moich lekcji"
     >
-        <div
-            class="border-border flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-start sm:justify-between"
-        >
-            <div class="min-w-0">
-                <h2
-                    id="my-lessons-panel-title"
-                    class="text-foreground text-lg font-bold"
-                >
-                    Moje lekcje
-                </h2>
-                <p class="text-muted-foreground mt-1 text-sm">
-                    {{ pageDescription }}
-                </p>
-            </div>
-
+        <div class="border-border flex justify-end border-b p-3">
             <div
                 class="flex shrink-0 flex-wrap items-center gap-2"
                 role="tablist"
@@ -83,34 +69,29 @@ const weekStart = defineModel<Date>('weekStart', {
 
         <div
             v-show="scheduleView === 'list'"
-            class="border-border flex flex-wrap items-center gap-2 border-b px-4 py-3"
-            role="group"
-            aria-label="Nawigacja tygodnia"
+            class="border-border grid items-center gap-2 border-b px-4 py-3 sm:grid-cols-[1fr_auto_1fr]"
+            role="toolbar"
+            aria-label="Nawigacja tygodnia harmonogramu"
         >
+            <WeekCalendarRangeNavigation
+                :is-loading="isLoading"
+                :compact-week-range-label="
+                    formatManagerSchoolScheduleCompactWeekRangeLabel(weekStart)
+                "
+                compact
+                @previous="$emit('previousWeek')"
+                @next="$emit('nextWeek')"
+            />
             <UiButton
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                aria-label="Poprzedni tydzien"
-                @click="$emit('previousWeek')"
+                class="justify-self-end sm:col-start-3"
+                :disabled="isLoading"
+                @click="$emit('today')"
             >
-                Poprzedni
+                Dzisiaj
             </UiButton>
-            <UiButton
-                type="button"
-                variant="outline"
-                size="sm"
-                aria-label="Nastepny tydzien"
-                @click="$emit('nextWeek')"
-            >
-                Nastepny
-            </UiButton>
-            <span
-                class="text-muted-foreground text-sm"
-                :aria-label="`Wybrany tydzien od ${formatWeekLabel(weekStart)}`"
-            >
-                Tydzien od {{ formatWeekLabel(weekStart) }}
-            </span>
         </div>
 
         <div class="p-4">
@@ -124,6 +105,7 @@ const weekStart = defineModel<Date>('weekStart', {
                     v-model:week-start="weekStart"
                     parent-schedule
                     group-same-start
+                    :show-schedule-count-badge="false"
                     :school-id="''"
                     :parent-items="items"
                     :parent-loading="isLoading"
@@ -160,31 +142,14 @@ const weekStart = defineModel<Date>('weekStart', {
                     "
                 />
 
-                <template v-else>
-                    <p
-                        v-if="isLoading"
-                        class="text-muted-foreground text-sm"
-                        role="status"
-                    >
-                        Wczytywanie...
-                    </p>
-                    <p
-                        v-else-if="errorMessage"
-                        class="text-destructive text-sm"
-                        role="alert"
-                    >
-                        {{ errorMessage }}
-                    </p>
-                    <ManagerScheduleLessonTable
-                        v-else
-                        :items="items"
-                        :student-lesson-cancel-enabled="isStudent"
-                        :cancelling-lesson-id="cancellingLessonId"
-                        @request-cancel-lesson="
-                            $emit('requestCancelLesson', $event)
-                        "
-                    />
-                </template>
+                <InstructorScheduleGroupedList
+                    v-else
+                    :items="items"
+                    :is-loading="isLoading"
+                    :error-message="errorMessage"
+                    :saving-event-id="savingEventId"
+                    @event-status-change="$emit('eventStatusChange', $event)"
+                />
             </div>
         </div>
     </section>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Plus } from 'lucide-vue-next';
+import { Plus } from 'lucide-vue-next';
 
 definePageMeta({
     layout: 'app-shell',
@@ -24,16 +24,6 @@ const myLessons = useMyLessonsPage();
                 <div
                     class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
                 >
-                    <div
-                        class="border-border bg-background flex h-10 items-center gap-2 rounded-lg border px-3 text-sm font-semibold shadow-xs"
-                        :aria-label="`Zakres dat ${myLessons.dateRangeLabel.value}`"
-                    >
-                        <CalendarDays
-                            class="text-muted-foreground size-4"
-                            aria-hidden="true"
-                        />
-                        <span>{{ myLessons.dateRangeLabel.value }}</span>
-                    </div>
                     <UiButton
                         v-if="myLessons.isStudent.value"
                         as-child
@@ -48,28 +38,22 @@ const myLessons = useMyLessonsPage();
             </template>
         </PageHeader>
 
-        <div
-            class="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]"
-        >
-            <MyLessonsSchedulePanel
-                v-model:schedule-view="myLessons.scheduleView.value"
-                v-model:week-start="myLessons.weekStart.value"
-                :cancelling-lesson-id="myLessons.cancellingLessonId.value"
-                :error-message="myLessons.errorMessage.value"
-                :is-loading="myLessons.isLoading.value"
-                :is-student="myLessons.isStudent.value"
-                :items="myLessons.items.value"
-                :page-description="myLessons.pageDescription.value"
-                @lesson-selected="myLessons.handleRatingLessonSelected"
-                @next-week="myLessons.handleNextWeek"
-                @previous-week="myLessons.handlePrevWeek"
-                @request-cancel-lesson="myLessons.handleCancelLessonRequested"
-            />
-
-            <MyLessonsSummaryPanel
-                :summary-items="myLessons.summaryItems.value"
-            />
-        </div>
+        <MyLessonsSchedulePanel
+            v-model:schedule-view="myLessons.scheduleView.value"
+            v-model:week-start="myLessons.weekStart.value"
+            :cancelling-lesson-id="myLessons.cancellingLessonId.value"
+            :error-message="myLessons.errorMessage.value"
+            :is-loading="myLessons.isLoading.value"
+            :is-student="myLessons.isStudent.value"
+            :items="myLessons.items.value"
+            :saving-event-id="myLessons.savingEventId.value"
+            @lesson-selected="myLessons.handleRatingLessonSelected"
+            @next-week="myLessons.handleNextWeek"
+            @previous-week="myLessons.handlePrevWeek"
+            @today="myLessons.handleToday"
+            @request-cancel-lesson="myLessons.handleCancelLessonRequested"
+            @event-status-change="myLessons.handleEventStatusChange"
+        />
 
         <StudentLessonRatingsPanel
             v-if="myLessons.isStudent.value"

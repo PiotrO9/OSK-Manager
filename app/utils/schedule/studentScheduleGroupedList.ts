@@ -169,12 +169,17 @@ export function getStudentScheduleItemDescription(
 export function isStudentScheduleCancellableLesson(params: {
     item: ScheduleLessonItem;
     studentLessonCancelEnabled: boolean;
+    now?: Date;
 }): boolean {
+    const startTime = new Date(params.item.startTime).getTime();
+
     return (
         params.studentLessonCancelEnabled &&
         params.item.kind === 'lesson' &&
         isStudentSchedulePracticeItem(params.item) &&
-        params.item.status.trim().toUpperCase() === 'SCHEDULED'
+        params.item.status.trim().toUpperCase() === 'SCHEDULED' &&
+        Number.isFinite(startTime) &&
+        startTime > (params.now ?? new Date()).getTime()
     );
 }
 

@@ -33,7 +33,11 @@ export function useMyLessonsCancellation(input: UseMyLessonsCancellationInput) {
     );
 
     function handleCancelLessonRequested(lesson: ScheduleLessonItem): void {
-        if (!input.isStudent.value || !isScheduledPracticeLesson(lesson)) {
+        if (
+            !input.isStudent.value ||
+            !isScheduledPracticeLesson(lesson) ||
+            new Date(lesson.startTime).getTime() <= Date.now()
+        ) {
             return;
         }
 

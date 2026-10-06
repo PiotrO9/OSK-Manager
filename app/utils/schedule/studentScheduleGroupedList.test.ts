@@ -97,23 +97,33 @@ describe('student schedule grouped list utilities', () => {
         expect(getStudentScheduleStatusTone('NO_SHOW')).toBe('warning');
     });
 
-    it('allows cancellation only for scheduled practice lessons when enabled', () => {
+    it('allows cancellation only for future scheduled practice lessons when enabled', () => {
         expect(
             isStudentScheduleCancellableLesson({
                 item: item(),
                 studentLessonCancelEnabled: true,
+                now: new Date('2026-09-01T00:00:00.000Z'),
             }),
         ).toBe(true);
         expect(
             isStudentScheduleCancellableLesson({
                 item: item({ type: 'THEORY' }),
                 studentLessonCancelEnabled: true,
+                now: new Date('2026-09-01T00:00:00.000Z'),
             }),
         ).toBe(false);
         expect(
             isStudentScheduleCancellableLesson({
                 item: item(),
                 studentLessonCancelEnabled: false,
+                now: new Date('2026-09-01T00:00:00.000Z'),
+            }),
+        ).toBe(false);
+        expect(
+            isStudentScheduleCancellableLesson({
+                item: item(),
+                studentLessonCancelEnabled: true,
+                now: new Date('2026-09-05T08:00:00.000Z'),
             }),
         ).toBe(false);
     });
