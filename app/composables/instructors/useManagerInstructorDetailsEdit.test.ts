@@ -32,7 +32,7 @@ function createInstructor(): InstructorDetail {
         email: 'anna@example.com',
         avatarUrl: null,
         licenseNumber: 'LIC-123',
-        phone: '—',
+        phone: '+48 600 123 456',
         qualifications: 'Kat. B',
         qualifiedCourseTypes: [],
         experience: '5 lat',
@@ -137,7 +137,6 @@ describe('useManagerInstructorDetailsEdit', () => {
             firstName: 'Anna Maria',
             lastName: 'Nowak',
             email: 'anna@example.com',
-            licenseNumber: 'LIC-123',
             qualifications: 'Kat. B',
             qualifiedCourseTypes: [],
             experienceYears: 6,
@@ -171,6 +170,9 @@ describe('useManagerInstructorDetailsEdit', () => {
             },
         );
         expect(instructor.value?.name).toBe('Anna Maria Nowak');
+        expect(instructor.value?.phone).toBe('+48 600 123 456');
+        expect(instructor.value?.licenseNumber).toBe('LIC-123');
+        expect(instructor.value?.experience).toBe('6 lat');
         expect(editForm.value?.firstName).toBe('Anna Maria');
         expect(editBaseline.value).toEqual(editForm.value);
         expect(addToast).toHaveBeenCalledWith({
@@ -180,6 +182,43 @@ describe('useManagerInstructorDetailsEdit', () => {
         });
         expect(data.isEditDialogOpen.value).toBe(false);
         expect(data.isSubmitting.value).toBe(false);
+    });
+
+    it('respects nullable fields in a successful PATCH response', async () => {
+        requestBffData.mockResolvedValue({
+            id: 'instructor-1',
+            firstName: 'Anna',
+            lastName: 'Nowak',
+            email: 'anna@example.com',
+            qualifications: null,
+            qualifiedCourseTypes: [],
+            experienceYears: null,
+        });
+
+        const { useManagerInstructorDetailsEdit } =
+            await import('./useManagerInstructorDetailsEdit');
+        const instructor = ref(createInstructor());
+        const editForm = ref(createEditForm({ qualifications: '' }));
+        const editBaseline = ref(createEditForm());
+        const data = useManagerInstructorDetailsEdit({
+            instructor,
+            editForm,
+            editBaseline,
+        });
+
+        await data.handleSubmitEdit();
+
+        expect(instructor.value).toMatchObject({
+            name: 'Anna Nowak',
+            phone: '+48 600 123 456',
+            licenseNumber: 'LIC-123',
+            qualifications: '—',
+            experience: '—',
+        });
+        expect(editBaseline.value).toMatchObject({
+            qualifications: '',
+            experienceYears: 0,
+        });
     });
 
     it('reports invalid save response without closing dialog', async () => {

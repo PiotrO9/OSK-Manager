@@ -145,20 +145,28 @@ export function mockInstructorBelongsToSchool(
     );
 }
 
-function findRowById(
+function findStoredRowById(
     id: string,
-): (MockInstructorListRow & { schoolId: string }) | null {
+): { row: MockInstructorListRow; schoolId: string } | null {
     const store = getStore();
 
     for (const [schoolId, rows] of Object.entries(store)) {
         const row = rows.find((r) => r.id === id);
 
         if (row) {
-            return { ...row, schoolId };
+            return { row, schoolId };
         }
     }
 
     return null;
+}
+
+function findRowById(
+    id: string,
+): (MockInstructorListRow & { schoolId: string }) | null {
+    const found = findStoredRowById(id);
+
+    return found ? { ...found.row, schoolId: found.schoolId } : null;
 }
 
 function mergeProfileExtras(
@@ -199,6 +207,35 @@ export interface MockInstructorDetailPayload {
     experienceYears: number;
 }
 
+/** Kształt odpowiedzi BE po PATCH (bez pól dostępnych tylko w GET). */
+export interface MockInstructorPatchPayload {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    qualifications: string;
+    qualifiedCourseTypes: MockDrivingSchoolOfferedType[];
+    experienceYears: number;
+}
+
+function buildPatchPayload(
+    row: MockInstructorListRow,
+): MockInstructorPatchPayload {
+    const extras = getExtrasMap()[row.id] ?? getDefaultProfileExtras();
+
+    return {
+        id: row.id,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        email: row.email,
+        qualifications: extras.qualifications,
+        qualifiedCourseTypes: resolveMockQualifiedCourseTypes(
+            extras.qualifiedCourseTypeIds,
+        ),
+        experienceYears: extras.experienceYears,
+    };
+}
+
 function buildDetailPayload(
     row: MockInstructorListRow & { schoolId: string },
 ): MockInstructorDetailPayload {
@@ -235,28 +272,41 @@ export function mockInstructorsGetById(
 }
 
 /**
- * Częściowa aktualizacja profilu (mock). Zwraca aktualny stan jak po GET lub null gdy brak id.
+ * Częściowa aktualizacja profilu (mock). Zwraca kształt odpowiedzi BE PATCH lub null gdy brak id.
  */
 export function mockInstructorsPatchById(
     id: string,
     patch: BffInstructorPatchBody,
-): MockInstructorDetailPayload | null {
-    const row = findRowById(id);
+): MockInstructorPatchPayload | null {
+    const found = findStoredRowById(id);
 
-    if (!row) {
+    if (!found) {
         return null;
     }
 
     if (Object.keys(patch).length === 0) {
-        return buildDetailPayload(row);
+        return buildPatchPayload(found.row);
     }
 
-    if (typeof patch.firstName === 'string') {
-        row.firstName = patch.firstName.trim();
+    for (const key of ['firstName', 'lastName'] as const) {
+        if (key in patch && (!patch[key] || !patch[key].trim())) {
+            throw createError({
+                statusCode: 400,
+                message: `${key} must not be empty`,
+            });
+        }
     }
 
-    if (typeof patch.lastName === 'string') {
-        row.lastName = patch.lastName.trim();
+    if (
+        'experienceYears' in patch &&
+        (!Number.isInteger(patch.experienceYears) ||
+            patch.experienceYears! < 0 ||
+            patch.experienceYears! > 80)
+    ) {
+        throw createError({
+            statusCode: 400,
+            message: 'Invalid experienceYears',
+        });
     }
 
     const extraPatch: Partial<MockInstructorProfileExtras> = {};
@@ -267,11 +317,14 @@ export function mockInstructorsPatchById(
     }
 
     if ('qualifiedCourseTypeIds' in patch) {
-        const ids = Array.isArray(patch.qualifiedCourseTypeIds)
-            ? patch.qualifiedCourseTypeIds
-                  .map((item) => (typeof item === 'string' ? item.trim() : ''))
-                  .filter((item) => item.length > 0)
-            : [];
+        if (!Array.isArray(patch.qualifiedCourseTypeIds)) {
+            throw createError({
+                statusCode: 400,
+                message: 'Invalid qualifiedCourseTypeIds',
+            });
+        }
+
+        const ids = patch.qualifiedCourseTypeIds.map((item) => item.trim());
 
         resolveMockQualifiedCourseTypes(ids);
         extraPatch.qualifiedCourseTypeIds = ids;
@@ -285,17 +338,21 @@ export function mockInstructorsPatchById(
         extraPatch.experienceYears = patch.experienceYears;
     }
 
+    // Wszystkie walidacje (zwłaszcza identyfikatorów kategorii) muszą
+    // zakończyć się przed zmianą któregokolwiek z magazynów mocka.
+    if (typeof patch.firstName === 'string') {
+        found.row.firstName = patch.firstName.trim();
+    }
+
+    if (typeof patch.lastName === 'string') {
+        found.row.lastName = patch.lastName.trim();
+    }
+
     if (Object.keys(extraPatch).length > 0) {
         mergeProfileExtras(id, extraPatch);
     }
 
-    const updated = findRowById(id);
-
-    if (!updated) {
-        return null;
-    }
-
-    return buildDetailPayload(updated);
+    return buildPatchPayload(found.row);
 }
 
 /** Usuwa instruktora z mockowej listy (wszystkie szkoły). Zwraca true gdy usunięto wiersz. */

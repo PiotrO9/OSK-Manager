@@ -14,8 +14,6 @@ import {
 } from '~/utils/instructors/managerInstructorDetailsPage';
 import { requestBffData } from '../core/useApi';
 
-type InstructorDetailData = InstructorDetail | null;
-
 interface UseManagerInstructorDetailsEditOptions {
     instructor: Ref<InstructorDetail | null>;
     editForm: Ref<InstructorEditFormModel | null>;
@@ -96,7 +94,7 @@ export function useManagerInstructorDetailsEdit({
         isSubmitting.value = true;
 
         try {
-            const updated = await requestBffData<InstructorDetailData>(
+            const updated = await requestBffData<unknown>(
                 'PATCH',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
@@ -110,7 +108,9 @@ export function useManagerInstructorDetailsEdit({
                     ? {
                           schoolId: instructor.value?.schoolId,
                           avatarUrl: instructor.value?.avatarUrl,
-                          ...(updated as unknown as Record<string, unknown>),
+                          phone: instructor.value?.phone,
+                          licenseNumber: instructor.value?.licenseNumber,
+                          ...(updated as Record<string, unknown>),
                       }
                     : updated;
             const normalized = normalizeInstructorDetail(updatedWithContext);

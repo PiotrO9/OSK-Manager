@@ -17,7 +17,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Grupa 2. Lokalne formularze i prezentacja danych
 
 - [x] **[BUG-01 — Zdjęcie pojazdu — ponowny wybór](#task-bug-01)** — wykonano 2026-10-06; drugi wybór i ponowny wybór tego samego pliku działają.
-- [ ] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — do wykonania.
+- [x] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — wykonano 2026-10-06; pola dostępne tylko w GET pozostają widoczne po PATCH, a mock zapisuje poprawny stan.
 - [ ] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — do wykonania.
 - [ ] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — do wykonania.
 - [ ] **[QA-01 — Odbiór formularzy i danych](#task-qa-01)** — odbiór po punktach grupy.
@@ -208,16 +208,16 @@ Przed mutacją store zweryfikować wszystkie pola. Samo zastąpienie kopii refer
 
 **Kryteria odbioru:**
 
-- [ ] Telefon/licencja pozostają widoczne, a nowe imię i doświadczenie są aktualizowane; null i błąd zapisu mają zachowaną semantykę.
-- [ ] Mock utrwala poprawną zmianę; nieznany qualifiedCourseTypeId odrzuca mieszany PATCH bez jakiejkolwiek zmiany store.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Telefon/licencja pozostają widoczne, a nowe imię i doświadczenie są aktualizowane; null i błąd zapisu mają zachowaną semantykę.
+- [x] Mock utrwala poprawną zmianę; nieznany qualifiedCourseTypeId odrzuca mieszany PATCH bez jakiejkolwiek zmiany store.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-06; po PATCH zachowano telefon i licencję z GET, aktualizując imię i staż z odpowiedzi. Mock zapisuje zmiany w oryginalnym wierszu, zwraca częściowy kontrakt PATCH i waliduje dane przed mutacją.
+- Faktycznie zmienione pliki: `app/composables/instructors/useManagerInstructorDetailsEdit.ts`, `app/composables/instructors/useManagerInstructorDetailsEdit.test.ts`, `server/utils/instructors/mockInstructorsList.ts`, `server/utils/instructors/mockInstructorsList.test.ts`, `e2e/specs/ui/manager-instructor-edit.spec.ts` oraz ten plan. Sprawdzono normalizer FE i kontrakt BE bez potrzeby ich zmiany.
+- Kontrole / komendy / wyniki: testy regresji przed poprawką — 3 błędy potwierdzające problem; po poprawce FE `vitest run --reporter=dot` — 171 plików, 820 testów, exit 0; `eslint .` — exit 0; `nuxi typecheck` — exit 0; `nuxt build` — exit 0; Prettier `--check` pięciu zmienionych plików kodu — exit 0; Playwright UI Chromium z atrapą API — 2/2 scenariusze, desktop 1440 px i mobile 390 px, exit 0; `git diff --check` — exit 0. Zweryfikowano diff.
+- Ograniczenia lub następny krok: test przeglądarkowy używa atrapy GET/PATCH; spójność z rzeczywistą bazą BE pozostaje zakresem BUG-09. Pełny FE `format:check` ma dwa wcześniejsze odchylenia dokumentacji opisane w QUAL-01.
 
 <a id="task-bug-03"></a>
 
