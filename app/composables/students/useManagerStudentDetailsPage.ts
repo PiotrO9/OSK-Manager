@@ -203,11 +203,7 @@ export function useManagerStudentDetailsPage() {
     );
 
     watch(
-        [
-            () => student.value?.id,
-            schoolId,
-            studentScheduleRange,
-        ],
+        [() => student.value?.id, schoolId, studentScheduleRange],
         () => {
             void loadStudentSchedule();
         },

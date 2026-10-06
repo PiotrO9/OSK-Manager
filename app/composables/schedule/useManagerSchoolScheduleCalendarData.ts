@@ -71,14 +71,11 @@ export function useManagerSchoolScheduleCalendarData(
         }
     }
 
-    watch(
-        [options.weekStart, options.schoolId],
-        () => {
-            if (hasMounted.value && !options.disabled()) {
-                void loadWeek();
-            }
-        },
-    );
+    watch([options.weekStart, options.schoolId], () => {
+        if (hasMounted.value && !options.disabled()) {
+            void loadWeek();
+        }
+    });
 
     onMounted(() => {
         hasMounted.value = true;

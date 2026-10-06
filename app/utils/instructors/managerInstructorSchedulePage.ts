@@ -68,9 +68,7 @@ export function formatManagerInstructorScheduleWeekLabel(d: Date): string {
     }).format(d);
 }
 
-export function buildManagerInstructorScheduleBackHref(
-    instructorId: string,
-) {
+export function buildManagerInstructorScheduleBackHref(instructorId: string) {
     const id = instructorId.trim();
 
     if (!id) {

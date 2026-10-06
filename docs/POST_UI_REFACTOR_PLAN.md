@@ -12,7 +12,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 ### Grupa 1. Przygotowanie
 
-- [ ] **[QUAL-01 — Formatowanie i punkt startowy](#task-qual-01)** — do wykonania.
+- [x] **[QUAL-01 — Formatowanie i punkt startowy](#task-qual-01)** — wykonano 2026-10-06; lint FE i format/lint BE przechodzą, pełny format FE ma dwa niezależne odchylenia w dokumentacji.
 
 ### Grupa 2. Lokalne formularze i prezentacja danych
 
@@ -114,16 +114,16 @@ Karty są ułożone dokładnie tak jak główna checklista. Dowody opisują stan
 
 **Kryteria odbioru:**
 
-- [ ] Diff zawiera wyłącznie formatowanie wskazanych plików.
-- [ ] Lint FE oraz format/lint BE przechodzą albo niezależne, zastane problemy są jawnie wydzielone; nie oznaczać pełnego przywrócenia bramki, jeśli nadal nie przechodzi.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Diff aplikacji zawiera wyłącznie formatowanie wskazanych plików.
+- [x] Lint FE oraz format/lint BE przechodzą; dwa odchylenia pełnego formatowania FE w dokumentacji wydzielono poniżej.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-06; sformatowano pięć plików FE i trzy BE. Diff kodu nie zmienia zachowania; przywrócono lint FE i format BE.
+- Faktycznie zmienione pliki: FE `app/components/manager/students/ManagerStudentsList.vue`, `app/composables/schedule/useManagerSchoolScheduleCalendarData.ts`, `app/composables/students/useManagerStudentDetailsPage.ts`, `app/utils/instructors/managerInstructorSchedulePage.ts`, `server/utils/students/studentsMockBff.ts`; BE `src/__tests__/services/schedule.test.ts`, `src/controllers/students/read.handlers.ts`, `src/services/schedule/queries.ts`; ponadto ten plan (status i dziennik).
+- Kontrole / komendy / wyniki: Node `v24.19.0`; FE `node node_modules/eslint/bin/eslint.js .` — exit 0; Prettier `--check` pięciu plików FE — exit 0; BE `node node_modules/prettier/bin/prettier.cjs --check 'src/**/*.ts'` — exit 0; `node node_modules/eslint/bin/eslint.js src --max-warnings=0` — exit 0; Prettier `--debug-check` ośmiu plików — exit 0; `git diff --check` FE i BE — exit 0. Diffy przejrzano ręcznie.
+- Ograniczenia lub następny krok: pełny FE `node node_modules/prettier/bin/prettier.cjs . --check` — exit 1 wyłącznie dla `docs/DATE_TIME_PICKERS.md` i `docs/MANAGER_INSTRUCTORS.md`; te pliki są poza zakresem QUAL-01. Nie deklarujemy przechodzącego pełnego `format:check` FE. Testów funkcjonalnych nie uruchamiano dla zmian samego formatowania.
 
 <a id="task-bug-01"></a>
 

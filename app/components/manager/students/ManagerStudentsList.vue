@@ -31,12 +31,11 @@ const rows = computed<StudentListRow[]>(() =>
             dateLabel: Number.isNaN(date.getTime())
                 ? 'Brak daty'
                 : dateFormatter.format(date),
-            detailsTo:
-                props.showDetailsLink
-                    ? {
-                          path: `/manager/students/${student.userId}`,
-                      }
-                    : null,
+            detailsTo: props.showDetailsLink
+                ? {
+                      path: `/manager/students/${student.userId}`,
+                  }
+                : null,
         };
     }),
 );

@@ -169,9 +169,10 @@ export function bffMockStudentsList(params: {
     );
 }
 
-export function bffMockStudentDetail(
-    studentUserId: string,
-): { success: true; data: unknown } {
+export function bffMockStudentDetail(studentUserId: string): {
+    success: true;
+    data: unknown;
+} {
     const detail = mockStudentDetailPayload(studentUserId);
 
     if (!detail) {
