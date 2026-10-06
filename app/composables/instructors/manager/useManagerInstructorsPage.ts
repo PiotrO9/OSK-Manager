@@ -1,8 +1,7 @@
-import type { InstructorRegisterPayload } from './useManagerInstructorFormDialog';
 import { useManagerInstructorsAdvancedFilters } from './useManagerInstructorsAdvancedFilters';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import { requestBffSuccess } from '../../core/useApi';
+import { useManagerInstructorSchoolSelection } from './useManagerInstructorSchoolSelection';
 import {
     buildInstructorDetailsRoute,
     filterInstructorsForList,
@@ -10,25 +9,20 @@ import {
     formatVisibleInstructorsLabel,
     getInstructorQualificationOptions,
     type InstructorQuickView,
-    INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
     instructorInitials,
     instructorQualificationLabel,
-    isInstructorSchoolIdUuid,
-    resolveInstructorRegisterError,
     resolveInstructorsListError,
 } from '~/utils/instructors/managerInstructorsPage';
 
 export function useManagerInstructorsPage() {
-    const route = useRoute();
     const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
-    const { addToast } = useAppToast();
+    const { activeSchoolId } = useManagerInstructorSchoolSelection();
 
     const schools = ref<DrivingSchool[]>([]);
     const schoolsLoadError = ref<string | null>(null);
     const isSchoolsLoading = ref(false);
 
-    const activeSchoolId = ref('');
     const instructors = ref<InstructorListItem[]>([]);
     const isInstructorsLoading = ref(false);
     const instructorsLoadError = ref<string | null>(null);
@@ -36,24 +30,8 @@ export function useManagerInstructorsPage() {
     const quickView = ref<InstructorQuickView>('all');
     const advancedFilterState = useManagerInstructorsAdvancedFilters();
 
-    const formDialogOpen = ref(false);
-    const isFormSaving = ref(false);
-    const apiError = ref<string | null>(null);
     let schoolsLoadSeq = 0;
     let instructorsLoadSeq = 0;
-
-    const prefillSchoolId = computed((): string | null => {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
-
-        if (typeof s !== 'string') return null;
-
-        const t = s.trim();
-
-        if (!isInstructorSchoolIdUuid(t)) return null;
-
-        return t;
-    });
 
     const activeSchool = computed(
         () =>
@@ -124,13 +102,11 @@ export function useManagerInstructorsPage() {
     }
 
     function resolveInitialActiveSchoolId(): string {
-        const pre = prefillSchoolId.value;
+        const selectedSchool = schools.value.find(
+            (school) => school.id === activeSchoolId.value,
+        );
 
-        if (pre && schools.value.some((s) => s.id === pre)) {
-            return pre;
-        }
-
-        return schools.value[0]?.id ?? '';
+        return selectedSchool?.id ?? schools.value[0]?.id ?? '';
     }
 
     async function loadSchools() {
@@ -207,11 +183,6 @@ export function useManagerInstructorsPage() {
         await loadSchools();
         activeSchoolId.value = resolveInitialActiveSchoolId();
 
-        if (prefillSchoolId.value) {
-            apiError.value = null;
-            formDialogOpen.value = true;
-        }
-
         if (activeSchoolId.value) {
             await loadInstructors();
         }
@@ -221,74 +192,8 @@ export function useManagerInstructorsPage() {
         return buildInstructorDetailsRoute(instructor, activeSchoolId.value);
     }
 
-    function handleOpenCreateDialog() {
-        apiError.value = null;
-        formDialogOpen.value = true;
-
-        if (schools.value.length === 0 && !isSchoolsLoading.value) {
-            void loadSchools();
-        }
-    }
-
-    function handleFormDialogOpenChange(open: boolean) {
-        formDialogOpen.value = open;
-
-        if (!open) {
-            apiError.value = null;
-        }
-    }
-
-    async function handleInstructorSubmit(payload: InstructorRegisterPayload) {
-        if (isFormSaving.value) return;
-
-        apiError.value = null;
-        isFormSaving.value = true;
-
-        try {
-            await requestBffSuccess('POST', '/api/auth/register', {
-                body: {
-                    role: 'INSTRUCTOR',
-                    email: payload.email,
-                    password: payload.password,
-                    firstName: payload.firstName,
-                    lastName: payload.lastName,
-                    licenseNumber: payload.licenseNumber,
-                    schoolId: payload.schoolId,
-                },
-                fallbackMessage: INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
-            });
-
-            addToast({
-                title: 'Instruktor został utworzony',
-                variant: 'success',
-            });
-
-            formDialogOpen.value = false;
-
-            const createdSchoolId = payload.schoolId;
-
-            if (schools.value.some((s) => s.id === createdSchoolId)) {
-                activeSchoolId.value = createdSchoolId;
-            }
-
-            if (activeSchoolId.value) {
-                await loadInstructors();
-            }
-
-            await navigateTo('/manager/instructors', { replace: true });
-        } catch (err) {
-            const message = resolveInstructorRegisterError(err);
-
-            apiError.value = message;
-
-            addToast({
-                title: 'Nie udało się utworzyć konta',
-                description: message,
-                variant: 'error',
-            });
-        } finally {
-            isFormSaving.value = false;
-        }
+    function handleOpenCreatePage() {
+        void navigateTo('/manager/instructors/new');
     }
 
     return {
@@ -309,10 +214,6 @@ export function useManagerInstructorsPage() {
         visibleInstructors,
         isInstructorsLoading,
         instructorsLoadError,
-        formDialogOpen,
-        isFormSaving,
-        apiError,
-        prefillSchoolId,
         instructorsWithQualificationsCount,
         uniqueQualificationCodesCount,
         visibleInstructorsLabel,
@@ -332,8 +233,6 @@ export function useManagerInstructorsPage() {
         instructorDetailsTo,
         instructorQualificationLabel,
         instructorInitials,
-        handleOpenCreateDialog,
-        handleFormDialogOpenChange,
-        handleInstructorSubmit,
+        handleOpenCreatePage,
     };
 }

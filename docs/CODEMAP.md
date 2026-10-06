@@ -57,7 +57,7 @@ kontrakt, który naprawdę ma być identyczny po obu stronach.
 
 - Dokument kontekstowy: [MANAGER_INSTRUCTORS.md](./MANAGER_INSTRUCTORS.md).
 - Strony: [app/pages/manager/instructors/](../app/pages/manager/instructors/) — `index.vue`, `new.vue`, folder **[id]/**: [`index.vue`](../app/pages/manager/instructors/[id]/index.vue) (szczegóły), [`availability.vue`](../app/pages/manager/instructors/[id]/availability.vue) (edycja tygodnia).
-- Formularz rejestracji: [ManagerInstructorFormDialog.vue](../app/components/manager/instructors/ManagerInstructorFormDialog.vue).
+- Formularz rejestracji: strona [new.vue](../app/pages/manager/instructors/new.vue), pola [ManagerInstructorFormFields.vue](../app/components/manager/instructors/ManagerInstructorFormFields.vue) i logika [useManagerInstructorCreatePage.ts](../app/composables/instructors/manager/useManagerInstructorCreatePage.ts).
 - Dostępność tygodniowa: [ManagerInstructorAvailabilityEditor.vue](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue), [ManagerInstructorWeeklyAvailabilityPreview.vue](../app/components/manager/instructors/ManagerInstructorWeeklyAvailabilityPreview.vue).
 - Klient listy: [useInstructorsApi.ts](../app/composables/instructors/useInstructorsApi.ts); klient harmonogramu: [useInstructorAvailabilityApi.ts](../app/composables/instructors/useInstructorAvailabilityApi.ts).
 - Typy: [instructor.ts](../app/types/instructors/instructor.ts) (profil); [instructorAvailability.ts](../app/types/instructors/instructorAvailability.ts) (`WeeklyEntry`, kolejność dni); oś czasu UI: [availabilityTimeline.ts](../app/utils/schedule/availabilityTimeline.ts).

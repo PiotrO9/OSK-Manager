@@ -19,6 +19,29 @@ export function isInstructorSchoolIdUuid(value: string): boolean {
     return UUID_RE.test(value.trim());
 }
 
+function getInstructorRegisterErrorMessage(
+    err: unknown,
+    fallback: string,
+): string {
+    if (err !== null && typeof err === 'object' && 'data' in err) {
+        const data = err.data;
+
+        if (
+            data !== null &&
+            typeof data === 'object' &&
+            'success' in data &&
+            data.success === false &&
+            'error' in data &&
+            typeof data.error === 'string' &&
+            data.error.trim()
+        ) {
+            return data.error.trim();
+        }
+    }
+
+    return getApiFetchErrorMessage(err, fallback);
+}
+
 export function resolveInstructorRegisterError(err: unknown): string {
     const status = getApiErrorStatusCode(err);
 
@@ -31,10 +54,55 @@ export function resolveInstructorRegisterError(err: unknown): string {
     }
 
     if (status === 400 || status === 409) {
-        return getApiFetchErrorMessage(err, 'Nieprawidłowe dane lub konflikt.');
+        return getInstructorRegisterErrorMessage(
+            err,
+            'Nieprawidłowe dane lub konflikt.',
+        );
     }
 
-    return getApiFetchErrorMessage(err, INSTRUCTOR_REGISTER_GENERIC_FALLBACK);
+    return getInstructorRegisterErrorMessage(
+        err,
+        INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
+    );
+}
+
+export function classifyInstructorRegisterError(err: unknown): {
+    field: 'email' | 'birthDate' | null;
+    message: string;
+} {
+    const status = getApiErrorStatusCode(err);
+    const message = getInstructorRegisterErrorMessage(
+        err,
+        INSTRUCTOR_REGISTER_GENERIC_FALLBACK,
+    );
+
+    if (status === undefined || status === 400 || status === 409) {
+        if (
+            message === 'Email already exists' ||
+            message === 'Email already registered'
+        ) {
+            return {
+                field: 'email',
+                message: 'Ten adres e-mail jest już zajęty.',
+            };
+        }
+
+        const birthDateMessages: Record<string, string> = {
+            'birthDate is required when role is INSTRUCTOR':
+                'Data urodzenia jest wymagana.',
+            'Invalid birthDate': 'Podaj poprawną datę urodzenia.',
+            'birthDate must not be in the future':
+                'Data urodzenia nie może być w przyszłości.',
+            'Instructor birthDate already set to a different value':
+                'Dla tego instruktora zapisano już inną datę urodzenia.',
+        };
+
+        if (birthDateMessages[message]) {
+            return { field: 'birthDate', message: birthDateMessages[message] };
+        }
+    }
+
+    return { field: null, message: resolveInstructorRegisterError(err) };
 }
 
 export function resolveInstructorsListError(err: unknown): string {

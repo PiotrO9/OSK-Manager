@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ArrowLeft, CalendarDays, GraduationCap, Plus } from 'lucide-vue-next';
+import { ArrowLeft, Plus } from 'lucide-vue-next';
+import type { InstructorFormField } from '~/composables/instructors/manager/useManagerInstructorForm';
 
 definePageMeta({
     layout: 'app-shell',
@@ -7,108 +8,167 @@ definePageMeta({
 });
 
 usePageMeta({
-    title: () => 'Dodawanie instruktora',
-    description: () =>
-        'Ten adres przekierowuje do listy instruktorów z modalem tworzenia.',
+    title: () => 'Dodaj instruktora',
+    description: () => 'Utwórz konto i przypisz instruktora do szkoły jazdy.',
 });
 
-const route = useRoute();
-const redirectDelayMs = 1400;
-let redirectTimer: number | undefined;
+const {
+    schools,
+    schoolsLoadError,
+    isSchoolsLoading,
+    isSaving,
+    isCreated,
+    isNavigating,
+    navigationError,
+    isLeaveDialogOpen,
+    cancelLeave,
+    confirmDiscard,
+    returnToList,
+    apiError,
+    emailModel,
+    passwordModel,
+    firstNameModel,
+    lastNameModel,
+    licenseNumberModel,
+    schoolIdModel,
+    birthDateModel,
+    fieldErrors,
+    maxBirthDate,
+    touchField,
+    loadSchools,
+    handleSubmit,
+} = useManagerInstructorCreatePage();
 
-const instructorsListRoute = computed(() => ({
-    path: '/manager/instructors',
-    query: route.query,
-}));
+const formFields = useTemplateRef<{
+    focusField: (field: InstructorFormField) => Promise<void>;
+}>('formFields');
 
-function goToInstructorsList() {
-    void navigateTo(instructorsListRoute.value, { replace: true });
-}
+async function submitForm() {
+    const result = await handleSubmit();
 
-onMounted(() => {
-    redirectTimer = window.setTimeout(goToInstructorsList, redirectDelayMs);
-});
-
-onBeforeUnmount(() => {
-    if (redirectTimer) {
-        window.clearTimeout(redirectTimer);
+    if (result.status === 'field-error') {
+        await nextTick();
+        await formFields.value?.focusField(result.field);
     }
-});
+}
 </script>
 
 <template>
-    <div class="flex min-h-[calc(100svh-8rem)] flex-col gap-12">
+    <div class="space-y-6">
         <PageHeader
-            title="Dodawanie instruktora"
-            description="Ten adres przekierowuje do listy instruktorów z modalem tworzenia."
+            title="Dodaj instruktora"
+            description="Utwórz konto i przypisz instruktora do szkoły jazdy."
         >
             <template #actions>
-                <UiButton
-                    variant="outline"
-                    type="button"
-                    class="bg-background h-10 rounded-xl px-4 font-semibold shadow-sm"
-                    disabled
-                    aria-label="Bieżący tydzień"
-                >
-                    <CalendarDays class="size-4" aria-hidden="true" />
-                    22-28 czerwca
-                </UiButton>
-                <UiButton
-                    as-child
-                    class="h-10 rounded-xl px-4 font-semibold shadow-sm"
-                >
-                    <NuxtLink to="/manager/schedule">
-                        <Plus class="size-4" aria-hidden="true" />
-                        Dodaj jazdę
+                <UiButton variant="outline" as-child>
+                    <NuxtLink to="/manager/instructors">
+                        <ArrowLeft class="size-4" aria-hidden="true" />
+                        Wróć do instruktorów
                     </NuxtLink>
                 </UiButton>
             </template>
         </PageHeader>
 
-        <section
-            class="flex flex-1 items-center justify-center px-0 py-8 sm:px-6"
-            aria-labelledby="instructorRedirectTitle"
-        >
+        <div class="w-full">
             <div
-                class="border-border bg-card flex w-full max-w-lg flex-col items-center rounded-xl border p-6 text-center shadow-2xl shadow-slate-200/70 sm:p-8"
+                v-if="isCreated"
+                class="border-border bg-card space-y-4 rounded-lg border p-5 sm:p-6"
                 role="status"
-                aria-live="polite"
             >
-                <span
-                    class="bg-primary/10 text-primary mb-5 flex size-10 items-center justify-center rounded-xl"
-                    aria-hidden="true"
-                >
-                    <GraduationCap class="size-5" />
-                </span>
-
-                <div class="flex flex-col gap-2">
-                    <h1
-                        id="instructorRedirectTitle"
-                        class="text-foreground text-2xl leading-tight font-bold tracking-tight"
-                    >
-                        Dodawanie instruktora
-                    </h1>
-                    <p class="text-muted-foreground text-sm leading-relaxed">
-                        Ten adres przekierowuje do listy instruktorów z modalem
-                        tworzenia.
-                    </p>
-                </div>
-
-                <ActionGroup
-                    label="Akcje przekierowania do listy instruktorów"
-                    class="mt-6 justify-center"
-                >
-                    <UiButton variant="outline" as-child>
-                        <NuxtLink :to="instructorsListRoute">
-                            <ArrowLeft class="size-4" aria-hidden="true" />
-                            Powrót
-                        </NuxtLink>
-                    </UiButton>
-                    <UiButton type="button" @click="goToInstructorsList">
-                        Otwórz listę
-                    </UiButton>
-                </ActionGroup>
+                <p class="text-sm">
+                    {{ navigationError ?? 'Instruktor został utworzony.' }}
+                </p>
+                <UiButton :disabled="isNavigating" @click="returnToList">
+                    <ArrowLeft class="size-4" aria-hidden="true" />
+                    Wróć do instruktorów
+                </UiButton>
             </div>
-        </section>
+            <p
+                v-else-if="isSchoolsLoading"
+                class="text-muted-foreground py-8 text-sm"
+                role="status"
+            >
+                Wczytywanie listy szkół jazdy…
+            </p>
+
+            <div
+                v-else-if="schoolsLoadError"
+                class="border-border bg-card space-y-4 rounded-lg border p-5 sm:p-6"
+            >
+                <p class="text-destructive text-sm" role="alert">
+                    {{ schoolsLoadError }}
+                </p>
+                <UiButton type="button" variant="outline" @click="loadSchools">
+                    Spróbuj ponownie
+                </UiButton>
+            </div>
+
+            <p
+                v-else-if="schools.length === 0"
+                class="text-muted-foreground py-8 text-sm"
+                role="status"
+            >
+                Brak szkół jazdy dostępnych dla Twojego konta.
+            </p>
+
+            <form
+                v-else
+                id="manager-instructor-create-form"
+                novalidate
+                class="border-border bg-card space-y-6 rounded-lg border p-5 sm:p-6"
+                @submit.prevent="submitForm"
+            >
+                <p
+                    v-if="apiError"
+                    class="text-destructive text-sm"
+                    role="alert"
+                    aria-live="polite"
+                >
+                    {{ apiError }}
+                </p>
+
+                <ManagerInstructorFormFields
+                    ref="formFields"
+                    v-model:email="emailModel"
+                    v-model:password="passwordModel"
+                    v-model:first-name="firstNameModel"
+                    v-model:last-name="lastNameModel"
+                    v-model:license-number="licenseNumberModel"
+                    v-model:school-id="schoolIdModel"
+                    v-model:birth-date="birthDateModel"
+                    :schools="schools"
+                    :is-saving="isSaving"
+                    :field-errors="fieldErrors"
+                    :max-birth-date="maxBirthDate"
+                    @touch-field="touchField"
+                />
+            </form>
+
+            <div
+                v-if="
+                    !isCreated &&
+                    !isSchoolsLoading &&
+                    !schoolsLoadError &&
+                    schools.length > 0
+                "
+                class="mt-4 flex justify-end"
+            >
+                <UiButton
+                    type="submit"
+                    form="manager-instructor-create-form"
+                    class="w-full sm:w-auto"
+                    :disabled="isSaving"
+                    :aria-busy="isSaving"
+                >
+                    <Plus class="size-4" aria-hidden="true" />
+                    {{ isSaving ? 'Tworzenie konta…' : 'Utwórz instruktora' }}
+                </UiButton>
+            </div>
+        </div>
+        <ManagerInstructorDiscardDialog
+            :open="isLeaveDialogOpen"
+            @cancel="cancelLeave"
+            @discard="confirmDiscard"
+        />
     </div>
 </template>
