@@ -18,7 +18,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 - [x] **[BUG-01 — Zdjęcie pojazdu — ponowny wybór](#task-bug-01)** — wykonano 2026-10-06; drugi wybór i ponowny wybór tego samego pliku działają.
 - [x] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — wykonano 2026-10-06; pola dostępne tylko w GET pozostają widoczne po PATCH, a mock zapisuje poprawny stan.
-- [ ] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — do wykonania.
+- [x] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — wykonano 2026-10-06; średnia i licznik pochodzą z podsumowania całego zbioru.
 - [ ] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — do wykonania.
 - [ ] **[QA-01 — Odbiór formularzy i danych](#task-qa-01)** — odbiór po punktach grupy.
 
@@ -254,16 +254,16 @@ Użyć summary, bez pobierania wszystkich stron/nowego endpointu. Test: >20 opin
 
 **Kryteria odbioru:**
 
-- [ ] Licznik i średnia odpowiadają całemu zbiorowi, nawet jeśli lista ma 20 rekordów.
-- [ ] Zero opinii oraz loading/error/retry są obsłużone bez nowego endpointu i bez pobierania wszystkich stron.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Licznik i średnia odpowiadają całemu zbiorowi, nawet jeśli lista ma 20 rekordów.
+- [x] Zero opinii oraz loading/error/retry są obsłużone bez nowego endpointu i bez pobierania wszystkich stron.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-06; pulpit instruktora korzysta z `summary.averageRating` i `summary.totalCount` odpowiedzi API. Przed pierwszą odpowiedzią wyświetla brak danych, po poprawnej pustej odpowiedzi zero opinii; błąd ponownego pobrania zachowuje ostatnie poprawne podsumowanie.
+- Faktycznie zmienione pliki: `app/composables/dashboard/useRoleDashboardPage.ts`, `app/composables/dashboard/useRoleDashboardPage.test.ts`, `app/components/dashboard/RoleDashboardContent.vue`, `app/components/dashboard/InstructorDashboardContent.vue`, `e2e/specs/ui/dashboard.spec.ts` oraz ten plan. Sprawdzono normalizer, BFF i zapytanie BE bez potrzeby zmiany ich kodu.
+- Kontrole / komendy / wyniki: reprodukcja przed poprawką — 20 ocen po 5 przy globalnym summary 3,2 / 60 wyświetlało 5 / 20; test regresji przed zmianą nie przeszedł; po poprawce `vitest run --reporter=dot` — 172 pliki, 825 testów, exit 0; `eslint .` — exit 0; `nuxi typecheck` — exit 0; `nuxt build` — exit 0; Prettier `--check` pięciu zmienionych plików kodu — exit 0; Playwright UI Chromium — 5/5 scenariuszy pulpitu, w tym desktop 1440 px i mobile 390 px z globalnym summary, exit 0; `git diff --check` — exit 0. Zweryfikowano diff.
+- Ograniczenia lub następny krok: test przeglądarkowy używa atrapy API; zapytanie agregujące BE zweryfikowano odczytem, bez integracji z bazą. Pełny FE `format:check` ma dwa wcześniejsze odchylenia dokumentacji opisane w QUAL-01.
 
 <a id="task-bug-04"></a>
 

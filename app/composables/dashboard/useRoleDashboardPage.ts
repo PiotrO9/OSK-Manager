@@ -1,5 +1,5 @@
 import type { CurrentUserCourseItem } from '~/types/courses/course';
-import type { LessonRatingListItem } from '~/types/lessons/lessonRating';
+import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 import type { StudentPaymentsSummary } from '~/types/payments/payment';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { getMyCoursesFeaturedCourse } from '~/utils/courses/myCoursesPage';
@@ -33,7 +33,7 @@ export function useRoleDashboardPage(role: () => DashboardRole) {
     const scheduleItems = ref<ScheduleLessonItem[]>([]);
     const courses = ref<CurrentUserCourseItem[]>([]);
     const paymentSummary = ref<StudentPaymentsSummary>(emptyPaymentsSummary());
-    const ratings = ref<LessonRatingListItem[]>([]);
+    const ratingsSummary = shallowRef<LessonRatingsSummary | null>(null);
     const isLoading = shallowRef(true);
     const errorMessage = shallowRef<string | null>(null);
     let loadSequence = 0;
@@ -66,14 +66,12 @@ export function useRoleDashboardPage(role: () => DashboardRole) {
     const featuredCourse = computed(() =>
         getMyCoursesFeaturedCourse(courses.value),
     );
-    const averageRating = computed(() => {
-        if (ratings.value.length === 0) return null;
-
-        return (
-            ratings.value.reduce((sum, item) => sum + item.rating, 0) /
-            ratings.value.length
-        );
-    });
+    const averageRating = computed(
+        () => ratingsSummary.value?.averageRating ?? null,
+    );
+    const ratingsCount = computed(
+        () => ratingsSummary.value?.totalCount ?? null,
+    );
 
     async function load(): Promise<void> {
         const sequence = ++loadSequence;
@@ -134,7 +132,7 @@ export function useRoleDashboardPage(role: () => DashboardRole) {
                 fetchOwnInstructorRatings()
                     .then((payload) => {
                         if (sequence === loadSequence) {
-                            ratings.value = payload.ratings;
+                            ratingsSummary.value = payload.summary;
                         }
                     })
                     .catch((error: unknown) => {
@@ -168,7 +166,7 @@ export function useRoleDashboardPage(role: () => DashboardRole) {
         load,
         nextItem,
         paymentSummary: computed(() => paymentSummary.value),
-        ratings: readonly(ratings),
+        ratingsCount,
         scheduleItems: readonly(scheduleItems),
         todayItems,
         upcomingItems,

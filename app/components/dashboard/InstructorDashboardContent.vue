@@ -16,7 +16,7 @@ defineProps<{
     todayCount: number;
     scheduleCount: number;
     averageRating: number | null;
-    ratingsCount: number;
+    ratingsCount: number | null;
     isLoading: boolean;
     errorMessage: string | null;
 }>();
@@ -145,7 +145,7 @@ const emit = defineEmits<{ retry: [] }>();
                     }}
                 </p>
                 <p class="text-muted-foreground mt-1 text-xs">
-                    {{ ratingsCount }} opinii
+                    {{ ratingsCount === null ? '—' : ratingsCount }} opinii
                 </p>
             </NuxtLink>
         </div>

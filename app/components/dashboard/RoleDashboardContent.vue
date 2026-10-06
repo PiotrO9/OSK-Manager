@@ -31,7 +31,7 @@ const dashboard = useRoleDashboardPage(() => props.role);
         :today-count="dashboard.todayItems.value.length"
         :schedule-count="dashboard.scheduleItems.value.length"
         :average-rating="dashboard.averageRating.value"
-        :ratings-count="dashboard.ratings.value.length"
+        :ratings-count="dashboard.ratingsCount.value"
         :is-loading="dashboard.isLoading.value"
         :error-message="dashboard.errorMessage.value"
         @retry="dashboard.load"

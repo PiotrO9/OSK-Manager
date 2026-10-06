@@ -175,4 +175,80 @@ test.describe('UI: pulpit zależny od roli', () => {
             page.getByRole('link', { name: /Mój terminarz/ }),
         ).toBeVisible();
     });
+
+    for (const viewport of [
+        { width: 1440, height: 1000 },
+        { width: 390, height: 844 },
+    ]) {
+        test(`BUG-03 pokazuje podsumowanie wszystkich opinii przy ${viewport.width}px`, async ({
+            baseURL,
+            context,
+            page,
+        }) => {
+            await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
+            await page.setViewportSize(viewport);
+
+            const requestedPages: string[] = [];
+            const ratings = Array.from({ length: 20 }, (_, index) => ({
+                id: `rating-${index}`,
+                lessonId: `lesson-${index}`,
+                rating: 5,
+                comment: null,
+                createdAt: '2026-09-28T12:00:00.000Z',
+                lesson: {
+                    id: `lesson-${index}`,
+                    startTime: '2026-09-28T08:00:00.000Z',
+                    endTime: '2026-09-28T09:00:00.000Z',
+                },
+                instructor: {
+                    id: 'instructor-1',
+                    userId: 'user-1',
+                    firstName: 'Anna',
+                    lastName: 'Nowak',
+                    avatarUrl: null,
+                },
+            }));
+
+            await page.route('**/api/ratings/me?*', (route) => {
+                requestedPages.push(route.request().url());
+
+                return route.fulfill({
+                    json: {
+                        success: true,
+                        data: {
+                            ratings,
+                            summary: { averageRating: 3.2, totalCount: 60 },
+                            pagination: {
+                                page: 1,
+                                limit: 20,
+                                totalPages: 3,
+                            },
+                        },
+                    },
+                });
+            });
+
+            await page.goto('/');
+            await waitForNuxtHydration(page);
+
+            const ratingsCard = page.getByRole('link', {
+                name: /Średnia ocen/,
+            });
+
+            await expect(
+                ratingsCard.getByText('3.2', { exact: true }),
+            ).toBeVisible();
+            await expect(ratingsCard.getByText('60 opinii')).toBeVisible();
+            expect(requestedPages.length).toBeGreaterThan(0);
+            expect(
+                requestedPages.every((url) => {
+                    const query = new URL(url).searchParams;
+
+                    return (
+                        query.get('page') === '1' && query.get('limit') === '20'
+                    );
+                }),
+            ).toBe(true);
+        });
+    }
 });
