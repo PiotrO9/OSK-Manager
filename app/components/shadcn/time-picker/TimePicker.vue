@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check, Clock3, X } from 'lucide-vue-next';
+import { useMediaQuery } from '@vueuse/core';
 import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
@@ -61,6 +62,7 @@ const emit = defineEmits<{
 }>();
 
 const internalOpen = shallowRef(false);
+const isNarrowViewport = useMediaQuery('(max-width: 639px)');
 const isOpen = computed({
     get: () => props.open ?? internalOpen.value,
     set: (value: boolean) => {
@@ -520,7 +522,7 @@ function clampDraftToOptions(): void {
             align="center"
             class="time-picker-panel max-h-[min(31rem,var(--reka-popover-content-available-height))] w-[20rem] overflow-y-auto rounded-lg p-0 shadow-lg"
             :collision-padding="12"
-            side="right"
+            :side="isNarrowViewport ? 'bottom' : 'right'"
             :side-offset="8"
             sticky="always"
         >

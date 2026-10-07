@@ -201,6 +201,17 @@ describe('useManagerEventEditFieldSave', () => {
         );
     });
 
+    it('allows the final PATCH when the availability preview fails', async () => {
+        const { fieldSave, updateInstructorEvent } = setupFieldSave({
+            recheckEventAvailability: vi.fn().mockResolvedValue('error'),
+        });
+
+        await expect(fieldSave.updateDirtyEventFields('event-1')).resolves.toBe(
+            true,
+        );
+        expect(updateInstructorEvent).toHaveBeenCalledOnce();
+    });
+
     it('keeps the server conflict message when the final write loses a race', async () => {
         const { fieldSave, formError } = setupFieldSave({
             updateInstructorEvent: vi.fn().mockRejectedValue({

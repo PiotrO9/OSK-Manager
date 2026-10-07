@@ -20,7 +20,7 @@ for (const viewport of [
     { width: 1440, height: 1000 },
     { width: 390, height: 844 },
 ]) {
-    test(`REF-01 loads availability options at ${viewport.width}px${viewport.width >= 600 ? ' and saves a changed end time' : ''}`, async ({
+    test(`QA-04 loads availability options and saves a changed end time at ${viewport.width}px`, async ({
         context,
         page,
         baseURL,
@@ -29,18 +29,25 @@ for (const viewport of [
         await page.setViewportSize(viewport);
         let optionsRequests = 0;
         let patchBody: Record<string, unknown> | null = null;
+        let savedEvent = event;
 
         await page.route(`**/api/events/${eventId}`, async (route) => {
             if (route.request().method() === 'PATCH') {
                 patchBody = route.request().postDataJSON();
+                savedEvent = {
+                    ...savedEvent,
+                    ...(patchBody as Partial<typeof event>),
+                };
                 await route.fulfill({
-                    json: { success: true, data: { event } },
+                    json: { success: true, data: { event: savedEvent } },
                 });
 
                 return;
             }
 
-            await route.fulfill({ json: { success: true, data: { event } } });
+            await route.fulfill({
+                json: { success: true, data: { event: savedEvent } },
+            });
         });
         await page.route(`**/api/instructors/${instructorId}`, (route) =>
             route.fulfill({
@@ -112,8 +119,6 @@ for (const viewport of [
         ).toHaveText('11:00');
         await expect.poll(() => optionsRequests).toBeGreaterThan(0);
 
-        if (viewport.width < 600) return;
-
         await page
             .getByRole('button', { name: 'Godzina końca wydarzenia' })
             .click();
@@ -131,5 +136,9 @@ for (const viewport of [
             startTime: '2026-08-16T08:00:00.000Z',
             endTime: '2026-08-16T09:30:00.000Z',
         });
+        await page.goto(`/manager/events/${eventId}/edit`);
+        await expect(
+            page.getByRole('button', { name: 'Godzina końca wydarzenia' }),
+        ).toHaveText('11:30');
     });
 }

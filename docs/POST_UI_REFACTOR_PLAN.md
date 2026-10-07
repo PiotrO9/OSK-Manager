@@ -40,7 +40,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 - [x] **[REF-01 — Edycja wydarzenia — usunięcie starego freeWindows](#task-ref-01)** — wykonano 2026-10-07; aktywny formularz korzysta z availability-options bez martwego toru okien.
 - [x] **[REF-02 — Wspólna walidacja aktywnego kursanta](#task-ref-02)** — wykonano 2026-10-07; pięć operacji korzysta ze wspólnego odczytu aktywnego profilu kursanta.
-- [ ] **[QA-04 — Odbiór zachowania po refaktorach](#task-qa-04)** — odbiór po punktach grupy.
+- [x] **[QA-04 — Odbiór zachowania po refaktorach](#task-qa-04)** — wykonano 2026-10-07; sprawdzono W19 i pięć operacji kursanta.
 
 ### Grupa 6. Runtime i odbiór końcowy
 
@@ -752,16 +752,16 @@ Odbiór: błędy, identyfikacja i role dla notatek, PKK, przypisania OSK, przypi
 
 **Zakres sprawdzenia:**
 
-- [ ] Ponownie sprawdzić W19: hydratację, zmianę daty/godzin, options success/empty/error, domyślny koniec i zapis oraz dotknięte wspólne scenariusze dostępności. Nie trzeba mechanicznie powtarzać całego QA-02 bez związku ze zmianami.
-- [ ] Sprawdzić pięć operacji kursanta, kolejność/statusy błędów i różnice ról oraz userId/studentProfileId.
-- [ ] Porównać zachowanie przed/po, przejrzeć wspólny diff i wykonać odpowiednie testy/typy/lint FE oraz BE.
+- [x] Ponownie sprawdzić W19: hydratację, zmianę daty/godzin, options success/empty/error, domyślny koniec i zapis oraz dotknięte wspólne scenariusze dostępności. Nie trzeba mechanicznie powtarzać całego QA-02 bez związku ze zmianami.
+- [x] Sprawdzić pięć operacji kursanta, kolejność/statusy błędów i różnice ról oraz userId/studentProfileId.
+- [x] Porównać zachowanie przed/po, przejrzeć wspólny diff i wykonać odpowiednie testy/typy/lint FE oraz BE.
 
 **Dziennik odbioru:**
 
-- Data i stan kodu: jeszcze nie wykonano.
-- Scenariusze / komendy / wyniki: —.
-- Środowisko i ograniczenia: —.
-- Wniosek i ewentualne punkty do ponownego otwarcia: —.
+- Data i stan kodu: 2026-10-07; FE po REF-01 (`b653f9a`) i BE po REF-02 (`ec9ac1f`). Popover czasu ustawiony na prawo istniał już przed REF-01; na ekranie poniżej 640 px ustawiono go pod przyciskiem, aby można było wybrać godzinę.
+- Scenariusze / komendy / wyniki: FE W19 — testy formularza obejmują hydratację, zmianę daty i godzin, domyślny koniec, przejście przez północ, options success/empty/error, blokadę PATCH przy konflikcie, PATCH przy błędzie podglądu i obsługę 409. E2E z atrapą API na 1440 i 390 px: pełna zmiana godziny końca, PATCH i ponowny odczyt po przeładowaniu — 2/2; mobilny test nie jest już pomijany. FE `npm run test` 837/837, `npm run typecheck`, `npm run lint`, `npm run build` — exit 0. BE — nowy test HTTP/DB obejmuje pięć endpointów, statusy 400/403/404/409, kolejność błędów, role, różne `userId` i `studentProfileId`, zapis i brak zmiany po odmowie; `npm run test:integration` 39/39 (cały zestaw), `npm run check` 377/377 testów, format/lint/typy/build — exit 0. Diff FE i BE przejrzany.
+- Środowisko i ograniczenia: test BE użył osobnego PostgreSQL 17 na `127.0.0.1:55432`, bazy `qa04_test` i 34 migracji. E2E FE korzysta z utrwalającej stan atrapy API, więc nie stanowi nowego testu całego przepływu FE–BFF–BE; ten przepływ był odbierany w QA-02. Bezpośrednia integracja pięciu operacji kursanta przez HTTP i bazę została sprawdzona teraz.
+- Wniosek i ewentualne punkty do ponownego otwarcia: QA-04 zaliczony; przy zmianach kontraktu W19, pickera czasu lub operacji kursanta ponowić odpowiednie scenariusze.
 
 <a id="task-qual-02"></a>
 
