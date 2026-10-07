@@ -28,7 +28,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 - [x] **[BUG-07 — Dostępność — UTC i czas polski](#task-bug-07)** — wykonano 2026-10-07; zajętość kursanta i zakres dat używają czasu polskiego.
 - [x] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — wykonano 2026-10-07; ręczny preflight nie jest anulowany przez oczekującego watchera.
 - [x] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — wykonano 2026-10-07; zmiana jednej granicy wysyła pełne okno czasu.
-- [ ] **[BUG-08 — Pulpit managera — alert dostępności](#task-bug-08)** — do wykonania.
+- [x] **[BUG-08 — Pulpit managera — alert dostępności](#task-bug-08)** — wykonano 2026-10-07; alert uwzględnia datowane i domyślne godziny pracy.
 - [ ] **[QA-02 — Odbiór procesu rezerwacji i dostępności](#task-qa-02)** — odbiór po punktach grupy.
 
 ### Grupa 4. Spójność zapisu danych
@@ -548,16 +548,16 @@ Uwzględnić oba źródła konfiguracji. Nie zmieniać znaczenia na „wszystkie
 
 **Kryteria odbioru:**
 
-- [ ] Defaults only, datowane godziny only, brak obu i urlop dają właściwy wynik.
-- [ ] Sortowanie, limit 10 i hiddenCount pozostają poprawne; nie uruchamiać generatora slotów dla każdego instruktora.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Defaults only, datowane godziny only, brak obu i urlop dają właściwy wynik.
+- [x] Sortowanie, limit 10 i hiddenCount pozostają poprawne; nie uruchamiać generatora slotów dla każdego instruktora.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; alert powstaje tylko bez datowanych godzin w bieżącym tygodniu i bez domyślnego grafiku tygodniowego. Urlop i datowany dzień wolny nie zmieniają znaczenia alertu jako informacji o braku konfiguracji.
+- Faktycznie zmienione pliki: BE `src/services/manager-attention/items.ts`, `src/__tests__/services/manager-attention.test.ts` oraz ten plan.
+- Kontrole / komendy / wyniki: przed poprawką nowy test i asercja zapytania nie przechodziły; po poprawce BE `vitest run` — 348/348 testów w 53 plikach; `tsc -p tsconfig.json --noEmit`, `tsc -p tsconfig.build.json`, `eslint src --max-warnings=0`, `prettier --check 'src/**/*.ts'` i `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: sprawdzono logikę na mocku Prisma, bez izolowanej bazy; pełny przepływ dostępności i rezerwacji do odbioru w QA-02.
 
 <a id="task-qa-02"></a>
 
