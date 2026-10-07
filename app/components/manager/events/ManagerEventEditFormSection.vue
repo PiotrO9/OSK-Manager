@@ -34,8 +34,6 @@ defineProps<{
     endMinuteOptions: number[];
     availableStartTimes?: readonly string[];
     availableEndTimes?: readonly string[];
-    minDate?: string | null;
-    maxDate?: string | null;
 }>();
 
 defineEmits<{
@@ -128,8 +126,6 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
                 :end-minute-options="endMinuteOptions"
                 :available-start-times="availableStartTimes"
                 :available-end-times="availableEndTimes"
-                :min-date="minDate"
-                :max-date="maxDate"
                 :is-saving="isSaving"
                 :is-options-loading="isAvailabilityOptionsLoading"
                 @date-change="$emit('dateChange', $event)"

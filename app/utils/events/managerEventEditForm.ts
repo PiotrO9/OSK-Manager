@@ -1,5 +1,8 @@
 import type { InstructorEvent } from '~/types/events/instructorEvent';
-import { isoInstantToDatetimeLocalString } from '~/utils/date/weeklyCalendarDates';
+import {
+    isoInstantToDatetimeLocalString,
+    parseDatetimeLocalParts,
+} from '~/utils/date/weeklyCalendarDates';
 import { polishLocalDateTimeToIso } from '~/utils/date/polishScheduleTime';
 
 export interface ManagerEventEditFormSnapshot {
@@ -22,6 +25,23 @@ export interface ManagerEventEditCurrentSnapshotInput {
 
 export function localDatetimeToIso(local: string): string | null {
     return polishLocalDateTimeToIso(local);
+}
+
+export function suggestManagerEventEndLocal(startLocal: string): string | null {
+    const parts = parseDatetimeLocalParts(startLocal);
+
+    if (!parts) return null;
+
+    const start = new Date(
+        parts.date.year,
+        parts.date.month - 1,
+        parts.date.day,
+        parts.hour,
+        parts.minute,
+    );
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    return `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}T${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
 }
 
 export function parseManagerEventCapacity(raw: unknown): number | null | false {

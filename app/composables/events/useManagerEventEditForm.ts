@@ -1,8 +1,5 @@
 import type { Ref } from 'vue';
-import type {
-    FreeWindow,
-    InstructorEvent,
-} from '~/types/events/instructorEvent';
+import type { InstructorEvent } from '~/types/events/instructorEvent';
 import { useManagerEventEditTimePicker } from './useManagerEventEditTimePicker';
 import {
     buildManagerEventBaselineSnapshot,
@@ -40,11 +37,6 @@ export function useManagerEventEditForm(input: {
     const formInstructorId = ref('');
     const formCapacityInput = ref<string | number>('');
     const formError = ref<string | null>(null);
-    // The availability-options response is the only remote source of picker
-    // constraints. Empty legacy windows keep the split-field helper neutral.
-    const freeWindows = ref<FreeWindow[]>([]);
-    const freeWindowsUnavailable = ref(false);
-
     const {
         formStartDate,
         formStartHour,
@@ -55,21 +47,12 @@ export function useManagerEventEditForm(input: {
         fullHourOptions,
         fullMinuteOptions,
         currentFormDate,
-        pickerConstraintsActive,
-        pickerMinDate,
-        pickerMaxDate,
-        startHourOptionsResolved: freeWindowStartHourOptions,
-        startMinuteOptionsResolved: freeWindowStartMinuteOptions,
-        endHourOptionsResolved: freeWindowEndHourOptions,
-        endMinuteOptionsResolved: freeWindowEndMinuteOptions,
         handleDateChange,
         handleStartTimeChange,
         handleEndTimeChange,
     } = useManagerEventEditTimePicker({
         formStartLocal,
         formEndLocal,
-        freeWindows,
-        freeWindowsUnavailable,
     });
 
     function isoToDatetimeLocal(iso: string): string {
@@ -247,24 +230,16 @@ export function useManagerEventEditForm(input: {
         () => availabilityOptions.status.value === 'success',
     );
     const startHourOptionsResolved = computed(() =>
-        optionsReady.value
-            ? optionStartHours.value
-            : freeWindowStartHourOptions.value,
+        optionsReady.value ? optionStartHours.value : fullHourOptions,
     );
     const startMinuteOptionsResolved = computed(() =>
-        optionsReady.value
-            ? optionStartMinutes.value
-            : freeWindowStartMinuteOptions.value,
+        optionsReady.value ? optionStartMinutes.value : fullMinuteOptions,
     );
     const endHourOptionsResolved = computed(() =>
-        optionsReady.value
-            ? optionEndHours.value
-            : freeWindowEndHourOptions.value,
+        optionsReady.value ? optionEndHours.value : fullHourOptions,
     );
     const endMinuteOptionsResolved = computed(() =>
-        optionsReady.value
-            ? optionEndMinutes.value
-            : freeWindowEndMinuteOptions.value,
+        optionsReady.value ? optionEndMinutes.value : fullMinuteOptions,
     );
     const isAvailabilityOptionsLoading = computed(
         () => availabilityOptions.status.value === 'loading',
@@ -332,9 +307,6 @@ export function useManagerEventEditForm(input: {
         baselineSnapshot,
         isFormFieldsDirty,
         currentFormDate,
-        pickerConstraintsActive,
-        pickerMinDate,
-        pickerMaxDate,
         startHourOptionsResolved,
         startMinuteOptionsResolved,
         endHourOptionsResolved,

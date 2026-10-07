@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, ref } from 'vue';
-import type {
-    FreeWindow,
-    InstructorEvent,
-} from '~/types/events/instructorEvent';
+import type { InstructorEvent } from '~/types/events/instructorEvent';
 
 const updateInstructorEvent = vi.fn();
 const deleteInstructorEvent = vi.fn();
@@ -71,8 +68,6 @@ function createInput() {
         formInstructorId,
         formCapacityInput: ref('2'),
         formError: ref<string | null>(null),
-        freeWindows: ref<FreeWindow[]>([]),
-        freeWindowsUnavailable: ref(false),
         isFormFieldsDirty: computed(() => true),
         isTheoryStudentsDirty: computed(() => false),
         theoryStudentsError: ref<string | null>(null),

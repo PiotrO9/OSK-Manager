@@ -33,8 +33,6 @@ const {
     formCapacityInput,
     formError,
     isFormFieldsDirty,
-    pickerMinDate,
-    pickerMaxDate,
     startHourOptionsResolved,
     startMinuteOptionsResolved,
     endHourOptionsResolved,
@@ -226,8 +224,6 @@ const {
                 :end-minute-options="endMinuteOptionsResolved"
                 :available-start-times="availableStartTimes"
                 :available-end-times="availableEndTimes"
-                :min-date="pickerMinDate"
-                :max-date="pickerMaxDate"
                 @submit="handleSubmit"
                 @cancel="handleCancel"
                 @status-patched="handleEventStatusPatched"

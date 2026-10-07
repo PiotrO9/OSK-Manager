@@ -34,11 +34,11 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Grupa 4. Spójność zapisu danych
 
 - [x] **[BUG-09 — Edycja instruktora — spójność zapisu w bazie](#task-bug-09)** — wykonano 2026-10-07; zapis profilu, użytkownika i kwalifikacji jest atomowy.
-- [ ] **[QA-03 — Odbiór zapisu instruktora i odczytu szczegółów](#task-qa-03)** — odbiór po punktach grupy.
+- [x] **[QA-03 — Odbiór zapisu instruktora i odczytu szczegółów](#task-qa-03)** — wykonano 2026-10-07; rollback oraz zapis i ponowny GET przeszły przez FE–BFF–BE na izolowanej bazie.
 
 ### Grupa 5. Refaktory na ustabilizowanym zachowaniu
 
-- [ ] **[REF-01 — Edycja wydarzenia — usunięcie starego freeWindows](#task-ref-01)** — do wykonania.
+- [x] **[REF-01 — Edycja wydarzenia — usunięcie starego freeWindows](#task-ref-01)** — wykonano 2026-10-07; aktywny formularz korzysta z availability-options bez martwego toru okien.
 - [ ] **[REF-02 — Wspólna walidacja aktywnego kursanta](#task-ref-02)** — do wykonania.
 - [ ] **[QA-04 — Odbiór zachowania po refaktorach](#task-qa-04)** — odbiór po punktach grupy.
 
@@ -636,16 +636,16 @@ Najpierw test wymuszonej awarii; potem objąć powiązane zapisy i odczyt wyniku
 
 **Zakres sprawdzenia:**
 
-- [ ] Na izolowanej DB wymusić awarię późniejszego kroku PATCH i potwierdzić brak częściowego zapisu.
-- [ ] Sprawdzić poprawny zapis oraz ponowny GET: imię/doświadczenie/kwalifikacje się aktualizują, a telefon/licencja pozostają; frontend poprawnie obsługuje błąd.
-- [ ] Zachować uprawnienia, whitelistę i kontrakt PATCH. Jeżeli nie ma izolowanej DB, zostawić odbiór otwarty; nie uruchamiać migracji runnera na nieustalonej bazie.
+- [x] Na izolowanej DB wymusić awarię późniejszego kroku PATCH i potwierdzić brak częściowego zapisu.
+- [x] Sprawdzić poprawny zapis oraz ponowny GET: imię/doświadczenie/kwalifikacje się aktualizują, a telefon/licencja pozostają; frontend poprawnie obsługuje błąd.
+- [x] Zachować uprawnienia, whitelistę i kontrakt PATCH. Jeżeli nie ma izolowanej DB, zostawić odbiór otwarty; nie uruchamiać migracji runnera na nieustalonej bazie.
 
 **Dziennik odbioru:**
 
-- Data i stan kodu: jeszcze nie wykonano.
-- Scenariusze / komendy / wyniki: —.
-- Środowisko i ograniczenia: —.
-- Wniosek i ewentualne punkty do ponownego otwarcia: —.
+- Data i stan kodu: 2026-10-07; QA-03 zaliczony bez zmian w kodzie aplikacji.
+- Scenariusze / komendy / wyniki: w przeglądarce realny PATCH przez FE–BFF–BE zwrócił 500 po wymuszonej awarii zapisu kwalifikacji; formularz pokazał błąd i zachował szkic, a GET potwierdził rollback imienia, doświadczenia, kwalifikacji i kategorii. Po usunięciu awarii ponowny PATCH 200 i GET po odświeżeniu potwierdziły trwałą zmianę; telefon i numer licencji pozostały widoczne. Pusty PATCH i whitelistę potwierdzono odpowiedzią 200 bez zmiany pól GET-only, błędne ID kategorii dało 400, a obcy manager otrzymał 403 dla GET i PATCH. BE `npm run test:integration` — 30/30, `npm run check` — 348/348 unit oraz format, lint, typy i build; FE testy instruktora — 16/16, `typecheck` i `lint` przeszły, test UI desktop/mobile — 2/2.
+- Środowisko i ograniczenia: lokalny PostgreSQL UTF-8 z 34 migracjami, lokalne BE i Nuxt BFF; uwierzytelnianie Supabase zastąpiono tylko w tymczasowym serwerze QA. Serwery, baza i skrypty tymczasowe zostały usunięte po odbiorze.
+- Wniosek i ewentualne punkty do ponownego otwarcia: QA-03 zaliczony; BUG-02 i BUG-09 pozostają zamknięte.
 
 <a id="task-ref-01"></a>
 
@@ -685,16 +685,16 @@ Odbiór: najpierw testy charakteryzujące formularz dla options success/empty/er
 
 **Kryteria odbioru:**
 
-- [ ] Options success/empty/error, hydratacja, zmiana daty/godzin, domyślny koniec i zapis zachowują działanie.
-- [ ] Znikają martwe gałęzie, nie pojawia się nowy framework pickerów; testy opisują aktywny formularz.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Options success/empty/error, hydratacja, zmiana daty/godzin, domyślny koniec i zapis zachowują działanie.
+- [x] Znikają martwe gałęzie, nie pojawia się nowy framework pickerów; testy opisują aktywny formularz.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; usunięto nieaktywny tor `freeWindows` z W19 i osierocone composable/helpery; zachowano hydratację, zmianę daty i godzin, domyślny koniec oraz aktywne `availability-options` i PATCH.
+- Faktycznie zmienione pliki: composables `useManagerEventEditForm`, `useManagerEventEditTimePicker`, `useManagerEventEditTimeSplit` i ich testy; `managerEventEditForm.ts`; trzy komponenty formularza W19; test akcji; nowy `e2e/specs/ui/manager-event-edit-ref01.spec.ts`; `manager-event-edit-refactor.md`; usunięto `useManagerEventSlots` z testem oraz nieużywane `eventEditFreeWindowsPicker`, `eventEditFreeWindowIntervals` z testem i `freeWindows.ts`; ponadto ten plan.
+- Kontrole / komendy / wyniki: bazowe testy W19 12/12; nowe testy charakteryzujące przeszły przed refaktorem; FE `npm test` 836/836, `npm run typecheck` i `npm run lint` — exit 0, Prettier zmienionych plików — exit 0, `npm run build` — exit 0; celowany mock E2E W19 desktop/mobile 2/2 (desktop: zmiana końca i PATCH; mobile: odczyt formularza/opcji); BFF/kontrakt PATCH 7/7; `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: E2E używa atrap API; realny przepływ FE–BFF–BE sprawdzono wcześniej w QA-02, a BE nie zmieniono. Na wąskim ekranie istniejący popover wyboru czasu wysuwa się poza viewport; test mobilny nie obejmuje kliknięcia jego opcji. Osobna poprawka UI może być potrzebna, jeśli ten scenariusz wejdzie do zakresu QA-04.
 
 <a id="task-ref-02"></a>
 

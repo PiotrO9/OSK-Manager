@@ -12,8 +12,6 @@ defineProps<{
     endMinuteOptions: number[];
     availableStartTimes?: readonly string[];
     availableEndTimes?: readonly string[];
-    minDate?: string | null;
-    maxDate?: string | null;
     isSaving: boolean;
     isOptionsLoading: boolean;
 }>();
@@ -32,8 +30,6 @@ defineEmits<{
             <UiDatePicker
                 id="edit-event-date"
                 :model-value="date"
-                :min="minDate ?? undefined"
-                :max="maxDate ?? undefined"
                 :disabled="isSaving"
                 placeholder="Wybierz datę wydarzenia"
                 trigger-class="h-10 max-w-none rounded-xl bg-background"

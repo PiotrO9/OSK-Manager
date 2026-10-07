@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, nextTick, ref, watch } from 'vue';
-import type { FreeWindow } from '~/types/events/instructorEvent';
 
 function installVueGlobals(): void {
     vi.stubGlobal('ref', ref);
@@ -17,15 +16,11 @@ describe('useManagerEventEditTimePicker', () => {
     it('hydrates split fields from local start and end datetimes', async () => {
         const formStartLocal = ref('');
         const formEndLocal = ref('');
-        const freeWindows = ref<FreeWindow[]>([]);
-        const freeWindowsUnavailable = ref(false);
         const { useManagerEventEditTimePicker } =
             await import('./useManagerEventEditTimePicker');
         const picker = useManagerEventEditTimePicker({
             formStartLocal,
             formEndLocal,
-            freeWindows,
-            freeWindowsUnavailable,
         });
 
         formStartLocal.value = '2026-08-16T10:30';
@@ -44,21 +39,31 @@ describe('useManagerEventEditTimePicker', () => {
     it('moves end local forward when it is not after start local', async () => {
         const formStartLocal = ref('2026-08-16T10:00');
         const formEndLocal = ref('2026-08-16T09:00');
-        const freeWindows = ref<FreeWindow[]>([]);
-        const freeWindowsUnavailable = ref(false);
         const { useManagerEventEditTimePicker } =
             await import('./useManagerEventEditTimePicker');
 
         useManagerEventEditTimePicker({
             formStartLocal,
             formEndLocal,
-            freeWindows,
-            freeWindowsUnavailable,
         });
 
         formEndLocal.value = '2026-08-16T09:30';
         await nextTick();
 
         expect(formEndLocal.value).toBe('2026-08-16T11:00');
+    });
+
+    it('suggests the next local day when the start crosses midnight', async () => {
+        const formStartLocal = ref('2026-08-16T23:30');
+        const formEndLocal = ref('2026-08-16T23:00');
+        const { useManagerEventEditTimePicker } =
+            await import('./useManagerEventEditTimePicker');
+
+        useManagerEventEditTimePicker({ formStartLocal, formEndLocal });
+
+        formEndLocal.value = '2026-08-16T23:15';
+        await nextTick();
+
+        expect(formEndLocal.value).toBe('2026-08-17T00:30');
     });
 });
