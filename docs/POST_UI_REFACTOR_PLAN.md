@@ -25,8 +25,8 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Grupa 3. Dostępność i cały proces rezerwacji
 
 - [x] **[BUG-06 — Anulowane wydarzenia — kursant i samochód](#task-bug-06)** — wykonano 2026-10-07; anulowane i nieaktywne wydarzenia nie blokują kursanta ani pojazdu.
-- [ ] **[BUG-07 — Dostępność — UTC i czas polski](#task-bug-07)** — do wykonania.
-- [ ] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — do wykonania.
+- [x] **[BUG-07 — Dostępność — UTC i czas polski](#task-bug-07)** — wykonano 2026-10-07; zajętość kursanta i zakres dat używają czasu polskiego.
+- [x] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — wykonano 2026-10-07; ręczny preflight nie jest anulowany przez oczekującego watchera.
 - [ ] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — do wykonania.
 - [ ] **[BUG-08 — Pulpit managera — alert dostępności](#task-bug-08)** — do wykonania.
 - [ ] **[QA-02 — Odbiór procesu rezerwacji i dostępności](#task-qa-02)** — odbiór po punktach grupy.
@@ -413,16 +413,16 @@ W tej ścieżce użyć istniejących konwersji polishScheduleTime i granic polsk
 
 **Kryteria odbioru:**
 
-- [ ] Zajętość usuwa właściwy lokalny slot także u innego instruktora.
-- [ ] Lato, zima, północ, DST i stykające się przedziały mają testy; semantyka SQL DATE/TIME w innych modułach pozostaje bez zmian.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Zajętość usuwa właściwy lokalny slot także u innego instruktora.
+- [x] Lato, zima, północ, DST i stykające się przedziały mają testy; semantyka SQL DATE/TIME w innych modułach pozostaje bez zmian.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; zajętość kursanta pobierana jest dla nachodzących lekcji w granicach polskich dni, dzielona przy północy i zmianie czasu, a zakres slotów używa polskiej daty „dzisiaj”.
+- Faktycznie zmienione pliki: BE `src/services/school-availability/busyLessons.ts`, `dateHelpers.ts`, `queries.ts`, `src/__tests__/services/school-availability-time.test.ts`; FE tylko ten plan.
+- Kontrole / komendy / wyniki: przed poprawką 8/9 scenariuszy reprodukcyjnych nie przechodziło; po poprawce `vitest run` — 347/347 w 53 plikach; `tsc -p tsconfig.json --noEmit`, `eslint src --max-warnings=0`, `prettier --check "src/**/*.ts"` i `tsc -p tsconfig.build.json` — exit 0; `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: testy usługi używają atrapy Prisma, bez izolowanej bazy; ścieżkę FE–BFF–BE sprawdzić w QA-02. Kolejny punkt kolejki: BUG-05.
 
 <a id="task-bug-05"></a>
 
@@ -459,16 +459,16 @@ Ustalić pierwszeństwo ręcznego execute albo skoordynować zmianę candidate w
 
 **Kryteria odbioru:**
 
-- [ ] Ręczne sprawdzenie nie kończy się pozornym loading/checking przez oczekującego watchera; unavailable blokuje POST.
-- [ ] Zmiana candidate, spóźnione odpowiedzi, abort/cleanup i auto:false działają; zachowany uzgodniony fallback po rzeczywistym błędzie preflight.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Ręczne sprawdzenie nie kończy się pozornym loading/checking przez oczekującego watchera; unavailable blokuje POST.
+- [x] Zmiana candidate, spóźnione odpowiedzi, abort/cleanup i auto:false działają; zachowany uzgodniony fallback po rzeczywistym błędzie preflight.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; synchroniczny watcher unieważnia stary candidate przed ręcznym sprawdzeniem. Formularz kursanta blokuje POST dla nierozstrzygniętych stanów `checking`/`idle`; `error` nadal przechodzi do walidacji zapisu w backendzie.
+- Faktycznie zmienione pliki: `app/composables/schedule/useDebouncedAbortableRequest.ts`, `useScheduleAvailabilityCheck.test.ts`, `app/composables/lessons/useStudentLessonBookingPage.ts`, `useStudentLessonBookingPage.test.ts` i ten plan.
+- Kontrole / komendy / wyniki: przed poprawką testy prawdziwego helpera zwracały `checking`/`idle`, a formularz uruchamiał POST po anulowanym preflight; po poprawce `vitest run` — 832/832 w 172 plikach, `nuxi typecheck`, `eslint .`, Prettier dotkniętych plików oraz `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: testy FE z fetcherem i atrapą BFF; ścieżkę FE–BFF–BE na izolowanych danych sprawdzić w QA-02. Kolejny punkt kolejki: BUG-10.
 
 <a id="task-bug-10"></a>
 

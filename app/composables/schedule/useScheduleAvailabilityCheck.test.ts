@@ -144,6 +144,35 @@ describe('useScheduleAvailabilityCheck', () => {
         expect(fetcher).toHaveBeenCalledOnce();
     });
 
+    it.each([true, false])(
+        'resolves a same-tick candidate update and manual recheck with auto=%s',
+        async (auto) => {
+            vi.useFakeTimers();
+            const candidate = ref<typeof candidateValue | null>(null);
+            const fetcher = vi.fn().mockResolvedValue({
+                available: false,
+                issues: [{ code: 'INSTRUCTOR_BUSY', field: 'instructorId' }],
+                policy: { minDurationMinutes: 45, maxDurationMinutes: 90 },
+            });
+            const check = useScheduleAvailabilityCheck({
+                candidate,
+                fetcher,
+                debounceMs: 100,
+                auto,
+            });
+
+            candidate.value = candidateValue;
+
+            const status = await check.recheck();
+
+            await vi.advanceTimersByTimeAsync(100);
+
+            expect(status).toBe('unavailable');
+            expect(check.status.value).toBe('unavailable');
+            expect(fetcher).toHaveBeenCalledOnce();
+        },
+    );
+
     it('can defer the exact check until submit when options drive the picker', async () => {
         vi.useFakeTimers();
         const fetcher = vi.fn().mockResolvedValue({

@@ -442,6 +442,24 @@ export function useStudentLessonBookingPage() {
                 return false;
             }
 
+            if (
+                availabilityStatus !== 'available' &&
+                availabilityStatus !== 'error'
+            ) {
+                const message =
+                    'Nie udało się potwierdzić dostępności terminu. Spróbuj ponownie.';
+
+                bookingFeedbackMessage.value = message;
+                bookingFeedbackTone.value = 'error';
+                addToast({
+                    title: 'Sprawdź termin ponownie',
+                    description: message,
+                    variant: 'error',
+                });
+
+                return false;
+            }
+
             await bookOwnLesson({
                 courseId: course.id,
                 instructorId: slot.instructorId,

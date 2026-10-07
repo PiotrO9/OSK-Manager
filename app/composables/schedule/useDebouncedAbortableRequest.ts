@@ -107,7 +107,7 @@ export function useDebouncedAbortableRequest<TCandidate, TResult>(
                 if (timeoutId === nextTimeoutId) timeoutId = null;
             });
         },
-        { immediate: true, deep: true },
+        { immediate: true, deep: true, flush: 'sync' },
     );
 
     onScopeDispose(cancelPending);
