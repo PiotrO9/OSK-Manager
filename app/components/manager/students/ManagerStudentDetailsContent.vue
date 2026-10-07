@@ -32,6 +32,7 @@ const props = defineProps<{
     paymentsError: string | null;
     paymentsSaving: boolean;
     paymentsActionError: string | null;
+    paymentCreateSuccessVersion?: number;
     paymentsReferenceDate?: Date;
     scheduleWeekStart: Date;
     scheduleItems: readonly ScheduleLessonItem[];
@@ -235,6 +236,9 @@ function handleTabChange(value: string | number): void {
                             :error="props.paymentsError"
                             :is-saving="props.paymentsSaving"
                             :action-error="props.paymentsActionError"
+                            :create-success-version="
+                                props.paymentCreateSuccessVersion ?? 0
+                            "
                             :reference-date="props.paymentsReferenceDate"
                             @create="emit('createPayment', $event)"
                             @update="

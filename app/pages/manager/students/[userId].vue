@@ -20,6 +20,7 @@ const {
     paymentsError,
     paymentsSaving,
     paymentsActionError,
+    paymentCreateSuccessVersion,
     studentDisplayName,
     studentInitials,
     studentSubtitle,
@@ -70,6 +71,7 @@ const {
             :payments-error="paymentsError"
             :payments-saving="paymentsSaving"
             :payments-action-error="paymentsActionError"
+            :payment-create-success-version="paymentCreateSuccessVersion"
             :schedule-week-start="scheduleWeekStart"
             :schedule-items="scheduleItems"
             :schedule-loading="scheduleLoading"

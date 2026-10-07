@@ -19,7 +19,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 - [x] **[BUG-01 — Zdjęcie pojazdu — ponowny wybór](#task-bug-01)** — wykonano 2026-10-06; drugi wybór i ponowny wybór tego samego pliku działają.
 - [x] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — wykonano 2026-10-06; pola dostępne tylko w GET pozostają widoczne po PATCH, a mock zapisuje poprawny stan.
 - [x] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — wykonano 2026-10-06; średnia i licznik pochodzą z podsumowania całego zbioru.
-- [ ] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — do wykonania.
+- [x] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — wykonano 2026-10-07; szkic pozostaje po błędzie i czyści się po potwierdzonym dodaniu.
 - [ ] **[QA-01 — Odbiór formularzy i danych](#task-qa-01)** — odbiór po punktach grupy.
 
 ### Grupa 3. Dostępność i cały proces rezerwacji
@@ -299,16 +299,16 @@ Reset dopiero po jawnym sukcesie, prostym mechanizmem dopasowanym do obecnej kom
 
 **Kryteria odbioru:**
 
-- [ ] Nieudany zapis zachowuje kwotę, termin i metodę; ponowienie używa danych użytkownika.
-- [ ] Udany zapis czyści formularz dokładnie raz; działają W08 i przykład T01.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Nieudany zapis zachowuje kwotę, termin i metodę; ponowienie używa danych użytkownika.
+- [x] Udany zapis czyści formularz dokładnie raz; działają W08 i przykład T01.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; po błędzie dodawania szkic płatności pozostaje w formularzu. Dopiero udany POST zwiększa licznik sukcesu dodania, który wyzwala pojedynczy reset kwoty, terminu i metody; wybrany plan zostaje. Inne akcje płatności nie zwiększają licznika.
+- Faktycznie zmienione pliki: `app/components/manager/students/ManagerStudentPaymentsSection.vue`, `ManagerStudentDetailsContent.vue`, `app/composables/students/useManagerStudentPayments.ts`, `useManagerStudentPayments.test.ts`, `useManagerStudentDetailsPage.ts`, `app/pages/manager/students/[userId].vue`, `e2e/specs/ui/manager-student-payment-create.spec.ts` oraz ten plan. Sprawdzono `ManagerStudentPaymentCreateForm.vue` i przykład T01; nie wymagały zmiany.
+- Kontrole / komendy / wyniki: test regresji composable przed zmianą — exit 1 (brak sygnału sukcesu); po zmianie `vitest run app/composables/students/useManagerStudentPayments.test.ts` — 3/3; pełny `vitest run` — 826/826 w 172 plikach; `nuxi typecheck` — exit 0; `eslint .` — exit 0; `nuxt build` — exit 0; celowane Playwright UI dla W08 i T01 — 2/2; Prettier wskazanych plików — exit 0; `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: QA-01 pozostaje osobnym odbiorem całej grupy 2. Przeglądarkowy zapis sprawdzono na izolowanej odpowiedzi API; nie uruchamiano integracji z rzeczywistym backendem dla BUG-04.
 
 <a id="task-qa-01"></a>
 

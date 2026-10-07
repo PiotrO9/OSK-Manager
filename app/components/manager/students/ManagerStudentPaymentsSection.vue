@@ -23,6 +23,7 @@ const props = defineProps<{
     error: string | null;
     isSaving: boolean;
     actionError: string | null;
+    createSuccessVersion: number;
     referenceDate?: Date;
 }>();
 
@@ -37,6 +38,15 @@ const createPaymentPlanId = ref('');
 const createAmount = ref('');
 const createDueDate = ref('');
 const createMethod = ref('');
+
+watch(
+    () => props.createSuccessVersion,
+    () => {
+        createAmount.value = '';
+        createDueDate.value = '';
+        createMethod.value = '';
+    },
+);
 
 const editState = reactive<Record<string, StudentPaymentEditState>>({});
 
@@ -93,10 +103,6 @@ function handleCreate(): void {
             method: createMethod.value,
         }),
     );
-
-    createAmount.value = '';
-    createDueDate.value = '';
-    createMethod.value = '';
 }
 
 function handleUpdate(paymentId: string): void {

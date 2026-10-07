@@ -46,6 +46,7 @@ export function useManagerStudentPayments(input: {
     const paymentsError = ref<string | null>(null);
     const paymentsSaving = ref(false);
     const paymentsActionError = ref<string | null>(null);
+    const paymentCreateSuccessVersion = ref(0);
     let paymentsFetchSeq = 0;
 
     const paymentsOverviewLabel = computed(() => {
@@ -105,9 +106,13 @@ export function useManagerStudentPayments(input: {
     async function handleCreateStudentPayment(
         payload: CreateStudentPaymentPayload,
     ): Promise<void> {
-        await handleStudentPaymentAction((userId, schoolId) =>
+        const succeeded = await handleStudentPaymentAction((userId, schoolId) =>
             createStudentPayment(userId, schoolId, payload),
         );
+
+        if (succeeded) {
+            paymentCreateSuccessVersion.value += 1;
+        }
     }
 
     async function handleUpdateStudentPayment(
@@ -140,7 +145,7 @@ export function useManagerStudentPayments(input: {
             userId: string,
             schoolId: string,
         ) => Promise<StudentPaymentsPayload>,
-    ): Promise<void> {
+    ): Promise<boolean> {
         paymentsActionError.value = null;
 
         const userId = getStudentDetailsRouteUserIdString(input.getUserId());
@@ -148,7 +153,7 @@ export function useManagerStudentPayments(input: {
         if (!input.schoolId.value || !userId) {
             paymentsActionError.value = getMissingSchoolIdMessage();
 
-            return;
+            return false;
         }
 
         paymentsSaving.value = true;
@@ -158,11 +163,15 @@ export function useManagerStudentPayments(input: {
 
             payments.value = data.payments;
             paymentsSummary.value = data.summary;
+
+            return true;
         } catch (err: unknown) {
             paymentsActionError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się zapisać płatności kursanta.',
             );
+
+            return false;
         } finally {
             paymentsSaving.value = false;
         }
@@ -175,6 +184,7 @@ export function useManagerStudentPayments(input: {
         paymentsError,
         paymentsSaving,
         paymentsActionError,
+        paymentCreateSuccessVersion,
         paymentsOverviewLabel,
         loadStudentPayments,
         handleCreateStudentPayment,
