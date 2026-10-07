@@ -24,7 +24,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 ### Grupa 3. Dostępność i cały proces rezerwacji
 
-- [ ] **[BUG-06 — Anulowane wydarzenia — kursant i samochód](#task-bug-06)** — do wykonania.
+- [x] **[BUG-06 — Anulowane wydarzenia — kursant i samochód](#task-bug-06)** — wykonano 2026-10-07; anulowane i nieaktywne wydarzenia nie blokują kursanta ani pojazdu.
 - [ ] **[BUG-07 — Dostępność — UTC i czas polski](#task-bug-07)** — do wykonania.
 - [ ] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — do wykonania.
 - [ ] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — do wykonania.
@@ -368,16 +368,16 @@ Uzgodnić warunki „blokujące wydarzenie” z istniejącą regułą i dodać b
 
 **Kryteria odbioru:**
 
-- [ ] Anulowana/nieaktywna teoria nie blokuje kursanta; aktywna zaplanowana nadal blokuje.
-- [ ] Anulowany DRIVE nie ukrywa wolnego auta; PLANNED, isActive=false i stykające się przedziały są poprawnie rozróżniane. Historia pozostaje zachowana.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Anulowana/nieaktywna teoria nie blokuje kursanta; aktywna zaplanowana nadal blokuje.
+- [x] Anulowany DRIVE nie ukrywa wolnego auta; PLANNED, isActive=false i stykające się przedziały są poprawnie rozróżniane. Historia pozostaje zachowana.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; oba zapytania pomijają wydarzenia `CANCELLED`, a konflikt kursanta uwzględnia też `isActive=true`. Zachowane rekordy uczestnictwa i wydarzeń nie są modyfikowane.
+- Faktycznie zmienione pliki: BE `src/lib/lesson-scheduling.ts`, `src/services/vehicle/queries.ts`, `src/__tests__/lib/lesson-scheduling-overlap.test.ts`, `src/__tests__/services/vehicle-availability-refresh.test.ts`; FE tylko ten plan.
+- Kontrole / komendy / wyniki: testy reprodukujące przed poprawką — 3 niepowodzenia (anulowana i nieaktywna teoria, anulowany DRIVE); po poprawce `vitest run` — 336/336 w 52 plikach; `tsc -p tsconfig.json --noEmit`, `eslint src --max-warnings=0`, `prettier --check "src/**/*.ts"`, `tsc -p tsconfig.build.json` i `git diff --check` — exit 0.
+- Ograniczenia lub następny krok: testy zapytań używają atrapy Prisma, bez izolowanej bazy; pełną ścieżkę FE–BFF–BE i trwałość danych sprawdzić w QA-02. Kolejny punkt kolejki: BUG-07.
 
 <a id="task-bug-07"></a>
 
