@@ -1,6 +1,6 @@
 # OSK Manager — plan refaktoru i napraw po UI refresh
 
-Data przygotowania: 2026-10-06. Status: plan roboczy do wykonywania punkt po punkcie. Na starcie wszystkie punkty są otwarte; przygotowanie dokumentu nie oznacza wykonania zmian w aplikacji.
+Data przygotowania: 2026-10-06. Status: główny plan ukończony 2026-10-07; LATER-01 wykonany, LATER-02–03 pozostają opcjonalne.
 
 Źródła: [mapa i zakres audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_SCOPE.md), [dowody i ustalenia audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_FINDINGS.md).
 
@@ -45,11 +45,11 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Grupa 6. Runtime i odbiór końcowy
 
 - [x] **[QUAL-02 — Node — zgodność CI i kontenerów](#task-qual-02)** — wykonano 2026-10-07; Node 24 w FE, BE, CI i obrazach, oba obrazy zbudowano oraz uruchomiono lokalnie.
-- [ ] **[QA-05 — Odbiór końcowy całego zakresu](#task-qa-05)** — odbiór po punktach grupy.
+- [x] **[QA-05 — Odbiór końcowy całego zakresu](#task-qa-05)** — wykonano 2026-10-07; końcowe kontrole FE/BE, integracja DB, UI E2E i lokalny start obu obrazów przeszły.
 
 ### Opcjonalne — poza domyślną kolejką
 
-- [ ] **[LATER-01 — Typowane powody błędów harmonogramu](#task-later-01)** — odłożone; tylko po wskazaniu tego punktu.
+- [x] **[LATER-01 — Typowane powody błędów harmonogramu](#task-later-01)** — wykonano 2026-10-07; mapowanie używa powodów domenowych zamiast treści komunikatów.
 - [ ] **[LATER-02 — Nieaktywne dialogi konta](#task-later-02)** — odłożone; tylko po wskazaniu tego punktu.
 - [ ] **[LATER-03 — Mock opinii — zgodne filtry dat](#task-later-03)** — odłożone; tylko po wskazaniu tego punktu.
 
@@ -818,16 +818,16 @@ Uzgodnić wersję zgodną z wymaganiami repo i sprawdzić oba buildy/start obraz
 
 **Zakres sprawdzenia:**
 
-- [ ] Na końcowym stanie kodu wykonać kontrole FE: testy, typy, lint i build; BE: testy, typy, lint/format i build, zgodnie z aktualnymi skryptami.
-- [ ] Potwierdzić wymagane wyniki integracji DB, celowanych E2E i build/start obu obrazów. Starszy wynik nadal jest dowodem tylko dla niezmienionego zakresu; ponowić kontrole dotknięte późniejszymi zmianami.
-- [ ] Wykonać niezależny przegląd łącznego diffu i zapisać końcowy stan kodu oraz ograniczenia. Nie publikować obrazów i nie wdrażać aplikacji w ramach odbioru.
+- [x] Na końcowym stanie kodu wykonać kontrole FE: testy, typy, lint i build; BE: testy, typy, lint/format i build, zgodnie z aktualnymi skryptami.
+- [x] Potwierdzić wymagane wyniki integracji DB, celowanych E2E i build/start obu obrazów. Starszy wynik nadal jest dowodem tylko dla niezmienionego zakresu; ponowić kontrole dotknięte późniejszymi zmianami.
+- [x] Wykonać niezależny przegląd łącznego diffu i zapisać końcowy stan kodu oraz ograniczenia. Nie publikować obrazów i nie wdrażać aplikacji w ramach odbioru.
 
 **Dziennik odbioru:**
 
-- Data i stan kodu: jeszcze nie wykonano.
-- Scenariusze / komendy / wyniki: —.
-- Środowisko i ograniczenia: —.
-- Wniosek i ewentualne punkty do ponownego otwarcia: —.
+- Data i stan kodu: 2026-10-07; FE `7a9eec3` (`master`), BE `dcd4257` (`main`), oba repozytoria czyste przed odbiorem; bez zmian w kodzie aplikacji podczas QA-05.
+- Scenariusze / komendy / wyniki: na Node 24.21.0 i npm 11.6.0 FE `npm run test` — 837/837, `npm run typecheck`, `npm run lint`, `npm run build` — exit 0. BE `npm run check` — format, lint, typy, 377/377 testów i build — exit 0; `npm run test:integration` — 39/39 na osobnej PostgreSQL 17 po 34 migracjach. FE `npm run test:e2e:ui` na zbudowanym serwerze z atrapą API — 29/29, w tym zdjęcie, instruktor, opinie, płatności i edycja wydarzenia; warianty desktop/mobile obejmują zdjęcie, instruktora, opinie i wydarzenie. Oba lokalne obrazy z QUAL-02 uruchomiono ponownie: FE `/login` i BE `/health` — HTTP 200, Node 24.21.0 w obu kontenerach. Łączny diff FE od `63706bb` i BE od `8355662` przejrzano; `git diff --check` nie zgłosił błędów. Wcześniejsze QA-02/03 potwierdzają rzeczywiste przepływy FE–BFF–BE, a QA-04 i bieżące E2E oraz testy DB obejmują późniejsze refaktory.
+- Środowisko i ograniczenia: przeglądarkowe E2E używają atrapy API; po QA-02 nie powtarzano pełnego przepływu rezerwacji w przeglądarce przez rzeczywisty FE–BFF–BE, ponieważ późniejsze zmiany nie modyfikowały jego kontraktu. Istniejący dev server Nuxt blokował drugi serwer w tym samym katalogu, a polecenie `nuxt preview` z konfiguracji E2E błędnie interpretowało argument hosta; zestaw uruchomiono na zbudowanym `.output/server/index.mjs` z `E2E_SKIP_WEBSERVER=true`. Pozostają znane ostrzeżenia zależności w buildzie FE i deprecacja wywołania powłoki w runnerze integracji BE. W ramach QA-05 nie publikowano obrazów ani nie wdrażano aplikacji.
+- Wniosek i ewentualne punkty do ponownego otwarcia: QA-05 zaliczony; brak regresji wymagającej ponownego otwarcia punktów planu w wykonanych kontrolach. Główny plan ukończony, LATER-01–03 pozostają opcjonalne.
 
 <a id="task-later-01"></a>
 
@@ -860,16 +860,16 @@ Jeśli realizowane: mały typ wewnętrznych powodów w tej domenie i mapper do i
 
 **Kryteria odbioru:**
 
-- [ ] Każdy dotychczasowy powód mapuje się niezależnie od tekstu, a nieoczekiwany błąd infrastruktury nie udaje konfliktu.
-- [ ] HTTP status, payload i komunikaty pozostają zgodne; bez globalnego frameworka błędów.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Każdy dotychczasowy powód mapuje się niezależnie od tekstu, a nieoczekiwany błąd infrastruktury nie udaje konfliktu.
+- [x] HTTP status, payload i komunikaty pozostają zgodne; bez globalnego frameworka błędów.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; LATER-01 zaliczony. `ScheduleDomainError` zachowuje status i komunikat `AppError`, dodając wewnętrzny powód. Sprawdzanie dostępności i opcji używa powodów zamiast tekstu. Oczekiwane błędy 4xx niezwiązane z klasyfikacją tekstową nadal trafiają do tych samych ogólnych issue, a błędy 5xx są przekazywane dalej.
+- Faktycznie zmienione pliki: BE `src/lib/http/ScheduleDomainError.ts`, `src/lib/lesson-scheduling.ts`, `src/lib/vehicle.helpers.ts`, `src/services/instructor-availability/windows.ts`, `src/services/event/writeConflicts.ts`, `src/services/lesson/{bookingRules,scheduleConflicts,vehicleAvailability}.ts`, `src/services/schedule-validation/{check,options}.ts`, testy `schedule-availability-{check,options}.test.ts` oraz ten plan w FE.
+- Kontrole / komendy / wyniki: najpierw dwa nowe testy potwierdziły błędną klasyfikację przy zmianie tekstu i `AppError.internal` (2/16 nie przechodziły). Po zmianach testy mapowań obejmują konflikt kursanta, limit godzin, instruktora, pojazd, uczestników i zamknięty dzień, w tym zmienione komunikaty i propagację 500. Node 24.21.0/npm 11.6.0: BE `npm run check` — format/lint/typy/build exit 0 i 386/386 unit; `npm run test:integration` — 39/39 na osobnej PostgreSQL 17 po 34 migracjach. `git diff --check` — bez błędów; w `schedule-validation` nie ma mapowania przez `message/includes`.
+- Ograniczenia lub następny krok: nie zmieniono zewnętrznej koperty HTTP ani middleware; kompatybilność potwierdzają testy jednostkowe i integracyjne. Testową bazę zatrzymano. LATER-02 i LATER-03 pozostają opcjonalne.
 
 <a id="task-later-02"></a>
 
