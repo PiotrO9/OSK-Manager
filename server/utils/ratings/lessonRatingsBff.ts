@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3';
+import { filterMockRatingsByDate } from './mockRatingDateFilters';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
 function copyRatingQuery(rawQuery: Record<string, unknown>): URLSearchParams {
@@ -86,9 +87,18 @@ export async function bffUpstreamOwnLessonRatingsList(
     return { success: true, data };
 }
 
-function makeMockRating(id: string, instructorId: string, index: number) {
-    const day = 17 - index;
-    const isoDay = String(day).padStart(2, '0');
+function makeMockRating(
+    id: string,
+    instructorId: string,
+    index: number,
+    now: Date,
+) {
+    const fixtureDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+
+    fixtureDate.setUTCDate(fixtureDate.getUTCDate() - [1, 6, 7][index]!);
+    const isoDay = fixtureDate.toISOString().slice(0, 10);
 
     return {
         id,
@@ -98,11 +108,11 @@ function makeMockRating(id: string, instructorId: string, index: number) {
             index % 2 === 0
                 ? 'Spokojne prowadzenie i konkretne wskazowki.'
                 : null,
-        createdAt: `2026-06-${isoDay}T12:00:00.000Z`,
+        createdAt: `${isoDay}T12:00:00.000Z`,
         lesson: {
             id: crypto.randomUUID(),
-            startTime: `2026-06-${isoDay}T08:00:00.000Z`,
-            endTime: `2026-06-${isoDay}T09:00:00.000Z`,
+            startTime: `${isoDay}T08:00:00.000Z`,
+            endTime: `${isoDay}T09:00:00.000Z`,
             sequenceNumber: index + 4,
             course: {
                 id: `${id}-course`,
@@ -139,29 +149,37 @@ function makeMockRating(id: string, instructorId: string, index: number) {
 export function mockLessonRatingsListPayload(
     schoolId: string,
     instructorId?: string,
-    options: { page?: number; limit?: number } = {},
+    options: {
+        page?: number;
+        limit?: number;
+        period?: string;
+        dateFrom?: string;
+        dateTo?: string;
+    } = {},
 ) {
     const baseInstructorId = instructorId?.trim() || crypto.randomUUID();
+    const now = new Date();
     const ratings = [
-        makeMockRating(`${schoolId}-rating-1`, baseInstructorId, 0),
-        makeMockRating(`${schoolId}-rating-2`, baseInstructorId, 1),
-        makeMockRating(`${schoolId}-rating-3`, baseInstructorId, 2),
+        makeMockRating(`${schoolId}-rating-1`, baseInstructorId, 0, now),
+        makeMockRating(`${schoolId}-rating-2`, baseInstructorId, 1, now),
+        makeMockRating(`${schoolId}-rating-3`, baseInstructorId, 2, now),
     ];
-    const total = ratings.length;
+    const filteredRatings = filterMockRatingsByDate(ratings, options, now);
+    const total = filteredRatings.length;
     const page = Math.max(1, options.page ?? 1);
     const limit = Math.max(1, options.limit ?? 50);
     const start = (page - 1) * limit;
     const average =
         total > 0
             ? Math.round(
-                  (ratings.reduce((sum, item) => sum + item.rating, 0) /
+                  (filteredRatings.reduce((sum, item) => sum + item.rating, 0) /
                       total) *
                       100,
               ) / 100
             : null;
 
     return {
-        ratings: ratings.slice(start, start + limit),
+        ratings: filteredRatings.slice(start, start + limit),
         summary: {
             averageRating: average,
             totalCount: total,
@@ -181,27 +199,14 @@ export function mockOwnLessonRatingsPayload(
         period?: string;
     } = {},
 ) {
+    const now = new Date();
     const payload = mockLessonRatingsListPayload('own', crypto.randomUUID());
     const page = Math.max(1, options.page ?? 1);
     const limit = Math.max(1, options.limit ?? 20);
     const start = (page - 1) * limit;
-    const periodDays =
-        options.period === 'last7days'
-            ? 7
-            : options.period === 'last30days'
-              ? 30
-              : null;
-    const cutoff = new Date();
-
-    cutoff.setUTCHours(0, 0, 0, 0);
-
-    if (periodDays !== null) {
-        cutoff.setUTCDate(cutoff.getUTCDate() - periodDays);
-    }
-
     const ownRatings = payload.ratings.map((rating, index) => {
         const daysAgo = index === 2 ? 12 : index + 1;
-        const lessonDate = new Date();
+        const lessonDate = new Date(now);
 
         lessonDate.setUTCHours(8, 0, 0, 0);
         lessonDate.setUTCDate(lessonDate.getUTCDate() - daysAgo);
@@ -222,12 +227,7 @@ export function mockOwnLessonRatingsPayload(
             },
         };
     });
-    const filteredRatings =
-        periodDays === null
-            ? ownRatings
-            : ownRatings.filter(
-                  (rating) => new Date(rating.createdAt) >= cutoff,
-              );
+    const filteredRatings = filterMockRatingsByDate(ownRatings, options, now);
     const totalCount = filteredRatings.length;
     const averageRating =
         totalCount > 0

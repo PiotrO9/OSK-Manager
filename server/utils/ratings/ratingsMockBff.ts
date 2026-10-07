@@ -15,6 +15,13 @@ function readPositiveInt(raw: unknown, fallback: number): number {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function readQueryString(raw: unknown): string | undefined {
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    const text = String(value ?? '').trim();
+
+    return text || undefined;
+}
+
 export function bffMockLessonRatingsList(
     event: H3Event,
     params: {
@@ -28,6 +35,9 @@ export function bffMockLessonRatingsList(
         mockLessonRatingsListPayload(params.schoolId, params.instructorId, {
             page: readPositiveInt(query.page, 1),
             limit: readPositiveInt(query.limit, 50),
+            period: readQueryString(query.period),
+            dateFrom: readQueryString(query.dateFrom),
+            dateTo: readQueryString(query.dateTo),
         }),
     );
 }
@@ -42,9 +52,7 @@ export function bffMockOwnLessonRatingsList(event: H3Event): {
         mockOwnLessonRatingsPayload({
             page: readPositiveInt(query.page, 1),
             limit: readPositiveInt(query.limit, 20),
-            period: Array.isArray(query.period)
-                ? String(query.period[0] ?? '')
-                : String(query.period ?? ''),
+            period: readQueryString(query.period),
         }),
     );
 }

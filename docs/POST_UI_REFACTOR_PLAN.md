@@ -1,6 +1,6 @@
 # OSK Manager — plan refaktoru i napraw po UI refresh
 
-Data przygotowania: 2026-10-06. Status: główny plan ukończony 2026-10-07; LATER-01–02 wykonane, LATER-03 pozostaje opcjonalny.
+Data przygotowania: 2026-10-06. Status: główny plan ukończony 2026-10-07; LATER-01–03 wykonane.
 
 Źródła: [mapa i zakres audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_SCOPE.md), [dowody i ustalenia audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_FINDINGS.md).
 
@@ -51,7 +51,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 - [x] **[LATER-01 — Typowane powody błędów harmonogramu](#task-later-01)** — wykonano 2026-10-07; mapowanie używa powodów domenowych zamiast treści komunikatów.
 - [x] **[LATER-02 — Nieaktywne dialogi konta](#task-later-02)** — wykonano 2026-10-07; usunięto dwa nieużywane dialogi, edycja inline konta działa.
-- [ ] **[LATER-03 — Mock opinii — zgodne filtry dat](#task-later-03)** — odłożone; tylko po wskazaniu tego punktu.
+- [x] **[LATER-03 — Mock opinii — zgodne filtry dat](#task-later-03)** — wykonano 2026-10-07; mocki managera i instruktora stosują filtry dat zgodne z BE.
 
 ## Jak rozumieć kolejność i zależności
 
@@ -945,16 +945,16 @@ Deterministyczny czas/fixtures, zgodne granice i testy manager/own. Nie zmienia�
 
 **Kryteria odbioru:**
 
-- [ ] All/last7days i zakres jawnych dat zwracają właściwe różne zbiory; granice i paginacja mają testy.
-- [ ] Nie zmienia się produkcyjna semantyka last30days ani architektura współdzielenia kodu FE–BE.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] All/last7days i zakres jawnych dat zwracają właściwe różne zbiory; granice i paginacja mają testy.
+- [x] Nie zmienia się produkcyjna semantyka last30days ani architektura współdzielenia kodu FE–BE.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; LATER-03 zaliczony. Mock BFF przekazuje `period`, `dateFrom` i `dateTo` listy managera i opinii instruktora. Wspólny lokalny filtr FE używa granic UTC jak BE; jawne daty mają pierwszeństwo przed okresem. Przykładowe opinie managera mają daty względem bieżącego dnia, więc domyślny widok zachowuje aktualne rekordy.
+- Faktycznie zmienione pliki: `server/utils/ratings/ratingsMockBff.ts`, `lessonRatingsBff.ts`, nowe `mockRatingDateFilters.ts` oraz testy `lessonRatingsBff.test.ts`, `ratingsMockBff.test.ts`, `mockRatingDateFilters.test.ts`; ponadto ten plan. BE `src/services/lesson-rating/dateFilters.ts` odczytano jako kontrakt bez zmiany.
+- Kontrole / komendy / wyniki: nowy test managera przed poprawką zwracał 3 opinie zamiast 1 dla `last7days`. Po zmianach celowane testy filtrów i adaptera 7/7; `npm test` — 172 pliki, 842/842 testów; `npm run lint`, `npm run typecheck`, `npm run build` — exit 0; Prettier zmienionego kodu i `git diff --check` — exit 0. Testy obejmują granice 7/30 dni, przełom roku, zakres jednodniowy, pierwszeństwo jawnych dat, pusty zbiór i paginację po filtrowaniu.
+- Ograniczenia lub następny krok: zmiana dotyczy mocków FE. Produkcyjny filtr BE i zewnętrzny kontrakt API pozostają bez zmian; testy używają zamrożonego czasu i lokalnych danych, bez zapisu w bazie.
 
 ## Wspólne zasady wykonania
 
@@ -1029,7 +1029,7 @@ Każda partia powinna nadawać się do oddzielnego wycofania. Przy regresji wyco
 
 ## Odłożone i dalszy przegląd
 
-LATER-01 typowane powody błędów i LATER-02 dialogi konta wykonano. LATER-03 poprawić mock filtrów przy następnych testach opinii. Nie jest zależnością wdrożenia pozostałych zadań.
+LATER-01 typowane powody błędów, LATER-02 dialogi konta i LATER-03 mock filtrów opinii wykonano. Wszystkie trzy były opcjonalne i pozostają poza warunkiem ukończenia głównego planu.
 
 Mapa zawiera również pliki tylko wstępnie przeskanowane. Dalszy audyt może obejmować pozostałe szablony UI, event-create/participants, pozostałe BFF i testy integracyjne. Sama etykieta W nie tworzy zadania refaktoru. Awans do planu wymaga konkretnego dowodu, korzyści i sposobu ochrony zachowania.
 
