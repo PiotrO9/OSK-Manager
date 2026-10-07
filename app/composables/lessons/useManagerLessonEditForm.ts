@@ -127,11 +127,8 @@ export function buildManagerLessonPatchPayload(
 
     const payload: PatchManagerLessonPayload = {};
 
-    if (base.start !== values.start) {
+    if (base.start !== values.start || base.end !== values.end) {
         payload.startTime = startIso;
-    }
-
-    if (base.end !== values.end) {
         payload.endTime = endIso;
     }
 

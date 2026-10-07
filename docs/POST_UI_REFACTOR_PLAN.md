@@ -27,7 +27,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 - [x] **[BUG-06 — Anulowane wydarzenia — kursant i samochód](#task-bug-06)** — wykonano 2026-10-07; anulowane i nieaktywne wydarzenia nie blokują kursanta ani pojazdu.
 - [x] **[BUG-07 — Dostępność — UTC i czas polski](#task-bug-07)** — wykonano 2026-10-07; zajętość kursanta i zakres dat używają czasu polskiego.
 - [x] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — wykonano 2026-10-07; ręczny preflight nie jest anulowany przez oczekującego watchera.
-- [ ] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — do wykonania.
+- [x] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — wykonano 2026-10-07; zmiana jednej granicy wysyła pełne okno czasu.
 - [ ] **[BUG-08 — Pulpit managera — alert dostępności](#task-bug-08)** — do wykonania.
 - [ ] **[QA-02 — Odbiór procesu rezerwacji i dostępności](#task-qa-02)** — odbiór po punktach grupy.
 
@@ -504,16 +504,16 @@ Przy zmianie dowolnej granicy wysłać obie. Zachować minimalny payload przy zm
 
 **Kryteria odbioru:**
 
-- [ ] Payload dla każdej pojedynczej granicy przechodzi kontrakt backendu; niepoprawne okno nadal jest odrzucane.
-- [ ] Zmiana tylko pojazdu/instruktora nadal daje minimalny payload, brak zmian nie dodaje czasu.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Payload dla każdej pojedynczej granicy przechodzi kontrakt backendu; niepoprawne okno nadal jest odrzucane.
+- [x] Zmiana tylko pojazdu/instruktora nadal daje minimalny payload, brak zmian nie dodaje czasu.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; builder PATCH wysyła `startTime` i `endTime` razem, gdy zmieni się którakolwiek granica. Zmiany innych pól pozostają minimalne.
+- Faktycznie zmienione pliki: FE `app/composables/lessons/useManagerLessonEditForm.ts`, `useManagerLessonEditForm.test.ts` i ten plan.
+- Kontrole / komendy / wyniki: przed poprawką 2 testy pojedynczej granicy nie przechodziły; po poprawce `vitest run` — 839/839 w 172 plikach; `nuxi typecheck`, `eslint .`, Prettier dotkniętych plików i `git diff --check` — exit 0. Sprawdzono wynik payloadu w parserze BFF oraz aktualnym `updateLessonBodySchema` BE: oba warianty przyjęte, pojedyncza granica i odwrócony przedział odrzucone.
+- Ograniczenia lub następny krok: test kontraktu BE wykonano na schemacie w pamięci, bez izolowanej bazy; pełną ścieżkę FE–BFF–BE sprawdzić w QA-02. Kolejny punkt kolejki: BUG-08.
 
 <a id="task-bug-08"></a>
 
