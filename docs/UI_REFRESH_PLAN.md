@@ -204,7 +204,7 @@ Poniższe pozycje są częścią wskazanych ekranów, nie nowymi trasami. Uwzgl�
 
 **[KOD]** Rezerwacja kursanta w W27 jest akcją na liście slotów, zakończoną komunikatem i odświeżeniem. W [useStudentLessonBookingPage.ts](../app/composables/lessons/useStudentLessonBookingPage.ts) nie ma osobnej strony potwierdzenia. Jej dodanie byłoby zmianą procesu.
 
-W repo są też [AccountProfileNamesFormDialog.vue](../app/components/app/AccountProfileNamesFormDialog.vue), [AccountProfileContactFormDialog.vue](../app/components/app/AccountProfileContactFormDialog.vue) i [ManagerLessonRatingsFilters.vue](../app/components/manager/reviews/ManagerLessonRatingsFilters.vue). Nie znaleziono ich użycia w aktualnych stronach/komponentach produktu. Nie zaliczono ich do czynnych dialogów/filtrów; sama obecność pliku nie oznacza dostępnego widoku.
+Dialogi `AccountProfileNamesFormDialog.vue` i `AccountProfileContactFormDialog.vue` usunięto w LATER-02 jako nieużywane; konto korzysta z edycji inline. [ManagerLessonRatingsFilters.vue](../app/components/manager/reviews/ManagerLessonRatingsFilters.vue) jest używany na stronie `/manager/reviews`.
 
 ## 4. Istniejący system UI i możliwości ponownego użycia
 

@@ -1,6 +1,6 @@
 # OSK Manager — plan refaktoru i napraw po UI refresh
 
-Data przygotowania: 2026-10-06. Status: główny plan ukończony 2026-10-07; LATER-01 wykonany, LATER-02–03 pozostają opcjonalne.
+Data przygotowania: 2026-10-06. Status: główny plan ukończony 2026-10-07; LATER-01–02 wykonane, LATER-03 pozostaje opcjonalny.
 
 Źródła: [mapa i zakres audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_SCOPE.md), [dowody i ustalenia audytu](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/docs/POST_UI_CODE_REVIEW_FINDINGS.md).
 
@@ -50,7 +50,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Opcjonalne — poza domyślną kolejką
 
 - [x] **[LATER-01 — Typowane powody błędów harmonogramu](#task-later-01)** — wykonano 2026-10-07; mapowanie używa powodów domenowych zamiast treści komunikatów.
-- [ ] **[LATER-02 — Nieaktywne dialogi konta](#task-later-02)** — odłożone; tylko po wskazaniu tego punktu.
+- [x] **[LATER-02 — Nieaktywne dialogi konta](#task-later-02)** — wykonano 2026-10-07; usunięto dwa nieużywane dialogi, edycja inline konta działa.
 - [ ] **[LATER-03 — Mock opinii — zgodne filtry dat](#task-later-03)** — odłożone; tylko po wskazaniu tego punktu.
 
 ## Jak rozumieć kolejność i zależności
@@ -885,8 +885,8 @@ Jeśli realizowane: mały typ wewnętrznych powodów w tej domenie i mapper do i
 
 **Główne pliki do zmiany lub sprawdzenia kontraktu:**
 
-- [app/components/app/AccountProfileNamesFormDialog.vue](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/app/components/app/AccountProfileNamesFormDialog.vue)
-- [app/components/app/AccountProfileContactFormDialog.vue](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/app/components/app/AccountProfileContactFormDialog.vue)
+- `app/components/app/AccountProfileNamesFormDialog.vue` (usunięty w LATER-02)
+- `app/components/app/AccountProfileContactFormDialog.vue` (usunięty w LATER-02)
 - [app/pages/account/index.vue](D:/CODE/OSK-Manager/FE/OSK-Manager-FE/app/pages/account/index.vue)
 
 **Problem, dowód i granice zmiany:**
@@ -902,16 +902,16 @@ Nie usuwać ManagerLessonRatingsFilters: wbrew starej notatce UI_REFRESH_PLAN je
 
 **Kryteria odbioru:**
 
-- [ ] Edycja inline konta działa, typecheck/build przechodzą.
-- [ ] ManagerLessonRatingsFilters pozostaje — ma konsumenta. Bez testu sprawdzającego samo nieistnienie pliku.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Edycja inline konta działa, typecheck/build przechodzą.
+- [x] ManagerLessonRatingsFilters pozostaje — ma konsumenta. Bez testu sprawdzającego samo nieistnienie pliku.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; usunięto `AccountProfileNamesFormDialog.vue` i `AccountProfileContactFormDialog.vue` po ponownej kontroli importów, autoimportów i dynamicznych użyć. Strona konta korzysta z `AccountProfileCard` i `useAccountInlineProfileEdit`; historyczną notatkę w planie UI skorygowano. Filtr opinii pozostaje używany przez `/manager/reviews`.
+- Faktycznie zmienione pliki: usunięte `app/components/app/AccountProfileNamesFormDialog.vue` i `app/components/app/AccountProfileContactFormDialog.vue`; zaktualizowane `docs/UI_REFRESH_PLAN.md` oraz ten plan. Stronę `app/pages/account/index.vue`, composable edycji i filtr opinii sprawdzono bez zmian.
+- Kontrole / komendy / wyniki: `npm run postinstall` — deklaracje autoimportów `.nuxt` odświeżone, bez obu dialogów; celowane testy konta 12/12; `npm test` — 837/837; `npm run lint`, `npm run typecheck`, `npm run build` — exit 0. Headless Chromium: zalogowanie kontem demo managera, otwarcie edycji inline na desktopie, widok 390 px i anulowanie — działa. `git diff --check` — exit 0; diff ograniczony do dwóch usuniętych komponentów i dokumentacji.
+- Ograniczenia lub następny krok: odbiór w przeglądarce nie zapisywał zmian profilu ani nie wymuszał błędu API; te ścieżki chronią istniejące testy composable. Początkowe 401 `/api/auth/me` przed zalogowaniem było oczekiwaną odpowiedzią dla sesji anonimowej. LATER-03 pozostaje opcjonalny.
 
 <a id="task-later-03"></a>
 
@@ -1029,7 +1029,7 @@ Każda partia powinna nadawać się do oddzielnego wycofania. Przy regresji wyco
 
 ## Odłożone i dalszy przegląd
 
-LATER-01 typowane powody błędów rozważyć po ustabilizowaniu domeny harmonogramu. LATER-02 dialogi konta usunąć tylko przy okazji uzasadnionych porządków. LATER-03 poprawić mock filtrów przy następnych testach opinii. Nie są zależnościami wdrożenia pozostałych zadań.
+LATER-01 typowane powody błędów i LATER-02 dialogi konta wykonano. LATER-03 poprawić mock filtrów przy następnych testach opinii. Nie jest zależnością wdrożenia pozostałych zadań.
 
 Mapa zawiera również pliki tylko wstępnie przeskanowane. Dalszy audyt może obejmować pozostałe szablony UI, event-create/participants, pozostałe BFF i testy integracyjne. Sama etykieta W nie tworzy zadania refaktoru. Awans do planu wymaga konkretnego dowodu, korzyści i sposobu ochrony zachowania.
 
