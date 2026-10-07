@@ -29,11 +29,11 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 - [x] **[BUG-05 — Rezerwacja — ręczne sprawdzenie dostępności](#task-bug-05)** — wykonano 2026-10-07; ręczny preflight nie jest anulowany przez oczekującego watchera.
 - [x] **[BUG-10 — Edycja jazdy — zmiana jednej godziny](#task-bug-10)** — wykonano 2026-10-07; zmiana jednej granicy wysyła pełne okno czasu.
 - [x] **[BUG-08 — Pulpit managera — alert dostępności](#task-bug-08)** — wykonano 2026-10-07; alert uwzględnia datowane i domyślne godziny pracy.
-- [ ] **[QA-02 — Odbiór procesu rezerwacji i dostępności](#task-qa-02)** — odbiór po punktach grupy.
+- [x] **[QA-02 — Odbiór procesu rezerwacji i dostępności](#task-qa-02)** — wykonano 2026-10-07; pełny przepływ FE–BFF–BE i przypadki graniczne przeszły na izolowanej bazie.
 
 ### Grupa 4. Spójność zapisu danych
 
-- [ ] **[BUG-09 — Edycja instruktora — spójność zapisu w bazie](#task-bug-09)** — do wykonania.
+- [x] **[BUG-09 — Edycja instruktora — spójność zapisu w bazie](#task-bug-09)** — wykonano 2026-10-07; zapis profilu, użytkownika i kwalifikacji jest atomowy.
 - [ ] **[QA-03 — Odbiór zapisu instruktora i odczytu szczegółów](#task-qa-03)** — odbiór po punktach grupy.
 
 ### Grupa 5. Refaktory na ustabilizowanym zachowaniu
@@ -569,17 +569,17 @@ Uwzględnić oba źródła konfiguracji. Nie zmieniać znaczenia na „wszystkie
 
 **Zakres sprawdzenia:**
 
-- [ ] Przejść wybór terminu → sprawdzenie dostępności → rezerwację → zmianę tylko jednej granicy czasu → anulowanie → ponowny odczyt dostępności. Po anulowaniu lekcji sprawdzić zwolnienie terminu; osobno anulowaną teorię z uczestnikiem i anulowany DRIVE z pojazdem.
-- [ ] Sprawdzić właściwy slot przy istniejącej lekcji u innego instruktora, lato/zima/DST i granice dnia. Backend musi odrzucać rzeczywisty konflikt mimo ewentualnego fallbacku preflight.
-- [ ] Sprawdzić alert managera dla defaults/daty/braku konfiguracji. Uruchomić testy dotkniętych obszarów FE i BE, kontrolę kontraktów oraz odpowiednie typy/lint.
-- [ ] Odbiór obejmuje ścieżkę FE–BFF–BE na izolowanych danych testowych, nie tylko unit mocki. Brak środowiska zapisać jako nieukończony odbiór, nie potwierdzenie działania.
+- [x] Przejść wybór terminu → sprawdzenie dostępności → rezerwację → zmianę tylko jednej granicy czasu → anulowanie → ponowny odczyt dostępności. Po anulowaniu lekcji sprawdzić zwolnienie terminu; osobno anulowaną teorię z uczestnikiem i anulowany DRIVE z pojazdem.
+- [x] Sprawdzić właściwy slot przy istniejącej lekcji u innego instruktora, lato/zima/DST i granice dnia. Backend musi odrzucać rzeczywisty konflikt mimo ewentualnego fallbacku preflight.
+- [x] Sprawdzić alert managera dla defaults/daty/braku konfiguracji. Uruchomić testy dotkniętych obszarów FE i BE, kontrolę kontraktów oraz odpowiednie typy/lint.
+- [x] Odbiór obejmuje ścieżkę FE–BFF–BE na izolowanych danych testowych, nie tylko unit mocki. Brak środowiska zapisać jako nieukończony odbiór, nie potwierdzenie działania.
 
 **Dziennik odbioru:**
 
-- Data i stan kodu: jeszcze nie wykonano.
-- Scenariusze / komendy / wyniki: —.
-- Środowisko i ograniczenia: —.
-- Wniosek i ewentualne punkty do ponownego otwarcia: —.
+- Data i stan kodu: 2026-10-07; odbiór zaliczony. Przy okazji poprawiono priorytet diagnozy konfliktu instruktora w BE: zajęta lekcja lub wydarzenie daje `INSTRUCTOR_BUSY`, a nie `OUTSIDE_INSTRUCTOR_HOURS`. Fixture integracyjny obejmuje wszystkie dni tygodnia.
+- Scenariusze / komendy / wyniki: w przeglądarce wybór terminu → preflight 200 → rezerwacja 201; przez FE–BFF–BE potwierdzono zmianę samej godziny końca (10:00–11:00 → 10:00–11:30), odczyt zapisu, anulowanie i ponowne zwolnienie slotu. Preflight odrzuca rzeczywiste konflikty kursanta i pojazdu, a zapis konfliktowy zwraca 409. Anulowana teoria z uczestnikiem oraz anulowany i nieaktywny DRIVE z pojazdem nie blokują terminu. Zajętość kursanta u innego instruktora i przejście przez północ dają właściwe sloty; sprawdzono lato/zima oraz odrzucenie niejednoznacznej godziny przy DST. Alert managera zweryfikowano dla godzin domyślnych, datowanych, braku konfiguracji i urlopu. BE integracyjne 27/27, BE unit 348/348, FE unit 839/839, FE UI e2e 5/5; typy i lint FE/BE przeszły.
+- Środowisko i ograniczenia: odizolowany PostgreSQL z 34 migracjami, lokalne BE i Nuxt BFF; uwierzytelnianie Supabase zastąpiono wyłącznie w tymczasowym serwerze testowym tokenem QA. Produkcyjnej bazy nie użyto. Edycję i anulowanie sprawdzono przez rzeczywiste endpointy BFF, a wybór terminu i rezerwację dodatkowo w przeglądarce.
+- Wniosek i ewentualne punkty do ponownego otwarcia: QA-02 zaliczony; nie stwierdzono potrzeby ponownego otwarcia BUG-05–08 ani BUG-10.
 
 <a id="task-bug-09"></a>
 
@@ -615,16 +615,16 @@ Najpierw test wymuszonej awarii; potem objąć powiązane zapisy i odczyt wyniku
 
 **Kryteria odbioru:**
 
-- [ ] Awaria późniejszego kroku wycofuje wcześniejsze zapisy — potwierdzone na izolowanej DB, nie samym mockiem.
-- [ ] Sukces, ownership, whitelist, pusty PATCH i odpowiedź pozostają poprawne. Bez testowej bazy pozostawić odbiór jako nieukończony.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Awaria późniejszego kroku wycofuje wcześniejsze zapisy — potwierdzone na izolowanej DB, nie samym mockiem.
+- [x] Sukces, ownership, whitelist, pusty PATCH i odpowiedź pozostają poprawne. Bez testowej bazy pozostawić odbiór jako nieukończony.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; test przed poprawką potwierdził częściowy zapis `experienceYears` po awarii aktualizacji użytkownika. Zapisy profilu, użytkownika i kwalifikacji oraz odczyt odpowiedzi są teraz w jednej transakcji Prisma.
+- Faktycznie zmienione pliki: BE `src/services/instructor/commands.ts`, `src/__tests__/services/instructor-qualified-course-types.test.ts`, nowy `src/__tests__/integration/instructorPatchAtomicity.integration.test.ts` oraz ten plan.
+- Kontrole / komendy / wyniki: na izolowanym PostgreSQL z 34 migracjami wymuszono awarię zapisu użytkownika i relacji kwalifikacji; oba scenariusze potwierdziły rollback, a poprawny zapis, własność szkoły i pusty PATCH przeszły. `npm run test:integration` — 30/30; `npm run check` — format, lint, typy, 348/348 testów jednostkowych i build — exit 0. Whitelistę i walidację wejścia potwierdzają istniejące testy schematu PATCH.
+- Ograniczenia lub następny krok: QA-03 pozostaje osobnym odbiorem wspólnego działania FE, GET szczegółów i zapisu instruktora.
 
 <a id="task-qa-03"></a>
 
