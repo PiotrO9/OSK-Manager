@@ -74,7 +74,7 @@ const {
                 v-model:active-course-id="activeCourseId"
                 :schools="schools"
                 :courses="courses"
-                :active-school-name="activeSchool?.name ?? null"
+                :active-school="activeSchool"
                 :is-students-loading="isSchoolsLoading || isStudentsLoading"
                 :is-courses-loading="isCoursesLoading"
                 @school-change="handleActiveSchoolChange"

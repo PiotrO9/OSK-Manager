@@ -16,7 +16,7 @@ const {
     resolvedSchoolId,
     schools,
     isSchoolsLoading,
-    activeSchoolName,
+    activeSchool,
     contextMessage,
     loadError,
     deleteActionError,
@@ -64,7 +64,7 @@ const {
             :resolved-school-id="resolvedSchoolId"
             :schools="schools"
             :is-schools-loading="isSchoolsLoading"
-            :active-school-name="activeSchoolName"
+            :active-school="activeSchool"
             :load-error="loadError"
             :delete-action-error="deleteActionError"
             :is-list-loading="isListLoading"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { CourseListItem } from '~/types/courses/course';
 import { useManagerCoursesFilters } from '~/composables/courses/useManagerCoursesFilters';
@@ -29,10 +29,6 @@ const emit = defineEmits<{
 const activeSchool = computed(() =>
     props.schools.find((school) => school.id === props.activeSchoolId),
 );
-const activeSchoolModel = computed({
-    get: () => props.activeSchoolId,
-    set: (value: string) => emit('activeSchoolChange', value),
-});
 const createTarget = computed(() => ({
     path: '/manager/courses/new',
     query: { schoolId: props.activeSchoolId },
@@ -112,51 +108,17 @@ const {
                         v-if="schools.length > 1"
                         class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:max-w-sm lg:flex-1"
                     >
-                        <UiLabel
-                            for="courses-school"
-                            class="text-muted-foreground shrink-0 text-xs"
-                            >Szkoła jazdy</UiLabel
-                        >
-                        <UiSelect
-                            v-model="activeSchoolModel"
+                        <SchoolContextSelect
+                            id="courses-school"
+                            :schools="schools"
+                            :model-value="activeSchoolId"
                             :disabled="isSchoolsLoading"
-                        >
-                            <UiSelectTrigger
-                                id="courses-school"
-                                class="h-11 w-full min-w-0 sm:h-9"
-                                ><UiSelectValue placeholder="Wybierz OSK"
-                            /></UiSelectTrigger>
-                            <UiSelectContent
-                                ><UiSelectItem
-                                    v-for="school in schools"
-                                    :key="school.id"
-                                    :value="school.id"
-                                    >{{ school.name
-                                    }}{{
-                                        school.city ? ` (${school.city})` : ''
-                                    }}</UiSelectItem
-                                ></UiSelectContent
-                            >
-                        </UiSelect>
+                            @update:model-value="
+                                emit('activeSchoolChange', $event)
+                            "
+                        />
                     </div>
-                    <div v-else class="flex min-w-0 items-center gap-3">
-                        <span
-                            class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                            ><Building2 class="size-4" aria-hidden="true"
-                        /></span>
-                        <div class="min-w-0">
-                            <p class="text-muted-foreground text-xs">
-                                Szkoła jazdy
-                            </p>
-                            <p
-                                class="text-foreground text-sm font-semibold wrap-anywhere"
-                            >
-                                {{
-                                    activeSchool?.name ?? 'Brak wybranej szkoły'
-                                }}
-                            </p>
-                        </div>
-                    </div>
+                    <SchoolContext v-else :school="activeSchool ?? null" />
                 </div>
             </FilterBar>
             <div class="border-border space-y-3 border-b px-4 py-3 sm:px-5">

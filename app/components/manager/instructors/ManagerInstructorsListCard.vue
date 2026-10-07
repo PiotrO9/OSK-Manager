@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Building2 } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
@@ -97,55 +96,15 @@ function handleSchoolUpdate(value: unknown) {
                     v-if="schools.length > 1"
                     class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:max-w-sm lg:flex-1"
                 >
-                    <UiLabel
-                        for="instructors-page-school"
-                        class="text-muted-foreground shrink-0 text-xs"
-                        >Szkoła jazdy</UiLabel
-                    >
-                    <UiSelect
+                    <SchoolContextSelect
+                        id="instructors-page-school"
+                        :schools="schools"
                         :model-value="activeSchoolId"
                         :disabled="isSchoolsLoading || isInstructorsLoading"
                         @update:model-value="handleSchoolUpdate"
-                    >
-                        <UiSelectTrigger
-                            id="instructors-page-school"
-                            class="h-11 w-full min-w-0 sm:h-9"
-                            aria-label="Wybierz szkołę jazdy do podglądu listy instruktorów"
-                        >
-                            <UiSelectValue placeholder="Wybierz szkołę" />
-                        </UiSelectTrigger>
-                        <UiSelectContent>
-                            <UiSelectGroup>
-                                <UiSelectItem
-                                    v-for="school in schools"
-                                    :key="school.id"
-                                    :value="school.id"
-                                >
-                                    {{ school.name
-                                    }}{{
-                                        school.city ? ` (${school.city})` : ''
-                                    }}
-                                </UiSelectItem>
-                            </UiSelectGroup>
-                        </UiSelectContent>
-                    </UiSelect>
+                    />
                 </div>
-                <div v-else class="flex min-w-0 items-center gap-3">
-                    <span
-                        class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                        ><Building2 class="size-4" aria-hidden="true"
-                    /></span>
-                    <div class="min-w-0">
-                        <p class="text-muted-foreground text-xs">
-                            Szkoła jazdy
-                        </p>
-                        <p
-                            class="text-foreground text-sm font-semibold wrap-anywhere"
-                        >
-                            {{ activeSchool?.name ?? 'Brak wybranej szkoły' }}
-                        </p>
-                    </div>
-                </div>
+                <SchoolContext v-else :school="activeSchool" />
 
                 <div
                     class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-end sm:gap-3 lg:w-96 lg:shrink-0"
@@ -198,7 +157,6 @@ function handleSchoolUpdate(value: unknown) {
 
         <ManagerInstructorsStatsGrid
             :instructors-count="instructors.length"
-            :active-school="activeSchool"
             :instructors-with-qualifications-count="
                 instructorsWithQualificationsCount
             "

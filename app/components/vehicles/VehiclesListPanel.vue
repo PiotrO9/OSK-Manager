@@ -13,7 +13,7 @@ defineProps<{
     resolvedSchoolId: string | null;
     schools: DrivingSchool[];
     isSchoolsLoading: boolean;
-    activeSchoolName: string;
+    activeSchool: DrivingSchool | null;
     loadError: string | null;
     deleteActionError: string | null;
     isListLoading: boolean;
@@ -74,7 +74,7 @@ const displayText = displayVehicleText;
                 :is-manager="isManager"
                 :schools="schools"
                 :selected-school-id="resolvedSchoolId"
-                :selected-school-name="activeSchoolName"
+                :selected-school="activeSchool"
                 :is-schools-loading="isSchoolsLoading"
                 :search-term="searchTerm"
                 :status-filter="statusFilter"

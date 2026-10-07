@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Building2 } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
@@ -40,14 +39,6 @@ const schoolId = computed((): string => {
 
     return typeof def === 'string' ? def.trim() : '';
 });
-
-function getSchoolLocationLabel(school: DrivingSchool): string {
-    const parts = [school.city, school.address]
-        .map((part) => part?.trim() ?? '')
-        .filter((part) => part.length > 0);
-
-    return parts.join(' · ');
-}
 
 async function handleSchoolChange(value: string): Promise<void> {
     const nextSchoolId = value.trim();
@@ -107,44 +98,18 @@ usePageMeta({
             title="Harmonogram OSK"
             description="Tygodniowy plan jazd, teorii i blokow czasu."
         >
-            <template v-if="schools.length > 1" #actions>
-                <UiSelect
-                    :model-value="schoolId"
-                    :disabled="isSchoolsLoading"
-                    @update:model-value="handleSchoolChange(String($event))"
-                >
-                    <UiSelectTrigger
-                        class="bg-card h-10 w-auto min-w-56 gap-2 rounded-xl px-3 font-semibold shadow-xs"
-                        aria-label="Wybierz OSK"
-                    >
-                        <Building2
-                            class="text-primary size-4 shrink-0"
-                            aria-hidden="true"
-                        />
-                        <UiSelectValue placeholder="Wybierz OSK" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem
-                                v-for="school in schools"
-                                :key="school.id"
-                                :value="school.id"
-                            >
-                                <span class="flex min-w-0 flex-col text-left">
-                                    <span class="truncate">{{
-                                        school.name
-                                    }}</span>
-                                    <span
-                                        v-if="getSchoolLocationLabel(school)"
-                                        class="text-muted-foreground truncate text-xs font-normal"
-                                    >
-                                        {{ getSchoolLocationLabel(school) }}
-                                    </span>
-                                </span>
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
+            <template v-if="schools.length > 0" #actions>
+                <div class="min-w-56">
+                    <SchoolContextSelect
+                        v-if="schools.length > 1"
+                        id="schedule-school"
+                        :schools="schools"
+                        :model-value="schoolId"
+                        :disabled="isSchoolsLoading"
+                        @update:model-value="handleSchoolChange"
+                    />
+                    <SchoolContext v-else :school="schools[0] ?? null" />
+                </div>
             </template>
         </PageHeader>
 

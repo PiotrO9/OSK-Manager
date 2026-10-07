@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, SlidersHorizontal, X } from 'lucide-vue-next';
+import { SlidersHorizontal, X } from 'lucide-vue-next';
 import type { CourseListItem } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
@@ -8,7 +8,7 @@ interface Props {
     courses: readonly CourseListItem[];
     activeSchoolId: string;
     activeCourseId: string;
-    activeSchoolName: string | null;
+    activeSchool: DrivingSchool | null;
     isStudentsLoading: boolean;
     isCoursesLoading: boolean;
 }
@@ -54,51 +54,15 @@ function handleCourseUpdate(value: unknown) {
                 v-if="schools.length > 1"
                 class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:max-w-sm lg:flex-1"
             >
-                <UiLabel
-                    for="students-page-school"
-                    class="text-muted-foreground shrink-0 text-xs"
-                    >Szkoła jazdy</UiLabel
-                >
-                <UiSelect
+                <SchoolContextSelect
+                    id="students-page-school"
+                    :schools="schools"
                     :model-value="activeSchoolId"
                     :disabled="isStudentsLoading || isCoursesLoading"
                     @update:model-value="handleSchoolUpdate"
-                >
-                    <UiSelectTrigger
-                        id="students-page-school"
-                        class="h-11 w-full min-w-0 sm:h-9"
-                        aria-label="Wybierz szkołę jazdy do podglądu listy kursantów"
-                    >
-                        <UiSelectValue placeholder="Wybierz szkołę" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem
-                                v-for="school in schools"
-                                :key="school.id"
-                                :value="school.id"
-                            >
-                                {{ school.name
-                                }}{{ school.city ? ` (${school.city})` : '' }}
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
+                />
             </div>
-            <div v-else class="flex min-w-0 items-center gap-3">
-                <span
-                    class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                    ><Building2 class="size-4" aria-hidden="true"
-                /></span>
-                <div class="min-w-0">
-                    <p class="text-muted-foreground text-xs">Szkoła jazdy</p>
-                    <p
-                        class="text-foreground text-sm font-semibold wrap-anywhere"
-                    >
-                        {{ activeSchoolName ?? 'Brak wybranej szkoły' }}
-                    </p>
-                </div>
-            </div>
+            <SchoolContext v-else :school="activeSchool" />
             <div
                 class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:w-80 lg:shrink-0"
             >

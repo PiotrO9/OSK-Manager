@@ -74,17 +74,6 @@ export function useVehiclesListPage() {
             (defaultSchool.value?.id === sid ? defaultSchool.value : null)
         );
     });
-    const activeSchoolName = computed(() => {
-        if (activeSchool.value) {
-            return activeSchool.value.city
-                ? `${activeSchool.value.name} (${activeSchool.value.city})`
-                : activeSchool.value.name;
-        }
-
-        return resolvedSchoolId.value
-            ? 'Wybrana szkoła'
-            : 'Brak wybranej szkoły';
-    });
     const isPageLoading = computed(
         () => isPageInitializing.value || isListLoading.value,
     );
@@ -397,7 +386,7 @@ export function useVehiclesListPage() {
         schools,
         isSchoolsLoading,
         schoolsLoadError,
-        activeSchoolName,
+        activeSchool,
         contextMessage,
         loadError,
         deleteActionError,

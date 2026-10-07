@@ -57,7 +57,7 @@ watch(scenario, () => {
                 v-model:active-course-id="activeCourseId"
                 :schools="[designSystemSchool]"
                 :courses="designSystemCourses"
-                :active-school-name="designSystemSchool.name"
+                :active-school="designSystemSchool"
                 :is-students-loading="isLoading"
                 :is-courses-loading="false"
             />

@@ -23,6 +23,12 @@ Pickery daty i czasu mają osobny standard: [`DATE_TIME_PICKERS.md`](DATE_TIME_P
 
 ## App (`app/components/app/`)
 
+### SchoolContext i SchoolContextSelect
+
+Wspólny kompaktowy wygląd informacji o ośrodku oraz kontrolka jego wyboru.
+Zasady etykiet, stanów i przykłady użycia: [SCHOOL_CONTEXT.md](SCHOOL_CONTEXT.md).
+Przykład na żywo jest w sekcji „Stany i formularze” strony `/design-system`.
+
 ### AppHeader
 
 Nagłówek (logo, nawigacja, logowanie/wylogowanie).

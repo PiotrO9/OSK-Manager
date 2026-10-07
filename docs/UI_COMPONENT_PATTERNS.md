@@ -24,6 +24,11 @@ Nie tworz komponentu globalnego, gdy:
 
 ## Decyzje komponentowe
 
+Informację o aktualnym, domyślnym lub przypisanym ośrodku pokazuj przez
+`SchoolContext`. Wybór ośrodka w tym samym kompaktowym układzie zapewnia
+`SchoolContextSelect`. Wyszukiwarka pozostaje osobną kontrolką widoku.
+Kontrakt i etykiety opisuje [SCHOOL_CONTEXT.md](SCHOOL_CONTEXT.md).
+
 Przed utworzeniem nowego komponentu odpowiedz:
 
 1. Czy ten wzorzec pojawi sie w wiecej niz jednym widoku?

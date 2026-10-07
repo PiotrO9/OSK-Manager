@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, Save } from 'lucide-vue-next';
+import { Save } from 'lucide-vue-next';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
 import { useVehicleCreatePage } from '~/composables/vehicles/useVehicleCreatePage';
@@ -95,35 +95,11 @@ onBeforeUnmount(() =>
         />
 
         <FormSection v-else-if="currentSchool">
-            <div
-                class="border-border mb-5 flex min-w-0 items-start gap-3 border-b pb-4"
-                role="status"
-            >
-                <span
-                    class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
-                    aria-hidden="true"
-                >
-                    <Building2 class="size-4" />
-                </span>
-                <div class="min-w-0">
-                    <p class="text-muted-foreground text-xs">Szkoła jazdy</p>
-                    <p
-                        class="text-foreground text-sm font-semibold wrap-anywhere"
-                    >
-                        {{ currentSchool.name }}
-                    </p>
-                    <p
-                        v-if="currentSchool.city || currentSchool.address"
-                        class="text-muted-foreground mt-0.5 text-xs wrap-anywhere"
-                    >
-                        {{
-                            [currentSchool.address, currentSchool.city]
-                                .filter(Boolean)
-                                .join(', ')
-                        }}
-                    </p>
-                </div>
-            </div>
+            <SchoolContext
+                :school="currentSchool"
+                show-address
+                class="border-border mb-5 border-b pb-4"
+            />
 
             <VehicleForm
                 :key="currentSchool.id"

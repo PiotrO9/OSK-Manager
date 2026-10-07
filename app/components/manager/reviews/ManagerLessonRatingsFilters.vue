@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, CalendarRange, GraduationCap } from 'lucide-vue-next';
+import { CalendarRange, GraduationCap } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,
@@ -49,37 +49,13 @@ const emit = defineEmits<{
 
         <div class="grid gap-4 p-4 sm:p-5 md:grid-cols-3 xl:grid-cols-1">
             <div class="min-w-0 space-y-2">
-                <UiLabel for="ratings-school-filter">Szkoła jazdy</UiLabel>
-                <UiSelect
+                <SchoolContextSelect
+                    id="ratings-school-filter"
+                    :schools="props.schools"
                     :model-value="props.schoolId"
-                    :disabled="
-                        props.isSchoolsLoading || props.schools.length === 0
-                    "
-                    @update:model-value="emit('schoolChange', String($event))"
-                >
-                    <UiSelectTrigger
-                        id="ratings-school-filter"
-                        class="bg-background h-11 w-full"
-                        aria-label="Wybierz szkołę jazdy"
-                    >
-                        <Building2
-                            class="text-muted-foreground size-4"
-                            aria-hidden="true"
-                        />
-                        <UiSelectValue placeholder="Wybierz szkołę" />
-                    </UiSelectTrigger>
-                    <UiSelectContent>
-                        <UiSelectGroup>
-                            <UiSelectItem
-                                v-for="school in props.schools"
-                                :key="school.id"
-                                :value="school.id"
-                            >
-                                {{ school.name }}
-                            </UiSelectItem>
-                        </UiSelectGroup>
-                    </UiSelectContent>
-                </UiSelect>
+                    :disabled="props.isSchoolsLoading"
+                    @update:model-value="emit('schoolChange', $event)"
+                />
             </div>
 
             <div class="min-w-0 space-y-2">

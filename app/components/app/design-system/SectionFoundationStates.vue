@@ -5,6 +5,26 @@ const fields = [
     { id: 'school-name-demo', label: 'Nazwa OSK', value: 'OSK Zgierz' },
     { id: 'school-city-demo', label: 'Miasto', value: 'Zgierz' },
 ];
+const exampleSchools = [
+    {
+        id: 'school-zgierz',
+        name: 'OSK Zgierz',
+        city: 'Zgierz',
+        address: 'ul. Szkolna 12',
+    },
+    {
+        id: 'school-lodz',
+        name: 'OSK Łódź',
+        city: 'Łódź',
+        address: 'ul. Piotrkowska 10',
+    },
+];
+const exampleSchoolId = shallowRef('school-zgierz');
+const exampleSchool = computed(
+    () =>
+        exampleSchools.find((school) => school.id === exampleSchoolId.value) ??
+        null,
+);
 </script>
 
 <template>
@@ -21,6 +41,27 @@ const fields = [
                 Te elementy mają stabilizować układ i ujednolicić komunikaty w
                 widokach operacyjnych.
             </p>
+        </div>
+
+        <div
+            class="border-border bg-card grid gap-5 rounded-xl border p-4 sm:grid-cols-2 sm:p-5"
+        >
+            <div class="min-w-0">
+                <SchoolContext :school="exampleSchool" show-address />
+            </div>
+            <div class="min-w-0">
+                <UiLabel
+                    for="school-context-demo"
+                    class="text-muted-foreground text-xs"
+                >
+                    Zmień ośrodek w przykładzie
+                </UiLabel>
+                <SchoolContextSelect
+                    id="school-context-demo"
+                    v-model="exampleSchoolId"
+                    :schools="exampleSchools"
+                />
+            </div>
         </div>
 
         <div class="grid min-w-0 gap-4 lg:grid-cols-3">

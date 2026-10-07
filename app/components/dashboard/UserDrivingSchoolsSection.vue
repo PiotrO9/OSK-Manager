@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Building2, MapPin } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 const props = defineProps<{
@@ -33,42 +32,11 @@ const heading = computed(() =>
                 class="border-border bg-card rounded-2xl border p-5 shadow-sm"
                 :aria-label="`Szkoła jazdy: ${school.name}`"
             >
-                <div class="flex items-start gap-4">
-                    <div
-                        class="bg-primary-50 text-primary-600 flex size-11 shrink-0 items-center justify-center rounded-xl"
-                    >
-                        <Building2 class="size-5" aria-hidden="true" />
-                    </div>
-
-                    <div class="min-w-0 flex-1 space-y-1">
-                        <p
-                            class="text-foreground truncate text-lg font-semibold"
-                        >
-                            {{ school.name }}
-                        </p>
-
-                        <p
-                            v-if="school.city || school.address"
-                            class="text-muted-foreground flex items-center gap-1.5 text-sm"
-                        >
-                            <MapPin
-                                class="size-3.5 shrink-0"
-                                aria-hidden="true"
-                            />
-                            <span class="min-w-0 truncate">
-                                <span v-if="school.city">{{
-                                    school.city
-                                }}</span>
-                                <span v-if="school.city && school.address">
-                                    ·
-                                </span>
-                                <span v-if="school.address">{{
-                                    school.address
-                                }}</span>
-                            </span>
-                        </p>
-                    </div>
-                </div>
+                <SchoolContext
+                    :school="school"
+                    label="Twój ośrodek"
+                    show-address
+                />
             </div>
         </div>
     </div>
