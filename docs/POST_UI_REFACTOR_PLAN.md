@@ -44,7 +44,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 
 ### Grupa 6. Runtime i odbiór końcowy
 
-- [ ] **[QUAL-02 — Node — zgodność CI i kontenerów](#task-qual-02)** — do wykonania.
+- [x] **[QUAL-02 — Node — zgodność CI i kontenerów](#task-qual-02)** — wykonano 2026-10-07; Node 24 w FE, BE, CI i obrazach, oba obrazy zbudowano oraz uruchomiono lokalnie.
 - [ ] **[QA-05 — Odbiór końcowy całego zakresu](#task-qa-05)** — odbiór po punktach grupy.
 
 ### Opcjonalne — poza domyślną kolejką
@@ -797,16 +797,16 @@ Uzgodnić wersję zgodną z wymaganiami repo i sprawdzić oba buildy/start obraz
 
 **Kryteria odbioru:**
 
-- [ ] Deklaracje, CI i runtime obrazu są zgodne; lokalne build/start FE i BE przeszły.
-- [ ] Brak publikacji/deployu i niezwiązanych upgrade; jeśli brak Dockera, punkt pozostaje częściowo zweryfikowany.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Deklaracje, CI i runtime obrazu są zgodne; lokalne build/start FE i BE przeszły.
+- [x] Brak publikacji/deployu i niezwiązanych upgrade; jeśli brak Dockera, punkt pozostaje częściowo zweryfikowany.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; FE i BE wymagają Node `>=24.11 <25` oraz npm 11, CI obu repozytoriów czyta wersję z `.nvmrc`, a oba etapy Dockerfiles wskazują `node:24-bookworm-slim`. Oba obrazy zbudowano i uruchomiono lokalnie; punkt zaliczony.
+- Faktycznie zmienione pliki: FE `Dockerfile`, `package.json`, `package-lock.json`, `.github/workflows/ci.yml` i ten plan; BE `Dockerfile`, `package.json`, `package-lock.json`, `.nvmrc`, `.github/workflows/ci.yml`.
+- Kontrole / komendy / wyniki: lokalny Node 24.21.0 i npm 11.6.0; FE czyste `npm ci` w izolowanym katalogu kontrolnym, 837/837 testów, typy, lint i build — exit 0; zbudowany FE `/login` — HTTP 200. BE czyste `npm ci` z generowaniem Prisma, `npm run check` — 377/377 testów oraz format/lint/typy/build exit 0; `npm run test:integration` — 39/39 na osobnej PostgreSQL 17 po 34 migracjach; zbudowany BE `/health` — HTTP 200. Docker Desktop 28.3.2 (Linux x86_64): lokalny build FE i BE — exit 0; oba kontenery mają Node 24.21.0 i npm 11.19.0; kontener FE `/login` — HTTP 200, kontener BE `/health` — HTTP 200 oraz zapytanie Prisma `SELECT 1` do izolowanej bazy — exit 0. `git diff --check` przechodzi; workflow FE i BE przechodzą parsowanie przez Prettier.
+- Ograniczenia lub następny krok: nie publikowano obrazów ani nie wyzwalano deployu; kontenery testowe zatrzymano. Czyste `npm ci` FE wykonano w osobnym katalogu, ponieważ uruchomiony edytor Cursor blokował natywny moduł w bieżącym `node_modules`. Serwer developerski FE na porcie 3000 przywrócono po instalacji.
 
 <a id="task-qa-05"></a>
 

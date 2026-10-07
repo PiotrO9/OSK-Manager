@@ -19,7 +19,7 @@
         "url": "https://github.com/PiotrO9/OSK-Manager.git"
     },
     "engines": {
-        "node": ">=24 <25",
+        "node": ">=24.11 <25",
         "npm": ">=11 <12"
     },
     "scripts": {

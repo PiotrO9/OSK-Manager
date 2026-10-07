@@ -1,4 +1,4 @@
-FROM node:22.23-bookworm-slim AS build
+FROM node:24-bookworm-slim AS build
 
 RUN npm install -g npm@11.6.0
 
@@ -10,7 +10,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22.23-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
