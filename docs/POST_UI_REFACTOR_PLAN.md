@@ -39,7 +39,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 ### Grupa 5. Refaktory na ustabilizowanym zachowaniu
 
 - [x] **[REF-01 — Edycja wydarzenia — usunięcie starego freeWindows](#task-ref-01)** — wykonano 2026-10-07; aktywny formularz korzysta z availability-options bez martwego toru okien.
-- [ ] **[REF-02 — Wspólna walidacja aktywnego kursanta](#task-ref-02)** — do wykonania.
+- [x] **[REF-02 — Wspólna walidacja aktywnego kursanta](#task-ref-02)** — wykonano 2026-10-07; pięć operacji korzysta ze wspólnego odczytu aktywnego profilu kursanta.
 - [ ] **[QA-04 — Odbiór zachowania po refaktorach](#task-qa-04)** — odbiór po punktach grupy.
 
 ### Grupa 6. Runtime i odbiór końcowy
@@ -731,16 +731,16 @@ Odbiór: błędy, identyfikacja i role dla notatek, PKK, przypisania OSK, przypi
 
 **Kryteria odbioru:**
 
-- [ ] Notatki, PKK, przypisanie OSK, przypisanie kursu i status uczestnika zachowują odpowiedzi i kolejność błędów.
-- [ ] Różnice uprawnień ADMIN/MANAGER/INSTRUCTOR pozostają; userId nie zastępuje profileId.
-- [ ] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
+- [x] Notatki, PKK, przypisanie OSK, przypisanie kursu i status uczestnika zachowują odpowiedzi i kolejność błędów.
+- [x] Różnice uprawnień ADMIN/MANAGER/INSTRUCTOR pozostają; userId nie zastępuje profileId.
+- [x] Sprawdzono diff, wykonano odpowiednie kontrole z zasad wspólnych i zapisano rzeczywiste wyniki poniżej.
 
 **Dziennik wykonania — uzupełnić przy pracy:**
 
-- Data i rezultat: jeszcze nie wykonywano.
-- Faktycznie zmienione pliki: —.
-- Kontrole / komendy / wyniki: —.
-- Ograniczenia lub następny krok: —.
+- Data i rezultat: 2026-10-07; wydzielono wspólny odczyt aktywnego `studentProfileId` bez zmiany kolejności błędów i osobnych reguł autoryzacji pięciu operacji.
+- Faktycznie zmienione pliki: BE `src/services/students/activeStudent.ts`, `profileMutations.ts`, `courseParticipants.ts`, `src/__tests__/services/students-active-profile.test.ts`; FE tylko ten plan.
+- Kontrole / komendy / wyniki: testy charakteryzujące przed refaktorem 20/20; po refaktorze rozszerzona macierz 29/29; BE `npm run check` — format, lint, typy, 377/377 testów i build przeszły; BE `git diff --check` — exit 0. Kontrolery, schematy UUID i koperty odpowiedzi HTTP sprawdzono bez zmian w diffie.
+- Ograniczenia lub następny krok: nie uruchamiano integracji z bazą — `TEST_DATABASE_URL` nie jest ustawiony, a runner wykonuje migracje. Odbiór HTTP/DB pięciu operacji należy do QA-04 na jawnie izolowanej bazie.
 
 <a id="task-qa-04"></a>
 
