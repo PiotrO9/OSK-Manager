@@ -20,7 +20,7 @@ Kolejność poniżej jest domyślną trasą pracy od góry. Zakres obejmuje **14
 - [x] **[BUG-02 — Szczegóły instruktora po zapisie](#task-bug-02)** — wykonano 2026-10-06; pola dostępne tylko w GET pozostają widoczne po PATCH, a mock zapisuje poprawny stan.
 - [x] **[BUG-03 — Pulpit — podsumowanie wszystkich opinii](#task-bug-03)** — wykonano 2026-10-06; średnia i licznik pochodzą z podsumowania całego zbioru.
 - [x] **[BUG-04 — Płatności — zachowanie szkicu po błędzie](#task-bug-04)** — wykonano 2026-10-07; szkic pozostaje po błędzie i czyści się po potwierdzonym dodaniu.
-- [ ] **[QA-01 — Odbiór formularzy i danych](#task-qa-01)** — odbiór po punktach grupy.
+- [x] **[QA-01 — Odbiór formularzy i danych](#task-qa-01)** — wykonano 2026-10-07; scenariusze BUG-01–04 i kontrole FE przeszły.
 
 ### Grupa 3. Dostępność i cały proces rezerwacji
 
@@ -320,16 +320,16 @@ Reset dopiero po jawnym sukcesie, prostym mechanizmem dopasowanym do obecnej kom
 
 **Zakres sprawdzenia:**
 
-- [ ] Sprawdzić ponowny wybór zdjęcia i retry uploadu, zapis danych instruktora i ich ponowny odczyt, summary opinii większego zbioru oraz płatność z błędem i ponowieniem.
-- [ ] Przy instruktorze użyć kontraktu zgodnego z backendem, a nie wyłącznie bogatszego mocka. Dla formularzy objąć loading/error/success.
-- [ ] Uruchomić odpowiednie testy FE, typecheck/lint i przejrzeć łączny diff tej grupy.
+- [x] Sprawdzić ponowny wybór zdjęcia i retry uploadu, zapis danych instruktora i ich ponowny odczyt, summary opinii większego zbioru oraz płatność z błędem i ponowieniem.
+- [x] Przy instruktorze użyć kontraktu zgodnego z backendem, a nie wyłącznie bogatszego mocka. Dla formularzy objąć loading/error/success.
+- [x] Uruchomić odpowiednie testy FE, typecheck/lint i przejrzeć łączny diff tej grupy.
 
 **Dziennik odbioru:**
 
-- Data i stan kodu: jeszcze nie wykonano.
-- Scenariusze / komendy / wyniki: —.
-- Środowisko i ograniczenia: —.
-- Wniosek i ewentualne punkty do ponownego otwarcia: —.
+- Data i stan kodu: 2026-10-07; odbiór na FE `ed3f431` z uzupełnionymi testami QA-01, bez zmian kodu aplikacji. Przejrzano łączny diff BUG-01–04 względem `861a28d` oraz kontrakty GET/PATCH instruktora w BE.
+- Scenariusze / komendy / wyniki: Playwright UI Chromium dla zdjęcia, instruktora, pulpitu i płatności — 12/12 (`--workers=1`): ponowny wybór i retry zdjęcia, stan podczas uploadu, błąd/retry PATCH instruktora oraz ponowny GET po odświeżeniu, summary 60 opinii przy 20 rekordach pierwszej strony, błąd/retry płatności, stan podczas POST, inna akcja na płatności i przykład T01. FE `vitest run` — 826/826 w 172 plikach; `nuxi typecheck` — exit 0; `eslint .` — exit 0; `git diff --check` — exit 0.
+- Środowisko i ograniczenia: UI w mock mode, z przechwyconymi odpowiedziami HTTP; PATCH instruktora ma kształt BE `InstructorPatchResult` i nie zawiera pól dostępnych tylko w GET. Nie weryfikowano trwałego zapisu na rzeczywistym backendzie ani bazie. Pierwszy przebieg czterech równoległych workerów dał 11/12: scenariusz płatności nie wyszedł z ładowania widoku w 10 s; ponowny przebieg wszystkich 12 z jednym workerem przeszedł.
+- Wniosek i ewentualne punkty do ponownego otwarcia: QA-01 przyjęty; brak punktów do ponownego otwarcia na podstawie wykonanych kontroli. Kolejny punkt w kolejce: BUG-06.
 
 <a id="task-bug-06"></a>
 

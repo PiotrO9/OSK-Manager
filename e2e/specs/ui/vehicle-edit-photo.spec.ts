@@ -140,6 +140,12 @@ test('W25 supports invalid then valid, the same file, clear and upload retry', a
     await input.setInputFiles(photo);
     await expect(page.getByText('same.png', { exact: true })).toBeVisible();
 
+    let signalUploadStart: (() => void) | undefined;
+    let releaseUpload: (() => void) | undefined;
+    const uploadStarted = new Promise<void>((resolve) => {
+        signalUploadStart = resolve;
+    });
+
     await page.route(
         `**/api/vehicles/${VEHICLE_ID}/photo`,
         async (route) => {
@@ -149,6 +155,10 @@ test('W25 supports invalid then valid, the same file, clear and upload retry', a
 
             if (name) uploads.push(name);
 
+            signalUploadStart?.();
+            await new Promise<void>((resolve) => {
+                releaseUpload = resolve;
+            });
             await route.fulfill({
                 status: 503,
                 json: { success: false, error: 'Storage niedostępny.' },
@@ -158,6 +168,12 @@ test('W25 supports invalid then valid, the same file, clear and upload retry', a
     );
 
     await page.getByRole('button', { name: 'Zapisz zmiany' }).first().click();
+    await uploadStarted;
+    await expect(
+        page.getByRole('button', { name: 'Zapisywanie…' }).first(),
+    ).toBeDisabled();
+    await expect(page.getByText('same.png', { exact: true })).toBeVisible();
+    releaseUpload?.();
     await expect(
         page.getByRole('button', { name: 'Spróbuj ponownie' }),
     ).toBeVisible();

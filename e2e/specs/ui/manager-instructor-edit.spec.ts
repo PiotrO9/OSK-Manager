@@ -17,18 +17,26 @@ for (const viewport of [
         await page.setViewportSize(viewport);
 
         let patchCount = 0;
+        let saved = false;
+        let getCount = 0;
+        let signalFirstPatch: (() => void) | undefined;
+        let releaseFirstPatch: (() => void) | undefined;
+        const firstPatchStarted = new Promise<void>((resolve) => {
+            signalFirstPatch = resolve;
+        });
 
         await page.route(
             `**/api/instructors/${instructorId}`,
             async (route) => {
                 if (route.request().method() === 'GET') {
+                    getCount++;
                     await route.fulfill({
                         json: {
                             success: true,
                             data: {
                                 id: instructorId,
                                 schoolId,
-                                firstName: 'Anna',
+                                firstName: saved ? 'Maria' : 'Anna',
                                 lastName: 'Nowak',
                                 email: 'anna@example.com',
                                 avatarUrl: null,
@@ -36,7 +44,7 @@ for (const viewport of [
                                 licenseNumber: 'LIC-123',
                                 qualifications: 'Kat. B',
                                 qualifiedCourseTypes: [],
-                                experienceYears: 5,
+                                experienceYears: saved ? 8 : 5,
                             },
                         },
                     });
@@ -51,6 +59,10 @@ for (const viewport of [
                 patchCount++;
 
                 if (patchCount === 1) {
+                    signalFirstPatch?.();
+                    await new Promise<void>((resolve) => {
+                        releaseFirstPatch = resolve;
+                    });
                     await route.fulfill({
                         status: 500,
                         json: { success: false, error: 'Save failed' },
@@ -59,6 +71,7 @@ for (const viewport of [
                     return;
                 }
 
+                saved = true;
                 await route.fulfill({
                     json: {
                         success: true,
@@ -88,6 +101,12 @@ for (const viewport of [
         await dialog.getByLabel('Imię').fill('Maria');
         await dialog.getByLabel('Staż (lata)').fill('8');
         await dialog.getByRole('button', { name: 'Zapisz' }).click();
+        await firstPatchStarted;
+        await expect(
+            dialog.getByRole('button', { name: 'Zapisywanie…' }),
+        ).toBeDisabled();
+        await expect(dialog.getByLabel('Imię')).toHaveValue('Maria');
+        releaseFirstPatch?.();
         await expect(dialog).toBeVisible();
         await expect(dialog.getByRole('alert')).toBeVisible();
         await expect(dialog.getByLabel('Imię')).toHaveValue('Maria');
@@ -100,5 +119,14 @@ for (const viewport of [
         await expect(page.getByText('+48 600 123 456').first()).toBeVisible();
         await expect(page.getByText('LIC-123')).toBeVisible();
         expect(patchCount).toBe(2);
+
+        await page.reload();
+        await expect(
+            page.getByRole('heading', { name: 'Maria Nowak' }),
+        ).toBeVisible({ timeout: 30_000 });
+        await page.getByRole('tab', { name: 'Dane' }).click();
+        await expect(page.getByText('+48 600 123 456').first()).toBeVisible();
+        await expect(page.getByText('LIC-123')).toBeVisible();
+        expect(getCount).toBeGreaterThanOrEqual(2);
     });
 }

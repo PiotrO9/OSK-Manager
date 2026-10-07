@@ -65,7 +65,26 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         }),
     );
 
+    await page.route(
+        `**/api/students/${studentUserId}/payments/existing-payment/mark-paid`,
+        (route) =>
+            route.fulfill({
+                json: {
+                    success: true,
+                    data: {
+                        payments: [{ ...existingPayment, status: 'PAID' }],
+                        summary,
+                    },
+                },
+            }),
+    );
+
     let postCount = 0;
+    let signalFirstPost: (() => void) | undefined;
+    let releaseFirstPost: (() => void) | undefined;
+    const firstPostStarted = new Promise<void>((resolve) => {
+        signalFirstPost = resolve;
+    });
 
     await page.route(
         `**/api/students/${studentUserId}/payments`,
@@ -86,6 +105,10 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
             postCount++;
 
             if (postCount === 1) {
+                signalFirstPost?.();
+                await new Promise<void>((resolve) => {
+                    releaseFirstPost = resolve;
+                });
                 await route.fulfill({
                     status: 500,
                     json: { success: false, error: 'Save failed' },
@@ -118,7 +141,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
     await page.goto(`/manager/students/${studentUserId}`);
     await expect(
         page.getByRole('heading', { name: 'Anna Kowalska' }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 30_000 });
     await page.getByRole('tab', { name: 'Płatności' }).click();
 
     const form = page
@@ -134,11 +157,24 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
     await method.fill('transfer');
     await form.getByRole('button', { name: 'Dodaj' }).click();
 
+    await firstPostStarted;
+    await expect(form.getByRole('button', { name: 'Dodaj' })).toBeDisabled();
+    await expect(amount).toHaveValue('150,50');
+    await expect(dueDate).toHaveValue('2026-11-01');
+    await expect(method).toHaveValue('transfer');
+    releaseFirstPost?.();
+
     await expect(page.getByText(/500 Internal Server Error/)).toBeVisible();
     await expect(amount).toHaveValue('150,50');
     await expect(dueDate).toHaveValue('2026-11-01');
     await expect(method).toHaveValue('transfer');
     await expect(plan).toHaveValue(paymentPlanId);
+
+    await page.getByRole('button', { name: 'Opłacona' }).click();
+    await expect(page.getByRole('button', { name: 'Cofnij' })).toBeVisible();
+    await expect(amount).toHaveValue('150,50');
+    await expect(dueDate).toHaveValue('2026-11-01');
+    await expect(method).toHaveValue('transfer');
 
     await form.getByRole('button', { name: 'Dodaj' }).click();
 
