@@ -33,14 +33,16 @@ export function useVehicleEditPage() {
     const { addToast } = useAppToast();
 
     const vehicleId = computed(() => {
-        const raw = route.params.id;
-        const s = Array.isArray(raw) ? raw[0] : raw;
+        const rawVehicleIdParam = route.params.id;
+        const vehicleIdParam = Array.isArray(rawVehicleIdParam)
+            ? rawVehicleIdParam[0]
+            : rawVehicleIdParam;
 
-        if (typeof s !== 'string') return null;
+        if (typeof vehicleIdParam !== 'string') return null;
 
-        const t = s.trim();
+        const trimmedVehicleId = vehicleIdParam.trim();
 
-        return t.length > 0 ? t : null;
+        return trimmedVehicleId.length > 0 ? trimmedVehicleId : null;
     });
 
     const vehicleDetail = ref<VehicleDetail | null>(null);
@@ -53,7 +55,7 @@ export function useVehicleEditPage() {
     const pendingPhotoFile = ref<File | null>(null);
     const pendingPhotoObjectUrl = ref<string | null>(null);
     const isSaveNavigationAllowed = ref(false);
-    let detailLoadSeq = 0;
+    let detailLoadSequence = 0;
 
     const initialVehicle = computed(() => vehicleDetail.value);
 
@@ -117,7 +119,7 @@ export function useVehicleEditPage() {
 
     async function loadVehicleDetail() {
         const id = vehicleId.value;
-        const seq = ++detailLoadSeq;
+        const requestSequence = ++detailLoadSequence;
 
         if (!id) {
             vehicleDetail.value = null;
@@ -131,11 +133,11 @@ export function useVehicleEditPage() {
         try {
             const detail = await fetchVehicleById(id);
 
-            if (seq !== detailLoadSeq) return;
+            if (requestSequence !== detailLoadSequence) return;
 
             vehicleDetail.value = detail;
         } catch (err) {
-            if (seq !== detailLoadSeq) return;
+            if (requestSequence !== detailLoadSequence) return;
 
             loadError.value =
                 err instanceof Error
@@ -143,7 +145,7 @@ export function useVehicleEditPage() {
                     : 'Nie udało się wczytać pojazdu.';
             vehicleDetail.value = null;
         } finally {
-            if (seq === detailLoadSeq) {
+            if (requestSequence === detailLoadSequence) {
                 isDetailLoading.value = false;
             }
         }
@@ -288,7 +290,7 @@ export function useVehicleEditPage() {
     );
 
     onUnmounted(() => {
-        detailLoadSeq += 1;
+        detailLoadSequence += 1;
         revokePendingPhotoPreview();
     });
 

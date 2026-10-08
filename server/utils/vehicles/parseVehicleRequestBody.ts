@@ -1,13 +1,13 @@
 export function parseOptionalDateInput(raw: unknown): string | null {
     if (raw === null || raw === undefined) return null;
 
-    const s = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    const dateText = typeof raw === 'string' ? raw.trim() : String(raw).trim();
 
-    if (!s) return null;
+    if (!dateText) return null;
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) return null;
 
-    return s;
+    return dateText;
 }
 
 export interface ParsedVehicleWriteFields {
@@ -28,7 +28,7 @@ function parseBodyModelYear(raw: unknown): number | null | false {
 
     if (typeof raw === 'string' && raw.trim() === '') return null;
 
-    const n =
+    const modelYear =
         typeof raw === 'number' && Number.isFinite(raw)
             ? Math.trunc(raw)
             : parseInt(
@@ -36,11 +36,15 @@ function parseBodyModelYear(raw: unknown): number | null | false {
                   10,
               );
 
-    if (!Number.isInteger(n) || n < MODEL_YEAR_MIN || n > MODEL_YEAR_MAX) {
+    if (
+        !Number.isInteger(modelYear) ||
+        modelYear < MODEL_YEAR_MIN ||
+        modelYear > MODEL_YEAR_MAX
+    ) {
         return false;
     }
 
-    return n;
+    return modelYear;
 }
 
 function parseBodyMileageKm(raw: unknown): number | null | false {
@@ -48,7 +52,7 @@ function parseBodyMileageKm(raw: unknown): number | null | false {
 
     if (typeof raw === 'string' && raw.trim() === '') return null;
 
-    const n =
+    const mileageKm =
         typeof raw === 'number' && Number.isFinite(raw)
             ? Math.trunc(raw)
             : parseInt(
@@ -56,11 +60,15 @@ function parseBodyMileageKm(raw: unknown): number | null | false {
                   10,
               );
 
-    if (!Number.isInteger(n) || n < 0 || n > MILEAGE_KM_MAX) {
+    if (
+        !Number.isInteger(mileageKm) ||
+        mileageKm < 0 ||
+        mileageKm > MILEAGE_KM_MAX
+    ) {
         return false;
     }
 
-    return n;
+    return mileageKm;
 }
 
 export function parseVehicleWriteFields(
@@ -68,9 +76,9 @@ export function parseVehicleWriteFields(
 ): ParsedVehicleWriteFields | null {
     if (!body || typeof body !== 'object') return null;
 
-    const o = body as Record<string, unknown>;
-    const nameRaw = o.name;
-    const regRaw = o.registrationNumber;
+    const vehicleBody = body as Record<string, unknown>;
+    const nameRaw = vehicleBody.name;
+    const registrationNumberRaw = vehicleBody.registrationNumber;
 
     const name =
         typeof nameRaw === 'string'
@@ -78,23 +86,23 @@ export function parseVehicleWriteFields(
             : String(nameRaw ?? '').trim();
 
     const registrationNumber =
-        typeof regRaw === 'string'
-            ? regRaw.trim()
-            : String(regRaw ?? '').trim();
+        typeof registrationNumberRaw === 'string'
+            ? registrationNumberRaw.trim()
+            : String(registrationNumberRaw ?? '').trim();
 
-    const modelYear = parseBodyModelYear(o.modelYear);
+    const modelYear = parseBodyModelYear(vehicleBody.modelYear);
 
     if (modelYear === false) return null;
 
-    const mileageKm = parseBodyMileageKm(o.mileageKm);
+    const mileageKm = parseBodyMileageKm(vehicleBody.mileageKm);
 
     if (mileageKm === false) return null;
 
     return {
         name,
         registrationNumber,
-        inspectionDate: parseOptionalDateInput(o.inspectionDate),
-        insuranceDate: parseOptionalDateInput(o.insuranceDate),
+        inspectionDate: parseOptionalDateInput(vehicleBody.inspectionDate),
+        insuranceDate: parseOptionalDateInput(vehicleBody.insuranceDate),
         modelYear,
         mileageKm,
     };

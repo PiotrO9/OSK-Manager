@@ -47,14 +47,14 @@ const attentionPriorities = new Set<ManagerAttentionItemPriority>([
     'info',
 ]);
 
-function readString(o: Record<string, unknown>, key: string): string {
-    const raw = o[key];
+function readString(record: Record<string, unknown>, key: string): string {
+    const raw = record[key];
 
     return raw == null ? '' : String(raw).trim();
 }
 
-function readNumber(o: Record<string, unknown>, key: string): number {
-    const raw = o[key];
+function readNumber(record: Record<string, unknown>, key: string): number {
+    const raw = record[key];
     const value =
         typeof raw === 'number' ? raw : Number.parseInt(String(raw), 10);
 
@@ -68,15 +68,18 @@ export function normalizeManagerAttentionItem(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = readString(o, 'id');
-    const type = readString(o, 'type') as ManagerAttentionItemType;
-    const priority = readString(o, 'priority') as ManagerAttentionItemPriority;
-    const title = readString(o, 'title');
-    const description = readString(o, 'description');
-    const entityId = readString(o, 'entityId');
-    const entityLabel = readString(o, 'entityLabel');
-    const actionTo = readString(o, 'actionTo');
+    const record = raw as Record<string, unknown>;
+    const id = readString(record, 'id');
+    const type = readString(record, 'type') as ManagerAttentionItemType;
+    const priority = readString(
+        record,
+        'priority',
+    ) as ManagerAttentionItemPriority;
+    const title = readString(record, 'title');
+    const description = readString(record, 'description');
+    const entityId = readString(record, 'entityId');
+    const entityLabel = readString(record, 'entityLabel');
+    const actionTo = readString(record, 'actionTo');
 
     if (
         !id ||
@@ -100,9 +103,9 @@ export function normalizeManagerAttentionItem(
         entityId,
         entityLabel,
         dueDate:
-            o.dueDate === null || o.dueDate === undefined
+            record.dueDate === null || record.dueDate === undefined
                 ? null
-                : String(o.dueDate),
+                : String(record.dueDate),
         actionTo,
     };
 }
@@ -114,15 +117,15 @@ export function normalizeManagerAttentionPayload(
         return { items: [], total: 0, hiddenCount: 0 };
     }
 
-    const o = data as Record<string, unknown>;
-    const rawItems = Array.isArray(o.items) ? o.items : [];
+    const record = data as Record<string, unknown>;
+    const rawItems = Array.isArray(record.items) ? record.items : [];
     const items = rawItems
         .map((item) => normalizeManagerAttentionItem(item))
         .filter((item): item is ManagerAttentionItem => item !== null);
 
     return {
         items,
-        total: readNumber(o, 'total'),
-        hiddenCount: readNumber(o, 'hiddenCount'),
+        total: readNumber(record, 'total'),
+        hiddenCount: readNumber(record, 'hiddenCount'),
     };
 }

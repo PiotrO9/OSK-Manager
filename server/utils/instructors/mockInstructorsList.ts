@@ -26,30 +26,30 @@ interface GlobalWithStore {
 }
 
 function getStore(): Record<string, MockInstructorListRow[]> {
-    const g = globalThis as typeof globalThis & GlobalWithStore;
+    const globalStore = globalThis as typeof globalThis & GlobalWithStore;
 
-    if (!g.__mockInstructorsListBySchool) {
-        g.__mockInstructorsListBySchool = {};
+    if (!globalStore.__mockInstructorsListBySchool) {
+        globalStore.__mockInstructorsListBySchool = {};
     }
 
-    return g.__mockInstructorsListBySchool;
+    return globalStore.__mockInstructorsListBySchool;
 }
 
 function getExtrasMap(): Record<string, MockInstructorProfileExtras> {
-    const g = globalThis as typeof globalThis & GlobalWithStore;
+    const globalStore = globalThis as typeof globalThis & GlobalWithStore;
 
-    if (!g.__mockInstructorProfileExtras) {
-        g.__mockInstructorProfileExtras = {};
+    if (!globalStore.__mockInstructorProfileExtras) {
+        globalStore.__mockInstructorProfileExtras = {};
     }
 
-    return g.__mockInstructorProfileExtras;
+    return globalStore.__mockInstructorProfileExtras;
 }
 
 function removeProfileExtras(instructorId: string): void {
-    const g = globalThis as typeof globalThis & GlobalWithStore;
+    const globalStore = globalThis as typeof globalThis & GlobalWithStore;
     const { [instructorId]: _removed, ...rest } = getExtrasMap();
 
-    g.__mockInstructorProfileExtras = rest;
+    globalStore.__mockInstructorProfileExtras = rest;
 }
 
 function getDefaultProfileExtras(): MockInstructorProfileExtras {
@@ -66,7 +66,9 @@ function resolveMockQualifiedCourseTypes(
     const out: MockDrivingSchoolOfferedType[] = [];
 
     for (const id of ids) {
-        const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find((t) => t.id === id);
+        const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find(
+            (courseType) => courseType.id === id,
+        );
 
         if (!hit) {
             throw createError({
@@ -133,15 +135,15 @@ export function mockInstructorBelongsToSchool(
     schoolId: string,
     instructorId: string,
 ): boolean {
-    const sid = schoolId.trim();
-    const iid = instructorId.trim();
+    const trimmedSchoolId = schoolId.trim();
+    const trimmedInstructorId = instructorId.trim();
 
-    if (!sid || !iid) {
+    if (!trimmedSchoolId || !trimmedInstructorId) {
         return false;
     }
 
-    return mockInstructorsListPayload(sid).instructors.some(
-        (r) => r.id === iid,
+    return mockInstructorsListPayload(trimmedSchoolId).instructors.some(
+        (instructor) => instructor.id === trimmedInstructorId,
     );
 }
 
@@ -151,7 +153,7 @@ function findStoredRowById(
     const store = getStore();
 
     for (const [schoolId, rows] of Object.entries(store)) {
-        const row = rows.find((r) => r.id === id);
+        const row = rows.find((instructor) => instructor.id === id);
 
         if (row) {
             return { row, schoolId };
@@ -366,7 +368,7 @@ export function mockInstructorsDeleteById(id: string): boolean {
             continue;
         }
 
-        const idx = rows.findIndex((r) => r.id === id);
+        const idx = rows.findIndex((instructor) => instructor.id === id);
 
         if (idx !== -1) {
             rows.splice(idx, 1);

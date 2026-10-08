@@ -22,34 +22,40 @@ export function stripInstructorPatchBody(raw: unknown): BffInstructorPatchBody {
         return {};
     }
 
-    const o = raw as Record<string, unknown>;
+    const instructorRecord = raw as Record<string, unknown>;
     const out: BffInstructorPatchBody = {};
 
     for (const key of INSTRUCTOR_PATCH_KEYS) {
-        if (!(key in o) || o[key] === undefined) {
+        if (!(key in instructorRecord) || instructorRecord[key] === undefined) {
             continue;
         }
 
         if (key === 'experienceYears') {
-            const v = o[key];
+            const fieldValue = instructorRecord[key];
 
-            if (typeof v === 'number' && Number.isInteger(v)) {
-                out[key] = v;
+            if (
+                typeof fieldValue === 'number' &&
+                Number.isInteger(fieldValue)
+            ) {
+                out[key] = fieldValue;
             }
 
             continue;
         }
 
         if (key === 'qualifications') {
-            out[key] = o[key] == null ? '' : String(o[key]);
+            out[key] =
+                instructorRecord[key] == null
+                    ? ''
+                    : String(instructorRecord[key]);
 
             continue;
         }
 
         if (key === 'qualifiedCourseTypeIds') {
-            const v = o[key];
+            const fieldValue = instructorRecord[key];
 
-            if (!Array.isArray(v)) {
+            if (!Array.isArray(fieldValue)) {
                 throw createError({
                     statusCode: 400,
                     message: 'Invalid qualifiedCourseTypeIds',
@@ -58,7 +64,7 @@ export function stripInstructorPatchBody(raw: unknown): BffInstructorPatchBody {
 
             const ids: string[] = [];
 
-            for (const item of v) {
+            for (const item of fieldValue) {
                 const id = typeof item === 'string' ? item.trim() : '';
 
                 if (!id || !isUuid(id)) {
@@ -79,7 +85,10 @@ export function stripInstructorPatchBody(raw: unknown): BffInstructorPatchBody {
         }
 
         if (key === 'firstName' || key === 'lastName') {
-            out[key] = o[key] == null ? '' : String(o[key]);
+            out[key] =
+                instructorRecord[key] == null
+                    ? ''
+                    : String(instructorRecord[key]);
         }
     }
 

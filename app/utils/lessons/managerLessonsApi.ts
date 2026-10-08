@@ -12,8 +12,8 @@ export function readManagerLessonIdFromNestedObject(raw: unknown): string {
         return '';
     }
 
-    const r = raw as Record<string, unknown>;
-    const id = r.id;
+    const responseRecord = raw as Record<string, unknown>;
+    const id = responseRecord.id;
 
     if (typeof id === 'string') {
         return id.trim();
@@ -33,34 +33,52 @@ export function normalizeManagerLesson(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
+    const lessonRecord = raw as Record<string, unknown>;
 
-    const id = readStringField(o, 'id');
-    const courseId = readAliasedStringField(o, 'courseId', 'course_id');
-    const schoolId = readAliasedStringField(o, 'schoolId', 'school_id');
+    const id = readStringField(lessonRecord, 'id');
+    const courseId = readAliasedStringField(
+        lessonRecord,
+        'courseId',
+        'course_id',
+    );
+    const schoolId = readAliasedStringField(
+        lessonRecord,
+        'schoolId',
+        'school_id',
+    );
     const studentId =
-        readAliasedStringField(o, 'studentId', 'student_id') ||
-        readManagerLessonIdFromNestedObject(o.student);
-    const studentUserId = readNestedManagerLessonUserId(o.student);
+        readAliasedStringField(lessonRecord, 'studentId', 'student_id') ||
+        readManagerLessonIdFromNestedObject(lessonRecord.student);
+    const studentUserId = readNestedManagerLessonUserId(lessonRecord.student);
     const instructorId =
-        readAliasedStringField(o, 'instructorId', 'instructor_id') ||
-        readManagerLessonIdFromNestedObject(o.instructor);
-    const lessonType = readAliasedStringField(o, 'lessonType', 'lesson_type');
-    const startTime = readAliasedStringField(o, 'startTime', 'start_time');
-    const endTime = readAliasedStringField(o, 'endTime', 'end_time');
-    const status = readStringField(o, 'status');
-    const vehicleId = readManagerLessonVehicleId(o);
+        readAliasedStringField(lessonRecord, 'instructorId', 'instructor_id') ||
+        readManagerLessonIdFromNestedObject(lessonRecord.instructor);
+    const lessonType = readAliasedStringField(
+        lessonRecord,
+        'lessonType',
+        'lesson_type',
+    );
+    const startTime = readAliasedStringField(
+        lessonRecord,
+        'startTime',
+        'start_time',
+    );
+    const endTime = readAliasedStringField(lessonRecord, 'endTime', 'end_time');
+    const status = readStringField(lessonRecord, 'status');
+    const vehicleId = readManagerLessonVehicleId(lessonRecord);
 
     if (!id || !courseId || !startTime || !endTime || !status) {
         return null;
     }
 
-    const student = readNestedManagerLessonStudent(o);
+    const student = readNestedManagerLessonStudent(lessonRecord);
     const assignedCourseInstructor = readNestedAssignedCourseInstructor(
-        o.assignedCourseInstructor,
+        lessonRecord.assignedCourseInstructor,
     );
 
-    let lessonInstructor = readNestedManagerLessonInstructorItem(o.instructor);
+    let lessonInstructor = readNestedManagerLessonInstructorItem(
+        lessonRecord.instructor,
+    );
 
     if (
         lessonInstructor &&
@@ -71,7 +89,7 @@ export function normalizeManagerLesson(
     }
 
     let lessonVehicle: Vehicle | null = readNestedManagerLessonVehicleItem(
-        o.vehicle,
+        lessonRecord.vehicle,
     );
 
     if (lessonVehicle && vehicleId && lessonVehicle.id !== vehicleId) {
@@ -94,16 +112,16 @@ export function normalizeManagerLesson(
         ...(lessonInstructor ? { lessonInstructor } : {}),
         ...(lessonVehicle ? { lessonVehicle } : {}),
         ...(assignedCourseInstructor ? { assignedCourseInstructor } : {}),
-        ...(typeof o.bookingMaxDaysAhead === 'number' &&
-        Number.isInteger(o.bookingMaxDaysAhead) &&
-        o.bookingMaxDaysAhead >= 0
-            ? { bookingMaxDaysAhead: o.bookingMaxDaysAhead }
+        ...(typeof lessonRecord.bookingMaxDaysAhead === 'number' &&
+        Number.isInteger(lessonRecord.bookingMaxDaysAhead) &&
+        lessonRecord.bookingMaxDaysAhead >= 0
+            ? { bookingMaxDaysAhead: lessonRecord.bookingMaxDaysAhead }
             : {}),
-        ...(typeof o.schoolWorkingDaysMask === 'number' &&
-        Number.isInteger(o.schoolWorkingDaysMask) &&
-        o.schoolWorkingDaysMask >= 0 &&
-        o.schoolWorkingDaysMask <= 127
-            ? { schoolWorkingDaysMask: o.schoolWorkingDaysMask }
+        ...(typeof lessonRecord.schoolWorkingDaysMask === 'number' &&
+        Number.isInteger(lessonRecord.schoolWorkingDaysMask) &&
+        lessonRecord.schoolWorkingDaysMask >= 0 &&
+        lessonRecord.schoolWorkingDaysMask <= 127
+            ? { schoolWorkingDaysMask: lessonRecord.schoolWorkingDaysMask }
             : {}),
     };
 }
@@ -166,33 +184,42 @@ export function buildManagerLessonPatchBody(
     return body;
 }
 
-function readStringField(o: Record<string, unknown>, field: string): string {
-    const value = o[field];
+function readStringField(
+    lessonRecord: Record<string, unknown>,
+    field: string,
+): string {
+    const value = lessonRecord[field];
 
     return typeof value === 'string' ? value.trim() : '';
 }
 
 function readAliasedStringField(
-    o: Record<string, unknown>,
+    lessonRecord: Record<string, unknown>,
     camelField: string,
     snakeField: string,
 ): string {
-    return readStringField(o, camelField) || readStringField(o, snakeField);
+    return (
+        readStringField(lessonRecord, camelField) ||
+        readStringField(lessonRecord, snakeField)
+    );
 }
 
-function readManagerLessonVehicleId(o: Record<string, unknown>): string | null {
-    if (o.vehicleId === null || o.vehicle_id === null) {
+function readManagerLessonVehicleId(
+    lessonRecord: Record<string, unknown>,
+): string | null {
+    if (lessonRecord.vehicleId === null || lessonRecord.vehicle_id === null) {
         return null;
     }
 
     const flat =
-        readStringField(o, 'vehicleId') || readStringField(o, 'vehicle_id');
+        readStringField(lessonRecord, 'vehicleId') ||
+        readStringField(lessonRecord, 'vehicle_id');
 
     if (flat) {
         return flat;
     }
 
-    const nested = readManagerLessonIdFromNestedObject(o.vehicle);
+    const nested = readManagerLessonIdFromNestedObject(lessonRecord.vehicle);
 
     return nested.length > 0 ? nested : null;
 }
@@ -204,7 +231,7 @@ function readNestedManagerLessonInstructorItem(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
+    const lessonRecord = raw as Record<string, unknown>;
     const id = readManagerLessonIdFromNestedObject(raw);
 
     if (!id) {
@@ -213,12 +240,18 @@ function readNestedManagerLessonInstructorItem(
 
     return {
         id,
-        firstName: readAliasedStringField(o, 'firstName', 'first_name'),
-        lastName: readAliasedStringField(o, 'lastName', 'last_name'),
+        firstName: readAliasedStringField(
+            lessonRecord,
+            'firstName',
+            'first_name',
+        ),
+        lastName: readAliasedStringField(lessonRecord, 'lastName', 'last_name'),
         email:
-            readStringField(o, 'email') ||
-            (typeof o.Email === 'string' ? o.Email.trim() : ''),
-        avatarUrl: readAvatarUrlFromRecord(o),
+            readStringField(lessonRecord, 'email') ||
+            (typeof lessonRecord.Email === 'string'
+                ? lessonRecord.Email.trim()
+                : ''),
+        avatarUrl: readAvatarUrlFromRecord(lessonRecord),
     };
 }
 
@@ -231,17 +264,17 @@ function readNestedManagerLessonVehicleItem(raw: unknown): Vehicle | null {
 }
 
 function readNestedManagerLessonStudent(
-    o: Record<string, unknown>,
+    lessonRecord: Record<string, unknown>,
 ): { firstName: string; lastName: string } | undefined {
-    const raw = o.student;
+    const raw = lessonRecord.student;
 
     if (!raw || typeof raw !== 'object') {
         return undefined;
     }
 
-    const s = raw as Record<string, unknown>;
-    const firstName = readStringField(s, 'firstName');
-    const lastName = readStringField(s, 'lastName');
+    const studentRecord = raw as Record<string, unknown>;
+    const firstName = readStringField(studentRecord, 'firstName');
+    const lastName = readStringField(studentRecord, 'lastName');
 
     if (!firstName && !lastName) {
         return undefined;

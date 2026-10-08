@@ -18,7 +18,7 @@ export function useManagerCourseDetailData({
 }: UseManagerCourseDetailDataOptions) {
     const course = ref<CourseDetail | null>(null);
     const loadError = shallowRef<string | null>(null);
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     async function loadCourse(rawId: unknown, hooks: LoadCourseHooks = {}) {
         loadError.value = null;
@@ -32,7 +32,7 @@ export function useManagerCourseDetailData({
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         course.value = null;
         hooks.beforeLoad?.();
@@ -40,14 +40,14 @@ export function useManagerCourseDetailData({
         try {
             const data = await fetchById(id);
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
             course.value = data;
             hooks.afterLoad?.(data);
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 

@@ -18,12 +18,14 @@ export function parseLessonPatchBody(
         return { ok: false, message: 'Oczekiwano obiektu JSON.' };
     }
 
-    const o = raw as Record<string, unknown>;
+    const lessonRecord = raw as Record<string, unknown>;
     const body: BffLessonPatchBody = {};
 
-    if ('instructorId' in o) {
+    if ('instructorId' in lessonRecord) {
         const id =
-            typeof o.instructorId === 'string' ? o.instructorId.trim() : '';
+            typeof lessonRecord.instructorId === 'string'
+                ? lessonRecord.instructorId.trim()
+                : '';
 
         if (!id || !isUuid(id)) {
             return {
@@ -35,9 +37,11 @@ export function parseLessonPatchBody(
         body.instructorId = id;
     }
 
-    if ('startTime' in o) {
+    if ('startTime' in lessonRecord) {
         const startTime =
-            typeof o.startTime === 'string' ? o.startTime.trim() : '';
+            typeof lessonRecord.startTime === 'string'
+                ? lessonRecord.startTime.trim()
+                : '';
 
         if (!startTime) {
             return {
@@ -49,8 +53,11 @@ export function parseLessonPatchBody(
         body.startTime = startTime;
     }
 
-    if ('endTime' in o) {
-        const endTime = typeof o.endTime === 'string' ? o.endTime.trim() : '';
+    if ('endTime' in lessonRecord) {
+        const endTime =
+            typeof lessonRecord.endTime === 'string'
+                ? lessonRecord.endTime.trim()
+                : '';
 
         if (!endTime) {
             return {
@@ -62,22 +69,22 @@ export function parseLessonPatchBody(
         body.endTime = endTime;
     }
 
-    if ('vehicleId' in o) {
-        const v = o.vehicleId;
+    if ('vehicleId' in lessonRecord) {
+        const vehicleIdValue = lessonRecord.vehicleId;
 
-        if (v === null) {
+        if (vehicleIdValue === null) {
             body.vehicleId = null;
-        } else if (typeof v === 'string') {
-            const t = v.trim();
+        } else if (typeof vehicleIdValue === 'string') {
+            const trimmedVehicleId = vehicleIdValue.trim();
 
-            if (!t || !isUuid(t)) {
+            if (!trimmedVehicleId || !isUuid(trimmedVehicleId)) {
                 return {
                     ok: false,
                     message: 'Pole vehicleId musi być poprawnym UUID lub null.',
                 };
             }
 
-            body.vehicleId = t;
+            body.vehicleId = trimmedVehicleId;
         } else {
             return {
                 ok: false,

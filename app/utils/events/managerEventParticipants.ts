@@ -10,7 +10,7 @@ export function sortManagerEventParticipantIds(
     ids: readonly string[],
 ): string[] {
     return [...ids]
-        .map((s) => s.trim())
+        .map((studentId) => studentId.trim())
         .filter(Boolean)
         .sort();
 }
@@ -21,7 +21,7 @@ export function readManagerEventStudentUserIds(
     const ids = event?.studentUserIds;
 
     return Array.isArray(ids)
-        ? ids.map((x) => String(x).trim()).filter(Boolean)
+        ? ids.map((id) => String(id).trim()).filter(Boolean)
         : [];
 }
 
@@ -60,19 +60,19 @@ export function managerEventDraftIdBelongsToStudentRow(
     row: StudentListItem,
     assignedId: string,
 ): boolean {
-    const t = assignedId.trim();
+    const trimmedAssignedId = assignedId.trim();
 
-    if (!t) {
+    if (!trimmedAssignedId) {
         return false;
     }
 
-    if (t === row.userId.trim()) {
+    if (trimmedAssignedId === row.userId.trim()) {
         return true;
     }
 
-    const pid = row.id?.trim();
+    const participantId = row.id?.trim();
 
-    return Boolean(pid && t === pid);
+    return Boolean(participantId && trimmedAssignedId === participantId);
 }
 
 export function isManagerEventTheoryRowChecked(params: {

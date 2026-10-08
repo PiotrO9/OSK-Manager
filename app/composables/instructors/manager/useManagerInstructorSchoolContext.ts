@@ -14,11 +14,11 @@ export function useManagerInstructorSchoolContext(input: {
     const instructor = ref<InstructorDetail | null>(null);
     const isSchoolContextLoading = ref(false);
     const schoolContextError = ref<string | null>(null);
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     async function loadInstructorSchoolContext(): Promise<void> {
         const id = input.instructorId.value.trim();
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         schoolId.value = '';
         instructor.value = null;
@@ -43,7 +43,7 @@ export function useManagerInstructorSchoolContext(input: {
             );
             const normalized = normalizeInstructorDetail(data);
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -57,7 +57,7 @@ export function useManagerInstructorSchoolContext(input: {
             schoolId.value = normalized.schoolId;
             instructor.value = normalized;
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -66,7 +66,7 @@ export function useManagerInstructorSchoolContext(input: {
                 'Nie udało się ustalić szkoły instruktora.',
             );
         } finally {
-            if (seq === fetchSeq) {
+            if (requestSequence === fetchSequence) {
                 isSchoolContextLoading.value = false;
             }
         }

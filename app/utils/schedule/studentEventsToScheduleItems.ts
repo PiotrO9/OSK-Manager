@@ -4,17 +4,17 @@ import type {
 } from '~/types/schedule/schedule';
 
 function readStringField(
-    o: Record<string, unknown>,
+    record: Record<string, unknown>,
     ...keys: string[]
 ): string {
-    for (const k of keys) {
-        const v = o[k];
+    for (const key of keys) {
+        const fieldValue = record[key];
 
-        if (typeof v === 'string') {
-            const t = v.trim();
+        if (typeof fieldValue === 'string') {
+            const trimmedValue = fieldValue.trim();
 
-            if (t.length > 0) {
-                return t;
+            if (trimmedValue.length > 0) {
+                return trimmedValue;
             }
         }
     }
@@ -31,14 +31,14 @@ export function unwrapStudentEventsPayload(data: unknown): unknown[] {
         return [];
     }
 
-    const o = data as Record<string, unknown>;
-    const items = o.items;
+    const record = data as Record<string, unknown>;
+    const items = record.items;
 
     if (Array.isArray(items)) {
         return items;
     }
 
-    const events = o.events;
+    const events = record.events;
 
     if (Array.isArray(events)) {
         return events;
@@ -48,9 +48,9 @@ export function unwrapStudentEventsPayload(data: unknown): unknown[] {
 }
 
 function normalizeLessonTypeCode(raw: string): string {
-    const t = raw.trim().toUpperCase();
+    const trimmedValue = raw.trim().toUpperCase();
 
-    if (t === 'DRIVE') {
+    if (trimmedValue === 'DRIVE') {
         return 'PRACTICE';
     }
 
@@ -58,26 +58,36 @@ function normalizeLessonTypeCode(raw: string): string {
 }
 
 function readInstructor(
-    o: Record<string, unknown>,
+    record: Record<string, unknown>,
 ): SchedulePersonRef | undefined {
-    const inst = o.instructor;
+    const instructorValue = record.instructor;
 
-    if (inst !== null && typeof inst === 'object') {
-        const ir = inst as Record<string, unknown>;
-        const id = readStringField(ir, 'id', 'instructorId');
-        const firstName = readStringField(ir, 'firstName', 'first_name');
-        const lastName = readStringField(ir, 'lastName', 'last_name');
+    if (instructorValue !== null && typeof instructorValue === 'object') {
+        const instructorRecord = instructorValue as Record<string, unknown>;
+        const id = readStringField(instructorRecord, 'id', 'instructorId');
+        const firstName = readStringField(
+            instructorRecord,
+            'firstName',
+            'first_name',
+        );
+        const lastName = readStringField(
+            instructorRecord,
+            'lastName',
+            'last_name',
+        );
 
         if (id || firstName || lastName) {
             return {
-                id: id || readStringField(o, 'instructorId', 'instructor_id'),
+                id:
+                    id ||
+                    readStringField(record, 'instructorId', 'instructor_id'),
                 firstName,
                 lastName,
             };
         }
     }
 
-    const onlyId = readStringField(o, 'instructorId', 'instructor_id');
+    const onlyId = readStringField(record, 'instructorId', 'instructor_id');
 
     if (onlyId) {
         return {
@@ -100,25 +110,25 @@ export function normalizeStudentEventToScheduleItem(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = readStringField(o, 'id', 'eventId');
+    const record = raw as Record<string, unknown>;
+    const id = readStringField(record, 'id', 'eventId');
 
     if (!id) {
         return null;
     }
 
-    const startTime = readStringField(o, 'startTime', 'start_time');
-    const endTime = readStringField(o, 'endTime', 'end_time');
+    const startTime = readStringField(record, 'startTime', 'start_time');
+    const endTime = readStringField(record, 'endTime', 'end_time');
 
     if (!startTime || !endTime) {
         return null;
     }
 
-    const typeRaw = readStringField(o, 'type');
+    const typeRaw = readStringField(record, 'type');
     const type =
         typeRaw.length > 0 ? normalizeLessonTypeCode(typeRaw) : 'THEORY';
-    const status = readStringField(o, 'status') || 'ACTIVE';
-    const kind = readStringField(o, 'kind');
+    const status = readStringField(record, 'status') || 'ACTIVE';
+    const kind = readStringField(record, 'kind');
 
     return {
         id,
@@ -127,7 +137,7 @@ export function normalizeStudentEventToScheduleItem(
         status,
         startTime,
         endTime,
-        instructor: readInstructor(o),
+        instructor: readInstructor(record),
     };
 }
 
@@ -137,8 +147,8 @@ export function studentEventsPayloadToScheduleItems(
     const rows = unwrapStudentEventsPayload(data);
     const out: ScheduleLessonItem[] = [];
 
-    for (const r of rows) {
-        const item = normalizeStudentEventToScheduleItem(r);
+    for (const eventRow of rows) {
+        const item = normalizeStudentEventToScheduleItem(eventRow);
 
         if (item) {
             out.push(item);

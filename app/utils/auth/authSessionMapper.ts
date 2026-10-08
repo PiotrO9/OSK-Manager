@@ -56,22 +56,27 @@ function normalizeDrivingSchoolsFromBackend(
     for (const item of raw) {
         if (!item || typeof item !== 'object') continue;
 
-        const o = item as Record<string, unknown>;
-        const id = typeof o.id === 'string' ? o.id.trim() : '';
-        const name = typeof o.name === 'string' ? o.name.trim() : '';
+        const schoolRecord = item as Record<string, unknown>;
+        const id =
+            typeof schoolRecord.id === 'string' ? schoolRecord.id.trim() : '';
+        const name =
+            typeof schoolRecord.name === 'string'
+                ? schoolRecord.name.trim()
+                : '';
 
         if (!id || !name) continue;
 
         function readOptStringNull(key: string): string | null {
-            if (!Object.prototype.hasOwnProperty.call(o, key)) return null;
+            if (!Object.prototype.hasOwnProperty.call(schoolRecord, key))
+                return null;
 
-            const v = o[key];
+            const fieldValue = schoolRecord[key];
 
-            if (v === null || v === undefined) return null;
+            if (fieldValue === null || fieldValue === undefined) return null;
 
-            const t = String(v).trim();
+            const trimmedValue = String(fieldValue).trim();
 
-            return t.length > 0 ? t : null;
+            return trimmedValue.length > 0 ? trimmedValue : null;
         }
 
         out.push({
@@ -88,9 +93,9 @@ function normalizeDrivingSchoolsFromBackend(
 function normalizeDefaultPkFromBackend(raw: unknown): string | null {
     if (raw === null || raw === undefined) return null;
 
-    const t = String(raw).trim();
+    const trimmedValue = String(raw).trim();
 
-    return t.length > 0 ? t : null;
+    return trimmedValue.length > 0 ? trimmedValue : null;
 }
 
 function optionalString(
@@ -100,9 +105,9 @@ function optionalString(
 
     if (value === null) return null;
 
-    const t = String(value).trim();
+    const trimmedValue = String(value).trim();
 
-    return t.length > 0 ? t : null;
+    return trimmedValue.length > 0 ? trimmedValue : null;
 }
 
 export function normalizeBackendUserToSessionPayload(
@@ -114,7 +119,7 @@ export function normalizeBackendUserToSessionPayload(
 
     if (!userName) {
         const display = [user.firstName, user.lastName]
-            .map((s) => String(s || '').trim())
+            .map((namePart) => String(namePart || '').trim())
             .filter(Boolean)
             .join(' ')
             .trim();
@@ -202,26 +207,26 @@ export function buildAuthProfilePatchPayload(
     }
 
     if (Object.prototype.hasOwnProperty.call(body, 'phone')) {
-        const p = body.phone;
+        const phoneValue = body.phone;
 
-        if (p === null || p === undefined) {
+        if (phoneValue === null || phoneValue === undefined) {
             out.phone = null;
         } else {
-            const t = String(p).trim();
+            const trimmedValue = String(phoneValue).trim();
 
-            out.phone = t.length > 0 ? t : null;
+            out.phone = trimmedValue.length > 0 ? trimmedValue : null;
         }
     }
 
     if (Object.prototype.hasOwnProperty.call(body, 'bio')) {
-        const b = body.bio;
+        const bioValue = body.bio;
 
-        if (b === null || b === undefined) {
+        if (bioValue === null || bioValue === undefined) {
             out.bio = null;
         } else {
-            const t = String(b).trim();
+            const trimmedValue = String(bioValue).trim();
 
-            out.bio = t.length > 0 ? t : null;
+            out.bio = trimmedValue.length > 0 ? trimmedValue : null;
         }
     }
 

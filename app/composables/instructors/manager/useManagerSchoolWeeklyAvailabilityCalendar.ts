@@ -40,21 +40,21 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     const activeSlotCtx = ref<LessonBookingSlotContext | null>(null);
     const courses = ref<CourseListItem[]>([]);
     const { fetchList: fetchCoursesList } = useCoursesApi();
-    let coursesLoadSeq = 0;
+    let coursesLoadSequence = 0;
 
     async function loadSchoolCourses(): Promise<void> {
-        const sid = schoolId().trim();
-        const seq = ++coursesLoadSeq;
+        const trimmedSchoolId = schoolId().trim();
+        const requestSequence = ++coursesLoadSequence;
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             courses.value = [];
 
             return;
         }
 
-        const items = await fetchCoursesList(sid).catch(() => []);
+        const items = await fetchCoursesList(trimmedSchoolId).catch(() => []);
 
-        if (seq !== coursesLoadSeq) {
+        if (requestSequence !== coursesLoadSequence) {
             return;
         }
 
@@ -77,7 +77,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
         handleKeyDownWeekNav,
     } = useManagerSchoolAvailabilityWeekPicker();
 
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     const hourLabels = computed(() =>
         Array.from(
@@ -141,9 +141,9 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     }
 
     function handleSlotClick(slot: LessonBookingAggregatedSlot): void {
-        const sid = schoolId().trim();
+        const trimmedSchoolId = schoolId().trim();
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             return;
         }
 
@@ -151,7 +151,7 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
             date: slot.date,
             startTime: slot.startTime,
             endTime: slot.endTime,
-            schoolId: sid,
+            schoolId: trimmedSchoolId,
             availableInstructors: slot.availableInstructors,
         };
         isSlotChoiceOpen.value = true;
@@ -193,16 +193,16 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
     }
 
     async function loadWeek(): Promise<void> {
-        const sid = schoolId().trim();
+        const trimmedSchoolId = schoolId().trim();
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             slots.value = [];
             errorMessage.value = null;
 
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         errorMessage.value = null;
         referenceNow.value = new Date();
@@ -211,19 +211,19 @@ export function useManagerSchoolWeeklyAvailabilityCalendar(
 
         try {
             const { slots: data } = await fetchSlots(
-                sid,
+                trimmedSchoolId,
                 dateFrom,
                 dateTo,
                 buildSchoolAvailabilityCalendarFiltersPayload(),
             );
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
             slots.value = data;
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 

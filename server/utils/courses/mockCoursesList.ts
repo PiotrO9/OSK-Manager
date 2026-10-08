@@ -25,13 +25,13 @@ type GlobalWithStore = typeof globalThis & {
 };
 
 function getStore(): Record<string, MockCourseListRow[]> {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockCoursesListBySchool) {
-        g.__mockCoursesListBySchool = {};
+    if (!globalStore.__mockCoursesListBySchool) {
+        globalStore.__mockCoursesListBySchool = {};
     }
 
-    return g.__mockCoursesListBySchool;
+    return globalStore.__mockCoursesListBySchool;
 }
 
 function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
@@ -109,7 +109,9 @@ function resolveMockCourseTypeByCategory(
     category: string,
 ): MockDrivingSchoolOfferedType {
     const code = category.trim();
-    const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find((t) => t.code === code);
+    const hit = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find(
+        (courseType) => courseType.code === code,
+    );
 
     return hit ?? { id: code || crypto.randomUUID(), code, name: code };
 }
@@ -123,9 +125,11 @@ function resolveInstructorRefForSchool(
     }
 
     const rows = mockInstructorsListPayload(schoolId).instructors;
-    const r = rows.find((x) => x.id === instructorProfileId);
+    const instructor = rows.find(
+        (candidateInstructor) => candidateInstructor.id === instructorProfileId,
+    );
 
-    if (!r) {
+    if (!instructor) {
         return {
             id: instructorProfileId,
             name: 'Instruktor',
@@ -133,16 +137,16 @@ function resolveInstructorRefForSchool(
         };
     }
 
-    const parts = [r.firstName, r.lastName]
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+    const parts = [instructor.firstName, instructor.lastName]
+        .map((namePart) => namePart.trim())
+        .filter((namePart) => namePart.length > 0);
 
     const name = parts.length > 0 ? parts.join(' ') : '—';
 
     return {
         id: instructorProfileId,
         name,
-        avatarUrl: r.avatarUrl,
+        avatarUrl: instructor.avatarUrl,
     };
 }
 
@@ -261,7 +265,7 @@ export function mockCoursesGetById(
     const store = getStore();
 
     for (const [schoolId, rows] of Object.entries(store)) {
-        const row = rows.find((r) => r.id === id);
+        const row = rows.find((course) => course.id === id);
 
         if (!row) {
             continue;
@@ -299,7 +303,7 @@ export function mockCoursesPatchInstructor(
     const store = getStore();
 
     for (const [schoolId, rows] of Object.entries(store)) {
-        const idx = rows.findIndex((r) => r.id === id);
+        const idx = rows.findIndex((course) => course.id === id);
 
         if (idx === -1) {
             continue;

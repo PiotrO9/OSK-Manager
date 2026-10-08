@@ -9,9 +9,9 @@ export function useStudentEventsApi() {
         userId: string,
         options?: { dateFrom?: string; dateTo?: string },
     ): Promise<ScheduleLessonItem[]> {
-        const uid = userId.trim();
+        const trimmedUserId = userId.trim();
 
-        if (!uid) {
+        if (!trimmedUserId) {
             return [];
         }
 
@@ -27,7 +27,7 @@ export function useStudentEventsApi() {
         const qs = params.toString();
         const items = await requestBffData<ScheduleLessonItem[]>(
             'GET',
-            `/api/students/${encodeURIComponent(uid)}/events${qs.length > 0 ? `?${qs}` : ''}`,
+            `/api/students/${encodeURIComponent(trimmedUserId)}/events${qs.length > 0 ? `?${qs}` : ''}`,
             {
                 fallbackMessage: 'Nie udało się pobrać wydarzeń kursanta.',
                 normalize: studentEventsPayloadToScheduleItems,

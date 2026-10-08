@@ -16,9 +16,9 @@ interface ProfilePatchResponse {
 }
 
 function roleAllowsProfileNames(roleRaw: string): boolean {
-    const r = roleRaw.trim().toUpperCase();
+    const normalizedRole = roleRaw.trim().toUpperCase();
 
-    return r === 'MANAGER' || r === 'ADMIN';
+    return normalizedRole === 'MANAGER' || normalizedRole === 'ADMIN';
 }
 
 function isNonEmptyTrimmedString(value: unknown): value is string {
@@ -58,57 +58,69 @@ export default defineEventHandler(async (event) => {
     const patch: Record<string, string | null> = {};
 
     if (bodyKeys.has('firstName')) {
-        const v = source.firstName;
+        const fieldValue = source.firstName;
 
-        if (v !== null && v !== undefined && typeof v !== 'string') {
+        if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            typeof fieldValue !== 'string'
+        ) {
             throw createError({
                 statusCode: 400,
                 message: 'Nieprawidłowy format pola firstName',
             });
         }
 
-        if (typeof v === 'string') {
-            const t = v.trim();
+        if (typeof fieldValue === 'string') {
+            const trimmedValue = fieldValue.trim();
 
-            if (t.length > NAME_MAX_LEN) {
+            if (trimmedValue.length > NAME_MAX_LEN) {
                 throw createError({
                     statusCode: 400,
                     message: `Imię może mieć co najwyżej ${NAME_MAX_LEN} znaków`,
                 });
             }
 
-            patch.firstName = t.length > 0 ? t : '';
+            patch.firstName = trimmedValue.length > 0 ? trimmedValue : '';
         }
     }
 
     if (bodyKeys.has('lastName')) {
-        const v = source.lastName;
+        const fieldValue = source.lastName;
 
-        if (v !== null && v !== undefined && typeof v !== 'string') {
+        if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            typeof fieldValue !== 'string'
+        ) {
             throw createError({
                 statusCode: 400,
                 message: 'Nieprawidłowy format pola lastName',
             });
         }
 
-        if (typeof v === 'string') {
-            const t = v.trim();
+        if (typeof fieldValue === 'string') {
+            const trimmedValue = fieldValue.trim();
 
-            if (t.length > NAME_MAX_LEN) {
+            if (trimmedValue.length > NAME_MAX_LEN) {
                 throw createError({
                     statusCode: 400,
                     message: `Nazwisko może mieć co najwyżej ${NAME_MAX_LEN} znaków`,
                 });
             }
 
-            patch.lastName = t.length > 0 ? t : '';
+            patch.lastName = trimmedValue.length > 0 ? trimmedValue : '';
         }
     }
 
     if (bodyKeys.has('phone')) {
-        const v = source.phone;
+        const fieldValue = source.phone;
 
-        if (v !== null && v !== undefined && typeof v !== 'string') {
+        if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            typeof fieldValue !== 'string'
+        ) {
             throw createError({
                 statusCode: 400,
                 message: 'Nieprawidłowy format pola phone',
@@ -116,17 +128,21 @@ export default defineEventHandler(async (event) => {
         }
 
         patch.phone =
-            v === null
+            fieldValue === null
                 ? null
-                : typeof v === 'string' && v.trim().length > 0
-                  ? v.trim()
+                : typeof fieldValue === 'string' && fieldValue.trim().length > 0
+                  ? fieldValue.trim()
                   : null;
     }
 
     if (bodyKeys.has('bio')) {
-        const v = source.bio;
+        const fieldValue = source.bio;
 
-        if (v !== null && v !== undefined && typeof v !== 'string') {
+        if (
+            fieldValue !== null &&
+            fieldValue !== undefined &&
+            typeof fieldValue !== 'string'
+        ) {
             throw createError({
                 statusCode: 400,
                 message: 'Nieprawidłowy format pola bio',
@@ -134,10 +150,10 @@ export default defineEventHandler(async (event) => {
         }
 
         patch.bio =
-            v === null
+            fieldValue === null
                 ? null
-                : typeof v === 'string' && v.trim().length > 0
-                  ? v.trim()
+                : typeof fieldValue === 'string' && fieldValue.trim().length > 0
+                  ? fieldValue.trim()
                   : null;
     }
 
@@ -193,29 +209,29 @@ export default defineEventHandler(async (event) => {
                 }
 
                 if ('firstName' in patch) {
-                    const v = patch.firstName;
+                    const fieldValue = patch.firstName;
 
-                    if (!isNonEmptyTrimmedString(v)) {
+                    if (!isNonEmptyTrimmedString(fieldValue)) {
                         throw createError({
                             statusCode: 400,
                             message: 'Imię nie może być puste',
                         });
                     }
 
-                    firstName = String(v).trim();
+                    firstName = String(fieldValue).trim();
                 }
 
                 if ('lastName' in patch) {
-                    const v = patch.lastName;
+                    const fieldValue = patch.lastName;
 
-                    if (!isNonEmptyTrimmedString(v)) {
+                    if (!isNonEmptyTrimmedString(fieldValue)) {
                         throw createError({
                             statusCode: 400,
                             message: 'Nazwisko nie może być puste',
                         });
                     }
 
-                    lastName = String(v).trim();
+                    lastName = String(fieldValue).trim();
                 }
 
                 if ('phone' in patch) {
@@ -227,8 +243,8 @@ export default defineEventHandler(async (event) => {
                 }
 
                 const nameFromParts = [firstName, lastName]
-                    .map((s) => s.trim())
-                    .filter((s) => s.length > 0)
+                    .map((namePart) => namePart.trim())
+                    .filter((namePart) => namePart.length > 0)
                     .join(' ')
                     .trim();
 

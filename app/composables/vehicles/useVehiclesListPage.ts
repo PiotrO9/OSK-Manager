@@ -45,8 +45,8 @@ export function useVehiclesListPage() {
     const searchTerm = shallowRef('');
     const statusFilter = shallowRef<VehicleStatusFilter>('all');
     const activePanel = shallowRef<VehiclesListPanelId>('simple');
-    let pageLoadSeq = 0;
-    let vehiclesLoadSeq = 0;
+    let pageLoadSequence = 0;
+    let vehiclesLoadSequence = 0;
 
     const filteredVehicles = computed(() =>
         filterVehicles(vehicles.value, searchTerm.value, statusFilter.value),
@@ -65,13 +65,13 @@ export function useVehiclesListPage() {
             : visibleLabel;
     });
     const activeSchool = computed(() => {
-        const sid = resolvedSchoolId.value;
+        const schoolId = resolvedSchoolId.value;
 
-        if (!sid) return null;
+        if (!schoolId) return null;
 
         return (
-            schools.value.find((school) => school.id === sid) ??
-            (defaultSchool.value?.id === sid ? defaultSchool.value : null)
+            schools.value.find((school) => school.id === schoolId) ??
+            (defaultSchool.value?.id === schoolId ? defaultSchool.value : null)
         );
     });
     const isPageLoading = computed(
@@ -105,14 +105,16 @@ export function useVehiclesListPage() {
     }
 
     function readSchoolIdFromQuery(): string | null {
-        const raw = route.query.schoolId;
-        const s = Array.isArray(raw) ? raw[0] : raw;
+        const rawSchoolIdQuery = route.query.schoolId;
+        const schoolIdQueryValue = Array.isArray(rawSchoolIdQuery)
+            ? rawSchoolIdQuery[0]
+            : rawSchoolIdQuery;
 
-        if (typeof s !== 'string') return null;
+        if (typeof schoolIdQueryValue !== 'string') return null;
 
-        const t = s.trim();
+        const trimmedSchoolId = schoolIdQueryValue.trim();
 
-        return t.length > 0 ? t : null;
+        return trimmedSchoolId.length > 0 ? trimmedSchoolId : null;
     }
 
     async function resolveSchoolId(): Promise<string | null> {
@@ -173,10 +175,10 @@ export function useVehiclesListPage() {
     }
 
     async function loadVehicles() {
-        const sid = resolvedSchoolId.value;
-        const seq = ++vehiclesLoadSeq;
+        const schoolId = resolvedSchoolId.value;
+        const requestSequence = ++vehiclesLoadSequence;
 
-        if (!sid) {
+        if (!schoolId) {
             vehicles.value = [];
 
             return;
@@ -185,15 +187,15 @@ export function useVehiclesListPage() {
         loadError.value = null;
 
         try {
-            const items = await fetchList(sid);
+            const items = await fetchList(schoolId);
 
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
             vehicles.value = items;
         } catch (err) {
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
@@ -206,21 +208,21 @@ export function useVehiclesListPage() {
     }
 
     async function runPageLoad() {
-        const seq = ++pageLoadSeq;
+        const requestSequence = ++pageLoadSequence;
 
         isPageInitializing.value = true;
 
         await loadSchools();
-        const sid = await resolveSchoolId();
+        const schoolId = await resolveSchoolId();
 
-        if (seq !== pageLoadSeq) {
+        if (requestSequence !== pageLoadSequence) {
             return;
         }
 
-        resolvedSchoolId.value = sid;
+        resolvedSchoolId.value = schoolId;
 
         if (!resolvedSchoolId.value) {
-            vehiclesLoadSeq += 1;
+            vehiclesLoadSequence += 1;
             vehicles.value = [];
 
             isPageInitializing.value = false;
@@ -230,7 +232,7 @@ export function useVehiclesListPage() {
 
         await loadVehicles();
 
-        if (seq === pageLoadSeq) {
+        if (requestSequence === pageLoadSequence) {
             isPageInitializing.value = false;
         }
     }
@@ -247,8 +249,8 @@ export function useVehiclesListPage() {
     );
 
     onBeforeUnmount(() => {
-        pageLoadSeq += 1;
-        vehiclesLoadSeq += 1;
+        pageLoadSequence += 1;
+        vehiclesLoadSequence += 1;
     });
 
     async function handleRetryLoad() {
@@ -282,9 +284,9 @@ export function useVehiclesListPage() {
 
     async function handleConfirmDeleteVehicle() {
         const target = vehiclePendingDelete.value;
-        const sid = resolvedSchoolId.value;
+        const schoolId = resolvedSchoolId.value;
 
-        if (!target || !sid) return;
+        if (!target || !schoolId) return;
 
         vehiclePendingDelete.value = null;
         deleteActionError.value = null;
@@ -312,12 +314,12 @@ export function useVehiclesListPage() {
     }
 
     async function handleSetDefaultVehicle(vehicle: Vehicle) {
-        const sid = resolvedSchoolId.value;
+        const schoolId = resolvedSchoolId.value;
 
-        if (!sid) return;
+        if (!schoolId) return;
 
         try {
-            await setVehicleAsDefault(sid, vehicle.id);
+            await setVehicleAsDefault(schoolId, vehicle.id);
             await loadVehicles();
             addToast({
                 title: 'Domyślny pojazd zmieniony',
@@ -353,16 +355,21 @@ export function useVehiclesListPage() {
 
         try {
             const updated = await updateVehicleStatus(vehicle.id, payload);
-            const index = vehicles.value.findIndex((v) => v.id === vehicle.id);
+            const currentVehicleIndex = vehicles.value.findIndex(
+                (candidateVehicle) => candidateVehicle.id === vehicle.id,
+            );
 
-            if (index === -1) {
+            if (currentVehicleIndex === -1) {
                 await loadVehicles();
 
                 return;
             }
 
-            vehicles.value = vehicles.value.map((item, i) =>
-                i === index ? { ...item, ...updated } : item,
+            vehicles.value = vehicles.value.map(
+                (currentVehicle, vehicleIndex) =>
+                    vehicleIndex === currentVehicleIndex
+                        ? { ...currentVehicle, ...updated }
+                        : currentVehicle,
             );
         } catch (err) {
             addToast({

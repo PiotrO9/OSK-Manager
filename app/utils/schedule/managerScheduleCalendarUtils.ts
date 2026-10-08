@@ -13,23 +13,23 @@ export const SLOT_END_GUTTER_PX = 1;
 export const SAME_START_TILE_GAP_PX = 2;
 
 export function isoToHm(iso: string): string {
-    const d = new Date(iso);
+    const date = new Date(iso);
 
-    if (Number.isNaN(d.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         return '00:00';
     }
 
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 export function isoToDateStr(iso: string): string {
-    const d = new Date(iso);
+    const date = new Date(iso);
 
-    if (Number.isNaN(d.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         return '';
     }
 
-    return formatDateOnly(d);
+    return formatDateOnly(date);
 }
 
 export function slotTopPx(startTimeHm: string): number {
@@ -39,19 +39,19 @@ export function slotTopPx(startTimeHm: string): number {
         return 0;
     }
 
-    const h = parts[0];
-    const m = parts[1];
+    const hours = parts[0];
+    const minutes = parts[1];
 
     if (
-        h === undefined ||
-        m === undefined ||
-        !Number.isFinite(h) ||
-        !Number.isFinite(m)
+        hours === undefined ||
+        minutes === undefined ||
+        !Number.isFinite(hours) ||
+        !Number.isFinite(minutes)
     ) {
         return 0;
     }
 
-    const startMin = h * 60 + m;
+    const startMin = hours * 60 + minutes;
     const baseMin = BASE_HOUR * 60;
 
     return (startMin - baseMin) * PX_PER_MINUTE;
@@ -62,13 +62,13 @@ export function isTheoryLessonType(type: string): boolean {
 }
 
 export function lessonBlockClasses(type: string): string {
-    const t = type.trim().toUpperCase();
+    const normalizedType = type.trim().toUpperCase();
 
-    if (t === 'PRACTICE') {
+    if (normalizedType === 'PRACTICE') {
         return 'border-primary-300 bg-primary-50 text-primary-950 shadow-primary-900/10 dark:border-primary-500/70 dark:bg-primary-50 dark:text-primary-950';
     }
 
-    if (t === 'THEORY') {
+    if (normalizedType === 'THEORY') {
         return 'border-warning-300 bg-warning-50 text-warning-950 shadow-warning-900/10 dark:border-warning-500/70 dark:bg-warning-50 dark:text-warning-950';
     }
 
@@ -76,44 +76,45 @@ export function lessonBlockClasses(type: string): string {
 }
 
 export function displayStudent(item: ScheduleLessonItem): string {
-    const s = item.student;
+    const student = item.student;
 
-    if (!s) {
+    if (!student) {
         return '-';
     }
 
-    const name = `${s.firstName} ${s.lastName}`.trim();
+    const name = `${student.firstName} ${student.lastName}`.trim();
 
     return name.length > 0 ? name : '-';
 }
 
 export function displayVehicle(item: ScheduleLessonItem): string {
-    const v = item.vehicle;
+    const vehicle = item.vehicle;
 
-    if (!v) {
+    if (!vehicle) {
         return '';
     }
 
-    const n = v.name.trim();
-    const r = v.registrationNumber.trim();
+    const displayName = vehicle.name.trim();
+    const registrationNumber = vehicle.registrationNumber.trim();
 
-    const model = n.replace(/^pojazd\s+\d+\s*-\s*/i, '').trim() || n;
+    const model =
+        displayName.replace(/^pojazd\s+\d+\s*-\s*/i, '').trim() || displayName;
 
-    if (model && r) {
-        return `${model} (${r})`;
+    if (model && registrationNumber) {
+        return `${model} (${registrationNumber})`;
     }
 
-    return model || r;
+    return model || registrationNumber;
 }
 
 export function displayInstructorName(item: ScheduleLessonItem): string {
-    const i = item.instructor;
+    const instructor = item.instructor;
 
-    if (!i) {
+    if (!instructor) {
         return '';
     }
 
-    const name = `${i.firstName} ${i.lastName}`.trim();
+    const name = `${instructor.firstName} ${instructor.lastName}`.trim();
 
     return name.length > 0 ? name : '';
 }
@@ -122,10 +123,11 @@ export function displayTheoryPrimaryLine(item: ScheduleLessonItem): string {
     const list = item.students;
 
     if (list && list.length > 0) {
-        const shown = list.slice(0, 2).map((s) => {
-            const n = `${s.firstName} ${s.lastName}`.trim();
+        const shown = list.slice(0, 2).map((student) => {
+            const displayName =
+                `${student.firstName} ${student.lastName}`.trim();
 
-            return n.length > 0 ? n : '-';
+            return displayName.length > 0 ? displayName : '-';
         });
         const rest = list.length - shown.length;
 
@@ -136,15 +138,15 @@ export function displayTheoryPrimaryLine(item: ScheduleLessonItem): string {
         return shown.join(', ');
     }
 
-    const pc = item.participantCount;
-    const cap = item.capacity;
+    const participantCount = item.participantCount;
+    const capacity = item.capacity;
 
-    if (pc != null && cap != null && cap > 0) {
-        return `${pc}/${cap} miejsc`;
+    if (participantCount != null && capacity != null && capacity > 0) {
+        return `${participantCount}/${capacity} miejsc`;
     }
 
-    if (pc != null && pc > 0) {
-        return `${pc} uczestników`;
+    if (participantCount != null && participantCount > 0) {
+        return `${participantCount} uczestników`;
     }
 
     return displayStudent(item);
@@ -159,10 +161,10 @@ export function displayPrimaryLine(
     }
 
     if (practicePrimaryLine === 'instructor') {
-        const ins = displayInstructorName(item);
+        const instructorName = displayInstructorName(item);
 
-        if (ins.length > 0) {
-            return ins;
+        if (instructorName.length > 0) {
+            return instructorName;
         }
     }
 
@@ -170,10 +172,10 @@ export function displayPrimaryLine(
 }
 
 export function displayInstructorSubtitle(item: ScheduleLessonItem): string {
-    const ins = displayInstructorName(item);
+    const instructorName = displayInstructorName(item);
 
-    if (ins) {
-        return `Prowadzący: ${ins}`;
+    if (instructorName) {
+        return `Prowadzący: ${instructorName}`;
     }
 
     return '';
@@ -199,11 +201,11 @@ export function ariaSummaryForLesson(
     if (isScheduleInstructorEvent(item)) {
         const statusLabel = labelForInstructorEventStatusRaw(item.status);
         const primary = displayPrimaryLine(item, practicePrimaryLine);
-        const sub = displayInstructorSubtitle(item);
+        const subtitle = displayInstructorSubtitle(item);
         const parts = ['Blok czasu', `status ${statusLabel}`, time, primary];
 
-        if (sub) {
-            parts.push(sub);
+        if (subtitle) {
+            parts.push(subtitle);
         }
 
         return parts.join(', ');
@@ -211,30 +213,30 @@ export function ariaSummaryForLesson(
 
     if (isTheoryLessonType(item.type)) {
         const primary = displayTheoryPrimaryLine(item);
-        const sub = displayInstructorSubtitle(item);
+        const subtitle = displayInstructorSubtitle(item);
         const parts = [`Lekcja teoretyczna`, time, primary];
 
-        if (sub) {
-            parts.push(sub);
+        if (subtitle) {
+            parts.push(subtitle);
         }
 
         return parts.join(', ');
     }
 
-    const v = displayVehicle(item);
-    const ins = displayInstructorName(item);
+    const vehicle = displayVehicle(item);
+    const instructorName = displayInstructorName(item);
     const parts = [
         `Lekcja praktyczna`,
         time,
         `kursant ${displayStudent(item)}`,
     ];
 
-    if (v) {
-        parts.push(v);
+    if (vehicle) {
+        parts.push(vehicle);
     }
 
-    if (ins) {
-        parts.push(`instruktor ${ins}`);
+    if (instructorName) {
+        parts.push(`instruktor ${instructorName}`);
     }
 
     return parts.join(', ');

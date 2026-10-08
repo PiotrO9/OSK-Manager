@@ -91,15 +91,15 @@ export function useManagerStudentDetailsPage() {
     });
 
     const backToListHref = computed(() => {
-        const sid = schoolId.value;
+        const schoolIdForRoute = schoolId.value;
 
-        if (!sid) {
+        if (!schoolIdForRoute) {
             return '/manager/students';
         }
 
         return {
             path: '/manager/students',
-            query: { schoolId: sid },
+            query: { schoolId: schoolIdForRoute },
         };
     });
 
@@ -108,7 +108,7 @@ export function useManagerStudentDetailsPage() {
         description: () => 'Szczegóły kursanta.',
     });
 
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     async function loadStudent(rawUserId: unknown): Promise<void> {
         errorMessage.value = null;
@@ -123,7 +123,7 @@ export function useManagerStudentDetailsPage() {
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         isLoading.value = true;
         student.value = null;
@@ -138,7 +138,7 @@ export function useManagerStudentDetailsPage() {
             );
             const normalized = normalizeStudentDetail(data);
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -151,7 +151,7 @@ export function useManagerStudentDetailsPage() {
 
             student.value = normalized;
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -168,7 +168,7 @@ export function useManagerStudentDetailsPage() {
 
             student.value = null;
         } finally {
-            if (seq === fetchSeq) {
+            if (requestSequence === fetchSequence) {
                 isLoading.value = false;
             }
         }

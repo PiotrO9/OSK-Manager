@@ -22,29 +22,32 @@ export function parseCoursePatchInstructorBody(
         return { error: 'Nieprawidłowe dane żądania.' };
     }
 
-    const o = recordResult.data;
+    const coursePatchRecord = recordResult.data;
 
-    if (!('instructorId' in o)) {
+    if (!('instructorId' in coursePatchRecord)) {
         return { record: {} };
     }
 
-    const raw = o.instructorId;
+    const rawInstructorId = coursePatchRecord.instructorId;
 
-    if (raw === null) {
+    if (rawInstructorId === null) {
         return { record: { instructorId: null } };
     }
 
-    const s = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    const trimmedInstructorId =
+        typeof rawInstructorId === 'string'
+            ? rawInstructorId.trim()
+            : String(rawInstructorId).trim();
 
-    if (!s) {
+    if (!trimmedInstructorId) {
         return { record: { instructorId: null } };
     }
 
-    if (!isUuid(s)) {
+    if (!isUuid(trimmedInstructorId)) {
         return {
             error: 'Pole instructorId musi być poprawnym identyfikatorem UUID lub null.',
         };
     }
 
-    return { record: { instructorId: s } };
+    return { record: { instructorId: trimmedInstructorId } };
 }

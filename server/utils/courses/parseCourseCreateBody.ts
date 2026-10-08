@@ -27,7 +27,7 @@ const courseCreateRecordSchema = z.custom<Record<string, unknown>>(
 export function courseCreateBodyToUpstreamRecord(
     body: BffCourseCreateBody,
 ): Record<string, unknown> {
-    const o: Record<string, unknown> = {
+    const courseRecord: Record<string, unknown> = {
         schoolId: body.schoolId,
         name: body.name,
         category: body.category,
@@ -36,33 +36,33 @@ export function courseCreateBodyToUpstreamRecord(
     };
 
     if (body.capacity !== undefined) {
-        o.capacity = body.capacity;
+        courseRecord.capacity = body.capacity;
     }
 
     if (body.instructorId !== undefined) {
-        o.instructorId = body.instructorId;
+        courseRecord.instructorId = body.instructorId;
     }
 
     if (body.theoryStartDate !== undefined) {
-        o.theoryStartDate = body.theoryStartDate;
+        courseRecord.theoryStartDate = body.theoryStartDate;
     }
 
     if (body.theoryEndDate !== undefined) {
-        o.theoryEndDate = body.theoryEndDate;
+        courseRecord.theoryEndDate = body.theoryEndDate;
     }
 
-    return o;
+    return courseRecord;
 }
 
 function parseTotalHours(body: Record<string, unknown>): number | null {
-    const raw = body.totalHours;
+    const rawValue = body.totalHours;
 
-    if (typeof raw === 'number') {
-        return Number.isInteger(raw) && raw >= 1 ? raw : null;
+    if (typeof rawValue === 'number') {
+        return Number.isInteger(rawValue) && rawValue >= 1 ? rawValue : null;
     }
 
-    if (typeof raw === 'string') {
-        const trimmed = raw.trim();
+    if (typeof rawValue === 'string') {
+        const trimmed = rawValue.trim();
         const parsed = Number(trimmed);
 
         if (trimmed && Number.isInteger(parsed) && parsed >= 1) {
@@ -80,24 +80,26 @@ function parseCapacityForTheory(
         return undefined;
     }
 
-    const raw = body.capacity;
+    const rawValue = body.capacity;
 
-    if (raw === null || raw === undefined) {
+    if (rawValue === null || rawValue === undefined) {
         return null;
     }
 
-    if (typeof raw === 'number') {
-        return Number.isInteger(raw) && raw >= 0 ? raw : 'invalid';
+    if (typeof rawValue === 'number') {
+        return Number.isInteger(rawValue) && rawValue >= 0
+            ? rawValue
+            : 'invalid';
     }
 
-    if (typeof raw === 'string') {
-        const t = raw.trim();
+    if (typeof rawValue === 'string') {
+        const trimmedCapacity = rawValue.trim();
 
-        if (!t) {
+        if (!trimmedCapacity) {
             return null;
         }
 
-        const parsed = Number(t);
+        const parsed = Number(trimmedCapacity);
 
         if (!Number.isInteger(parsed) || parsed < 0) {
             return 'invalid';
@@ -136,9 +138,9 @@ export function parseCourseCreateBody(body: unknown):
         return { error: 'Nieprawidłowe dane żądania.' };
     }
 
-    const o = recordResult.data;
-    const name = readTrimmedBodyString(o, 'name');
-    const category = readTrimmedBodyString(o, 'category');
+    const courseRecord = recordResult.data;
+    const name = readTrimmedBodyString(courseRecord, 'name');
+    const category = readTrimmedBodyString(courseRecord, 'category');
 
     if (!name) {
         return { error: 'Pole name jest wymagane.' };
@@ -148,7 +150,7 @@ export function parseCourseCreateBody(body: unknown):
         return { error: 'Pole category jest wymagane.' };
     }
 
-    const kindRaw = readTrimmedBodyString(o, 'kind');
+    const kindRaw = readTrimmedBodyString(courseRecord, 'kind');
 
     if (!kindRaw || !isCourseKind(kindRaw)) {
         return {
@@ -156,7 +158,7 @@ export function parseCourseCreateBody(body: unknown):
         };
     }
 
-    const totalHours = parseTotalHours(o);
+    const totalHours = parseTotalHours(courseRecord);
 
     if (totalHours === null) {
         return {
@@ -164,7 +166,7 @@ export function parseCourseCreateBody(body: unknown):
         };
     }
 
-    const instructorParsed = readOptionalUuid(o, 'instructorId');
+    const instructorParsed = readOptionalUuid(courseRecord, 'instructorId');
 
     if (instructorParsed.status === 'invalid') {
         return {
@@ -173,8 +175,11 @@ export function parseCourseCreateBody(body: unknown):
     }
 
     if (kindRaw === 'THEORY_GROUP') {
-        const startRaw = readOptionalDateString(o, 'theoryStartDate');
-        const endRaw = readOptionalDateString(o, 'theoryEndDate');
+        const startRaw = readOptionalDateString(
+            courseRecord,
+            'theoryStartDate',
+        );
+        const endRaw = readOptionalDateString(courseRecord, 'theoryEndDate');
 
         if (startRaw === undefined || startRaw === null || startRaw === '') {
             return {
@@ -194,9 +199,9 @@ export function parseCourseCreateBody(body: unknown):
             };
         }
 
-        const cap = parseCapacityForTheory(o);
+        const capacity = parseCapacityForTheory(courseRecord);
 
-        if (cap === 'invalid') {
+        if (capacity === 'invalid') {
             return {
                 error: 'Pole capacity musi być liczbą całkowitą większą lub równą 0 lub null.',
             };
@@ -212,8 +217,8 @@ export function parseCourseCreateBody(body: unknown):
             theoryEndDate: endRaw,
         };
 
-        if (cap !== undefined) {
-            bffBody.capacity = cap;
+        if (capacity !== undefined) {
+            bffBody.capacity = capacity;
         }
 
         if (instructorParsed.status === 'value') {
@@ -223,16 +228,24 @@ export function parseCourseCreateBody(body: unknown):
         return { bffBody };
     }
 
-    if ('capacity' in o && o.capacity !== null && o.capacity !== undefined) {
-        const cap = parseCapacityForTheory(o);
+    if (
+        'capacity' in courseRecord &&
+        courseRecord.capacity !== null &&
+        courseRecord.capacity !== undefined
+    ) {
+        const capacity = parseCapacityForTheory(courseRecord);
 
-        if (cap !== 'invalid' && cap !== null && cap !== undefined) {
+        if (
+            capacity !== 'invalid' &&
+            capacity !== null &&
+            capacity !== undefined
+        ) {
             return {
                 error: 'Pole capacity jest dozwolone tylko dla kursu typu THEORY_GROUP.',
             };
         }
 
-        if (cap === 'invalid') {
+        if (capacity === 'invalid') {
             return {
                 error: 'Pole capacity musi być liczbą całkowitą większą lub równą 0 lub null.',
             };
@@ -240,10 +253,10 @@ export function parseCourseCreateBody(body: unknown):
     }
 
     if (
-        'theoryStartDate' in o &&
-        o.theoryStartDate !== null &&
-        o.theoryStartDate !== undefined &&
-        String(o.theoryStartDate).trim() !== ''
+        'theoryStartDate' in courseRecord &&
+        courseRecord.theoryStartDate !== null &&
+        courseRecord.theoryStartDate !== undefined &&
+        String(courseRecord.theoryStartDate).trim() !== ''
     ) {
         return {
             error: 'Dat teorii nie można podawać dla kursów praktycznych lub dodatkowych.',
@@ -251,10 +264,10 @@ export function parseCourseCreateBody(body: unknown):
     }
 
     if (
-        'theoryEndDate' in o &&
-        o.theoryEndDate !== null &&
-        o.theoryEndDate !== undefined &&
-        String(o.theoryEndDate).trim() !== ''
+        'theoryEndDate' in courseRecord &&
+        courseRecord.theoryEndDate !== null &&
+        courseRecord.theoryEndDate !== undefined &&
+        String(courseRecord.theoryEndDate).trim() !== ''
     ) {
         return {
             error: 'Dat teorii nie można podawać dla kursów praktycznych lub dodatkowych.',

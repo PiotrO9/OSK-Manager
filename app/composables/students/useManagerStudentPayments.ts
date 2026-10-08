@@ -47,7 +47,7 @@ export function useManagerStudentPayments(input: {
     const paymentsSaving = ref(false);
     const paymentsActionError = ref<string | null>(null);
     const paymentCreateSuccessVersion = ref(0);
-    let paymentsFetchSeq = 0;
+    let paymentsFetchSequence = 0;
 
     const paymentsOverviewLabel = computed(() => {
         return getStudentCountOverviewLabel({
@@ -69,7 +69,7 @@ export function useManagerStudentPayments(input: {
             return;
         }
 
-        const seq = ++paymentsFetchSeq;
+        const requestSequence = ++paymentsFetchSequence;
 
         paymentsLoading.value = true;
 
@@ -79,14 +79,14 @@ export function useManagerStudentPayments(input: {
                 input.schoolId.value,
             );
 
-            if (seq !== paymentsFetchSeq) {
+            if (requestSequence !== paymentsFetchSequence) {
                 return;
             }
 
             payments.value = data.payments;
             paymentsSummary.value = data.summary;
         } catch (err: unknown) {
-            if (seq !== paymentsFetchSeq) {
+            if (requestSequence !== paymentsFetchSequence) {
                 return;
             }
 
@@ -97,7 +97,7 @@ export function useManagerStudentPayments(input: {
                 'Nie udało się wczytać opłat kursanta.',
             );
         } finally {
-            if (seq === paymentsFetchSeq) {
+            if (requestSequence === paymentsFetchSequence) {
                 paymentsLoading.value = false;
             }
         }

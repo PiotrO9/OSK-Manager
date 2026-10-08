@@ -16,7 +16,7 @@ export function useMyLessonsRatings(input: UseMyLessonsRatingsInput) {
     const isRatingSubmitting = ref(false);
     const ratingErrorMessage = ref<string | null>(null);
 
-    let ratingFetchSeq = 0;
+    let ratingFetchSequence = 0;
 
     async function handleRatingLessonSelected(
         lesson: ScheduleLessonItem,
@@ -24,7 +24,7 @@ export function useMyLessonsRatings(input: UseMyLessonsRatingsInput) {
         selectedRatingLessonId.value = lesson.id;
         ratingErrorMessage.value = null;
 
-        const seq = ++ratingFetchSeq;
+        const requestSequence = ++ratingFetchSequence;
 
         if (!input.isStudent.value || !isCompletedPracticeLesson(lesson)) {
             isRatingRefreshing.value = false;
@@ -37,7 +37,7 @@ export function useMyLessonsRatings(input: UseMyLessonsRatingsInput) {
         try {
             const rating = await fetchLessonRating(lesson.id);
 
-            if (seq !== ratingFetchSeq) {
+            if (requestSequence !== ratingFetchSequence) {
                 return;
             }
 
@@ -45,7 +45,7 @@ export function useMyLessonsRatings(input: UseMyLessonsRatingsInput) {
                 item.id === lesson.id ? { ...item, rating } : item,
             );
         } catch (err: unknown) {
-            if (seq !== ratingFetchSeq) {
+            if (requestSequence !== ratingFetchSequence) {
                 return;
             }
 
@@ -54,7 +54,7 @@ export function useMyLessonsRatings(input: UseMyLessonsRatingsInput) {
                 'Nie udało się odświeżyć opinii.',
             );
         } finally {
-            if (seq === ratingFetchSeq) {
+            if (requestSequence === ratingFetchSequence) {
                 isRatingRefreshing.value = false;
             }
         }

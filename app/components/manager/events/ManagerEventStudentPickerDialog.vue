@@ -82,27 +82,30 @@ function isRowSelectionBlocked(userId: string): boolean {
 }
 
 function handleToggleStudent(userId: string): void {
-    const uid = userId.trim();
+    const trimmedUserId = userId.trim();
 
-    if (!uid) {
+    if (!trimmedUserId) {
         return;
     }
 
-    const idx = selectedStudentUserIds.value.indexOf(uid);
+    const selectedIndex = selectedStudentUserIds.value.indexOf(trimmedUserId);
 
-    if (idx >= 0) {
+    if (selectedIndex >= 0) {
         selectedStudentUserIds.value = selectedStudentUserIds.value.filter(
-            (x) => x !== uid,
+            (selectedUserId) => selectedUserId !== trimmedUserId,
         );
 
         return;
     }
 
-    if (isRowSelectionBlocked(uid)) {
+    if (isRowSelectionBlocked(trimmedUserId)) {
         return;
     }
 
-    selectedStudentUserIds.value = [...selectedStudentUserIds.value, uid];
+    selectedStudentUserIds.value = [
+        ...selectedStudentUserIds.value,
+        trimmedUserId,
+    ];
 }
 
 function handleClose(): void {
@@ -116,7 +119,7 @@ watch(
             return;
         }
 
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSeq;
 
         students.value = [];
         searchQuery.value = '';
@@ -124,9 +127,9 @@ watch(
         loadError.value = null;
         submitError.value = null;
 
-        const sid = props.schoolId.trim();
+        const trimmedSchoolId = props.schoolId.trim();
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             loadError.value = 'Brak identyfikatora szkoły.';
 
             return;
@@ -134,18 +137,18 @@ watch(
 
         try {
             const page = await fetchList({
-                schoolId: sid,
+                schoolId: trimmedSchoolId,
                 page: 1,
                 limit: studentsFetchLimit.value,
             });
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSeq) {
                 return;
             }
 
             students.value = page.items;
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSeq) {
                 return;
             }
 

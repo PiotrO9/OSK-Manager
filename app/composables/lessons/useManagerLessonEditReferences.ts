@@ -47,16 +47,16 @@ export function useManagerLessonEditReferences(
     const instructorNameFallback = ref<string | null>(null);
     const vehicleDisplayFallback = ref<Vehicle | null>(null);
     const studentDisplayName = ref<string | null>(null);
-    let vehicleFallbackLoadSeq = 0;
-    let instructorFallbackLoadSeq = 0;
-    let studentDisplayNameLoadSeq = 0;
-    let vehiclesLoadSeq = 0;
-    let instructorsLoadSeq = 0;
+    let vehicleFallbackLoadSequence = 0;
+    let instructorFallbackLoadSequence = 0;
+    let studentDisplayNameLoadSequence = 0;
+    let vehiclesLoadSequence = 0;
+    let instructorsLoadSequence = 0;
 
     async function loadVehicleDisplayFallback(
         vehicleId: string | null | undefined,
     ): Promise<void> {
-        const seq = ++vehicleFallbackLoadSeq;
+        const requestSequence = ++vehicleFallbackLoadSequence;
 
         vehicleDisplayFallback.value = null;
 
@@ -74,13 +74,13 @@ export function useManagerLessonEditReferences(
         try {
             const vehicle = await options.fetchVehicleById(id);
 
-            if (seq !== vehicleFallbackLoadSeq) {
+            if (requestSequence !== vehicleFallbackLoadSequence) {
                 return;
             }
 
             vehicleDisplayFallback.value = vehicle;
         } catch {
-            if (seq !== vehicleFallbackLoadSeq) {
+            if (requestSequence !== vehicleFallbackLoadSequence) {
                 return;
             }
 
@@ -92,7 +92,7 @@ export function useManagerLessonEditReferences(
         instructorId: string,
     ): Promise<void> {
         const id = instructorId.trim();
-        const seq = ++instructorFallbackLoadSeq;
+        const requestSequence = ++instructorFallbackLoadSequence;
 
         if (!id) {
             instructorNameFallback.value = null;
@@ -111,7 +111,7 @@ export function useManagerLessonEditReferences(
             const normalized = parseInstructorListItemFromApi(data);
 
             if (normalized) {
-                if (seq !== instructorFallbackLoadSeq) {
+                if (requestSequence !== instructorFallbackLoadSequence) {
                     return;
                 }
 
@@ -121,7 +121,7 @@ export function useManagerLessonEditReferences(
                 return;
             }
         } catch {
-            if (seq !== instructorFallbackLoadSeq) {
+            if (requestSequence !== instructorFallbackLoadSequence) {
                 return;
             }
 
@@ -132,7 +132,7 @@ export function useManagerLessonEditReferences(
     async function loadStudentDisplayName(
         lesson: ManagerLessonDetail,
     ): Promise<void> {
-        const seq = ++studentDisplayNameLoadSeq;
+        const requestSequence = ++studentDisplayNameLoadSequence;
 
         studentDisplayName.value = null;
 
@@ -171,7 +171,7 @@ export function useManagerLessonEditReferences(
             const detail: StudentDetail | null = normalizeStudentDetail(data);
 
             if (detail) {
-                if (seq !== studentDisplayNameLoadSeq) {
+                if (requestSequence !== studentDisplayNameLoadSequence) {
                     return;
                 }
 
@@ -184,7 +184,7 @@ export function useManagerLessonEditReferences(
             /* fallback below */
         }
 
-        if (seq !== studentDisplayNameLoadSeq) {
+        if (requestSequence !== studentDisplayNameLoadSequence) {
             return;
         }
 
@@ -194,7 +194,7 @@ export function useManagerLessonEditReferences(
 
     async function loadVehicles(): Promise<void> {
         const schoolId = options.schoolId.value;
-        const seq = ++vehiclesLoadSeq;
+        const requestSequence = ++vehiclesLoadSequence;
 
         vehiclesError.value = null;
         vehicles.value = [];
@@ -208,13 +208,13 @@ export function useManagerLessonEditReferences(
         try {
             const items = await options.fetchVehiclesList(schoolId);
 
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
             vehicles.value = items;
         } catch (err: unknown) {
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
@@ -223,7 +223,7 @@ export function useManagerLessonEditReferences(
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            if (seq === vehiclesLoadSeq) {
+            if (requestSequence === vehiclesLoadSequence) {
                 isVehiclesLoading.value = false;
             }
         }
@@ -231,7 +231,7 @@ export function useManagerLessonEditReferences(
 
     async function loadInstructors(): Promise<void> {
         const schoolId = options.schoolId.value;
-        const seq = ++instructorsLoadSeq;
+        const requestSequence = ++instructorsLoadSequence;
 
         instructorsError.value = null;
         instructors.value = [];
@@ -245,13 +245,13 @@ export function useManagerLessonEditReferences(
         try {
             const items = await options.fetchInstructorsList(schoolId);
 
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
             instructors.value = items;
         } catch (err: unknown) {
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
@@ -260,7 +260,7 @@ export function useManagerLessonEditReferences(
                 'Nie udało się pobrać listy instruktorów.',
             );
         } finally {
-            if (seq === instructorsLoadSeq) {
+            if (requestSequence === instructorsLoadSequence) {
                 isInstructorsLoading.value = false;
             }
         }
@@ -331,9 +331,9 @@ export function useManagerLessonEditReferences(
     );
 
     function clearFallbacks(): void {
-        instructorFallbackLoadSeq += 1;
-        vehicleFallbackLoadSeq += 1;
-        studentDisplayNameLoadSeq += 1;
+        instructorFallbackLoadSequence += 1;
+        vehicleFallbackLoadSequence += 1;
+        studentDisplayNameLoadSequence += 1;
         instructorNameFallback.value = null;
         vehicleDisplayFallback.value = null;
     }

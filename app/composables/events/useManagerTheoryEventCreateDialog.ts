@@ -44,7 +44,7 @@ export function useManagerTheoryEventCreateDialog({
     /** `type="number"` + v-model może dać `number` lub `string`. */
     const capacityInput = ref<string | number>('');
     const formError = ref<string | null>(null);
-    let resourcesLoadSeq = 0;
+    let resourcesLoadSequence = 0;
 
     const selectedCourse = computed((): CourseListItem | null => {
         const courseId = selectedCourseId.value.trim();
@@ -155,14 +155,14 @@ export function useManagerTheoryEventCreateDialog({
 
     watch(
         [open, () => schoolId.value.trim()],
-        async ([isOpen, sid]) => {
-            const seq = ++resourcesLoadSeq;
+        async ([isOpen, selectedSchoolId]) => {
+            const requestSequence = ++resourcesLoadSequence;
 
             theoryCourses.value = [];
             schoolInstructors.value = [];
             coursesLoadError.value = null;
 
-            if (!isOpen || !sid) {
+            if (!isOpen || !selectedSchoolId) {
                 isCoursesLoading.value = false;
 
                 return;
@@ -172,18 +172,18 @@ export function useManagerTheoryEventCreateDialog({
 
             try {
                 const [courses, instructors] = await Promise.all([
-                    fetchCoursesList(sid),
-                    fetchInstructorsList(sid).catch(() => []),
+                    fetchCoursesList(selectedSchoolId),
+                    fetchInstructorsList(selectedSchoolId).catch(() => []),
                 ]);
 
-                if (seq !== resourcesLoadSeq) {
+                if (requestSequence !== resourcesLoadSequence) {
                     return;
                 }
 
                 theoryCourses.value = courses;
                 schoolInstructors.value = instructors;
             } catch (err: unknown) {
-                if (seq !== resourcesLoadSeq) {
+                if (requestSequence !== resourcesLoadSequence) {
                     return;
                 }
 
@@ -192,7 +192,7 @@ export function useManagerTheoryEventCreateDialog({
                     DEFAULT_COURSES_LOAD_ERROR,
                 );
             } finally {
-                if (seq === resourcesLoadSeq) {
+                if (requestSequence === resourcesLoadSequence) {
                     isCoursesLoading.value = false;
                 }
             }

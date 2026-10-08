@@ -13,7 +13,7 @@ export function useManagerStudentProcessStatus(input: {
     const processStatus = ref<StudentProcessStatus | null>(null);
     const processStatusLoading = ref(false);
     const processStatusError = ref<string | null>(null);
-    let processStatusFetchSeq = 0;
+    let processStatusFetchSequence = 0;
 
     const processStatusSteps = computed(() => processStatus.value?.steps ?? []);
 
@@ -42,7 +42,7 @@ export function useManagerStudentProcessStatus(input: {
             return;
         }
 
-        const seq = ++processStatusFetchSeq;
+        const requestSequence = ++processStatusFetchSequence;
 
         processStatusLoading.value = true;
 
@@ -52,13 +52,13 @@ export function useManagerStudentProcessStatus(input: {
                 schoolId: input.schoolId.value,
             });
 
-            if (seq !== processStatusFetchSeq) {
+            if (requestSequence !== processStatusFetchSequence) {
                 return;
             }
 
             processStatus.value = status;
         } catch (err: unknown) {
-            if (seq !== processStatusFetchSeq) {
+            if (requestSequence !== processStatusFetchSequence) {
                 return;
             }
 
@@ -68,7 +68,7 @@ export function useManagerStudentProcessStatus(input: {
                 'Nie udało się wczytać statusu procesu kursanta.',
             );
         } finally {
-            if (seq === processStatusFetchSeq) {
+            if (requestSequence === processStatusFetchSequence) {
                 processStatusLoading.value = false;
             }
         }

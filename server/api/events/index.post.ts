@@ -5,9 +5,9 @@ import { isUuid } from '~~/server/utils/validation/requestValidation';
 type EventTypeLiteral = 'DRIVE' | 'THEORY';
 
 function parseOptionalCapacity(
-    o: Record<string, unknown>,
+    eventRecord: Record<string, unknown>,
 ): number | undefined | false {
-    const raw = o.capacity;
+    const raw = eventRecord.capacity;
 
     if (raw === undefined || raw === null) {
         return undefined;
@@ -22,19 +22,19 @@ function parseOptionalCapacity(
     }
 
     if (typeof raw === 'string') {
-        const t = raw.trim();
+        const trimmedValue = raw.trim();
 
-        if (t === '') {
+        if (trimmedValue === '') {
             return undefined;
         }
 
-        const n = Number.parseInt(t, 10);
+        const parsedCapacity = Number.parseInt(trimmedValue, 10);
 
-        if (!Number.isFinite(n) || n < 0) {
+        if (!Number.isFinite(parsedCapacity) || parsedCapacity < 0) {
             return false;
         }
 
-        return n;
+        return parsedCapacity;
     }
 
     return false;
@@ -58,9 +58,11 @@ function validatePostBody(raw: unknown):
         return { ok: false, message: 'Oczekiwano obiektu JSON.' };
     }
 
-    const o = raw as Record<string, unknown>;
+    const eventRecord = raw as Record<string, unknown>;
     const instructorId =
-        typeof o.instructorId === 'string' ? o.instructorId.trim() : '';
+        typeof eventRecord.instructorId === 'string'
+            ? eventRecord.instructorId.trim()
+            : '';
 
     if (!instructorId || !isUuid(instructorId)) {
         return {
@@ -69,15 +71,22 @@ function validatePostBody(raw: unknown):
         };
     }
 
-    const typeRaw = typeof o.type === 'string' ? o.type.trim() : '';
+    const typeRaw =
+        typeof eventRecord.type === 'string' ? eventRecord.type.trim() : '';
     const type = typeRaw === 'DRIVE' || typeRaw === 'THEORY' ? typeRaw : null;
 
     if (!type) {
         return { ok: false, message: 'Pole type musi być DRIVE lub THEORY.' };
     }
 
-    const startTime = typeof o.startTime === 'string' ? o.startTime.trim() : '';
-    const endTime = typeof o.endTime === 'string' ? o.endTime.trim() : '';
+    const startTime =
+        typeof eventRecord.startTime === 'string'
+            ? eventRecord.startTime.trim()
+            : '';
+    const endTime =
+        typeof eventRecord.endTime === 'string'
+            ? eventRecord.endTime.trim()
+            : '';
 
     if (!startTime || !endTime) {
         return {
@@ -89,21 +98,24 @@ function validatePostBody(raw: unknown):
     let vehicleId: string | undefined;
 
     if (type === 'DRIVE') {
-        const v = typeof o.vehicleId === 'string' ? o.vehicleId.trim() : '';
+        const vehicleIdValue =
+            typeof eventRecord.vehicleId === 'string'
+                ? eventRecord.vehicleId.trim()
+                : '';
 
-        if (!v || !isUuid(v)) {
+        if (!vehicleIdValue || !isUuid(vehicleIdValue)) {
             return {
                 ok: false,
                 message: 'Dla typu DRIVE wymagane jest pole vehicleId (UUID).',
             };
         }
 
-        vehicleId = v;
+        vehicleId = vehicleIdValue;
     }
 
-    const cap = parseOptionalCapacity(o);
+    const capacity = parseOptionalCapacity(eventRecord);
 
-    if (cap === false) {
+    if (capacity === false) {
         return {
             ok: false,
             message:
@@ -111,7 +123,10 @@ function validatePostBody(raw: unknown):
         };
     }
 
-    const courseRaw = typeof o.courseId === 'string' ? o.courseId.trim() : '';
+    const courseRaw =
+        typeof eventRecord.courseId === 'string'
+            ? eventRecord.courseId.trim()
+            : '';
 
     if (courseRaw) {
         if (type !== 'THEORY') {
@@ -127,7 +142,10 @@ function validatePostBody(raw: unknown):
                 message: 'Pole courseId musi być poprawnym UUID.',
             };
         }
-    } else if (o.courseId !== undefined && o.courseId !== null) {
+    } else if (
+        eventRecord.courseId !== undefined &&
+        eventRecord.courseId !== null
+    ) {
         return {
             ok: false,
             message: 'Pole courseId musi być niepustym UUID lub pominięte.',
@@ -150,8 +168,8 @@ function validatePostBody(raw: unknown):
         vehicleId,
     };
 
-    if (cap !== undefined) {
-        body.capacity = cap;
+    if (capacity !== undefined) {
+        body.capacity = capacity;
     }
 
     if (type === 'THEORY' && courseRaw) {

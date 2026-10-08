@@ -99,16 +99,16 @@ export function useEventApi() {
         try {
             let last: RemoveStudentsFromEventResponse | null = null;
 
-            for (const sid of studentIds) {
-                const uid = sid.trim();
+            for (const studentId of studentIds) {
+                const trimmedStudentId = studentId.trim();
 
-                if (!uid) {
+                if (!trimmedStudentId) {
                     continue;
                 }
 
                 last = await requestBffData<RemoveStudentsFromEventResponse>(
                     'DELETE',
-                    `/api/events/${encodeURIComponent(eid)}/students/${encodeURIComponent(uid)}`,
+                    `/api/events/${encodeURIComponent(eid)}/students/${encodeURIComponent(trimmedStudentId)}`,
                     {
                         fallbackMessage:
                             'Nie udało się usunąć kursantów z wydarzenia.',

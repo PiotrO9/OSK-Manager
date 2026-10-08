@@ -49,9 +49,9 @@ async function assertMockStudentOwnsEventsRoute(
         const role = String(payload.role ?? '')
             .trim()
             .toUpperCase();
-        const uid = String(payload.userId ?? '').trim();
+        const authenticatedUserId = String(payload.userId ?? '').trim();
 
-        if (!uid) {
+        if (!authenticatedUserId) {
             throw createError({
                 statusCode: 401,
                 message: 'Nieprawidłowy token',
@@ -65,7 +65,7 @@ async function assertMockStudentOwnsEventsRoute(
             });
         }
 
-        if (uid !== routeUserId) {
+        if (authenticatedUserId !== routeUserId) {
             throw createError({
                 statusCode: 403,
                 message: 'Brak uprawnień do tych danych.',

@@ -21,7 +21,7 @@ export function useManagerInstructorDetailsData() {
     const editBaseline = ref<InstructorEditFormModel | null>(null);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     async function loadInstructor(rawId: unknown): Promise<void> {
         errorMessage.value = null;
@@ -38,7 +38,7 @@ export function useManagerInstructorDetailsData() {
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         isLoading.value = true;
         instructor.value = null;
@@ -57,7 +57,7 @@ export function useManagerInstructorDetailsData() {
             const normalized = normalizeInstructorDetail(data);
             const forEdit = normalizeInstructorDetailForEdit(data);
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -72,7 +72,7 @@ export function useManagerInstructorDetailsData() {
             editForm.value = { ...forEdit };
             editBaseline.value = { ...forEdit };
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -87,7 +87,7 @@ export function useManagerInstructorDetailsData() {
                       );
             instructor.value = null;
         } finally {
-            if (seq === fetchSeq) {
+            if (requestSequence === fetchSequence) {
                 isLoading.value = false;
             }
         }

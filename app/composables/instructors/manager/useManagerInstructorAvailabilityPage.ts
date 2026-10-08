@@ -41,7 +41,7 @@ export function useManagerInstructorAvailabilityPage(
     const rowErrors = ref<Record<number, string | null>>({});
     const calendarRefreshKey = ref(0);
 
-    let loadSeq = 0;
+    let loadSequence = 0;
 
     const changedRows = computed(() =>
         getInstructorAvailabilityChangedRows(rows.value, savedRows.value),
@@ -105,7 +105,7 @@ export function useManagerInstructorAvailabilityPage(
 
     async function loadAvailability(): Promise<void> {
         const id = instructorId().trim();
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSequence;
 
         loadError.value = null;
         formError.value = null;
@@ -122,7 +122,7 @@ export function useManagerInstructorAvailabilityPage(
         try {
             const entries = await fetchWeekly();
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -131,7 +131,7 @@ export function useManagerInstructorAvailabilityPage(
             rows.value = cloneRows(nextRows);
             savedRows.value = cloneRows(nextRows);
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 

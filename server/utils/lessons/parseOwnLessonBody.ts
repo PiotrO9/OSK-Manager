@@ -33,9 +33,9 @@ function readRequiredIsoDateTime(
         return null;
     }
 
-    const d = new Date(value);
+    const parsedDate = new Date(value);
 
-    return Number.isNaN(d.getTime()) ? null : value;
+    return Number.isNaN(parsedDate.getTime()) ? null : value;
 }
 
 export function parseOwnLessonBody(
@@ -45,8 +45,8 @@ export function parseOwnLessonBody(
         return { ok: false, message: 'Oczekiwano obiektu JSON.' };
     }
 
-    const o = raw as Record<string, unknown>;
-    const extraKey = Object.keys(o).find(
+    const lessonRecord = raw as Record<string, unknown>;
+    const extraKey = Object.keys(lessonRecord).find(
         (key) => !OWN_LESSON_BODY_KEYS.has(key),
     );
 
@@ -57,13 +57,13 @@ export function parseOwnLessonBody(
         };
     }
 
-    const courseId = readRequiredUuid(o, 'courseId');
+    const courseId = readRequiredUuid(lessonRecord, 'courseId');
 
     if (!courseId) {
         return { ok: false, message: 'Pole courseId musi byc poprawnym UUID.' };
     }
 
-    const instructorId = readRequiredUuid(o, 'instructorId');
+    const instructorId = readRequiredUuid(lessonRecord, 'instructorId');
 
     if (!instructorId) {
         return {
@@ -72,8 +72,8 @@ export function parseOwnLessonBody(
         };
     }
 
-    const startTime = readRequiredIsoDateTime(o, 'startTime');
-    const endTime = readRequiredIsoDateTime(o, 'endTime');
+    const startTime = readRequiredIsoDateTime(lessonRecord, 'startTime');
+    const endTime = readRequiredIsoDateTime(lessonRecord, 'endTime');
 
     if (!startTime || !endTime) {
         return {

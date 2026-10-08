@@ -45,16 +45,16 @@ function handleCancelEdit() {
 }
 
 async function handleSaveNotes() {
-    const uid = props.userId.trim();
+    const trimmedUserId = props.userId.trim();
 
-    if (!uid) {
+    if (!trimmedUserId) {
         saveError.value = 'Brak identyfikatora kursanta.';
 
         return;
     }
 
-    const t = draftNotes.value.trim();
-    const notesPayload = t.length === 0 ? null : t;
+    const trimmedNotes = draftNotes.value.trim();
+    const notesPayload = trimmedNotes.length === 0 ? null : trimmedNotes;
 
     if (notesPayload !== null && notesPayload.length > NOTES_MAX_LEN) {
         saveError.value = `Notatka nie może przekraczać ${NOTES_MAX_LEN} znaków.`;
@@ -67,7 +67,7 @@ async function handleSaveNotes() {
 
     try {
         const saved = await updateNotes({
-            userId: uid,
+            userId: trimmedUserId,
             notes: notesPayload,
         });
 

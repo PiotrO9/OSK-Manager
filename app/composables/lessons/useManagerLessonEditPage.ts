@@ -28,7 +28,7 @@ export function useManagerLessonEditPage() {
     const workingWeekdays = ref<number[] | undefined>();
     const dayOffDates = ref<string[]>([]);
     const workingExceptionDates = ref<string[]>([]);
-    let availabilityDaysSeq = 0;
+    let availabilityDaysSequence = 0;
 
     function getLessonIdFromRoute(): string {
         const raw = route.params.id;
@@ -108,7 +108,7 @@ export function useManagerLessonEditPage() {
         fetchInstructorsList,
     });
 
-    let loadSeq = 0;
+    let loadSequence = 0;
 
     const scheduleBackHref = computed(() => {
         const eventsDayRoute = buildEventsDayReturnRoute(
@@ -121,12 +121,12 @@ export function useManagerLessonEditPage() {
             return eventsDayRoute;
         }
 
-        const sid = schoolId.value.trim();
+        const schoolIdForRoute = schoolId.value.trim();
 
-        if (sid) {
+        if (schoolIdForRoute) {
             return {
                 path: '/manager/schedule',
-                query: { schoolId: sid },
+                query: { schoolId: schoolIdForRoute },
             };
         }
 
@@ -143,7 +143,7 @@ export function useManagerLessonEditPage() {
     watch(
         [formInstructorId, () => loadedLesson.value?.bookingMaxDaysAhead],
         async () => {
-            const seq = ++availabilityDaysSeq;
+            const requestSequence = ++availabilityDaysSequence;
             const instructorId = formInstructorId.value.trim();
 
             workingWeekdays.value = undefined;
@@ -192,7 +192,7 @@ export function useManagerLessonEditPage() {
                     ),
                 ]);
 
-                if (seq !== availabilityDaysSeq) return;
+                if (requestSequence !== availabilityDaysSequence) return;
 
                 workingWeekdays.value = weekly.map((entry) => entry.dayOfWeek);
                 dayOffDates.value = exceptions
@@ -219,7 +219,7 @@ export function useManagerLessonEditPage() {
             return;
         }
 
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSequence;
 
         loadError.value = null;
         notFound.value = false;
@@ -230,7 +230,7 @@ export function useManagerLessonEditPage() {
         try {
             const lesson = await fetchLesson(id);
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -266,7 +266,7 @@ export function useManagerLessonEditPage() {
             applyPrefill(lesson);
             loadLessonReferences(lesson);
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 

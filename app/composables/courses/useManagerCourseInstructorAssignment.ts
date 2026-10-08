@@ -127,15 +127,15 @@ export function useManagerCourseInstructorAssignment({
 
     watch(
         effectiveSchoolId,
-        (sid) => {
-            if (!sid) {
+        (selectedSchoolId) => {
+            if (!selectedSchoolId) {
                 instructors.value = [];
                 instructorsLoadError.value = null;
 
                 return;
             }
 
-            void loadInstructors(sid);
+            void loadInstructors(selectedSchoolId);
         },
         { immediate: true },
     );

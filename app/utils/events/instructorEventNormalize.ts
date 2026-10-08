@@ -6,18 +6,18 @@ import {
 } from './instructorEventNestedReaders';
 
 export function readInstructorIdFromEventRaw(
-    o: Record<string, unknown>,
+    eventRecord: Record<string, unknown>,
 ): string {
-    const direct = o.instructorId;
+    const direct = eventRecord.instructorId;
 
     if (typeof direct === 'string' && direct.trim()) {
         return direct.trim();
     }
 
-    const inst = o.instructor;
+    const instructorValue = eventRecord.instructor;
 
-    if (inst && typeof inst === 'object') {
-        const id = (inst as Record<string, unknown>).id;
+    if (instructorValue && typeof instructorValue === 'object') {
+        const id = (instructorValue as Record<string, unknown>).id;
 
         if (typeof id === 'string' && id.trim()) {
             return id.trim();
@@ -28,63 +28,65 @@ export function readInstructorIdFromEventRaw(
 }
 
 export function readCourseIdFromEventRaw(
-    o: Record<string, unknown>,
+    eventRecord: Record<string, unknown>,
 ): string | null | undefined {
-    if (!('courseId' in o) && !('course_id' in o)) {
+    if (!('courseId' in eventRecord) && !('course_id' in eventRecord)) {
         return undefined;
     }
 
-    const val =
-        'courseId' in o && o.courseId !== undefined ? o.courseId : o.course_id;
+    const rawCourseId =
+        'courseId' in eventRecord && eventRecord.courseId !== undefined
+            ? eventRecord.courseId
+            : eventRecord.course_id;
 
-    if (val === null) {
+    if (rawCourseId === null) {
         return null;
     }
 
-    if (typeof val === 'string') {
-        const t = val.trim();
+    if (typeof rawCourseId === 'string') {
+        const trimmedValue = rawCourseId.trim();
 
-        return t.length > 0 ? t : null;
+        return trimmedValue.length > 0 ? trimmedValue : null;
     }
 
     return null;
 }
 
 export function readEventStatusFromRaw(
-    o: Record<string, unknown>,
+    eventRecord: Record<string, unknown>,
 ): string | undefined {
-    if (!('status' in o)) {
+    if (!('status' in eventRecord)) {
         return undefined;
     }
 
-    const s = o.status;
+    const statusValue = eventRecord.status;
 
-    if (typeof s !== 'string') {
+    if (typeof statusValue !== 'string') {
         return undefined;
     }
 
-    const t = s.trim();
+    const trimmedValue = statusValue.trim();
 
-    return t.length > 0 ? t : undefined;
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
 }
 
 export function readVehicleIdFromEventRaw(
-    o: Record<string, unknown>,
+    eventRecord: Record<string, unknown>,
 ): string | null {
-    if (o.vehicleId === null) {
+    if (eventRecord.vehicleId === null) {
         return null;
     }
 
-    if (typeof o.vehicleId === 'string') {
-        const t = o.vehicleId.trim();
+    if (typeof eventRecord.vehicleId === 'string') {
+        const trimmedValue = eventRecord.vehicleId.trim();
 
-        return t.length > 0 ? t : null;
+        return trimmedValue.length > 0 ? trimmedValue : null;
     }
 
-    const veh = o.vehicle;
+    const vehicleValue = eventRecord.vehicle;
 
-    if (veh && typeof veh === 'object') {
-        const id = (veh as Record<string, unknown>).id;
+    if (vehicleValue && typeof vehicleValue === 'object') {
+        const id = (vehicleValue as Record<string, unknown>).id;
 
         if (typeof id === 'string' && id.trim()) {
             return id.trim();
@@ -99,31 +101,35 @@ export function normalizeInstructorEventFromApi(raw: unknown): InstructorEvent {
         throw new Error('Nieprawidłowa odpowiedź serwera');
     }
 
-    const o = raw as Record<string, unknown>;
-    const base = raw as InstructorEvent;
-    const instructorId = readInstructorIdFromEventRaw(o);
-    const vehicleId = readVehicleIdFromEventRaw(o);
-    const courseIdResolved = readCourseIdFromEventRaw(o);
+    const eventRecord = raw as Record<string, unknown>;
+    const baseEvent = raw as InstructorEvent;
+    const instructorId = readInstructorIdFromEventRaw(eventRecord);
+    const vehicleId = readVehicleIdFromEventRaw(eventRecord);
+    const courseIdResolved = readCourseIdFromEventRaw(eventRecord);
     const startTime =
-        typeof o.startTime === 'string'
-            ? o.startTime
-            : typeof base.startTime === 'string'
-              ? base.startTime
+        typeof eventRecord.startTime === 'string'
+            ? eventRecord.startTime
+            : typeof baseEvent.startTime === 'string'
+              ? baseEvent.startTime
               : '';
     const endTime =
-        typeof o.endTime === 'string'
-            ? o.endTime
-            : typeof base.endTime === 'string'
-              ? base.endTime
+        typeof eventRecord.endTime === 'string'
+            ? eventRecord.endTime
+            : typeof baseEvent.endTime === 'string'
+              ? baseEvent.endTime
               : '';
-    const eventInstructor = readNestedInstructorListItem(o.instructor);
+    const eventInstructor = readNestedInstructorListItem(
+        eventRecord.instructor,
+    );
     const eventStudents =
-        'students' in o ? readNestedEventStudents(o.students) : undefined;
-    const freeWindowsResolved = readFreeWindowsFromRaw(o);
-    const statusResolved = readEventStatusFromRaw(o);
+        'students' in eventRecord
+            ? readNestedEventStudents(eventRecord.students)
+            : undefined;
+    const freeWindowsResolved = readFreeWindowsFromRaw(eventRecord);
+    const statusResolved = readEventStatusFromRaw(eventRecord);
 
     return {
-        ...base,
+        ...baseEvent,
         instructorId,
         vehicleId,
         startTime,

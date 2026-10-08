@@ -28,8 +28,8 @@ function readCapacity(raw: unknown): TheoryEventEligibleCapacity {
         return { limit: null, used: 0, remaining: null };
     }
 
-    const c = raw as Record<string, unknown>;
-    const limit = c.limit;
+    const courseRecord = raw as Record<string, unknown>;
+    const limit = courseRecord.limit;
 
     const limitResolved =
         limit === null || limit === undefined
@@ -38,14 +38,14 @@ function readCapacity(raw: unknown): TheoryEventEligibleCapacity {
               ? Math.trunc(limit)
               : null;
 
-    const usedRaw = c.used;
+    const usedRaw = courseRecord.used;
 
     const used =
         typeof usedRaw === 'number' && Number.isFinite(usedRaw)
             ? Math.max(0, Math.trunc(usedRaw))
             : 0;
 
-    const rem = c.remaining;
+    const rem = courseRecord.remaining;
 
     const remaining =
         rem === null || rem === undefined
@@ -66,37 +66,45 @@ function readOneStudent(raw: unknown): TheoryEventEligibleStudentRow | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = readString(o.id);
+    const studentRecord = raw as Record<string, unknown>;
+    const id = readString(studentRecord.id);
 
     if (!id) {
         return null;
     }
 
     const userId =
-        readString(o.userId) ||
-        readString(o.user_id) ||
-        readString(o.studentUserId);
+        readString(studentRecord.userId) ||
+        readString(studentRecord.user_id) ||
+        readString(studentRecord.studentUserId);
 
     if (!userId) {
         return null;
     }
 
-    const firstName = readString(o.firstName) || readString(o.first_name);
-    const lastName = readString(o.lastName) || readString(o.last_name);
-    const email = readString(o.email) || readString(o.Email);
+    const firstName =
+        readString(studentRecord.firstName) ||
+        readString(studentRecord.first_name);
+    const lastName =
+        readString(studentRecord.lastName) ||
+        readString(studentRecord.last_name);
+    const email =
+        readString(studentRecord.email) || readString(studentRecord.Email);
 
     let phone: string | null = null;
 
-    if (o.phone === null) {
+    if (studentRecord.phone === null) {
         phone = null;
-    } else if (typeof o.phone === 'string') {
-        const p = o.phone.trim();
+    } else if (typeof studentRecord.phone === 'string') {
+        const trimmedPhone = studentRecord.phone.trim();
 
-        phone = p.length > 0 ? p : null;
+        phone = trimmedPhone.length > 0 ? trimmedPhone : null;
     }
 
-    const createdAt = readString(o.createdAt) || readString(o.created_at) || '';
+    const createdAt =
+        readString(studentRecord.createdAt) ||
+        readString(studentRecord.created_at) ||
+        '';
 
     return {
         id,
@@ -105,15 +113,19 @@ function readOneStudent(raw: unknown): TheoryEventEligibleStudentRow | null {
         lastName,
         email,
         phone,
-        avatarUrl: readAvatarUrlFromRecord(o),
+        avatarUrl: readAvatarUrlFromRecord(studentRecord),
         createdAt,
         isAssignedToEvent: readBool(
-            o.isAssignedToEvent ?? o.is_assigned_to_event,
+            studentRecord.isAssignedToEvent ??
+                studentRecord.is_assigned_to_event,
         ),
         hasScheduleConflict: readBool(
-            o.hasScheduleConflict ?? o.has_schedule_conflict,
+            studentRecord.hasScheduleConflict ??
+                studentRecord.has_schedule_conflict,
         ),
-        canAssign: readBool(o.canAssign ?? o.can_assign),
+        canAssign: readBool(
+            studentRecord.canAssign ?? studentRecord.can_assign,
+        ),
     };
 }
 
@@ -127,14 +139,16 @@ export function normalizeTheoryEventEligibleStudents(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const courseId = readString(o.courseId ?? o.course_id);
+    const studentRecord = raw as Record<string, unknown>;
+    const courseId = readString(
+        studentRecord.courseId ?? studentRecord.course_id,
+    );
 
     if (!courseId) {
         return null;
     }
 
-    const studentsRaw = o.students;
+    const studentsRaw = studentRecord.students;
 
     const students: TheoryEventEligibleStudentRow[] = [];
 
@@ -150,7 +164,7 @@ export function normalizeTheoryEventEligibleStudents(
 
     return {
         courseId,
-        capacity: readCapacity(o.capacity),
+        capacity: readCapacity(studentRecord.capacity),
         students,
     };
 }

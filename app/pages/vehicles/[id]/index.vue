@@ -18,19 +18,21 @@ onMounted(() => {
 });
 
 const vehicleId = computed(() => {
-    const raw = route.params.id;
-    const s = Array.isArray(raw) ? raw[0] : raw;
+    const rawVehicleId = route.params.id;
+    const vehicleIdParam = Array.isArray(rawVehicleId)
+        ? rawVehicleId[0]
+        : rawVehicleId;
 
-    if (typeof s !== 'string') return null;
+    if (typeof vehicleIdParam !== 'string') return null;
 
-    const trimmed = s.trim();
+    const trimmed = vehicleIdParam.trim();
 
     return trimmed.length > 0 ? trimmed : null;
 });
 
 const vehicle = shallowRef<VehicleDetail | null>(null);
 const loadError = shallowRef<string | null>(null);
-let vehicleLoadSeq = 0;
+let vehicleLoadSequence = 0;
 
 const vehicleTitle = computed(() => {
     const name = vehicle.value?.name.trim();
@@ -52,7 +54,7 @@ usePageMeta({
 
 async function loadVehicle() {
     const id = vehicleId.value;
-    const seq = ++vehicleLoadSeq;
+    const requestSequence = ++vehicleLoadSequence;
 
     if (!id) {
         vehicle.value = null;
@@ -66,13 +68,13 @@ async function loadVehicle() {
     try {
         const detail = await fetchVehicleById(id);
 
-        if (seq !== vehicleLoadSeq) {
+        if (requestSequence !== vehicleLoadSequence) {
             return;
         }
 
         vehicle.value = detail;
     } catch (err) {
-        if (seq !== vehicleLoadSeq) {
+        if (requestSequence !== vehicleLoadSequence) {
             return;
         }
 

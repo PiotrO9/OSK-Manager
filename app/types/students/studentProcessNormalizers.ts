@@ -11,19 +11,22 @@ function normalizeStudentProcessStatusStep(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const name = o.name != null ? String(o.name).trim() : '';
+    const processRecord = raw as Record<string, unknown>;
+    const name =
+        processRecord.name != null ? String(processRecord.name).trim() : '';
 
     if (!name) {
         return null;
     }
 
     const description =
-        o.description != null ? String(o.description).trim() : '';
+        processRecord.description != null
+            ? String(processRecord.description).trim()
+            : '';
 
     return {
         name,
-        completed: parseBooleanLike(o.completed, false),
+        completed: parseBooleanLike(processRecord.completed, false),
         description,
     };
 }
@@ -35,15 +38,15 @@ export function normalizeStudentProcessStatus(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
+    const processRecord = raw as Record<string, unknown>;
 
-    if (!Array.isArray(o.steps)) {
+    if (!Array.isArray(processRecord.steps)) {
         return null;
     }
 
     return {
-        steps: o.steps
+        steps: processRecord.steps
             .map((row) => normalizeStudentProcessStatusStep(row))
-            .filter((x): x is StudentProcessStatusStep => x !== null),
+            .filter((step): step is StudentProcessStatusStep => step !== null),
     };
 }

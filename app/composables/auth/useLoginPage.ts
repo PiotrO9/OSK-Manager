@@ -156,10 +156,10 @@ export function useLoginPage() {
         if (redirectQuery === undefined) return;
 
         if (!returnToCookie.value) {
-            const raw = Array.isArray(redirectQuery)
+            const redirectQueryValue = Array.isArray(redirectQuery)
                 ? redirectQuery[0]
                 : redirectQuery;
-            const result = redirectQuerySchema.safeParse(raw);
+            const result = redirectQuerySchema.safeParse(redirectQueryValue);
 
             if (
                 result.success &&
@@ -212,9 +212,10 @@ export function useLoginPage() {
             });
 
             const redirectTarget = resolveRedirectTarget();
-            const landing = await resolveManagerPostLoginPath(redirectTarget);
+            const landingPath =
+                await resolveManagerPostLoginPath(redirectTarget);
 
-            navigateTo(landing);
+            navigateTo(landingPath);
         } catch (err) {
             submitError.value =
                 err instanceof Error ? err.message : 'Błąd logowania';
@@ -240,10 +241,10 @@ export function useLoginPage() {
     }
 
     function handleDemoMockFill(role: DemoMockLoginRole) {
-        const creds = DEMO_MOCK_LOGIN_CREDENTIALS[role];
+        const credentials = DEMO_MOCK_LOGIN_CREDENTIALS[role];
 
-        email.value = creds.email;
-        password.value = creds.password;
+        email.value = credentials.email;
+        password.value = credentials.password;
         validationEnabled.value = false;
         submitError.value = null;
     }

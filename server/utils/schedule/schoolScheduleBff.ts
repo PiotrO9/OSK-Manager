@@ -10,26 +10,26 @@ function parseInstructorIdsFromListData(data: unknown): string[] {
         return [];
     }
 
-    const o = data as Record<string, unknown>;
-    const arr = o.instructors;
+    const responseRecord = data as Record<string, unknown>;
+    const instructorRows = responseRecord.instructors;
 
-    if (!Array.isArray(arr)) {
+    if (!Array.isArray(instructorRows)) {
         return [];
     }
 
-    const ids: string[] = [];
+    const instructorIds: string[] = [];
 
-    for (const item of arr) {
+    for (const item of instructorRows) {
         if (item !== null && typeof item === 'object' && 'id' in item) {
             const id = String((item as { id: unknown }).id).trim();
 
             if (id) {
-                ids.push(id);
+                instructorIds.push(id);
             }
         }
     }
 
-    return ids;
+    return instructorIds;
 }
 
 export async function bffAggregateSchoolSchedule(
@@ -39,13 +39,15 @@ export async function bffAggregateSchoolSchedule(
     dateFrom: string,
     dateTo: string,
 ): Promise<{ success: true; data: { items: ScheduleItemResponse[] } }> {
-    const listRes = await bffUpstreamInstructorsList(
+    const instructorListResponse = await bffUpstreamInstructorsList(
         event,
         upstreamBase,
         schoolId,
     );
 
-    const instructorIds = parseInstructorIdsFromListData(listRes.data);
+    const instructorIds = parseInstructorIdsFromListData(
+        instructorListResponse.data,
+    );
 
     if (instructorIds.length === 0) {
         return {
@@ -62,21 +64,21 @@ export async function bffAggregateSchoolSchedule(
                 instructorId,
             });
 
-            const r = await bffScheduleManagerGet(
+            const scheduleResponse = await bffScheduleManagerGet(
                 event,
                 upstreamBase,
                 params.toString(),
             );
 
-            return r.data.items;
+            return scheduleResponse.data.items;
         }),
     );
 
     const items: ScheduleItemResponse[] = [];
 
-    for (const r of settled) {
-        if (r.status === 'fulfilled') {
-            items.push(...r.value);
+    for (const requestResult of settled) {
+        if (requestResult.status === 'fulfilled') {
+            items.push(...requestResult.value);
         }
     }
 
@@ -85,13 +87,13 @@ export async function bffAggregateSchoolSchedule(
     const seen = new Set<string>();
     const unique: ScheduleItemResponse[] = [];
 
-    for (const it of items) {
-        if (seen.has(it.id)) {
+    for (const scheduleItem of items) {
+        if (seen.has(scheduleItem.id)) {
             continue;
         }
 
-        seen.add(it.id);
-        unique.push(it);
+        seen.add(scheduleItem.id);
+        unique.push(scheduleItem);
     }
 
     return {

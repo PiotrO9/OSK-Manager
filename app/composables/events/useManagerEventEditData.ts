@@ -37,10 +37,10 @@ export function useManagerEventEditData(input: {
     const linkedCourseLabel = ref<string | null>(null);
     const linkedCourse = ref<CourseDetail | null>(null);
 
-    let loadSeq = 0;
-    let vehiclesLoadSeq = 0;
-    let instructorsLoadSeq = 0;
-    let linkedCourseLoadSeq = 0;
+    let loadSequence = 0;
+    let vehiclesLoadSequence = 0;
+    let instructorsLoadSequence = 0;
+    let linkedCourseLoadSequence = 0;
 
     async function loadEvent(): Promise<void> {
         const id = input.eventId.value;
@@ -53,7 +53,7 @@ export function useManagerEventEditData(input: {
             return;
         }
 
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSequence;
 
         loadError.value = null;
         notFound.value = false;
@@ -62,14 +62,14 @@ export function useManagerEventEditData(input: {
         try {
             const event = await fetchEventById(id);
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
             input.loadedEvent.value = event;
             input.applyPrefill(event);
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -97,7 +97,7 @@ export function useManagerEventEditData(input: {
     }
 
     async function loadVehicles(): Promise<void> {
-        const seq = ++vehiclesLoadSeq;
+        const requestSequence = ++vehiclesLoadSequence;
 
         vehiclesError.value = null;
         vehicles.value = [];
@@ -117,13 +117,13 @@ export function useManagerEventEditData(input: {
         try {
             const items = await fetchVehiclesList(schoolId);
 
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
             vehicles.value = items;
         } catch (err: unknown) {
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
@@ -132,7 +132,7 @@ export function useManagerEventEditData(input: {
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            if (seq === vehiclesLoadSeq) {
+            if (requestSequence === vehiclesLoadSequence) {
                 isVehiclesLoading.value = false;
             }
         }
@@ -140,7 +140,7 @@ export function useManagerEventEditData(input: {
 
     async function loadInstructors(): Promise<void> {
         const schoolId = input.schoolId.value;
-        const seq = ++instructorsLoadSeq;
+        const requestSequence = ++instructorsLoadSequence;
 
         instructorsError.value = null;
         instructors.value = [];
@@ -154,13 +154,13 @@ export function useManagerEventEditData(input: {
         try {
             const items = await fetchInstructorsList(schoolId);
 
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
             instructors.value = items;
         } catch (err: unknown) {
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
@@ -169,7 +169,7 @@ export function useManagerEventEditData(input: {
                 'Nie udało się pobrać listy instruktorów.',
             );
         } finally {
-            if (seq === instructorsLoadSeq) {
+            if (requestSequence === instructorsLoadSequence) {
                 isInstructorsLoading.value = false;
             }
         }
@@ -251,7 +251,7 @@ export function useManagerEventEditData(input: {
                 input.schoolId.value.trim(),
             ] as const,
         async ([courseId, schoolId]) => {
-            const seq = ++linkedCourseLoadSeq;
+            const requestSequence = ++linkedCourseLoadSequence;
 
             linkedCourseLabel.value = null;
             linkedCourse.value = null;
@@ -263,14 +263,14 @@ export function useManagerEventEditData(input: {
             try {
                 const course = await fetchCourseById(courseId);
 
-                if (seq !== linkedCourseLoadSeq) {
+                if (requestSequence !== linkedCourseLoadSequence) {
                     return;
                 }
 
                 linkedCourseLabel.value = course.name.trim() || null;
                 linkedCourse.value = course;
             } catch {
-                if (seq !== linkedCourseLoadSeq) {
+                if (requestSequence !== linkedCourseLoadSequence) {
                     return;
                 }
 

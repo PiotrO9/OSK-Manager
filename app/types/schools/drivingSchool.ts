@@ -37,17 +37,21 @@ function normalizeOfferedCourseType(item: unknown): OfferedCourseType | null {
         return null;
     }
 
-    const o = item as Record<string, unknown>;
+    const offeredCourseTypeRecord = item as Record<string, unknown>;
 
     const nested =
-        o.courseType && typeof o.courseType === 'object'
-            ? (o.courseType as Record<string, unknown>)
+        offeredCourseTypeRecord.courseType &&
+        typeof offeredCourseTypeRecord.courseType === 'object'
+            ? (offeredCourseTypeRecord.courseType as Record<string, unknown>)
             : null;
 
-    const src = nested ?? o;
+    const src = nested ?? offeredCourseTypeRecord;
 
     const idRaw =
-        src.id ?? src.courseTypeId ?? src.course_type_id ?? o.courseTypeId;
+        src.id ??
+        src.courseTypeId ??
+        src.course_type_id ??
+        offeredCourseTypeRecord.courseTypeId;
     const id = idRaw != null ? String(idRaw).trim() : '';
 
     const codeRaw =
@@ -78,13 +82,16 @@ function normalizeOfferedCourseTypes(raw: unknown): OfferedCourseType[] {
 
     return raw
         .map((item) => normalizeOfferedCourseType(item))
-        .filter((x): x is OfferedCourseType => x !== null);
+        .filter(
+            (courseType): courseType is OfferedCourseType =>
+                courseType !== null,
+        );
 }
 
 function readSettingsRecord(
-    o: Record<string, unknown>,
+    schoolRecord: Record<string, unknown>,
 ): Record<string, unknown> | null {
-    const settings = o.settings;
+    const settings = schoolRecord.settings;
 
     if (!settings || typeof settings !== 'object') {
         return null;
@@ -94,16 +101,18 @@ function readSettingsRecord(
 }
 
 /** Obsługa camelCase, snake_case i listy w `settings` (DTO z GET `/driving-schools`). */
-function readOfferedCourseTypesRaw(o: Record<string, unknown>): unknown {
-    if ('offeredCourseTypes' in o) {
-        return o.offeredCourseTypes;
+function readOfferedCourseTypesRaw(
+    schoolRecord: Record<string, unknown>,
+): unknown {
+    if ('offeredCourseTypes' in schoolRecord) {
+        return schoolRecord.offeredCourseTypes;
     }
 
-    if ('offered_course_types' in o) {
-        return o.offered_course_types;
+    if ('offered_course_types' in schoolRecord) {
+        return schoolRecord.offered_course_types;
     }
 
-    const settings = readSettingsRecord(o);
+    const settings = readSettingsRecord(schoolRecord);
 
     if (!settings) {
         return undefined;
@@ -120,16 +129,18 @@ function readOfferedCourseTypesRaw(o: Record<string, unknown>): unknown {
     return undefined;
 }
 
-function readEnabledCourseKindsRaw(o: Record<string, unknown>): unknown {
-    if ('enabledCourseKinds' in o) {
-        return o.enabledCourseKinds;
+function readEnabledCourseKindsRaw(
+    schoolRecord: Record<string, unknown>,
+): unknown {
+    if ('enabledCourseKinds' in schoolRecord) {
+        return schoolRecord.enabledCourseKinds;
     }
 
-    if ('enabled_course_kinds' in o) {
-        return o.enabled_course_kinds;
+    if ('enabled_course_kinds' in schoolRecord) {
+        return schoolRecord.enabled_course_kinds;
     }
 
-    const settings = readSettingsRecord(o);
+    const settings = readSettingsRecord(schoolRecord);
 
     if (!settings) {
         return undefined;
@@ -154,15 +165,19 @@ function normalizeEnabledCourseKindsList(raw: unknown): CourseKind[] {
     const out: CourseKind[] = [];
 
     for (const item of raw) {
-        const s =
+        const courseKind =
             typeof item === 'string'
                 ? item.trim()
                 : item == null
                   ? ''
                   : String(item).trim();
 
-        if (s && isCourseKind(s) && !out.includes(s)) {
-            out.push(s);
+        if (
+            courseKind &&
+            isCourseKind(courseKind) &&
+            !out.includes(courseKind)
+        ) {
+            out.push(courseKind);
         }
     }
 
@@ -173,7 +188,7 @@ export function normalizeDrivingSchoolsList(data: unknown): DrivingSchool[] {
     if (Array.isArray(data)) {
         return data
             .map((item) => normalizeDrivingSchool(item))
-            .filter((x): x is DrivingSchool => x !== null);
+            .filter((school): school is DrivingSchool => school !== null);
     }
 
     if (!data || typeof data !== 'object') {
@@ -198,9 +213,9 @@ export function normalizeDrivingSchool(item: unknown): DrivingSchool | null {
         return null;
     }
 
-    const o = item as Record<string, unknown>;
-    const id = o.id != null ? String(o.id) : '';
-    const name = o.name != null ? String(o.name) : '';
+    const schoolRecord = item as Record<string, unknown>;
+    const id = schoolRecord.id != null ? String(schoolRecord.id) : '';
+    const name = schoolRecord.name != null ? String(schoolRecord.name) : '';
 
     if (!id || !name) {
         return null;
@@ -208,21 +223,21 @@ export function normalizeDrivingSchool(item: unknown): DrivingSchool | null {
 
     let isDefault: boolean | undefined;
 
-    if (typeof o.isDefault === 'boolean') {
-        isDefault = o.isDefault;
-    } else if (typeof o.is_default === 'boolean') {
-        isDefault = o.is_default;
-    } else if (typeof o.default === 'boolean') {
-        isDefault = o.default;
+    if (typeof schoolRecord.isDefault === 'boolean') {
+        isDefault = schoolRecord.isDefault;
+    } else if (typeof schoolRecord.is_default === 'boolean') {
+        isDefault = schoolRecord.is_default;
+    } else if (typeof schoolRecord.default === 'boolean') {
+        isDefault = schoolRecord.default;
     }
 
-    const offeredRaw = readOfferedCourseTypesRaw(o);
+    const offeredRaw = readOfferedCourseTypesRaw(schoolRecord);
     const hasOffered = offeredRaw !== undefined;
     const offeredCourseTypes = hasOffered
         ? normalizeOfferedCourseTypes(offeredRaw)
         : undefined;
 
-    const enabledRaw = readEnabledCourseKindsRaw(o);
+    const enabledRaw = readEnabledCourseKindsRaw(schoolRecord);
     const hasEnabledKinds = enabledRaw !== undefined;
     const enabledCourseKinds = hasEnabledKinds
         ? normalizeEnabledCourseKindsList(enabledRaw)
@@ -231,8 +246,9 @@ export function normalizeDrivingSchool(item: unknown): DrivingSchool | null {
     return {
         id,
         name,
-        city: o.city != null ? String(o.city) : null,
-        address: o.address != null ? String(o.address) : null,
+        city: schoolRecord.city != null ? String(schoolRecord.city) : null,
+        address:
+            schoolRecord.address != null ? String(schoolRecord.address) : null,
         ...(isDefault !== undefined ? { isDefault } : {}),
         ...(offeredCourseTypes !== undefined ? { offeredCourseTypes } : {}),
         ...(enabledCourseKinds !== undefined ? { enabledCourseKinds } : {}),

@@ -52,7 +52,7 @@ watch(
 watch(
     schoolId,
     async (id) => {
-        const seq = ++coursesLoadSeq;
+        const requestSequence = ++coursesLoadSeq;
 
         schoolCourses.value = [];
 
@@ -60,7 +60,7 @@ watch(
 
         const courses = await fetchCoursesList(id).catch(() => []);
 
-        if (seq === coursesLoadSeq) {
+        if (requestSequence === coursesLoadSeq) {
             schoolCourses.value = courses;
         }
     },

@@ -49,9 +49,9 @@ export function useLessonBookingApi() {
     async function loadModalData(
         ctx: LessonBookingSlotContext,
     ): Promise<LessonBookingModalData> {
-        const sid = ctx.schoolId.trim();
+        const trimmedSchoolId = ctx.schoolId.trim();
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             return { students: [], vehicles: [], availableVehicleIds: [] };
         }
 
@@ -63,16 +63,16 @@ export function useLessonBookingApi() {
 
         try {
             const [page, vehicles, availableVehicles] = await Promise.all([
-                fetchList({ schoolId: sid, page: 1, limit: 100 }),
+                fetchList({ schoolId: trimmedSchoolId, page: 1, limit: 100 }),
                 requestBffData<Vehicle[]>(
                     'GET',
-                    `/api/vehicles?${new URLSearchParams({ schoolId: sid }).toString()}`,
+                    `/api/vehicles?${new URLSearchParams({ schoolId: trimmedSchoolId }).toString()}`,
                     {
                         fallbackMessage: 'Nie udało się pobrać listy pojazdów.',
                         normalize: (data) => normalizeVehiclesList(data),
                     },
                 ),
-                fetchVehiclesForSlot(sid, startIso, endIso),
+                fetchVehiclesForSlot(trimmedSchoolId, startIso, endIso),
             ]);
 
             return {
@@ -99,17 +99,17 @@ export function useLessonBookingApi() {
         schoolId: string,
         schoolCourses: readonly CourseListItem[],
     ): Promise<StudentCourseWithKind[]> {
-        const uid = userId.trim();
-        const sid = schoolId.trim();
+        const trimmedUserId = userId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
-        if (!uid || !sid) {
+        if (!trimmedUserId || !trimmedSchoolId) {
             return [];
         }
 
-        const qs = new URLSearchParams({ schoolId: sid });
+        const qs = new URLSearchParams({ schoolId: trimmedSchoolId });
         const detail = await requestBffData(
             'GET',
-            `/api/students/${encodeURIComponent(uid)}?${qs.toString()}`,
+            `/api/students/${encodeURIComponent(trimmedUserId)}?${qs.toString()}`,
             {
                 fallbackMessage: 'Nie udało się pobrać danych kursanta.',
                 invalidMessage: 'Nieprawidłowa odpowiedź serwera (kursant).',

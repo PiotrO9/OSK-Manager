@@ -46,7 +46,7 @@ export function useManagerEventParticipants(input: {
     const theoryStudentsBaseline = ref<string[]>([]);
     const draftTheoryStudentUserIds = ref<string[]>([]);
     let eligibleDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-    let eligibleSeq = 0;
+    let eligibleSequence = 0;
 
     function isTheoryRowChecked(s: StudentListItem): boolean {
         return isManagerEventTheoryRowChecked({
@@ -94,7 +94,7 @@ export function useManagerEventParticipants(input: {
         startTime: string;
         endTime: string;
     }): Promise<void> {
-        const seq = ++eligibleSeq;
+        const requestSequence = ++eligibleSequence;
 
         theoryEligibleError.value = null;
         theoryEligibleData.value = null;
@@ -122,11 +122,11 @@ export function useManagerEventParticipants(input: {
                 options,
             );
 
-            if (seq === eligibleSeq) {
+            if (requestSequence === eligibleSequence) {
                 theoryEligibleData.value = data;
             }
         } catch (err: unknown) {
-            if (seq === eligibleSeq) {
+            if (requestSequence === eligibleSequence) {
                 theoryEligibleData.value = null;
                 theoryEligibleError.value = getApiFetchErrorMessage(
                     err,
@@ -134,7 +134,7 @@ export function useManagerEventParticipants(input: {
                 );
             }
         } finally {
-            if (seq === eligibleSeq) {
+            if (requestSequence === eligibleSequence) {
                 isTheoryEligibleLoading.value = false;
             }
         }
@@ -291,7 +291,7 @@ export function useManagerEventParticipants(input: {
         }
 
         eligibleDebounceTimer = setTimeout(async () => {
-            const seq = ++eligibleSeq;
+            const requestSequence = ++eligibleSequence;
 
             try {
                 const data = await input.fetchTheoryEventEligibleStudents(id, {
@@ -299,14 +299,14 @@ export function useManagerEventParticipants(input: {
                     endTime: endIso,
                 });
 
-                if (seq !== eligibleSeq) {
+                if (requestSequence !== eligibleSequence) {
                     return;
                 }
 
                 theoryEligibleData.value = data;
                 theoryEligibleError.value = null;
             } catch (err: unknown) {
-                if (seq !== eligibleSeq) {
+                if (requestSequence !== eligibleSequence) {
                     return;
                 }
 
@@ -315,7 +315,7 @@ export function useManagerEventParticipants(input: {
                     'Nie udało się odświeżyć listy kursantów.',
                 );
             } finally {
-                if (seq === eligibleSeq) {
+                if (requestSequence === eligibleSequence) {
                     isTheoryEligibleLoading.value = false;
                 }
             }

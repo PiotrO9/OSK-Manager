@@ -1,29 +1,31 @@
 import type { CourseDetail, CourseListItem } from './courseModels';
 import { normalizeCourseListItem } from './courseNormalizeShared';
 
-function normalizeCourseCapacity(o: Record<string, unknown>): number | null {
-    if (!('capacity' in o)) {
+function normalizeCourseCapacity(
+    courseRecord: Record<string, unknown>,
+): number | null {
+    if (!('capacity' in courseRecord)) {
         return null;
     }
 
-    const c = o.capacity;
+    const capacityValue = courseRecord.capacity;
 
-    if (c === null || c === undefined) {
+    if (capacityValue === null || capacityValue === undefined) {
         return null;
     }
 
-    if (typeof c === 'number' && Number.isFinite(c)) {
-        const n = Math.trunc(c);
+    if (typeof capacityValue === 'number' && Number.isFinite(capacityValue)) {
+        const parsedCapacity = Math.trunc(capacityValue);
 
-        if (n < 0) {
+        if (parsedCapacity < 0) {
             return null;
         }
 
-        return n;
+        return parsedCapacity;
     }
 
-    if (typeof c === 'string') {
-        const parsed = Number.parseInt(c.trim(), 10);
+    if (typeof capacityValue === 'string') {
+        const parsed = Number.parseInt(capacityValue.trim(), 10);
 
         if (Number.isNaN(parsed) || parsed < 0) {
             return null;
@@ -35,37 +37,39 @@ function normalizeCourseCapacity(o: Record<string, unknown>): number | null {
     return null;
 }
 
-function readCourseSchoolId(o: Record<string, unknown>): string | undefined {
+function readCourseSchoolId(
+    courseRecord: Record<string, unknown>,
+): string | undefined {
     for (const key of ['schoolId', 'school_id'] as const) {
-        const raw = o[key];
+        const raw = courseRecord[key];
 
         if (raw == null) {
             continue;
         }
 
-        const s = String(raw).trim();
+        const schoolId = String(raw).trim();
 
-        if (s.length > 0) {
-            return s;
+        if (schoolId.length > 0) {
+            return schoolId;
         }
     }
 
-    const school = o.school;
+    const school = courseRecord.school;
 
     if (school && typeof school === 'object' && school !== null) {
-        const so = school as Record<string, unknown>;
+        const schoolRecord = school as Record<string, unknown>;
 
         for (const key of ['id', 'schoolId', 'school_id'] as const) {
-            const raw = so[key];
+            const raw = schoolRecord[key];
 
             if (raw == null) {
                 continue;
             }
 
-            const s = String(raw).trim();
+            const schoolId = String(raw).trim();
 
-            if (s.length > 0) {
-                return s;
+            if (schoolId.length > 0) {
+                return schoolId;
             }
         }
     }
@@ -80,12 +84,12 @@ function normalizeCourseDetailInner(raw: unknown): CourseDetail | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const schoolId = readCourseSchoolId(o);
+    const courseRecord = raw as Record<string, unknown>;
+    const schoolId = readCourseSchoolId(courseRecord);
 
     return {
         ...base,
-        capacity: normalizeCourseCapacity(o),
+        capacity: normalizeCourseCapacity(courseRecord),
         ...(schoolId !== undefined ? { schoolId } : {}),
     };
 }
@@ -117,7 +121,7 @@ export function normalizeCoursesList(data: unknown): CourseListItem[] {
     if (Array.isArray(data)) {
         return data
             .map((item) => normalizeCourseListItem(item))
-            .filter((x): x is CourseListItem => x !== null);
+            .filter((course): course is CourseListItem => course !== null);
     }
 
     if (!data || typeof data !== 'object') {

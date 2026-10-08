@@ -40,19 +40,19 @@ function parseOptionalCapacityPatch(
     }
 
     if (typeof raw === 'string') {
-        const t = raw.trim();
+        const trimmedValue = raw.trim();
 
-        if (t === '') {
+        if (trimmedValue === '') {
             return undefined;
         }
 
-        const n = Number.parseInt(t, 10);
+        const parsedCapacity = Number.parseInt(trimmedValue, 10);
 
-        if (!Number.isFinite(n) || n < 0) {
+        if (!Number.isFinite(parsedCapacity) || parsedCapacity < 0) {
             return false;
         }
 
-        return n;
+        return parsedCapacity;
     }
 
     return false;
@@ -69,12 +69,14 @@ export function parseEventPatchBody(
         return { ok: false, message: 'Oczekiwano obiektu JSON.' };
     }
 
-    const o = raw as Record<string, unknown>;
+    const eventRecord = raw as Record<string, unknown>;
     const body: BffEventPatchBody = {};
 
-    if ('instructorId' in o) {
+    if ('instructorId' in eventRecord) {
         const id =
-            typeof o.instructorId === 'string' ? o.instructorId.trim() : '';
+            typeof eventRecord.instructorId === 'string'
+                ? eventRecord.instructorId.trim()
+                : '';
 
         if (!id || !isUuid(id)) {
             return {
@@ -86,8 +88,9 @@ export function parseEventPatchBody(
         body.instructorId = id;
     }
 
-    if ('type' in o) {
-        const typeRaw = typeof o.type === 'string' ? o.type.trim() : '';
+    if ('type' in eventRecord) {
+        const typeRaw =
+            typeof eventRecord.type === 'string' ? eventRecord.type.trim() : '';
         const type =
             typeRaw === 'DRIVE' || typeRaw === 'THEORY' ? typeRaw : null;
 
@@ -101,9 +104,11 @@ export function parseEventPatchBody(
         body.type = type;
     }
 
-    if ('startTime' in o) {
+    if ('startTime' in eventRecord) {
         const startTime =
-            typeof o.startTime === 'string' ? o.startTime.trim() : '';
+            typeof eventRecord.startTime === 'string'
+                ? eventRecord.startTime.trim()
+                : '';
 
         if (!startTime) {
             return {
@@ -115,8 +120,11 @@ export function parseEventPatchBody(
         body.startTime = startTime;
     }
 
-    if ('endTime' in o) {
-        const endTime = typeof o.endTime === 'string' ? o.endTime.trim() : '';
+    if ('endTime' in eventRecord) {
+        const endTime =
+            typeof eventRecord.endTime === 'string'
+                ? eventRecord.endTime.trim()
+                : '';
 
         if (!endTime) {
             return {
@@ -128,22 +136,22 @@ export function parseEventPatchBody(
         body.endTime = endTime;
     }
 
-    if ('vehicleId' in o) {
-        const v = o.vehicleId;
+    if ('vehicleId' in eventRecord) {
+        const vehicleIdValue = eventRecord.vehicleId;
 
-        if (v === null) {
+        if (vehicleIdValue === null) {
             body.vehicleId = null;
-        } else if (typeof v === 'string') {
-            const t = v.trim();
+        } else if (typeof vehicleIdValue === 'string') {
+            const trimmedValue = vehicleIdValue.trim();
 
-            if (!t || !isUuid(t)) {
+            if (!trimmedValue || !isUuid(trimmedValue)) {
                 return {
                     ok: false,
                     message: 'Pole vehicleId musi być poprawnym UUID lub null.',
                 };
             }
 
-            body.vehicleId = t;
+            body.vehicleId = trimmedValue;
         } else {
             return {
                 ok: false,
@@ -152,10 +160,10 @@ export function parseEventPatchBody(
         }
     }
 
-    if ('capacity' in o) {
-        const cap = parseOptionalCapacityPatch(o.capacity);
+    if ('capacity' in eventRecord) {
+        const capacity = parseOptionalCapacityPatch(eventRecord.capacity);
 
-        if (cap === false) {
+        if (capacity === false) {
             return {
                 ok: false,
                 message:
@@ -163,13 +171,16 @@ export function parseEventPatchBody(
             };
         }
 
-        if (cap !== undefined) body.capacity = cap;
+        if (capacity !== undefined) body.capacity = capacity;
     }
 
-    if ('status' in o) {
-        const sRaw = typeof o.status === 'string' ? o.status.trim() : '';
+    if ('status' in eventRecord) {
+        const statusRaw =
+            typeof eventRecord.status === 'string'
+                ? eventRecord.status.trim()
+                : '';
 
-        if (!EVENT_PATCH_STATUSES.has(sRaw as BffEventPatchStatus)) {
+        if (!EVENT_PATCH_STATUSES.has(statusRaw as BffEventPatchStatus)) {
             return {
                 ok: false,
                 message:
@@ -177,7 +188,7 @@ export function parseEventPatchBody(
             };
         }
 
-        body.status = sRaw as BffEventPatchStatus;
+        body.status = statusRaw as BffEventPatchStatus;
     }
 
     return { ok: true, body };

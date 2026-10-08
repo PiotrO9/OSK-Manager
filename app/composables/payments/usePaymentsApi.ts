@@ -25,18 +25,18 @@ export function usePaymentsApi() {
         userId: string,
         schoolId: string,
     ): Promise<StudentPaymentsPayload> {
-        const uid = userId.trim();
-        const sid = schoolId.trim();
+        const trimmedUserId = userId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
-        if (!uid || !sid) {
+        if (!trimmedUserId || !trimmedSchoolId) {
             throw new Error('Brak identyfikatora kursanta lub szkoły.');
         }
 
-        const qs = new URLSearchParams({ schoolId: sid });
+        const qs = new URLSearchParams({ schoolId: trimmedSchoolId });
 
         return await requestBffData<StudentPaymentsPayload>(
             'GET',
-            `/api/students/${encodeURIComponent(uid)}/payments?${qs.toString()}`,
+            `/api/students/${encodeURIComponent(trimmedUserId)}/payments?${qs.toString()}`,
             {
                 fallbackMessage: 'Nie udało się pobrać listy opłat kursanta.',
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
@@ -113,18 +113,18 @@ export function usePaymentsApi() {
         payload: StudentPaymentActionPayload | undefined,
         fallbackMessage: string,
     ): Promise<StudentPaymentsPayload> {
-        const uid = userId.trim();
-        const sid = schoolId.trim();
+        const trimmedUserId = userId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
-        if (!uid || !sid) {
+        if (!trimmedUserId || !trimmedSchoolId) {
             throw new Error('Brak identyfikatora kursanta lub szkoły.');
         }
 
         return await requestBffData<StudentPaymentsPayload>(
             method,
-            `/api/students/${encodeURIComponent(uid)}${pathSuffix}`,
+            `/api/students/${encodeURIComponent(trimmedUserId)}${pathSuffix}`,
             {
-                body: { ...(payload ?? {}), schoolId: sid },
+                body: { ...(payload ?? {}), schoolId: trimmedSchoolId },
                 fallbackMessage,
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
             },

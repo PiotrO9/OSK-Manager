@@ -36,8 +36,8 @@ export function useManagerStudentsData() {
     const studentsPagination = ref<StudentsPagePagination | null>(null);
     const isStudentsLoading = ref(false);
     const studentsLoadError = ref<string | null>(null);
-    let coursesLoadSeq = 0;
-    let studentsLoadSeq = 0;
+    let coursesLoadSequence = 0;
+    let studentsLoadSequence = 0;
 
     const activeSchool = computed(
         () =>
@@ -85,10 +85,10 @@ export function useManagerStudentsData() {
 
         try {
             schools.value = await fetchSchoolsList();
-        } catch (e) {
+        } catch (error) {
             schoolsLoadError.value =
-                e instanceof Error
-                    ? e.message
+                error instanceof Error
+                    ? error.message
                     : 'Nie udało się pobrać listy OSK.';
         } finally {
             isSchoolsLoading.value = false;
@@ -96,10 +96,10 @@ export function useManagerStudentsData() {
     }
 
     async function loadCoursesForFilter() {
-        const sid = activeSchoolId.value.trim();
-        const seq = ++coursesLoadSeq;
+        const schoolId = activeSchoolId.value.trim();
+        const requestSequence = ++coursesLoadSequence;
 
-        if (!sid) {
+        if (!schoolId) {
             courses.value = [];
 
             return;
@@ -109,15 +109,15 @@ export function useManagerStudentsData() {
         isCoursesLoading.value = true;
 
         try {
-            const items = await fetchCoursesList(sid);
+            const items = await fetchCoursesList(schoolId);
 
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
             courses.value = items;
         } catch (err) {
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
@@ -127,23 +127,23 @@ export function useManagerStudentsData() {
                     ? err.message
                     : 'Nie udało się pobrać listy kursów.';
         } finally {
-            if (seq === coursesLoadSeq) {
+            if (requestSequence === coursesLoadSequence) {
                 isCoursesLoading.value = false;
             }
         }
     }
 
     function invalidateStudentsRequest() {
-        studentsLoadSeq += 1;
+        studentsLoadSequence += 1;
         isStudentsLoading.value = Boolean(activeSchoolId.value.trim());
         studentsLoadError.value = null;
     }
 
     async function loadStudents() {
-        const sid = activeSchoolId.value.trim();
-        const seq = ++studentsLoadSeq;
+        const schoolId = activeSchoolId.value.trim();
+        const requestSequence = ++studentsLoadSequence;
 
-        if (!sid) {
+        if (!schoolId) {
             students.value = [];
             studentsPagination.value = null;
 
@@ -156,7 +156,7 @@ export function useManagerStudentsData() {
         try {
             const courseIdTrimmed = activeCourseId.value.trim();
             const page = await fetchStudentsPage({
-                schoolId: sid,
+                schoolId,
                 ...(search.value.trim() ? { search: search.value.trim() } : {}),
                 ...(quickView.value !== 'all' ? { view: quickView.value } : {}),
                 ...(advancedFilters.value.length > 0
@@ -169,7 +169,7 @@ export function useManagerStudentsData() {
                     : {}),
             });
 
-            if (seq !== studentsLoadSeq) {
+            if (requestSequence !== studentsLoadSequence) {
                 return;
             }
 
@@ -179,7 +179,7 @@ export function useManagerStudentsData() {
                 totalPages: page.totalPages,
             };
         } catch (err) {
-            if (seq !== studentsLoadSeq) {
+            if (requestSequence !== studentsLoadSequence) {
                 return;
             }
 
@@ -187,7 +187,7 @@ export function useManagerStudentsData() {
             studentsPagination.value = null;
             studentsLoadError.value = resolveStudentsListError(err);
         } finally {
-            if (seq === studentsLoadSeq) {
+            if (requestSequence === studentsLoadSequence) {
                 isStudentsLoading.value = false;
             }
         }

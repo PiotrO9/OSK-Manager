@@ -94,9 +94,9 @@ export function useScheduleApi() {
         const id = studentId.trim();
         const from = dateFrom.trim();
         const to = dateTo.trim();
-        const sid = schoolId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
-        if (!id || !from || !to || !sid) {
+        if (!id || !from || !to || !trimmedSchoolId) {
             return [];
         }
 
@@ -104,7 +104,7 @@ export function useScheduleApi() {
             'GET',
             buildScheduleManagerPath(from, to, {
                 studentId: id,
-                schoolId: sid,
+                schoolId: trimmedSchoolId,
             }),
             {
                 fallbackMessage: 'Nie udało się pobrać harmonogramu.',

@@ -17,9 +17,12 @@ export function parseLessonCreateBody(
         return { ok: false, message: 'Oczekiwano obiektu JSON.' };
     }
 
-    const o = raw as Record<string, unknown>;
+    const lessonRecord = raw as Record<string, unknown>;
 
-    const courseId = typeof o.courseId === 'string' ? o.courseId.trim() : '';
+    const courseId =
+        typeof lessonRecord.courseId === 'string'
+            ? lessonRecord.courseId.trim()
+            : '';
 
     if (!courseId || !isUuid(courseId)) {
         return {
@@ -28,7 +31,10 @@ export function parseLessonCreateBody(
         };
     }
 
-    const studentId = typeof o.studentId === 'string' ? o.studentId.trim() : '';
+    const studentId =
+        typeof lessonRecord.studentId === 'string'
+            ? lessonRecord.studentId.trim()
+            : '';
 
     if (!studentId || !isUuid(studentId)) {
         return {
@@ -38,7 +44,9 @@ export function parseLessonCreateBody(
     }
 
     const instructorId =
-        typeof o.instructorId === 'string' ? o.instructorId.trim() : '';
+        typeof lessonRecord.instructorId === 'string'
+            ? lessonRecord.instructorId.trim()
+            : '';
 
     if (!instructorId || !isUuid(instructorId)) {
         return {
@@ -47,8 +55,14 @@ export function parseLessonCreateBody(
         };
     }
 
-    const startTime = typeof o.startTime === 'string' ? o.startTime.trim() : '';
-    const endTime = typeof o.endTime === 'string' ? o.endTime.trim() : '';
+    const startTime =
+        typeof lessonRecord.startTime === 'string'
+            ? lessonRecord.startTime.trim()
+            : '';
+    const endTime =
+        typeof lessonRecord.endTime === 'string'
+            ? lessonRecord.endTime.trim()
+            : '';
 
     if (!startTime || !endTime) {
         return {
@@ -57,7 +71,10 @@ export function parseLessonCreateBody(
         };
     }
 
-    const ltRaw = typeof o.lessonType === 'string' ? o.lessonType.trim() : '';
+    const ltRaw =
+        typeof lessonRecord.lessonType === 'string'
+            ? lessonRecord.lessonType.trim()
+            : '';
 
     if (ltRaw === 'THEORY') {
         return {
@@ -74,7 +91,10 @@ export function parseLessonCreateBody(
         };
     }
 
-    const vehicleId = typeof o.vehicleId === 'string' ? o.vehicleId.trim() : '';
+    const vehicleId =
+        typeof lessonRecord.vehicleId === 'string'
+            ? lessonRecord.vehicleId.trim()
+            : '';
 
     if (!vehicleId || !isUuid(vehicleId)) {
         return {

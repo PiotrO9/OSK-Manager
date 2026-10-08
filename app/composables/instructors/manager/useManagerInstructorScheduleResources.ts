@@ -20,18 +20,18 @@ export function useManagerInstructorScheduleResources({
     const courses = ref<CourseListItem[]>([]);
     const coursesError = ref<string | null>(null);
     const isCoursesLoading = ref(false);
-    let vehiclesLoadSeq = 0;
-    let coursesLoadSeq = 0;
+    let vehiclesLoadSequence = 0;
+    let coursesLoadSequence = 0;
     let loadedSchoolId: string | null = null;
 
     async function loadVehicles(): Promise<void> {
-        const sid = schoolId.value;
-        const seq = ++vehiclesLoadSeq;
+        const schoolIdSnapshot = schoolId.value;
+        const requestSequence = ++vehiclesLoadSequence;
 
         vehiclesError.value = null;
         vehicles.value = [];
 
-        if (!sid) {
+        if (!schoolIdSnapshot) {
             isVehiclesLoading.value = false;
 
             return;
@@ -40,15 +40,15 @@ export function useManagerInstructorScheduleResources({
         isVehiclesLoading.value = true;
 
         try {
-            const items = await fetchVehiclesList(sid);
+            const items = await fetchVehiclesList(schoolIdSnapshot);
 
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
             vehicles.value = items;
         } catch (err: unknown) {
-            if (seq !== vehiclesLoadSeq) {
+            if (requestSequence !== vehiclesLoadSequence) {
                 return;
             }
 
@@ -57,20 +57,20 @@ export function useManagerInstructorScheduleResources({
                 'Nie udało się pobrać listy pojazdów.',
             );
         } finally {
-            if (seq === vehiclesLoadSeq) {
+            if (requestSequence === vehiclesLoadSequence) {
                 isVehiclesLoading.value = false;
             }
         }
     }
 
     async function loadCourses(): Promise<void> {
-        const sid = schoolId.value;
-        const seq = ++coursesLoadSeq;
+        const schoolIdSnapshot = schoolId.value;
+        const requestSequence = ++coursesLoadSequence;
 
         coursesError.value = null;
         courses.value = [];
 
-        if (!sid) {
+        if (!schoolIdSnapshot) {
             isCoursesLoading.value = false;
 
             return;
@@ -79,15 +79,15 @@ export function useManagerInstructorScheduleResources({
         isCoursesLoading.value = true;
 
         try {
-            const items = await fetchCoursesList(sid);
+            const items = await fetchCoursesList(schoolIdSnapshot);
 
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
             courses.value = items;
         } catch (err: unknown) {
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
@@ -96,18 +96,18 @@ export function useManagerInstructorScheduleResources({
                 'Nie udało się pobrać listy kursów.',
             );
         } finally {
-            if (seq === coursesLoadSeq) {
+            if (requestSequence === coursesLoadSequence) {
                 isCoursesLoading.value = false;
             }
         }
     }
 
     async function loadResources(): Promise<void> {
-        const sid = schoolId.value;
+        const schoolIdSnapshot = schoolId.value;
 
         if (
-            sid &&
-            loadedSchoolId === sid &&
+            schoolIdSnapshot &&
+            loadedSchoolId === schoolIdSnapshot &&
             !vehiclesError.value &&
             !coursesError.value
         ) {
@@ -117,12 +117,12 @@ export function useManagerInstructorScheduleResources({
         await Promise.all([loadVehicles(), loadCourses()]);
 
         if (
-            sid &&
-            schoolId.value === sid &&
+            schoolIdSnapshot &&
+            schoolId.value === schoolIdSnapshot &&
             !vehiclesError.value &&
             !coursesError.value
         ) {
-            loadedSchoolId = sid;
+            loadedSchoolId = schoolIdSnapshot;
         }
     }
 

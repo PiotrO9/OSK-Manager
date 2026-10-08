@@ -59,17 +59,17 @@ function isPaymentStatus(value: string): value is StudentPaymentStatus {
     return value === 'PAID' || value === 'UNPAID';
 }
 
-function readString(o: Record<string, unknown>, key: string): string {
-    const raw = o[key];
+function readString(record: Record<string, unknown>, key: string): string {
+    const raw = record[key];
 
     return raw == null ? '' : String(raw).trim();
 }
 
 function readOptionalString(
-    o: Record<string, unknown>,
+    record: Record<string, unknown>,
     key: string,
 ): string | null {
-    const value = readString(o, key);
+    const value = readString(record, key);
 
     return value.length > 0 ? value : null;
 }
@@ -79,14 +79,14 @@ function normalizePaymentItem(raw: unknown): StudentPaymentItem | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = readString(o, 'id');
-    const courseId = readString(o, 'courseId');
-    const courseName = readString(o, 'courseName');
-    const paymentPlanId = readString(o, 'paymentPlanId');
-    const amount = readString(o, 'amount');
-    const currency = readString(o, 'currency') || 'PLN';
-    const statusRaw = readString(o, 'status');
+    const record = raw as Record<string, unknown>;
+    const id = readString(record, 'id');
+    const courseId = readString(record, 'courseId');
+    const courseName = readString(record, 'courseName');
+    const paymentPlanId = readString(record, 'paymentPlanId');
+    const amount = readString(record, 'amount');
+    const currency = readString(record, 'currency') || 'PLN';
+    const statusRaw = readString(record, 'status');
 
     if (
         !id ||
@@ -107,10 +107,10 @@ function normalizePaymentItem(raw: unknown): StudentPaymentItem | null {
         amount,
         currency,
         status: statusRaw,
-        date: readOptionalString(o, 'date'),
-        dueDate: readOptionalString(o, 'dueDate'),
-        paidAt: readOptionalString(o, 'paidAt'),
-        method: readOptionalString(o, 'method'),
+        date: readOptionalString(record, 'date'),
+        dueDate: readOptionalString(record, 'dueDate'),
+        paidAt: readOptionalString(record, 'paidAt'),
+        method: readOptionalString(record, 'method'),
     };
 }
 
@@ -128,15 +128,15 @@ function readSummary(raw: unknown): StudentPaymentsSummary {
         return emptySummary;
     }
 
-    const o = raw as Record<string, unknown>;
+    const record = raw as Record<string, unknown>;
 
     return {
-        paidAmount: readString(o, 'paidAmount') || '0.00',
-        unpaidAmount: readString(o, 'unpaidAmount') || '0.00',
-        overdueAmount: readString(o, 'overdueAmount') || '0.00',
-        overdueCount: Number(readString(o, 'overdueCount')) || 0,
-        nextDueDate: readOptionalString(o, 'nextDueDate'),
-        currency: readString(o, 'currency') || 'PLN',
+        paidAmount: readString(record, 'paidAmount') || '0.00',
+        unpaidAmount: readString(record, 'unpaidAmount') || '0.00',
+        overdueAmount: readString(record, 'overdueAmount') || '0.00',
+        overdueCount: Number(readString(record, 'overdueCount')) || 0,
+        nextDueDate: readOptionalString(record, 'nextDueDate'),
+        currency: readString(record, 'currency') || 'PLN',
     };
 }
 
@@ -144,7 +144,9 @@ export function normalizeStudentPayments(data: unknown): StudentPaymentItem[] {
     if (Array.isArray(data)) {
         return data
             .map((item) => normalizePaymentItem(item))
-            .filter((x): x is StudentPaymentItem => x !== null);
+            .filter(
+                (payment): payment is StudentPaymentItem => payment !== null,
+            );
     }
 
     if (!data || typeof data !== 'object') {

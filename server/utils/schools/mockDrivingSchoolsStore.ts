@@ -48,31 +48,31 @@ type GlobalWithStore = typeof globalThis & {
 };
 
 function getStore(): MockDrivingSchoolRow[] {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockDrivingSchoolsStore) {
-        g.__mockDrivingSchoolsStore = [];
+    if (!globalStore.__mockDrivingSchoolsStore) {
+        globalStore.__mockDrivingSchoolsStore = [];
     }
 
-    return g.__mockDrivingSchoolsStore;
+    return globalStore.__mockDrivingSchoolsStore;
 }
 
 function getDefaultId(): string | null {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    return g.__mockDrivingSchoolsDefaultId ?? null;
+    return globalStore.__mockDrivingSchoolsDefaultId ?? null;
 }
 
 function setDefaultId(id: string | null) {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    g.__mockDrivingSchoolsDefaultId = id;
+    globalStore.__mockDrivingSchoolsDefaultId = id;
 }
 
 export function mockDrivingSchoolsList(): Array<
     MockDrivingSchoolRow & { isDefault: boolean }
 > {
-    const def = getDefaultId();
+    const defaultSchoolId = getDefaultId();
 
     return getStore().map((row) => ({
         ...row,
@@ -82,19 +82,19 @@ export function mockDrivingSchoolsList(): Array<
         enabledCourseKinds: row.enabledCourseKinds ?? [
             ...MOCK_DEFAULT_ENABLED_COURSE_KINDS,
         ],
-        isDefault: def !== null && row.id === def,
+        isDefault: defaultSchoolId !== null && row.id === defaultSchoolId,
     }));
 }
 
 export function mockDrivingSchoolsGetDefault(): MockDrivingSchoolRow | null {
     const store = getStore();
-    const def = getDefaultId();
+    const defaultSchoolId = getDefaultId();
 
-    if (!def) {
+    if (!defaultSchoolId) {
         return null;
     }
 
-    const row = store.find((s) => s.id === def);
+    const row = store.find((school) => school.id === defaultSchoolId);
 
     if (!row) {
         return null;
@@ -134,7 +134,7 @@ export function mockDrivingSchoolsPush(row: {
 
 export function mockDrivingSchoolsDelete(id: string): boolean {
     const store = getStore();
-    const index = store.findIndex((s) => s.id === id);
+    const index = store.findIndex((school) => school.id === id);
 
     if (index === -1) return false;
 
@@ -152,7 +152,7 @@ export function mockDrivingSchoolsUpdate(
     body: { name: string; city?: string | null; address?: string | null },
 ): MockDrivingSchoolRow | null {
     const store = getStore();
-    const row = store.find((s) => s.id === id);
+    const row = store.find((school) => school.id === id);
 
     if (!row) return null;
 
@@ -165,7 +165,7 @@ export function mockDrivingSchoolsUpdate(
 
 export function mockDrivingSchoolsSetDefault(id: string): boolean {
     const store = getStore();
-    const exists = store.some((s) => s.id === id);
+    const exists = store.some((school) => school.id === id);
 
     if (!exists) return false;
 

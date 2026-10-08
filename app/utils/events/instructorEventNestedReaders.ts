@@ -12,39 +12,39 @@ export function readNestedInstructorListItem(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = typeof o.id === 'string' ? o.id.trim() : '';
+    const record = raw as Record<string, unknown>;
+    const id = typeof record.id === 'string' ? record.id.trim() : '';
 
     if (!id) {
         return null;
     }
 
     const firstName =
-        typeof o.firstName === 'string'
-            ? o.firstName.trim()
-            : typeof o.first_name === 'string'
-              ? o.first_name.trim()
+        typeof record.firstName === 'string'
+            ? record.firstName.trim()
+            : typeof record.first_name === 'string'
+              ? record.first_name.trim()
               : '';
     const lastName =
-        typeof o.lastName === 'string'
-            ? o.lastName.trim()
-            : typeof o.last_name === 'string'
-              ? o.last_name.trim()
+        typeof record.lastName === 'string'
+            ? record.lastName.trim()
+            : typeof record.last_name === 'string'
+              ? record.last_name.trim()
               : '';
     const email =
-        typeof o.email === 'string'
-            ? o.email.trim()
-            : typeof o.Email === 'string'
-              ? o.Email.trim()
+        typeof record.email === 'string'
+            ? record.email.trim()
+            : typeof record.Email === 'string'
+              ? record.Email.trim()
               : '';
     let phone: string | null | undefined;
 
-    if (o.phone === null) {
+    if (record.phone === null) {
         phone = null;
-    } else if (typeof o.phone === 'string') {
-        const p = o.phone.trim();
+    } else if (typeof record.phone === 'string') {
+        const trimmedPhone = record.phone.trim();
 
-        phone = p.length > 0 ? p : null;
+        phone = trimmedPhone.length > 0 ? trimmedPhone : null;
     }
 
     return {
@@ -52,7 +52,7 @@ export function readNestedInstructorListItem(
         firstName,
         lastName,
         email,
-        avatarUrl: readAvatarUrlFromRecord(o),
+        avatarUrl: readAvatarUrlFromRecord(record),
         ...(phone !== undefined ? { phone } : {}),
     };
 }
@@ -71,12 +71,12 @@ export function readNestedEventStudents(
             continue;
         }
 
-        const o = item as Record<string, unknown>;
+        const record = item as Record<string, unknown>;
         const id =
-            typeof o.id === 'string'
-                ? o.id.trim()
-                : o.student_id != null
-                  ? String(o.student_id).trim()
+            typeof record.id === 'string'
+                ? record.id.trim()
+                : record.student_id != null
+                  ? String(record.student_id).trim()
                   : '';
 
         if (!id) {
@@ -84,7 +84,10 @@ export function readNestedEventStudents(
         }
 
         const userIdRaw =
-            o.userId ?? o.user_id ?? o.studentUserId ?? o.student_user_id;
+            record.userId ??
+            record.user_id ??
+            record.studentUserId ??
+            record.student_user_id;
         const userId =
             typeof userIdRaw === 'string'
                 ? userIdRaw.trim()
@@ -97,32 +100,32 @@ export function readNestedEventStudents(
         }
 
         const firstName =
-            typeof o.firstName === 'string'
-                ? o.firstName.trim()
-                : typeof o.first_name === 'string'
-                  ? o.first_name.trim()
+            typeof record.firstName === 'string'
+                ? record.firstName.trim()
+                : typeof record.first_name === 'string'
+                  ? record.first_name.trim()
                   : '';
         const lastName =
-            typeof o.lastName === 'string'
-                ? o.lastName.trim()
-                : typeof o.last_name === 'string'
-                  ? o.last_name.trim()
+            typeof record.lastName === 'string'
+                ? record.lastName.trim()
+                : typeof record.last_name === 'string'
+                  ? record.last_name.trim()
                   : '';
         const email =
-            typeof o.email === 'string'
-                ? o.email.trim()
-                : typeof o.Email === 'string'
-                  ? o.Email.trim()
+            typeof record.email === 'string'
+                ? record.email.trim()
+                : typeof record.Email === 'string'
+                  ? record.Email.trim()
                   : '';
 
         let phone: string | null = null;
 
-        if (o.phone === null) {
+        if (record.phone === null) {
             phone = null;
-        } else if (typeof o.phone === 'string') {
-            const p = o.phone.trim();
+        } else if (typeof record.phone === 'string') {
+            const trimmedPhone = record.phone.trim();
 
-            phone = p.length > 0 ? p : null;
+            phone = trimmedPhone.length > 0 ? trimmedPhone : null;
         }
 
         out.push({
@@ -132,7 +135,7 @@ export function readNestedEventStudents(
             lastName,
             email,
             phone,
-            avatarUrl: readAvatarUrlFromRecord(o),
+            avatarUrl: readAvatarUrlFromRecord(record),
         });
     }
 
@@ -140,9 +143,9 @@ export function readNestedEventStudents(
 }
 
 export function readFreeWindowsFromRaw(
-    o: Record<string, unknown>,
+    record: Record<string, unknown>,
 ): FreeWindow[] | undefined {
-    const raw = o.freeWindows;
+    const raw = record.freeWindows;
 
     if (!Array.isArray(raw)) {
         return undefined;
@@ -155,18 +158,18 @@ export function readFreeWindowsFromRaw(
             continue;
         }
 
-        const w = item as Record<string, unknown>;
+        const windowRecord = item as Record<string, unknown>;
         const startTime =
-            typeof w.startTime === 'string'
-                ? w.startTime.trim()
-                : typeof w.start_time === 'string'
-                  ? w.start_time.trim()
+            typeof windowRecord.startTime === 'string'
+                ? windowRecord.startTime.trim()
+                : typeof windowRecord.start_time === 'string'
+                  ? windowRecord.start_time.trim()
                   : '';
         const endTime =
-            typeof w.endTime === 'string'
-                ? w.endTime.trim()
-                : typeof w.end_time === 'string'
-                  ? w.end_time.trim()
+            typeof windowRecord.endTime === 'string'
+                ? windowRecord.endTime.trim()
+                : typeof windowRecord.end_time === 'string'
+                  ? windowRecord.end_time.trim()
                   : '';
 
         if (startTime && endTime) {

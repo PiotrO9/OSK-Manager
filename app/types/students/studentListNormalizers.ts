@@ -11,42 +11,49 @@ export function normalizeStudentListItem(raw: unknown): StudentListItem | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = o.id != null ? String(o.id).trim() : '';
+    const studentRecord = raw as Record<string, unknown>;
+    const id = studentRecord.id != null ? String(studentRecord.id).trim() : '';
 
     if (!id) {
         return null;
     }
 
-    const userIdRaw = o.userId ?? o.user_id;
+    const userIdRaw = studentRecord.userId ?? studentRecord.user_id;
     const userId =
         userIdRaw != null && String(userIdRaw).trim().length > 0
             ? String(userIdRaw).trim()
             : id;
 
     const firstName =
-        o.firstName != null
-            ? String(o.firstName).trim()
-            : o.first_name != null
-              ? String(o.first_name).trim()
+        studentRecord.firstName != null
+            ? String(studentRecord.firstName).trim()
+            : studentRecord.first_name != null
+              ? String(studentRecord.first_name).trim()
               : '';
 
     const lastName =
-        o.lastName != null
-            ? String(o.lastName).trim()
-            : o.last_name != null
-              ? String(o.last_name).trim()
+        studentRecord.lastName != null
+            ? String(studentRecord.lastName).trim()
+            : studentRecord.last_name != null
+              ? String(studentRecord.last_name).trim()
               : '';
 
-    const email = o.email != null ? String(o.email).trim().toLowerCase() : '';
+    const email =
+        studentRecord.email != null
+            ? String(studentRecord.email).trim().toLowerCase()
+            : '';
 
     if (!firstName || !lastName || !email) {
         return null;
     }
 
-    const phone = readStringOrNull(o.phone ?? o.phone_number);
-    const pkkNumber = readStringOrNull(o.pkkNumber ?? o.pkk_number);
-    const createdAtRaw = o.createdAt ?? o.created_at;
+    const phone = readStringOrNull(
+        studentRecord.phone ?? studentRecord.phone_number,
+    );
+    const pkkNumber = readStringOrNull(
+        studentRecord.pkkNumber ?? studentRecord.pkk_number,
+    );
+    const createdAtRaw = studentRecord.createdAt ?? studentRecord.created_at;
     const createdAt = createdAtRaw != null ? String(createdAtRaw).trim() : '';
 
     if (!createdAt) {
@@ -60,9 +67,12 @@ export function normalizeStudentListItem(raw: unknown): StudentListItem | null {
         lastName,
         email,
         phone,
-        avatarUrl: readAvatarUrlFromRecord(o),
+        avatarUrl: readAvatarUrlFromRecord(studentRecord),
         pkkNumber,
-        isActive: parseBooleanLike(o.isActive ?? o.is_active, true),
+        isActive: parseBooleanLike(
+            studentRecord.isActive ?? studentRecord.is_active,
+            true,
+        ),
         createdAt,
     };
 }
@@ -105,7 +115,7 @@ export function normalizeStudentListPage(
 
     const items = itemsRaw
         .map((row) => normalizeStudentListItem(row))
-        .filter((x): x is StudentListItem => x !== null);
+        .filter((student): student is StudentListItem => student !== null);
 
     const totalRaw = record.total;
     let total: number;
@@ -113,9 +123,11 @@ export function normalizeStudentListPage(
     if (typeof totalRaw === 'number' && Number.isFinite(totalRaw)) {
         total = Math.max(0, Math.trunc(totalRaw));
     } else if (typeof totalRaw === 'string') {
-        const p = Number.parseInt(totalRaw.trim(), 10);
+        const parsedValue = Number.parseInt(totalRaw.trim(), 10);
 
-        total = Number.isNaN(p) ? items.length : Math.max(0, p);
+        total = Number.isNaN(parsedValue)
+            ? items.length
+            : Math.max(0, parsedValue);
     } else {
         total = NaN;
     }
@@ -130,9 +142,11 @@ export function normalizeStudentListPage(
     if (typeof pageRaw === 'number' && Number.isFinite(pageRaw)) {
         page = clampInt(pageRaw, 1, 1_000_000);
     } else if (typeof pageRaw === 'string') {
-        const p = Number.parseInt(pageRaw.trim(), 10);
+        const parsedValue = Number.parseInt(pageRaw.trim(), 10);
 
-        page = Number.isNaN(p) ? 1 : clampInt(p, 1, 1_000_000);
+        page = Number.isNaN(parsedValue)
+            ? 1
+            : clampInt(parsedValue, 1, 1_000_000);
     }
 
     const limitRaw = record.limit;
@@ -141,9 +155,9 @@ export function normalizeStudentListPage(
     if (typeof limitRaw === 'number' && Number.isFinite(limitRaw)) {
         limit = clampInt(limitRaw, 1, 100);
     } else if (typeof limitRaw === 'string') {
-        const p = Number.parseInt(limitRaw.trim(), 10);
+        const parsedValue = Number.parseInt(limitRaw.trim(), 10);
 
-        limit = Number.isNaN(p) ? 20 : clampInt(p, 1, 100);
+        limit = Number.isNaN(parsedValue) ? 20 : clampInt(parsedValue, 1, 100);
     }
 
     const totalPages = total === 0 ? 1 : Math.max(1, Math.ceil(total / limit));

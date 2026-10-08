@@ -71,10 +71,10 @@ async function loadSchools(): Promise<void> {
 
 watch(
     () => schoolId.value,
-    (sid) => {
+    (selectedSchoolId) => {
         schoolIdError.value = null;
 
-        if (!sid) {
+        if (!selectedSchoolId) {
             schoolIdError.value =
                 'Brak identyfikatora szkoły. Dodaj ?schoolId= do adresu lub ustaw domyslna OSK.';
         }

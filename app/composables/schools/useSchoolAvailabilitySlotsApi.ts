@@ -105,9 +105,9 @@ export function useSchoolAvailabilitySlotsApi() {
         filters?: SchoolAvailabilitySlotsQueryFilters,
         options: { signal?: AbortSignal } = {},
     ): Promise<SchoolAvailabilitySlotsResult> {
-        const sid = schoolId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
-        if (!sid) {
+        if (!trimmedSchoolId) {
             return { slots: [], total: 0 };
         }
 
@@ -123,7 +123,7 @@ export function useSchoolAvailabilitySlotsApi() {
         try {
             return await requestBffData<SchoolAvailabilitySlotsResult>(
                 'GET',
-                buildSchoolSlotsPath(sid, from, to, filters),
+                buildSchoolSlotsPath(trimmedSchoolId, from, to, filters),
                 {
                     fallbackMessage: 'Nie udało się pobrać dostępnych slotów.',
                     normalize: normalizeSlotsResult,

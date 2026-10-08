@@ -37,11 +37,11 @@ export function useManagerCoursesPage() {
     const courses = ref<CourseListItem[]>([]);
     const isCoursesLoading = ref(false);
     const coursesLoadError = ref<string | null>(null);
-    let schoolsLoadSeq = 0;
-    let coursesLoadSeq = 0;
+    let schoolsLoadSequence = 0;
+    let coursesLoadSequence = 0;
 
     async function loadSchools() {
-        const seq = ++schoolsLoadSeq;
+        const requestSequence = ++schoolsLoadSequence;
 
         schoolsLoadError.value = null;
         isSchoolsLoading.value = true;
@@ -49,7 +49,7 @@ export function useManagerCoursesPage() {
         try {
             const items = await fetchSchoolsList();
 
-            if (seq !== schoolsLoadSeq) {
+            if (requestSequence !== schoolsLoadSequence) {
                 return;
             }
 
@@ -59,17 +59,17 @@ export function useManagerCoursesPage() {
                 activeSchoolId.value = resolveInitialActiveSchoolId();
                 await loadCourses();
             }
-        } catch (e) {
-            if (seq !== schoolsLoadSeq) {
+        } catch (error) {
+            if (requestSequence !== schoolsLoadSequence) {
                 return;
             }
 
             schoolsLoadError.value =
-                e instanceof Error
-                    ? e.message
+                error instanceof Error
+                    ? error.message
                     : 'Nie udało się pobrać listy OSK.';
         } finally {
-            if (seq === schoolsLoadSeq) {
+            if (requestSequence === schoolsLoadSequence) {
                 isSchoolsLoading.value = false;
             }
         }
@@ -89,13 +89,13 @@ export function useManagerCoursesPage() {
     }
 
     async function loadCourses() {
-        const sid = activeSchoolId.value.trim();
-        const seq = ++coursesLoadSeq;
+        const schoolId = activeSchoolId.value.trim();
+        const requestSequence = ++coursesLoadSequence;
 
         courses.value = [];
         coursesLoadError.value = null;
 
-        if (!sid) {
+        if (!schoolId) {
             isCoursesLoading.value = false;
 
             return;
@@ -105,22 +105,22 @@ export function useManagerCoursesPage() {
         isCoursesLoading.value = true;
 
         try {
-            const items = await fetchCoursesList(sid);
+            const items = await fetchCoursesList(schoolId);
 
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
             courses.value = items;
         } catch (err) {
-            if (seq !== coursesLoadSeq) {
+            if (requestSequence !== coursesLoadSequence) {
                 return;
             }
 
             courses.value = [];
             coursesLoadError.value = resolveCoursesListError(err);
         } finally {
-            if (seq === coursesLoadSeq) {
+            if (requestSequence === coursesLoadSequence) {
                 isCoursesLoading.value = false;
             }
         }
@@ -134,8 +134,8 @@ export function useManagerCoursesPage() {
 
     onMounted(loadSchools);
     onBeforeUnmount(() => {
-        schoolsLoadSeq++;
-        coursesLoadSeq++;
+        schoolsLoadSequence++;
+        coursesLoadSequence++;
     });
 
     return {

@@ -48,13 +48,15 @@ let schoolRequestId = 0;
 let instructorRequestId = 0;
 
 const currentSchool = computed(() => {
-    const sid = schoolId.value;
+    const selectedSchoolId = schoolId.value;
 
-    if (!sid) {
+    if (!selectedSchoolId) {
         return undefined;
     }
 
-    return drivingSchools.value.find((s) => s.id === sid);
+    return drivingSchools.value.find(
+        (school) => school.id === selectedSchoolId,
+    );
 });
 
 const offeredCourseTypes = computed(
@@ -73,7 +75,7 @@ const schoolMissingFromContext = computed(
         currentSchool.value === undefined,
 );
 
-async function loadInstructors(sid: string) {
+async function loadInstructors(selectedSchoolId: string) {
     const requestId = ++instructorRequestId;
 
     instructorsLoadError.value = null;
@@ -81,7 +83,7 @@ async function loadInstructors(sid: string) {
     instructors.value = [];
 
     try {
-        const result = await fetchInstructorsList(sid);
+        const result = await fetchInstructorsList(selectedSchoolId);
 
         if (requestId === instructorRequestId) instructors.value = result;
     } catch (e) {
@@ -124,10 +126,10 @@ async function loadSchoolContext() {
 
 watch(
     schoolId,
-    (sid) => {
-        if (sid) {
+    (selectedSchoolId) => {
+        if (selectedSchoolId) {
             loadSchoolContext();
-            loadInstructors(sid);
+            loadInstructors(selectedSchoolId);
         } else {
             schoolRequestId++;
             instructorRequestId++;

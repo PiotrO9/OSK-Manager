@@ -30,8 +30,8 @@ export function useManagerInstructorsPage() {
     const quickView = ref<InstructorQuickView>('all');
     const advancedFilterState = useManagerInstructorsAdvancedFilters();
 
-    let schoolsLoadSeq = 0;
-    let instructorsLoadSeq = 0;
+    let schoolsLoadSequence = 0;
+    let instructorsLoadSequence = 0;
 
     const activeSchool = computed(
         () =>
@@ -110,7 +110,7 @@ export function useManagerInstructorsPage() {
     }
 
     async function loadSchools() {
-        const seq = ++schoolsLoadSeq;
+        const requestSequence = ++schoolsLoadSequence;
 
         schoolsLoadError.value = null;
         isSchoolsLoading.value = true;
@@ -118,32 +118,32 @@ export function useManagerInstructorsPage() {
         try {
             const items = await fetchSchoolsList();
 
-            if (seq !== schoolsLoadSeq) {
+            if (requestSequence !== schoolsLoadSequence) {
                 return;
             }
 
             schools.value = items;
-        } catch (e) {
-            if (seq !== schoolsLoadSeq) {
+        } catch (error) {
+            if (requestSequence !== schoolsLoadSequence) {
                 return;
             }
 
             schoolsLoadError.value =
-                e instanceof Error
-                    ? e.message
+                error instanceof Error
+                    ? error.message
                     : 'Nie udało się pobrać listy OSK.';
         } finally {
-            if (seq === schoolsLoadSeq) {
+            if (requestSequence === schoolsLoadSequence) {
                 isSchoolsLoading.value = false;
             }
         }
     }
 
     async function loadInstructors() {
-        const sid = activeSchoolId.value.trim();
-        const seq = ++instructorsLoadSeq;
+        const schoolId = activeSchoolId.value.trim();
+        const requestSequence = ++instructorsLoadSequence;
 
-        if (!sid) {
+        if (!schoolId) {
             instructors.value = [];
 
             return;
@@ -153,22 +153,22 @@ export function useManagerInstructorsPage() {
         isInstructorsLoading.value = true;
 
         try {
-            const items = await fetchInstructorsList(sid);
+            const items = await fetchInstructorsList(schoolId);
 
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
             instructors.value = items;
         } catch (err) {
-            if (seq !== instructorsLoadSeq) {
+            if (requestSequence !== instructorsLoadSequence) {
                 return;
             }
 
             instructors.value = [];
             instructorsLoadError.value = resolveInstructorsListError(err);
         } finally {
-            if (seq === instructorsLoadSeq) {
+            if (requestSequence === instructorsLoadSequence) {
                 isInstructorsLoading.value = false;
             }
         }

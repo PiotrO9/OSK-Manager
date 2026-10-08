@@ -27,23 +27,23 @@ type GlobalWithStore = typeof globalThis & {
 };
 
 function getStore(): Record<string, MockStudentListRow[]> {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockStudentsListBySchool) {
-        g.__mockStudentsListBySchool = {};
+    if (!globalStore.__mockStudentsListBySchool) {
+        globalStore.__mockStudentsListBySchool = {};
     }
 
-    return g.__mockStudentsListBySchool;
+    return globalStore.__mockStudentsListBySchool;
 }
 
 function getMockStudentNotesStore(): Record<string, string | null> {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockStudentNotes) {
-        g.__mockStudentNotes = {};
+    if (!globalStore.__mockStudentNotes) {
+        globalStore.__mockStudentNotes = {};
     }
 
-    return g.__mockStudentNotes;
+    return globalStore.__mockStudentNotes;
 }
 
 function findMockStudentRowByUserId(userId: string): MockStudentListRow | null {
@@ -53,16 +53,18 @@ function findMockStudentRowByUserId(userId: string): MockStudentListRow | null {
 function findMockStudentRowWithSchoolByUserId(
     userId: string,
 ): { schoolId: string; row: MockStudentListRow } | null {
-    const uid = userId.trim();
+    const trimmedUserId = userId.trim();
 
-    if (!uid) {
+    if (!trimmedUserId) {
         return null;
     }
 
     const store = getStore();
 
     for (const [schoolId, rows] of Object.entries(store)) {
-        const row = rows.find((r) => r.userId === uid);
+        const row = rows.find(
+            (studentRow) => studentRow.userId === trimmedUserId,
+        );
 
         if (row) {
             return { schoolId, row };
@@ -81,13 +83,13 @@ export function mockUpdateStudentNotes(
 ):
     | { ok: true; userId: string; notes: string | null }
     | { ok: false; code: 'NOT_FOUND' | 'NOTES_TOO_LONG' } {
-    const uid = userId.trim();
+    const trimmedUserId = userId.trim();
 
-    if (!uid) {
+    if (!trimmedUserId) {
         return { ok: false, code: 'NOT_FOUND' };
     }
 
-    const row = findMockStudentRowByUserId(uid);
+    const row = findMockStudentRowByUserId(trimmedUserId);
 
     if (!row) {
         return { ok: false, code: 'NOT_FOUND' };
@@ -98,9 +100,9 @@ export function mockUpdateStudentNotes(
     if (notes === null || notes === undefined) {
         normalized = null;
     } else {
-        const s = String(notes).trim();
+        const trimmedNotes = String(notes).trim();
 
-        normalized = s.length > 0 ? s : null;
+        normalized = trimmedNotes.length > 0 ? trimmedNotes : null;
     }
 
     if (normalized !== null && normalized.length > MOCK_STUDENT_NOTES_MAX_LEN) {
@@ -110,14 +112,14 @@ export function mockUpdateStudentNotes(
     const notesStore = getMockStudentNotesStore();
 
     if (normalized === null) {
-        Reflect.deleteProperty(notesStore, uid);
+        Reflect.deleteProperty(notesStore, trimmedUserId);
     } else {
-        notesStore[uid] = normalized;
+        notesStore[trimmedUserId] = normalized;
     }
 
     return {
         ok: true,
-        userId: uid,
+        userId: trimmedUserId,
         notes: normalized,
     };
 }
@@ -197,23 +199,23 @@ function mockStudentAssignedToCourse(
     courseId: string,
 ): boolean {
     const combined = `${studentId}:${courseId}`;
-    let h = 0;
+    let hash = 0;
 
     for (let i = 0; i < combined.length; i++) {
-        h = (h * 31 + combined.charCodeAt(i)) | 0;
+        hash = (hash * 31 + combined.charCodeAt(i)) | 0;
     }
 
-    return Math.abs(h) % 2 === 0;
+    return Math.abs(hash) % 2 === 0;
 }
 
 function hashForMock(value: string): number {
-    let h = 0;
+    let hash = 0;
 
     for (let i = 0; i < value.length; i++) {
-        h = (h * 31 + value.charCodeAt(i)) | 0;
+        hash = (hash * 31 + value.charCodeAt(i)) | 0;
     }
 
-    return Math.abs(h);
+    return Math.abs(hash);
 }
 
 function mockStudentHasOverduePayments(row: MockStudentListRow): boolean {
@@ -233,13 +235,13 @@ function mockStudentHasUpcomingLesson(
 }
 
 function getMockCourseParticipantSet(): Set<string> {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockCourseParticipants) {
-        g.__mockCourseParticipants = new Set();
+    if (!globalStore.__mockCourseParticipants) {
+        globalStore.__mockCourseParticipants = new Set();
     }
 
-    return g.__mockCourseParticipants;
+    return globalStore.__mockCourseParticipants;
 }
 
 function mockCourseParticipantKey(
@@ -288,7 +290,7 @@ export function mockCourseParticipantAssign(params: {
 
     const schoolId = course.schoolId;
     const all = ensureSeedForSchool(schoolId);
-    const row = all.find((r) => r.userId === studentUserId);
+    const row = all.find((studentRow) => studentRow.userId === studentUserId);
 
     if (!row) {
         return { ok: false, code: 'STUDENT_NOT_IN_SCHOOL' };
@@ -391,14 +393,14 @@ export interface MockStudentProcessStatusPayload {
 const MOCK_PARTICIPANT_STATUSES = ['ACTIVE', 'COMPLETED', 'SUSPENDED'] as const;
 
 function hashUserIdForMockCourses(userId: string): number {
-    const s = userId.trim();
-    let h = 0;
+    const normalizedUserId = userId.trim();
+    let hash = 0;
 
-    for (let i = 0; i < s.length; i++) {
-        h = (h * 31 + s.charCodeAt(i)) | 0;
+    for (let i = 0; i < normalizedUserId.length; i++) {
+        hash = (hash * 31 + normalizedUserId.charCodeAt(i)) | 0;
     }
 
-    return Math.abs(h);
+    return Math.abs(hash);
 }
 
 /**
@@ -408,19 +410,21 @@ export function mockStudentDetailPayload(
     userId: string,
     schoolId?: string,
 ): MockStudentDetailPayload | null {
-    const uid = userId.trim();
-    const sid = schoolId?.trim() ?? '';
+    const trimmedUserId = userId.trim();
+    const trimmedSchoolId = schoolId?.trim() ?? '';
 
-    if (!uid) {
+    if (!trimmedUserId) {
         return null;
     }
 
-    const found = sid
+    const found = trimmedSchoolId
         ? {
-              schoolId: sid,
-              row: ensureSeedForSchool(sid).find((r) => r.userId === uid),
+              schoolId: trimmedSchoolId,
+              row: ensureSeedForSchool(trimmedSchoolId).find(
+                  (studentRow) => studentRow.userId === trimmedUserId,
+              ),
           }
-        : findMockStudentRowWithSchoolByUserId(uid);
+        : findMockStudentRowWithSchoolByUserId(trimmedUserId);
 
     if (!found?.row) {
         return null;
@@ -429,7 +433,7 @@ export function mockStudentDetailPayload(
     const row = found.row;
     const resolvedSchoolId = found.schoolId;
 
-    const notesRaw = getMockStudentNotesStore()[uid];
+    const notesRaw = getMockStudentNotesStore()[trimmedUserId];
     const notes =
         notesRaw !== undefined &&
         notesRaw !== null &&
@@ -442,10 +446,10 @@ export function mockStudentDetailPayload(
         a.id.localeCompare(b.id, 'en'),
     );
 
-    const h = hashUserIdForMockCourses(uid);
-    const n = sorted.length;
+    const hash = hashUserIdForMockCourses(trimmedUserId);
+    const courseCount = sorted.length;
 
-    if (n === 0) {
+    if (courseCount === 0) {
         return {
             id: row.id,
             userId: row.userId,
@@ -460,15 +464,15 @@ export function mockStudentDetailPayload(
         };
     }
 
-    const maxPick = Math.min(3, n);
-    const pickCount = 1 + (h % maxPick);
-    const start = h % n;
+    const maxPick = Math.min(3, courseCount);
+    const pickCount = 1 + (hash % maxPick);
+    const start = hash % courseCount;
 
     const picked: typeof sorted = [];
     const seen = new Set<string>();
 
-    for (let i = 0; i < pickCount && picked.length < n; i++) {
-        const course = sorted[(start + i) % n]!;
+    for (let i = 0; i < pickCount && picked.length < courseCount; i++) {
+        const course = sorted[(start + i) % courseCount]!;
 
         if (seen.has(course.id)) {
             continue;
@@ -483,7 +487,7 @@ export function mockStudentDetailPayload(
         name: c.name,
         category: c.category,
         status: MOCK_PARTICIPANT_STATUSES[
-            (h + i) % MOCK_PARTICIPANT_STATUSES.length
+            (hash + i) % MOCK_PARTICIPANT_STATUSES.length
         ]!,
     }));
 

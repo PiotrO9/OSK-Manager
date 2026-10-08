@@ -136,13 +136,18 @@ export function useVehiclesApi() {
         schoolId: string,
         vehicleId: string,
     ): Promise<void> {
-        const sid = schoolId.trim();
+        const trimmedSchoolId = schoolId.trim();
 
         await runWithLoading(isSetDefaultLoading, () =>
-            requestBffSuccess('PATCH', buildDefaultVehiclePath(sid), {
-                body: { vehicleId },
-                fallbackMessage: 'Nie udało się ustawić domyślnego pojazdu.',
-            }),
+            requestBffSuccess(
+                'PATCH',
+                buildDefaultVehiclePath(trimmedSchoolId),
+                {
+                    body: { vehicleId },
+                    fallbackMessage:
+                        'Nie udało się ustawić domyślnego pojazdu.',
+                },
+            ),
         );
     }
 

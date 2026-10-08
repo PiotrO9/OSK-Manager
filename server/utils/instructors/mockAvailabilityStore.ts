@@ -10,13 +10,13 @@ type GlobalWithStore = typeof globalThis & {
 };
 
 function getStore(): Map<string, MockWeeklyEntry[]> {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockAvailabilityWeekly) {
-        g.__mockAvailabilityWeekly = new Map();
+    if (!globalStore.__mockAvailabilityWeekly) {
+        globalStore.__mockAvailabilityWeekly = new Map();
     }
 
-    return g.__mockAvailabilityWeekly;
+    return globalStore.__mockAvailabilityWeekly;
 }
 
 /** Pre-seed: poniedziałek–piątek 08:00–16:00. */
@@ -52,7 +52,7 @@ export function mockAvailabilityUpsertDay(
     endTime: string,
 ): MockWeeklyEntry {
     const entries = mockAvailabilityGetWeekly(instructorId);
-    const existing = entries.find((e) => e.dayOfWeek === dayOfWeek);
+    const existing = entries.find((entry) => entry.dayOfWeek === dayOfWeek);
 
     if (existing) {
         existing.startTime = startTime;
@@ -80,7 +80,7 @@ export function mockAvailabilityDeleteDay(
     dayOfWeek: number,
 ): boolean {
     const entries = mockAvailabilityGetWeekly(instructorId);
-    const idx = entries.findIndex((e) => e.dayOfWeek === dayOfWeek);
+    const idx = entries.findIndex((entry) => entry.dayOfWeek === dayOfWeek);
 
     if (idx === -1) {
         return false;

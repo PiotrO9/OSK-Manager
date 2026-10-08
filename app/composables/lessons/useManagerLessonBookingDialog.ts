@@ -141,19 +141,19 @@ export function useManagerLessonBookingDialog(
         candidate: availabilityCandidate,
     });
 
-    let loadSeq = 0;
-    let studentCoursesLoadSeq = 0;
+    let loadSequence = 0;
+    let studentCoursesLoadSequence = 0;
 
     watch(
         [options.open, options.slotCtx],
         async ([isOpen, ctx]) => {
             if (!isOpen || !ctx) {
-                loadSeq += 1;
+                loadSequence += 1;
 
                 return;
             }
 
-            const seq = ++loadSeq;
+            const requestSequence = ++loadSequence;
 
             students.value = [];
             vehicles.value = [];
@@ -176,7 +176,7 @@ export function useManagerLessonBookingDialog(
                     fetchInstructorsList(ctx.schoolId).catch(() => []),
                 ]);
 
-                if (seq !== loadSeq) {
+                if (requestSequence !== loadSequence) {
                     return;
                 }
 
@@ -206,33 +206,33 @@ export function useManagerLessonBookingDialog(
     });
 
     watch(selectedStudentUserId, async (userId) => {
-        const seq = ++studentCoursesLoadSeq;
+        const requestSequence = ++studentCoursesLoadSequence;
 
         selectedCourseId.value = '';
         studentCourses.value = [];
         loadCoursesError.value = null;
 
         const schoolId = options.slotCtx.value?.schoolId.trim();
-        const uid = userId.trim();
+        const trimmedUserId = userId.trim();
 
-        if (!uid || !schoolId) {
+        if (!trimmedUserId || !schoolId) {
             return;
         }
 
         try {
             const courses = await loadStudentCoursesWithKind(
-                uid,
+                trimmedUserId,
                 schoolId,
                 options.schoolCourses.value,
             );
 
-            if (seq !== studentCoursesLoadSeq) {
+            if (requestSequence !== studentCoursesLoadSequence) {
                 return;
             }
 
             studentCourses.value = courses;
         } catch (err: unknown) {
-            if (seq !== studentCoursesLoadSeq) {
+            if (requestSequence !== studentCoursesLoadSequence) {
                 return;
             }
 

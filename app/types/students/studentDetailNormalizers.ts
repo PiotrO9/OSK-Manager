@@ -6,18 +6,18 @@ function normalizeStudentCourseItem(raw: unknown): StudentCourseItem | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = o.id != null ? String(o.id).trim() : '';
+    const record = raw as Record<string, unknown>;
+    const id = record.id != null ? String(record.id).trim() : '';
 
     if (!id) {
         return null;
     }
 
     const name =
-        o.name != null
-            ? String(o.name).trim()
-            : o.title != null
-              ? String(o.title).trim()
+        record.name != null
+            ? String(record.name).trim()
+            : record.title != null
+              ? String(record.title).trim()
               : '';
 
     if (!name) {
@@ -25,13 +25,13 @@ function normalizeStudentCourseItem(raw: unknown): StudentCourseItem | null {
     }
 
     const category =
-        o.category != null
-            ? String(o.category).trim()
-            : o.category_code != null
-              ? String(o.category_code).trim()
+        record.category != null
+            ? String(record.category).trim()
+            : record.category_code != null
+              ? String(record.category_code).trim()
               : '';
 
-    const statusRaw = o.status;
+    const statusRaw = record.status;
     const status =
         statusRaw != null && String(statusRaw).trim().length > 0
             ? String(statusRaw).trim().toUpperCase()
@@ -54,52 +54,53 @@ export function normalizeStudentDetail(raw: unknown): StudentDetail | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = o.id != null ? String(o.id).trim() : '';
+    const record = raw as Record<string, unknown>;
+    const id = record.id != null ? String(record.id).trim() : '';
 
     if (!id) {
         return null;
     }
 
-    const userIdRaw = o.userId ?? o.user_id;
+    const userIdRaw = record.userId ?? record.user_id;
     const userId =
         userIdRaw != null && String(userIdRaw).trim().length > 0
             ? String(userIdRaw).trim()
             : id;
-    const schoolIdRaw = o.schoolId ?? o.school_id;
+    const schoolIdRaw = record.schoolId ?? record.school_id;
     const schoolId =
         schoolIdRaw != null && String(schoolIdRaw).trim().length > 0
             ? String(schoolIdRaw).trim()
             : '';
 
     const firstName =
-        o.firstName != null
-            ? String(o.firstName).trim()
-            : o.first_name != null
-              ? String(o.first_name).trim()
+        record.firstName != null
+            ? String(record.firstName).trim()
+            : record.first_name != null
+              ? String(record.first_name).trim()
               : '';
 
     const lastName =
-        o.lastName != null
-            ? String(o.lastName).trim()
-            : o.last_name != null
-              ? String(o.last_name).trim()
+        record.lastName != null
+            ? String(record.lastName).trim()
+            : record.last_name != null
+              ? String(record.last_name).trim()
               : '';
 
-    const email = o.email != null ? String(o.email).trim().toLowerCase() : '';
+    const email =
+        record.email != null ? String(record.email).trim().toLowerCase() : '';
 
     if (!firstName || !lastName || !email || !schoolId) {
         return null;
     }
 
-    const pkkNumber = readStringOrNull(o.pkkNumber ?? o.pkk_number);
-    const notes = readStringOrNull(o.notes);
+    const pkkNumber = readStringOrNull(record.pkkNumber ?? record.pkk_number);
+    const notes = readStringOrNull(record.notes);
 
-    const coursesRaw = o.courses;
+    const coursesRaw = record.courses;
     const courses: StudentCourseItem[] = Array.isArray(coursesRaw)
         ? coursesRaw
               .map((row) => normalizeStudentCourseItem(row))
-              .filter((x): x is StudentCourseItem => x !== null)
+              .filter((course): course is StudentCourseItem => course !== null)
         : [];
 
     return {

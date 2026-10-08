@@ -26,7 +26,7 @@ export function useManagerCourseParticipants({
     const participantsTotalPages = shallowRef(0);
     const participantsLoadError = shallowRef<string | null>(null);
     const isParticipantsLoading = shallowRef(false);
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     const participantsPagination = computed(() => {
         if (
@@ -59,7 +59,7 @@ export function useManagerCourseParticipants({
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         isParticipantsLoading.value = true;
 
@@ -71,7 +71,7 @@ export function useManagerCourseParticipants({
                 limit: MANAGER_COURSE_PARTICIPANTS_PAGE_SIZE,
             });
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -80,7 +80,7 @@ export function useManagerCourseParticipants({
             participantsTotal.value = page.total;
             participantsTotalPages.value = page.totalPages;
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
@@ -92,7 +92,7 @@ export function useManagerCourseParticipants({
                 'Nie udało się pobrać uczestników kursu.',
             );
         } finally {
-            if (seq === fetchSeq) {
+            if (requestSequence === fetchSequence) {
                 isParticipantsLoading.value = false;
             }
         }

@@ -17,7 +17,7 @@ export function useManagerStudentSchedule(input: {
     const scheduleItems = ref<ScheduleLessonItem[]>([]);
     const scheduleLoading = ref(false);
     const scheduleError = ref<string | null>(null);
-    let scheduleFetchSeq = 0;
+    let scheduleFetchSequence = 0;
 
     const studentScheduleRange = computed(() =>
         weekRangeFromMonday(scheduleWeekStart.value),
@@ -40,7 +40,7 @@ export function useManagerStudentSchedule(input: {
             return;
         }
 
-        const seq = ++scheduleFetchSeq;
+        const requestSequence = ++scheduleFetchSequence;
 
         scheduleError.value = null;
         scheduleLoading.value = true;
@@ -55,13 +55,13 @@ export function useManagerStudentSchedule(input: {
                 input.schoolId.value,
             );
 
-            if (seq !== scheduleFetchSeq) {
+            if (requestSequence !== scheduleFetchSequence) {
                 return;
             }
 
             scheduleItems.value = data;
         } catch (err: unknown) {
-            if (seq !== scheduleFetchSeq) {
+            if (requestSequence !== scheduleFetchSequence) {
                 return;
             }
 
@@ -71,7 +71,7 @@ export function useManagerStudentSchedule(input: {
                 'Nie udało się wczytać terminarza lekcji.',
             );
         } finally {
-            if (seq === scheduleFetchSeq) {
+            if (requestSequence === scheduleFetchSequence) {
                 scheduleLoading.value = false;
             }
         }

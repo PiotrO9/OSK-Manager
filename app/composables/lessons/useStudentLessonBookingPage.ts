@@ -72,7 +72,7 @@ export function useStudentLessonBookingPage() {
         candidate: availabilityCandidate,
     });
 
-    let slotsLoadSeq = 0;
+    let slotsLoadSequence = 0;
     let slotsAbortController: AbortController | null = null;
 
     const bookableCourses = computed(() =>
@@ -209,7 +209,7 @@ export function useStudentLessonBookingPage() {
 
     async function loadSlots(): Promise<void> {
         const course = selectedCourse.value;
-        const seq = ++slotsLoadSeq;
+        const requestSequence = ++slotsLoadSequence;
         const controller = new AbortController();
 
         slotsAbortController?.abort();
@@ -247,14 +247,14 @@ export function useStudentLessonBookingPage() {
                 { signal: controller.signal },
             );
 
-            if (seq !== slotsLoadSeq) {
+            if (requestSequence !== slotsLoadSequence) {
                 return;
             }
 
             rawSlots.value = data.slots;
             slotsTotal.value = data.total ?? data.slots.length;
         } catch (err: unknown) {
-            if (seq !== slotsLoadSeq) {
+            if (requestSequence !== slotsLoadSequence) {
                 return;
             }
 
@@ -522,7 +522,7 @@ export function useStudentLessonBookingPage() {
     });
 
     onBeforeUnmount(() => {
-        slotsLoadSeq += 1;
+        slotsLoadSequence += 1;
         slotsAbortController?.abort();
         slotsAbortController = null;
     });

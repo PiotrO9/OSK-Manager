@@ -11,9 +11,9 @@ export function readStringOrNull(raw: unknown): string | null {
         return null;
     }
 
-    const s = String(raw).trim();
+    const trimmedValue = String(raw).trim();
 
-    return s.length > 0 ? s : null;
+    return trimmedValue.length > 0 ? trimmedValue : null;
 }
 
 export function clampInt(value: number, min: number, max: number): number {
@@ -21,15 +21,15 @@ export function clampInt(value: number, min: number, max: number): number {
         return min;
     }
 
-    const n = Math.trunc(value);
+    const integerValue = Math.trunc(value);
 
-    if (n < min) {
+    if (integerValue < min) {
         return min;
     }
 
-    if (n > max) {
+    if (integerValue > max) {
         return max;
     }
 
-    return n;
+    return integerValue;
 }

@@ -14,29 +14,33 @@ export function readQueryTruthyFlag(raw: unknown): boolean {
         return false;
     }
 
-    const v = Array.isArray(raw) ? raw[0] : raw;
+    const queryValue = Array.isArray(raw) ? raw[0] : raw;
 
-    if (typeof v !== 'string') {
+    if (typeof queryValue !== 'string') {
         return false;
     }
 
-    const t = v.trim().toLowerCase();
+    const normalizedQueryValue = queryValue.trim().toLowerCase();
 
-    return t === '1' || t === 'true' || t === 'yes';
+    return (
+        normalizedQueryValue === '1' ||
+        normalizedQueryValue === 'true' ||
+        normalizedQueryValue === 'yes'
+    );
 }
 
 export function readUuidQueryValue(
     raw: LocationQueryValue | LocationQueryValue[] | undefined,
 ): string | null {
-    const s = Array.isArray(raw) ? raw[0] : raw;
+    const queryValue = Array.isArray(raw) ? raw[0] : raw;
 
-    if (typeof s !== 'string') return null;
+    if (typeof queryValue !== 'string') return null;
 
-    const t = s.trim();
+    const normalizedQueryValue = queryValue.trim();
 
-    if (!isUuid(t)) return null;
+    if (!isUuid(normalizedQueryValue)) return null;
 
-    return t;
+    return normalizedQueryValue;
 }
 
 export function resolveAssignToCourseError(err: unknown): string {

@@ -15,11 +15,11 @@ export function useSchoolScheduleApi() {
         dateTo: string,
         options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
-        const sid = schoolId.trim();
+        const trimmedSchoolId = schoolId.trim();
         const from = dateFrom.trim();
         const to = dateTo.trim();
 
-        if (!sid || !from || !to) {
+        if (!trimmedSchoolId || !from || !to) {
             return [];
         }
 
@@ -33,7 +33,7 @@ export function useSchoolScheduleApi() {
         try {
             return await requestBffData<ScheduleLessonItem[]>(
                 'GET',
-                `/api/driving-schools/${encodeURIComponent(sid)}/schedule?${params.toString()}`,
+                `/api/driving-schools/${encodeURIComponent(trimmedSchoolId)}/schedule?${params.toString()}`,
                 {
                     fallbackMessage: 'Nie udało się pobrać harmonogramu.',
                     normalize: normalizeScheduleItems,

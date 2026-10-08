@@ -22,10 +22,10 @@ export function useManagerCourseDetailPresentation({
     });
 
     const effectiveSchoolId = computed(() => {
-        const sid = course.value?.schoolId?.trim();
+        const courseSchoolId = course.value?.schoolId?.trim();
 
-        if (sid && sid.length > 0) {
-            return sid;
+        if (courseSchoolId && courseSchoolId.length > 0) {
+            return courseSchoolId;
         }
 
         const q = schoolIdFromQuery.value;

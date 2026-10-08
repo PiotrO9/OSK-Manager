@@ -20,19 +20,19 @@ type GlobalWithStore = typeof globalThis & {
 };
 
 function getStore(): MockVehicleRow[] {
-    const g = globalThis as GlobalWithStore;
+    const globalStore = globalThis as GlobalWithStore;
 
-    if (!g.__mockVehiclesStore) {
-        g.__mockVehiclesStore = [];
+    if (!globalStore.__mockVehiclesStore) {
+        globalStore.__mockVehiclesStore = [];
     }
 
-    return g.__mockVehiclesStore;
+    return globalStore.__mockVehiclesStore;
 }
 
 function ensureSeedForSchool(schoolId: string) {
     const store = getStore();
 
-    if (store.some((v) => v.schoolId === schoolId)) {
+    if (store.some((vehicle) => vehicle.schoolId === schoolId)) {
         return;
     }
 
@@ -110,7 +110,7 @@ export function mockVehiclesListForSchool(schoolId: string): unknown[] {
     const store = getStore();
 
     return store
-        .filter((v) => v.schoolId === schoolId)
+        .filter((vehicle) => vehicle.schoolId === schoolId)
         .map((row) => rowToResponse(row));
 }
 
@@ -150,14 +150,17 @@ export function mockVehiclesFindDuplicateRegistration(
     registrationNumber: string,
     excludeId?: string,
 ): boolean {
-    const t = registrationNumber.trim().toLowerCase();
+    const normalizedRegistrationNumber = registrationNumber
+        .trim()
+        .toLowerCase();
     const store = getStore();
 
     return store.some(
-        (v) =>
-            v.schoolId === schoolId &&
-            v.registrationNumber.trim().toLowerCase() === t &&
-            v.id !== excludeId,
+        (vehicle) =>
+            vehicle.schoolId === schoolId &&
+            vehicle.registrationNumber.trim().toLowerCase() ===
+                normalizedRegistrationNumber &&
+            vehicle.id !== excludeId,
     );
 }
 
@@ -173,7 +176,7 @@ export function mockVehiclesUpdate(
     },
 ): MockVehicleRow | null {
     const store = getStore();
-    const row = store.find((v) => v.id === id);
+    const row = store.find((vehicle) => vehicle.id === id);
 
     if (!row) return null;
 
@@ -190,12 +193,12 @@ export function mockVehiclesUpdate(
 export function mockVehiclesGetById(id: string): MockVehicleRow | null {
     const store = getStore();
 
-    return store.find((v) => v.id === id) ?? null;
+    return store.find((vehicle) => vehicle.id === id) ?? null;
 }
 
 export function mockVehiclesSetDefault(id: string): boolean {
     const store = getStore();
-    const target = store.find((v) => v.id === id);
+    const target = store.find((vehicle) => vehicle.id === id);
 
     if (!target) {
         return false;
@@ -249,7 +252,7 @@ export function mockVehiclesSetPhotoUrl(
     photoUrl: string,
 ): MockVehicleRow | null {
     const store = getStore();
-    const row = store.find((v) => v.id === id);
+    const row = store.find((vehicle) => vehicle.id === id);
 
     if (!row) return null;
 
@@ -260,7 +263,7 @@ export function mockVehiclesSetPhotoUrl(
 
 export function mockVehiclesDelete(id: string): boolean {
     const store = getStore();
-    const index = store.findIndex((v) => v.id === id);
+    const index = store.findIndex((vehicle) => vehicle.id === id);
 
     if (index === -1) return false;
 

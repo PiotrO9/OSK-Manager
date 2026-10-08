@@ -147,12 +147,12 @@ export function useEventsDayPage() {
         });
     });
 
-    let loadSeq = 0;
+    let loadSequence = 0;
     let loadAbortController: AbortController | null = null;
 
     async function loadEvents(): Promise<void> {
         const day = selectedDate.value;
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSequence;
         const controller = new AbortController();
 
         loadAbortController?.abort();
@@ -165,9 +165,9 @@ export function useEventsDayPage() {
             let raw: ScheduleLessonItem[];
 
             if (isManager.value) {
-                const sid = schoolId.value;
+                const schoolIdSnapshot = schoolId.value;
 
-                if (!sid) {
+                if (!schoolIdSnapshot) {
                     errorMessage.value =
                         'Brak identyfikatora szkoły. Ustaw domyślną OSK w swoim profilu lub dodaj ?schoolId= do adresu.';
                     events.value = [];
@@ -177,15 +177,17 @@ export function useEventsDayPage() {
                 }
 
                 const [scheduleRows, instructorRows] = await Promise.all([
-                    fetchSchoolSchedule(sid, day, day, {
+                    fetchSchoolSchedule(schoolIdSnapshot, day, day, {
                         signal: controller.signal,
                     }),
-                    fetchInstructorsList(sid, { signal: controller.signal }),
+                    fetchInstructorsList(schoolIdSnapshot, {
+                        signal: controller.signal,
+                    }),
                 ]);
 
                 raw = scheduleRows;
 
-                if (seq === loadSeq) {
+                if (requestSequence === loadSequence) {
                     instructors.value = instructorRows;
                 }
             } else {
@@ -195,7 +197,7 @@ export function useEventsDayPage() {
                 });
             }
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -206,7 +208,7 @@ export function useEventsDayPage() {
                     isScheduleBookedPracticalLesson(item),
             );
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -217,7 +219,7 @@ export function useEventsDayPage() {
                 'Nie udało się wczytać wydarzeń.',
             );
         } finally {
-            if (seq === loadSeq) {
+            if (requestSequence === loadSequence) {
                 isLoading.value = false;
                 loadAbortController = null;
             }
@@ -293,7 +295,7 @@ export function useEventsDayPage() {
     });
 
     onBeforeUnmount(() => {
-        loadSeq += 1;
+        loadSequence += 1;
         loadAbortController?.abort();
         loadAbortController = null;
         window.removeEventListener('resize', updateViewportMode);

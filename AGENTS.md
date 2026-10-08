@@ -1,5 +1,9 @@
 # Instrukcje dla AI: frontend OSK Manager
 
+Przy dodawaniu lub zmianie nazw w kodzie stosuj
+[`docs/NAMING_CONVENTIONS.md`](docs/NAMING_CONVENTIONS.md). Zachowuj klucze API,
+parametry tras i inne publiczne kontrakty; nie przemianowuj ich mechanicznie.
+
 Przy zmianach informacji o bieżącym ośrodku przeczytaj
 [`docs/SCHOOL_CONTEXT.md`](docs/SCHOOL_CONTEXT.md) oraz
 [`docs/COMPONENTS.md`](docs/COMPONENTS.md).

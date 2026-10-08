@@ -10,10 +10,10 @@ function pushUuid(ids: string[], raw: unknown): void {
         return;
     }
 
-    const t = raw.trim();
+    const trimmedId = raw.trim();
 
-    if (t && isUuidString(t)) {
-        ids.push(t);
+    if (trimmedId && isUuidString(trimmedId)) {
+        ids.push(trimmedId);
     }
 }
 
@@ -30,12 +30,12 @@ export function extractStudentAttendanceFromEvent(ev: unknown): {
         return { ids: [], source: 'unknown' };
     }
 
-    const o = ev as Record<string, unknown>;
+    const eventRecord = ev as Record<string, unknown>;
     const hasKey =
-        'studentUserIds' in o ||
-        'studentIds' in o ||
-        'assignedStudentIds' in o ||
-        'students' in o;
+        'studentUserIds' in eventRecord ||
+        'studentIds' in eventRecord ||
+        'assignedStudentIds' in eventRecord ||
+        'students' in eventRecord;
 
     if (!hasKey) {
         return { ids: [], source: 'unknown' };
@@ -48,7 +48,7 @@ export function extractStudentAttendanceFromEvent(ev: unknown): {
         'studentIds',
         'assignedStudentIds',
     ] as const) {
-        const arr = o[key];
+        const arr = eventRecord[key];
 
         if (!Array.isArray(arr)) {
             continue;
@@ -59,7 +59,7 @@ export function extractStudentAttendanceFromEvent(ev: unknown): {
         }
     }
 
-    const studentsRaw = o.students;
+    const studentsRaw = eventRecord.students;
 
     if (Array.isArray(studentsRaw)) {
         for (const item of studentsRaw) {
@@ -67,16 +67,16 @@ export function extractStudentAttendanceFromEvent(ev: unknown): {
                 continue;
             }
 
-            const s = item as Record<string, unknown>;
-            const uid =
-                s.userId ??
-                s.user_id ??
-                s.studentUserId ??
-                s.student_user_id ??
-                s.id ??
-                s.studentId;
+            const studentRecord = item as Record<string, unknown>;
+            const studentUserId =
+                studentRecord.userId ??
+                studentRecord.user_id ??
+                studentRecord.studentUserId ??
+                studentRecord.student_user_id ??
+                studentRecord.id ??
+                studentRecord.studentId;
 
-            pushUuid(ids, uid);
+            pushUuid(ids, studentUserId);
         }
     }
 
@@ -101,16 +101,16 @@ export function extractStudentUserIdsFromEventStudentsPayload(
             if (typeof item === 'string') {
                 pushUuid(ids, item);
             } else if (item && typeof item === 'object') {
-                const s = item as Record<string, unknown>;
+                const studentRecord = item as Record<string, unknown>;
 
                 pushUuid(
                     ids,
-                    s.userId ??
-                        s.user_id ??
-                        s.studentUserId ??
-                        s.student_user_id ??
-                        s.id ??
-                        s.studentId,
+                    studentRecord.userId ??
+                        studentRecord.user_id ??
+                        studentRecord.studentUserId ??
+                        studentRecord.student_user_id ??
+                        studentRecord.id ??
+                        studentRecord.studentId,
                 );
             }
         }
@@ -122,10 +122,10 @@ export function extractStudentUserIdsFromEventStudentsPayload(
         return [];
     }
 
-    const o = raw as Record<string, unknown>;
+    const eventRecord = raw as Record<string, unknown>;
 
-    if ('data' in o && o.data !== undefined) {
-        return extractStudentUserIdsFromEventStudentsPayload(o.data);
+    if ('data' in eventRecord && eventRecord.data !== undefined) {
+        return extractStudentUserIdsFromEventStudentsPayload(eventRecord.data);
     }
 
     const ids: string[] = [];
@@ -135,7 +135,7 @@ export function extractStudentUserIdsFromEventStudentsPayload(
         'studentIds',
         'assignedStudentIds',
     ] as const) {
-        const arr = o[key];
+        const arr = eventRecord[key];
 
         if (!Array.isArray(arr)) {
             continue;
@@ -146,7 +146,11 @@ export function extractStudentUserIdsFromEventStudentsPayload(
         }
     }
 
-    for (const nested of [o.students, o.items, o.participants] as const) {
+    for (const nested of [
+        eventRecord.students,
+        eventRecord.items,
+        eventRecord.participants,
+    ] as const) {
         if (!Array.isArray(nested)) {
             continue;
         }
@@ -155,16 +159,16 @@ export function extractStudentUserIdsFromEventStudentsPayload(
             if (typeof item === 'string') {
                 pushUuid(ids, item);
             } else if (item && typeof item === 'object') {
-                const s = item as Record<string, unknown>;
+                const studentRecord = item as Record<string, unknown>;
 
                 pushUuid(
                     ids,
-                    s.userId ??
-                        s.user_id ??
-                        s.studentUserId ??
-                        s.student_user_id ??
-                        s.id ??
-                        s.studentId,
+                    studentRecord.userId ??
+                        studentRecord.user_id ??
+                        studentRecord.studentUserId ??
+                        studentRecord.student_user_id ??
+                        studentRecord.id ??
+                        studentRecord.studentId,
                 );
             }
         }

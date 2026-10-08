@@ -3,8 +3,8 @@ import type { InstructorListItem } from './instructorModels';
 
 export function formatInstructorDisplayName(item: InstructorListItem): string {
     const parts = [item.firstName, item.lastName]
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+        .map((namePart) => namePart.trim())
+        .filter((namePart) => namePart.length > 0);
 
     if (parts.length === 0) {
         return '—';
@@ -40,10 +40,12 @@ export function resolveInstructorProfileIdForCourseSelection(
         return '';
     }
 
-    const uid = courseInstructor.id.trim();
+    const userId = courseInstructor.id.trim();
 
-    if (uid.length > 0) {
-        const byUserId = instructors.find((i) => i.userId === uid);
+    if (userId.length > 0) {
+        const byUserId = instructors.find(
+            (instructor) => instructor.userId === userId,
+        );
 
         if (byUserId) {
             return byUserId.id;
@@ -57,7 +59,7 @@ export function resolveInstructorProfileIdForCourseSelection(
     }
 
     const byName = instructors.find(
-        (i) => formatInstructorDisplayName(i).trim() === name,
+        (instructor) => formatInstructorDisplayName(instructor).trim() === name,
     );
 
     return byName?.id ?? '';

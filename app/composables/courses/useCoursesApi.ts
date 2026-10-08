@@ -32,8 +32,8 @@ export function useCoursesApi() {
     }
 
     async function fetchList(schoolId: string): Promise<CourseListItem[]> {
-        const sid = schoolId.trim();
-        const qs = new URLSearchParams({ schoolId: sid });
+        const trimmedSchoolId = schoolId.trim();
+        const qs = new URLSearchParams({ schoolId: trimmedSchoolId });
 
         return await runWithLoading(isListLoading, () =>
             requestBffData<CourseListItem[]>(

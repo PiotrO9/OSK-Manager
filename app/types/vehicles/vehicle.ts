@@ -32,20 +32,21 @@ export interface VehicleDetail extends Vehicle {
 }
 
 function parseStatus(raw: unknown): VehicleStatus {
-    const s =
+    const normalizedStatus =
         typeof raw === 'string'
             ? raw.trim().toUpperCase()
             : String(raw ?? '')
                   .trim()
                   .toUpperCase();
 
-    if (s === 'UNAVAILABLE') return 'UNAVAILABLE';
+    if (normalizedStatus === 'UNAVAILABLE') return 'UNAVAILABLE';
 
     return 'ACTIVE';
 }
 
-function parseStatusFromRecord(o: Record<string, unknown>): VehicleStatus {
-    const explicit = o.status ?? o.vehicleStatus ?? o.availabilityStatus;
+function parseStatusFromRecord(record: Record<string, unknown>): VehicleStatus {
+    const explicit =
+        record.status ?? record.vehicleStatus ?? record.availabilityStatus;
 
     if (
         explicit !== undefined &&
@@ -55,8 +56,8 @@ function parseStatusFromRecord(o: Record<string, unknown>): VehicleStatus {
         return parseStatus(explicit);
     }
 
-    if ('isActive' in o) {
-        const active = o.isActive;
+    if ('isActive' in record) {
+        const active = record.isActive;
 
         if (active === false || active === 'false' || active === 0) {
             return 'UNAVAILABLE';
@@ -78,40 +79,40 @@ function parseOptionalIsoDate(raw: unknown): string | null {
     if (raw === null || raw === undefined) return null;
 
     if (typeof raw === 'number' && Number.isFinite(raw)) {
-        const d = new Date(raw);
+        const parsedDate = new Date(raw);
 
-        if (Number.isNaN(d.getTime())) return null;
+        if (Number.isNaN(parsedDate.getTime())) return null;
 
-        return formatUtcDateYmd(d);
+        return formatUtcDateYmd(parsedDate);
     }
 
-    const s = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    const dateText = typeof raw === 'string' ? raw.trim() : String(raw).trim();
 
-    if (!s) return null;
+    if (!dateText) return null;
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateText)) return dateText;
 
-    const d = new Date(s);
+    const parsedDate = new Date(dateText);
 
-    if (Number.isNaN(d.getTime())) return null;
+    if (Number.isNaN(parsedDate.getTime())) return null;
 
-    return formatUtcDateYmd(d);
+    return formatUtcDateYmd(parsedDate);
 }
 
-function formatUtcDateYmd(d: Date): string {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
+function formatUtcDateYmd(date: Date): string {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
 
-    return `${y}-${m}-${day}`;
+    return `${year}-${month}-${day}`;
 }
 
 function parseOptionalPhotoUrl(raw: unknown): string | null {
     if (raw === null || raw === undefined) return null;
 
-    const s = typeof raw === 'string' ? raw.trim() : String(raw).trim();
+    const photoUrl = typeof raw === 'string' ? raw.trim() : String(raw).trim();
 
-    return s.length > 0 ? s : null;
+    return photoUrl.length > 0 ? photoUrl : null;
 }
 
 const MODEL_YEAR_MIN = 1900;
@@ -123,7 +124,7 @@ function parseOptionalModelYear(raw: unknown): number | null {
 
     if (typeof raw === 'string' && raw.trim() === '') return null;
 
-    const n =
+    const modelYear =
         typeof raw === 'number' && Number.isFinite(raw)
             ? Math.trunc(raw)
             : parseInt(
@@ -131,11 +132,15 @@ function parseOptionalModelYear(raw: unknown): number | null {
                   10,
               );
 
-    if (!Number.isInteger(n) || n < MODEL_YEAR_MIN || n > MODEL_YEAR_MAX) {
+    if (
+        !Number.isInteger(modelYear) ||
+        modelYear < MODEL_YEAR_MIN ||
+        modelYear > MODEL_YEAR_MAX
+    ) {
         return null;
     }
 
-    return n;
+    return modelYear;
 }
 
 function parseOptionalMileageKm(raw: unknown): number | null {
@@ -143,7 +148,7 @@ function parseOptionalMileageKm(raw: unknown): number | null {
 
     if (typeof raw === 'string' && raw.trim() === '') return null;
 
-    const n =
+    const mileageKm =
         typeof raw === 'number' && Number.isFinite(raw)
             ? Math.trunc(raw)
             : parseInt(
@@ -151,18 +156,22 @@ function parseOptionalMileageKm(raw: unknown): number | null {
                   10,
               );
 
-    if (!Number.isInteger(n) || n < 0 || n > MILEAGE_KM_MAX) {
+    if (
+        !Number.isInteger(mileageKm) ||
+        mileageKm < 0 ||
+        mileageKm > MILEAGE_KM_MAX
+    ) {
         return null;
     }
 
-    return n;
+    return mileageKm;
 }
 
 export function normalizeVehiclesList(data: unknown): Vehicle[] {
     if (Array.isArray(data)) {
         return data
             .map((item, index) => normalizeVehicle(item, index))
-            .filter((x): x is Vehicle => x !== null);
+            .filter((vehicle): vehicle is Vehicle => vehicle !== null);
     }
 
     if (!data || typeof data !== 'object') {
@@ -187,34 +196,42 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
         return null;
     }
 
-    const o = item as Record<string, unknown>;
-    const idRaw = o.id != null ? String(o.id).trim() : '';
+    const vehicleRecord = item as Record<string, unknown>;
+    const idRaw =
+        vehicleRecord.id != null ? String(vehicleRecord.id).trim() : '';
     const id = idRaw || `vehicle-row-${index}`;
 
     const name =
-        o.name != null
-            ? String(o.name)
-            : o.label != null
-              ? String(o.label)
+        vehicleRecord.name != null
+            ? String(vehicleRecord.name)
+            : vehicleRecord.label != null
+              ? String(vehicleRecord.label)
               : '';
 
     const registrationNumber =
-        o.registrationNumber != null
-            ? String(o.registrationNumber)
-            : o.registration_number != null
-              ? String(o.registration_number)
-              : o.plate != null
-                ? String(o.plate)
+        vehicleRecord.registrationNumber != null
+            ? String(vehicleRecord.registrationNumber)
+            : vehicleRecord.registration_number != null
+              ? String(vehicleRecord.registration_number)
+              : vehicleRecord.plate != null
+                ? String(vehicleRecord.plate)
                 : '';
 
-    const status = parseStatusFromRecord(o);
-    const isDefault = parseBoolean(o.isDefault ?? o.is_default ?? o.default);
+    const status = parseStatusFromRecord(vehicleRecord);
+    const isDefault = parseBoolean(
+        vehicleRecord.isDefault ??
+            vehicleRecord.is_default ??
+            vehicleRecord.default,
+    );
 
-    const inspectionRaw = o.inspectionDate ?? o.inspection_date;
-    const insuranceRaw = o.insuranceDate ?? o.insurance_date;
-    const unavailableUntilRaw = o.unavailableUntil ?? o.unavailable_until;
-    const modelYearRaw = o.modelYear ?? o.model_year;
-    const mileageRaw = o.mileageKm ?? o.mileage_km;
+    const inspectionRaw =
+        vehicleRecord.inspectionDate ?? vehicleRecord.inspection_date;
+    const insuranceRaw =
+        vehicleRecord.insuranceDate ?? vehicleRecord.insurance_date;
+    const unavailableUntilRaw =
+        vehicleRecord.unavailableUntil ?? vehicleRecord.unavailable_until;
+    const modelYearRaw = vehicleRecord.modelYear ?? vehicleRecord.model_year;
+    const mileageRaw = vehicleRecord.mileageKm ?? vehicleRecord.mileage_km;
 
     return {
         id,
@@ -242,10 +259,12 @@ export function normalizeVehicleDetail(
         return { ...base, photoUrl: null };
     }
 
-    const o = item as Record<string, unknown>;
+    const vehicleRecord = item as Record<string, unknown>;
 
     return {
         ...base,
-        photoUrl: parseOptionalPhotoUrl(o.photoUrl ?? o.photo_url),
+        photoUrl: parseOptionalPhotoUrl(
+            vehicleRecord.photoUrl ?? vehicleRecord.photo_url,
+        ),
     };
 }

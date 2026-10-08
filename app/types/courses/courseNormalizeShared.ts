@@ -40,15 +40,16 @@ export function normalizeInstructorRef(
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = o.id != null ? String(o.id).trim() : '';
-    const name = o.name != null ? String(o.name).trim() : '';
+    const courseRecord = raw as Record<string, unknown>;
+    const id = courseRecord.id != null ? String(courseRecord.id).trim() : '';
+    const name =
+        courseRecord.name != null ? String(courseRecord.name).trim() : '';
 
     if (!id || !name) {
         return null;
     }
 
-    return { id, name, avatarUrl: readAvatarUrlFromRecord(o) };
+    return { id, name, avatarUrl: readAvatarUrlFromRecord(courseRecord) };
 }
 
 export function normalizeCourseListItem(raw: unknown): CourseListItem | null {
@@ -56,37 +57,41 @@ export function normalizeCourseListItem(raw: unknown): CourseListItem | null {
         return null;
     }
 
-    const o = raw as Record<string, unknown>;
-    const id = o.id != null ? String(o.id).trim() : '';
+    const courseRecord = raw as Record<string, unknown>;
+    const id = courseRecord.id != null ? String(courseRecord.id).trim() : '';
 
     if (!id) {
         return null;
     }
 
-    const name = o.name != null ? String(o.name).trim() : '';
+    const name =
+        courseRecord.name != null ? String(courseRecord.name).trim() : '';
 
     if (!name) {
         return null;
     }
 
-    const category = o.category != null ? String(o.category).trim() : '';
+    const category =
+        courseRecord.category != null
+            ? String(courseRecord.category).trim()
+            : '';
 
     if (!category) {
         return null;
     }
 
     const typeRaw =
-        o.type != null
-            ? String(o.type).trim()
-            : o.kind != null
-              ? String(o.kind).trim()
+        courseRecord.type != null
+            ? String(courseRecord.type).trim()
+            : courseRecord.kind != null
+              ? String(courseRecord.kind).trim()
               : '';
 
     if (!typeRaw || !isCourseKind(typeRaw)) {
         return null;
     }
 
-    const totalHours = readTotalHours(o.totalHours);
+    const totalHours = readTotalHours(courseRecord.totalHours);
 
     if (totalHours === null) {
         return null;
@@ -96,10 +101,10 @@ export function normalizeCourseListItem(raw: unknown): CourseListItem | null {
         id,
         name,
         category,
-        courseType: normalizeCourseTypeOption(o.courseType),
+        courseType: normalizeCourseTypeOption(courseRecord.courseType),
         type: typeRaw satisfies CourseKind,
         totalHours,
-        instructor: normalizeInstructorRef(o.instructor),
+        instructor: normalizeInstructorRef(courseRecord.instructor),
     };
 }
 

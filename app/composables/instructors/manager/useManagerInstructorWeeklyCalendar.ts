@@ -34,7 +34,7 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
 
     const { fetchSlots, isLoading } = useInstructorSlotsApi(instructorId);
 
-    let fetchSeq = 0;
+    let fetchSequence = 0;
 
     const visibleHourRange = computed(() =>
         getManagerInstructorVisibleHourRange(slots.value),
@@ -93,7 +93,7 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
             return;
         }
 
-        const seq = ++fetchSeq;
+        const requestSequence = ++fetchSequence;
 
         errorMessage.value = null;
 
@@ -102,13 +102,13 @@ export function useManagerInstructorWeeklyCalendar(instructorId: () => string) {
         try {
             const data = await fetchSlots(dateFrom, dateTo);
 
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 
             slots.value = data;
         } catch (err: unknown) {
-            if (seq !== fetchSeq) {
+            if (requestSequence !== fetchSequence) {
                 return;
             }
 

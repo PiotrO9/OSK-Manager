@@ -22,7 +22,7 @@ export function useManagerInstructorScheduleData({
     const isScheduleLoading = ref(false);
     const scheduleError = ref<string | null>(null);
 
-    let scheduleSeq = 0;
+    let scheduleSequence = 0;
 
     async function loadSchedule(): Promise<void> {
         const id = instructorId.value;
@@ -33,7 +33,7 @@ export function useManagerInstructorScheduleData({
             return;
         }
 
-        const seq = ++scheduleSeq;
+        const requestSequence = ++scheduleSequence;
 
         scheduleError.value = null;
         isScheduleLoading.value = true;
@@ -43,13 +43,13 @@ export function useManagerInstructorScheduleData({
         try {
             const data = await fetchScheduleForInstructor(id, dateFrom, dateTo);
 
-            if (seq !== scheduleSeq) {
+            if (requestSequence !== scheduleSequence) {
                 return;
             }
 
             items.value = data;
         } catch (err: unknown) {
-            if (seq !== scheduleSeq) {
+            if (requestSequence !== scheduleSequence) {
                 return;
             }
 
@@ -59,7 +59,7 @@ export function useManagerInstructorScheduleData({
                 'Nie udało się wczytać terminarza lekcji.',
             );
         } finally {
-            if (seq === scheduleSeq) {
+            if (requestSequence === scheduleSequence) {
                 isScheduleLoading.value = false;
             }
         }

@@ -38,7 +38,7 @@ export function useMyLessonsPage() {
             `${formatCompactDate(range.value.dateFrom)} - ${formatCompactDate(range.value.dateTo)}`,
     );
 
-    let loadSeq = 0;
+    let loadSequence = 0;
 
     const {
         handleRatingLessonSelected,
@@ -67,7 +67,7 @@ export function useMyLessonsPage() {
     });
 
     async function loadWeek(): Promise<void> {
-        const seq = ++loadSeq;
+        const requestSequence = ++loadSequence;
 
         errorMessage.value = null;
         isLoading.value = true;
@@ -77,13 +77,13 @@ export function useMyLessonsPage() {
         try {
             const data = await fetchMySchedule(dateFrom, dateTo);
 
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
             items.value = data;
         } catch (err: unknown) {
-            if (seq !== loadSeq) {
+            if (requestSequence !== loadSequence) {
                 return;
             }
 
@@ -95,7 +95,7 @@ export function useMyLessonsPage() {
                     : 'Nie udało się wczytać lekcji.',
             );
         } finally {
-            if (seq === loadSeq) {
+            if (requestSequence === loadSequence) {
                 isLoading.value = false;
             }
         }
