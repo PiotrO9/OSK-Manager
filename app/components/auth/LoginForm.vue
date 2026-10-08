@@ -25,7 +25,12 @@ const emit = defineEmits<{ submit: []; fillDemo: [role: DemoMockLoginRole] }>();
 const email = defineModel<string>('email', { required: true });
 const password = defineModel<string>('password', { required: true });
 const passwordVisible = shallowRef(false);
+const isHydrated = shallowRef(false);
 const formRef = useTemplateRef<HTMLFormElement>('loginForm');
+
+onMounted(() => {
+    isHydrated.value = true;
+});
 const demoRoles = [
     {
         role: 'manager',
@@ -76,6 +81,7 @@ async function handleSubmit() {
     <form
         ref="loginForm"
         class="login-form"
+        method="post"
         :aria-busy="isLoading"
         novalidate
         @submit.prevent="handleSubmit"
@@ -170,7 +176,11 @@ async function handleSubmit() {
                 <p>{{ submitError || '' }}</p>
             </div>
         </div>
-        <UiButton class="login-submit" type="submit" :disabled="isLoading">
+        <UiButton
+            class="login-submit"
+            type="submit"
+            :disabled="isLoading || !isHydrated"
+        >
             <span>{{ isLoading ? 'Logowanie…' : 'Zaloguj się' }}</span>
             <LoaderCircle
                 v-if="isLoading"

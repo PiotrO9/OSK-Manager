@@ -10,6 +10,22 @@ async function waitForNuxtHydration(page: import('@playwright/test').Page) {
 }
 
 test.describe('UI smoke: sesja i routing', () => {
+    test('formularz logowania nie wysyła hasła przed hydracją', async ({
+        page,
+    }) => {
+        await page.route('**/*.js', (route) => route.abort());
+        await page.goto('/login');
+
+        const form = page.locator('form.login-form');
+
+        await expect(form).toHaveAttribute('method', 'post');
+        await expect(
+            page.getByRole('button', { name: 'Zaloguj się' }),
+        ).toBeDisabled();
+
+        await expect(page).toHaveURL(/\/login$/);
+    });
+
     test('zapamiętuje chronioną trasę i przekierowuje na login', async ({
         context,
         page,
