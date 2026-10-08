@@ -51,16 +51,27 @@ describe('manager student payments section utilities', () => {
         );
     });
 
-    it('deduplicates payment plan options in payment order', () => {
+    it('offers a plan even before the first payment and deduplicates plans', () => {
         expect(
             buildStudentPaymentPlanOptions([
-                payment(),
-                payment({ id: 'payment-2' }),
-                payment({
-                    id: 'payment-3',
+                {
+                    id: 'plan-1',
+                    courseId: 'course-1',
+                    courseName: 'Kurs B',
+                    currency: 'PLN',
+                },
+                {
+                    id: 'plan-1',
+                    courseId: 'course-1',
+                    courseName: 'Kurs B',
+                    currency: 'PLN',
+                },
+                {
+                    id: 'plan-2',
+                    courseId: 'course-2',
                     courseName: 'Kurs A',
-                    paymentPlanId: 'plan-2',
-                }),
+                    currency: 'PLN',
+                },
             ]),
         ).toEqual([
             { id: 'plan-1', label: 'Kurs B' },

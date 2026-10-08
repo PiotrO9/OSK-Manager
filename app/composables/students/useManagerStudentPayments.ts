@@ -2,6 +2,7 @@ import type { Ref } from 'vue';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
+    StudentPaymentPlan,
     StudentPaymentsPayload,
     StudentPaymentsSummary,
     UpdateStudentPaymentPayload,
@@ -39,6 +40,7 @@ export function useManagerStudentPayments(input: {
         updateStudentPayment,
     } = usePaymentsApi();
     const payments = ref<StudentPaymentItem[]>([]);
+    const paymentPlans = ref<StudentPaymentPlan[]>([]);
     const paymentsSummary = ref<StudentPaymentsSummary>(
         createDefaultStudentPaymentsSummary(),
     );
@@ -61,6 +63,7 @@ export function useManagerStudentPayments(input: {
         const userId = getStudentDetailsRouteUserIdString(rawUserId);
 
         payments.value = [];
+        paymentPlans.value = [];
         paymentsError.value = null;
 
         if (!userId || !input.schoolId.value) {
@@ -84,6 +87,7 @@ export function useManagerStudentPayments(input: {
             }
 
             payments.value = data.payments;
+            paymentPlans.value = data.paymentPlans;
             paymentsSummary.value = data.summary;
         } catch (err: unknown) {
             if (requestSequence !== paymentsFetchSequence) {
@@ -91,6 +95,7 @@ export function useManagerStudentPayments(input: {
             }
 
             payments.value = [];
+            paymentPlans.value = [];
             paymentsSummary.value = createDefaultStudentPaymentsSummary();
             paymentsError.value = getApiFetchErrorMessage(
                 err,
@@ -162,6 +167,7 @@ export function useManagerStudentPayments(input: {
             const data = await action(userId, input.schoolId.value);
 
             payments.value = data.payments;
+            paymentPlans.value = data.paymentPlans;
             paymentsSummary.value = data.summary;
 
             return true;
@@ -179,6 +185,7 @@ export function useManagerStudentPayments(input: {
 
     return {
         payments,
+        paymentPlans,
         paymentsSummary,
         paymentsLoading,
         paymentsError,

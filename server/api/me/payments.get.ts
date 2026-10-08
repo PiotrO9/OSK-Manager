@@ -18,6 +18,7 @@ function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
     if (role.trim().toUpperCase() !== 'STUDENT') {
         return {
             payments: [],
+            paymentPlans: [],
             summary: {
                 paidAmount: '0.00',
                 unpaidAmount: '0.00',
@@ -56,6 +57,14 @@ function mockMyPaymentsPayload(role: string): MyPaymentsPayload {
                 dueDate: '2026-07-10T00:00:00.000Z',
                 paidAt: null,
                 method: null,
+            },
+        ],
+        paymentPlans: [
+            {
+                id: '33333333-3333-4333-8333-333333333333',
+                courseId: '22222222-2222-4222-8222-222222222222',
+                courseName: 'Kurs podstawowy kategorii B',
+                currency: 'PLN',
             },
         ],
         summary: {

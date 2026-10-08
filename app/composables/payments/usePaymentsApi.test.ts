@@ -57,6 +57,43 @@ describe('usePaymentsApi', () => {
         expect(result.payments).toHaveLength(1);
     });
 
+    it('normalizes payment plans independently of payment rows', async () => {
+        requestBffData.mockImplementation(
+            async (
+                _method: string,
+                _path: string,
+                options: { normalize: (data: unknown) => unknown },
+            ) =>
+                options.normalize({
+                    payments: [],
+                    paymentPlans: [
+                        {
+                            id: 'plan-1',
+                            courseId: 'course-1',
+                            courseName: 'Kurs B',
+                            currency: 'PLN',
+                        },
+                    ],
+                }),
+        );
+        const { usePaymentsApi } = await import('./usePaymentsApi');
+
+        const result = await usePaymentsApi().fetchStudentPayments(
+            'student-1',
+            'school-1',
+        );
+
+        expect(result.payments).toEqual([]);
+        expect(result.paymentPlans).toEqual([
+            {
+                id: 'plan-1',
+                courseId: 'course-1',
+                courseName: 'Kurs B',
+                currency: 'PLN',
+            },
+        ]);
+    });
+
     it('adds school id to create payment body', async () => {
         requestBffData.mockResolvedValue({ payments: [], summary: {} });
         const { usePaymentsApi } = await import('./usePaymentsApi');

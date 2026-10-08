@@ -56,6 +56,15 @@ const mockStudentPayments: MockPayment[] = [
     },
 ];
 
+const mockPaymentPlans = [
+    {
+        id: '33333333-3333-4333-8333-333333333333',
+        courseId: '22222222-2222-4222-8222-222222222222',
+        courseName: 'Kurs podstawowy kategorii B',
+        currency: 'PLN',
+    },
+];
+
 function toIsoDate(date: string | null): string | null {
     return date ? `${date}T00:00:00.000Z` : null;
 }
@@ -107,6 +116,7 @@ function mockStudentPaymentsPayload() {
 
     return {
         payments: [...mockStudentPayments],
+        paymentPlans: [...mockPaymentPlans],
         summary: {
             paidAmount: paidAmount.toFixed(2),
             unpaidAmount: unpaidAmount.toFixed(2),
@@ -274,8 +284,8 @@ export function bffMockCreateStudentPayment(body: {
     dueDate: string | null;
     method: string | null;
 }): { success: true; data: unknown } {
-    const existingPlan = mockStudentPayments.find(
-        (payment) => payment.paymentPlanId === body.paymentPlanId,
+    const existingPlan = mockPaymentPlans.find(
+        (plan) => plan.id === body.paymentPlanId,
     );
 
     if (!existingPlan) {

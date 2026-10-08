@@ -15,6 +15,7 @@ const {
     processStatusLoading,
     processStatusError,
     payments,
+    paymentPlans,
     paymentsSummary,
     paymentsLoading,
     paymentsError,
@@ -66,6 +67,7 @@ const {
             :process-status-loading="processStatusLoading"
             :process-status-error="processStatusError"
             :payments="payments"
+            :payment-plans="paymentPlans"
             :payments-summary="paymentsSummary"
             :payments-loading="paymentsLoading"
             :payments-error="paymentsError"

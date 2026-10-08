@@ -36,6 +36,16 @@ const error = computed(() =>
 const payments = computed(() =>
     scenario.value === 'empty' ? [] : designSystemPayments,
 );
+const paymentPlans = computed(() =>
+    scenario.value === 'empty'
+        ? []
+        : designSystemPayments.map((payment) => ({
+              id: payment.paymentPlanId,
+              courseId: payment.courseId,
+              courseName: payment.courseName,
+              currency: payment.currency,
+          })),
+);
 const paymentsSummary = computed(() =>
     buildDesignSystemPaymentsSummary(payments.value),
 );
@@ -73,6 +83,7 @@ function moveWeek(days: number) {
             :process-status-loading="isLoading"
             :process-status-error="error"
             :payments="payments"
+            :payment-plans="paymentPlans"
             :payments-summary="paymentsSummary"
             :payments-loading="isLoading"
             :payments-error="error"

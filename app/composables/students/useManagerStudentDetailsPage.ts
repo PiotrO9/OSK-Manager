@@ -48,6 +48,7 @@ export function useManagerStudentDetailsPage() {
 
     const {
         payments,
+        paymentPlans,
         paymentsSummary,
         paymentsLoading,
         paymentsError,
@@ -230,6 +231,7 @@ export function useManagerStudentDetailsPage() {
         processStatusLoading,
         processStatusError,
         payments,
+        paymentPlans,
         paymentsSummary,
         paymentsLoading,
         paymentsError,

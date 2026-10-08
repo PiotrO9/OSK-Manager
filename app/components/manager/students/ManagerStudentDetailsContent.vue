@@ -5,6 +5,7 @@ import type { RouteLocationRaw } from 'vue-router';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
+    StudentPaymentPlan,
     StudentPaymentsSummary,
     UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
@@ -27,6 +28,7 @@ const props = defineProps<{
     processStatusLoading: boolean;
     processStatusError: string | null;
     payments: readonly StudentPaymentItem[];
+    paymentPlans: readonly StudentPaymentPlan[];
     paymentsSummary: StudentPaymentsSummary;
     paymentsLoading: boolean;
     paymentsError: string | null;
@@ -247,6 +249,7 @@ function handleTabChange(value: string | number): void {
                     >
                         <ManagerStudentPaymentsSection
                             :payments="props.payments"
+                            :payment-plans="props.paymentPlans"
                             :summary="props.paymentsSummary"
                             :is-loading="props.paymentsLoading"
                             :error="props.paymentsError"

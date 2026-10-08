@@ -58,6 +58,14 @@ describe('useManagerStudentPayments', () => {
                     method: null,
                 },
             ],
+            paymentPlans: [
+                {
+                    id: 'plan-1',
+                    courseId: 'course-1',
+                    courseName: 'Kurs B',
+                    currency: 'PLN',
+                },
+            ],
             summary: {
                 paidAmount: '0.00',
                 unpaidAmount: '100.00',
@@ -81,7 +89,47 @@ describe('useManagerStudentPayments', () => {
             'school-1',
         );
         expect(payments.payments.value).toHaveLength(1);
+        expect(payments.paymentPlans.value).toHaveLength(1);
         expect(payments.paymentsOverviewLabel.value).toBe('1');
+    });
+
+    it('retains plans when the student has no payments and clears stale plans on school change', async () => {
+        fetchStudentPayments
+            .mockResolvedValueOnce({
+                payments: [],
+                paymentPlans: [
+                    {
+                        id: 'plan-1',
+                        courseId: 'course-1',
+                        courseName: 'Kurs B',
+                        currency: 'PLN',
+                    },
+                ],
+                summary: {
+                    paidAmount: '0.00',
+                    unpaidAmount: '0.00',
+                    overdueAmount: '0.00',
+                    overdueCount: 0,
+                    nextDueDate: null,
+                    currency: 'PLN',
+                },
+            })
+            .mockRejectedValueOnce(new Error('School unavailable'));
+        const { useManagerStudentPayments } =
+            await import('./useManagerStudentPayments');
+        const schoolId = ref('school-1');
+        const payments = useManagerStudentPayments({
+            schoolId,
+            getUserId: () => 'student-user-1',
+        });
+
+        await payments.loadStudentPayments('student-user-1');
+        expect(payments.payments.value).toEqual([]);
+        expect(payments.paymentPlans.value).toHaveLength(1);
+
+        schoolId.value = 'school-2';
+        await payments.loadStudentPayments('student-user-1');
+        expect(payments.paymentPlans.value).toEqual([]);
     });
 
     it('signals success only after a created payment is saved and supports retry', async () => {

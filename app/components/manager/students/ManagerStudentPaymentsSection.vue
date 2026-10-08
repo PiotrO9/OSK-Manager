@@ -3,6 +3,7 @@ import { Check, CreditCard, Save, X } from 'lucide-vue-next';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
+    StudentPaymentPlan,
     StudentPaymentsSummary,
     UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
@@ -18,6 +19,7 @@ import {
 
 const props = defineProps<{
     payments: readonly StudentPaymentItem[];
+    paymentPlans: readonly StudentPaymentPlan[];
     summary: StudentPaymentsSummary;
     isLoading: boolean;
     error: string | null;
@@ -51,14 +53,16 @@ watch(
 const editState = reactive<Record<string, StudentPaymentEditState>>({});
 
 const paymentPlanOptions = computed(() =>
-    buildStudentPaymentPlanOptions(props.payments),
+    buildStudentPaymentPlanOptions(props.paymentPlans),
 );
 
 watch(
     paymentPlanOptions,
     (options) => {
-        if (!createPaymentPlanId.value && options[0]) {
-            createPaymentPlanId.value = options[0].id;
+        if (
+            !options.some((option) => option.id === createPaymentPlanId.value)
+        ) {
+            createPaymentPlanId.value = options[0]?.id ?? '';
         }
     },
     { immediate: true },
@@ -176,7 +180,8 @@ function handleUpdate(paymentId: string): void {
                     v-if="paymentPlanOptions.length === 0 && !props.isLoading"
                     class="border-border bg-muted/20 mb-4 rounded-lg border px-3 py-2 text-sm"
                 >
-                    Brak istniejącego planu płatności do dodania kolejnej raty.
+                    Brak planu płatności dla kursów tego kursanta w wybranej
+                    szkole.
                 </div>
 
                 <div v-if="props.payments.length > 0" class="mb-4 space-y-3">
