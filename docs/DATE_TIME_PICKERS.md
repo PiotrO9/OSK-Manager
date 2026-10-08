@@ -16,13 +16,13 @@ Nie dodawaj nowych komponentów z dopiskiem `V2`. Nowe pickery są główną wer
 
 ## Gdzie są komponenty
 
-| Komponent | Plik | Model |
-| --- | --- | --- |
-| `UiDatePicker` | [`DatePicker.vue`](../app/components/shadcn/date-picker/DatePicker.vue) | `string`, `YYYY-MM-DD` albo pusty string |
-| `UiTimePicker` | [`TimePicker.vue`](../app/components/shadcn/time-picker/TimePicker.vue) | `string`, `HH:mm` |
-| `UiDateTimePicker` | [`DateTimePicker.vue`](../app/components/shadcn/date-time-picker/DateTimePicker.vue) | `string`, `YYYY-MM-DDTHH:mm` albo pusty string |
-| `UiDateRangePicker` | [`DateRangePicker.vue`](../app/components/shadcn/date-range-picker/DateRangePicker.vue) | `{ start: string; end: string }` |
-| `UiWeekPicker` | [`WeekPicker.vue`](../app/components/shadcn/week-picker/WeekPicker.vue) | `DateValue[]` + event `calendarUpdate` |
+| Komponent           | Plik                                                                                    | Model                                          |
+| ------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `UiDatePicker`      | [`DatePicker.vue`](../app/components/shadcn/date-picker/DatePicker.vue)                 | `string`, `YYYY-MM-DD` albo pusty string       |
+| `UiTimePicker`      | [`TimePicker.vue`](../app/components/shadcn/time-picker/TimePicker.vue)                 | `string`, `HH:mm`                              |
+| `UiDateTimePicker`  | [`DateTimePicker.vue`](../app/components/shadcn/date-time-picker/DateTimePicker.vue)    | `string`, `YYYY-MM-DDTHH:mm` albo pusty string |
+| `UiDateRangePicker` | [`DateRangePicker.vue`](../app/components/shadcn/date-range-picker/DateRangePicker.vue) | `{ start: string; end: string }`               |
+| `UiWeekPicker`      | [`WeekPicker.vue`](../app/components/shadcn/week-picker/WeekPicker.vue)                 | `DateValue[]` + event `calendarUpdate`         |
 
 Przykłady wizualne są w `/design-system`, sekcja `Formularze`.
 
@@ -42,14 +42,14 @@ import UiWeekPicker from '~/components/shadcn/week-picker/WeekPicker.vue';
 
 ## Dobór komponentu
 
-| Przypadek | Użyj | Uwagi |
-| --- | --- | --- |
-| Data badania, data przeglądu, data urodzenia | `UiDatePicker` | Jeden dzień. Picker wygląda jak zakresowy kalendarz, ale pozwala wybrać tylko jedną datę. |
-| Godzina pracy, początek/koniec dostępności | `UiTimePicker` | Używaj `minExclusive` i `maxExclusive`, gdy kolejność godzin ma znaczenie. |
-| Termin jazdy lub wydarzenia jako jedna wartość | `UiDateTimePicker` | UI działa jak dwa pola. Kliknięcie daty otwiera kalendarz, kliknięcie godziny otwiera zegar. Po wyborze daty automatycznie otwiera się picker godziny. |
-| Termin przechowywany jako osobna data i osobna godzina | `UiDatePicker` + `UiTimePicker` | Lepsze niż `UiDateTimePicker`, jeśli model domenowy ma osobne pola. |
-| Dowolny zakres dat | `UiDateRangePicker` | Ręczny wybór końca zakresu zamyka popup. Presety zaznaczają zakres i zostawiają popup otwarty. |
-| Tydzień w kalendarzu | `UiWeekPicker` | Tylko dla pełnego tygodnia. Do customowego zakresu użyj `UiDateRangePicker`. |
+| Przypadek                                              | Użyj                            | Uwagi                                                                                                                                                  |
+| ------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Data badania, data przeglądu, data urodzenia           | `UiDatePicker`                  | Jeden dzień. Picker wygląda jak zakresowy kalendarz, ale pozwala wybrać tylko jedną datę.                                                              |
+| Godzina pracy, początek/koniec dostępności             | `UiTimePicker`                  | Używaj `minExclusive` i `maxExclusive`, gdy kolejność godzin ma znaczenie.                                                                             |
+| Termin jazdy lub wydarzenia jako jedna wartość         | `UiDateTimePicker`              | UI działa jak dwa pola. Kliknięcie daty otwiera kalendarz, kliknięcie godziny otwiera zegar. Po wyborze daty automatycznie otwiera się picker godziny. |
+| Termin przechowywany jako osobna data i osobna godzina | `UiDatePicker` + `UiTimePicker` | Lepsze niż `UiDateTimePicker`, jeśli model domenowy ma osobne pola.                                                                                    |
+| Dowolny zakres dat                                     | `UiDateRangePicker`             | Ręczny wybór końca zakresu zamyka popup. Presety zaznaczają zakres i zostawiają popup otwarty.                                                         |
+| Tydzień w kalendarzu                                   | `UiWeekPicker`                  | Tylko dla pełnego tygodnia. Do customowego zakresu użyj `UiDateRangePicker`.                                                                           |
 
 ## Przykłady użycia
 

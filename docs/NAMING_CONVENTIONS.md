@@ -33,18 +33,18 @@ odpowiedzi testem kontraktu.
 
 ## Inwentaryzacja z 2026-10-07, aktualizacja 2026-10-08
 
-| Moduł | Przykłady | Ryzyko | Stan |
-| --- | --- | --- | --- |
-| Pojazdy: listy, edycja, API, normalizacja, BFF | `sid`, `seq`, `s`, `o`, `n` | Średnie: wyścigi żądań i mapowanie API | Poprawiono nazwy lokalne |
-| Kursy: lista menadżera | `sid`, `seq` | Średnie: wyścigi żądań | Poprawiono |
-| Kursanci: lista menadżera | `sid`, `seq` | Średnie: wyścigi żądań i paginacja | Poprawiono |
-| Instruktorzy: lista menadżera | `sid`, `seq` | Średnie: wyścigi żądań | Poprawiono |
-| Harmonogram: pobieranie tygodnia | `sid`, `seq` | Średnie: anulowanie żądań | Poprawiono |
-| Logowanie: przekierowanie i dane demo | `raw`, `landing`, `creds` | Niskie: lokalne wartości | Poprawiono |
-| Composables kursów, kursantów, instruktorów, lekcji i zdarzeń | `sid`, `seq`, `uid` | Średnie: wyścigi żądań | Poprawiono lokalne identyfikatory i liczniki |
-| Normalizatory danych oraz parsery BFF | `o`, `r`, `v`, `n` | Średnie: serializacja | Poprawiono nazwy lokalne; pola odpowiedzi zachowano |
-| Widoki i główne mocki | `sid`, `uid`, `seq`, `g`, `r` | Średnie: reaktywność i fixture testowe | Poprawiono nazwy lokalne |
-| API, routing i typy generowane | nazwy pól odpowiedzi i parametrów | Wysokie: kontrakty zewnętrzne | Bez automatycznego przemianowania |
+| Moduł                                                         | Przykłady                         | Ryzyko                                 | Stan                                                |
+| ------------------------------------------------------------- | --------------------------------- | -------------------------------------- | --------------------------------------------------- |
+| Pojazdy: listy, edycja, API, normalizacja, BFF                | `sid`, `seq`, `s`, `o`, `n`       | Średnie: wyścigi żądań i mapowanie API | Poprawiono nazwy lokalne                            |
+| Kursy: lista menadżera                                        | `sid`, `seq`                      | Średnie: wyścigi żądań                 | Poprawiono                                          |
+| Kursanci: lista menadżera                                     | `sid`, `seq`                      | Średnie: wyścigi żądań i paginacja     | Poprawiono                                          |
+| Instruktorzy: lista menadżera                                 | `sid`, `seq`                      | Średnie: wyścigi żądań                 | Poprawiono                                          |
+| Harmonogram: pobieranie tygodnia                              | `sid`, `seq`                      | Średnie: anulowanie żądań              | Poprawiono                                          |
+| Logowanie: przekierowanie i dane demo                         | `raw`, `landing`, `creds`         | Niskie: lokalne wartości               | Poprawiono                                          |
+| Composables kursów, kursantów, instruktorów, lekcji i zdarzeń | `sid`, `seq`, `uid`               | Średnie: wyścigi żądań                 | Poprawiono lokalne identyfikatory i liczniki        |
+| Normalizatory danych oraz parsery BFF                         | `o`, `r`, `v`, `n`                | Średnie: serializacja                  | Poprawiono nazwy lokalne; pola odpowiedzi zachowano |
+| Widoki i główne mocki                                         | `sid`, `uid`, `seq`, `g`, `r`     | Średnie: reaktywność i fixture testowe | Poprawiono nazwy lokalne                            |
+| API, routing i typy generowane                                | nazwy pól odpowiedzi i parametrów | Wysokie: kontrakty zewnętrzne          | Bez automatycznego przemianowania                   |
 
 Skan kodu aplikacyjnego po zmianach nie wykazuje już lokalnych wystąpień
 `sid`, `uid`, `iid`, `pid`, `cp` ani `seq` poza testami. Pozostałe krótkie nazwy

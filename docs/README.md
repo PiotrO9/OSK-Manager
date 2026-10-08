@@ -11,7 +11,7 @@ Dokumentacja frontendu OSK Manager.
 | [SCHEDULE_AVAILABILITY.md](SCHEDULE_AVAILABILITY.md)           | Walidacja dostępności i integracja formularzy      |
 | [COMPONENTS.md](COMPONENTS.md)                                 | Komponenty UI i konwencje                          |
 | [SCHOOL_CONTEXT.md](SCHOOL_CONTEXT.md)                         | Wspólny wygląd i wybór ośrodka                     |
-| [NAMING_CONVENTIONS.md](NAMING_CONVENTIONS.md)                   | Czytelne nazwy i granice refaktoryzacji            |
+| [NAMING_CONVENTIONS.md](NAMING_CONVENTIONS.md)                 | Czytelne nazwy i granice refaktoryzacji            |
 | [UI_REFRESH_PLAN.md](UI_REFRESH_PLAN.md)                       | Bieżąca checklista rundy odświeżania widoków       |
 | [UI_COMPONENT_PATTERNS.md](UI_COMPONENT_PATTERNS.md)           | Reużywalne wzorce komponentów dla redesignu        |
 | [DESIGN_SYSTEM_REBUILD_PLAN.md](DESIGN_SYSTEM_REBUILD_PLAN.md) | Plan przebudowy design systemu                     |
