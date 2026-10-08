@@ -24,31 +24,31 @@ function handleOpenChange(open: boolean) {
             aria-describedby="confirm-delete-instructor-description"
         >
             <UiDialogHeader>
-                <UiDialogTitle>Usunąć instruktora?</UiDialogTitle>
+                <UiDialogTitle>Zablokować konto instruktora?</UiDialogTitle>
                 <UiDialogDescription id="confirm-delete-instructor-description">
-                    Czy na pewno chcesz usunąć instruktora
+                    Czy na pewno chcesz zablokować konto instruktora
                     <span class="text-foreground font-medium">
                         „{{ instructorDisplayName }}"
                     </span>
-                    ? Konto zostanie wyłączone — użytkownik nie zaloguje się
-                    ponownie do aplikacji.
+                    ? Aktywne sesje zostaną zakończone. Konto można odblokować w
+                    sekcji „Konta osób”.
                 </UiDialogDescription>
             </UiDialogHeader>
 
             <UiDialogFooter>
                 <UiButton
                     variant="outline"
-                    aria-label="Anuluj usuwanie instruktora"
+                    aria-label="Anuluj blokowanie instruktora"
                     @click="emit('cancel')"
                 >
                     Anuluj
                 </UiButton>
                 <UiButton
                     variant="destructive"
-                    :aria-label="`Potwierdź usunięcie instruktora ${instructorDisplayName}`"
+                    :aria-label="`Potwierdź zablokowanie instruktora ${instructorDisplayName}`"
                     @click="emit('confirm')"
                 >
-                    Usuń
+                    Zablokuj
                 </UiButton>
             </UiDialogFooter>
         </UiDialogContent>

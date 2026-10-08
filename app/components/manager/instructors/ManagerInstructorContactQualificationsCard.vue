@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Mail, Pencil, Phone, Trash2 } from 'lucide-vue-next';
+import { Ban, Mail, Pencil, Phone } from 'lucide-vue-next';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 
 const props = defineProps<{
@@ -102,8 +102,8 @@ const courseTypeLabel = managerInstructorCourseTypeLabel;
                     :aria-busy="props.isDeleting"
                     @click="emit('delete')"
                 >
-                    <Trash2 class="mr-2 size-4" aria-hidden="true" />
-                    Usuń
+                    <Ban class="mr-2 size-4" aria-hidden="true" />
+                    Zablokuj
                 </UiButton>
             </ActionGroup>
         </UiCardContent>

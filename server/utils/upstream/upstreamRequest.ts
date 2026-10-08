@@ -75,7 +75,13 @@ export async function upstreamRequest<T = unknown>(
     });
 
     if (!res.ok || !envelope.success) {
-        if (res.status === 401) {
+        if (
+            res.status === 403 &&
+            (envelope.error === 'Account is disabled' ||
+                envelope.error === 'Account is no longer available')
+        ) {
+            clearSessionCookies(event);
+        } else if (res.status === 401) {
             clearUnauthorizedCookies(
                 event,
                 options.clearCookiesOnUnauthorized ?? 'access',

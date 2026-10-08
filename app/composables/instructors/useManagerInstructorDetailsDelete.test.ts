@@ -59,7 +59,7 @@ describe('useManagerInstructorDetailsDelete', () => {
         expect(data.isDeleteDialogOpen.value).toBe(false);
     });
 
-    it('deletes instructor and navigates back to instructors list', async () => {
+    it('blocks instructor and navigates back to instructors list', async () => {
         requestBffSuccess.mockResolvedValue(true);
 
         const { useManagerInstructorDetailsDelete } =
@@ -78,11 +78,11 @@ describe('useManagerInstructorDetailsDelete', () => {
             'DELETE',
             '/api/instructors/instructor-1',
             {
-                fallbackMessage: 'Nie udało się usunąć instruktora.',
+                fallbackMessage: 'Nie udało się zablokować instruktora.',
             },
         );
         expect(addToast).toHaveBeenCalledWith({
-            title: 'Instruktor został usunięty',
+            title: 'Konto instruktora zostało zablokowane',
             variant: 'success',
         });
         expect(isEditDialogOpen.value).toBe(false);
@@ -103,7 +103,7 @@ describe('useManagerInstructorDetailsDelete', () => {
         await data.handleDeleteDialogConfirm();
 
         expect(addToast).toHaveBeenCalledWith({
-            title: 'Nie udało się usunąć instruktora',
+            title: 'Nie udało się zablokować instruktora',
             description: 'API down',
             variant: 'error',
         });

@@ -116,6 +116,22 @@ function handleTabChange(value: string | number): void {
                         class="h-10 rounded-lg px-4 font-semibold shadow-xs"
                     >
                         <NuxtLink
+                            :to="{
+                                path: '/manager/accounts',
+                                query: {
+                                    schoolId: props.schoolId,
+                                    userId: props.student.userId,
+                                },
+                            }"
+                            >Zarządzaj kontem</NuxtLink
+                        >
+                    </UiButton>
+                    <UiButton
+                        as-child
+                        variant="outline"
+                        class="h-10 rounded-lg px-4 font-semibold shadow-xs"
+                    >
+                        <NuxtLink
                             :to="props.backToListHref"
                             aria-label="Wróć do listy kursantów"
                         >

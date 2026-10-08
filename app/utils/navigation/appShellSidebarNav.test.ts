@@ -44,6 +44,7 @@ describe('app shell sidebar navigation model', () => {
             '/vehicles',
             '/account',
             '/manager/osk',
+            '/manager/accounts',
             '/manager/instructors',
             '/manager/students',
             '/manager/courses',

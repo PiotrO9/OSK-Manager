@@ -55,12 +55,12 @@ export function useManagerInstructorDetailsDelete({
                 'DELETE',
                 `/api/instructors/${encodeURIComponent(id)}`,
                 {
-                    fallbackMessage: 'Nie udało się usunąć instruktora.',
+                    fallbackMessage: 'Nie udało się zablokować instruktora.',
                 },
             );
 
             addToast({
-                title: 'Instruktor został usunięty',
+                title: 'Konto instruktora zostało zablokowane',
                 variant: 'success',
             });
 
@@ -69,7 +69,7 @@ export function useManagerInstructorDetailsDelete({
             await navigateTo('/manager/instructors');
         } catch (err: unknown) {
             addToast({
-                title: 'Nie udało się usunąć instruktora',
+                title: 'Nie udało się zablokować instruktora',
                 description: getManagerInstructorDeleteErrorMessage(err),
                 variant: 'error',
             });

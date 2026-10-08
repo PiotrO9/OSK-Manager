@@ -110,6 +110,13 @@ export function buildAppShellSidebarNavItems(
             iconKey: 'building',
             tooltip: 'Szkoły jazdy',
         });
+        items.push({
+            to: '/manager/accounts',
+            label: 'Konta osób',
+            ariaLabel: 'Przejdź do zarządzania kontami osób w OSK',
+            iconKey: 'users',
+            tooltip: 'Konta osób',
+        });
     }
 
     if (roleRaw === 'MANAGER' || roleRaw === 'ADMIN') {
