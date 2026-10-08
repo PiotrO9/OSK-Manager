@@ -64,7 +64,19 @@ describe('normalizeVehicle', () => {
             insuranceDate: '2026-09-01',
             modelYear: 2020,
             mileageKm: 45000,
+            updatedAt: null,
             photoUrl: '/vehicle.jpg',
         });
+    });
+
+    it('normalizes valid timestamps and rejects dates without a time zone', () => {
+        expect(
+            normalizeVehicle({ updated_at: '2026-10-08T14:32:00+02:00' }, 0)
+                ?.updatedAt,
+        ).toBe('2026-10-08T12:32:00.000Z');
+        expect(
+            normalizeVehicle({ updatedAt: '2026-10-08T14:32:00' }, 0)
+                ?.updatedAt,
+        ).toBeNull();
     });
 });

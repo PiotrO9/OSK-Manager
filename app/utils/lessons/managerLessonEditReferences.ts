@@ -122,6 +122,7 @@ export function buildManagerLessonVehiclesForSelect(params: {
         insuranceDate: fallback?.insuranceDate ?? null,
         modelYear: fallback?.modelYear ?? null,
         mileageKm: fallback?.mileageKm ?? null,
+        updatedAt: fallback?.updatedAt ?? null,
     };
 
     return [synthetic, ...list];

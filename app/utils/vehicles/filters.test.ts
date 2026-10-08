@@ -14,6 +14,7 @@ function vehicle(overrides: Partial<Vehicle>): Vehicle {
         insuranceDate: null,
         modelYear: null,
         mileageKm: null,
+        updatedAt: null,
         ...overrides,
     };
 }

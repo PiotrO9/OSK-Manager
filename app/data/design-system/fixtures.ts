@@ -191,6 +191,7 @@ export const designSystemVehicles: readonly Vehicle[] = [
         insuranceDate: '2027-02-08',
         modelYear: 2023,
         mileageKm: 18400,
+        updatedAt: '2026-10-08T12:32:00.000Z',
     },
     {
         id: 'vehicle-2',
@@ -203,6 +204,7 @@ export const designSystemVehicles: readonly Vehicle[] = [
         insuranceDate: '2026-12-14',
         modelYear: 2022,
         mileageKm: 26700,
+        updatedAt: null,
     },
 ] as const;
 

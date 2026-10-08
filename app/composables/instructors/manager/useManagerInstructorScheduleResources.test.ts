@@ -39,6 +39,7 @@ function createVehicle(overrides: Partial<Vehicle> = {}): Vehicle {
         insuranceDate: null,
         modelYear: 2020,
         mileageKm: 12345,
+        updatedAt: null,
         ...overrides,
     };
 }

@@ -61,4 +61,29 @@ describe('useVehiclesApi', () => {
             }),
         );
     });
+
+    it('keeps the database timestamp returned after photo upload', async () => {
+        requestBffData.mockImplementationOnce(
+            async (_method: string, _path: string, options: unknown) => {
+                const normalize = (
+                    options as { normalize: (data: unknown) => unknown }
+                ).normalize;
+
+                return normalize({
+                    photoUrl: 'https://example.test/car.jpg',
+                    updatedAt: '2026-10-08T14:32:00+02:00',
+                });
+            },
+        );
+        const { useVehiclesApi } = await import('./useVehiclesApi');
+        const api = useVehiclesApi();
+        const photo = new File(['photo'], 'car.jpg', { type: 'image/jpeg' });
+
+        await expect(
+            api.uploadVehiclePhoto('vehicle-1', photo),
+        ).resolves.toEqual({
+            photoUrl: 'https://example.test/car.jpg',
+            updatedAt: '2026-10-08T12:32:00.000Z',
+        });
+    });
 });

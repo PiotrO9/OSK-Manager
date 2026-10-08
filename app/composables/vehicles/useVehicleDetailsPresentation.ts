@@ -25,6 +25,7 @@ export interface VehicleDetailsRow {
     label: string;
     value: string;
     copyable?: boolean;
+    updatedAt?: string | null;
 }
 
 export interface VehicleDetailsDeadlineItem {
@@ -69,6 +70,7 @@ export function useVehicleDetailsPresentation({
                 vehicle.value.mileageKm === null
                     ? 'Brak danych'
                     : `${displayVehicleDetailsOptional(vehicle.value.mileageKm)} km`,
+            updatedAt: vehicle.value.updatedAt,
         },
     ]);
 
@@ -116,6 +118,7 @@ export function useVehicleDetailsPresentation({
                 vehicle.value.mileageKm === null
                     ? 'Brak danych'
                     : `${displayVehicleDetailsOptional(vehicle.value.mileageKm)} km`,
+            updatedAt: vehicle.value.updatedAt,
         },
         {
             label: 'Niedostępny do',

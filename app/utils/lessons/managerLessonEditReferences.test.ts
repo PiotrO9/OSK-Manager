@@ -26,6 +26,7 @@ const vehicle: Vehicle = {
     insuranceDate: null,
     modelYear: null,
     mileageKm: null,
+    updatedAt: null,
 };
 
 describe('manager lesson edit reference helpers', () => {

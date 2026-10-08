@@ -57,11 +57,14 @@ defineEmits<{
                     tone="info"
                     subtle
                 />
-                <StatusBadge
-                    :label="formatVehicleMeta(vehicle)"
-                    tone="neutral"
-                    subtle
-                />
+                <span class="inline-flex items-center gap-1">
+                    <StatusBadge
+                        :label="formatVehicleMeta(vehicle)"
+                        tone="neutral"
+                        subtle
+                    />
+                    <VehicleUpdatedAtInfo :updated-at="vehicle.updatedAt" />
+                </span>
             </div>
 
             <div class="border-border mt-4 grid gap-2 border-t pt-3 text-xs">

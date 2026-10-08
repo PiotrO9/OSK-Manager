@@ -62,7 +62,10 @@ defineEmits<{
                     </div>
                 </td>
                 <td class="text-muted-foreground px-4 py-3">
-                    {{ formatVehicleMeta(vehicle) }}
+                    <span class="inline-flex items-center gap-1">
+                        <span>{{ formatVehicleMeta(vehicle) }}</span>
+                        <VehicleUpdatedAtInfo :updated-at="vehicle.updatedAt" />
+                    </span>
                 </td>
                 <td class="px-4 py-3">
                     <div class="flex flex-wrap items-center gap-2">

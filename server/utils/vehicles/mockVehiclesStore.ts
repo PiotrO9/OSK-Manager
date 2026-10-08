@@ -13,6 +13,7 @@ export interface MockVehicleRow {
     modelYear: number | null;
     mileageKm: number | null;
     photoUrl: string | null;
+    updatedAt: string | null;
 }
 
 type GlobalWithStore = typeof globalThis & {
@@ -50,6 +51,7 @@ function ensureSeedForSchool(schoolId: string) {
             modelYear: 2018,
             mileageKm: 125_000,
             photoUrl: null,
+            updatedAt: null,
         },
         {
             id: crypto.randomUUID(),
@@ -64,6 +66,7 @@ function ensureSeedForSchool(schoolId: string) {
             modelYear: null,
             mileageKm: null,
             photoUrl: null,
+            updatedAt: null,
         },
     );
 }
@@ -80,6 +83,7 @@ function rowToResponse(row: MockVehicleRow): Record<string, unknown> {
         insuranceDate: row.insuranceDate,
         modelYear: row.modelYear,
         mileageKm: row.mileageKm,
+        updatedAt: row.updatedAt,
     };
 }
 
@@ -101,6 +105,7 @@ export function mockVehicleRowToDetailPayload(
         isDefault: row.isDefault,
         modelYear: row.modelYear,
         mileageKm: row.mileageKm,
+        updatedAt: row.updatedAt,
     };
 }
 
@@ -138,6 +143,7 @@ export function mockVehiclesCreate(row: {
         modelYear: row.modelYear,
         mileageKm: row.mileageKm,
         photoUrl: null,
+        updatedAt: new Date().toISOString(),
     };
 
     store.push(created);
@@ -186,6 +192,7 @@ export function mockVehiclesUpdate(
     row.insuranceDate = body.insuranceDate;
     row.modelYear = body.modelYear;
     row.mileageKm = body.mileageKm;
+    row.updatedAt = new Date().toISOString();
 
     return row;
 }
@@ -243,6 +250,7 @@ export function mockVehiclesUpdateStatus(
     row.status = body.status;
     row.unavailableUntil =
         body.status === 'UNAVAILABLE' ? (body.unavailableUntil ?? null) : null;
+    row.updatedAt = new Date().toISOString();
 
     return row;
 }
@@ -257,6 +265,7 @@ export function mockVehiclesSetPhotoUrl(
     if (!row) return null;
 
     row.photoUrl = photoUrl;
+    row.updatedAt = new Date().toISOString();
 
     return row;
 }

@@ -18,6 +18,7 @@ import type {
     VehicleStatus,
     VehicleWritePayload,
 } from '~/types/vehicles/vehicle';
+import { parseVehicleUpdatedAt } from '~/types/vehicles/vehicle';
 
 export type VehicleCreateBody = VehicleWritePayload & { schoolId: string };
 
@@ -163,7 +164,10 @@ export function useVehiclesApi() {
         );
     }
 
-    async function uploadVehiclePhoto(id: string, file: File): Promise<string> {
+    async function uploadVehiclePhoto(
+        id: string,
+        file: File,
+    ): Promise<{ photoUrl: string; updatedAt: string | null }> {
         isPhotoUploadLoading.value = true;
 
         try {
@@ -171,16 +175,28 @@ export function useVehiclesApi() {
 
             body.append('file', file);
 
-            return await requestBffData<string>(
-                'POST',
-                buildVehiclePhotoPath(id),
-                {
-                    body,
-                    fallbackMessage: 'Nie udało się przesłać zdjęcia.',
-                    invalidMessage: VEHICLE_INVALID_RESPONSE,
-                    normalize: normalizeBffPhotoUrl,
+            return await requestBffData<{
+                photoUrl: string;
+                updatedAt: string | null;
+            }>('POST', buildVehiclePhotoPath(id), {
+                body,
+                fallbackMessage: 'Nie udało się przesłać zdjęcia.',
+                invalidMessage: VEHICLE_INVALID_RESPONSE,
+                normalize: (data: unknown) => {
+                    const photoUrl = normalizeBffPhotoUrl(data);
+
+                    if (!photoUrl) return null;
+
+                    const updatedAt =
+                        data && typeof data === 'object'
+                            ? parseVehicleUpdatedAt(
+                                  (data as { updatedAt?: unknown }).updatedAt,
+                              )
+                            : null;
+
+                    return { photoUrl, updatedAt };
                 },
-            );
+            });
         } catch (err) {
             throw new Error(
                 getApiFetchErrorMessage(err, 'Nie udało się przesłać zdjęcia.'),

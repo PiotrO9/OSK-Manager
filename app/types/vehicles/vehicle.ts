@@ -25,6 +25,8 @@ export interface Vehicle {
     insuranceDate: string | null;
     modelYear: number | null;
     mileageKm: number | null;
+    /** Ostatni zapis całego rekordu pojazdu, ISO UTC lub null. */
+    updatedAt: string | null;
 }
 
 export interface VehicleDetail extends Vehicle {
@@ -113,6 +115,21 @@ function parseOptionalPhotoUrl(raw: unknown): string | null {
     const photoUrl = typeof raw === 'string' ? raw.trim() : String(raw).trim();
 
     return photoUrl.length > 0 ? photoUrl : null;
+}
+
+export function parseVehicleUpdatedAt(raw: unknown): string | null {
+    if (
+        typeof raw !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(
+            raw,
+        )
+    ) {
+        return null;
+    }
+
+    const date = new Date(raw);
+
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 const MODEL_YEAR_MIN = 1900;
@@ -232,6 +249,7 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
         vehicleRecord.unavailableUntil ?? vehicleRecord.unavailable_until;
     const modelYearRaw = vehicleRecord.modelYear ?? vehicleRecord.model_year;
     const mileageRaw = vehicleRecord.mileageKm ?? vehicleRecord.mileage_km;
+    const updatedAtRaw = vehicleRecord.updatedAt ?? vehicleRecord.updated_at;
 
     return {
         id,
@@ -244,6 +262,7 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
         insuranceDate: parseOptionalIsoDate(insuranceRaw),
         modelYear: parseOptionalModelYear(modelYearRaw),
         mileageKm: parseOptionalMileageKm(mileageRaw),
+        updatedAt: parseVehicleUpdatedAt(updatedAtRaw),
     };
 }
 

@@ -157,7 +157,10 @@ export function bffMockVehiclesUploadPhoto(id: string): {
 
     const demoPhotoUrl = 'https://placehold.co/600x400/png?text=Demo+pojazd';
 
-    mockVehiclesSetPhotoUrl(id, demoPhotoUrl);
+    const updated = mockVehiclesSetPhotoUrl(id, demoPhotoUrl);
 
-    return dataSuccess({ photoUrl: demoPhotoUrl });
+    return dataSuccess({
+        photoUrl: demoPhotoUrl,
+        updatedAt: updated?.updatedAt ?? null,
+    });
 }

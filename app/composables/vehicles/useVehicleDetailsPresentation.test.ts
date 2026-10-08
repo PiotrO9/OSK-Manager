@@ -21,6 +21,7 @@ function vehicle(overrides: Partial<VehicleDetail> = {}): VehicleDetail {
         insuranceDate: '2099-09-15',
         modelYear: 2020,
         mileageKm: 12345,
+        updatedAt: null,
         photoUrl: null,
         ...overrides,
     };
@@ -62,7 +63,7 @@ describe('useVehicleDetailsPresentation', () => {
         expect(presentation.registrationNumberLabel.value).toBe('KR 12345');
         expect(presentation.profileRows.value).toEqual([
             { label: 'Rocznik', value: '2020' },
-            { label: 'Przebieg', value: '12 345 km' },
+            { label: 'Przebieg', value: '12 345 km', updatedAt: null },
         ]);
         expect(presentation.availability.value.label).toBe('Aktywny');
         expect(presentation.technicalRows.value[1]).toEqual({
@@ -99,6 +100,7 @@ describe('useVehicleDetailsPresentation', () => {
         expect(presentation.profileRows.value.at(-1)).toEqual({
             label: 'Przebieg',
             value: 'Brak danych',
+            updatedAt: null,
         });
     });
 });

@@ -183,12 +183,13 @@ export function useVehicleEditPage() {
         if (!file) return true;
 
         try {
-            const photoUrl = await uploadVehiclePhoto(id, file);
+            const { photoUrl, updatedAt } = await uploadVehiclePhoto(id, file);
 
             if (vehicleDetail.value) {
                 vehicleDetail.value = {
                     ...vehicleDetail.value,
                     photoUrl,
+                    updatedAt,
                 };
             }
 

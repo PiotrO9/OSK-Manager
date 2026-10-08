@@ -54,7 +54,13 @@ defineProps<{
                             success-title="Skopiowano numer rejestracyjny"
                             error-title="Nie udało się skopiować numeru rejestracyjnego"
                         />
-                        <template v-else>{{ row.value }}</template>
+                        <template v-else>
+                            <span>{{ row.value }}</span>
+                            <VehicleUpdatedAtInfo
+                                v-if="row.updatedAt !== undefined"
+                                :updated-at="row.updatedAt"
+                            />
+                        </template>
                     </dd>
                 </div>
             </dl>

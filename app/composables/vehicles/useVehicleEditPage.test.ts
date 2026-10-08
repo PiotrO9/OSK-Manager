@@ -82,7 +82,10 @@ describe('useVehicleEditPage', () => {
         fetchList.mockResolvedValue([]);
         fetchVehicleById.mockResolvedValue(null);
         updateVehicle.mockResolvedValue(vehicle());
-        uploadVehiclePhoto.mockResolvedValue('/uploads/vehicles/vehicle-1.jpg');
+        uploadVehiclePhoto.mockResolvedValue({
+            photoUrl: '/uploads/vehicles/vehicle-1.jpg',
+            updatedAt: '2026-10-08T12:32:00.000Z',
+        });
     });
 
     it('does not call vehicle APIs without vehicle route context', async () => {
@@ -157,7 +160,10 @@ describe('useVehicleEditPage', () => {
         vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
         uploadVehiclePhoto
             .mockRejectedValueOnce(new Error('Storage niedostępny.'))
-            .mockResolvedValueOnce('/uploads/vehicle.jpg');
+            .mockResolvedValueOnce({
+                photoUrl: '/uploads/vehicle.jpg',
+                updatedAt: '2026-10-08T12:32:00.000Z',
+            });
 
         const { useVehicleEditPage } = await import('./useVehicleEditPage');
         const page = useVehicleEditPage();
@@ -203,6 +209,9 @@ describe('useVehicleEditPage', () => {
             photo,
         );
         expect(page.hasPendingPhoto.value).toBe(false);
+        expect(page.initialVehicle.value?.updatedAt).toBe(
+            '2026-10-08T12:32:00.000Z',
+        );
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:vehicle-photo');
         expect(navigateTo).toHaveBeenCalledWith('/vehicles');
     });

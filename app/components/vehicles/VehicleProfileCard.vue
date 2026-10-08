@@ -122,10 +122,15 @@ defineProps<{
                         {{ row.label }}
                     </dt>
                     <dd
-                        class="text-foreground min-w-0 truncate text-right text-sm font-bold"
-                        :title="row.value"
+                        class="text-foreground flex min-w-0 items-center justify-end gap-1 text-right text-sm font-bold"
                     >
-                        {{ row.value }}
+                        <span class="truncate" :title="row.value">{{
+                            row.value
+                        }}</span>
+                        <VehicleUpdatedAtInfo
+                            v-if="row.updatedAt !== undefined"
+                            :updated-at="row.updatedAt"
+                        />
                     </dd>
                 </div>
             </dl>
