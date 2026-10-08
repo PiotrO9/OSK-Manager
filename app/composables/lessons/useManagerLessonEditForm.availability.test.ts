@@ -53,10 +53,7 @@ describe('lesson edit day without free hours', () => {
             endTime: '2026-09-30T08:00:00.000Z',
             status: 'SCHEDULED',
         } satisfies ManagerLessonDetail;
-        const form = useManagerLessonEditForm(
-            ref(lesson),
-            ref({ id: 'instructor-1', name: 'Jan Kowalski' }),
-        );
+        const form = useManagerLessonEditForm(ref(lesson));
 
         form.applyPrefill(lesson);
         form.formVehicleId.value = 'vehicle-2';
@@ -71,7 +68,7 @@ describe('lesson edit day without free hours', () => {
         expect(form.isFormComplete.value).toBe(true);
     });
 
-    it('keeps the selected date when availability options are empty', async () => {
+    it('keeps the selected date and hours when availability options are empty', async () => {
         vi.stubGlobal('ref', ref);
         vi.stubGlobal('computed', computed);
         vi.stubGlobal('watch', watch);
@@ -97,10 +94,7 @@ describe('lesson edit day without free hours', () => {
             endTime: '2026-09-30T08:00:00.000Z',
             status: 'SCHEDULED',
         } satisfies ManagerLessonDetail;
-        const form = useManagerLessonEditForm(
-            ref(lesson),
-            ref({ id: 'instructor-1', name: 'Jan Kowalski' }),
-        );
+        const form = useManagerLessonEditForm(ref(lesson));
 
         form.applyPrefill(lesson);
         form.formStartLocal.value = '2026-10-01T09:00';
@@ -114,9 +108,9 @@ describe('lesson edit day without free hours', () => {
         };
         await nextTick();
 
-        expect(form.formStartLocal.value).toBe('2026-10-01T');
-        expect(form.formEndLocal.value).toBe('2026-10-01T');
-        expect(form.isFormComplete.value).toBe(false);
+        expect(form.formStartLocal.value).toBe('2026-10-01T09:00');
+        expect(form.formEndLocal.value).toBe('2026-10-01T10:00');
+        expect(form.isFormComplete.value).toBe(true);
     });
 
     it('does not silently select the first time when the previous time is unavailable', async () => {
@@ -145,10 +139,7 @@ describe('lesson edit day without free hours', () => {
             endTime: '2026-09-30T08:00:00.000Z',
             status: 'SCHEDULED',
         } satisfies ManagerLessonDetail;
-        const form = useManagerLessonEditForm(
-            ref(lesson),
-            ref({ id: 'instructor-1', name: 'Jan Kowalski' }),
-        );
+        const form = useManagerLessonEditForm(ref(lesson));
 
         form.applyPrefill(lesson);
         form.formStartLocal.value = '2026-10-01T09:00';
@@ -161,9 +152,9 @@ describe('lesson edit day without free hours', () => {
         };
         await nextTick();
 
-        expect(form.formStartLocal.value).toBe('2026-10-01T');
-        expect(form.formEndLocal.value).toBe('2026-10-01T');
-        expect(form.isFormComplete.value).toBe(false);
+        expect(form.formStartLocal.value).toBe('2026-10-01T09:00');
+        expect(form.formEndLocal.value).toBe('2026-10-01T10:00');
+        expect(form.isFormComplete.value).toBe(true);
     });
 
     it('suggests another day without choosing its hours', async () => {
@@ -202,10 +193,7 @@ describe('lesson edit day without free hours', () => {
             status: 'SCHEDULED',
             bookingMaxDaysAhead: 30,
         } satisfies ManagerLessonDetail;
-        const form = useManagerLessonEditForm(
-            ref(lesson),
-            ref({ id: 'instructor-1', name: 'Jan Kowalski' }),
-        );
+        const form = useManagerLessonEditForm(ref(lesson));
 
         form.applyPrefill(lesson);
         form.formStartLocal.value = '2026-10-01T';

@@ -1,7 +1,6 @@
 import { onScopeDispose, shallowRef, type Ref } from 'vue';
 import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
 import type {
-    AssignedCourseInstructor,
     ManagerLessonDetail,
     PatchManagerLessonPayload,
 } from '~/types/lessons/managerLesson';
@@ -17,7 +16,6 @@ import type {
     LessonEditAvailabilityRequest,
     ScheduleAvailabilityOptionsResult,
 } from '~/types/schedule/scheduleAvailability';
-import { isManagerLessonInstructorEligible } from '~/utils/lessons/managerLessonEditReferences';
 import { managerLessonNoHoursMessage } from '~/utils/lessons/managerLessonAvailabilityMessage';
 
 export interface ManagerLessonEditSnapshot {
@@ -145,7 +143,6 @@ export function buildManagerLessonPatchPayload(
 
 export function useManagerLessonEditForm(
     loadedLesson: Ref<ManagerLessonDetail | null>,
-    assignedCourseInstructor: Ref<AssignedCourseInstructor | null>,
 ) {
     const formStartLocal = ref('');
     const formEndLocal = ref('');
@@ -207,10 +204,6 @@ export function useManagerLessonEditForm(
                 !endTime ||
                 endDate !== date ||
                 !instructorId ||
-                !isManagerLessonInstructorEligible(
-                    instructorId,
-                    assignedCourseInstructor.value?.id,
-                ) ||
                 !vehicleId
             ) {
                 return null;
@@ -237,15 +230,7 @@ export function useManagerLessonEditForm(
             const instructorId = formInstructorId.value.trim();
             const vehicleId = formVehicleId.value.trim();
 
-            if (
-                !lesson ||
-                !date ||
-                !instructorId ||
-                !isManagerLessonInstructorEligible(
-                    instructorId,
-                    assignedCourseInstructor.value?.id,
-                )
-            ) {
+            if (!lesson || !date || !instructorId || !vehicleId) {
                 return null;
             }
 
@@ -386,47 +371,6 @@ export function useManagerLessonEditForm(
     );
     const lessonAvailabilityMessage = computed(() =>
         isFormDirty.value ? availability.message.value : '',
-    );
-
-    watch(
-        () => availabilityOptions.result.value,
-        (next) => {
-            if (!next || !formVehicleId.value.trim()) return;
-
-            const date = availabilityOptionsCandidate.value?.date ?? '';
-
-            if (next.options.length === 0) {
-                if (
-                    formStartLocal.value === baselineSnapshot.value?.start &&
-                    formEndLocal.value === baselineSnapshot.value?.end
-                )
-                    return;
-
-                if (!date) return;
-
-                formStartLocal.value = `${date}T`;
-                formEndLocal.value = `${date}T`;
-
-                return;
-            }
-
-            const currentStart = formStartLocal.value.split('T')[1] ?? '';
-            const currentEnd = formEndLocal.value.split('T')[1] ?? '';
-            const selected = next.options.find(
-                (option) => option.startTime === currentStart,
-            );
-
-            if (!selected) {
-                formStartLocal.value = `${date}T`;
-                formEndLocal.value = `${date}T`;
-
-                return;
-            }
-
-            if (!selected.endTimes.includes(currentEnd)) {
-                formEndLocal.value = `${date}T`;
-            }
-        },
     );
 
     function buildPatchPayload(): ManagerLessonPatchBuildResult {

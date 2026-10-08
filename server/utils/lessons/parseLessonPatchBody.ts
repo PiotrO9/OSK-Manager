@@ -5,6 +5,12 @@ export interface BffLessonPatchBody {
     startTime?: string;
     endTime?: string;
     vehicleId?: string | null;
+    expectedLessonState?: {
+        instructorId: string;
+        startTime: string;
+        endTime: string;
+        vehicleId: string | null;
+    };
 }
 
 export function parseLessonPatchBody(
@@ -91,6 +97,48 @@ export function parseLessonPatchBody(
                 message: 'Pole vehicleId musi być poprawnym UUID lub null.',
             };
         }
+    }
+
+    if ('expectedLessonState' in lessonRecord) {
+        const raw = lessonRecord.expectedLessonState;
+
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+            return {
+                ok: false,
+                message: 'Nieprawidłowy stan początkowy jazdy.',
+            };
+        }
+
+        const state = raw as Record<string, unknown>;
+        const instructorId =
+            typeof state.instructorId === 'string'
+                ? state.instructorId.trim()
+                : '';
+        const startTime =
+            typeof state.startTime === 'string' ? state.startTime.trim() : '';
+        const endTime =
+            typeof state.endTime === 'string' ? state.endTime.trim() : '';
+        const vehicleId = state.vehicleId;
+
+        if (
+            !isUuid(instructorId) ||
+            !startTime ||
+            !endTime ||
+            (vehicleId !== null &&
+                (typeof vehicleId !== 'string' || !isUuid(vehicleId)))
+        ) {
+            return {
+                ok: false,
+                message: 'Nieprawidłowy stan początkowy jazdy.',
+            };
+        }
+
+        body.expectedLessonState = {
+            instructorId,
+            startTime,
+            endTime,
+            vehicleId: typeof vehicleId === 'string' ? vehicleId.trim() : null,
+        };
     }
 
     return { ok: true, body };

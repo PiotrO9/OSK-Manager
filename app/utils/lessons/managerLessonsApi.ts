@@ -181,6 +181,10 @@ export function buildManagerLessonPatchBody(
         body.instructorId = payload.instructorId.trim();
     }
 
+    if (payload.expectedLessonState !== undefined) {
+        body.expectedLessonState = payload.expectedLessonState;
+    }
+
     return body;
 }
 

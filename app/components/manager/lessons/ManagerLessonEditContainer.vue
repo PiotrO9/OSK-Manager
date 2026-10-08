@@ -17,6 +17,9 @@ const {
     vehiclesError,
     isVehiclesLoading,
     instructorsError,
+    instructorOptionsError,
+    hasAvailableInstructors,
+    canChangeInstructor,
     isInstructorsLoading,
     studentDisplayName,
     isSaving,
@@ -129,6 +132,9 @@ const {
                     :assigned-course-instructor="assignedCourseInstructor"
                     :is-instructors-loading="isInstructorsLoading"
                     :instructors-error="instructorsError"
+                    :instructor-options-error="instructorOptionsError"
+                    :has-available-instructors="hasAvailableInstructors"
+                    :can-change-instructor="canChangeInstructor"
                     :vehicles-for-select="vehiclesForSelect"
                     :is-vehicles-loading="isVehiclesLoading"
                     :vehicles-error="vehiclesError"

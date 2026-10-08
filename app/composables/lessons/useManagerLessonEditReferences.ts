@@ -1,14 +1,12 @@
 import type { Ref } from 'vue';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import type {
-    AssignedCourseInstructor,
-    ManagerLessonDetail,
-} from '~/types/lessons/managerLesson';
+import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
 import {
     normalizeStudentDetail,
     type StudentDetail,
 } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import { normalizeInstructorsList } from '~/types/instructors/instructor';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     buildManagerLessonInstructorsForSelect,
@@ -18,12 +16,14 @@ import {
     parseInstructorListItemFromApi,
 } from '~/utils/lessons/managerLessonEditReferences';
 import { requestBffData } from '../core/useApi';
+import { useDebouncedAbortableRequest } from '~/composables/schedule/useDebouncedAbortableRequest';
 
 interface UseManagerLessonEditReferencesOptions {
     schoolId: Ref<string>;
     loadedLesson: Ref<ManagerLessonDetail | null>;
     formInstructorId: Ref<string>;
-    assignedCourseInstructor: Ref<AssignedCourseInstructor | null>;
+    formStartLocal: Ref<string>;
+    formEndLocal: Ref<string>;
     formVehicleId: Ref<string>;
     fetchVehiclesList: (schoolId: string) => Promise<Vehicle[]>;
     fetchVehicleById: (id: string) => Promise<Vehicle>;
@@ -52,6 +52,51 @@ export function useManagerLessonEditReferences(
     let studentDisplayNameLoadSequence = 0;
     let vehiclesLoadSequence = 0;
     let instructorsLoadSequence = 0;
+
+    const candidate = computed(() => {
+        const lesson = options.loadedLesson.value;
+        const [date = '', startTime = ''] =
+            options.formStartLocal.value.split('T');
+        const [endDate = '', endTime = ''] =
+            options.formEndLocal.value.split('T');
+        const vehicleId = options.formVehicleId.value.trim();
+
+        if (
+            !lesson ||
+            !date ||
+            !startTime ||
+            !endTime ||
+            endDate !== date ||
+            startTime >= endTime ||
+            !vehicleId
+        )
+            return null;
+
+        return { lessonId: lesson.id, date, startTime, endTime, vehicleId };
+    });
+    const instructorOptions = useDebouncedAbortableRequest({
+        candidate,
+        debounceMs: 150,
+        fetcher: async (input, signal) => {
+            const query = new URLSearchParams({
+                date: input.date,
+                startTime: input.startTime,
+                endTime: input.endTime,
+                vehicleId: input.vehicleId,
+            });
+
+            return requestBffData<InstructorListItem[]>(
+                'GET',
+                `/api/lessons/${encodeURIComponent(input.lessonId)}/instructor-options?${query}`,
+                {
+                    signal,
+                    fallbackMessage:
+                        'Nie udało się pobrać dostępnych instruktorów.',
+                    normalize: normalizeInstructorsList,
+                },
+            );
+        },
+    });
 
     async function loadVehicleDisplayFallback(
         vehicleId: string | null | undefined,
@@ -268,11 +313,17 @@ export function useManagerLessonEditReferences(
 
     const instructorsForSelect = computed((): InstructorListItem[] =>
         buildManagerLessonInstructorsForSelect({
-            instructors: instructors.value,
+            instructors: (instructorOptions.result.value ?? []).map((item) => ({
+                ...item,
+                qualifiedCourseTypes: item.qualifiedCourseTypes
+                    ? [...item.qualifiedCourseTypes]
+                    : undefined,
+            })),
             selectedInstructorId: options.formInstructorId.value,
-            assignedInstructorId: options.assignedCourseInstructor.value?.id,
-            assignedInstructor: options.assignedCourseInstructor.value,
-            embeddedInstructor: options.loadedLesson.value?.lessonInstructor,
+            embeddedInstructor:
+                instructors.value.find(
+                    (item) => item.id === options.formInstructorId.value,
+                ) ?? options.loadedLesson.value?.lessonInstructor,
             fallbackLabel: instructorNameFallback.value,
         }),
     );
@@ -354,7 +405,21 @@ export function useManagerLessonEditReferences(
         vehiclesError,
         isVehiclesLoading,
         instructorsError,
-        isInstructorsLoading,
+        isInstructorsLoading: computed(
+            () =>
+                isInstructorsLoading.value ||
+                instructorOptions.status.value === 'loading',
+        ),
+        instructorOptionsError: computed(() =>
+            instructorOptions.status.value === 'error'
+                ? 'Nie udało się pobrać dostępnych instruktorów. Spróbuj ponownie.'
+                : null,
+        ),
+        hasAvailableInstructors: computed(
+            () =>
+                instructorOptions.status.value === 'success' &&
+                (instructorOptions.result.value?.length ?? 0) === 0,
+        ),
         studentDisplayName,
         instructorsForSelect,
         vehiclesForSelect,

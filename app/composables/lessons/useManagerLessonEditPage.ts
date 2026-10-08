@@ -7,7 +7,6 @@ import type {
     AssignedCourseInstructor,
     ManagerLessonDetail,
 } from '~/types/lessons/managerLesson';
-import { isManagerLessonInstructorEligible } from '~/utils/lessons/managerLessonEditReferences';
 import { isManagerLessonEditable } from '~/utils/lessons/managerLessonEditability';
 import { mergeManagerLessonAfterUpdate } from '~/utils/lessons/managerLessonsApi';
 import {
@@ -82,12 +81,14 @@ export function useManagerLessonEditPage() {
         findNextAvailableDay,
         lessonMinDurationMinutes,
         recheckLessonAvailability,
-    } = useManagerLessonEditForm(loadedLesson, assignedCourseInstructor);
+    } = useManagerLessonEditForm(loadedLesson);
 
     const {
         vehiclesError,
         isVehiclesLoading,
         instructorsError,
+        instructorOptionsError,
+        hasAvailableInstructors,
         isInstructorsLoading,
         studentDisplayName,
         instructorsForSelect,
@@ -101,7 +102,8 @@ export function useManagerLessonEditPage() {
         schoolId,
         loadedLesson,
         formInstructorId,
-        assignedCourseInstructor,
+        formStartLocal,
+        formEndLocal,
         formVehicleId,
         fetchVehiclesList,
         fetchVehicleById,
@@ -138,6 +140,22 @@ export function useManagerLessonEditPage() {
     );
     const lessonStatusTone = computed(() =>
         getManagerLessonStatusTone(loadedLesson.value?.status),
+    );
+    const nowMs = ref(Date.now());
+    let clockId: ReturnType<typeof setInterval> | null = null;
+
+    onMounted(() => {
+        clockId = setInterval(() => {
+            nowMs.value = Date.now();
+        }, 1000);
+    });
+    onUnmounted(() => {
+        if (clockId !== null) clearInterval(clockId);
+    });
+    const canChangeInstructor = computed(
+        () =>
+            loadedLesson.value?.status === 'SCHEDULED' &&
+            new Date(loadedLesson.value.startTime).getTime() > nowMs.value,
     );
 
     watch(
@@ -336,20 +354,24 @@ export function useManagerLessonEditPage() {
             return;
         }
 
-        if (
-            !isManagerLessonInstructorEligible(
-                formInstructorId.value,
-                assignedCourseInstructor.value?.id,
-            )
-        ) {
+        if (result.payload.instructorId && !canChangeInstructor.value) {
             formError.value =
-                'Ten kurs ma przypisanego instruktora. Wybierz go, aby zapisać jazdę.';
+                'Jazda już się rozpoczęła. Nie można zmienić instruktora.';
 
             return;
         }
 
         if (Object.keys(result.payload).length === 0) {
             return;
+        }
+
+        if (result.payload.instructorId && loadedLesson.value) {
+            result.payload.expectedLessonState = {
+                instructorId: loadedLesson.value.instructorId,
+                startTime: loadedLesson.value.startTime,
+                endTime: loadedLesson.value.endTime,
+                vehicleId: loadedLesson.value.vehicleId,
+            };
         }
 
         const availabilityStatus = await recheckLessonAvailability();
@@ -400,6 +422,9 @@ export function useManagerLessonEditPage() {
         vehiclesError,
         isVehiclesLoading,
         instructorsError,
+        instructorOptionsError,
+        hasAvailableInstructors,
+        canChangeInstructor,
         isInstructorsLoading,
         studentDisplayName,
         isSaving,

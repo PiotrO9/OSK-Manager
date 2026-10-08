@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
     buildManagerLessonInstructorsForSelect,
     buildManagerLessonVehiclesForSelect,
-    isManagerLessonInstructorEligible,
     parseInstructorListItemFromApi,
 } from '~/utils/lessons/managerLessonEditReferences';
 import type { InstructorListItem } from '~/types/instructors/instructor';
@@ -71,7 +70,7 @@ describe('manager lesson edit reference helpers', () => {
         ).toEqual([instructor]);
     });
 
-    it('shows only the course instructor and a previously selected instructor', () => {
+    it('keeps available substitutes even when the course has an assigned instructor', () => {
         const assigned = {
             ...instructor,
             id: 'instructor-2',
@@ -89,10 +88,10 @@ describe('manager lesson edit reference helpers', () => {
                 selectedInstructorId: instructor.id,
                 assignedInstructorId: assigned.id,
             }),
-        ).toEqual([instructor, assigned]);
+        ).toEqual([instructor, assigned, unrelated]);
     });
 
-    it('keeps the assigned instructor available when missing from the school list', () => {
+    it('does not add an unavailable course instructor to the options', () => {
         expect(
             buildManagerLessonInstructorsForSelect({
                 instructors: [instructor],
@@ -103,22 +102,7 @@ describe('manager lesson edit reference helpers', () => {
                     name: 'Anna Nowak',
                 },
             }).map((item) => ({ id: item.id, firstName: item.firstName })),
-        ).toEqual([
-            { id: instructor.id, firstName: instructor.firstName },
-            { id: 'instructor-2', firstName: 'Anna Nowak' },
-        ]);
-    });
-
-    it('recognizes an instructor fixed by the course', () => {
-        expect(isManagerLessonInstructorEligible('instructor-2', null)).toBe(
-            true,
-        );
-        expect(
-            isManagerLessonInstructorEligible('instructor-2', 'instructor-1'),
-        ).toBe(false);
-        expect(
-            isManagerLessonInstructorEligible('instructor-1', 'instructor-1'),
-        ).toBe(true);
+        ).toEqual([{ id: instructor.id, firstName: instructor.firstName }]);
     });
 
     it('prepends a synthetic vehicle from fallback data when missing', () => {

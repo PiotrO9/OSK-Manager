@@ -40,6 +40,40 @@ describe('parseLessonPatchBody', () => {
         });
     });
 
+    it('passes through the loaded lesson state used to prevent overwriting edits', () => {
+        expect(
+            parseLessonPatchBody({
+                instructorId: INSTRUCTOR_ID,
+                expectedLessonState: {
+                    instructorId: VEHICLE_ID,
+                    startTime: '2099-09-27T08:00:00.000Z',
+                    endTime: '2099-09-27T09:00:00.000Z',
+                    vehicleId: null,
+                },
+            }),
+        ).toEqual({
+            ok: true,
+            body: {
+                instructorId: INSTRUCTOR_ID,
+                expectedLessonState: {
+                    instructorId: VEHICLE_ID,
+                    startTime: '2099-09-27T08:00:00.000Z',
+                    endTime: '2099-09-27T09:00:00.000Z',
+                    vehicleId: null,
+                },
+            },
+        });
+        expect(
+            parseLessonPatchBody({
+                instructorId: INSTRUCTOR_ID,
+                expectedLessonState: { instructorId: 'bad-id' },
+            }),
+        ).toEqual({
+            ok: false,
+            message: 'Nieprawidłowy stan początkowy jazdy.',
+        });
+    });
+
     it('rejects invalid patch values', () => {
         expect(parseLessonPatchBody('unexpected')).toEqual({
             ok: false,

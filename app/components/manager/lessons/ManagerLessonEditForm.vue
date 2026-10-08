@@ -36,6 +36,9 @@ const props = defineProps<{
     assignedCourseInstructor: AssignedCourseInstructor | null;
     isInstructorsLoading: boolean;
     instructorsError: string | null;
+    instructorOptionsError: string | null;
+    hasAvailableInstructors: boolean;
+    canChangeInstructor: boolean;
     vehiclesForSelect: Vehicle[];
     isVehiclesLoading: boolean;
     vehiclesError: string | null;
@@ -331,9 +334,27 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 {{ instructorsError }}
             </p>
+            <p
+                v-else-if="instructorOptionsError"
+                class="text-destructive text-xs"
+                role="alert"
+            >
+                {{ instructorOptionsError }}
+            </p>
+            <p
+                v-else-if="hasAvailableInstructors && canChangeInstructor"
+                class="text-muted-foreground text-xs"
+            >
+                Brak dostępnych zastępców w tym terminie.
+            </p>
             <UiSelect
                 v-model="formInstructorId"
-                :disabled="instructorsForSelect.length === 0"
+                :disabled="
+                    !canChangeInstructor ||
+                    isInstructorsLoading ||
+                    Boolean(instructorOptionsError) ||
+                    instructorsForSelect.length <= 1
+                "
             >
                 <UiSelectTrigger
                     id="lesson-instructor"
@@ -354,13 +375,17 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     </UiSelectGroup>
                 </UiSelectContent>
             </UiSelect>
+            <p class="text-muted-foreground text-xs">
+                <template v-if="assignedCourseInstructor">
+                    Prowadzący kurs: {{ assignedCourseInstructor.name }}.
+                </template>
+                Zmiana instruktora dotyczy tylko tej jazdy.
+            </p>
             <p
-                v-if="assignedCourseInstructor"
+                v-if="!canChangeInstructor"
                 class="text-muted-foreground text-xs"
             >
-                Ten kurs jest przypisany do instruktora
-                {{ assignedCourseInstructor.name }}. Aby wybrać inną osobę,
-                zmień najpierw instruktora kursu.
+                Jazda już się rozpoczęła. Nie można zmienić instruktora.
             </p>
         </div>
 

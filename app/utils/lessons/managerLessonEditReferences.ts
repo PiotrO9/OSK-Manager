@@ -74,28 +74,8 @@ export function buildManagerLessonInstructorsForSelect(params: {
     embeddedInstructor?: InstructorListItem;
     fallbackLabel?: string | null;
 }): InstructorListItem[] {
-    const assignedId = params.assignedInstructorId?.trim() ?? '';
-    const list = assignedId
-        ? params.instructors.filter(
-              (item) =>
-                  item.id === assignedId ||
-                  item.id === params.selectedInstructorId.trim(),
-          )
-        : [...params.instructors];
+    const list = [...params.instructors];
     const id = params.selectedInstructorId.trim();
-
-    if (assignedId && !list.some((item) => item.id === assignedId)) {
-        const assignedName =
-            params.assignedInstructor?.name.trim() || 'Instruktor kursu';
-
-        list.push({
-            id: assignedId,
-            firstName: assignedName,
-            lastName: '',
-            email: '',
-            avatarUrl: null,
-        });
-    }
 
     if (!id || list.some((item) => item.id === id)) {
         return list;
@@ -113,15 +93,6 @@ export function buildManagerLessonInstructorsForSelect(params: {
     };
 
     return [synthetic, ...list];
-}
-
-export function isManagerLessonInstructorEligible(
-    instructorId: string,
-    assignedInstructorId: string | null | undefined,
-): boolean {
-    const assignedId = assignedInstructorId?.trim() ?? '';
-
-    return !assignedId || instructorId.trim() === assignedId;
 }
 
 export function buildManagerLessonVehiclesForSelect(params: {

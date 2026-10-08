@@ -41,4 +41,10 @@ export interface PatchManagerLessonPayload {
     endTime?: string;
     vehicleId?: string;
     instructorId?: string;
+    expectedLessonState?: {
+        instructorId: string;
+        startTime: string;
+        endTime: string;
+        vehicleId: string | null;
+    };
 }
