@@ -60,7 +60,18 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         route.fulfill({
             json: {
                 success: true,
-                data: { payments: [existingPayment], summary },
+                data: {
+                    payments: [existingPayment],
+                    paymentPlans: [
+                        {
+                            id: paymentPlanId,
+                            courseId: 'course-1',
+                            courseName: 'Kurs B',
+                            currency: 'PLN',
+                        },
+                    ],
+                    summary,
+                },
             },
         }),
     );
@@ -73,6 +84,14 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
                     success: true,
                     data: {
                         payments: [{ ...existingPayment, status: 'PAID' }],
+                        paymentPlans: [
+                            {
+                                id: paymentPlanId,
+                                courseId: 'course-1',
+                                courseName: 'Kurs B',
+                                currency: 'PLN',
+                            },
+                        ],
                         summary,
                     },
                 },
@@ -130,6 +149,14 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
                                 method: 'transfer',
                             },
                             existingPayment,
+                        ],
+                        paymentPlans: [
+                            {
+                                id: paymentPlanId,
+                                courseId: 'course-1',
+                                courseName: 'Kurs B',
+                                currency: 'PLN',
+                            },
                         ],
                         summary,
                     },

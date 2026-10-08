@@ -33,6 +33,14 @@ describe('bffUpstreamMyPaymentsList', () => {
                     method: null,
                 },
             ],
+            paymentPlans: [
+                {
+                    id: 'plan-1',
+                    courseId: 'course-1',
+                    courseName: 'Kategoria B',
+                    currency: 'PLN',
+                },
+            ],
             summary: {
                 paidAmount: '0.00',
                 unpaidAmount: '900.00',

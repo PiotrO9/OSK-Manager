@@ -25,7 +25,15 @@ export interface StudentPaymentsSummary {
 
 export interface StudentPaymentsPayload {
     payments: StudentPaymentItem[];
+    paymentPlans: StudentPaymentPlan[];
     summary: StudentPaymentsSummary;
+}
+
+export interface StudentPaymentPlan {
+    id: string;
+    courseId: string;
+    courseName: string;
+    currency: string;
 }
 
 export interface CreateStudentPaymentPayload {
@@ -114,6 +122,24 @@ function normalizePaymentItem(raw: unknown): StudentPaymentItem | null {
     };
 }
 
+function normalizePaymentPlan(raw: unknown): StudentPaymentPlan | null {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const record = raw as Record<string, unknown>;
+    const id = readString(record, 'id');
+    const courseId = readString(record, 'courseId');
+    const courseName = readString(record, 'courseName');
+
+    if (!id || !courseId || !courseName) return null;
+
+    return {
+        id,
+        courseId,
+        courseName,
+        currency: readString(record, 'currency') || 'PLN',
+    };
+}
+
 const emptySummary: StudentPaymentsSummary = {
     paidAmount: '0.00',
     unpaidAmount: '0.00',
@@ -172,6 +198,7 @@ export function normalizeStudentPaymentsPayload(
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
         return {
             payments: normalizeStudentPayments(data),
+            paymentPlans: [],
             summary: emptySummary,
         };
     }
@@ -180,6 +207,11 @@ export function normalizeStudentPaymentsPayload(
 
     return {
         payments: normalizeStudentPayments(record.payments ?? data),
+        paymentPlans: Array.isArray(record.paymentPlans)
+            ? record.paymentPlans
+                  .map(normalizePaymentPlan)
+                  .filter((plan): plan is StudentPaymentPlan => plan !== null)
+            : [],
         summary: readSummary(record.summary),
     };
 }

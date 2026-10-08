@@ -1,6 +1,7 @@
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
+    StudentPaymentPlan,
     UpdateStudentPaymentPayload,
 } from '~/types/payments/payment';
 
@@ -58,20 +59,20 @@ export function formatStudentPaymentDate(value: string | null): string {
 }
 
 export function buildStudentPaymentPlanOptions(
-    payments: readonly StudentPaymentItem[],
+    paymentPlans: readonly StudentPaymentPlan[],
 ): StudentPaymentPlanOption[] {
     const seen = new Set<string>();
     const options: StudentPaymentPlanOption[] = [];
 
-    for (const payment of payments) {
-        if (seen.has(payment.paymentPlanId)) {
+    for (const plan of paymentPlans) {
+        if (seen.has(plan.id)) {
             continue;
         }
 
-        seen.add(payment.paymentPlanId);
+        seen.add(plan.id);
         options.push({
-            id: payment.paymentPlanId,
-            label: payment.courseName,
+            id: plan.id,
+            label: plan.courseName,
         });
     }
 

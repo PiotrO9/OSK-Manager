@@ -17,6 +17,12 @@ export interface MyPaymentResponse {
 
 export interface MyPaymentsPayload {
     payments: MyPaymentResponse[];
+    paymentPlans: Array<{
+        id: string;
+        courseId: string;
+        courseName: string;
+        currency: string;
+    }>;
     summary: {
         paidAmount: string;
         unpaidAmount: string;
@@ -54,6 +60,9 @@ export async function bffUpstreamMyPaymentsList(
         success: true,
         data: {
             payments: Array.isArray(data?.payments) ? data.payments : [],
+            paymentPlans: Array.isArray(data?.paymentPlans)
+                ? data.paymentPlans
+                : [],
             summary: data?.summary ?? emptyPaymentsSummary,
         },
     };
