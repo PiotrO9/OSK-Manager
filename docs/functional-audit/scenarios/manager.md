@@ -63,15 +63,15 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Oczekiwane:** pola błędne są oznaczone, fokus prowadzi do pierwszego błędu; konto nie powstaje; pozostanie zachowuje draft, odrzucenie opuszcza stronę. **Powtórzenie:** brak zmian danych. **Źródła:** [formularz](../../../app/pages/manager/instructors/new.vue), [opis walidacji](../../../docs/MANAGER_INSTRUCTORS.md).
 
-### MGR-INS-03 — Edycja profilu i usunięcie instruktora [P1]
+### MGR-INS-03 — Edycja profilu i blokada instruktora [P1]
 
-**Wymaganie:** `REQ-MGR-INS-03` — menedżer może zmienić edytowalne dane profilu; usuwanie ma dialog. **Dane:** `school-staffed`, instruktor bez krytycznych przyszłych lekcji do usunięcia.
+**Wymaganie:** `REQ-MGR-INS-03` — menedżer może zmienić edytowalne dane profilu; blokowanie ma dialog. **Dane:** `school-staffed`, aktywny instruktor.
 
 1. Otwórz szczegóły instruktora i **Edytuj**; zmień np. doświadczenie lub kwalifikację, zapisz.
 2. Odśwież szczegóły i listę.
-3. Otwórz dialog usunięcia, anuluj, odśwież; następnie potwierdź dla tego samego testowego instruktora.
+3. Otwórz dialog blokady, anuluj, odśwież; następnie potwierdź dla tego samego testowego instruktora.
 
-**Oczekiwane:** edycja jest trwała; e-mail z tego formularza pozostaje tylko do odczytu (osobną zmianę ma panel kont). Anulowanie nie zmienia konta. Obecny backend po potwierdzeniu akcji „Usuń instruktora” przez menadżera blokuje konto i unieważnia jego sesje; nie kasuje konta Auth ani historii. Jeśli ma miejsce odmowa, zapisz dokładny powód. **Do decyzji:** czy nazwa i skutki tej akcji odpowiadają docelowej polityce produktu; archiwizacja w panelu kont jest osobnym procesem. **Powtórzenie:** odblokuj konto w panelu kont lub odtwórz instruktora. **Źródła:** [szczegóły](../../../app/pages/manager/instructors/[id]/index.vue), [dialog edycji](../../../app/components/manager/instructors/ManagerInstructorEditDialog.vue), [dialog usunięcia](../../../app/components/manager/instructors/ManagerInstructorDeleteDialog.vue), [usługa BE](../../../../../BE/src/services/instructor/commands.ts).
+**Oczekiwane:** edycja jest trwała; e-mail z tego formularza pozostaje tylko do odczytu (osobną zmianę ma panel kont). Anulowanie nie zmienia konta. Potwierdzenie blokuje konto i unieważnia sesje także przy aktywnych zobowiązaniach; nie usuwa Auth ani historii. Odblokowanie odbywa się w panelu kont i wymaga nowego logowania. Archiwizacja jest osobną operacją, odrzucaną przy aktywnych zobowiązaniach. Trasa BE `DELETE /instructors/:id` zachowuje zgodność wsteczną, lecz dla menadżera wykonuje blokadę. **Powtórzenie:** odblokuj konto w panelu kont. **Źródła:** [szczegóły](../../../app/pages/manager/instructors/[id]/index.vue), [dialog edycji](../../../app/components/manager/instructors/ManagerInstructorEditDialog.vue), [dialog blokady](../../../app/components/manager/instructors/ManagerInstructorDeleteDialog.vue), [usługa BE](../../../../../BE/src/services/instructor/commands.ts).
 
 ### MGR-INS-04 — Tygodniowa dostępność instruktora [P0]
 
@@ -302,7 +302,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 2. Dla konta bez takich zobowiązań potwierdź archiwizację; odśwież listę i profil.
 3. Spróbuj zalogować się zarchiwizowanym kontem i odświeżyć jego dawną sesję. Sprawdź, że panel pokazuje status archiwalny bez akcji przywrócenia.
 
-**Oczekiwane:** anulowanie i odmowa z powodu zobowiązań zachowują konto; konto kwalifikujące się do archiwizacji traci dostęp i pozostaje jako rekord historyczny. **Do decyzji:** czy te warunki i brak przywracania odpowiadają docelowej polityce produktu; konto Auth pozostaje istniejące. **Powtórzenie:** użyj nowego konta testowego do kolejnego przebiegu. **Źródła:** [edytor](../../../app/components/manager/accounts/ManagerAccountEditor.vue), [kontrola zobowiązań](../../../../../BE/src/services/managerAccounts.service.ts).
+**Oczekiwane:** anulowanie i odmowa z powodu zobowiązań zachowują konto; konto kwalifikujące się do archiwizacji traci dostęp i pozostaje jako rekord historyczny. Konto Auth pozostaje istniejące, a panel menadżera nie oferuje przywracania. **Powtórzenie:** użyj nowego konta testowego do kolejnego przebiegu. **Źródła:** [edytor](../../../app/components/manager/accounts/ManagerAccountEditor.vue), [kontrola zobowiązań](../../../../../BE/src/services/managerAccounts.service.ts).
 
 ## Nadzór
 
@@ -339,7 +339,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 ## Otwarte decyzje przed zaliczeniem odbioru
 
 1. Reguły ustawienia pierwszej lub domyślnej OSK i zachowania wybranego kontekstu po ponownym logowaniu (`MGR-OSK-01/02`).
-2. Usuwanie szkoły i pojazdu z danymi zależnymi; nazwa i skutki „Usuń instruktora” wobec blokady konta oraz polityka Auth/historii po archiwizacji (`MGR-OSK-03`, `MGR-INS-03`, `MGR-VEH-02`, `MGR-ACC-05`).
+2. Usuwanie szkoły i pojazdu z danymi zależnymi (`MGR-OSK-03`, `MGR-VEH-02`). Zasady blokowania instruktora i archiwizacji konta rozstrzygnięto osobno w D-05.
 3. Polityka oferty kategorii i zmiany instruktora kursu przy istniejących jazdach (`MGR-CRS-02/03`).
 4. Historia i ponowne udostępnianie slotu po anulowaniu oraz uczestnictwo w teorii bez kursu (`MGR-LES-04`, `MGR-EVT-01`).
 5. Zakres i priorytet spraw na pulpicie (`MGR-DASH-01`).

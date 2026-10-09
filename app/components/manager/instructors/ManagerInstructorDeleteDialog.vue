@@ -30,8 +30,9 @@ function handleOpenChange(open: boolean) {
                     <span class="text-foreground font-medium">
                         „{{ instructorDisplayName }}"
                     </span>
-                    ? Aktywne sesje zostaną zakończone. Konto można odblokować w
-                    sekcji „Konta osób”.
+                    ? Aktywne sesje zostaną zakończone. Zaplanowane lekcje i
+                    przypisania pozostaną; w razie potrzeby przenieś je osobno.
+                    Konto można odblokować w sekcji „Konta osób”.
                 </UiDialogDescription>
             </UiDialogHeader>
 

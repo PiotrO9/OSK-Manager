@@ -8,6 +8,7 @@ const allowed = new Map([
     ['manager-only', new Set(['manager-osk-audit.spec.ts'])],
     ['booking-ready', new Set(['booking-audit.spec.ts'])],
     ['payment-ready', new Set(['payment-audit.spec.ts'])],
+    ['account-ready', new Set(['manager-accounts-audit.spec.ts'])],
     [
         'school-operational',
         new Set([
@@ -58,9 +59,8 @@ const { createApp } = requireBackend('./dist/app.js');
 const { ensureAuthUsers } = requireBackend(
     './dist/services/devResetSeed/authUsers.js',
 );
-const { getAuditFixtureAccounts, seedAuditFixture } = requireBackend(
-    './dist/services/auditFixtures.service.js',
-);
+const { AUDIT_FIXTURE_ACCOUNTS, getAuditFixtureAccounts, seedAuditFixture } =
+    requireBackend('./dist/services/auditFixtures.service.js');
 const { resetDatabase } = requireBackend(
     './dist/services/devResetSeed/database.js',
 );
@@ -115,6 +115,26 @@ try {
                 E2E_AUDIT_STUDENT_ID: fixture.logicalIds['student-1'] ?? '',
                 E2E_AUDIT_COURSE_ID:
                     fixture.logicalIds['course-practical'] ?? '',
+                E2E_AUDIT_FOREIGN_SCHOOL_ID:
+                    fixture.logicalIds['school-foreign'] ?? '',
+                E2E_AUDIT_FOREIGN_STUDENT_ID:
+                    fixture.logicalIds['student-foreign'] ?? '',
+                E2E_AUDIT_FOREIGN_INSTRUCTOR_ID:
+                    fixture.logicalIds['instructor-foreign'] ?? '',
+                E2E_AUDIT_SECOND_STUDENT_ID:
+                    fixture.logicalIds['student-2'] ?? '',
+                E2E_AUDIT_FIRST_INSTRUCTOR_ID:
+                    fixture.logicalIds['instructor-1'] ?? '',
+                E2E_AUDIT_FREE_INSTRUCTOR_ID:
+                    fixture.logicalIds['instructor-free'] ?? '',
+                E2E_SECOND_STUDENT_EMAIL: AUDIT_FIXTURE_ACCOUNTS[5].email,
+                E2E_SECOND_STUDENT_PASSWORD: AUDIT_FIXTURE_ACCOUNTS[5].password,
+                E2E_FREE_INSTRUCTOR_EMAIL: AUDIT_FIXTURE_ACCOUNTS[9].email,
+                E2E_FREE_INSTRUCTOR_PASSWORD:
+                    AUDIT_FIXTURE_ACCOUNTS[9].password,
+                E2E_FOREIGN_MANAGER_EMAIL: AUDIT_FIXTURE_ACCOUNTS[6].email,
+                E2E_FOREIGN_MANAGER_PASSWORD:
+                    AUDIT_FIXTURE_ACCOUNTS[6].password,
             },
             stdio: 'inherit',
         },

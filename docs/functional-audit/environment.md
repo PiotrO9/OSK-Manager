@@ -25,6 +25,7 @@ volta run --node 24.21.0 node tools/audit-local-stack/run-smoke.mjs
 volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs manager-only manager-osk-audit.spec.ts
 volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs booking-ready booking-audit.spec.ts
 volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs payment-ready payment-audit.spec.ts
+volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs account-ready manager-accounts-audit.spec.ts
 volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs school-operational role-access-audit.spec.ts
 volta run --node 24.21.0 node tools/audit-local-stack/run-audit.mjs school-operational login-validation-audit.spec.ts
 ```

@@ -71,7 +71,7 @@ adres strony oraz odpowiadające mu API.
 2. Przejrzyj checklisty po zakończeniu równoległych zmian w kodzie. Zaktualizuj
    kroki i źródła dla zmienionych funkcji.
 3. Użyj `test-data.md` i [instrukcji narzędzia danych](../../../../BE/docs/AUDIT_DATA_TOOLING.md)
-   do przygotowania stanów. Automatycznie dostępnych jest sześć presetów;
+   do przygotowania stanów. Automatycznie dostępnych jest siedem presetów;
    pozostałe wymagają ręcznego przygotowania lub rozszerzenia narzędzia.
    Zweryfikuj każdy zestaw na odizolowanym środowisku.
 4. Wykonaj ścieżkę podstawową, zapisując przebieg w `runs/`.

@@ -137,6 +137,7 @@ try {
         'school-operational',
         'booking-ready',
         'payment-ready',
+        'account-ready',
     ]) {
         await execute({ kind: 'fixture', fixture }, token);
         token = await loginAdmin();

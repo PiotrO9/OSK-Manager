@@ -44,6 +44,7 @@ audytu; pozostałe wymagają przygotowania ręcznego albo dalszej rozbudowy narz
 | `lesson-completed-unrated` | Zakończona jazda przypisana do kursanta i instruktora, bez oceny; inne stare oceny dla kontroli podsumowania.                                                                                                          | `XR-05`, wystawianie i odczyt opinii                            | po wystawieniu oceny                        |
 | `rated-lesson`             | Co najmniej jedna zakończona i oceniona jazda oraz druga jazda bez oceny, obie w jednym OSK.                                                                                                                           | `MGR-REV-01`                                                    | odczyt bez resetu                           |
 | `payment-ready`            | Menadżer, kursant przypisany do kursu, plan płatności i brak opłaty o wybranej kwocie/terminie; inne opłaty jednoznacznie rozróżnialne.                                                                                | `MGR-PAY-01`, `XR-04`                                           | po utworzeniu opłaty                        |
+| `account-ready`            | Dwie OSK, konta obu ról w każdej, aktywne zobowiązania jednego kursanta i instruktora oraz wolne konta do zmiany e-maila, resetu hasła i archiwizacji. Skrzynka lokalnego Mailpit odbiera link resetu.                 | `MGR-ACC-01`–`MGR-ACC-05`                                       | po każdej mutacji                           |
 | `student-payments`         | Kursant ma opłatę `PAID` oraz dwie opłaty `PENDING`, jedną przed i jedną po terminie; osobny kursant ma własne opłaty kontrolne. FE prezentuje `PENDING` jako nieopłaconą (`UNPAID`) albo zaległą zależnie od terminu. | `STU-01`, `STU-15`, `STU-18`                                    | odczyt bez resetu                           |
 | `instructor-schedule`      | Instruktor A ma jazdy i wydarzenia w dwóch tygodniach, dzień pusty i jeden wolny slot w przyszłości; instruktor B ma osobne pozycje. W OSK są uprawniony kursant z kursem i dostępny pojazd.                           | `INS-01`–`INS-05`, `INS-09`, `MGR-INS-05`                       | po zmianie statusu lub rezerwacji           |
 | `instructor-reviews`       | Instruktor A ma oceny w różnych okresach, instruktor B osobną ocenę; wariant stronicowania ma co najmniej 21 ocen A.                                                                                                   | `INS-06`, `INS-07`                                              | odczyt bez resetu                           |
@@ -96,9 +97,9 @@ dla znanych danych demo; pełne usunięcie kont Auth nie jest częścią tego re
 `BE/src/services/devResetSeed/authUsers.ts` i `BE/prisma/schema.prisma`.
 
 Nowe `POST /dev/audit/preview` i `POST /dev/audit/execute` obsługują poziomy
-zachowania `managers`, `schools`, `instructors` i `full` oraz sześć
+zachowania `managers`, `schools`, `instructors` i `full` oraz siedem
 nazwanych zestawów: `manager-only`, `school-empty`, `school-staffed`,
-`school-operational`, `booking-ready`, `payment-ready`. Pozostałe
+`school-operational`, `booking-ready`, `payment-ready`, `account-ready`. Pozostałe
 wiersze katalogu są nadal specyfikacją stanu; przed testem trzeba je utworzyć
 ręcznie albo dopisać do narzędzia. `full` odtwarza techniczne konto administratora
 w tej samej transakcji. API nie czyści kont Supabase Auth ani plików Storage.
@@ -108,6 +109,6 @@ faktyczną dostępność, rezerwację i trwałość po odświeżeniu potwierdzon
 izolowanej bazie w przebiegu z 2026-10-08. `payment-ready` nie tworzy jeszcze dodatkowych opłat
 kontrolnych z tabeli powyżej.
 
-Nowe przypadki zarządzania kontami wymagają też kontrolowanej skrzynki e-mail,
-dwóch sesji jednego konta, konta bez aktywnych zobowiązań oraz konta z aktywnymi
-zobowiązaniami. Te warianty nie są jeszcze gotowymi presetami.
+Przypadki zarządzania kontami używają lokalnego presetu `account-ready` i skrzynki
+Mailpit. Preset odtwarza dane aplikacji; kont Supabase Auth nie usuwa, a test
+używa unikalnego adresu docelowego przy każdej zmianie e-maila.
