@@ -41,7 +41,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | ID | Scenariusz | Ręcznie (wymagane) | Automatycznie (opcjonalne) |
 | --- | --- | --- | --- |
 | COM-01 | Logowanie każdej roli i właściwa strona startowa | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-01-manual.md)) | — |
-| COM-02 | Walidacja formularza i błędne dane logowania | ☐ | — |
+| COM-02 | Walidacja formularza i błędne dane logowania | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-02-manual.md)) | — |
 | COM-03 | Powrót do żądanej strony po zalogowaniu | ☐ | — |
 | COM-04 | Wylogowanie kończy dostęp do danych | ☐ | — |
 | COM-05 | Dostęp według roli, również przez bezpośredni URL | ☐ | — |
