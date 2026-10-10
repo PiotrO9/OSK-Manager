@@ -214,6 +214,37 @@ po zmianie.
 Sprawdź brak `/api/auth/me` po `logout` oraz poprawne przekierowanie z `/login`
 do widoku roli, gdy sesja jest aktywna.
 
+### F-008 — Krótki podgląd chronionej strony po powrocie w historii
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | błąd / wysoka / do ponownego testu |
+| Scenariusz i wymaganie | `COM-04`, `REQ-COM-04` |
+| Przebieg | zgłoszenie użytkownika podczas ręcznego testu `COM-04`; wynik końcowy jeszcze nieudokumentowany |
+| Wersja FE / BE | FE przed bieżącą poprawką; BE bez zmian |
+| Środowisko i zestaw danych | lokalna przeglądarka, konto testowe; szczegóły do uzupełnienia |
+| Konto i rola | zalogowany użytkownik, rola do uzupełnienia |
+| Dowód | obserwacja użytkownika; test UI `auth-session.spec.ts` odtworzył brak osłony przy `pagehide` przed poprawką |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/app.vue`, `app/middleware/auth.global.ts`, `server/middleware/protectedHtmlCache.ts` |
+
+**Obserwacja:** po wylogowaniu przycisk „Wstecz” pozwalał przez chwilę zobaczyć
+wcześniej otwartą chronioną stronę, zanim aplikacja przekierowała na logowanie.
+
+**Oczekiwane zachowanie:** poprzednia treść nie jest widoczna podczas powrotu
+w historii ani w drugiej karcie po wylogowaniu.
+
+**Decyzja / poprawka:** chroniony dokument dostaje `Cache-Control: private,
+no-store`. Podczas żądania wylogowania przycisk pokazuje spinner i napis
+„Wylogowywanie…”. Frontend zasłania prywatny widok przy opuszczeniu chronionego
+dokumentu i powrocie do niego z historii. Zwykłe przejścia między trasami nie
+pokazują tej osłony. Strona przywrócona z pamięci przeglądarki ładuje się
+ponownie, aby serwer sprawdził aktualną sesję. Wylogowanie powiadamia inne
+karty. Testy UI z atrapą backendu potwierdziły osłonę i przejście drugiej karty
+na `/login`; pełny `COM-04` wymaga ponownego testu ręcznego z backendem.
+
+**Ponowny test:** wykonaj wszystkie kroki `COM-04`, obserwując powrót przez
+„Wstecz”, odświeżenie strony i równocześnie otwartą drugą kartę.
+
 ## Zamknięte ustalenia
 
 ### F-002 — Hasło w adresie URL po wysłaniu formularza przed hydracją

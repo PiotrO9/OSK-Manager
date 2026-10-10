@@ -6,6 +6,8 @@ import {
     type BffFetch,
 } from '~/utils/api/bffClient';
 import { resolveBffEndpoint } from '~/utils/api/bffEndpoint';
+import { showAuthPrivacyCurtain } from '~/utils/auth/authPrivacyCurtain';
+import { isPublicAuthPath } from '~~/shared/utils/publicAuthPath';
 
 interface FetchErrorWithResponse {
     response?: {
@@ -80,12 +82,26 @@ export default defineNuxtPlugin(() => {
         fetch,
         resolveEndpoint: resolveBffEndpoint,
         onAuthFailure: () => {
+            if (
+                import.meta.client &&
+                !isPublicAuthPath(window.location.pathname)
+            ) {
+                showAuthPrivacyCurtain();
+            }
+
             const session = useState<AuthSession | null>(
                 'auth_session',
                 () => null,
             );
 
             session.value = null;
+
+            if (
+                import.meta.client &&
+                !isPublicAuthPath(window.location.pathname)
+            ) {
+                window.location.replace('/login');
+            }
         },
     });
 

@@ -12,6 +12,7 @@ import {
     CreditCard,
     GraduationCap,
     LayoutDashboard,
+    LoaderCircle,
     LogOut,
     MessageSquareText,
     User,
@@ -27,13 +28,18 @@ import {
 
 const route = useRoute();
 const { session } = useAuthSession();
-const { handleLogout } = useLogout();
+const { handleLogout, isLoggingOut } = useLogout();
 const { state, isMobile } = useSidebar();
 
 /** Tooltip + as-child wokół linku potrafi zablokować klik; pokazujemy go tylko w trybie ikon (desktop). */
 const showNavItemTooltip = computed(
     () => state.value === 'collapsed' && !isMobile.value,
 );
+const logoutTooltip = computed(() => {
+    if (!showNavItemTooltip.value) return undefined;
+
+    return isLoggingOut.value ? 'Wylogowywanie…' : 'Wyloguj';
+});
 
 const NAV_ICON_BY_KEY: Record<AppShellSidebarNavIconKey, Component> = {
     bookOpen: BookOpen,
@@ -160,12 +166,24 @@ const avatarSrc = computed(() => {
             <UiSidebarMenu>
                 <UiSidebarMenuItem>
                     <UiSidebarMenuButton
-                        :tooltip="showNavItemTooltip ? 'Wyloguj' : undefined"
+                        :tooltip="logoutTooltip"
                         class="text-sidebar-foreground cursor-pointer"
+                        :aria-busy="isLoggingOut"
                         @click="handleLogoutClick"
                     >
-                        <LogOut class="size-4 shrink-0" aria-hidden="true" />
-                        <span>Wyloguj</span>
+                        <LoaderCircle
+                            v-if="isLoggingOut"
+                            class="size-4 shrink-0 animate-spin"
+                            aria-hidden="true"
+                        />
+                        <LogOut
+                            v-else
+                            class="size-4 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <span aria-live="polite">
+                            {{ isLoggingOut ? 'Wylogowywanie…' : 'Wyloguj' }}
+                        </span>
                     </UiSidebarMenuButton>
                 </UiSidebarMenuItem>
             </UiSidebarMenu>

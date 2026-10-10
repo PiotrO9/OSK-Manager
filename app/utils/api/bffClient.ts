@@ -5,6 +5,7 @@ export type BffAuthMode = 'required' | 'optional' | 'none';
 
 export interface BffFetchOptions {
     method?: BffMethod;
+    retry?: number;
     credentials?: 'include' | 'omit' | 'same-origin';
     headers?: Record<string, string>;
     body?: unknown;
@@ -18,6 +19,7 @@ export type BffFetch = <T = unknown>(
 
 export interface BffRequestOptions {
     method?: BffMethod;
+    retry?: number;
     body?: unknown;
     headers?: Record<string, string>;
     auth?: BffAuthMode;
@@ -98,6 +100,10 @@ function buildRequestOptions(options: BffRequestOptions): BffFetchOptions {
         headers,
     };
 
+    if (options.retry !== undefined) {
+        request.retry = options.retry;
+    }
+
     if (options.signal) {
         request.signal = options.signal;
     }
@@ -132,8 +138,12 @@ export function createBffClient(config: CreateBffClientOptions): BffClient {
 
                     return true;
                 })
-                .catch(async () => {
-                    await notifyAuthFailure();
+                .catch(async (error: unknown) => {
+                    const status = getStatusCode(toBffClientError(error));
+
+                    if (status === 401 || status === 403 || status === 404) {
+                        await notifyAuthFailure();
+                    }
 
                     return false;
                 })

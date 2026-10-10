@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LoaderCircle } from 'lucide-vue-next';
+
 interface NavLink {
     to: string;
     label: string;
@@ -7,7 +9,7 @@ interface NavLink {
 
 const route = useRoute();
 const { isAuthenticated } = useAuthSession();
-const { handleLogout } = useLogout();
+const { handleLogout, isLoggingOut } = useLogout();
 
 const navLinks = computed<NavLink[]>(() => [
     { to: '/', label: 'Strona główna', ariaLabel: 'Przejdź do strony głównej' },
@@ -64,10 +66,18 @@ function handleGoToLogin() {
                     v-if="isAuthenticated"
                     type="button"
                     variant="secondary"
-                    aria-label="Wyloguj się"
+                    :aria-label="
+                        isLoggingOut ? 'Wylogowywanie…' : 'Wyloguj się'
+                    "
+                    :aria-busy="isLoggingOut"
                     @click="() => handleLogout()"
                 >
-                    Wyloguj się
+                    <LoaderCircle
+                        v-if="isLoggingOut"
+                        class="size-4 animate-spin"
+                        aria-hidden="true"
+                    />
+                    {{ isLoggingOut ? 'Wylogowywanie…' : 'Wyloguj się' }}
                 </UiButton>
                 <UiButton
                     v-else

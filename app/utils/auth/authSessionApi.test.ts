@@ -43,6 +43,7 @@ describe('authSessionApi', () => {
         await expect(requestAuthMe(bff)).resolves.toBe(user);
         expect(bff.requestData).toHaveBeenCalledWith('/api/auth/me', {
             method: 'GET',
+            retry: 0,
             retryUnauthorized: false,
         });
     });

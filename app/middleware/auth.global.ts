@@ -1,13 +1,10 @@
 import { getCookie } from 'h3';
 import { useAuthReturnTo } from '~/composables/auth/useAuthReturnTo';
 import { useAuthSession } from '~/composables/auth/useAuthSession';
+import { isPublicAuthPath } from '~~/shared/utils/publicAuthPath';
 
 export default defineNuxtRouteMiddleware(async (to) => {
-    const isLoginPath =
-        to.path === '/login' ||
-        to.path.startsWith('/login/') ||
-        to.path === '/forgot-password' ||
-        to.path === '/reset-password';
+    const isLoginPath = isPublicAuthPath(to.path);
 
     const { checkSession, session } = useAuthSession();
 

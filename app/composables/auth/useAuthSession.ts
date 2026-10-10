@@ -17,6 +17,13 @@ import {
     requestAuthRefresh,
 } from '~/utils/auth/authSessionApi';
 
+export type BackgroundSessionCheckResult =
+    | 'valid'
+    | 'invalid'
+    | 'changed'
+    | 'unavailable'
+    | 'skipped';
+
 function getFetchStatusCode(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
 
@@ -51,6 +58,12 @@ function sessionLoadShouldSkipRefresh(status: number | undefined): boolean {
 
 export function useAuthSession() {
     const session = useState<AuthSession | null>('auth_session', () => null);
+    const sessionVerifiedAt = useState<number>(
+        'auth_session_verified_at',
+        () => 0,
+    );
+    const sessionRevision = useState<number>('auth_session_revision', () => 0);
+    const isLoggingOut = useState<boolean>('auth_logging_out', () => false);
     const isCheckingSession = ref(false);
     const bff = useBffClient();
 
@@ -74,6 +87,7 @@ export function useAuthSession() {
         const user = await requestAuthMe(bff);
 
         session.value = createAuthSessionFromBackendUser(user);
+        sessionVerifiedAt.value = Date.now();
 
         return true;
     }
@@ -164,6 +178,12 @@ export function useAuthSession() {
 
         if (session.value?.userId === 'demo') return true;
 
+        // SSR always verifies the cookie before rendering a protected page.
+        // A hydrated client session is revalidated independently of navigation.
+        if (import.meta.client && session.value?.userId) {
+            return true;
+        }
+
         isCheckingSession.value = true;
 
         try {
@@ -172,10 +192,74 @@ export function useAuthSession() {
             return true;
         } catch {
             session.value = null;
+            sessionVerifiedAt.value = 0;
 
             return false;
         } finally {
             isCheckingSession.value = false;
+        }
+    }
+
+    function discardSession(): void {
+        sessionRevision.value += 1;
+        session.value = null;
+        sessionVerifiedAt.value = 0;
+    }
+
+    async function revalidateSessionInBackground(): Promise<BackgroundSessionCheckResult> {
+        const previousUserId = session.value?.userId;
+        const previousRole = session.value?.role;
+
+        if (
+            !previousUserId ||
+            previousUserId === 'demo' ||
+            isLoggingOut.value
+        ) {
+            return 'skipped';
+        }
+
+        const previousRevision = sessionRevision.value;
+
+        try {
+            const user = await requestAuthMe(bff);
+
+            if (
+                sessionRevision.value !== previousRevision ||
+                session.value?.userId !== previousUserId ||
+                isLoggingOut.value
+            ) {
+                return 'skipped';
+            }
+
+            const nextSession = createAuthSessionFromBackendUser(user);
+
+            if (
+                nextSession.userId !== previousUserId ||
+                nextSession.role !== previousRole
+            ) {
+                return 'changed';
+            }
+
+            session.value = nextSession;
+            sessionVerifiedAt.value = Date.now();
+
+            return 'valid';
+        } catch (error) {
+            if (
+                sessionRevision.value !== previousRevision ||
+                session.value?.userId !== previousUserId ||
+                isLoggingOut.value
+            ) {
+                return 'skipped';
+            }
+
+            const status = getFetchStatusCode(error);
+
+            if (status !== 401 && status !== 403 && status !== 404) {
+                return 'unavailable';
+            }
+
+            return 'invalid';
         }
     }
 
@@ -192,6 +276,8 @@ export function useAuthSession() {
             }
 
             session.value = createAuthSessionFromBackendUser(user);
+            sessionRevision.value += 1;
+            sessionVerifiedAt.value = Date.now();
 
             try {
                 await loadMeIntoSession();
@@ -229,16 +315,26 @@ export function useAuthSession() {
 
     async function logout(options?: {
         preserveSessionUntilNavigation?: boolean;
-    }): Promise<void> {
+    }): Promise<boolean> {
+        let succeeded = true;
+
         try {
             await requestAuthLogout(bff);
         } catch (error) {
             console.error(error);
+            succeeded = false;
         }
 
         if (!options?.preserveSessionUntilNavigation) {
             session.value = null;
         }
+
+        if (succeeded || !options?.preserveSessionUntilNavigation) {
+            sessionVerifiedAt.value = 0;
+            sessionRevision.value += 1;
+        }
+
+        return succeeded;
     }
 
     function loginDemo(userName: string) {
@@ -247,6 +343,7 @@ export function useAuthSession() {
         if (!demoSession) return;
 
         session.value = demoSession;
+        sessionRevision.value += 1;
     }
 
     return {
@@ -260,5 +357,8 @@ export function useAuthSession() {
         refreshProfileFromServer,
         patchProfile,
         checkSession,
+        discardSession,
+        revalidateSessionInBackground,
+        sessionVerifiedAt: readonly(sessionVerifiedAt),
     };
 }

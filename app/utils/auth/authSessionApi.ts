@@ -38,6 +38,7 @@ export async function requestAuthMe(
 ): Promise<BackendUserResponse> {
     const data = await bff.requestData<AuthUserResponse>(`${AUTH_PATH}/me`, {
         method: 'GET',
+        retry: 0,
         retryUnauthorized: false,
     });
 

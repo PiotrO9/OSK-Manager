@@ -150,6 +150,20 @@ describe('createBffClient', () => {
         expect(onAuthFailure).toHaveBeenCalledTimes(1);
     });
 
+    it('does not discard the session when refresh is temporarily unavailable', async () => {
+        const fetch = vi
+            .fn()
+            .mockRejectedValueOnce(httpError(401))
+            .mockRejectedValueOnce(httpError(502));
+        const { client, onAuthFailure } = createClient(fetch);
+
+        await expect(client.request('/api/items')).rejects.toMatchObject({
+            statusCode: 401,
+        });
+
+        expect(onAuthFailure).not.toHaveBeenCalled();
+    });
+
     it('unwraps data envelopes with requestData', async () => {
         const fetch = vi.fn().mockResolvedValue({
             success: true,
@@ -198,6 +212,21 @@ describe('createBffClient', () => {
                 body,
                 headers: {},
             }),
+        );
+    });
+
+    it('allows a session request to disable automatic fetch retries', async () => {
+        const fetch = vi.fn().mockResolvedValue({ ok: true });
+        const { client } = createClient(fetch);
+
+        await client.request('/api/auth/me', {
+            retry: 0,
+            retryUnauthorized: false,
+        });
+
+        expect(fetch).toHaveBeenCalledWith(
+            'http://localhost:3000/api/auth/me',
+            expect.objectContaining({ retry: 0 }),
         );
     });
 });

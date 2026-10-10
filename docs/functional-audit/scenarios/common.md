@@ -30,7 +30,7 @@ Wykonuj na odizolowanym środowisku z rzeczywistym backendem. Zapisz wersję FE 
 
 - **Wymaganie:** `REQ-COM-04` — wylogowanie kończy sesję użytkownika.
 - **Dane/warunki:** zalogowany `instructor-A` na `/my-lessons`.
-- **Kroki i wynik:** (1) Wybierz „Wyloguj” w powłoce aplikacji. Otwiera się `/login`. (2) Spróbuj wejść przez historię przeglądarki na `/my-lessons` i odśwież stronę. Następuje przekierowanie do logowania; chronione dane nie są dostępne. (3) Zaloguj się ponownie; dostęp wraca tylko dla własnej roli.
+- **Kroki i wynik:** (1) Otwórz `/my-lessons` także w drugiej karcie, a następnie wybierz „Wyloguj” w pierwszej. W obu kartach otwiera się `/login`, bez chwilowego widoku danych lub pulpitu bez roli. (2) Spróbuj wejść przez historię przeglądarki na `/my-lessons` i odśwież stronę. Nie widać nawet przez chwilę poprzedniej treści; następuje przekierowanie do logowania. (3) Zaloguj się ponownie; dostęp wraca tylko dla własnej roli.
 - **Stan końcowy/powtórzenie:** wyloguj się; bez resetu bazy.
 - **Źródła:** `FE/OSK-Manager-FE/app/composables/auth/useLogout.ts`, `app/middleware/auth.global.ts`, `BE/src/routes/auth.routes.ts`.
 
@@ -71,7 +71,7 @@ Wykonuj na odizolowanym środowisku z rzeczywistym backendem. Zapisz wersję FE 
 
 - **Wymaganie:** `REQ-COM-09` — po utracie sesji chronione dane nie pozostają dostępne.
 - **Dane/warunki:** zalogowany `instructor-A` lub `student-A` w osobnej karcie oraz `manager-A` z dostępem do `/manager/accounts` w tej samej OSK; wyłącznie konta testowe.
-- **Kroki i wynik:** (1) Otwórz chronioną stronę konta testowego. (2) W panelu menadżera zablokuj to konto. (3) W pierwszej karcie odśwież chronioną stronę i spróbuj pobrać dane przez API. FE wraca do logowania, a API odmawia dostępu; wcześniej otwarty token nie wystarcza. (4) Odblokuj konto z panelu menadżera. Stara sesja nadal nie odzyskuje dostępu; wymagane jest nowe logowanie.
+- **Kroki i wynik:** (1) Otwórz chronioną stronę konta testowego i zostaw kartę aktywną. (2) W panelu menadżera zablokuj to konto. (3) Bez klikania i odświeżania poczekaj na sprawdzenie `/api/auth/me` w tle (około 60 sekund). Stary widok zostaje zasłonięty i pojawia się `/login`. (4) Spróbuj pobrać dane przez API; żądanie jest odrzucone. (5) Otwórz bezpośrednio chroniony adres i odśwież stronę; dane nie pojawiają się przed sprawdzeniem sesji. (6) Odblokuj konto z panelu menadżera. Stara sesja nadal nie odzyskuje dostępu; wymagane jest nowe logowanie. Dodatkowo podczas poprawnej sesji sprawdź, że przejścia po menu nie czekają na `/me`, a chwilowy błąd sieci przy sprawdzeniu w tle nie wylogowuje.
 - **Stan końcowy/powtórzenie:** konto odblokowane; wyloguj obie sesje. Nie używaj konta jedynego menadżera do unieważniania.
 - **Źródła:** `FE/OSK-Manager-FE/app/middleware/auth.global.ts`, `FE/OSK-Manager-FE/app/pages/manager/accounts/index.vue`, `BE/src/services/managerAccounts.service.ts`, `BE/src/middleware/auth.middleware.ts`.
 
