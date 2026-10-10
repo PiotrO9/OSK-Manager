@@ -91,8 +91,8 @@ błędu z testu manualnego przed wykonaniem przebiegu.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01`; wynik ręczny scenariusza pozostaje niewykonany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; zapis przebiegu po zakończeniu `COM-01` |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); ponowny test tego ustalenia nieudokumentowany |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian w tej poprawce |
 | Środowisko i zestaw danych | ekran użytkownika po F5; szczegóły środowiska do uzupełnienia przy ponownym teście |
 | Konto i rola | testowe konto menedżera |
@@ -121,8 +121,8 @@ obserwacji użytkownika zamknij wpis.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; wynik ręczny pozostaje niewykonany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; zapis przebiegu po zakończeniu scenariusza |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); `COM-04` i ponowny test tego ustalenia nieudokumentowane |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
 | Środowisko i zestaw danych | pulpit menedżera na `localhost:3000`; szczegóły do uzupełnienia |
 | Konto i rola | testowe konto menedżera |
@@ -150,8 +150,8 @@ do poprzedniej strony po powrocie w historii.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01`; wynik ręczny pozostaje niewykonany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; zapis przebiegu po zakończeniu scenariusza |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); ponowny test tego ustalenia nieudokumentowany |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
 | Środowisko i zestaw danych | logowanie na `localhost:3000`; szczegóły do uzupełnienia |
 | Konto i rola | testowe konto menedżera; poprawka dotyczy wszystkich ról |
@@ -188,8 +188,8 @@ po ponownym wejściu na `/login` przy aktywnej sesji.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; wynik ręczny pozostaje niewykonany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; zapis przebiegu po zakończeniu scenariusza |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); `COM-04` i ponowny test tego ustalenia nieudokumentowane |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
 | Środowisko i zestaw danych | `localhost:3000`, zakładka Network w Chrome |
 | Konto i rola | testowe konto menedżera |

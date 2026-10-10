@@ -37,6 +37,7 @@ do wymagań.
 | Zasób                                              | Co zawiera                                                          |
 | -------------------------------------------------- | ------------------------------------------------------------------- |
 | [Wymagania](requirements.md)                       | Identyfikatory, źródła, statusy i decyzje do podjęcia               |
+| [Checklista](checklist.md)                         | Wynik ręczny i opcjonalny automatyczny każdego scenariusza          |
 | [Dane testowe](test-data.md)                       | Nazwane stany początkowe i specyfikację przyszłego narzędzia danych |
 | [Scenariusze wspólne](scenarios/common.md)         | Logowanie, sesję, konto i uprawnienia                               |
 | [Scenariusze menadżera](scenarios/manager.md)      | Zarządzanie OSK, ludźmi, kursami, pojazdami i harmonogramem         |
