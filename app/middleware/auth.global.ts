@@ -1,3 +1,4 @@
+import { getCookie } from 'h3';
 import { useAuthReturnTo } from '~/composables/auth/useAuthReturnTo';
 import { useAuthSession } from '~/composables/auth/useAuthSession';
 
@@ -8,13 +9,49 @@ export default defineNuxtRouteMiddleware(async (to) => {
         to.path === '/forgot-password' ||
         to.path === '/reset-password';
 
-    const { checkSession } = useAuthSession();
+    const { checkSession, session } = useAuthSession();
 
     /*
-     * Zawsze wołamy checkSession (GET /api/auth/me + ew. refresh), nie ufamy samemu
-     * useState z pamięci — inaczej po wygaśnięciu access tokena UI zostaje „zalogowane”.
+     * Publiczne strony nie wymagają /me bez ciasteczek sesji. Po stronie klienta
+     * wystarczy brak sesji z SSR; przy aktywnej sesji nadal weryfikujemy ją w BFF.
      */
+    if (isLoginPath) {
+        if (import.meta.server) {
+            const event = useRequestEvent();
+
+            if (
+                event &&
+                !getCookie(event, 'access_token') &&
+                !getCookie(event, 'refresh_token')
+            ) {
+                return;
+            }
+        } else if (!session.value) {
+            return;
+        }
+    }
+
     const hasSession = await checkSession();
+
+    if (to.path === '/login' && hasSession) {
+        const { consumeReturnTo } = useAuthReturnTo();
+        const returnTarget = consumeReturnTo();
+
+        if (returnTarget) {
+            return navigateTo(returnTarget, { replace: true });
+        }
+
+        if (session.value?.role === 'MANAGER') {
+            const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
+            const result = await fetchDefaultDrivingSchool();
+
+            if (result.outcome === 'not_configured') {
+                return navigateTo('/manager/osk', { replace: true });
+            }
+        }
+
+        return navigateTo('/', { replace: true });
+    }
 
     if (isLoginPath) return;
 

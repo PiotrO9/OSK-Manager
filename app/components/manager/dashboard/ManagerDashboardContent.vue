@@ -6,22 +6,12 @@ const dashboard = useManagerDashboardPage();
 
 <template>
     <div class="space-y-4 md:space-y-5">
-        <div
+        <ManagerDashboardSkeleton
             v-if="
                 dashboard.isDefaultLoading.value &&
                 !dashboard.defaultSchool.value
             "
-            class="space-y-3"
-            role="status"
-            aria-label="Wczytywanie pulpitu szkoły"
-        >
-            <UiSkeleton class="h-24 w-full rounded-2xl" />
-            <div class="grid gap-3 sm:grid-cols-3">
-                <UiSkeleton class="h-20 rounded-2xl" />
-                <UiSkeleton class="h-20 rounded-2xl" />
-                <UiSkeleton class="h-20 rounded-2xl" />
-            </div>
-        </div>
+        />
 
         <ErrorState
             v-else-if="dashboard.defaultSchoolError.value"

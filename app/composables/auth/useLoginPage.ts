@@ -42,9 +42,7 @@ export function useLoginPage() {
     } = useAuthReturnTo();
     const runtimeConfig = useRuntimeConfig();
     const { isAuthenticated, session, login } = useAuthSession();
-    const { handleLogout } = useLogout();
     const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
-    const { addToast } = useAppToast();
 
     const showDemoMockLoginUi = computed(
         () => import.meta.dev || Boolean(runtimeConfig.public.demoMockLogin),
@@ -53,7 +51,6 @@ export function useLoginPage() {
     const email = shallowRef('');
     const password = shallowRef('');
     const isLoading = shallowRef(false);
-    const isLoggingOut = shallowRef(false);
     const validationEnabled = shallowRef(false);
     const submitError = shallowRef<string | null>(null);
 
@@ -76,13 +73,6 @@ export function useLoginPage() {
         return result.success
             ? null
             : (result.error.issues[0]?.message ?? null);
-    });
-    const authenticatedContinueTarget = computed(() => {
-        const storedTarget = returnToCookie.value;
-
-        return storedTarget && isSafeRelativeRedirectPath(storedTarget)
-            ? storedTarget
-            : '/';
     });
 
     watch([email, password], () => {
@@ -179,12 +169,11 @@ export function useLoginPage() {
         }
 
         if (isAuthenticated.value) {
-            addToast({
-                title: 'Już zalogowany',
-                description: 'Możesz kontynuować.',
-                variant: 'info',
-            });
-            navigateTo(resolveRedirectTarget());
+            const redirectTarget = resolveRedirectTarget();
+            const landingPath =
+                await resolveManagerPostLoginPath(redirectTarget);
+
+            await navigateTo(landingPath, { replace: true });
 
             return;
         }
@@ -205,38 +194,16 @@ export function useLoginPage() {
 
         try {
             await login(parsedFields.data.email, parsedFields.data.password);
-            addToast({
-                title: 'Zalogowano',
-                description: `Witaj, ${session.value?.userName || emailTrimmed.value}!`,
-                variant: 'success',
-            });
-
             const redirectTarget = resolveRedirectTarget();
             const landingPath =
                 await resolveManagerPostLoginPath(redirectTarget);
 
-            navigateTo(landingPath);
+            await navigateTo(landingPath, { replace: true });
         } catch (err) {
             submitError.value =
                 err instanceof Error ? err.message : 'Błąd logowania';
         } finally {
             isLoading.value = false;
-        }
-    }
-
-    function handleContinueClick() {
-        consumeReturnTo();
-    }
-
-    async function handleLogoutClick() {
-        if (isLoggingOut.value) return;
-
-        isLoggingOut.value = true;
-
-        try {
-            await handleLogout();
-        } finally {
-            isLoggingOut.value = false;
         }
     }
 
@@ -250,19 +217,14 @@ export function useLoginPage() {
     }
 
     return {
-        authenticatedContinueTarget,
         email,
         emailError,
         handleDemoMockFill,
-        handleContinueClick,
         handleLogin,
-        handleLogoutClick,
         isAuthenticated,
         isLoading,
-        isLoggingOut,
         password,
         passwordError,
-        session,
         showDemoMockLoginUi,
         submitError,
     };

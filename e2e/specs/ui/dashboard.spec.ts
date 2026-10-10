@@ -83,6 +83,60 @@ async function mockManagerDashboard(page: import('@playwright/test').Page) {
 }
 
 test.describe('UI: pulpit zależny od roli', () => {
+    test('pokazuje pełny szkielet pulpitu od początku ładowania po F5', async ({
+        baseURL,
+        context,
+        page,
+    }) => {
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+        await mockManagerDashboard(page);
+
+        let releaseDefaultSchool!: () => void;
+        const defaultSchoolReady = new Promise<void>((resolve) => {
+            releaseDefaultSchool = resolve;
+        });
+
+        await page.route('**/api/driving-schools/default', async (route) => {
+            await defaultSchoolReady;
+            await route.fulfill({
+                json: {
+                    success: true,
+                    data: {
+                        id: 'school-1',
+                        name: 'OSK Testowa',
+                        city: 'Warszawa',
+                        address: 'ul. Testowa 1',
+                        isDefault: true,
+                    },
+                },
+            });
+        });
+
+        const initialResponse = await page.request.get('/');
+
+        expect(initialResponse.ok()).toBe(true);
+        expect(await initialResponse.text()).toContain(
+            'Ładowanie danych pulpitu',
+        );
+
+        await page.goto('/');
+
+        const loadingStatus = page.getByRole('status', {
+            name: 'Wczytywanie pulpitu szkoły',
+        });
+
+        await expect(loadingStatus).toBeVisible();
+        await expect(loadingStatus).toContainText('Ładowanie danych pulpitu');
+        await expect(loadingStatus.locator('section')).toHaveCount(2);
+
+        releaseDefaultSchool();
+
+        await expect(loadingStatus).toBeHidden();
+        await expect(
+            page.getByRole('heading', { name: 'Wolne terminy instruktorów' }),
+        ).toBeVisible();
+    });
+
     test('pokazuje managerowi skróty, sprawy i responsywną dostępność', async ({
         baseURL,
         context,

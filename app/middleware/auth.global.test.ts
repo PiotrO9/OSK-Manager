@@ -2,16 +2,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const authMocks = vi.hoisted(() => ({
     checkSession: vi.fn(),
+    consumeReturnTo: vi.fn(),
     navigateTo: vi.fn(),
+    session: { value: null as null | { role: string } },
     setReturnTo: vi.fn(),
 }));
 
 vi.mock('~/composables/auth/useAuthSession', () => ({
-    useAuthSession: () => ({ checkSession: authMocks.checkSession }),
+    useAuthSession: () => ({
+        checkSession: authMocks.checkSession,
+        session: authMocks.session,
+    }),
 }));
 
 vi.mock('~/composables/auth/useAuthReturnTo', () => ({
-    useAuthReturnTo: () => ({ setReturnTo: authMocks.setReturnTo }),
+    useAuthReturnTo: () => ({
+        consumeReturnTo: authMocks.consumeReturnTo,
+        setReturnTo: authMocks.setReturnTo,
+    }),
 }));
 
 type AuthMiddleware = (to: {
@@ -29,6 +37,7 @@ describe('global auth middleware', () => {
     beforeEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
+        authMocks.session.value = null;
         vi.stubGlobal(
             'defineNuxtRouteMiddleware',
             (middleware: AuthMiddleware) => middleware,
@@ -36,14 +45,27 @@ describe('global auth middleware', () => {
         vi.stubGlobal('navigateTo', authMocks.navigateTo);
     });
 
-    it('hydrates an existing session on the public login page', async () => {
+    it('skips session checks on login when there is no local session', async () => {
+        const middleware = await loadMiddleware();
+
+        await middleware({ path: '/login', fullPath: '/login' });
+
+        expect(authMocks.checkSession).not.toHaveBeenCalled();
+        expect(authMocks.navigateTo).not.toHaveBeenCalled();
+    });
+
+    it('verifies an existing session before redirecting from login', async () => {
+        authMocks.session.value = { role: 'MANAGER' };
         authMocks.checkSession.mockResolvedValue(true);
+        authMocks.consumeReturnTo.mockReturnValue('/manager/students');
         const middleware = await loadMiddleware();
 
         await middleware({ path: '/login', fullPath: '/login' });
 
         expect(authMocks.checkSession).toHaveBeenCalledOnce();
-        expect(authMocks.navigateTo).not.toHaveBeenCalled();
+        expect(authMocks.navigateTo).toHaveBeenCalledWith('/manager/students', {
+            replace: true,
+        });
         expect(authMocks.setReturnTo).not.toHaveBeenCalled();
     });
 

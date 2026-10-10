@@ -45,6 +45,141 @@ test.describe('UI smoke: sesja i routing', () => {
         );
     });
 
+    test('zalogowany manager otwierający login trafia do swojego widoku', async ({
+        baseURL,
+        context,
+        page,
+    }) => {
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+
+        await page.goto('/login');
+
+        await expect(page).toHaveURL(/\/manager\/osk$/);
+        await expect(
+            page.getByRole('heading', { name: 'Szkoły jazdy' }),
+        ).toBeVisible();
+        await expect(page.getByText('Zalogowany jako')).toHaveCount(0);
+    });
+
+    test('udane logowanie utrzymuje loader formularza do przejścia do widoku roli', async ({
+        baseURL,
+        context,
+        page,
+    }) => {
+        await page.addInitScript(() => {
+            document.addEventListener('DOMContentLoaded', () => {
+                new MutationObserver(() => {
+                    if (
+                        document.body.textContent?.includes('Zalogowany jako')
+                    ) {
+                        sessionStorage.setItem(
+                            'login-account-card-seen',
+                            'true',
+                        );
+                    }
+
+                    if (document.body.textContent?.includes('Zalogowano')) {
+                        sessionStorage.setItem(
+                            'login-success-toast-seen',
+                            'true',
+                        );
+                    }
+
+                    if (
+                        document.body.textContent?.includes(
+                            'Otwieramy pulpit',
+                        ) ||
+                        document.body.textContent?.includes(
+                            'Trwa przejście do aplikacji',
+                        )
+                    ) {
+                        sessionStorage.setItem(
+                            'login-intermediate-seen',
+                            'true',
+                        );
+                    }
+                }).observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true,
+                });
+            });
+        });
+
+        await page.goto('/login');
+        await waitForNuxtHydration(page);
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+        await page.route('**/api/auth/login', (route) =>
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    data: {
+                        user: {
+                            id: '3',
+                            email: 'manager001@post.pl',
+                            name: 'Jan Kierownik',
+                            role: 'MANAGER',
+                            drivingSchools: [],
+                            defaultOskId: null,
+                        },
+                    },
+                }),
+            }),
+        );
+
+        let releaseDefaultResponse!: () => void;
+        const defaultResponseGate = new Promise<void>((resolve) => {
+            releaseDefaultResponse = resolve;
+        });
+
+        await page.route('**/api/driving-schools/default', async (route) => {
+            await defaultResponseGate;
+            await route.continue();
+        });
+
+        await page.getByLabel('Adres e-mail').fill('manager001@post.pl');
+        await page.getByLabel('Hasło', { exact: true }).fill('manager001');
+        const defaultSchoolRequest = page.waitForRequest((request) =>
+            request.url().endsWith('/api/driving-schools/default'),
+        );
+
+        await page.getByRole('button', { name: 'Zaloguj się' }).click();
+        await defaultSchoolRequest;
+
+        await expect(page).toHaveURL(/\/login$/);
+        await expect(page.getByLabel('Adres e-mail')).toBeVisible();
+        await expect(
+            page.getByRole('button', { name: 'Logowanie…' }),
+        ).toBeDisabled();
+        await expect(
+            page.getByRole('heading', { name: 'Dobrze Cię widzieć' }),
+        ).toBeVisible();
+
+        releaseDefaultResponse();
+
+        await expect(page).toHaveURL(/\/manager\/osk$/);
+        await expect(
+            page.getByRole('heading', { name: 'Szkoły jazdy' }),
+        ).toBeVisible();
+        expect(
+            await page.evaluate(() =>
+                sessionStorage.getItem('login-account-card-seen'),
+            ),
+        ).toBeNull();
+        expect(
+            await page.evaluate(() =>
+                sessionStorage.getItem('login-success-toast-seen'),
+            ),
+        ).toBeNull();
+        expect(
+            await page.evaluate(() =>
+                sessionStorage.getItem('login-intermediate-seen'),
+            ),
+        ).toBeNull();
+    });
+
     test('wpuszcza managera na chronioną stronę i wylogowuje', async ({
         baseURL,
         context,
@@ -83,6 +218,62 @@ test.describe('UI smoke: sesja i routing', () => {
                 ({ name }) => name === 'access_token',
             ),
         ).toBe(false);
+    });
+
+    test('po wylogowaniu z pulpitu nie pokazuje widoku bez przypisanej roli', async ({
+        baseURL,
+        context,
+        page,
+    }) => {
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+        await page.addInitScript(() => {
+            document.addEventListener('DOMContentLoaded', () => {
+                const observeDashboard = () => {
+                    if (
+                        document.body?.textContent?.includes(
+                            'Brak dostępnego pulpitu',
+                        )
+                    ) {
+                        sessionStorage.setItem('logout-fallback-seen', 'true');
+                    }
+                };
+
+                new MutationObserver(observeDashboard).observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true,
+                });
+            });
+        });
+
+        await page.goto('/');
+        await waitForNuxtHydration(page);
+        await expect(
+            page.getByRole('button', { name: 'Wyloguj' }),
+        ).toBeVisible();
+        await page.evaluate(() =>
+            sessionStorage.setItem('logout-fallback-seen', 'false'),
+        );
+
+        const authMeRequestsAfterLogout: string[] = [];
+
+        page.on('request', (request) => {
+            if (request.url().endsWith('/api/auth/me')) {
+                authMeRequestsAfterLogout.push(request.url());
+            }
+        });
+
+        await page.getByRole('button', { name: 'Wyloguj' }).click();
+
+        await expect(page).toHaveURL(/\/login$/);
+        await expect(page.getByLabel('Adres e-mail')).toBeVisible();
+        await waitForNuxtHydration(page);
+        expect(authMeRequestsAfterLogout).toEqual([]);
+        expect(
+            await page.evaluate(() =>
+                sessionStorage.getItem('logout-fallback-seen'),
+            ),
+        ).toBe('false');
     });
 
     test('blokuje kursantowi trasę managera', async ({

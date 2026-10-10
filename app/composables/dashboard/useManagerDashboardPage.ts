@@ -7,10 +7,10 @@ function emptyAttentionPayload(): ManagerAttentionPayload {
 }
 
 export function useManagerDashboardPage() {
-    const { fetchDefaultDrivingSchool, isDefaultLoading } =
-        useDrivingSchoolsApi();
+    const { fetchDefaultDrivingSchool } = useDrivingSchoolsApi();
     const { fetchAttentionItems, isLoading: isAttentionLoading } =
         useManagerAttentionItemsApi();
+    const isDefaultLoading = shallowRef(true);
     const defaultSchool = shallowRef<DrivingSchool | null>(null);
     const defaultSchoolError = shallowRef<string | null>(null);
     const isNotConfigured = shallowRef(false);
@@ -38,39 +38,49 @@ export function useManagerDashboardPage() {
     async function loadDashboard(): Promise<void> {
         const sequence = ++loadSequence;
 
+        isDefaultLoading.value = true;
         defaultSchoolError.value = null;
         isNotConfigured.value = false;
 
-        const result = await fetchDefaultDrivingSchool();
+        try {
+            const result = await fetchDefaultDrivingSchool();
 
-        if (sequence !== loadSequence) return;
+            if (sequence !== loadSequence) return;
 
-        if (result.outcome === 'not_configured') {
-            defaultSchool.value = null;
-            attention.value = emptyAttentionPayload();
-            isNotConfigured.value = true;
+            if (result.outcome === 'not_configured') {
+                defaultSchool.value = null;
+                attention.value = emptyAttentionPayload();
+                isNotConfigured.value = true;
 
-            return;
+                return;
+            }
+
+            if (result.outcome !== 'ok') {
+                defaultSchoolError.value =
+                    result.outcome === 'unreadable'
+                        ? 'Dane domyślnej szkoły są nieprawidłowe.'
+                        : 'Nie udało się pobrać domyślnej szkoły.';
+
+                return;
+            }
+
+            const schoolChanged = defaultSchool.value?.id !== result.school.id;
+
+            defaultSchool.value = result.school;
+
+            if (schoolChanged) {
+                attention.value = emptyAttentionPayload();
+            }
+
+            await loadAttention(result.school.id);
+        } catch {
+            if (sequence === loadSequence) {
+                defaultSchoolError.value =
+                    'Nie udało się pobrać domyślnej szkoły.';
+            }
+        } finally {
+            if (sequence === loadSequence) isDefaultLoading.value = false;
         }
-
-        if (result.outcome !== 'ok') {
-            defaultSchoolError.value =
-                result.outcome === 'unreadable'
-                    ? 'Dane domyślnej szkoły są nieprawidłowe.'
-                    : 'Nie udało się pobrać domyślnej szkoły.';
-
-            return;
-        }
-
-        const schoolChanged = defaultSchool.value?.id !== result.school.id;
-
-        defaultSchool.value = result.school;
-
-        if (schoolChanged) {
-            attention.value = emptyAttentionPayload();
-        }
-
-        await loadAttention(result.school.id);
     }
 
     onMounted(() => {
@@ -83,7 +93,7 @@ export function useManagerDashboardPage() {
         defaultSchool: computed(() => defaultSchool.value),
         defaultSchoolError: readonly(defaultSchoolError),
         isAttentionLoading,
-        isDefaultLoading,
+        isDefaultLoading: readonly(isDefaultLoading),
         isNotConfigured: readonly(isNotConfigured),
         loadAttention,
         loadDashboard,

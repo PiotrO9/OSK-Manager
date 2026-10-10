@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Route } from 'lucide-vue-next';
 import LoginPanel from './LoginPanel.vue';
 import LoginPosterArt from './LoginPosterArt.vue';
 </script>
@@ -10,12 +9,14 @@ import LoginPosterArt from './LoginPosterArt.vue';
             <div class="login-card">
                 <section class="login-story" aria-label="OSK Manager">
                     <div class="login-brand">
-                        <span class="brand-symbol"
-                            ><Route
-                                :size="24"
-                                :stroke-width="1.6"
-                                aria-hidden="true"
-                        /></span>
+                        <img
+                            class="brand-symbol"
+                            src="/favicon.svg"
+                            alt=""
+                            width="40"
+                            height="40"
+                            aria-hidden="true"
+                        />
                         <span><strong>OSK</strong> Manager</span>
                     </div>
                     <LoginPosterArt />
@@ -100,14 +101,10 @@ import LoginPosterArt from './LoginPosterArt.vue';
     letter-spacing: -0.7px;
 }
 .brand-symbol {
-    display: grid;
-    place-items: center;
+    display: block;
     width: 40px;
     height: 40px;
-    border: 1px solid
-        color-mix(in srgb, var(--color-primary-300) 42%, transparent);
-    border-radius: 12px;
-    color: var(--color-primary-300);
+    flex: none;
 }
 .login-brand strong {
     font-weight: 800;
@@ -150,10 +147,6 @@ import LoginPosterArt from './LoginPosterArt.vue';
     box-shadow:
         0 24px 64px color-mix(in srgb, var(--primary) 6%, transparent),
         0 3px 12px color-mix(in srgb, var(--foreground) 4%, transparent);
-}
-.login-layout .brand-symbol {
-    background: color-mix(in srgb, var(--color-primary-300) 10%, transparent);
-    border-color: color-mix(in srgb, var(--color-primary-300) 42%, transparent);
 }
 .login-layout .login-brand {
     gap: 13px;

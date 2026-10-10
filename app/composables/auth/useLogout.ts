@@ -8,9 +8,9 @@ export function useLogout() {
     async function handleLogout(options?: LogoutOptions) {
         const redirectPath = options?.redirectTo || '/login';
 
-        await logout();
+        await logout({ preserveSessionUntilNavigation: true });
 
-        navigateTo(redirectPath);
+        window.location.replace(redirectPath);
     }
 
     return {

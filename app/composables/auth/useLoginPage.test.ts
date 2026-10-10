@@ -5,7 +5,6 @@ import type { AuthSession } from '~/utils/auth/authSessionMapper';
 const addToast = vi.fn();
 const consumeReturnTo = vi.fn();
 const fetchDefaultDrivingSchool = vi.fn();
-const handleLogout = vi.fn();
 const login = vi.fn();
 const navigateTo = vi.fn();
 const replace = vi.fn();
@@ -42,7 +41,6 @@ function installGlobals(): void {
         session,
         login,
     }));
-    vi.stubGlobal('useLogout', () => ({ handleLogout }));
     vi.stubGlobal('useDrivingSchoolsApi', () => ({
         fetchDefaultDrivingSchool,
     }));
@@ -197,7 +195,27 @@ describe('useLoginPage', () => {
 
         expect(login).toHaveBeenCalledWith('manager@example.com', 'secret');
         expect(fetchDefaultDrivingSchool).toHaveBeenCalledOnce();
-        expect(navigateTo).toHaveBeenCalledWith('/manager/osk');
+        expect(navigateTo).toHaveBeenCalledWith('/manager/osk', {
+            replace: true,
+        });
+        expect(addToast).not.toHaveBeenCalled();
+    });
+
+    it('logs in and opens the dashboard for a manager with a default school', async () => {
+        login.mockImplementation(async () => {
+            session.value = managerSession();
+        });
+
+        const { useLoginPage } = await import('./useLoginPage');
+        const page = useLoginPage();
+
+        page.email.value = 'manager@example.com';
+        page.password.value = 'secret';
+
+        await page.handleLogin();
+
+        expect(navigateTo).toHaveBeenCalledWith('/', { replace: true });
+        expect(addToast).not.toHaveBeenCalled();
     });
 
     it('navigates authenticated users to consumed return target', async () => {
@@ -209,35 +227,9 @@ describe('useLoginPage', () => {
 
         await page.handleLogin();
 
-        expect(addToast).toHaveBeenCalledWith({
-            title: 'Już zalogowany',
-            description: 'Możesz kontynuować.',
-            variant: 'info',
+        expect(addToast).not.toHaveBeenCalled();
+        expect(navigateTo).toHaveBeenCalledWith('/manager/students', {
+            replace: true,
         });
-        expect(navigateTo).toHaveBeenCalledWith('/manager/students');
-    });
-
-    it('exposes a real continuation link and consumes its saved target', async () => {
-        returnToCookie.value = '/manager/students';
-
-        const { useLoginPage } = await import('./useLoginPage');
-        const page = useLoginPage();
-
-        expect(page.authenticatedContinueTarget.value).toBe(
-            '/manager/students',
-        );
-
-        page.handleContinueClick();
-
-        expect(consumeReturnTo).toHaveBeenCalledOnce();
-    });
-
-    it('delegates logout from the logged-in state', async () => {
-        const { useLoginPage } = await import('./useLoginPage');
-        const page = useLoginPage();
-
-        await page.handleLogoutClick();
-
-        expect(handleLogout).toHaveBeenCalledOnce();
     });
 });

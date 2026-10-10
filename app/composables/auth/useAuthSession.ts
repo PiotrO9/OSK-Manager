@@ -227,14 +227,18 @@ export function useAuthSession() {
         }
     }
 
-    async function logout(): Promise<void> {
+    async function logout(options?: {
+        preserveSessionUntilNavigation?: boolean;
+    }): Promise<void> {
         try {
             await requestAuthLogout(bff);
         } catch (error) {
             console.error(error);
         }
 
-        session.value = null;
+        if (!options?.preserveSessionUntilNavigation) {
+            session.value = null;
+        }
     }
 
     function loginDemo(userName: string) {
