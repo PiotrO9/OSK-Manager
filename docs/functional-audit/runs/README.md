@@ -3,9 +3,15 @@
 **Scalenie 2026-10-11:** do tego katalogu przeniesiono brakujące przebiegi
 z kopii dokumentacji w głównym katalogu workspace. Użytkownik zakwestionował
 część wcześniejszych oznaczeń ręcznego zaliczenia i wskazał wprost, że
-`COM-13` nie został wykonany. Historycznych plików nie nadpisano; aktualny
+`COM-13` nie był wtedy wykonany. Historycznych plików nie nadpisano; aktualny
 stan oraz informację `do potwierdzenia` podaje [checklista](../checklist.md).
 Po sprawdzeniu pełnych kroków zapisz nowy przebieg.
+
+Użytkownik [potwierdził 2026-10-11](2026-10-11-reconfirmed-manual-results.md)
+wcześniejsze wyniki `COM-01`–`COM-08` i `STU-05`.
+Użytkownik [potwierdził także późniejsze wykonanie `COM-13`](2026-10-11-com-13-confirmation.md).
+Użytkownik [potwierdził cztery pozostałe wyniki](2026-10-11-reconfirmed-mgr-stu-ins-stu.md):
+`MGR-STU-01`, `INS-03`, `STU-03` i `STU-16`.
 
 Każdy przebieg ma osobny plik `YYYY-MM-DD-nazwa-przebiegu.md` utworzony ze wzoru
 poniżej. Nie nadpisuj wcześniejszych wyników po poprawce; utwórz nowy przebieg.
