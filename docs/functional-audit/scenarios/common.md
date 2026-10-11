@@ -55,9 +55,9 @@ Wykonuj na odizolowanym środowisku z rzeczywistym backendem. Zapisz wersję FE 
 
 - **Wymaganie:** `REQ-COM-07` — przypadkowe opuszczenie edycji nie gubi zmian bez ostrzeżenia.
 - **Dane/warunki:** dowolne konto z edytowalnym profilem; znana wartość początkowa.
-- **Kroki i wynik:** (1) Otwórz edycję i zmień jedno pole bez zapisu. (2) Wybierz inną stronę lub „Anuluj”. Pojawia się potwierdzenie odrzucenia zmian. (3) Odmów. Edycja i wpisana wartość pozostają. (4) Ponów akcję, potwierdź odrzucenie. Po powrocie do profilu widoczna jest wartość początkowa. (5) Powtórz przy próbie odświeżenia karty.
+- **Kroki i wynik:** (1) Otwórz edycję i zmień jedno pole bez zapisu. (2) Wybierz inną stronę. Pojawia się projektowy modal potwierdzenia odrzucenia zmian. (3) Wybierz „Zostań”. Edycja i wpisana wartość pozostają. (4) Ponów nawigację, wybierz „Odrzuć zmiany”. Po powrocie do profilu widoczna jest wartość początkowa. (5) Ponownie zmień pole i kliknij „Anuluj” w formularzu: edycja kończy się od razu, bez modala, a wartość wraca do początkowej. (6) Powtórz przy próbie odświeżenia karty; F5 i zamknięcie karty korzystają z natywnego ostrzeżenia przeglądarki, ponieważ aplikacja nie może wtedy pokazać własnego modala.
 - **Stan końcowy/powtórzenie:** brak zapisu i resetu.
-- **Źródła:** `FE/OSK-Manager-FE/app/pages/account/index.vue`, `app/composables/account/useAccountInlineProfileEdit.ts`.
+- **Źródła:** `FE/OSK-Manager-FE/app/pages/account/index.vue`, `app/composables/account/useAccountInlineProfileEdit.ts`, `app/components/account/AccountDiscardChangesDialog.vue`.
 
 ## COM-08 — Zdjęcie profilowe i walidacja pliku [P2]
 

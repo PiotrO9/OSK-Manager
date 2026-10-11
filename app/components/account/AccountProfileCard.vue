@@ -119,19 +119,9 @@ watch(
 
             <div
                 v-if="inlineProfileEditing"
-                class="border-border bg-muted/20 flex flex-col gap-3 border-t px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                class="border-border bg-muted/20 flex justify-end border-t px-5 py-4"
             >
-                <p
-                    v-if="isInlineProfileDirty"
-                    class="text-muted-foreground text-xs leading-relaxed"
-                >
-                    Masz niezapisane zmiany.
-                </p>
-                <ActionGroup
-                    label="Akcje edycji profilu"
-                    align="end"
-                    class="sm:ml-auto"
-                >
+                <ActionGroup label="Akcje edycji profilu" align="end">
                     <UiButton
                         type="button"
                         variant="outline"

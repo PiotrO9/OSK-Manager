@@ -14,9 +14,6 @@ import {
 } from '~/utils/auth/authRole';
 import { useAppToast } from '../core/useAppToast';
 
-const DISCARD_PROFILE_CHANGES_MESSAGE =
-    'Masz niezapisane zmiany profilu. Czy chcesz je odrzucić?';
-
 interface UseAccountInlineProfileEditInput {
     session: Ref<AuthSession | null>;
     isDemoSession: ComputedRef<boolean>;
@@ -47,6 +44,9 @@ export function useAccountInlineProfileEdit(
     const isProfileNamesSaving = shallowRef(false);
     const isProfileContactSaving = shallowRef(false);
     const inlineProfileEditing = shallowRef(false);
+    const isDiscardDialogOpen = shallowRef(false);
+    let discardDecision: Promise<boolean> | null = null;
+    let resolveDiscardDecision: ((discard: boolean) => void) | null = null;
 
     const canEditInlineProfile = computed(
         () =>
@@ -117,23 +117,33 @@ export function useAccountInlineProfileEdit(
         inlineProfileEditing.value = true;
     }
 
-    function confirmDiscardChanges(): boolean {
-        if (!isInlineProfileDirty.value || typeof window === 'undefined') {
-            return true;
-        }
+    function requestDiscardChanges(): Promise<boolean> {
+        if (!isInlineProfileDirty.value) return Promise.resolve(true);
 
-        return window.confirm(DISCARD_PROFILE_CHANGES_MESSAGE);
+        if (discardDecision) return discardDecision;
+
+        isDiscardDialogOpen.value = true;
+        discardDecision = new Promise<boolean>((resolve) => {
+            resolveDiscardDecision = resolve;
+        });
+
+        return discardDecision;
     }
 
-    function handleCancelInlineProfileEdit(): boolean {
-        if (!confirmDiscardChanges()) return false;
+    function finishDiscardDecision(discard: boolean): void {
+        const resolve = resolveDiscardDecision;
 
+        resolveDiscardDecision = null;
+        discardDecision = null;
+        isDiscardDialogOpen.value = false;
+        resolve?.(discard);
+    }
+
+    function handleCancelInlineProfileEdit(): void {
         clearValidationErrors();
         syncNameFormFromSession();
         syncContactFormFromSession();
         inlineProfileEditing.value = false;
-
-        return true;
     }
 
     async function handleInlineProfileSubmit() {
@@ -238,7 +248,8 @@ export function useAccountInlineProfileEdit(
         canEditInlineProfile,
         canEditPhoneAndBio,
         canEditProfileNames,
-        confirmDiscardChanges,
+        requestDiscardChanges,
+        finishDiscardDecision,
         editBio,
         editBioError,
         editFirstName,
@@ -250,6 +261,7 @@ export function useAccountInlineProfileEdit(
         handleInlineProfileSubmit,
         handleStartInlineProfileEdit,
         inlineProfileEditing,
+        isDiscardDialogOpen,
         isInlineProfileDirty,
         isInlineProfileSaving,
     };

@@ -46,7 +46,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | COM-04 | Wylogowanie kończy dostęp do danych | ☐ | — |
 | COM-05 | Dostęp według roli, również przez bezpośredni URL | ☐ | — |
 | COM-06 | Własny profil i edycja pól dostępnych dla roli | ☐ | — |
-| COM-07 | Niezapisane zmiany profilu | ☐ | — |
+| COM-07 | Niezapisane zmiany profilu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-com-07-manual.md)) | — |
 | COM-08 | Zdjęcie profilowe i walidacja pliku | ☐ | — |
 | COM-09 | Wygasła sesja | ☐ | — |
 | COM-10 | Izolacja danych kont i OSK | ☐ | — |

@@ -57,8 +57,7 @@ describe('useAccountInlineProfileEdit', () => {
         expect(profile.editFirstName.value).toBe('Jan');
         expect(profile.editLastName.value).toBe('Kowalski');
 
-        profile.editFirstName.value = '';
-        expect(profile.isInlineProfileDirty.value).toBe(true);
+        expect(profile.isInlineProfileDirty.value).toBe(false);
         profile.handleCancelInlineProfileEdit();
 
         expect(profile.inlineProfileEditing.value).toBe(false);
@@ -101,11 +100,7 @@ describe('useAccountInlineProfileEdit', () => {
         expect(patchProfile).not.toHaveBeenCalled();
     });
 
-    it('keeps a dirty draft when discarding is rejected', async () => {
-        const confirm = vi.fn(() => false);
-
-        vi.stubGlobal('window', { confirm });
-
+    it('keeps a dirty draft when the navigation dialog is cancelled', async () => {
         const { useAccountInlineProfileEdit } =
             await import('./useAccountInlineProfileEdit');
         const profile = useAccountInlineProfileEdit({
@@ -117,10 +112,58 @@ describe('useAccountInlineProfileEdit', () => {
         profile.handleStartInlineProfileEdit();
         profile.editFirstName.value = 'Anna';
 
-        expect(profile.handleCancelInlineProfileEdit()).toBe(false);
+        const navigation = profile.requestDiscardChanges();
+
+        expect(profile.isDiscardDialogOpen.value).toBe(true);
+        profile.finishDiscardDecision(false);
+
+        expect(await navigation).toBe(false);
         expect(profile.inlineProfileEditing.value).toBe(true);
         expect(profile.editFirstName.value).toBe('Anna');
-        expect(confirm).toHaveBeenCalledOnce();
+        expect(profile.isDiscardDialogOpen.value).toBe(false);
+    });
+
+    it('discards a dirty draft immediately when edit is cancelled', async () => {
+        const { useAccountInlineProfileEdit } =
+            await import('./useAccountInlineProfileEdit');
+        const patchProfile = vi.fn();
+        const profile = useAccountInlineProfileEdit({
+            session: ref<AuthSession | null>(session()),
+            isDemoSession: computed(() => false),
+            patchProfile,
+        });
+
+        profile.handleStartInlineProfileEdit();
+        profile.editFirstName.value = 'Anna';
+        profile.handleCancelInlineProfileEdit();
+
+        expect(profile.inlineProfileEditing.value).toBe(false);
+        expect(profile.editFirstName.value).toBe('Jan');
+        expect(profile.isDiscardDialogOpen.value).toBe(false);
+        expect(patchProfile).not.toHaveBeenCalled();
+    });
+
+    it('opens one dialog when navigation is requested more than once', async () => {
+        const { useAccountInlineProfileEdit } =
+            await import('./useAccountInlineProfileEdit');
+        const profile = useAccountInlineProfileEdit({
+            session: ref<AuthSession | null>(session()),
+            isDemoSession: computed(() => false),
+            patchProfile: vi.fn(),
+        });
+
+        profile.handleStartInlineProfileEdit();
+        profile.editFirstName.value = 'Anna';
+
+        const navigation = profile.requestDiscardChanges();
+
+        expect(profile.requestDiscardChanges()).toBe(navigation);
+        expect(profile.isDiscardDialogOpen.value).toBe(true);
+
+        profile.finishDiscardDecision(true);
+
+        expect(await navigation).toBe(true);
+        expect(profile.isDiscardDialogOpen.value).toBe(false);
     });
 
     it('saves manager profile names and emits success toast', async () => {

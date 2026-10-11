@@ -245,6 +245,39 @@ na `/login`; pełny `COM-04` wymaga ponownego testu ręcznego z backendem.
 **Ponowny test:** wykonaj wszystkie kroki `COM-04`, obserwując powrót przez
 „Wstecz”, odświeżenie strony i równocześnie otwartą drugą kartę.
 
+### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | problem użyteczności / niska / zamknięte po teście ręcznym |
+| Scenariusz i wymaganie | `COM-07`, `REQ-COM-07` |
+| Przebieg | zgłoszenie i ponowny test użytkownika 2026-10-11; `COM-07` zaliczony ([przebieg](runs/2026-10-11-com-07-manual.md)) |
+| Wersja FE / BE | FE `d963b61` przed poprawką; BE bez zmian |
+| Środowisko i zestaw danych | `localhost:3000`, konto menedżera z edytowalnym profilem |
+| Konto i rola | testowe konto menedżera |
+| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-11; widać natywne `window.confirm` |
+| Powiązane zadanie naprawcze | `app/composables/account/useAccountInlineProfileEdit.ts`, `app/components/account/AccountDiscardChangesDialog.vue`, `app/pages/account/index.vue` |
+
+**Obserwacja:** nawigacja z niezapisanym profilem otwierała natywne okno
+`window.confirm`. Użytkownik potwierdził działanie ochrony danych, lecz oczekuje
+spójnego z aplikacją modala.
+
+**Oczekiwane zachowanie:** nawigacja wewnętrzna pokazuje projektowy modal
+z opcjami „Zostań” oraz „Odrzuć zmiany”. „Anuluj” w formularzu od razu
+odrzuca zmiany i zamyka edycję. F5 i zamknięcie karty nadal pokazują
+natywne ostrzeżenie przeglądarki.
+
+**Decyzja / poprawka:** zastąpiono `window.confirm` przez `UiDialog` i
+asynchroniczne potwierdzenie w strażniku routingu. „Anuluj” przywraca wartości
+bez dodatkowego pytania. Test jednostkowy potwierdził zachowanie szkicu przy
+„Zostań” i odrzucenie zmian po kliknięciu „Anuluj”. Sprawdzenie
+w przeglądarce na `localhost:3000` potwierdziło modal, nawigację i brak zapisu
+testowej zmiany.
+
+**Ponowny test:** użytkownik potwierdził w rozmowie, że scenariusz przechodzi
+poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdego
+kroku nie podał.
+
 ## Zamknięte ustalenia
 
 ### F-002 — Hasło w adresie URL po wysłaniu formularza przed hydracją

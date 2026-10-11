@@ -3,6 +3,7 @@ import { onBeforeRouteLeave } from 'vue-router';
 import AccountIdentityCard from '~/components/account/AccountIdentityCard.vue';
 import AccountPageHeader from '~/components/account/AccountPageHeader.vue';
 import AccountProfileCard from '~/components/account/AccountProfileCard.vue';
+import AccountDiscardChangesDialog from '~/components/account/AccountDiscardChangesDialog.vue';
 
 definePageMeta({
     layout: 'app-shell',
@@ -15,7 +16,7 @@ usePageMeta({
 
 const account = useAccountPage();
 
-onBeforeRouteLeave(() => account.confirmDiscardChanges());
+onBeforeRouteLeave(() => account.requestDiscardChanges());
 
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
     if (!account.isInlineProfileDirty.value) return;
@@ -28,6 +29,7 @@ onMounted(() => window.addEventListener('beforeunload', handleBeforeUnload));
 onBeforeUnmount(() =>
     window.removeEventListener('beforeunload', handleBeforeUnload),
 );
+onBeforeUnmount(() => account.finishDiscardDecision(false));
 </script>
 
 <template>
@@ -84,5 +86,10 @@ onBeforeUnmount(() =>
                 @save="account.handleInlineProfileSubmit"
             />
         </div>
+        <AccountDiscardChangesDialog
+            :open="account.isDiscardDialogOpen.value"
+            @cancel="account.finishDiscardDecision(false)"
+            @discard="account.finishDiscardDecision(true)"
+        />
     </div>
 </template>
