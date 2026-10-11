@@ -46,8 +46,28 @@ export function bffMockDrivingSchoolsCreate(body: {
 
 export function bffMockDrivingSchoolsUpdate(
     id: string,
-    body: { name: string; city?: string | null; address?: string | null },
+    body: {
+        name: string;
+        city?: string | null;
+        address?: string | null;
+        enabledCourseKinds?: import('~~/shared/contracts/courses').CourseKind[];
+        offeredCourseTypeIds?: string[];
+    },
 ): { success: true; data: unknown } {
+    if (
+        body.offeredCourseTypeIds?.some(
+            (id) =>
+                !MOCK_DEFAULT_OFFERED_COURSE_TYPES.some(
+                    (type) => type.id === id,
+                ),
+        )
+    ) {
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidłowe kategorie kursów',
+        });
+    }
+
     const updated = mockDrivingSchoolsUpdate(id, body);
 
     if (!updated) {

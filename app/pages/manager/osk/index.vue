@@ -32,6 +32,12 @@ const {
     formCity,
     formAddress,
     formAsDefault,
+    formEnabledCourseKinds,
+    formOfferedCourseTypeIds,
+    courseTypes,
+    courseTypesLoadError,
+    isCourseTypesLoading,
+    loadCourseTypes,
     formErrors,
     formSubmitError,
     isFormSaving,
@@ -97,6 +103,11 @@ const {
             :city="formCity"
             :address="formAddress"
             :as-default="formAsDefault"
+            :enabled-course-kinds="formEnabledCourseKinds"
+            :offered-course-type-ids="formOfferedCourseTypeIds"
+            :course-types="courseTypes"
+            :course-types-load-error="courseTypesLoadError"
+            :is-course-types-loading="isCourseTypesLoading"
             :is-saving="isFormSaving"
             :default-switch-locked="isDefaultSwitchLocked"
             :name-error="formErrors.name"
@@ -106,6 +117,9 @@ const {
             @update:city="formCity = $event"
             @update:address="formAddress = $event"
             @update:as-default="formAsDefault = $event"
+            @update:enabled-course-kinds="formEnabledCourseKinds = $event"
+            @update:offered-course-type-ids="formOfferedCourseTypeIds = $event"
+            @retry-course-types="loadCourseTypes"
             @submit="submitFormDialog"
         />
     </div>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 defineProps<{
-    schoolId: string;
     isSaving: boolean;
     isBlocked: boolean;
 }>();
@@ -14,14 +13,7 @@ defineProps<{
             class="max-sm:[&>*]:w-full"
         >
             <UiButton as-child variant="outline" class="h-11 sm:h-10">
-                <NuxtLink
-                    :to="{
-                        path: '/manager/courses',
-                        query: { schoolId },
-                    }"
-                >
-                    Anuluj
-                </NuxtLink>
+                <NuxtLink to="/manager/courses"> Anuluj </NuxtLink>
             </UiButton>
             <UiButton
                 type="submit"

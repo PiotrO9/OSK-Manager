@@ -1,6 +1,7 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { bffUpstreamDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsBff';
 import { bffMockDrivingSchoolsUpdate } from '~~/server/utils/schools/drivingSchoolsMockBff';
+import { isCourseKind, type CourseKind } from '~~/shared/contracts/courses';
 
 function readNullableTrimmedString(raw: unknown): string | null {
     if (typeof raw === 'string') {
@@ -31,10 +32,45 @@ export default defineEventHandler(async (event) => {
         });
     }
 
+    let enabledCourseKinds: CourseKind[] | undefined;
+    let offeredCourseTypeIds: string[] | undefined;
+
+    if (body?.enabledCourseKinds !== undefined) {
+        if (
+            !Array.isArray(body.enabledCourseKinds) ||
+            !body.enabledCourseKinds.every(isCourseKind)
+        ) {
+            throw createError({
+                statusCode: 400,
+                message: 'Nieprawidłowe rodzaje kursów',
+            });
+        }
+
+        enabledCourseKinds = [...new Set<CourseKind>(body.enabledCourseKinds)];
+    }
+
+    if (body?.offeredCourseTypeIds !== undefined) {
+        if (
+            !Array.isArray(body.offeredCourseTypeIds) ||
+            !body.offeredCourseTypeIds.every(
+                (id: unknown) => typeof id === 'string' && id.trim().length > 0,
+            )
+        ) {
+            throw createError({
+                statusCode: 400,
+                message: 'Nieprawidłowe kategorie kursów',
+            });
+        }
+
+        offeredCourseTypeIds = [...new Set<string>(body.offeredCourseTypeIds)];
+    }
+
     const payload = {
         name,
         city: readNullableTrimmedString(body?.city),
         address: readNullableTrimmedString(body?.address),
+        ...(enabledCourseKinds !== undefined ? { enabledCourseKinds } : {}),
+        ...(offeredCourseTypeIds !== undefined ? { offeredCourseTypeIds } : {}),
     };
 
     return executeBffAdapter(event, {

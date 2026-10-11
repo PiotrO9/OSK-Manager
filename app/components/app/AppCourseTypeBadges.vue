@@ -1,14 +1,6 @@
 <script setup lang="ts">
-import type { Component } from 'vue';
-import {
-    Bike,
-    BusFront,
-    CarFront,
-    CircleHelp,
-    Tractor,
-    Truck,
-} from 'lucide-vue-next';
 import type { CourseTypeOption } from '~/types/courses/courseType';
+import { courseTypeVehicleIcon } from '~/utils/courses/courseTypeVehicleIcon';
 
 interface Props {
     courseTypes: readonly CourseTypeOption[];
@@ -18,34 +10,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const iconsByCourseType: Record<string, Component> = {
-    AM: Bike,
-    A: Bike,
-    A1: Bike,
-    A2: Bike,
-    B: CarFront,
-    B1: CarFront,
-    BE: CarFront,
-    C: Truck,
-    C1: Truck,
-    CE: Truck,
-    C1E: Truck,
-    D: BusFront,
-    D1: BusFront,
-    DE: BusFront,
-    D1E: BusFront,
-    T: Tractor,
-};
-
 function courseTypeCode(courseType: CourseTypeOption): string {
     return courseType.code.trim() || courseType.name.trim();
-}
-
-function iconForCourseType(courseType: CourseTypeOption): Component {
-    return (
-        iconsByCourseType[courseTypeCode(courseType).toUpperCase()] ??
-        CircleHelp
-    );
 }
 
 function courseTypeLabel(courseType: CourseTypeOption): string {
@@ -70,7 +36,7 @@ function courseTypeLabel(courseType: CourseTypeOption): string {
             :aria-label="courseTypeLabel(courseType)"
         >
             <component
-                :is="iconForCourseType(courseType)"
+                :is="courseTypeVehicleIcon(courseTypeCode(courseType))"
                 class="size-3.5 shrink-0"
                 aria-hidden="true"
             />

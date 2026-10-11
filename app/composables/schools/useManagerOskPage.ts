@@ -1,5 +1,6 @@
 import { onBeforeRouteLeave } from 'vue-router';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { CourseTypeOption } from '~/types/courses/courseType';
 import { oskFormSchema } from '~/utils/forms/oskFormSchema';
 import {
     buildManagerOskCreateBody,
@@ -14,6 +15,7 @@ interface ManagerOskFormErrors {
 export function useManagerOskPage() {
     const route = useRoute();
     const toast = useAppToast();
+    const { fetchList: fetchCourseTypesList } = useCourseTypesApi();
 
     const {
         fetchList,
@@ -27,6 +29,9 @@ export function useManagerOskPage() {
     } = useDrivingSchoolsApi();
 
     const schools = ref<DrivingSchool[]>([]);
+    const courseTypes = ref<CourseTypeOption[]>([]);
+    const courseTypesLoadError = shallowRef<string | null>(null);
+    const isCourseTypesLoading = shallowRef(false);
     const loadError = shallowRef<string | null>(null);
     const deletingId = shallowRef<string | null>(null);
     const settingDefaultId = shallowRef<string | null>(null);
@@ -36,6 +41,7 @@ export function useManagerOskPage() {
     const hasLoadedSchools = shallowRef(false);
     const formErrors = reactive<ManagerOskFormErrors>({ name: '' });
     let loadRequestId = 0;
+    let courseTypesLoadRequestId = 0;
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
     const defaultSchool = computed(
@@ -56,6 +62,8 @@ export function useManagerOskPage() {
         formCity,
         formAddress,
         formAsDefault,
+        formEnabledCourseKinds,
+        formOfferedCourseTypeIds,
         editTarget,
         isFormSaving,
         isDefaultSwitchLocked,
@@ -86,6 +94,36 @@ export function useManagerOskPage() {
     function openEditFormDialog(school: DrivingSchool) {
         clearFormFeedback();
         openEditFormDialogState(school);
+
+        if (formDialogOpen.value && courseTypes.value.length === 0) {
+            void loadCourseTypes();
+        }
+    }
+
+    async function loadCourseTypes() {
+        const requestId = ++courseTypesLoadRequestId;
+
+        courseTypesLoadError.value = null;
+        isCourseTypesLoading.value = true;
+
+        try {
+            const nextCourseTypes = await fetchCourseTypesList();
+
+            if (requestId === courseTypesLoadRequestId) {
+                courseTypes.value = nextCourseTypes;
+            }
+        } catch (err) {
+            if (requestId !== courseTypesLoadRequestId) return;
+
+            courseTypesLoadError.value = getManagerOskErrorMessage(
+                err,
+                'Nie udało się pobrać katalogu kategorii.',
+            );
+        } finally {
+            if (requestId === courseTypesLoadRequestId) {
+                isCourseTypesLoading.value = false;
+            }
+        }
     }
 
     async function clearCreateActionQuery() {
@@ -237,7 +275,14 @@ export function useManagerOskPage() {
         if (!parsed.success) return;
 
         try {
-            await update(school.id, buildManagerOskUpdateBody(parsed.data));
+            await update(
+                school.id,
+                buildManagerOskUpdateBody({
+                    ...parsed.data,
+                    enabledCourseKinds: formEnabledCourseKinds.value,
+                    offeredCourseTypeIds: formOfferedCourseTypeIds.value,
+                }),
+            );
             await loadSchools();
             markFormClean();
             handleFormDialogOpenChange(false);
@@ -325,13 +370,23 @@ export function useManagerOskPage() {
         event.returnValue = '';
     }
 
-    watch([formName, formCity, formAddress, formAsDefault], () => {
-        if (formErrors.name) {
-            formErrors.name = '';
-        }
+    watch(
+        [
+            formName,
+            formCity,
+            formAddress,
+            formAsDefault,
+            formEnabledCourseKinds,
+            formOfferedCourseTypeIds,
+        ],
+        () => {
+            if (formErrors.name) {
+                formErrors.name = '';
+            }
 
-        formSubmitError.value = '';
-    });
+            formSubmitError.value = '';
+        },
+    );
 
     watch(
         [() => route.query.action, hasLoadedSchools],
@@ -381,6 +436,12 @@ export function useManagerOskPage() {
         formCity,
         formAddress,
         formAsDefault,
+        formEnabledCourseKinds,
+        formOfferedCourseTypeIds,
+        courseTypes,
+        courseTypesLoadError,
+        isCourseTypesLoading,
+        loadCourseTypes,
         formErrors,
         formSubmitError,
         isFormSaving,

@@ -10,7 +10,7 @@ beforeEach(() => {
     vi.stubGlobal('ref', ref);
     vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', vi.fn());
-    vi.stubGlobal('useRoute', () => ({ query: { schoolId: 'b' } }));
+    vi.stubGlobal('useManagerCoursesSelectedSchoolId', () => ref('b'));
     vi.stubGlobal('useDrivingSchoolsApi', () => ({ fetchList: fetchSchools }));
     vi.stubGlobal('useCoursesApi', () => ({ fetchList: fetchCourses }));
     fetchSchools.mockResolvedValue([{ id: 'a' }, { id: 'b' }]);
@@ -19,7 +19,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('courses page loading', () => {
-    it('respects an accessible school from the URL and recovers after a failed school request', async () => {
+    it('preserves an accessible selected school and recovers after a failed school request', async () => {
         fetchSchools.mockRejectedValueOnce(new Error('Offline'));
         const page = useManagerCoursesPage();
 

@@ -41,6 +41,16 @@ export function useManagerCourseDetailPage() {
         querySchoolId: computed(() => route.query.schoolId),
     });
 
+    const selectedSchoolId = useManagerCoursesSelectedSchoolId();
+
+    watch(
+        effectiveSchoolId,
+        (id) => {
+            if (id) selectedSchoolId.value = id;
+        },
+        { immediate: true },
+    );
+
     const {
         participants,
         participantsCurrentPage,

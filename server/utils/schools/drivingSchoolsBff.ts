@@ -86,7 +86,13 @@ export async function bffUpstreamDrivingSchoolsUpdate(
     event: H3Event,
     upstreamBase: string,
     id: string,
-    body: { name: string; city?: string | null; address?: string | null },
+    body: {
+        name: string;
+        city?: string | null;
+        address?: string | null;
+        enabledCourseKinds?: import('~~/shared/contracts/courses').CourseKind[];
+        offeredCourseTypeIds?: string[];
+    },
 ): Promise<{ success: true; data: unknown }> {
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: `/driving-schools/${encodeURIComponent(id)}`,

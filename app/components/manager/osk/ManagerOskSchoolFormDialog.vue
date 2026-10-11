@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { CourseKind } from '~~/shared/contracts/courses';
+import type { CourseTypeOption } from '~/types/courses/courseType';
+
 interface Props {
     open: boolean;
     mode: 'create' | 'edit';
@@ -6,6 +9,11 @@ interface Props {
     city: string;
     address: string;
     asDefault: boolean;
+    enabledCourseKinds: CourseKind[];
+    offeredCourseTypeIds: string[];
+    courseTypes: CourseTypeOption[];
+    isCourseTypesLoading: boolean;
+    courseTypesLoadError: string | null;
     isSaving: boolean;
     defaultSwitchLocked: boolean;
     nameError: string;
@@ -20,6 +28,9 @@ const emit = defineEmits<{
     'update:city': [value: string];
     'update:address': [value: string];
     'update:asDefault': [value: boolean];
+    'update:enabledCourseKinds': [value: CourseKind[]];
+    'update:offeredCourseTypeIds': [value: string[]];
+    retryCourseTypes: [];
     submit: [];
 }>();
 
@@ -30,7 +41,7 @@ const dialogTitle = computed(() =>
 const dialogDescription = computed(() =>
     props.mode === 'create'
         ? 'Wypełnij dane nowej szkoły jazdy.'
-        : 'Zmień nazwę lub dane adresowe szkoły.',
+        : 'Zmień dane szkoły i dostępne rodzaje kursów.',
 );
 
 const descriptionId = computed(() =>
@@ -83,7 +94,7 @@ watch(
         <UiDialogContent
             :show-close-button="!isSaving"
             :aria-describedby="descriptionId"
-            class="max-w-md"
+            class="max-h-[90vh] max-w-lg overflow-y-auto"
             @pointer-down-outside="handlePointerDownOutside"
             @escape-key-down="handleEscapeKeyDown"
         >
@@ -173,6 +184,23 @@ watch(
                         "
                     />
                 </div>
+
+                <ManagerOskCourseSettingsFields
+                    v-if="mode === 'edit'"
+                    :enabled-course-kinds="enabledCourseKinds"
+                    :offered-course-type-ids="offeredCourseTypeIds"
+                    :course-types="courseTypes"
+                    :is-course-types-loading="isCourseTypesLoading"
+                    :course-types-load-error="courseTypesLoadError"
+                    :is-saving="isSaving"
+                    @update:enabled-course-kinds="
+                        emit('update:enabledCourseKinds', $event)
+                    "
+                    @update:offered-course-type-ids="
+                        emit('update:offeredCourseTypeIds', $event)
+                    "
+                    @retry-course-types="emit('retryCourseTypes')"
+                />
 
                 <div
                     v-if="mode === 'create'"

@@ -29,10 +29,7 @@ const emit = defineEmits<{
 const activeSchool = computed(() =>
     props.schools.find((school) => school.id === props.activeSchoolId),
 );
-const createTarget = computed(() => ({
-    path: '/manager/courses/new',
-    query: { schoolId: props.activeSchoolId },
-}));
+const createTarget = '/manager/courses/new';
 const isBusy = computed(() => props.isSchoolsLoading || props.isCoursesLoading);
 const unavailable = computed(
     () =>

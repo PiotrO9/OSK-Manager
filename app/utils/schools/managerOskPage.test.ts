@@ -14,6 +14,8 @@ const school = (overrides: Partial<DrivingSchool> = {}): DrivingSchool => ({
     city: overrides.city ?? null,
     address: overrides.address ?? null,
     isDefault: overrides.isDefault,
+    enabledCourseKinds: overrides.enabledCourseKinds,
+    offeredCourseTypes: overrides.offeredCourseTypes,
 });
 
 describe('manager OSK page model', () => {
@@ -23,6 +25,8 @@ describe('manager OSK page model', () => {
             city: '',
             address: '',
             asDefault: false,
+            enabledCourseKinds: [],
+            offeredCourseTypeIds: [],
         });
 
         expect(
@@ -32,6 +36,10 @@ describe('manager OSK page model', () => {
                     city: null,
                     address: 'Krakowska 1',
                     isDefault: true,
+                    enabledCourseKinds: ['PRACTICAL'],
+                    offeredCourseTypes: [
+                        { id: 'category-b', code: 'B', name: 'Kategoria B' },
+                    ],
                 }),
             ),
         ).toEqual({
@@ -39,6 +47,8 @@ describe('manager OSK page model', () => {
             city: '',
             address: 'Krakowska 1',
             asDefault: true,
+            enabledCourseKinds: ['PRACTICAL'],
+            offeredCourseTypeIds: ['category-b'],
         });
     });
 
@@ -71,11 +81,15 @@ describe('manager OSK page model', () => {
                 name: 'OSK Test',
                 city: '  Kraków ',
                 address: '',
+                enabledCourseKinds: ['THEORY_GROUP'],
+                offeredCourseTypeIds: ['category-a', 'category-b'],
             }),
         ).toEqual({
             name: 'OSK Test',
             city: 'Kraków',
             address: null,
+            enabledCourseKinds: ['THEORY_GROUP'],
+            offeredCourseTypeIds: ['category-a', 'category-b'],
         });
     });
 });

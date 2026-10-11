@@ -106,6 +106,8 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Oczekiwane:** kurs występuje raz we właściwej szkole, a szczegóły pokazują wybrane parametry i instruktora. **Powtórzenie:** użyj nowej nazwy w nowym przebiegu lub resetuj dane kursów. **Źródła:** [strona dodawania](../../../app/pages/manager/courses/new.vue), [pola podstawowe](../../../app/components/manager/courses/CourseCreateBasicFields.vue), [trasa BE](../../../../../BE/src/routes/courses.routes.ts).
 
+**Uwaga UX z testu (2026-10-11):** przygotowując ofertę OSK do utworzenia kursu, użytkownik zauważył, że formularz edycji szkoły w modalu zawiera coraz więcej danych, w tym rodzaje kursów i oferowane kategorie. Chce przenieść edycję OSK do pełnego widoku. To propozycja zmiany na później, bez wpływu na wynik `MGR-CRS-01`; szczegóły zapisano w [liście zmian aplikacji](../../../../../docs/APP_CHANGE_NOTES.md).
+
 ### MGR-CRS-02 — Walidacja kursu i ograniczenie instruktora [P1]
 
 **Wymaganie:** `REQ-MGR-CRS-02` — formularz odrzuca brak pól i niepasujące przypisanie. **Dane:** `school-staffed` z instruktorem kwalifikowanym i niekwalifikowanym dla wybranej kategorii.

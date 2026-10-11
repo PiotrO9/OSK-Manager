@@ -30,6 +30,8 @@ export interface UpdateDrivingSchoolBody {
     name: string;
     city?: string | null;
     address?: string | null;
+    enabledCourseKinds?: CourseKind[];
+    offeredCourseTypeIds?: string[];
 }
 
 function normalizeOfferedCourseType(item: unknown): OfferedCourseType | null {

@@ -33,23 +33,12 @@ export function useManagerCourseDetailPresentation({
         return q.length > 0 ? q : '';
     });
 
-    const backToCoursesHref = computed<RouteLocationRaw>(() => {
-        if (!effectiveSchoolId.value) {
-            return '/manager/courses';
-        }
-
-        return {
-            path: '/manager/courses',
-            query: { schoolId: effectiveSchoolId.value },
-        };
-    });
-
-    const createCourseTarget = computed<RouteLocationRaw>(() => ({
-        path: '/manager/courses/new',
-        query: effectiveSchoolId.value
-            ? { schoolId: effectiveSchoolId.value }
-            : {},
-    }));
+    const backToCoursesHref = computed<RouteLocationRaw>(
+        () => '/manager/courses',
+    );
+    const createCourseTarget = computed<RouteLocationRaw>(
+        () => '/manager/courses/new',
+    );
 
     const courseTitle = computed(
         () => course.value?.name?.trim() || 'Szczegóły kursu',

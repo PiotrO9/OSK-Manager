@@ -16,23 +16,14 @@ usePageMeta({
 });
 
 const route = useRoute();
+const schoolIdFromOldUrl =
+    typeof route.query.schoolId === 'string' ? route.query.schoolId : '';
 const { addToast } = useAppToast();
 const { fetchList: fetchInstructorsList } = useInstructorsApi();
 const { fetchList: fetchDrivingSchoolsList } = useDrivingSchoolsApi();
 const { createCourse, isCreateLoading } = useCoursesApi();
 
-const schoolId = computed(() => {
-    const raw = route.query.schoolId;
-    const s = Array.isArray(raw) ? raw[0] : raw;
-
-    if (typeof s !== 'string') {
-        return null;
-    }
-
-    const t = s.trim();
-
-    return t.length > 0 ? t : null;
-});
+const schoolId = useManagerCoursesSelectedSchoolId();
 
 const instructors = ref<InstructorListItem[]>([]);
 const instructorsLoadError = ref<string | null>(null);
@@ -40,7 +31,7 @@ const isInstructorsLoading = ref(false);
 
 const drivingSchools = ref<DrivingSchool[]>([]);
 const schoolContextError = ref<string | null>(null);
-const isSchoolContextLoading = ref(false);
+const isSchoolContextLoading = ref(true);
 
 const apiError = ref<string | null>(null);
 const isCreated = ref(false);
@@ -49,10 +40,6 @@ let instructorRequestId = 0;
 
 const currentSchool = computed(() => {
     const selectedSchoolId = schoolId.value;
-
-    if (!selectedSchoolId) {
-        return undefined;
-    }
 
     return drivingSchools.value.find(
         (school) => school.id === selectedSchoolId,
@@ -65,14 +52,6 @@ const offeredCourseTypes = computed(
 
 const enabledCourseKinds = computed(
     () => currentSchool.value?.enabledCourseKinds,
-);
-
-const schoolMissingFromContext = computed(
-    () =>
-        schoolId.value !== null &&
-        !isSchoolContextLoading.value &&
-        !schoolContextError.value &&
-        currentSchool.value === undefined,
 );
 
 async function loadInstructors(selectedSchoolId: string) {
@@ -110,7 +89,20 @@ async function loadSchoolContext() {
     try {
         const result = await fetchDrivingSchoolsList();
 
-        if (requestId === schoolRequestId) drivingSchools.value = result;
+        if (requestId !== schoolRequestId) return;
+
+        drivingSchools.value = result;
+
+        if (result.some((school) => school.id === schoolIdFromOldUrl)) {
+            schoolId.value = schoolIdFromOldUrl;
+        } else if (!result.some((school) => school.id === schoolId.value)) {
+            schoolId.value =
+                result.find((school) => school.isDefault)?.id ??
+                result[0]?.id ??
+                '';
+        }
+
+        if (schoolId.value) void loadInstructors(schoolId.value);
     } catch (e) {
         if (requestId !== schoolRequestId) return;
 
@@ -124,23 +116,29 @@ async function loadSchoolContext() {
     }
 }
 
-watch(
-    schoolId,
-    (selectedSchoolId) => {
-        if (selectedSchoolId) {
-            loadSchoolContext();
-            loadInstructors(selectedSchoolId);
-        } else {
-            schoolRequestId++;
-            instructorRequestId++;
-            drivingSchools.value = [];
-            instructors.value = [];
-            isSchoolContextLoading.value = false;
-            isInstructorsLoading.value = false;
-        }
-    },
-    { immediate: true },
-);
+function handleSchoolChange(selectedSchoolId: string) {
+    if (!drivingSchools.value.some((school) => school.id === selectedSchoolId))
+        return;
+
+    schoolId.value = selectedSchoolId;
+    apiError.value = null;
+    void loadInstructors(selectedSchoolId);
+}
+
+onMounted(() => {
+    if ('schoolId' in route.query) {
+        const query = { ...route.query };
+
+        delete query.schoolId;
+        void navigateTo({ path: route.path, query }, { replace: true });
+    }
+
+    void loadSchoolContext();
+});
+onBeforeUnmount(() => {
+    schoolRequestId++;
+    instructorRequestId++;
+});
 
 async function handleCourseSubmit(payload: CourseCreatePayload) {
     if (isCreateLoading.value) return;
@@ -156,13 +154,7 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
             variant: 'success',
         });
 
-        await navigateTo(
-            {
-                path: '/manager/courses',
-                query: { schoolId: payload.schoolId },
-            },
-            { replace: true },
-        );
+        await navigateTo('/manager/courses', { replace: true });
     } catch (err) {
         const message = getApiFetchErrorMessage(
             err,
@@ -193,9 +185,8 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
                     :disabled="
                         isCreateLoading ||
                         isSchoolContextLoading ||
-                        schoolId === null ||
+                        !currentSchool ||
                         schoolContextError !== null ||
-                        schoolMissingFromContext ||
                         (enabledCourseKinds?.length ?? 0) === 0
                     "
                     :aria-busy="isCreateLoading"
@@ -206,67 +197,60 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
         </PageHeader>
 
         <div
-            v-if="schoolId === null"
+            v-if="isSchoolContextLoading"
             class="border-border bg-background rounded-2xl border p-6"
+            role="status"
         >
-            <h2 class="text-foreground font-semibold">Wybierz szkołę</h2>
-            <p class="text-muted-foreground mt-2 text-sm">
-                Otwórz dodawanie kursu z listy kursów wybranej szkoły.
+            <p class="text-muted-foreground text-sm">
+                Wczytywanie ustawień szkoły…
             </p>
-            <UiButton as-child variant="outline" class="mt-4">
-                <NuxtLink to="/manager/courses">Przejdź do kursów</NuxtLink>
+        </div>
+
+        <div
+            v-else-if="schoolContextError"
+            class="border-border bg-background rounded-2xl border p-6"
+            role="alert"
+        >
+            <h2 class="text-foreground font-semibold">
+                Nie można wczytać szkoły
+            </h2>
+            <p class="text-muted-foreground mt-2 text-sm">
+                {{ schoolContextError }}
+            </p>
+            <UiButton
+                type="button"
+                variant="outline"
+                class="mt-4"
+                @click="loadSchoolContext"
+            >
+                Spróbuj ponownie
             </UiButton>
         </div>
 
+        <div
+            v-else-if="!currentSchool"
+            class="border-border bg-background rounded-2xl border p-6"
+        >
+            <h2 class="text-foreground font-semibold">Brak szkoły jazdy</h2>
+            <p class="text-muted-foreground mt-2 text-sm">
+                Dodaj OSK, aby móc utworzyć kurs.
+            </p>
+        </div>
+
         <template v-else>
-            <div
-                v-if="isSchoolContextLoading"
-                class="border-border bg-background rounded-2xl border p-6"
-                role="status"
-            >
-                <p class="text-muted-foreground text-sm">
-                    Wczytywanie ustawień szkoły…
-                </p>
+            <div class="border-border bg-card rounded-xl border px-4 py-3">
+                <SchoolContextSelect
+                    v-if="drivingSchools.length > 1"
+                    id="course-create-school"
+                    :schools="drivingSchools"
+                    :model-value="schoolId"
+                    @update:model-value="handleSchoolChange"
+                />
+                <SchoolContext v-else :school="currentSchool" />
             </div>
-
-            <div
-                v-else-if="schoolContextError"
-                class="border-border bg-background rounded-2xl border p-6"
-                role="alert"
-            >
-                <h2 class="text-foreground font-semibold">
-                    Nie można wczytać szkoły
-                </h2>
-                <p class="text-muted-foreground mt-2 text-sm">
-                    {{ schoolContextError }}
-                </p>
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    class="mt-4"
-                    @click="loadSchoolContext"
-                >
-                    Spróbuj ponownie
-                </UiButton>
-            </div>
-
-            <div
-                v-else-if="schoolMissingFromContext"
-                class="border-border bg-background rounded-2xl border p-6"
-                role="alert"
-            >
-                <h2 class="text-foreground font-semibold">
-                    Szkoła niedostępna
-                </h2>
-                <p class="text-muted-foreground mt-2 text-sm">
-                    Nie znaleziono tej szkoły na liście Twoich OSK albo nie masz
-                    do niej dostępu.
-                </p>
-            </div>
-
             <CourseCreateForm
-                v-else
                 id="course-create-form"
+                :key="schoolId"
                 :school-id="schoolId"
                 :offered-course-types="offeredCourseTypes"
                 :enabled-course-kinds="enabledCourseKinds"
@@ -280,16 +264,13 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
                 @submit="handleCourseSubmit"
                 @retry-instructors="loadInstructors(schoolId)"
             />
-
-            <NuxtLink
-                :to="{
-                    path: '/manager/courses',
-                    query: { schoolId },
-                }"
-                class="text-primary inline-flex text-sm font-medium underline-offset-4 hover:underline"
-            >
-                Wróć do listy kursów
-            </NuxtLink>
         </template>
+
+        <NuxtLink
+            to="/manager/courses"
+            class="text-primary inline-flex text-sm font-medium underline-offset-4 hover:underline"
+        >
+            Wróć do listy kursów
+        </NuxtLink>
     </div>
 </template>

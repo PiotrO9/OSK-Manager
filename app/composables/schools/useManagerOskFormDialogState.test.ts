@@ -71,6 +71,9 @@ describe('useManagerOskFormDialogState', () => {
             city: 'Gdańsk',
             address: 'ul. Testowa 1',
             isDefault: true,
+            offeredCourseTypes: [
+                { id: 'category-b', code: 'B', name: 'Kategoria B' },
+            ],
         });
         const state = await setup([editedSchool]);
 
@@ -79,9 +82,11 @@ describe('useManagerOskFormDialogState', () => {
         expect(state.formName.value).toBe('OSK Centrum');
         expect(state.formCity.value).toBe('Gdańsk');
         expect(state.formAddress.value).toBe('ul. Testowa 1');
+        expect(state.formEnabledCourseKinds.value).toEqual([]);
+        expect(state.formOfferedCourseTypeIds.value).toEqual(['category-b']);
         expect(state.isFormDirty.value).toBe(false);
 
-        state.formCity.value = 'Sopot';
+        state.formOfferedCourseTypeIds.value = ['category-b', 'category-a'];
         expect(state.isFormDirty.value).toBe(true);
 
         state.markFormClean();

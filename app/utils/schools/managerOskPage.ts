@@ -3,12 +3,15 @@ import type {
     DrivingSchool,
     UpdateDrivingSchoolBody,
 } from '~/types/schools/drivingSchool';
+import type { CourseKind } from '~~/shared/contracts/courses';
 
 export interface ManagerOskFormValues {
     name: string;
     city: string;
     address: string;
     asDefault: boolean;
+    enabledCourseKinds: CourseKind[];
+    offeredCourseTypeIds: string[];
 }
 
 export function getManagerOskErrorMessage(
@@ -24,6 +27,8 @@ export function getManagerOskBlankFormValues(): ManagerOskFormValues {
         city: '',
         address: '',
         asDefault: false,
+        enabledCourseKinds: [],
+        offeredCourseTypeIds: [],
     };
 }
 
@@ -35,6 +40,9 @@ export function buildManagerOskEditFormValues(
         city: school.city ?? '',
         address: school.address ?? '',
         asDefault: school.isDefault === true,
+        enabledCourseKinds: school.enabledCourseKinds ?? [],
+        offeredCourseTypeIds:
+            school.offeredCourseTypes?.map((type) => type.id) ?? [],
     };
 }
 
@@ -57,6 +65,8 @@ export function buildManagerOskUpdateBody(params: {
     name: string;
     city?: string | null;
     address?: string | null;
+    enabledCourseKinds: CourseKind[];
+    offeredCourseTypeIds: string[];
 }): UpdateDrivingSchoolBody {
     const city = params.city?.trim();
     const address = params.address?.trim();
@@ -65,5 +75,7 @@ export function buildManagerOskUpdateBody(params: {
         name: params.name,
         city: city || null,
         address: address || null,
+        enabledCourseKinds: params.enabledCourseKinds,
+        offeredCourseTypeIds: params.offeredCourseTypeIds,
     };
 }

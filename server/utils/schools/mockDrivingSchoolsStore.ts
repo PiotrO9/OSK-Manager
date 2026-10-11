@@ -11,6 +11,11 @@ export interface MockDrivingSchoolOfferedType {
 export const MOCK_DEFAULT_OFFERED_COURSE_TYPES: MockDrivingSchoolOfferedType[] =
     [
         {
+            id: 'a4444444-4444-4444-8444-444444444444',
+            code: 'A',
+            name: 'Kategoria A',
+        },
+        {
             id: 'a1111111-1111-4111-8111-111111111111',
             code: 'B',
             name: 'Kategoria B',
@@ -149,16 +154,40 @@ export function mockDrivingSchoolsDelete(id: string): boolean {
 
 export function mockDrivingSchoolsUpdate(
     id: string,
-    body: { name: string; city?: string | null; address?: string | null },
+    body: {
+        name: string;
+        city?: string | null;
+        address?: string | null;
+        enabledCourseKinds?: (typeof MOCK_DEFAULT_ENABLED_COURSE_KINDS)[number][];
+        offeredCourseTypeIds?: string[];
+    },
 ): MockDrivingSchoolRow | null {
     const store = getStore();
     const row = store.find((school) => school.id === id);
 
     if (!row) return null;
 
+    const offeredTypes = body.offeredCourseTypeIds?.map((courseTypeId) =>
+        MOCK_DEFAULT_OFFERED_COURSE_TYPES.find(
+            (type) => type.id === courseTypeId,
+        ),
+    );
+
+    if (offeredTypes?.some((type) => type === undefined)) return null;
+
     row.name = body.name;
     row.city = body.city ?? null;
     row.address = body.address ?? null;
+
+    if (body.enabledCourseKinds !== undefined) {
+        row.enabledCourseKinds = [...body.enabledCourseKinds];
+    }
+
+    if (offeredTypes !== undefined) {
+        row.offeredCourseTypes = offeredTypes.filter(
+            (type): type is MockDrivingSchoolOfferedType => type !== undefined,
+        );
+    }
 
     return { ...row };
 }

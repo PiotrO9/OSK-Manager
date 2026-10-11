@@ -150,9 +150,10 @@ async function submitForm() {
                 role="alert"
                 aria-live="polite"
             >
-                W ustawieniach tej szkoły nie włączono żadnego rodzaju kursu
-                (teoria / praktyka / dodatkowy). Uzupełnij pole „włączone
-                rodzaje kursów” w konfiguracji OSK.
+                W tej szkole nie włączono żadnego rodzaju kursu. Przejdź do
+                <NuxtLink to="/manager/osk" class="font-medium underline"
+                    >OSK</NuxtLink
+                >, wybierz „Edytuj” przy tej szkole i włącz rodzaje kursów.
             </p>
 
             <div class="grid gap-x-5 gap-y-4 lg:grid-cols-2">
@@ -213,7 +214,6 @@ async function submitForm() {
         </section>
 
         <CourseCreateFormActions
-            :school-id="props.schoolId"
             :is-saving="isSaving"
             :is-blocked="isFormBlocked"
         />

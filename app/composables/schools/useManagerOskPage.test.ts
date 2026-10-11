@@ -3,6 +3,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 const fetchList = vi.fn();
+const fetchCourseTypesList = vi.fn();
 const remove = vi.fn();
 const create = vi.fn();
 const update = vi.fn();
@@ -62,6 +63,9 @@ async function installGlobals() {
         isUpdateLoading,
         isSetDefaultLoading,
     }));
+    vi.stubGlobal('useCourseTypesApi', () => ({
+        fetchList: fetchCourseTypesList,
+    }));
 }
 
 describe('useManagerOskPage', () => {
@@ -74,6 +78,9 @@ describe('useManagerOskPage', () => {
         isUpdateLoading.value = false;
         isSetDefaultLoading.value = false;
         fetchList.mockResolvedValue([]);
+        fetchCourseTypesList.mockResolvedValue([
+            { id: 'category-b', code: 'B', name: 'Kategoria B' },
+        ]);
         remove.mockResolvedValue(undefined);
         update.mockResolvedValue(undefined);
         setAsDefault.mockResolvedValue(undefined);
@@ -159,5 +166,31 @@ describe('useManagerOskPage', () => {
         expect(remove).toHaveBeenCalledWith('main');
         expect(page.isConfirmOpen.value).toBe(false);
         expect(page.schools.value).toEqual([]);
+    });
+
+    it('loads the category catalog and saves the selected OSK offer', async () => {
+        const target = school('main', {
+            isDefault: true,
+            enabledCourseKinds: ['THEORY_GROUP'],
+        });
+
+        fetchList.mockResolvedValue([target]);
+        const { useManagerOskPage } = await import('./useManagerOskPage');
+        const page = useManagerOskPage();
+
+        await vi.waitFor(() => expect(page.schools.value).toHaveLength(1));
+        page.openEditFormDialog(target);
+        await vi.waitFor(() => expect(page.courseTypes.value).toHaveLength(1));
+        page.formOfferedCourseTypeIds.value = ['category-b'];
+        await page.submitFormDialog();
+
+        expect(fetchCourseTypesList).toHaveBeenCalledTimes(1);
+        expect(update).toHaveBeenCalledWith('main', {
+            name: 'OSK main',
+            city: null,
+            address: null,
+            enabledCourseKinds: ['THEORY_GROUP'],
+            offeredCourseTypeIds: ['category-b'],
+        });
     });
 });

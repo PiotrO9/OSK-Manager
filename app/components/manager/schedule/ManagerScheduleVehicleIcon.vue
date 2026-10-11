@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { Bike, BusFront, CarFront, Tractor, Truck } from 'lucide-vue-next';
+import { BusFront, CarFront, Motorbike, Tractor, Truck } from 'lucide-vue-next';
 
 const props = defineProps<{
     categoryCode?: string | null;
 }>();
 
 const iconsByCategory: Record<string, Component> = {
-    AM: Bike,
-    A: Bike,
-    A1: Bike,
-    A2: Bike,
+    AM: Motorbike,
+    A: Motorbike,
+    A1: Motorbike,
+    A2: Motorbike,
     B: CarFront,
     B1: CarFront,
     BE: CarFront,

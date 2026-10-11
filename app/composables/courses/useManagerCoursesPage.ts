@@ -25,7 +25,6 @@ export function useManagerCoursesPage() {
         );
     }
 
-    const route = useRoute();
     const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
     const { fetchList: fetchCoursesList } = useCoursesApi();
 
@@ -33,7 +32,7 @@ export function useManagerCoursesPage() {
     const schoolsLoadError = ref<string | null>(null);
     const isSchoolsLoading = ref(false);
 
-    const activeSchoolId = ref('');
+    const activeSchoolId = useManagerCoursesSelectedSchoolId();
     const courses = ref<CourseListItem[]>([]);
     const isCoursesLoading = ref(false);
     const coursesLoadError = ref<string | null>(null);
@@ -57,8 +56,9 @@ export function useManagerCoursesPage() {
 
             if (!items.some((school) => school.id === activeSchoolId.value)) {
                 activeSchoolId.value = resolveInitialActiveSchoolId();
-                await loadCourses();
             }
+
+            await loadCourses();
         } catch (error) {
             if (requestSequence !== schoolsLoadSequence) {
                 return;
@@ -76,13 +76,8 @@ export function useManagerCoursesPage() {
     }
 
     function resolveInitialActiveSchoolId(): string {
-        const requested =
-            typeof route.query.schoolId === 'string'
-                ? route.query.schoolId
-                : '';
-
         return (
-            schools.value.find((school) => school.id === requested)?.id ??
+            schools.value.find((school) => school.isDefault)?.id ??
             schools.value[0]?.id ??
             ''
         );

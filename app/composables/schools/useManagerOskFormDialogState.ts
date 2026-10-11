@@ -1,5 +1,6 @@
 import type { Ref } from 'vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import type { CourseKind } from '~~/shared/contracts/courses';
 import { isOskDefaultSwitchLocked } from '~/utils/schools/drivingSchoolRules';
 import {
     buildManagerOskEditFormValues,
@@ -28,6 +29,8 @@ export function useManagerOskFormDialogState({
     const formCity = shallowRef('');
     const formAddress = shallowRef('');
     const formAsDefault = shallowRef(false);
+    const formEnabledCourseKinds = shallowRef<CourseKind[]>([]);
+    const formOfferedCourseTypeIds = shallowRef<string[]>([]);
     const editTarget = shallowRef<DrivingSchool | null>(null);
     const initialFormSnapshot = shallowRef('');
 
@@ -48,6 +51,8 @@ export function useManagerOskFormDialogState({
             city: formCity.value,
             address: formAddress.value,
             asDefault: formAsDefault.value,
+            enabledCourseKinds: formEnabledCourseKinds.value,
+            offeredCourseTypeIds: formOfferedCourseTypeIds.value,
         }),
     );
     const isFormDirty = computed(
@@ -61,6 +66,8 @@ export function useManagerOskFormDialogState({
         formCity.value = values.city;
         formAddress.value = values.address;
         formAsDefault.value = values.asDefault;
+        formEnabledCourseKinds.value = values.enabledCourseKinds;
+        formOfferedCourseTypeIds.value = values.offeredCourseTypeIds;
     }
 
     function markFormClean() {
@@ -145,6 +152,8 @@ export function useManagerOskFormDialogState({
         formCity,
         formAddress,
         formAsDefault,
+        formEnabledCourseKinds,
+        formOfferedCourseTypeIds,
         editTarget,
         isFormSaving,
         isDefaultSwitchLocked,

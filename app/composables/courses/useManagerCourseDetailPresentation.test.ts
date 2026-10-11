@@ -33,7 +33,7 @@ describe('useManagerCourseDetailPresentation', () => {
         installVueGlobals();
     });
 
-    it('uses course school id before legacy query school id for navigation targets', () => {
+    it('uses course school id before legacy query school id and keeps navigation URLs clean', () => {
         const courseRef = ref<CourseDetail | null>(
             course({ schoolId: 'school-from-course' }),
         );
@@ -45,14 +45,10 @@ describe('useManagerCourseDetailPresentation', () => {
         });
 
         expect(presentation.effectiveSchoolId.value).toBe('school-from-course');
-        expect(presentation.backToCoursesHref.value).toEqual({
-            path: '/manager/courses',
-            query: { schoolId: 'school-from-course' },
-        });
-        expect(presentation.createCourseTarget.value).toEqual({
-            path: '/manager/courses/new',
-            query: { schoolId: 'school-from-course' },
-        });
+        expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
+        expect(presentation.createCourseTarget.value).toBe(
+            '/manager/courses/new',
+        );
     });
 
     it('falls back to legacy query school id and empty navigation when school id is missing', () => {
@@ -71,23 +67,18 @@ describe('useManagerCourseDetailPresentation', () => {
         courseRef.value = course({ schoolId: undefined });
 
         expect(presentation.effectiveSchoolId.value).toBe('school-from-query');
-        expect(presentation.backToCoursesHref.value).toEqual({
-            path: '/manager/courses',
-            query: { schoolId: 'school-from-query' },
-        });
-        expect(presentation.createCourseTarget.value).toEqual({
-            path: '/manager/courses/new',
-            query: { schoolId: 'school-from-query' },
-        });
+        expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
+        expect(presentation.createCourseTarget.value).toBe(
+            '/manager/courses/new',
+        );
 
         querySchoolIdRef.value = undefined;
 
         expect(presentation.effectiveSchoolId.value).toBe('');
         expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
-        expect(presentation.createCourseTarget.value).toEqual({
-            path: '/manager/courses/new',
-            query: {},
-        });
+        expect(presentation.createCourseTarget.value).toBe(
+            '/manager/courses/new',
+        );
     });
 
     it('derives course title, category label and subtitle', () => {
