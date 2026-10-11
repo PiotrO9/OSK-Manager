@@ -4,6 +4,7 @@ import type { LessonBookingInstructorOption } from '~/types/lessons/lessonBookin
 defineProps<{
     instructors: readonly LessonBookingInstructorOption[];
     disabled: boolean;
+    defaultInstructorId?: string;
 }>();
 
 const selectedInstructorId = defineModel<string>('selectedInstructorId', {
@@ -35,6 +36,11 @@ const selectedInstructorId = defineModel<string>('selectedInstructorId', {
                         :value="instructor.id"
                     >
                         {{ instructor.firstName }} {{ instructor.lastName }}
+                        {{
+                            instructor.id === defaultInstructorId
+                                ? '(domyślny)'
+                                : ''
+                        }}
                     </UiSelectItem>
                 </UiSelectGroup>
             </UiSelectContent>

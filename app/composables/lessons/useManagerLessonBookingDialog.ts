@@ -10,9 +10,9 @@ import type { StudentListItem } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { LessonCreateAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useManagerLessonBookingInstructors } from './useManagerLessonBookingInstructors';
 import {
     buildManagerLessonBookingSubmitBody,
-    filterManagerLessonBookingAvailableInstructors,
     filterManagerLessonBookingCourses,
     formatManagerLessonBookingSlotWhenLabel,
     readManagerLessonBookingFetchStatusCode,
@@ -46,6 +46,14 @@ export function useManagerLessonBookingDialog(
     const schoolInstructors = ref<InstructorListItem[]>([]);
 
     const selectedInstructorId = ref('');
+    const isInstructorFixed = computed(() =>
+        Boolean(options.slotCtx.value?.fixedInstructor),
+    );
+    const bookingInstructorId = computed(
+        () =>
+            options.slotCtx.value?.fixedInstructor?.id ??
+            selectedInstructorId.value.trim(),
+    );
     const selectedStudentUserId = ref('');
     const selectedCourseId = ref('');
     const selectedVehicleId = ref('');
@@ -69,16 +77,28 @@ export function useManagerLessonBookingDialog(
         );
     });
 
-    const filteredAvailableInstructors = computed(() =>
-        filterManagerLessonBookingAvailableInstructors({
-            slotCtx: options.slotCtx.value,
-            selectedCourse: selectedCourse.value,
-            schoolInstructors: schoolInstructors.value,
-        }),
+    const instructorOptions = useManagerLessonBookingInstructors({
+        open: options.open,
+        slotCtx: options.slotCtx,
+        selectedCourse,
+        studentId: selectedStudentUserId,
+        vehicleId: selectedVehicleId,
+        schoolInstructors,
+    });
+    const filteredAvailableInstructors = instructorOptions.instructors;
+    const defaultInstructorId = computed(
+        () =>
+            options.schoolCourses.value.find(
+                (course) => course.id === selectedCourseId.value,
+            )?.instructor?.id ?? '',
     );
 
     const resolvedInstructor = computed(
         (): LessonBookingInstructorOption | null => {
+            if (options.slotCtx.value?.fixedInstructor) {
+                return options.slotCtx.value.fixedInstructor;
+            }
+
             const id = selectedInstructorId.value.trim();
 
             if (!options.slotCtx.value || !id) {
@@ -112,7 +132,7 @@ export function useManagerLessonBookingDialog(
             const ctx = options.slotCtx.value;
             const courseId = selectedCourseId.value.trim();
             const studentId = selectedStudentUserId.value.trim();
-            const instructorId = selectedInstructorId.value.trim();
+            const instructorId = bookingInstructorId.value;
             const vehicleId = selectedVehicleId.value.trim();
 
             if (
@@ -160,10 +180,7 @@ export function useManagerLessonBookingDialog(
             availableVehicleIds.value = [];
             studentCourses.value = [];
             schoolInstructors.value = [];
-            selectedInstructorId.value =
-                ctx.availableInstructors.length === 1
-                    ? (ctx.availableInstructors[0]?.id ?? '')
-                    : '';
+            selectedInstructorId.value = '';
             selectedStudentUserId.value = '';
             selectedCourseId.value = '';
             selectedVehicleId.value = '';
@@ -173,7 +190,9 @@ export function useManagerLessonBookingDialog(
             try {
                 const [data, instructorRows] = await Promise.all([
                     loadModalData(ctx),
-                    fetchInstructorsList(ctx.schoolId).catch(() => []),
+                    ctx.fixedInstructor
+                        ? []
+                        : fetchInstructorsList(ctx.schoolId),
                 ]);
 
                 if (requestSequence !== loadSequence) {
@@ -184,26 +203,31 @@ export function useManagerLessonBookingDialog(
                 vehicles.value = data.vehicles;
                 availableVehicleIds.value = data.availableVehicleIds;
                 schoolInstructors.value = instructorRows;
-            } catch {
-                /* loadModalError carries the visible message */
+            } catch (err: unknown) {
+                if (requestSequence !== loadSequence) return;
+
+                formError.value = getApiFetchErrorMessage(
+                    err,
+                    'Nie udało się wczytać danych do rezerwacji. Otwórz formularz ponownie.',
+                );
             }
         },
         { flush: 'post' },
     );
 
-    watch([selectedCourse, filteredAvailableInstructors], ([course, items]) => {
-        if (!course) {
-            return;
-        }
+    watch(
+        filteredAvailableInstructors,
+        (items) => {
+            const selected = selectedInstructorId.value.trim();
 
-        const selected = selectedInstructorId.value.trim();
+            if (selected && items.some((item) => item.id === selected)) {
+                return;
+            }
 
-        if (selected && items.some((item) => item.id === selected)) {
-            return;
-        }
-
-        selectedInstructorId.value = items.length === 1 ? items[0]!.id : '';
-    });
+            selectedInstructorId.value = '';
+        },
+        { flush: 'sync' },
+    );
 
     watch(selectedStudentUserId, async (userId) => {
         const requestSequence = ++studentCoursesLoadSequence;
@@ -258,12 +282,19 @@ export function useManagerLessonBookingDialog(
             slotCtx: options.slotCtx.value,
             studentUserId: selectedStudentUserId.value,
             courseId: selectedCourseId.value,
-            instructorId: selectedInstructorId.value,
+            instructorId: bookingInstructorId.value,
             vehicleId: selectedVehicleId.value,
         });
 
         if (!result.ok) {
             formError.value = result.error;
+
+            return;
+        }
+
+        if (!resolvedInstructor.value) {
+            formError.value =
+                'Wybierz instruktora z aktualnej listy dostępnych instruktorów.';
 
             return;
         }
@@ -309,6 +340,8 @@ export function useManagerLessonBookingDialog(
         vehicles,
         availableVehicleIds,
         selectedInstructorId,
+        isInstructorFixed,
+        bookingInstructorId,
         selectedStudentUserId,
         selectedCourseId,
         selectedVehicleId,
@@ -319,6 +352,10 @@ export function useManagerLessonBookingDialog(
         loadModalError,
         filteredCourses,
         filteredAvailableInstructors,
+        defaultInstructorId,
+        instructorOptionsStatus: instructorOptions.status,
+        instructorOptionsMessage: instructorOptions.message,
+        reloadInstructorOptions: instructorOptions.reload,
         instructorLabel,
         slotWhenLabel,
         lessonAvailabilityStatus: availability.status,

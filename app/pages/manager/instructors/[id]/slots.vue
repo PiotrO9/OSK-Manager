@@ -75,6 +75,11 @@ function handleSelectSlot(slot: AvailabilitySlot): void {
         startTime: slot.startTime,
         endTime: slot.endTime,
         schoolId: schoolId.value,
+        fixedInstructor: {
+            id: instructor.value.id,
+            firstName: instructor.value.name,
+            lastName: '',
+        },
         availableInstructors: [
             {
                 id: instructor.value.id,

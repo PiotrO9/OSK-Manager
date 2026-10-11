@@ -63,10 +63,21 @@ const currentInstructorInitials = computed(() => {
     >
         <UiCardHeader class="border-border border-b px-5 py-4">
             <UiCardTitle class="text-base font-semibold">
-                Instruktor kursu
+                {{
+                    course.type === 'THEORY_GROUP'
+                        ? 'Instruktor kursu'
+                        : 'Domyślny instruktor kursu'
+                }}
             </UiCardTitle>
             <UiCardDescription>
-                Obecny prowadzący i szybka zmiana przypisania.
+                <template v-if="course.type === 'THEORY_GROUP'"
+                    >Obecny prowadzący i szybka zmiana przypisania.</template
+                >
+                <template v-else
+                    >Przypisanie jest opcjonalne. Manager może zarezerwować
+                    pojedynczą jazdę z innym dostępnym i uprawnionym
+                    instruktorem.</template
+                >
             </UiCardDescription>
         </UiCardHeader>
         <UiCardContent class="space-y-4 p-5">

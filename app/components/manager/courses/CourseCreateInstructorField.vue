@@ -8,6 +8,7 @@ const props = defineProps<{
     isInstructorsLoading: boolean;
     instructorsLoadError: string | null;
     isDisabled: boolean;
+    isPractice?: boolean;
 }>();
 
 defineEmits<{ retry: [] }>();
@@ -20,7 +21,11 @@ const instructorIdModel = defineModel<string>('instructorId', {
 <template>
     <div class="space-y-2">
         <UiLabel for="course-create-instructor">
-            Instruktor (opcjonalnie)
+            {{
+                props.isPractice
+                    ? 'Domyślny instruktor (opcjonalnie)'
+                    : 'Instruktor (opcjonalnie)'
+            }}
         </UiLabel>
         <p
             v-if="props.instructorsLoadError"
@@ -74,6 +79,21 @@ const instructorIdModel = defineModel<string>('instructorId', {
                 </UiSelectGroup>
             </UiSelectContent>
         </UiSelect>
+        <UiButton
+            v-if="props.isPractice && instructorIdModel"
+            type="button"
+            variant="ghost"
+            size="sm"
+            :disabled="props.isDisabled"
+            @click="instructorIdModel = ''"
+        >
+            Bez domyślnego instruktora
+        </UiButton>
+        <p v-if="props.isPractice" class="text-muted-foreground text-sm">
+            Możesz pozostawić kurs bez domyślnego instruktora. Przy rezerwacji
+            jazdy manager może wybrać innego dostępnego instruktora z
+            uprawnieniami do kategorii kursu.
+        </p>
         <p
             v-if="
                 !props.isInstructorsLoading &&

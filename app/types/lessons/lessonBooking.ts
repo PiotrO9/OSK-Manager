@@ -29,6 +29,8 @@ export interface LessonBookingSlotContext {
     /** HH:mm */
     endTime: string;
     schoolId: string;
+    /** Instruktor ustalony przez wejście z jego własnego kalendarza. */
+    fixedInstructor?: LessonBookingInstructorOption;
     /** Instruktorzy dostępni w tym przedziale — wybór w modalu (min. 1). */
     availableInstructors: LessonBookingInstructorOption[];
 }

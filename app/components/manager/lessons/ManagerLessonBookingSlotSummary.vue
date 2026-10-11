@@ -17,11 +17,11 @@ defineProps<{
         class="bg-muted/40 space-y-1 rounded-lg border px-3 py-2 text-sm"
         role="status"
     >
-        <p v-if="availableInstructors.length === 1">
+        <p v-if="instructorLabel && instructorLabel !== '—'">
             <span class="text-muted-foreground">Instruktor:</span>
             {{ instructorLabel }}
         </p>
-        <p v-else>
+        <p v-else-if="availableInstructors.length > 0">
             <span class="text-muted-foreground">
                 Dostępnych instruktorów w tym oknie:
             </span>

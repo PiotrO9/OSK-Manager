@@ -21,6 +21,8 @@ const {
     vehicles,
     availableVehicleIds,
     selectedInstructorId,
+    isInstructorFixed,
+    bookingInstructorId,
     selectedStudentUserId,
     selectedCourseId,
     selectedVehicleId,
@@ -31,6 +33,10 @@ const {
     loadModalError,
     filteredCourses,
     filteredAvailableInstructors,
+    defaultInstructorId,
+    instructorOptionsStatus,
+    instructorOptionsMessage,
+    reloadInstructorOptions,
     instructorLabel,
     slotWhenLabel,
     lessonAvailabilityStatus,
@@ -61,9 +67,12 @@ function handleBack(): void {
             <UiDialogHeader>
                 <UiDialogTitle>Rezerwuj lekcję</UiDialogTitle>
                 <UiDialogDescription :id="DESCRIPTION_ID">
-                    Wybierz kursanta, kurs praktyczny lub dodatkowy oraz pojazd,
-                    aby zarezerwować jazdę. Lekcje teoretyczne planuje się
-                    osobno.
+                    {{
+                        isInstructorFixed
+                            ? 'Wybierz kursanta, kurs praktyczny lub dodatkowy i pojazd, aby zarezerwować jazdę.'
+                            : 'Wybierz kursanta, kurs praktyczny lub dodatkowy, pojazd i instruktora, aby zarezerwować jazdę.'
+                    }}
+                    Lekcje teoretyczne planuje się osobno.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -101,13 +110,6 @@ function handleBack(): void {
                 :aria-busy="isCreating"
                 @submit.prevent="handleSubmit"
             >
-                <ManagerLessonBookingInstructorSelect
-                    v-if="filteredAvailableInstructors.length > 1"
-                    v-model:selected-instructor-id="selectedInstructorId"
-                    :instructors="filteredAvailableInstructors"
-                    :disabled="isCreating"
-                />
-
                 <p
                     class="border-primary/30 bg-primary/5 text-primary rounded-md border px-3 py-2 text-xs"
                     role="note"
@@ -132,6 +134,38 @@ function handleBack(): void {
                     :available-vehicle-ids="availableVehicleIds"
                     :disabled="isCreating"
                 />
+
+                <ManagerLessonBookingInstructorSelect
+                    v-if="!isInstructorFixed"
+                    v-model:selected-instructor-id="selectedInstructorId"
+                    :instructors="filteredAvailableInstructors"
+                    :default-instructor-id="defaultInstructorId"
+                    :disabled="
+                        isCreating ||
+                        instructorOptionsStatus !== 'success' ||
+                        !filteredAvailableInstructors.length
+                    "
+                />
+
+                <p
+                    v-if="!isInstructorFixed && instructorOptionsMessage"
+                    class="text-muted-foreground text-sm"
+                    role="status"
+                >
+                    {{ instructorOptionsMessage }}
+                </p>
+                <UiButton
+                    v-if="
+                        !isInstructorFixed &&
+                        instructorOptionsStatus === 'error'
+                    "
+                    type="button"
+                    variant="outline"
+                    :disabled="isCreating"
+                    @click="reloadInstructorOptions()"
+                >
+                    Sprawdź instruktorów ponownie
+                </UiButton>
 
                 <p
                     v-if="lessonAvailabilityStatus !== 'idle'"
@@ -171,6 +205,12 @@ function handleBack(): void {
                         type="submit"
                         :disabled="
                             isCreating ||
+                            !bookingInstructorId ||
+                            !selectedStudentUserId ||
+                            !selectedCourseId ||
+                            !selectedVehicleId ||
+                            (!isInstructorFixed &&
+                                instructorOptionsStatus !== 'success') ||
                             lessonAvailabilityStatus === 'checking' ||
                             lessonAvailabilityStatus === 'unavailable'
                         "

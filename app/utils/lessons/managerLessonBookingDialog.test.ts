@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     buildManagerLessonBookingSubmitBody,
-    filterManagerLessonBookingAvailableInstructors,
+    filterManagerLessonBookingQualifiedInstructors,
     filterManagerLessonBookingCourses,
     readManagerLessonBookingFetchStatusCode,
 } from '~/utils/lessons/managerLessonBookingDialog';
@@ -67,8 +67,7 @@ describe('manager lesson booking dialog helpers', () => {
         ];
 
         expect(
-            filterManagerLessonBookingAvailableInstructors({
-                slotCtx,
+            filterManagerLessonBookingQualifiedInstructors({
                 selectedCourse: practicalCourse,
                 schoolInstructors,
             }),

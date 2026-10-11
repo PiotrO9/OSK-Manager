@@ -263,6 +263,9 @@ async function submitForm() {
                     :is-instructors-loading="props.isInstructorsLoading"
                     :instructors-load-error="props.instructorsLoadError"
                     :is-disabled="isDisabled"
+                    :is-practice="
+                        kindModel === 'PRACTICAL' || kindModel === 'EXTRA'
+                    "
                     @retry="emit('retryInstructors')"
                 />
             </div>

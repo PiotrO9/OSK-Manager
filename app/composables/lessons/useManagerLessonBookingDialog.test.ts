@@ -7,6 +7,21 @@ import type {
 } from '~/types/lessons/lessonBooking';
 import { useManagerLessonBookingDialog } from './useManagerLessonBookingDialog';
 
+vi.mock('./useManagerLessonBookingInstructors', async () => {
+    const { ref } = await import('vue');
+
+    return {
+        useManagerLessonBookingInstructors: () => ({
+            instructors: ref([
+                { id: 'instructor-1', firstName: 'Jan', lastName: 'Kowalski' },
+            ]),
+            status: ref('success'),
+            message: ref(''),
+            reload: vi.fn(),
+        }),
+    };
+});
+
 const addToast = vi.fn();
 const createLesson = vi.fn();
 const fetchInstructorsList = vi.fn();
@@ -129,6 +144,112 @@ describe('useManagerLessonBookingDialog', () => {
         expect(createLesson).not.toHaveBeenCalled();
         expect(emitBooked).not.toHaveBeenCalled();
     });
+
+    it('requires an explicit instructor choice even when the slot has only one instructor', async () => {
+        loadModalData.mockResolvedValue({
+            students: [],
+            vehicles: [],
+            availableVehicleIds: [],
+        });
+        fetchInstructorsList.mockResolvedValue([
+            {
+                id: 'instructor-1',
+                firstName: 'Jan',
+                lastName: 'Kowalski',
+                qualifiedCourseTypes: [{ id: 'type-b', code: 'B', name: 'B' }],
+            },
+        ]);
+        loadStudentCoursesWithKind.mockResolvedValue([
+            studentCourse('course-1'),
+        ]);
+        const open = ref(false);
+        const dialog = useManagerLessonBookingDialog({
+            open,
+            slotCtx: ref(slotCtx()),
+            schoolCourses: ref([course()]),
+            emitBooked: vi.fn(),
+        });
+
+        open.value = true;
+        await nextTick();
+        await vi.waitFor(() =>
+            expect(fetchInstructorsList).toHaveBeenCalledOnce(),
+        );
+        expect(dialog.selectedInstructorId.value).toBe('');
+
+        dialog.selectedStudentUserId.value = 'student-1';
+        await nextTick();
+        await Promise.resolve();
+        dialog.selectedCourseId.value = 'course-1';
+        await nextTick();
+        expect(dialog.selectedInstructorId.value).toBe('');
+        dialog.selectedVehicleId.value = 'vehicle-1';
+        await dialog.handleSubmit();
+        expect(createLesson).not.toHaveBeenCalled();
+        expect(dialog.formError.value).toBe('Wybierz instruktora.');
+    });
+
+    it.each(['available', 'unavailable'])(
+        'validates and books only the calendar instructor (%s)',
+        async (status) => {
+            const fixedInstructor = {
+                id: 'fixed-instructor',
+                firstName: 'Julia',
+                lastName: 'Test',
+            };
+            const open = ref(false);
+
+            loadModalData.mockResolvedValue({
+                students: [],
+                vehicles: [],
+                availableVehicleIds: [],
+            });
+            loadStudentCoursesWithKind.mockResolvedValue([
+                studentCourse('course-1'),
+            ]);
+            recheckAvailability.mockResolvedValue(status);
+            availabilityMessage.value =
+                'Wybrany instruktor nie może prowadzić tej lekcji.';
+            const dialog = useManagerLessonBookingDialog({
+                open,
+                slotCtx: ref({ ...slotCtx(), fixedInstructor }),
+                schoolCourses: ref([course()]),
+                emitBooked: vi.fn(),
+            });
+
+            open.value = true;
+            await nextTick();
+            expect(fetchInstructorsList).not.toHaveBeenCalled();
+            expect(dialog.instructorLabel.value).toBe('Julia Test');
+            expect(dialog.isInstructorFixed.value).toBe(true);
+            dialog.selectedStudentUserId.value = 'student-1';
+            await nextTick();
+            dialog.selectedCourseId.value = 'course-1';
+            dialog.selectedVehicleId.value = 'vehicle-1';
+            dialog.selectedInstructorId.value = 'instructor-1';
+            const options = useScheduleAvailabilityCheck.mock.calls[0]?.[0] as {
+                candidate: Readonly<Ref<Record<string, string> | null>>;
+            };
+
+            expect(options.candidate.value?.instructorId).toBe(
+                'fixed-instructor',
+            );
+            await dialog.handleSubmit();
+            expect(recheckAvailability).toHaveBeenCalledOnce();
+
+            if (status === 'available') {
+                expect(createLesson).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        instructorId: 'fixed-instructor',
+                    }),
+                );
+            } else {
+                expect(createLesson).not.toHaveBeenCalled();
+                expect(dialog.formError.value).toBe(availabilityMessage.value);
+                expect(dialog.instructorLabel.value).toBe('Julia Test');
+            }
+        },
+    );
 
     it('keeps the latest student courses when selected student changes quickly', async () => {
         const firstCourses = deferred<StudentCourseWithKind[]>();

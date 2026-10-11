@@ -34,35 +34,24 @@ export function filterManagerLessonBookingCourses(
     });
 }
 
-export function filterManagerLessonBookingAvailableInstructors(params: {
-    slotCtx: LessonBookingSlotContext | null;
+export function filterManagerLessonBookingQualifiedInstructors(params: {
     selectedCourse: StudentCourseWithKind | null;
     schoolInstructors: readonly InstructorListItem[];
 }): LessonBookingInstructorOption[] {
-    const { slotCtx, selectedCourse, schoolInstructors } = params;
+    const { selectedCourse, schoolInstructors } = params;
 
-    if (!slotCtx) {
+    if (!selectedCourse) {
         return [];
     }
 
-    if (!selectedCourse) {
-        return slotCtx.availableInstructors;
-    }
-
-    const qualifiedIds = new Set(
-        schoolInstructors
-            .filter((instructor) =>
-                managerLessonBookingInstructorHasCategoryQualification(
-                    instructor,
-                    selectedCourse.category,
-                ),
-            )
-            .map((instructor) => instructor.id),
-    );
-
-    return slotCtx.availableInstructors.filter((instructor) =>
-        qualifiedIds.has(instructor.id),
-    );
+    return schoolInstructors
+        .filter((instructor) =>
+            managerLessonBookingInstructorHasCategoryQualification(
+                instructor,
+                selectedCourse.category,
+            ),
+        )
+        .map(({ id, firstName, lastName }) => ({ id, firstName, lastName }));
 }
 
 export function formatManagerLessonBookingSlotWhenLabel(

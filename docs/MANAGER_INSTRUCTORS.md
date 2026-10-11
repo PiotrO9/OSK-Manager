@@ -104,6 +104,16 @@ Lista w UI używa [`useInstructorsApi`](../app/composables/instructors/useInstru
 - Strona [`availability.vue`](../app/pages/manager/instructors/[id]/availability.vue): ten sam layout i middleware `manager` co reszta panelu.
 - Zapis **per dzień** (`PUT` po „Zapisz”); wyłączenie dnia z istniejącym wpisem wykonuje `DELETE`. Walidacja po stronie FE: oba czasy przy aktywnym dniu, `startTime < endTime`.
 
+## Rezerwacja jazdy i domyślny instruktor kursu
+
+Kurs praktyczny lub dodatkowy może mieć opcjonalnego domyślnego instruktora. W ogólnym kalendarzu szkoły manager wybiera kursanta, kurs, pojazd, a następnie instruktora. Wybór instruktora jest jawny również przy jednej dostępnej opcji. Domyślny prowadzący jest oznaczony na liście, ale nie jest wybierany automatycznie.
+
+[`useManagerLessonBookingInstructors`](../app/composables/lessons/useManagerLessonBookingInstructors.ts) sprawdza uprawnionych instruktorów całej szkoły przez `POST /api/schedule/availability-check` (`lesson_create`) w ogólnym kalendarzu szkoły. Lista uwzględnia cały termin, kursanta, pojazd i limit godzin. Zmiana danych unieważnia poprzednią listę oraz wybór instruktora; spóźnione odpowiedzi są pomijane. Przed zapisem dostępność jest sprawdzana ponownie.
+
+Wejście z kalendarza konkretnego instruktora ustawia `fixedInstructor` w kontekście rezerwacji. Formularz pokazuje prowadzącego w podsumowaniu i ukrywa listę wyboru. Walidacja oraz zapis korzystają wyłącznie z tego instruktora; nie jest pobierana ani sprawdzana lista pozostałych instruktorów szkoły. Konflikt nadal blokuje rezerwację.
+
+Rezerwacja zastępstwa nie zmienia instruktora przypisanego do kursu. Ta zmiana dotyczy panelu managera; samodzielne rezerwacje kursanta zachowują dotychczasowe zasady przypisania.
+
 ## Powiązane
 
 - Rejestracja instruktora (POST): [API_AND_BFF.md](API_AND_BFF.md) — sekcja o `POST /api/auth/register`.
