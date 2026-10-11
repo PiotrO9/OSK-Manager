@@ -82,15 +82,6 @@ const fieldClass =
         :aria-busy="isSubmitting"
         @submit.prevent="emit('submit')"
     >
-        <p
-            v-if="isSubmitting"
-            class="text-muted-foreground text-sm"
-            role="status"
-            aria-live="polite"
-        >
-            Zapisywanie zmian…
-        </p>
-
         <div v-if="!categoriesOnly" class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
                 <label
