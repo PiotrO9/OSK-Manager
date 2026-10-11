@@ -52,7 +52,7 @@ function handleKeydown(event: KeyboardEvent, panel: VehiclesListPanelId) {
             ref="simpleTab"
             type="button"
             role="tab"
-            class="focus-visible:ring-primary inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            class="focus-visible:ring-primary inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             :class="
                 activePanel === 'simple'
                     ? 'border-primary-200 bg-primary-50 text-primary-700'
@@ -72,7 +72,7 @@ function handleKeydown(event: KeyboardEvent, panel: VehiclesListPanelId) {
             ref="managerTab"
             type="button"
             role="tab"
-            class="focus-visible:ring-primary inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            class="focus-visible:ring-primary inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             :class="
                 activePanel === 'manager'
                     ? 'border-primary-200 bg-primary-50 text-primary-700'

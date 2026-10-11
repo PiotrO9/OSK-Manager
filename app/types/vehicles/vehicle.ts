@@ -1,4 +1,5 @@
 export type VehicleStatus = 'ACTIVE' | 'UNAVAILABLE';
+export type VehicleDeletionBlockReason = 'DEFAULT' | 'SCHEDULED_LESSONS';
 
 /** Wspólne pola zapisu pojazdu (formularz create/edit bez schoolId). */
 export interface VehicleWritePayload {
@@ -19,6 +20,7 @@ export interface Vehicle {
     status: VehicleStatus;
     unavailableUntil: string | null;
     isDefault: boolean;
+    deletionBlockReason?: VehicleDeletionBlockReason | null;
     /** ISO YYYY-MM-DD lub null */
     inspectionDate: string | null;
     /** ISO YYYY-MM-DD lub null */
@@ -240,6 +242,16 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
             vehicleRecord.is_default ??
             vehicleRecord.default,
     );
+    const rawDeletionBlockReason = vehicleRecord.deletionBlockReason;
+    const deletionBlockReason: VehicleDeletionBlockReason | null =
+        rawDeletionBlockReason === 'DEFAULT' ||
+        rawDeletionBlockReason === 'SCHEDULED_LESSONS'
+            ? rawDeletionBlockReason
+            : rawDeletionBlockReason === null
+              ? null
+              : isDefault
+                ? 'DEFAULT'
+                : null;
 
     const inspectionRaw =
         vehicleRecord.inspectionDate ?? vehicleRecord.inspection_date;
@@ -258,6 +270,7 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
         status,
         unavailableUntil: parseOptionalIsoDate(unavailableUntilRaw),
         isDefault,
+        deletionBlockReason,
         inspectionDate: parseOptionalIsoDate(inspectionRaw),
         insuranceDate: parseOptionalIsoDate(insuranceRaw),
         modelYear: parseOptionalModelYear(modelYearRaw),

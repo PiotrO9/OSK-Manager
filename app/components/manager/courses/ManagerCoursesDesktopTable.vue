@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpRight, Pencil, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
+import ManagerCourseCategoryBadge from './ManagerCourseCategoryBadge.vue';
 import {
     formatCourseKindLabel,
     type CourseListItem,
@@ -53,10 +54,9 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                     >
                 </th>
                 <td class="px-3 py-4">
-                    <StatusBadge
-                        :label="course.category"
-                        tone="neutral"
-                        subtle
+                    <ManagerCourseCategoryBadge
+                        :category="course.category"
+                        :course-type="course.courseType"
                     />
                 </td>
                 <td class="px-3 py-4">

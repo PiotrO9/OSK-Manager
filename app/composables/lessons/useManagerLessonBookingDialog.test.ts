@@ -26,7 +26,7 @@ const addToast = vi.fn();
 const createLesson = vi.fn();
 const fetchInstructorsList = vi.fn();
 const loadModalData = vi.fn();
-const loadStudentCoursesWithKind = vi.fn();
+const fetchBookingOptions = vi.fn();
 const isCreating = ref(false);
 const isLoadingModalData = ref(false);
 const modalError = ref<string | null>(null);
@@ -38,17 +38,6 @@ const useScheduleAvailabilityCheck = vi.fn((_options: unknown) => ({
     message: availabilityMessage,
     recheck: recheckAvailability,
 }));
-
-function deferred<T>() {
-    let resolve!: (value: T | PromiseLike<T>) => void;
-    let reject!: (reason?: unknown) => void;
-    const promise = new Promise<T>((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
-
-    return { promise, resolve, reject };
-}
 
 function slotCtx(): LessonBookingSlotContext {
     return {
@@ -102,7 +91,7 @@ function installGlobals(): void {
         isCreating,
         isLoadingModalData,
         loadModalData,
-        loadStudentCoursesWithKind,
+        fetchBookingOptions,
         modalError,
     }));
     vi.stubGlobal('useInstructorsApi', () => ({
@@ -159,9 +148,6 @@ describe('useManagerLessonBookingDialog', () => {
                 qualifiedCourseTypes: [{ id: 'type-b', code: 'B', name: 'B' }],
             },
         ]);
-        loadStudentCoursesWithKind.mockResolvedValue([
-            studentCourse('course-1'),
-        ]);
         const open = ref(false);
         const dialog = useManagerLessonBookingDialog({
             open,
@@ -204,9 +190,6 @@ describe('useManagerLessonBookingDialog', () => {
                 vehicles: [],
                 availableVehicleIds: [],
             });
-            loadStudentCoursesWithKind.mockResolvedValue([
-                studentCourse('course-1'),
-            ]);
             recheckAvailability.mockResolvedValue(status);
             availabilityMessage.value =
                 'Wybrany instruktor nie może prowadzić tej lekcji.';
@@ -251,14 +234,7 @@ describe('useManagerLessonBookingDialog', () => {
         },
     );
 
-    it('keeps the latest student courses when selected student changes quickly', async () => {
-        const firstCourses = deferred<StudentCourseWithKind[]>();
-        const secondCourses = deferred<StudentCourseWithKind[]>();
-
-        loadStudentCoursesWithKind
-            .mockReturnValueOnce(firstCourses.promise)
-            .mockReturnValueOnce(secondCourses.promise);
-
+    it('shows only courses attached to the selected eligible student', async () => {
         const dialog = useManagerLessonBookingDialog({
             open: ref(true),
             slotCtx: ref(slotCtx()),
@@ -266,23 +242,27 @@ describe('useManagerLessonBookingDialog', () => {
             emitBooked: vi.fn(),
         });
 
+        dialog.students.value = [
+            {
+                userId: 'student-1',
+                firstName: 'A',
+                lastName: 'B',
+                courses: [studentCourse('course-1')],
+            },
+            {
+                userId: 'student-2',
+                firstName: 'C',
+                lastName: 'D',
+                courses: [studentCourse('course-2')],
+            },
+        ];
         dialog.selectedStudentUserId.value = 'student-1';
         await nextTick();
+        expect(dialog.filteredCourses.value.map((item) => item.id)).toEqual([
+            'course-1',
+        ]);
         dialog.selectedStudentUserId.value = 'student-2';
         await nextTick();
-
-        secondCourses.resolve([studentCourse('course-2')]);
-        await secondCourses.promise;
-        await nextTick();
-
-        expect(dialog.filteredCourses.value.map((item) => item.id)).toEqual([
-            'course-2',
-        ]);
-
-        firstCourses.resolve([studentCourse('course-1')]);
-        await firstCourses.promise;
-        await nextTick();
-
         expect(dialog.filteredCourses.value.map((item) => item.id)).toEqual([
             'course-2',
         ]);
@@ -342,9 +322,6 @@ describe('useManagerLessonBookingDialog', () => {
                 avatarUrl: null,
                 qualifiedCourseTypes: [{ id: 'type-b', code: 'B', name: 'B' }],
             },
-        ]);
-        loadStudentCoursesWithKind.mockResolvedValueOnce([
-            studentCourse('course-1'),
         ]);
         const open = ref(false);
         const emitBooked = vi.fn();

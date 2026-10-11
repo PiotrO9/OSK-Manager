@@ -44,6 +44,21 @@ export interface StudentCourseWithKind {
     kind: CourseKind | null;
 }
 
+export interface LessonBookingEligibleStudent {
+    userId: string;
+    firstName: string;
+    lastName: string;
+    courses: StudentCourseWithKind[];
+}
+
+export interface LessonBookingOptionsPage {
+    items: LessonBookingEligibleStudent[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
 /**
  * Body POST /lessons (BFF → BE).
  * Rezerwacja z slotu kalendarza jest zawsze dla jednego kursanta — tylko jazda praktyczna

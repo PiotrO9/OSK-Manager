@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Car, Eye, Pencil, Trash2 } from 'lucide-vue-next';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import { vehicleDeletionBlockMessage } from '~/utils/vehicles/deletion';
 import {
     displayVehicleText,
     formatVehicleMeta,
@@ -133,18 +134,35 @@ defineEmits<{
                         <Pencil class="size-4" aria-hidden="true" />
                     </NuxtLink>
                 </UiButton>
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
-                    :disabled="isDeleteLoading"
-                    :aria-label="`Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
-                    @click="$emit('requestDelete', vehicle)"
+                <span
+                    :title="vehicleDeletionBlockMessage(vehicle) ?? undefined"
                 >
-                    <Trash2 class="size-4" aria-hidden="true" />
-                </UiButton>
+                    <UiButton
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
+                        :disabled="
+                            isDeleteLoading ||
+                            !!vehicleDeletionBlockMessage(vehicle)
+                        "
+                        :aria-label="
+                            vehicleDeletionBlockMessage(vehicle) ??
+                            `Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`
+                        "
+                        @click="$emit('requestDelete', vehicle)"
+                    >
+                        <Trash2 class="size-4" aria-hidden="true" />
+                    </UiButton>
+                </span>
             </ActionGroup>
+
+            <p
+                v-if="isManager && vehicleDeletionBlockMessage(vehicle)"
+                class="text-muted-foreground mt-2 text-xs"
+            >
+                {{ vehicleDeletionBlockMessage(vehicle) }}
+            </p>
 
             <UiButton
                 v-if="isManager && resolvedSchoolId && !vehicle.isDefault"

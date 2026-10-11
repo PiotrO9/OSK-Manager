@@ -18,6 +18,12 @@ const DESCRIPTION_ID = 'lesson-booking-dialog-desc';
 
 const {
     students,
+    studentSearch,
+    studentPage,
+    studentTotalPages,
+    isLoadingStudents,
+    studentsError,
+    loadMoreStudents,
     vehicles,
     availableVehicleIds,
     selectedInstructorId,
@@ -120,12 +126,17 @@ function handleBack(): void {
                 </p>
 
                 <ManagerLessonBookingStudentCourseSelect
+                    v-model:student-search="studentSearch"
                     v-model:selected-student-user-id="selectedStudentUserId"
                     v-model:selected-course-id="selectedCourseId"
                     :students="students"
+                    :is-loading-students="isLoadingStudents"
+                    :students-error="studentsError"
+                    :has-more-students="studentPage < studentTotalPages"
                     :filtered-courses="filteredCourses"
                     :load-courses-error="loadCoursesError"
                     :disabled="isCreating"
+                    @load-more="loadMoreStudents"
                 />
 
                 <ManagerLessonBookingVehicleSelect

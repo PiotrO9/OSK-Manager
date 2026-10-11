@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Pencil, Star, Trash2 } from 'lucide-vue-next';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import { vehicleDeletionBlockMessage } from '~/utils/vehicles/deletion';
 import {
     displayVehicleText,
     formatVehicleMeta,
@@ -158,17 +159,30 @@ defineEmits<{
                                 <Pencil class="size-4" aria-hidden="true" />
                             </NuxtLink>
                         </UiButton>
-                        <UiButton
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
-                            :disabled="isDeleteLoading"
-                            :aria-label="`Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
-                            @click="$emit('requestDelete', vehicle)"
+                        <span
+                            :title="
+                                vehicleDeletionBlockMessage(vehicle) ??
+                                undefined
+                            "
                         >
-                            <Trash2 class="size-4" aria-hidden="true" />
-                        </UiButton>
+                            <UiButton
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                class="text-destructive hover:bg-destructive/10 hover:text-destructive size-9 rounded-full"
+                                :disabled="
+                                    isDeleteLoading ||
+                                    !!vehicleDeletionBlockMessage(vehicle)
+                                "
+                                :aria-label="
+                                    vehicleDeletionBlockMessage(vehicle) ??
+                                    `Usuń pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`
+                                "
+                                @click="$emit('requestDelete', vehicle)"
+                            >
+                                <Trash2 class="size-4" aria-hidden="true" />
+                            </UiButton>
+                        </span>
                     </ActionGroup>
                 </td>
             </tr>

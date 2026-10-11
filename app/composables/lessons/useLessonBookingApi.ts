@@ -1,26 +1,21 @@
-import type { CourseListItem } from '~/types/courses/course';
 import type {
     CreateLessonBody,
+    LessonBookingEligibleStudent,
+    LessonBookingOptionsPage,
     LessonBookingSlotContext,
-    StudentCourseWithKind,
 } from '~/types/lessons/lessonBooking';
-import {
-    normalizeStudentDetail,
-    type StudentListItem,
-} from '~/types/students/student';
 import { normalizeVehiclesList, type Vehicle } from '~/types/vehicles/vehicle';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { buildSlotIsoUTC } from '~/utils/date/weeklyCalendarDates';
 
 export interface LessonBookingModalData {
-    students: StudentListItem[];
+    students: LessonBookingEligibleStudent[];
+    totalPages: number;
     vehicles: Vehicle[];
     availableVehicleIds: string[];
 }
 
 export function useLessonBookingApi() {
-    const { fetchList } = useStudentsApi();
-
     const isLoadingModalData = ref(false);
     const isCreating = ref(false);
     const modalError = ref<string | null>(null);
@@ -52,7 +47,12 @@ export function useLessonBookingApi() {
         const trimmedSchoolId = ctx.schoolId.trim();
 
         if (!trimmedSchoolId) {
-            return { students: [], vehicles: [], availableVehicleIds: [] };
+            return {
+                students: [],
+                totalPages: 0,
+                vehicles: [],
+                availableVehicleIds: [],
+            };
         }
 
         const startIso = buildSlotIsoUTC(ctx.date, ctx.startTime);
@@ -63,7 +63,7 @@ export function useLessonBookingApi() {
 
         try {
             const [page, vehicles, availableVehicles] = await Promise.all([
-                fetchList({ schoolId: trimmedSchoolId, page: 1, limit: 100 }),
+                fetchBookingOptions(ctx, '', 1),
                 requestBffData<Vehicle[]>(
                     'GET',
                     `/api/vehicles?${new URLSearchParams({ schoolId: trimmedSchoolId }).toString()}`,
@@ -77,6 +77,7 @@ export function useLessonBookingApi() {
 
             return {
                 students: page.items,
+                totalPages: page.totalPages,
                 vehicles,
                 availableVehicleIds: availableVehicles.map(
                     (vehicle) => vehicle.id,
@@ -94,41 +95,35 @@ export function useLessonBookingApi() {
         }
     }
 
-    async function loadStudentCoursesWithKind(
-        userId: string,
-        schoolId: string,
-        schoolCourses: readonly CourseListItem[],
-    ): Promise<StudentCourseWithKind[]> {
-        const trimmedUserId = userId.trim();
-        const trimmedSchoolId = schoolId.trim();
+    async function fetchBookingOptions(
+        ctx: LessonBookingSlotContext,
+        q: string,
+        page: number,
+    ): Promise<LessonBookingOptionsPage> {
+        const instructorIds = ctx.fixedInstructor
+            ? [ctx.fixedInstructor.id]
+            : ctx.availableInstructors.map((instructor) => instructor.id);
 
-        if (!trimmedUserId || !trimmedSchoolId) {
-            return [];
+        if (!ctx.schoolId.trim() || !instructorIds.length) {
+            return { items: [], total: 0, page, limit: 20, totalPages: 0 };
         }
 
-        const qs = new URLSearchParams({ schoolId: trimmedSchoolId });
-        const detail = await requestBffData(
+        const qs = new URLSearchParams({
+            schoolId: ctx.schoolId.trim(),
+            instructorIds: [...new Set(instructorIds)].join(','),
+            q: q.trim(),
+            page: String(page),
+            limit: '20',
+        });
+
+        return await requestBffData<LessonBookingOptionsPage>(
             'GET',
-            `/api/students/${encodeURIComponent(trimmedUserId)}?${qs.toString()}`,
+            `/api/lessons/booking-options?${qs.toString()}`,
             {
-                fallbackMessage: 'Nie udało się pobrać danych kursanta.',
-                invalidMessage: 'Nieprawidłowa odpowiedź serwera (kursant).',
-                normalize: normalizeStudentDetail,
+                fallbackMessage:
+                    'Nie udało się pobrać kursantów do rezerwacji.',
             },
         );
-        const byId = new Map(schoolCourses.map((c) => [c.id, c]));
-
-        return detail.courses.map((c) => {
-            const meta = byId.get(c.id);
-
-            return {
-                id: c.id,
-                name: c.name,
-                category: c.category,
-                status: c.status,
-                kind: meta?.type ?? null,
-            };
-        });
     }
 
     async function createLesson(body: CreateLessonBody): Promise<void> {
@@ -167,7 +162,7 @@ export function useLessonBookingApi() {
         isCreating: readonly(isCreating),
         modalError: readonly(modalError),
         loadModalData,
-        loadStudentCoursesWithKind,
+        fetchBookingOptions,
         createLesson,
     };
 }

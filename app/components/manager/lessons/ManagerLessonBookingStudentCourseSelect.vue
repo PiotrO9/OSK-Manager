@@ -1,18 +1,23 @@
 <script setup lang="ts">
 import { formatCourseKindLabel } from '~/types/courses/course';
-import type { StudentCourseWithKind } from '~/types/lessons/lessonBooking';
-import {
-    formatStudentCourseStatusLabel,
-    formatStudentDisplayName,
-    type StudentListItem,
-} from '~/types/students/student';
+import type {
+    StudentCourseWithKind,
+    LessonBookingEligibleStudent,
+} from '~/types/lessons/lessonBooking';
+import { formatStudentCourseStatusLabel } from '~/types/students/student';
 
 defineProps<{
-    students: readonly StudentListItem[];
+    students: readonly LessonBookingEligibleStudent[];
     filteredCourses: readonly StudentCourseWithKind[];
     loadCoursesError: string | null;
     disabled: boolean;
+    isLoadingStudents: boolean;
+    studentsError: string | null;
+    hasMoreStudents: boolean;
 }>();
+
+const emit = defineEmits<{ loadMore: [] }>();
+const studentSearch = defineModel<string>('studentSearch', { required: true });
 
 const selectedStudentUserId = defineModel<string>('selectedStudentUserId', {
     required: true,
@@ -30,7 +35,17 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
         >
             Kursant
         </label>
-        <UiSelect v-model="selectedStudentUserId" :disabled="disabled">
+        <UiInput
+            v-model="studentSearch"
+            type="search"
+            aria-label="Szukaj kursanta"
+            placeholder="Szukaj po imieniu, nazwisku lub e-mailu"
+            :disabled="disabled"
+        />
+        <UiSelect
+            v-model="selectedStudentUserId"
+            :disabled="disabled || isLoadingStudents || students.length === 0"
+        >
             <UiSelectTrigger
                 id="lesson-booking-student"
                 class="w-full"
@@ -45,11 +60,38 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
                         :key="student.userId"
                         :value="student.userId"
                     >
-                        {{ formatStudentDisplayName(student) }}
+                        {{ `${student.firstName} ${student.lastName}`.trim() }}
                     </UiSelectItem>
                 </UiSelectGroup>
             </UiSelectContent>
         </UiSelect>
+        <p v-if="studentsError" class="text-destructive text-xs" role="alert">
+            {{ studentsError }}
+        </p>
+        <p
+            v-else-if="isLoadingStudents"
+            class="text-muted-foreground text-xs"
+            role="status"
+        >
+            Wczytywanie kursantów…
+        </p>
+        <p
+            v-else-if="students.length === 0"
+            class="text-muted-foreground text-xs"
+            role="status"
+        >
+            Brak kursantów z kursami, które może prowadzić dostępny instruktor.
+        </p>
+        <UiButton
+            v-if="hasMoreStudents"
+            type="button"
+            variant="outline"
+            size="sm"
+            :disabled="disabled || isLoadingStudents"
+            @click="emit('loadMore')"
+        >
+            Pokaż kolejnych kursantów
+        </UiButton>
     </div>
 
     <p v-if="loadCoursesError" class="text-destructive text-sm" role="alert">
@@ -105,7 +147,7 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Brak kursów praktycznych lub dodatkowych dla tego kursanta.
+            Brak kursów, które może prowadzić dostępny instruktor.
         </p>
     </div>
 </template>

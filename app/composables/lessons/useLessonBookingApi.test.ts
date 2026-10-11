@@ -3,7 +3,6 @@ import { readonly, ref } from 'vue';
 
 const requestBffSuccess = vi.fn();
 const requestBffData = vi.fn();
-const fetchStudents = vi.fn();
 
 describe('useLessonBookingApi', () => {
     beforeEach(() => {
@@ -12,9 +11,6 @@ describe('useLessonBookingApi', () => {
         vi.stubGlobal('readonly', readonly);
         vi.stubGlobal('requestBffSuccess', requestBffSuccess);
         vi.stubGlobal('requestBffData', requestBffData);
-        vi.stubGlobal('useStudentsApi', () => ({
-            fetchList: fetchStudents,
-        }));
     });
 
     it('creates lessons through the success-only BFF helper', async () => {
@@ -53,7 +49,6 @@ describe('useLessonBookingApi', () => {
         const allVehicles = [{ id: 'vehicle-1' }, { id: 'vehicle-2' }];
         const availableVehicles = [{ id: 'vehicle-2' }];
 
-        fetchStudents.mockResolvedValue({ items: [] });
         requestBffData
             .mockResolvedValueOnce(allVehicles)
             .mockResolvedValueOnce(availableVehicles);
@@ -70,9 +65,47 @@ describe('useLessonBookingApi', () => {
 
         expect(result).toEqual({
             students: [],
+            totalPages: 0,
             vehicles: allVehicles,
             availableVehicleIds: ['vehicle-2'],
         });
         expect(requestBffData).toHaveBeenCalledTimes(2);
+    });
+
+    it('requests booking options for the fixed instructor and supports server search pages', async () => {
+        requestBffData.mockResolvedValue({
+            items: [],
+            total: 0,
+            page: 2,
+            limit: 20,
+            totalPages: 0,
+        });
+        const { useLessonBookingApi } = await import('./useLessonBookingApi');
+        const result = await useLessonBookingApi().fetchBookingOptions(
+            {
+                schoolId: 'school-1',
+                date: '2026-08-16',
+                startTime: '10:00',
+                endTime: '11:00',
+                fixedInstructor: {
+                    id: 'instructor-b',
+                    firstName: 'Jan',
+                    lastName: 'Test',
+                },
+                availableInstructors: [
+                    { id: 'instructor-c', firstName: 'Anna', lastName: 'Test' },
+                ],
+            },
+            ' Nowak ',
+            2,
+        );
+
+        expect(result.page).toBe(2);
+        const path = requestBffData.mock.calls[0]?.[1] as string;
+        const params = new URL(path, 'http://localhost').searchParams;
+
+        expect(params.get('instructorIds')).toBe('instructor-b');
+        expect(params.get('q')).toBe('Nowak');
+        expect(params.get('page')).toBe('2');
     });
 });

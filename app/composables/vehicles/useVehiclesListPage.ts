@@ -1,6 +1,7 @@
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { Vehicle } from '~/types/vehicles/vehicle';
+import { vehicleDeletionBlockMessage } from '~/utils/vehicles/deletion';
 import {
     filterVehicles,
     formatVehiclesResultsLabel,
@@ -269,6 +270,15 @@ export function useVehiclesListPage() {
 
     function handleRequestDeleteVehicle(vehicle: Vehicle) {
         deleteActionError.value = null;
+
+        const blockMessage = vehicleDeletionBlockMessage(vehicle);
+
+        if (blockMessage) {
+            deleteActionError.value = blockMessage;
+
+            return;
+        }
+
         vehiclePendingDelete.value = vehicle;
     }
 
@@ -288,6 +298,15 @@ export function useVehiclesListPage() {
 
         if (!target || !schoolId) return;
 
+        const blockMessage = vehicleDeletionBlockMessage(target);
+
+        if (blockMessage) {
+            vehiclePendingDelete.value = null;
+            deleteActionError.value = blockMessage;
+
+            return;
+        }
+
         vehiclePendingDelete.value = null;
         deleteActionError.value = null;
 
@@ -300,6 +319,10 @@ export function useVehiclesListPage() {
                 variant: 'success',
             });
         } catch (err) {
+            if (getApiErrorStatusCode(err) === 409) {
+                await loadVehicles();
+            }
+
             if (getApiErrorStatusCode(err) === 404) {
                 await loadVehicles();
 

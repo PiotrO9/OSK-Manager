@@ -73,10 +73,10 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-STU-01 | Rejestracja kursanta i przypisanie do kursu | ☐ | — |
 | MGR-STU-02 | Wyszukiwanie, filtrowanie i szczegóły kursanta | ☐ | — |
 | MGR-PAY-01 | Dodanie, edycja i rozliczenie płatności | ☐ | — |
-| MGR-VEH-01 | Dodanie i edycja pojazdu | ☐ | — |
-| MGR-VEH-02 | Status, domyślny pojazd i usunięcie | ☐ | — |
+| MGR-VEH-01 | Dodanie i edycja pojazdu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-veh-01-manual.md)) | — |
+| MGR-VEH-02 | Status, domyślny pojazd i usunięcie | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-veh-02-manual.md)) | — |
 | MGR-SCH-01 | Tygodniowy harmonogram OSK i wybór szkoły | ☐ | — |
-| MGR-LES-01 | Rezerwacja jazdy przez menedżera | ☐ | — |
+| MGR-LES-01 | Rezerwacja jazdy przez menedżera | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-les-01-manual.md)) | — |
 | MGR-LES-02 | Konflikt rezerwacji i niedostępny pojazd | ☐ | — |
 | MGR-LES-03 | Edycja jazdy i zmiana instruktora | ☐ | — |
 | MGR-LES-04 | Anulowanie jazdy | ☐ | — |

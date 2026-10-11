@@ -2,6 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { normalizeVehicle, normalizeVehicleDetail } from './vehicle';
 
 describe('normalizeVehicle', () => {
+    it('reads the scheduled lesson deletion block from the API', () => {
+        expect(
+            normalizeVehicle(
+                { id: 'vehicle-1', deletionBlockReason: 'SCHEDULED_LESSONS' },
+                0,
+            )?.deletionBlockReason,
+        ).toBe('SCHEDULED_LESSONS');
+    });
+    it('keeps an explicit null blocker for the only default vehicle', () => {
+        expect(
+            normalizeVehicle(
+                { id: 'vehicle-1', isDefault: true, deletionBlockReason: null },
+                0,
+            )?.deletionBlockReason,
+        ).toBeNull();
+    });
     it('normalizes unavailableUntil from camel case payloads', () => {
         expect(
             normalizeVehicle(
@@ -60,6 +76,7 @@ describe('normalizeVehicle', () => {
             status: 'UNAVAILABLE',
             unavailableUntil: null,
             isDefault: true,
+            deletionBlockReason: 'DEFAULT',
             inspectionDate: '2026-08-01',
             insuranceDate: '2026-09-01',
             modelYear: 2020,

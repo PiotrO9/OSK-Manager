@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ArrowUpRight, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
+import ManagerCourseCategoryBadge from './ManagerCourseCategoryBadge.vue';
 import {
     formatCourseKindLabel,
     type CourseListItem,
@@ -27,10 +28,9 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                 >{{ course.name }}</NuxtLink
             >
             <div class="flex flex-wrap items-center gap-2">
-                <StatusBadge
-                    :label="`Kat. ${course.category}`"
-                    tone="neutral"
-                    subtle
+                <ManagerCourseCategoryBadge
+                    :category="course.category"
+                    :course-type="course.courseType"
                 />
                 <StatusBadge
                     :label="formatCourseKindLabel(course.type)"

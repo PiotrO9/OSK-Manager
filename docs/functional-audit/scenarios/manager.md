@@ -183,13 +183,16 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 ### MGR-VEH-02 — Status, domyślny pojazd i usunięcie [P1]
 
-**Wymaganie:** `REQ-MGR-VEH-02` — menedżer zmienia operacyjny status i domyślny pojazd, a usunięcie potwierdza. **Dane:** dwa testowe pojazdy w jednej OSK, bez przyszłych rezerwacji na pojeździe do usunięcia.
+**Wymaganie:** `REQ-MGR-VEH-02` — menedżer zmienia operacyjny status i domyślny pojazd, a usunięcie potwierdza. Domyślny pojazd można usunąć tylko wtedy, gdy jest jedynym aktywnym pojazdem szkoły. Pojazdu z trwającą lub przyszłą lekcją nie można usunąć. **Dane:** trzy testowe pojazdy w jednej OSK: domyślny, z trwającą lub przyszłą lekcją oraz bez rezerwacji.
 
-1. Na liście floty zmień status jednego pojazdu na niedostępny; odśwież i sprawdź filtr statusu.
-2. Ustaw drugi pojazd jako domyślny; odśwież.
-3. Otwórz usuwanie pierwszego pojazdu, anuluj, potem potwierdź.
+1. Na liście floty zmień status wolnego pojazdu na niedostępny; odśwież i sprawdź filtr statusu.
+2. Spróbuj usunąć domyślny pojazd, następnie ustaw wolny pojazd jako domyślny i odśwież.
+3. Otwórz usuwanie poprzedniego pojazdu domyślnego, anuluj, potem potwierdź.
+4. Spróbuj usunąć pojazd domyślny oraz pojazd z trwającą lub przyszłą lekcją; sprawdź też bezpośrednie żądania `DELETE /vehicles/:id`.
+5. Anuluj lekcję lub przenieś ją na inny pojazd i ponów usuwanie. Sprawdź, że dawne, zakończone lekcje nie blokują usunięcia.
+6. W osobnej OSK z jednym pojazdem bez przyszłych lekcji usuń go, sprawdź pustą flotę, dodaj nowy pojazd i sprawdź, że automatycznie jest domyślny.
 
-**Oczekiwane:** status i domyślny pojazd są trwałe; anulowanie nie usuwa; potwierdzenie usuwa albo zwraca zrozumiały błąd zależności. **Do decyzji:** zasady usuwania pojazdu z historią lub przyszłymi jazdami. **Powtórzenie:** odtwórz pierwszy pojazd i status domyślny. **Źródła:** [lista](../../../app/components/vehicles/VehiclesListPanel.vue), [dialog](../../../app/components/vehicles/VehicleDeleteDialog.vue), [test statusu BE](../../../../../BE/src/__tests__/services/vehicle-status.test.ts).
+**Oczekiwane:** status i domyślny pojazd są trwałe; anulowanie nie usuwa; interfejs blokuje usuwanie pojazdu domyślnego, gdy są inne aktywne pojazdy, oraz pojazdu z trwającymi lub przyszłymi lekcjami. API zwraca wtedy konflikt `409`. Ostatni wolny pojazd można usunąć, szkoła może mieć pustą flotę, a pierwszy nowy pojazd zostaje domyślnym. **Powtórzenie:** odtwórz pierwszy pojazd i status domyślny. **Źródła:** [lista](../../../app/components/vehicles/VehiclesListPanel.vue), [dialog](../../../app/components/vehicles/VehicleDeleteDialog.vue), [test statusu BE](../../../../../BE/src/__tests__/services/vehicle-status.test.ts), [test usuwania BE](../../../../../BE/src/__tests__/services/vehicle-delete.test.ts).
 
 ## Harmonogram i lekcje
 
@@ -208,10 +211,12 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 **Wymaganie:** `REQ-MGR-LES-01` — menedżer rezerwuje wolny termin instruktora dla kursanta. **Dane:** `booking-ready`: aktywny kursant z kursem, kwalifikowany instruktor z wolnym slotem, dostępny pojazd.
 
 1. Otwórz **Instruktorzy → [instruktor] → Sloty**; przejdź do tygodnia z wolnym terminem.
-2. Wybierz slot, kursanta, jego kurs i pojazd; potwierdź rezerwację.
-3. Sprawdź ten termin w harmonogramie OSK oraz w profilu kursanta → **Lekcje**; odśwież.
+2. Dla instruktora z uprawnieniami A/B sprawdź, że kursant zapisany wyłącznie na C/C+E nie pojawia się w wyszukiwaniu. Kursant zapisany na B i C powinien być widoczny, a na jego liście kursów powinien być tylko B.
+3. Wyszukaj kursanta spoza pierwszej strony listy; po zmianie wyszukiwania sprawdź, że wcześniej wybrany kurs zostaje wyczyszczony.
+4. Wybierz slot, kursanta, jego dostępny kurs i pojazd; potwierdź rezerwację.
+5. Sprawdź ten termin w harmonogramie OSK oraz w profilu kursanta → **Lekcje**; odśwież.
 
-**Oczekiwane:** jedna jazda ma wskazanego kursanta, instruktora, pojazd i właściwą godzinę; wolny slot nie jest ponownie dostępny w konflikcie. **Powtórzenie:** anuluj testową jazdę lub resetuj lekcje. **Źródła:** [sloty](../../../app/pages/manager/instructors/[id]/slots.vue), [dialog rezerwacji](../../../app/components/manager/lessons/ManagerLessonBookingDialog.vue), [trasa BE](../../../../../BE/src/routes/lessons.routes.ts).
+**Oczekiwane:** widoczni są wyłącznie kursanci z aktywnym kursem praktycznym lub dodatkowym w kategorii obsługiwanej przez instruktora; jedna jazda ma wskazanego kursanta, instruktora, pojazd i właściwą godzinę; wolny slot nie jest ponownie dostępny w konflikcie. **Powtórzenie:** anuluj testową jazdę lub resetuj lekcje. **Źródła:** [sloty](../../../app/pages/manager/instructors/[id]/slots.vue), [dialog rezerwacji](../../../app/components/manager/lessons/ManagerLessonBookingDialog.vue), [trasa BE](../../../../../BE/src/routes/lessons.routes.ts).
 
 ### MGR-LES-02 — Konflikt rezerwacji i niedostępny pojazd [P0]
 

@@ -3,10 +3,10 @@ import type { CourseListItem } from '~/types/courses/course';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type {
     LessonBookingInstructorOption,
+    LessonBookingEligibleStudent,
     LessonBookingSlotContext,
     StudentCourseWithKind,
 } from '~/types/lessons/lessonBooking';
-import type { StudentListItem } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import type { LessonCreateAvailabilityRequest } from '~/types/schedule/scheduleAvailability';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
@@ -31,7 +31,7 @@ export function useManagerLessonBookingDialog(
     const { addToast } = useAppToast();
     const {
         loadModalData,
-        loadStudentCoursesWithKind,
+        fetchBookingOptions,
         createLesson,
         isLoadingModalData,
         isCreating,
@@ -39,7 +39,12 @@ export function useManagerLessonBookingDialog(
     } = useLessonBookingApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
-    const students = ref<StudentListItem[]>([]);
+    const students = ref<LessonBookingEligibleStudent[]>([]);
+    const studentSearch = ref('');
+    const studentPage = ref(1);
+    const studentTotalPages = ref(0);
+    const isLoadingStudents = ref(false);
+    const studentsError = ref<string | null>(null);
     const vehicles = ref<Vehicle[]>([]);
     const availableVehicleIds = ref<string[]>([]);
     const studentCourses = ref<StudentCourseWithKind[]>([]);
@@ -162,20 +167,30 @@ export function useManagerLessonBookingDialog(
     });
 
     let loadSequence = 0;
-    let studentCoursesLoadSequence = 0;
+    let studentsLoadSequence = 0;
+    let resettingSearch = false;
 
     watch(
         [options.open, options.slotCtx],
         async ([isOpen, ctx]) => {
             if (!isOpen || !ctx) {
                 loadSequence += 1;
+                studentsLoadSequence += 1;
 
                 return;
             }
 
             const requestSequence = ++loadSequence;
 
+            studentsLoadSequence += 1;
+
             students.value = [];
+            resettingSearch = true;
+            studentSearch.value = '';
+            resettingSearch = false;
+            studentPage.value = 1;
+            studentTotalPages.value = 0;
+            studentsError.value = null;
             vehicles.value = [];
             availableVehicleIds.value = [];
             studentCourses.value = [];
@@ -200,6 +215,7 @@ export function useManagerLessonBookingDialog(
                 }
 
                 students.value = data.students;
+                studentTotalPages.value = data.totalPages ?? 0;
                 vehicles.value = data.vehicles;
                 availableVehicleIds.value = data.availableVehicleIds;
                 schoolInstructors.value = instructorRows;
@@ -229,43 +245,76 @@ export function useManagerLessonBookingDialog(
         { flush: 'sync' },
     );
 
-    watch(selectedStudentUserId, async (userId) => {
-        const requestSequence = ++studentCoursesLoadSequence;
-
+    watch(selectedStudentUserId, (userId) => {
         selectedCourseId.value = '';
-        studentCourses.value = [];
         loadCoursesError.value = null;
+        studentCourses.value =
+            students.value.find((student) => student.userId === userId)
+                ?.courses ?? [];
+    });
 
-        const schoolId = options.slotCtx.value?.schoolId.trim();
-        const trimmedUserId = userId.trim();
+    async function loadStudentsPage(page: number): Promise<void> {
+        const ctx = options.slotCtx.value;
 
-        if (!trimmedUserId || !schoolId) {
-            return;
-        }
+        if (!options.open.value || !ctx) return;
+
+        const requestSequence = ++studentsLoadSequence;
+
+        isLoadingStudents.value = true;
+        studentsError.value = null;
 
         try {
-            const courses = await loadStudentCoursesWithKind(
-                trimmedUserId,
-                schoolId,
-                options.schoolCourses.value,
+            const result = await fetchBookingOptions(
+                ctx,
+                studentSearch.value,
+                page,
             );
 
-            if (requestSequence !== studentCoursesLoadSequence) {
-                return;
-            }
+            if (requestSequence !== studentsLoadSequence) return;
 
-            studentCourses.value = courses;
+            students.value =
+                page === 1
+                    ? result.items
+                    : [...students.value, ...result.items];
+            studentPage.value = page;
+            studentTotalPages.value = result.totalPages;
         } catch (err: unknown) {
-            if (requestSequence !== studentCoursesLoadSequence) {
-                return;
-            }
+            if (requestSequence !== studentsLoadSequence) return;
 
-            loadCoursesError.value = getApiFetchErrorMessage(
+            studentsError.value = getApiFetchErrorMessage(
                 err,
-                'Nie udało się wczytać kursów kursanta.',
+                'Nie udało się pobrać kursantów do rezerwacji.',
             );
+        } finally {
+            if (requestSequence === studentsLoadSequence)
+                isLoadingStudents.value = false;
         }
-    });
+    }
+
+    watch(
+        studentSearch,
+        (_search, _old, onCleanup) => {
+            if (!options.open.value || resettingSearch) return;
+
+            selectedStudentUserId.value = '';
+            students.value = [];
+            studentPage.value = 1;
+            studentsLoadSequence += 1;
+            const timer = setTimeout(() => void loadStudentsPage(1), 250);
+
+            onCleanup(() => clearTimeout(timer));
+        },
+        { flush: 'sync' },
+    );
+
+    function loadMoreStudents(): void {
+        if (
+            !isLoadingStudents.value &&
+            studentPage.value < studentTotalPages.value
+        ) {
+            void loadStudentsPage(studentPage.value + 1);
+        }
+    }
 
     function handleClose(): void {
         options.open.value = false;
@@ -337,6 +386,12 @@ export function useManagerLessonBookingDialog(
 
     return {
         students,
+        studentSearch,
+        studentPage,
+        studentTotalPages,
+        isLoadingStudents,
+        studentsError,
+        loadMoreStudents,
         vehicles,
         availableVehicleIds,
         selectedInstructorId,
