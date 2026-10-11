@@ -5,8 +5,6 @@ import { useManagerInstructorSchoolSelection } from './useManagerInstructorSchoo
 import {
     buildInstructorDetailsRoute,
     filterInstructorsForList,
-    formatQualificationFilterLabel,
-    formatVisibleInstructorsLabel,
     getInstructorQualificationOptions,
     type InstructorQuickView,
     instructorInitials,
@@ -76,17 +74,6 @@ export function useManagerInstructorsPage() {
 
         return codes.size;
     });
-
-    const visibleInstructorsLabel = computed(() =>
-        formatVisibleInstructorsLabel(visibleInstructors.value.length),
-    );
-
-    const qualificationFilterLabel = computed(() =>
-        formatQualificationFilterLabel(
-            uniqueQualificationCodesCount.value,
-            quickView.value,
-        ),
-    );
 
     const hasInstructorFilters = computed(
         () =>
@@ -216,8 +203,6 @@ export function useManagerInstructorsPage() {
         instructorsLoadError,
         instructorsWithQualificationsCount,
         uniqueQualificationCodesCount,
-        visibleInstructorsLabel,
-        qualificationFilterLabel,
         hasInstructorFilters,
         clearInstructorFilters,
         startNewAdvancedFilter: advancedFilterState.startNewFilter,

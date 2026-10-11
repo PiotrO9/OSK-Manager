@@ -9,6 +9,7 @@ const props = defineProps<{
     hasOfferedCategoryList: boolean;
     kindOptions: readonly CourseKind[];
     isDisabled: boolean;
+    isStructureDisabled?: boolean;
     showNameRequired: boolean;
     showCategoryRequired: boolean;
     showKindRequired: boolean;
@@ -59,7 +60,7 @@ const formMessages = courseCreateFormMessages;
         <UiSelect
             v-if="props.hasOfferedCategoryList"
             v-model="categoryModel"
-            :disabled="props.isDisabled"
+            :disabled="props.isDisabled || props.isStructureDisabled"
         >
             <UiSelectTrigger
                 id="course-create-category"
@@ -96,7 +97,7 @@ const formMessages = courseCreateFormMessages;
             name="category"
             autocomplete="off"
             placeholder="Np. B, CE"
-            :disabled="props.isDisabled"
+            :disabled="props.isDisabled || props.isStructureDisabled"
             :aria-invalid="props.showCategoryRequired"
             :aria-describedby="
                 props.showCategoryRequired
@@ -121,7 +122,10 @@ const formMessages = courseCreateFormMessages;
 
     <div class="space-y-2">
         <UiLabel for="course-create-kind">Rodzaj kursu</UiLabel>
-        <UiSelect v-model="kindModel" :disabled="props.isDisabled">
+        <UiSelect
+            v-model="kindModel"
+            :disabled="props.isDisabled || props.isStructureDisabled"
+        >
             <UiSelectTrigger
                 id="course-create-kind"
                 class="bg-background h-10 w-full rounded-xl"
@@ -173,7 +177,7 @@ const formMessages = courseCreateFormMessages;
                     ? 'course-create-hours-error'
                     : undefined
             "
-            :disabled="props.isDisabled"
+            :disabled="props.isDisabled || props.isStructureDisabled"
             class="bg-background h-10 rounded-xl"
         />
         <p

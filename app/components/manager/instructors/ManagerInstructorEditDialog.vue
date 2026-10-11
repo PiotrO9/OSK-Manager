@@ -9,6 +9,7 @@ defineProps<{
     selectedQualifiedCourseTypes: CourseTypeOption[];
     isCourseTypesLoading: boolean;
     courseTypesError: string | null;
+    categoriesOnly: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -36,16 +37,25 @@ function handleFormSubmit(): void {
         <UiDialogContent
             :show-close-button="!isSubmitting"
             :close-on-outside-click="false"
-            :aria-describedby="DESCRIPTION_ID"
+            :aria-describedby="categoriesOnly ? undefined : DESCRIPTION_ID"
             class="max-h-[90vh] max-w-lg overflow-y-auto"
         >
             <UiDialogHeader>
-                <UiDialogTitle>Edycja instruktora</UiDialogTitle>
-                <UiDialogDescription :id="DESCRIPTION_ID">
-                    Zmiany zapisują się przez
-                    <span class="font-mono">PATCH /api/instructors/:id</span>.
-                    E‑mail jest tylko do odczytu. Kliknięcie poza oknem nie
-                    zamyka formularza.
+                <div class="flex items-center gap-1">
+                    <UiDialogTitle>{{
+                        categoriesOnly
+                            ? 'Kategorie uprawnień'
+                            : 'Edycja instruktora'
+                    }}</UiDialogTitle>
+                    <ManagerInstructorCategoryRulesTooltip
+                        v-if="categoriesOnly"
+                    />
+                </div>
+                <UiDialogDescription
+                    v-if="!categoriesOnly"
+                    :id="DESCRIPTION_ID"
+                >
+                    Zmień dane profilu i uprawnienia instruktora.
                 </UiDialogDescription>
             </UiDialogHeader>
 
@@ -58,6 +68,7 @@ function handleFormSubmit(): void {
                 :selected-qualified-course-types="selectedQualifiedCourseTypes"
                 :is-course-types-loading="isCourseTypesLoading"
                 :course-types-error="courseTypesError"
+                :categories-only="categoriesOnly"
                 @cancel="handleCancel"
                 @submit="handleFormSubmit"
             />

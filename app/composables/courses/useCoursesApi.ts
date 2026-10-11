@@ -7,7 +7,7 @@ import {
     type CourseDetail,
     type CourseListItem,
     type CurrentUserCourseItem,
-    type CoursePatchInstructorPayload,
+    type CoursePatchPayload,
 } from '~/types/courses/course';
 import { requestBffData } from '../core/useApi';
 
@@ -88,7 +88,7 @@ export function useCoursesApi() {
 
     async function patchCourse(
         courseId: string,
-        body: CoursePatchInstructorPayload,
+        body: CoursePatchPayload,
     ): Promise<CourseDetail> {
         const id = courseId.trim();
 
@@ -98,8 +98,7 @@ export function useCoursesApi() {
                 `/api/courses/${encodeURIComponent(id)}`,
                 {
                     body,
-                    fallbackMessage:
-                        'Nie udało się zaktualizować instruktora kursu.',
+                    fallbackMessage: 'Nie udało się zaktualizować kursu.',
                     invalidMessage:
                         'Nieprawidłowa odpowiedź serwera (kurs po PATCH).',
                     normalize: (data) => normalizeCourseDetailData(data),

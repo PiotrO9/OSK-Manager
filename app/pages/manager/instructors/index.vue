@@ -26,8 +26,6 @@ const {
     visibleInstructors,
     isInstructorsLoading,
     instructorsLoadError,
-    visibleInstructorsLabel,
-    qualificationFilterLabel,
     instructorsWithQualificationsCount,
     uniqueQualificationCodesCount,
     hasInstructorFilters,
@@ -83,8 +81,6 @@ const {
             :is-instructors-loading="isInstructorsLoading"
             :schools-load-error="schoolsLoadError"
             :instructors-load-error="instructorsLoadError"
-            :visible-instructors-label="visibleInstructorsLabel"
-            :qualification-filter-label="qualificationFilterLabel"
             :instructors-with-qualifications-count="
                 instructorsWithQualificationsCount
             "

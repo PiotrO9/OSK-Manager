@@ -47,11 +47,25 @@ export interface CurrentUserCourseItem {
 /** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */
 export interface CourseDetail extends CourseListItem {
     capacity: number | null;
+    hasActivity?: boolean;
+    theoryStartDate?: string | null;
+    theoryEndDate?: string | null;
     /** Gdy backend / mock zwraca (np. do `GET /instructors?schoolId`). */
     schoolId?: string;
 }
 
-/** Body PATCH `/courses/:id` — tylko zmiana instruktora (MVP). */
+/** Body PATCH `/courses/:id` — edycja kursu lub zmiana instruktora. */
 export interface CoursePatchInstructorPayload {
     instructorId: string | null;
+}
+
+export interface CoursePatchPayload {
+    instructorId?: string | null;
+    name?: string;
+    category?: string;
+    kind?: CourseKind;
+    totalHours?: number;
+    capacity?: number | null;
+    theoryStartDate?: string | null;
+    theoryEndDate?: string | null;
 }

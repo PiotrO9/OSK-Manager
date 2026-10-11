@@ -194,7 +194,6 @@ describe('useManagerInstructorsPage', () => {
         expect(page.visibleInstructors.value.map((item) => item.id)).toEqual([
             'instructor-1',
         ]);
-        expect(page.visibleInstructorsLabel.value).toBe('1 wynik');
 
         page.search.value = '';
         page.quickView.value = 'unqualified';
@@ -202,7 +201,6 @@ describe('useManagerInstructorsPage', () => {
         expect(page.visibleInstructors.value.map((item) => item.id)).toEqual([
             'instructor-2',
         ]);
-        expect(page.qualificationFilterLabel.value).toBe('Bez kwalifikacji');
         expect(page.hasInstructorFilters.value).toBe(true);
 
         page.quickView.value = 'all';

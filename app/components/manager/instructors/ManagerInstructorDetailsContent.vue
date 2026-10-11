@@ -21,7 +21,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    edit: [];
+    edit: [section: 'general' | 'categories'];
     delete: [];
 }>();
 
@@ -170,6 +170,9 @@ function handleTabChange(value: string | number): void {
                     :has-qualified-course-types="
                         props.instructor.qualifiedCourseTypes.length > 0
                     "
+                    :is-submitting="props.isSubmitting"
+                    :is-deleting="props.isDeleting"
+                    @edit-categories="emit('edit', 'categories')"
                 />
             </aside>
 
@@ -385,7 +388,7 @@ function handleTabChange(value: string | number): void {
                             :instructor="props.instructor"
                             :is-submitting="props.isSubmitting"
                             :is-deleting="props.isDeleting"
-                            @edit="emit('edit')"
+                            @edit="emit('edit', 'general')"
                             @delete="emit('delete')"
                         />
                     </section>

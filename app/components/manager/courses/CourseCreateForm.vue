@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
-import type { CourseCreatePayload, CourseKind } from '~/types/courses/course';
+import type {
+    CourseCreatePayload,
+    CourseKind,
+    CourseDetail,
+} from '~/types/courses/course';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 
 const props = defineProps<{
@@ -18,6 +22,8 @@ const props = defineProps<{
     isSaving: boolean;
     isCreated: boolean;
     apiError: string | null;
+    initialCourse?: CourseDetail;
+    initialInstructorId?: string;
 }>();
 
 const emit = defineEmits<{
@@ -54,32 +60,60 @@ const {
 
 const isDisabled = computed(() => props.isSaving || isFormBlocked.value);
 const formElement = useTemplateRef<HTMLFormElement>('formElement');
+const isLeaveDialogOpen = shallowRef(false);
+let leaveDecision: Promise<boolean> | null = null;
+let resolveLeaveDecision: ((allow: boolean) => void) | null = null;
 
 const hasUnsavedChanges = computed(
     () =>
         !props.isCreated &&
-        (nameModel.value.trim() !== '' ||
-            totalHoursModel.value !== '30' ||
-            capacityModel.value !== '' ||
-            theoryStartModel.value !== '' ||
-            theoryEndModel.value !== '' ||
-            instructorIdModel.value !== '' ||
-            (props.offeredCourseTypes[0]?.code ?? '') !== categoryModel.value ||
-            (kindOptions.value[0] ?? 'THEORY_GROUP') !== kindModel.value),
+        (nameModel.value.trim() !== (props.initialCourse?.name ?? '') ||
+            totalHoursModel.value !==
+                String(props.initialCourse?.totalHours ?? 30) ||
+            capacityModel.value !==
+                (props.initialCourse?.capacity == null
+                    ? ''
+                    : String(props.initialCourse.capacity)) ||
+            theoryStartModel.value !==
+                (props.initialCourse?.theoryStartDate ?? '') ||
+            theoryEndModel.value !==
+                (props.initialCourse?.theoryEndDate ?? '') ||
+            instructorIdModel.value !== (props.initialInstructorId ?? '') ||
+            (props.initialCourse?.category ??
+                props.offeredCourseTypes[0]?.code ??
+                '') !== categoryModel.value ||
+            (props.initialCourse?.type ??
+                kindOptions.value[0] ??
+                'THEORY_GROUP') !== kindModel.value),
 );
 
-function confirmLeave() {
-    return (
-        !hasUnsavedChanges.value ||
-        !import.meta.client ||
-        window.confirm(
-            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić formularz?',
-        )
-    );
+function requestLeave(): boolean | Promise<boolean> {
+    if (props.isCreated || !hasUnsavedChanges.value || !import.meta.client)
+        return true;
+
+    if (props.isSaving) return false;
+
+    if (leaveDecision) return leaveDecision;
+
+    isLeaveDialogOpen.value = true;
+    leaveDecision = new Promise<boolean>((resolve) => {
+        resolveLeaveDecision = resolve;
+    });
+
+    return leaveDecision;
 }
 
-onBeforeRouteLeave(confirmLeave);
-onBeforeRouteUpdate(confirmLeave);
+function finishLeaveDecision(allow: boolean): void {
+    const resolve = resolveLeaveDecision;
+
+    resolveLeaveDecision = null;
+    leaveDecision = null;
+    isLeaveDialogOpen.value = false;
+    resolve?.(allow);
+}
+
+onBeforeRouteLeave(requestLeave);
+onBeforeRouteUpdate(requestLeave);
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {
     if (hasUnsavedChanges.value) {
@@ -92,6 +126,7 @@ onMounted(() => window.addEventListener('beforeunload', handleBeforeUnload));
 onBeforeUnmount(() =>
     window.removeEventListener('beforeunload', handleBeforeUnload),
 );
+onBeforeUnmount(() => finishLeaveDecision(false));
 
 async function submitForm() {
     if (!handleSubmit()) {
@@ -119,7 +154,11 @@ async function submitForm() {
             <div class="min-w-0">
                 <h2 class="text-foreground text-lg font-bold">Dane kursu</h2>
                 <p class="text-muted-foreground mt-1 text-sm leading-relaxed">
-                    Podstawowe informacje o nowym kursie.
+                    {{
+                        props.initialCourse
+                            ? 'Zmień dane kursu.'
+                            : 'Podstawowe informacje o nowym kursie.'
+                    }}
                 </p>
             </div>
         </div>
@@ -132,6 +171,16 @@ async function submitForm() {
                 aria-live="polite"
             >
                 {{ apiError }}
+            </p>
+
+            <p
+                v-if="props.initialCourse?.hasActivity"
+                class="text-muted-foreground text-sm"
+                role="status"
+            >
+                Kurs ma już zapisy lub zajęcia. Nie można zmienić kategorii,
+                rodzaju, liczby godzin ani terminów teorii. Nadal możesz
+                edytować nazwę, instruktora i limit miejsc.
             </p>
 
             <p
@@ -166,6 +215,9 @@ async function submitForm() {
                     :has-offered-category-list="hasOfferedCategoryList"
                     :kind-options="kindOptions"
                     :is-disabled="isDisabled"
+                    :is-structure-disabled="
+                        Boolean(props.initialCourse?.hasActivity)
+                    "
                     :show-name-required="showNameRequired"
                     :show-category-required="showCategoryRequired"
                     :show-kind-required="showKindRequired"
@@ -190,6 +242,9 @@ async function submitForm() {
                     v-model:theory-end="theoryEndModel"
                     v-model:capacity="capacityModel"
                     :is-disabled="isDisabled"
+                    :is-structure-disabled="
+                        Boolean(props.initialCourse?.hasActivity)
+                    "
                     :show-theory-start-required="showTheoryStartRequired"
                     :show-theory-end-required="showTheoryEndRequired"
                     :show-theory-range-invalid="showTheoryRangeInvalid"
@@ -216,6 +271,17 @@ async function submitForm() {
         <CourseCreateFormActions
             :is-saving="isSaving"
             :is-blocked="isFormBlocked"
+            :is-editing="Boolean(props.initialCourse)"
+            :cancel-to="
+                props.initialCourse
+                    ? `/manager/courses/${props.initialCourse.id}`
+                    : '/manager/courses'
+            "
         />
     </form>
+    <CourseCreateDiscardDialog
+        :open="isLeaveDialogOpen"
+        @cancel="finishLeaveDecision(false)"
+        @discard="finishLeaveDecision(true)"
+    />
 </template>

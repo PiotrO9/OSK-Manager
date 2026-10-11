@@ -31,6 +31,7 @@ export function useManagerInstructorDetailsEdit({
     const isSubmitting = ref(false);
     const submitError = ref<string | null>(null);
     const isEditDialogOpen = ref(false);
+    const editSection = shallowRef<'general' | 'categories'>('general');
 
     watch(isEditDialogOpen, (open) => {
         if (open) {
@@ -49,8 +50,11 @@ export function useManagerInstructorDetailsEdit({
         isEditDialogOpen.value = false;
     }
 
-    function handleEnterEdit(): void {
+    function handleEnterEdit(
+        section: 'general' | 'categories' = 'general',
+    ): void {
         submitError.value = null;
+        editSection.value = section;
 
         if (editBaseline.value) {
             editForm.value = { ...editBaseline.value };
@@ -145,6 +149,7 @@ export function useManagerInstructorDetailsEdit({
         isSubmitting,
         submitError,
         isEditDialogOpen,
+        editSection,
         resetEditState,
         handleEnterEdit,
         handleSubmitEdit,

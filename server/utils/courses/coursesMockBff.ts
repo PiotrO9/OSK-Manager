@@ -2,6 +2,7 @@ import {
     mockCoursesGetById,
     mockCoursesListPayload,
     mockCoursesPatchInstructor,
+    mockCoursesPatchDetails,
     mockCoursesPushCreate,
     mockInstructorQualifiedForCategory,
 } from '~~/server/utils/courses/mockCoursesList';
@@ -95,9 +96,63 @@ export function bffMockCoursesPatch(
     id: string,
     record: BffCoursePatchInstructorBody,
 ): { success: true; data: unknown } {
-    if (!('instructorId' in record)) {
-        return bffMockCoursesGetById(id);
+    const existing = mockCoursesGetById(id);
+
+    if (!existing)
+        throw createError({ statusCode: 404, message: 'Kurs nie istnieje.' });
+
+    if (record.instructorId) {
+        if (
+            !mockInstructorBelongsToSchool(
+                existing.schoolId,
+                record.instructorId,
+            )
+        ) {
+            throw createError({
+                statusCode: 400,
+                message:
+                    'Wybrany instruktor nie jest przypisany do szkoły tego kursu.',
+            });
+        }
+
+        if (
+            !mockInstructorQualifiedForCategory(
+                existing.schoolId,
+                record.instructorId,
+                record.category ?? existing.category,
+            )
+        ) {
+            throw createError({
+                statusCode: 400,
+                message: 'Instructor is not qualified for this course category',
+            });
+        }
     }
+
+    const detailPatch = {
+        ...(record.name !== undefined ? { name: record.name } : {}),
+        ...(record.category !== undefined ? { category: record.category } : {}),
+        ...(record.kind !== undefined ? { type: record.kind } : {}),
+        ...(record.totalHours !== undefined
+            ? { totalHours: record.totalHours }
+            : {}),
+        ...(record.capacity !== undefined ? { capacity: record.capacity } : {}),
+        ...(record.theoryStartDate !== undefined
+            ? { theoryStartDate: record.theoryStartDate }
+            : {}),
+        ...(record.theoryEndDate !== undefined
+            ? { theoryEndDate: record.theoryEndDate }
+            : {}),
+    };
+
+    if (
+        Object.keys(detailPatch).length &&
+        !mockCoursesPatchDetails(id, detailPatch)
+    ) {
+        throw createError({ statusCode: 404, message: 'Kurs nie istnieje.' });
+    }
+
+    if (!('instructorId' in record)) return bffMockCoursesGetById(id);
 
     const patchResult = mockCoursesPatchInstructor(
         id,

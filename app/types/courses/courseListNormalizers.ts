@@ -90,6 +90,15 @@ function normalizeCourseDetailInner(raw: unknown): CourseDetail | null {
     return {
         ...base,
         capacity: normalizeCourseCapacity(courseRecord),
+        hasActivity: courseRecord.hasActivity === true,
+        theoryStartDate:
+            typeof courseRecord.theoryStartDate === 'string'
+                ? courseRecord.theoryStartDate.slice(0, 10)
+                : null,
+        theoryEndDate:
+            typeof courseRecord.theoryEndDate === 'string'
+                ? courseRecord.theoryEndDate.slice(0, 10)
+                : null,
         ...(schoolId !== undefined ? { schoolId } : {}),
     };
 }

@@ -15,6 +15,7 @@ const {
     isSubmitting,
     submitError,
     isEditDialogOpen,
+    editSection,
     isDeleteDialogOpen,
     isDeleting,
     ratingSummary,
@@ -63,6 +64,7 @@ const {
             v-model:open="isEditDialogOpen"
             v-model:form="editForm"
             :is-submitting="isSubmitting || isDeleting"
+            :categories-only="editSection === 'categories'"
             :submit-error="submitError"
             :course-types="courseTypes"
             :selected-qualified-course-types="

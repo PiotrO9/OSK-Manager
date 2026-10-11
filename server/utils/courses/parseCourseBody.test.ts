@@ -133,4 +133,33 @@ describe('course body parsers', () => {
             error: 'Pole instructorId musi być poprawnym identyfikatorem UUID lub null.',
         });
     });
+
+    it('parses course edits alongside instructor assignment', () => {
+        expect(
+            parseCoursePatchInstructorBody({
+                name: '  Nowy kurs  ',
+                category: 'B',
+                kind: 'THEORY_GROUP',
+                totalHours: 32,
+                capacity: 10,
+                theoryStartDate: '2026-11-01',
+                theoryEndDate: '2026-11-30',
+                instructorId: null,
+            }),
+        ).toEqual({
+            record: {
+                name: 'Nowy kurs',
+                category: 'B',
+                kind: 'THEORY_GROUP',
+                totalHours: 32,
+                capacity: 10,
+                theoryStartDate: '2026-11-01',
+                theoryEndDate: '2026-11-30',
+                instructorId: null,
+            },
+        });
+        expect(parseCoursePatchInstructorBody({ totalHours: 0 })).toEqual({
+            error: 'Nieprawidłowe pole totalHours.',
+        });
+    });
 });

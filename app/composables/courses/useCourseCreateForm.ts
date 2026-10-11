@@ -1,6 +1,6 @@
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
-import type { CourseCreatePayload } from '~/types/courses/course';
+import type { CourseCreatePayload, CourseDetail } from '~/types/courses/course';
 import { instructorHasCourseCategoryQualification } from '~/types/instructors/instructor';
 import { COURSE_KINDS, type CourseKind } from '~~/shared/contracts/courses';
 
@@ -11,8 +11,11 @@ export interface CourseCreateFormProps {
     isSchoolContextLoading: boolean;
     instructors: InstructorListItem[];
     isInstructorsLoading: boolean;
+    instructorsLoadError?: string | null;
     isSaving: boolean;
     apiError: string | null;
+    initialCourse?: CourseDetail;
+    initialInstructorId?: string;
 }
 
 const ALL_KINDS: readonly CourseKind[] = COURSE_KINDS;
@@ -39,14 +42,20 @@ export function useCourseCreateForm(
     props: Readonly<CourseCreateFormProps>,
     submit: (payload: CourseCreatePayload) => void,
 ) {
-    const nameModel = ref('');
-    const categoryModel = ref<string>('');
-    const kindModel = ref<CourseKind>('THEORY_GROUP');
-    const totalHoursModel = ref('30');
-    const capacityModel = ref('');
-    const theoryStartModel = ref('');
-    const theoryEndModel = ref('');
-    const instructorIdModel = ref('');
+    const nameModel = ref(props.initialCourse?.name ?? '');
+    const categoryModel = ref<string>(props.initialCourse?.category ?? '');
+    const kindModel = ref<CourseKind>(
+        props.initialCourse?.type ?? 'THEORY_GROUP',
+    );
+    const totalHoursModel = ref(String(props.initialCourse?.totalHours ?? 30));
+    const capacityModel = ref(
+        props.initialCourse?.capacity == null
+            ? ''
+            : String(props.initialCourse.capacity),
+    );
+    const theoryStartModel = ref(props.initialCourse?.theoryStartDate ?? '');
+    const theoryEndModel = ref(props.initialCourse?.theoryEndDate ?? '');
+    const instructorIdModel = ref(props.initialInstructorId ?? '');
 
     const showNameRequired = ref(false);
     const showCategoryRequired = ref(false);
@@ -60,7 +69,10 @@ export function useCourseCreateForm(
     const kindOptions = computed(() => {
         const allow = props.enabledCourseKinds ?? [];
 
-        return ALL_KINDS.filter((kind) => allow.includes(kind));
+        return ALL_KINDS.filter(
+            (kind) =>
+                allow.includes(kind) || props.initialCourse?.type === kind,
+        );
     });
 
     const isFormBlocked = computed(
@@ -106,7 +118,11 @@ export function useCourseCreateForm(
             return;
         }
 
-        if (!items.some((item) => item.id === selected)) {
+        if (
+            !props.isInstructorsLoading &&
+            !props.instructorsLoadError &&
+            !items.some((item) => item.id === selected)
+        ) {
             instructorIdModel.value = '';
         }
     });
@@ -120,7 +136,7 @@ export function useCourseCreateForm(
 
             const codes = types.map((t) => t.code);
 
-            if (!codes.includes(categoryModel.value)) {
+            if (!codes.includes(categoryModel.value) && !props.initialCourse) {
                 categoryModel.value = types[0]!.code;
             }
         },
@@ -134,7 +150,7 @@ export function useCourseCreateForm(
                 return;
             }
 
-            if (!opts.includes(kindModel.value)) {
+            if (!opts.includes(kindModel.value) && !props.initialCourse) {
                 kindModel.value = opts[0]!;
             }
         },
@@ -157,7 +173,8 @@ export function useCourseCreateForm(
         const catTrim = categoryModel.value.trim();
         const catOk =
             catTrim.length > 0 &&
-            (props.offeredCourseTypes.length === 0
+            (props.offeredCourseTypes.length === 0 ||
+            props.initialCourse?.category === catTrim
                 ? true
                 : props.offeredCourseTypes.some((t) => t.code === catTrim));
         const kindOk = kindOptions.value.includes(kindModel.value);

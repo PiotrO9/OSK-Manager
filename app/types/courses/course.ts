@@ -6,6 +6,7 @@ export type {
     CourseListItem,
     CourseParticipantStatus,
     CoursePatchInstructorPayload,
+    CoursePatchPayload,
     CurrentUserCourseItem,
 } from './courseModels';
 export {

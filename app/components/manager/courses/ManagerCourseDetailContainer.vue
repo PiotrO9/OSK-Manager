@@ -110,6 +110,9 @@ function handleTabChange(value: string | number): void {
             :description="courseSubtitle"
             :back-to-courses-href="backToCoursesHref"
             :create-course-target="createCourseTarget"
+            :edit-course-target="
+                course ? `/manager/courses/${course.id}/edit` : undefined
+            "
         />
 
         <LoadingState

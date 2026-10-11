@@ -60,17 +60,24 @@ defineProps<{ courses: CourseListItem[] }>();
                     >{{ formatInstructorCell(course) }}</span
                 >
             </div>
-            <UiButton as-child variant="outline" class="h-11 w-full gap-2">
-                <NuxtLink
-                    :to="{
-                        path: `/manager/courses/${course.id}`,
-                    }"
-                    :aria-label="`Szczegóły kursu: ${course.name}`"
-                    >Szczegóły kursu<ArrowUpRight
-                        class="size-4"
-                        aria-hidden="true"
-                /></NuxtLink>
-            </UiButton>
+            <div class="flex gap-2">
+                <UiButton as-child variant="outline" class="h-11 flex-1 gap-2">
+                    <NuxtLink
+                        :to="{
+                            path: `/manager/courses/${course.id}`,
+                        }"
+                        :aria-label="`Szczegóły kursu: ${course.name}`"
+                        >Szczegóły kursu<ArrowUpRight
+                            class="size-4"
+                            aria-hidden="true"
+                    /></NuxtLink>
+                </UiButton>
+                <UiButton as-child variant="outline" class="h-11 flex-1">
+                    <NuxtLink :to="`/manager/courses/${course.id}/edit`"
+                        >Edytuj kurs</NuxtLink
+                    >
+                </UiButton>
+            </div>
         </article>
     </div>
 </template>

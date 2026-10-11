@@ -21,8 +21,6 @@ const props = defineProps<{
     advancedFilterDraft: InstructorAdvancedFilterDraft;
     advancedFilterDraftError: string | null;
     qualificationOptions: readonly InstructorAdvancedFilterQualificationOption[];
-    visibleInstructorsLabel: string;
-    qualificationFilterLabel: string;
     instructorsWithQualificationsCount: number;
     uniqueQualificationCodesCount: number;
     hasActiveFilters: boolean;
@@ -89,9 +87,7 @@ function handleSchoolUpdate(value: unknown) {
             :is-loading="isSchoolsLoading || isInstructorsLoading"
             aria-label="Filtry listy instruktorów"
         >
-            <div
-                class="flex w-full min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
-            >
+            <div class="w-full min-w-0">
                 <div
                     v-if="schools.length > 1"
                     class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 lg:max-w-sm lg:flex-1"
@@ -105,26 +101,6 @@ function handleSchoolUpdate(value: unknown) {
                     />
                 </div>
                 <SchoolContext v-else :school="activeSchool" />
-
-                <div
-                    class="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-end sm:gap-3 lg:w-96 lg:shrink-0"
-                >
-                    <span class="text-muted-foreground shrink-0 text-xs">
-                        Zakres
-                    </span>
-                    <div class="flex min-w-0 flex-wrap items-center gap-2">
-                        <StatusBadge
-                            :label="qualificationFilterLabel"
-                            tone="neutral"
-                            subtle
-                        />
-                        <span
-                            class="text-muted-foreground text-xs font-semibold whitespace-nowrap"
-                        >
-                            {{ visibleInstructorsLabel }}
-                        </span>
-                    </div>
-                </div>
             </div>
         </FilterBar>
 

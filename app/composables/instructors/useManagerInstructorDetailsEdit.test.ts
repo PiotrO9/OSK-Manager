@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref, watch } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import type {
     InstructorDetail,
     InstructorEditFormModel,
@@ -19,6 +19,7 @@ vi.mock('../core/useApi', () => ({
 
 function installNuxtEditGlobals(): void {
     vi.stubGlobal('ref', ref);
+    vi.stubGlobal('shallowRef', shallowRef);
     vi.stubGlobal('watch', watch);
     vi.stubGlobal('useRoute', () => route);
     vi.stubGlobal('useAppToast', () => ({ addToast }));
@@ -81,6 +82,42 @@ describe('useManagerInstructorDetailsEdit', () => {
         expect(data.isEditDialogOpen.value).toBe(true);
         expect(editForm.value).toEqual(editBaseline.value);
         expect(editForm.value).not.toBe(editBaseline.value);
+    });
+
+    it('opens category editing from the instructor profile and sends only changed categories', async () => {
+        requestBffData.mockResolvedValue({
+            id: 'instructor-1',
+            firstName: 'Anna',
+            lastName: 'Nowak',
+            email: 'anna@example.com',
+            qualifications: 'Kat. B',
+            qualifiedCourseTypes: [
+                { id: 'course-a', code: 'A', name: 'Kategoria A' },
+            ],
+            experienceYears: 5,
+        });
+
+        const { useManagerInstructorDetailsEdit } =
+            await import('./useManagerInstructorDetailsEdit');
+        const editForm = ref(createEditForm());
+        const data = useManagerInstructorDetailsEdit({
+            instructor: ref(createInstructor()),
+            editForm,
+            editBaseline: ref(createEditForm()),
+        });
+
+        data.handleEnterEdit('categories');
+        expect(data.editSection.value).toBe('categories');
+        editForm.value!.qualifiedCourseTypeIds = ['course-a'];
+        await data.handleSubmitEdit();
+
+        expect(requestBffData).toHaveBeenCalledWith(
+            'PATCH',
+            '/api/instructors/instructor-1',
+            expect.objectContaining({
+                body: { qualifiedCourseTypeIds: ['course-a'] },
+            }),
+        );
     });
 
     it('closes edit dialog without API calls when form has no changes', async () => {
@@ -257,5 +294,31 @@ describe('useManagerInstructorDetailsEdit', () => {
 
         expect(data.submitError.value).toBe('API down');
         expect(data.isSubmitting.value).toBe(false);
+    });
+
+    it('shows the server reason when removing a category is blocked', async () => {
+        const message =
+            'Nie można usunąć uprawnienia do kategorii B: instruktor ma zaplanowane zajęcia.';
+
+        requestBffData.mockRejectedValue({
+            statusCode: 409,
+            data: { message },
+        });
+
+        const { useManagerInstructorDetailsEdit } =
+            await import('./useManagerInstructorDetailsEdit');
+        const editForm = ref(createEditForm());
+        const data = useManagerInstructorDetailsEdit({
+            instructor: ref(createInstructor()),
+            editForm,
+            editBaseline: ref(createEditForm()),
+        });
+
+        data.handleEnterEdit('categories');
+        editForm.value.qualifiedCourseTypeIds = [];
+        await data.handleSubmitEdit();
+
+        expect(data.submitError.value).toBe(message);
+        expect(data.isEditDialogOpen.value).toBe(true);
     });
 });

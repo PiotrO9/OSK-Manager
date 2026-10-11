@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight } from 'lucide-vue-next';
+import { ArrowUpRight, Pencil } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatCourseKindLabel,
@@ -20,18 +20,18 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
             class="border-border bg-muted/30 text-muted-foreground border-b text-xs"
         >
             <tr>
-                <th scope="col" class="w-[28%] px-5 py-3 font-medium">Kurs</th>
+                <th scope="col" class="w-[26%] px-5 py-3 font-medium">Kurs</th>
                 <th scope="col" class="w-[10%] px-3 py-3 font-medium">
                     Kategoria
                 </th>
-                <th scope="col" class="w-[18%] px-3 py-3 font-medium">Typ</th>
+                <th scope="col" class="w-[17%] px-3 py-3 font-medium">Typ</th>
                 <th scope="col" class="w-[8%] px-3 py-3 text-right font-medium">
                     Godziny
                 </th>
-                <th scope="col" class="w-[30%] px-3 py-3 font-medium">
+                <th scope="col" class="w-[31%] px-3 py-3 font-medium">
                     Instruktor
                 </th>
-                <th scope="col" class="w-[6%] px-1 py-3">
+                <th scope="col" class="w-[8%] py-3 pr-5 pl-1 text-right">
                     <span class="sr-only">Akcje</span>
                 </th>
             </tr>
@@ -103,29 +103,53 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                         >{{ formatInstructorCell(course) }}</span
                     >
                 </td>
-                <td class="px-1 py-4">
-                    <UiTooltip
-                        ><UiTooltipTrigger as-child>
-                            <UiButton
-                                as-child
-                                variant="ghost"
-                                size="icon"
-                                class="size-9"
-                            >
-                                <NuxtLink
-                                    :to="{
-                                        path: `/manager/courses/${course.id}`,
-                                    }"
-                                    :aria-label="`Szczegóły kursu: ${course.name}`"
-                                    ><ArrowUpRight
-                                        class="size-4"
-                                        aria-hidden="true"
-                                /></NuxtLink>
-                            </UiButton> </UiTooltipTrigger
-                        ><UiTooltipContent
-                            >Szczegóły kursu</UiTooltipContent
-                        ></UiTooltip
-                    >
+                <td class="py-4 pr-5 pl-1">
+                    <div class="flex items-center justify-end">
+                        <UiTooltip
+                            ><UiTooltipTrigger as-child>
+                                <UiButton
+                                    as-child
+                                    variant="ghost"
+                                    size="icon"
+                                    class="size-9"
+                                >
+                                    <NuxtLink
+                                        :to="`/manager/courses/${course.id}/edit`"
+                                        :aria-label="`Edytuj kurs: ${course.name}`"
+                                    >
+                                        <Pencil
+                                            class="size-4"
+                                            aria-hidden="true"
+                                        />
+                                    </NuxtLink>
+                                </UiButton> </UiTooltipTrigger
+                            ><UiTooltipContent
+                                >Edytuj kurs</UiTooltipContent
+                            ></UiTooltip
+                        >
+                        <UiTooltip
+                            ><UiTooltipTrigger as-child>
+                                <UiButton
+                                    as-child
+                                    variant="ghost"
+                                    size="icon"
+                                    class="size-9"
+                                >
+                                    <NuxtLink
+                                        :to="{
+                                            path: `/manager/courses/${course.id}`,
+                                        }"
+                                        :aria-label="`Szczegóły kursu: ${course.name}`"
+                                        ><ArrowUpRight
+                                            class="size-4"
+                                            aria-hidden="true"
+                                    /></NuxtLink>
+                                </UiButton> </UiTooltipTrigger
+                            ><UiTooltipContent
+                                >Szczegóły kursu</UiTooltipContent
+                            ></UiTooltip
+                        >
+                    </div>
                 </td>
             </tr>
         </tbody>

@@ -18,6 +18,8 @@ export interface MockCourseListRow {
     instructor: { id: string; name: string; avatarUrl: string | null } | null;
     /** Tylko typ THEORY_GROUP; brak pola = domyślne 24 w szczegółach (seedy demo). */
     capacity?: number | null;
+    theoryStartDate?: string | null;
+    theoryEndDate?: string | null;
 }
 
 type GlobalWithStore = typeof globalThis & {
@@ -50,6 +52,8 @@ function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
             category: 'B',
             type: 'THEORY_GROUP',
             totalHours: 30,
+            theoryStartDate: '2026-11-01',
+            theoryEndDate: '2026-11-30',
             instructor: {
                 id: crypto.randomUUID(),
                 name: 'Anna Nowak',
@@ -220,6 +224,8 @@ export function mockCoursesPushCreate(
 
     if (input.kind === 'THEORY_GROUP') {
         listRow.capacity = input.capacity;
+        listRow.theoryStartDate = input.theoryStartDate;
+        listRow.theoryEndDate = input.theoryEndDate;
     }
 
     const bucket = getOrCreateSchoolCoursesBucket(schoolId);
@@ -250,6 +256,7 @@ export function mockCoursesPushCreate(
 /** Kształt `data.course` jak w GET `/courses/:id` wg courses-api.md (BE). */
 export interface MockCourseDetailRow extends MockCourseListRow {
     capacity: number | null;
+    hasActivity?: boolean;
 }
 
 /** Szczegóły kursu z mocka (tylko istniejące ID z listy dla danego seeda). */
@@ -276,6 +283,9 @@ export function mockCoursesGetById(
             courseType:
                 row.courseType ?? resolveMockCourseTypeByCategory(row.category),
             capacity: resolveMockCourseDetailCapacity(row),
+            hasActivity: false,
+            theoryStartDate: row.theoryStartDate ?? null,
+            theoryEndDate: row.theoryEndDate ?? null,
             schoolId,
         };
     }
@@ -288,6 +298,41 @@ export type MockCoursesPatchInstructorOutcome =
     | { outcome: 'course_not_found' }
     | { outcome: 'instructor_not_in_school' }
     | { outcome: 'instructor_not_qualified' };
+
+export function mockCoursesPatchDetails(
+    courseId: string,
+    patch: Partial<
+        Pick<
+            MockCourseListRow,
+            | 'name'
+            | 'category'
+            | 'type'
+            | 'totalHours'
+            | 'capacity'
+            | 'theoryStartDate'
+            | 'theoryEndDate'
+        >
+    >,
+): (MockCourseDetailRow & { schoolId: string }) | null {
+    const store = getStore();
+
+    for (const [schoolId, rows] of Object.entries(store)) {
+        const row = rows.find((item) => item.id === courseId);
+
+        if (!row) continue;
+
+        Object.assign(row, patch);
+        row.courseType = resolveMockCourseTypeByCategory(row.category);
+
+        return {
+            ...row,
+            schoolId,
+            capacity: resolveMockCourseDetailCapacity(row),
+        };
+    }
+
+    return null;
+}
 
 /** PATCH instruktora (mock) — `instructorId` = profil lub null. */
 export function mockCoursesPatchInstructor(

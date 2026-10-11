@@ -3,8 +3,6 @@ import type { InstructorListItem } from '~/types/instructors/instructor';
 import {
     buildInstructorDetailsRoute,
     filterInstructorsForList,
-    formatQualificationFilterLabel,
-    formatVisibleInstructorsLabel,
     getInstructorQualificationOptions,
     instructorInitials,
     instructorQualificationLabel,
@@ -68,29 +66,6 @@ describe('managerInstructorsPage utils', () => {
         );
         expect(resolveInstructorsListError({})).toBe(
             'Nie udało się pobrać listy instruktorów.',
-        );
-    });
-
-    it('formats visible instructors count label', () => {
-        expect(formatVisibleInstructorsLabel(0)).toBe('0 wyników');
-        expect(formatVisibleInstructorsLabel(1)).toBe('1 wynik');
-        expect(formatVisibleInstructorsLabel(2)).toBe('2 wyniki');
-        expect(formatVisibleInstructorsLabel(4)).toBe('4 wyniki');
-        expect(formatVisibleInstructorsLabel(5)).toBe('5 wyników');
-    });
-
-    it('formats qualification filter label', () => {
-        expect(formatQualificationFilterLabel(0)).toBe(
-            'Kwalifikacje: brak danych',
-        );
-        expect(formatQualificationFilterLabel(1)).toBe(
-            'Kwalifikacje: wszystkie',
-        );
-        expect(formatQualificationFilterLabel(1, 'qualified')).toBe(
-            'Z kwalifikacjami',
-        );
-        expect(formatQualificationFilterLabel(0, 'unqualified')).toBe(
-            'Bez kwalifikacji',
         );
     });
 

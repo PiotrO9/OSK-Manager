@@ -4,6 +4,7 @@ import { courseCreateFormMessages } from '~/utils/courses/courseCreateFormMessag
 
 const props = defineProps<{
     isDisabled: boolean;
+    isStructureDisabled?: boolean;
     showTheoryStartRequired: boolean;
     showTheoryEndRequired: boolean;
     showTheoryRangeInvalid: boolean;
@@ -25,7 +26,7 @@ const formMessages = courseCreateFormMessages;
         <UiDatePicker
             id="course-create-theory-start"
             v-model="theoryStartModel"
-            :disabled="props.isDisabled"
+            :disabled="props.isDisabled || props.isStructureDisabled"
             trigger-class="h-10 w-full rounded-xl bg-background"
             placeholder="Wybierz datę rozpoczęcia"
             :aria-invalid="props.showTheoryStartRequired"
@@ -52,7 +53,7 @@ const formMessages = courseCreateFormMessages;
         <UiDatePicker
             id="course-create-theory-end"
             v-model="theoryEndModel"
-            :disabled="props.isDisabled"
+            :disabled="props.isDisabled || props.isStructureDisabled"
             trigger-class="h-10 w-full rounded-xl bg-background"
             placeholder="Wybierz datę zakończenia"
             :aria-invalid="

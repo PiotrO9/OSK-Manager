@@ -67,6 +67,7 @@ describe('course normalizers', () => {
                     kind: 'THEORY_GROUP',
                     totalHours: 30,
                     capacity: '12',
+                    theoryStartDate: '2026-09-01T00:00:00.000Z',
                     school: {
                         id: 'school-1',
                     },
@@ -76,6 +77,7 @@ describe('course normalizers', () => {
             id: 'course-1',
             type: 'THEORY_GROUP',
             capacity: 12,
+            theoryStartDate: '2026-09-01',
             schoolId: 'school-1',
         });
 

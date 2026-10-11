@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
-import {
-    formatCourseTypeOptionLabel,
-    type CourseTypeOption,
-} from '~/types/courses/courseType';
+import type { CourseTypeOption } from '~/types/courses/courseType';
+import { courseTypeVehicleIcon } from '~/utils/courses/courseTypeVehicleIcon';
 import type { InstructorEditFormModel } from '~/types/instructors/instructor';
 import {
     buildInstructorEditCourseTypeRows,
@@ -18,6 +16,7 @@ const props = defineProps<{
     selectedQualifiedCourseTypes: CourseTypeOption[];
     isCourseTypesLoading: boolean;
     courseTypesError: string | null;
+    categoriesOnly: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -53,6 +52,10 @@ function isCourseTypeSelected(id: string): boolean {
     return form.value.qualifiedCourseTypeIds.includes(id);
 }
 
+function courseTypeName(item: CourseTypeOption): string {
+    return item.name.trim() || `Kategoria ${item.code}`;
+}
+
 function handleCourseTypeCheckedChange(
     id: string,
     checked: boolean | 'indeterminate',
@@ -71,7 +74,11 @@ const fieldClass =
 <template>
     <form
         class="space-y-4"
-        aria-label="Edycja danych instruktora"
+        :aria-label="
+            categoriesOnly
+                ? 'Edycja kategorii instruktora'
+                : 'Edycja danych instruktora'
+        "
         :aria-busy="isSubmitting"
         @submit.prevent="emit('submit')"
     >
@@ -84,7 +91,7 @@ const fieldClass =
             Zapisywanie zmian…
         </p>
 
-        <div class="grid gap-4 sm:grid-cols-2">
+        <div v-if="!categoriesOnly" class="grid gap-4 sm:grid-cols-2">
             <div class="space-y-2">
                 <label
                     class="text-sm leading-none font-medium"
@@ -123,7 +130,7 @@ const fieldClass =
             </div>
         </div>
 
-        <div class="space-y-2">
+        <div v-if="!categoriesOnly" class="space-y-2">
             <label
                 class="text-sm leading-none font-medium"
                 for="instructor-edit-email"
@@ -148,7 +155,7 @@ const fieldClass =
             />
         </div>
 
-        <div class="space-y-2">
+        <div v-if="!categoriesOnly" class="space-y-2">
             <label
                 class="text-sm leading-none font-medium"
                 for="instructor-edit-experience-years"
@@ -176,7 +183,7 @@ const fieldClass =
             </p>
         </div>
 
-        <div class="space-y-2">
+        <div v-if="!categoriesOnly" class="space-y-2">
             <label
                 class="text-sm leading-none font-medium"
                 for="instructor-edit-qualifications"
@@ -194,8 +201,17 @@ const fieldClass =
         </div>
 
         <fieldset class="flex flex-col gap-3">
-            <legend class="text-sm leading-none font-medium">
-                Kategorie uprawnień
+            <legend
+                :class="categoriesOnly ? 'sr-only' : 'mb-3 text-sm font-medium'"
+            >
+                <span
+                    v-if="!categoriesOnly"
+                    class="inline-flex items-center gap-1"
+                >
+                    Kategorie uprawnień
+                    <ManagerInstructorCategoryRulesTooltip />
+                </span>
+                <span v-else>Kategorie uprawnień</span>
             </legend>
 
             <p
@@ -224,16 +240,18 @@ const fieldClass =
 
             <div
                 v-if="courseTypeRows.length > 0"
-                class="border-border flex max-h-56 flex-col gap-2 overflow-y-auto rounded-md border p-3"
+                class="grid max-h-56 gap-2 overflow-y-auto sm:grid-cols-2"
             >
                 <label
                     v-for="row in courseTypeRows"
                     :key="row.item.id"
-                    class="flex items-start gap-3 rounded-md px-2 py-1.5"
+                    class="border-border hover:bg-muted/50 flex min-h-12 items-center gap-3 rounded-lg border px-3 py-2 text-sm transition-colors"
                     :class="
                         row.isUnavailable
-                            ? 'text-muted-foreground'
-                            : 'text-foreground'
+                            ? 'text-muted-foreground cursor-not-allowed opacity-60'
+                            : isCourseTypeSelected(row.item.id)
+                              ? 'border-primary/35 bg-primary/5 text-foreground cursor-pointer'
+                              : 'text-foreground cursor-pointer'
                     "
                 >
                     <UiCheckbox
@@ -241,14 +259,28 @@ const fieldClass =
                         :disabled="
                             row.isUnavailable || isCourseTypesSelectionBlocked
                         "
-                        :aria-label="`Kategoria uprawnień ${formatCourseTypeOptionLabel(row.item)}`"
+                        :aria-label="`Uprawnienie ${courseTypeName(row.item)}`"
                         @update:model-value="
                             handleCourseTypeCheckedChange(row.item.id, $event)
                         "
                     />
+                    <span
+                        class="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-md"
+                        :class="
+                            isCourseTypeSelected(row.item.id)
+                                ? 'bg-primary/10 text-primary'
+                                : ''
+                        "
+                        aria-hidden="true"
+                    >
+                        <component
+                            :is="courseTypeVehicleIcon(row.item.code)"
+                            class="size-4"
+                        />
+                    </span>
                     <span class="flex min-w-0 flex-col gap-1">
                         <span class="text-sm font-medium">
-                            {{ formatCourseTypeOptionLabel(row.item) }}
+                            {{ courseTypeName(row.item) }}
                         </span>
                         <span
                             v-if="row.isUnavailable"
@@ -271,22 +303,21 @@ const fieldClass =
         </p>
 
         <UiDialogFooter class="gap-2 sm:gap-2">
-            <button
+            <UiButton
                 type="button"
-                class="border-input bg-background text-foreground focus-visible:ring-ring hover:bg-muted inline-flex rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                variant="outline"
                 :disabled="isSubmitting"
                 @click="emit('cancel')"
             >
                 Anuluj
-            </button>
-            <button
+            </UiButton>
+            <UiButton
                 type="submit"
-                class="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex rounded-md px-3 py-2 text-sm font-medium shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                 :disabled="isSubmitting"
                 :aria-busy="isSubmitting"
             >
                 {{ isSubmitting ? 'Zapisywanie…' : 'Zapisz' }}
-            </button>
+            </UiButton>
         </UiDialogFooter>
     </form>
 </template>

@@ -13,7 +13,11 @@ defineProps<{
     categoryLabel: string;
     profileRows: ProfileRow[];
     hasQualifiedCourseTypes: boolean;
+    isSubmitting: boolean;
+    isDeleting: boolean;
 }>();
+
+const emit = defineEmits<{ editCategories: [] }>();
 </script>
 
 <template>
@@ -74,6 +78,16 @@ defineProps<{
                                 }}
                             </p>
                         </div>
+                        <UiButton
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            class="shrink-0"
+                            :disabled="isSubmitting || isDeleting"
+                            @click="emit('editCategories')"
+                        >
+                            Edytuj
+                        </UiButton>
                     </div>
                 </div>
             </div>

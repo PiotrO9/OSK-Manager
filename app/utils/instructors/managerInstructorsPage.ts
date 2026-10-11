@@ -126,37 +126,6 @@ export function resolveInstructorsListError(err: unknown): string {
     );
 }
 
-export function formatVisibleInstructorsLabel(count: number): string {
-    if (count === 1) {
-        return '1 wynik';
-    }
-
-    if (count >= 2 && count <= 4) {
-        return `${count} wyniki`;
-    }
-
-    return `${count} wyników`;
-}
-
-export function formatQualificationFilterLabel(
-    uniqueQualificationCodesCount: number,
-    quickView: InstructorQuickView = 'all',
-): string {
-    if (quickView === 'qualified') {
-        return 'Z kwalifikacjami';
-    }
-
-    if (quickView === 'unqualified') {
-        return 'Bez kwalifikacji';
-    }
-
-    if (uniqueQualificationCodesCount === 0) {
-        return 'Kwalifikacje: brak danych';
-    }
-
-    return 'Kwalifikacje: wszystkie';
-}
-
 export function instructorQualificationLabel(
     instructor: InstructorListItem,
 ): string {
