@@ -1,5 +1,11 @@
 # Audyt funkcjonalny OSK Manager
 
+Ten katalog jest jedynym aktualizowanym miejscem dokumentacji audytu w
+workspace. Dokumentację z dawnego `D:/CODE/OSK-Manager/docs/functional-audit/`
+scalono tutaj 2026-10-11; szczegóły rozbieżnych wyników są w
+[checkliście](checklist.md) i [przebiegach](runs/README.md).
+Jedyną aktywną checklistą jest [checklist.md](checklist.md).
+
 Instrukcja uruchomienia izolowanego stosu: [environment.md](environment.md).
 
 Ten katalog jest instrukcją przygotowania i wykonania testów odbiorowych aplikacji
@@ -80,6 +86,24 @@ adres strony oraz odpowiadające mu API.
    powiąż z przebiegiem. Po naprawie rozpocznij nowy przebieg dla ponownego testu.
 6. Zapisz podsumowanie, zakres niewykonany, znane ograniczenia i decyzję o
    gotowości wersji. Posłuży ono jako materiał do rozdziału o testach.
+
+## Dwa sposoby weryfikacji
+
+Każdy z 81 scenariuszy wymaga osobnego **testu ręcznego** w przeglądarce na
+odizolowanym środowisku z rzeczywistym backendem i bazą. Wynik ręczny jest
+warunkiem zaliczenia scenariusza w audycie odbiorowym. Test automatyczny jest
+**opcjonalnym, dodatkowym** potwierdzeniem; jego brak nie obniża wyniku ręcznego
+i nie blokuje odbioru. AI może przygotować i uruchomić automat, ale jego wynik
+zapisuje się oddzielnie od obserwacji ręcznych.
+
+Postęp zaznaczaj w [checkliście](checklist.md), a szczegóły każdego wykonania,
+wersję kodu, zestaw danych, dowody i wynik zapisuj w nowym pliku `runs/`.
+Automatyczny test zalicza tylko sprawdzony w nim zakres; nie przenoś jego
+wyniku do kolumny ręcznej. Jeśli automatyzacja jest niewykonalna, nieproporcjonalna
+albo próba nie doszła do skutku, wpisz to w kolumnie automatycznej wraz z
+konkretnym uzasadnieniem. Awaria aplikacji wykryta przez działający automat to
+wynik `niezaliczony`, nie „nie udało się”. Historyczny przebieg z 2026-10-08
+zachowuje swoje pierwotne oznaczenia, ale nie zalicza nowej kolumny ręcznej.
 
 ## Ścieżka podstawowa
 

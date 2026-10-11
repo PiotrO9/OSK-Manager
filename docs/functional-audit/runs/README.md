@@ -1,5 +1,12 @@
 # Przebiegi audytu
 
+**Scalenie 2026-10-11:** do tego katalogu przeniesiono brakujące przebiegi
+z kopii dokumentacji w głównym katalogu workspace. Użytkownik zakwestionował
+część wcześniejszych oznaczeń ręcznego zaliczenia i wskazał wprost, że
+`COM-13` nie został wykonany. Historycznych plików nie nadpisano; aktualny
+stan oraz informację `do potwierdzenia` podaje [checklista](../checklist.md).
+Po sprawdzeniu pełnych kroków zapisz nowy przebieg.
+
 Każdy przebieg ma osobny plik `YYYY-MM-DD-nazwa-przebiegu.md` utworzony ze wzoru
 poniżej. Nie nadpisuj wcześniejszych wyników po poprawce; utwórz nowy przebieg.
 Scenariusze pozostają w `../scenarios/`, zbiorczy postęp w `../checklist.md`,
@@ -21,8 +28,8 @@ nowy format ani nie uznawaj ich wyników automatycznych za ręczne.
 - Konfiguracja istotna dla testu, bez sekretów:
 
 | Scenariusz | Ręcznie (wymagane) | Automatycznie (opcjonalne) | Dowód / F-ID | Uwagi i powód braku automatu |
-| --- | --- | --- | --- | --- |
-| COM-... | niewykonany | — | — | — |
+| ---------- | ------------------ | -------------------------- | ------------ | ---------------------------- |
+| COM-...    | niewykonany        | —                          | —            | —                            |
 
 ## Podsumowanie
 

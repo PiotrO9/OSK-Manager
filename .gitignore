@@ -17,6 +17,10 @@ coverage/
 .playwright-cli/
 output/playwright/
 test-results/
+test-artifacts/
+
+# Local audit migration backup
+docs/functional-audit/archive/
 
 # Temporary Codex dependency backups
 node_modules.codex-backup*
