@@ -1,24 +1,54 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { useManagerCoursesPage } from './useManagerCoursesPage';
 
 const fetchSchools = vi.fn();
 const fetchCourses = vi.fn();
+const deleteCourse = vi.fn();
+const addToast = vi.fn();
 
 beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal('ref', ref);
+    vi.stubGlobal('shallowRef', shallowRef);
     vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', vi.fn());
     vi.stubGlobal('useManagerCoursesSelectedSchoolId', () => ref('b'));
     vi.stubGlobal('useDrivingSchoolsApi', () => ({ fetchList: fetchSchools }));
-    vi.stubGlobal('useCoursesApi', () => ({ fetchList: fetchCourses }));
+    vi.stubGlobal('useCoursesApi', () => ({
+        fetchList: fetchCourses,
+        deleteCourse,
+    }));
+    vi.stubGlobal('useAppToast', () => ({ addToast }));
     fetchSchools.mockResolvedValue([{ id: 'a' }, { id: 'b' }]);
     fetchCourses.mockResolvedValue([]);
+    deleteCourse.mockResolvedValue(undefined);
 });
 afterEach(() => vi.unstubAllGlobals());
 
 describe('courses page loading', () => {
+    it('deletes a course and refreshes the list', async () => {
+        const page = useManagerCoursesPage();
+
+        page.requestDeleteCourse({ id: 'course-a', name: 'Kurs A' } as never);
+        await page.confirmDeleteCourse();
+        expect(deleteCourse).toHaveBeenCalledWith('course-a');
+        expect(fetchCourses).toHaveBeenCalledWith('b');
+        expect(page.coursePendingDelete.value).toBeNull();
+        expect(addToast).toHaveBeenCalledWith(
+            expect.objectContaining({ title: 'Kurs usunięty' }),
+        );
+    });
+
+    it('keeps the course visible and reports a conflict', async () => {
+        deleteCourse.mockRejectedValueOnce(new Error('Kurs ma zajęcia'));
+        const page = useManagerCoursesPage();
+
+        page.requestDeleteCourse({ id: 'course-a', name: 'Kurs A' } as never);
+        await page.confirmDeleteCourse();
+        expect(page.coursePendingDelete.value?.id).toBe('course-a');
+        expect(page.deleteActionError.value).toBe('Kurs ma zajęcia');
+    });
     it('preserves an accessible selected school and recovers after a failed school request', async () => {
         fetchSchools.mockRejectedValueOnce(new Error('Offline'));
         const page = useManagerCoursesPage();

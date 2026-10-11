@@ -128,6 +128,17 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Oczekiwane:** uczestnik jest na liście, zapełnienie odpowiada liczbie zapisanych; nowy instruktor jest widoczny po odświeżeniu. **Do decyzji:** wpływ zmiany instruktora kursu na istniejące rezerwacje. **Powtórzenie:** przywróć pierwotne przypisanie. **Źródła:** [szczegóły kursu](../../../app/components/manager/courses/ManagerCourseDetailContainer.vue), [przypisanie](../../../app/components/manager/courses/ManagerCourseInstructorAssignmentCard.vue).
 
+### MGR-CRS-04 — Usunięcie pustego kursu i ochrona historii [P1]
+
+**Wymaganie:** `REQ-MGR-CRS-04` — menedżer usuwa wyłącznie pusty kurs należący do jego OSK. **Dane:** pusty kurs testowy oraz kursy z zapisami, zajęciami, wydarzeniami i planami płatności.
+
+1. Na liście kursów kliknij **Usuń kurs**, anuluj w projektowym modalu i sprawdź, czy kurs nadal jest na liście.
+2. Ponów i potwierdź usunięcie pustego kursu. Sprawdź listę, odśwież stronę i otwórz stary adres szczegółów.
+3. Spróbuj usunąć kurs mający powiązane dane; sprawdź komunikat blokady i zachowanie kursu na liście.
+4. Powtórz na telefonie i sprawdź odmowę usunięcia kursu z cudzej szkoły przez API.
+
+**Oczekiwane:** pusty kurs znika trwale z widoków; kurs z historią zostaje; anulowanie nic nie zmienia; brak dostępu do cudzej szkoły. **Powtórzenie:** utwórz nowy pusty kurs testowy.
+
 ### MGR-STU-01 — Rejestracja kursanta i przypisanie do kursu [P0]
 
 **Wymaganie:** `REQ-MGR-STU-01` — menedżer dodaje kursanta do OSK i przypisuje do kursu. **Dane:** `course-ready`, unikalny e-mail kursanta.

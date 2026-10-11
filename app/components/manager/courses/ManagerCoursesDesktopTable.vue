@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, Pencil } from 'lucide-vue-next';
+import { ArrowUpRight, Pencil, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatCourseKindLabel,
@@ -10,6 +10,7 @@ import {
     getCourseInstructorInitials,
 } from '~/utils/courses/managerCoursesList';
 defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
+const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
 </script>
 <template>
     <table class="hidden w-full table-fixed text-left text-sm @3xl:table">
@@ -28,10 +29,10 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                 <th scope="col" class="w-[8%] px-3 py-3 text-right font-medium">
                     Godziny
                 </th>
-                <th scope="col" class="w-[31%] px-3 py-3 font-medium">
+                <th scope="col" class="w-[27%] px-3 py-3 font-medium">
                     Instruktor
                 </th>
-                <th scope="col" class="w-[8%] py-3 pr-5 pl-1 text-right">
+                <th scope="col" class="w-[12%] py-3 pr-5 pl-1 text-right">
                     <span class="sr-only">Akcje</span>
                 </th>
             </tr>
@@ -147,6 +148,21 @@ defineProps<{ courses: CourseListItem[]; activeSchoolId: string }>();
                                 </UiButton> </UiTooltipTrigger
                             ><UiTooltipContent
                                 >Szczegóły kursu</UiTooltipContent
+                            ></UiTooltip
+                        >
+                        <UiTooltip
+                            ><UiTooltipTrigger as-child>
+                                <UiButton
+                                    variant="ghost"
+                                    size="icon"
+                                    class="text-destructive hover:text-destructive size-9"
+                                    :aria-label="`Usuń kurs: ${course.name}`"
+                                    @click="emit('requestDelete', course)"
+                                >
+                                    <Trash2 class="size-4" aria-hidden="true" />
+                                </UiButton> </UiTooltipTrigger
+                            ><UiTooltipContent
+                                >Usuń kurs</UiTooltipContent
                             ></UiTooltip
                         >
                     </div>

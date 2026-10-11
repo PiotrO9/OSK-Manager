@@ -69,6 +69,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-CRS-01 | Utworzenie kursu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-01-manual.md)) | — |
 | MGR-CRS-02 | Walidacja kursu i ograniczenie instruktora | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-02-manual.md)) | — |
 | MGR-CRS-03 | Zmiana instruktora i przegląd uczestników kursu | ☐ | — |
+| MGR-CRS-04 | Usunięcie pustego kursu i ochrona historii | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-04-manual.md)) | — |
 | MGR-STU-01 | Rejestracja kursanta i przypisanie do kursu | ☐ | — |
 | MGR-STU-02 | Wyszukiwanie, filtrowanie i szczegóły kursanta | ☐ | — |
 | MGR-PAY-01 | Dodanie, edycja i rozliczenie płatności | ☐ | — |

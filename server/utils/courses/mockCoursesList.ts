@@ -39,7 +39,7 @@ function getStore(): Record<string, MockCourseListRow[]> {
 function ensureSeedForSchool(schoolId: string): MockCourseListRow[] {
     const store = getStore();
 
-    if (store[schoolId]?.length) {
+    if (store[schoolId]) {
         return store[schoolId]!;
     }
 
@@ -403,4 +403,20 @@ export function mockCoursesListPayload(schoolId: string): {
                 row.courseType ?? resolveMockCourseTypeByCategory(row.category),
         })),
     };
+}
+
+export function mockCoursesDelete(courseId: string): boolean {
+    const store = getStore();
+
+    for (const courses of Object.values(store)) {
+        const index = courses.findIndex((course) => course.id === courseId);
+
+        if (index < 0) continue;
+
+        courses.splice(index, 1);
+
+        return true;
+    }
+
+    return false;
 }

@@ -106,3 +106,17 @@ export async function bffUpstreamCoursesPatch(
         data,
     };
 }
+
+export async function bffUpstreamCoursesDelete(
+    event: H3Event,
+    upstreamBase: string,
+    id: string,
+): Promise<{ success: true }> {
+    await upstreamRequest<unknown>(event, upstreamBase, {
+        path: `/courses/${encodeURIComponent(id)}`,
+        method: 'DELETE',
+        fallbackError: 'Nie udało się usunąć kursu',
+    });
+
+    return { success: true };
+}

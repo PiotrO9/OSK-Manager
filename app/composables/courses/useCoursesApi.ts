@@ -17,6 +17,7 @@ export function useCoursesApi() {
     const isDetailLoading = ref(false);
     const isCreateLoading = ref(false);
     const isPatchLoading = ref(false);
+    const isDeleteLoading = ref(false);
 
     async function runWithLoading<T>(
         loading: Ref<boolean>,
@@ -107,16 +108,32 @@ export function useCoursesApi() {
         );
     }
 
+    async function deleteCourse(courseId: string): Promise<void> {
+        const id = courseId.trim();
+
+        return runWithLoading(isDeleteLoading, () =>
+            requestBffSuccess(
+                'DELETE',
+                `/api/courses/${encodeURIComponent(id)}`,
+                {
+                    fallbackMessage: 'Nie udało się usunąć kursu.',
+                },
+            ),
+        );
+    }
+
     return {
         isListLoading: readonly(isListLoading),
         isMyCoursesLoading: readonly(isMyCoursesLoading),
         isDetailLoading: readonly(isDetailLoading),
         isCreateLoading: readonly(isCreateLoading),
         isPatchLoading: readonly(isPatchLoading),
+        isDeleteLoading: readonly(isDeleteLoading),
         fetchMyCourses,
         fetchList,
         fetchById,
         createCourse,
         patchCourse,
+        deleteCourse,
     };
 }

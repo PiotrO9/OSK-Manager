@@ -1,4 +1,5 @@
 import {
+    mockCoursesDelete,
     mockCoursesGetById,
     mockCoursesListPayload,
     mockCoursesPatchInstructor,
@@ -12,6 +13,14 @@ import type { BffCoursePatchInstructorBody } from './parseCoursePatchBody';
 
 function dataSuccess(data: unknown): { success: true; data: unknown } {
     return { success: true, data };
+}
+
+export function bffMockCoursesDelete(id: string): { success: true } {
+    if (!mockCoursesDelete(id)) {
+        throw createError({ statusCode: 404, message: 'Kurs nie istnieje.' });
+    }
+
+    return { success: true };
 }
 
 export function bffMockCoursesList(schoolId: string): {

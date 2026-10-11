@@ -26,7 +26,8 @@ export function useManagerCoursesPage() {
     }
 
     const { fetchList: fetchSchoolsList } = useDrivingSchoolsApi();
-    const { fetchList: fetchCoursesList } = useCoursesApi();
+    const { fetchList: fetchCoursesList, deleteCourse } = useCoursesApi();
+    const { addToast } = useAppToast();
 
     const schools = ref<DrivingSchool[]>([]);
     const schoolsLoadError = ref<string | null>(null);
@@ -36,6 +37,9 @@ export function useManagerCoursesPage() {
     const courses = ref<CourseListItem[]>([]);
     const isCoursesLoading = ref(false);
     const coursesLoadError = ref<string | null>(null);
+    const deleteActionError = shallowRef<string | null>(null);
+    const coursePendingDelete = shallowRef<CourseListItem | null>(null);
+    const isDeletingCourse = shallowRef(false);
     let schoolsLoadSequence = 0;
     let coursesLoadSequence = 0;
 
@@ -122,9 +126,64 @@ export function useManagerCoursesPage() {
     }
 
     async function handleActiveSchoolChange(value: string) {
+        coursePendingDelete.value = null;
+        deleteActionError.value = null;
         activeSchoolId.value = value;
         coursesLoadError.value = null;
         await loadCourses();
+    }
+
+    function requestDeleteCourse(course: CourseListItem) {
+        deleteActionError.value = null;
+        coursePendingDelete.value = course;
+    }
+
+    function cancelDeleteCourse() {
+        if (!isDeletingCourse.value) coursePendingDelete.value = null;
+    }
+
+    async function confirmDeleteCourse() {
+        const course = coursePendingDelete.value;
+
+        if (!course || isDeletingCourse.value) return;
+
+        const schoolId = activeSchoolId.value;
+
+        isDeletingCourse.value = true;
+        deleteActionError.value = null;
+
+        try {
+            await deleteCourse(course.id);
+            coursePendingDelete.value = null;
+
+            if (activeSchoolId.value === schoolId) {
+                await loadCourses();
+            }
+
+            addToast({
+                title: 'Kurs usunięty',
+                description: `„${course.name}” został usunięty.`,
+                variant: 'success',
+            });
+        } catch (err) {
+            if (getApiErrorStatusCode(err) === 404) {
+                coursePendingDelete.value = null;
+
+                if (activeSchoolId.value === schoolId) await loadCourses();
+
+                addToast({
+                    title: 'Kurs jest już niedostępny',
+                    variant: 'info',
+                });
+            } else {
+                deleteActionError.value =
+                    err instanceof Error
+                        ? err.message
+                        : 'Nie udało się usunąć kursu.';
+            }
+        } finally {
+            isDeletingCourse.value = false;
+        }
     }
 
     onMounted(loadSchools);
@@ -141,8 +200,14 @@ export function useManagerCoursesPage() {
         isCoursesLoading,
         schoolsLoadError,
         coursesLoadError,
+        deleteActionError,
+        coursePendingDelete,
+        isDeletingCourse,
         handleActiveSchoolChange,
         loadSchools,
         loadCourses,
+        requestDeleteCourse,
+        cancelDeleteCourse,
+        confirmDeleteCourse,
     };
 }

@@ -14,9 +14,15 @@ const {
     isCoursesLoading,
     schoolsLoadError,
     coursesLoadError,
+    deleteActionError,
+    coursePendingDelete,
+    isDeletingCourse,
     handleActiveSchoolChange,
     loadSchools,
     loadCourses,
+    requestDeleteCourse,
+    cancelDeleteCourse,
+    confirmDeleteCourse,
 } = useManagerCoursesPage();
 </script>
 <template>
@@ -28,8 +34,14 @@ const {
         :is-courses-loading="isCoursesLoading"
         :schools-load-error="schoolsLoadError"
         :courses-load-error="coursesLoadError"
+        :delete-action-error="deleteActionError"
+        :course-pending-delete="coursePendingDelete"
+        :is-deleting-course="isDeletingCourse"
         @active-school-change="handleActiveSchoolChange"
         @retry-schools="loadSchools"
         @retry-courses="loadCourses"
+        @request-delete-course="requestDeleteCourse"
+        @cancel-delete-course="cancelDeleteCourse"
+        @confirm-delete-course="confirmDeleteCourse"
     />
 </template>

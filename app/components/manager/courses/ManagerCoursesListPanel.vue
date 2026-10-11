@@ -13,18 +13,27 @@ const props = withDefaults(
         isCoursesLoading?: boolean;
         schoolsLoadError?: string | null;
         coursesLoadError?: string | null;
+        deleteActionError?: string | null;
+        coursePendingDelete?: CourseListItem | null;
+        isDeletingCourse?: boolean;
     }>(),
     {
         isSchoolsLoading: false,
         isCoursesLoading: false,
         schoolsLoadError: null,
         coursesLoadError: null,
+        deleteActionError: null,
+        coursePendingDelete: null,
+        isDeletingCourse: false,
     },
 );
 const emit = defineEmits<{
     activeSchoolChange: [value: string];
     retrySchools: [];
     retryCourses: [];
+    requestDeleteCourse: [course: CourseListItem];
+    cancelDeleteCourse: [];
+    confirmDeleteCourse: [];
 }>();
 const activeSchool = computed(() =>
     props.schools.find((school) => school.id === props.activeSchoolId),
@@ -218,8 +227,12 @@ const {
                 <ManagerCoursesDesktopTable
                     :courses="visibleCourses"
                     :active-school-id="activeSchoolId"
+                    @request-delete="emit('requestDeleteCourse', $event)"
                 />
-                <ManagerCoursesMobileCards :courses="visibleCourses" />
+                <ManagerCoursesMobileCards
+                    :courses="visibleCourses"
+                    @request-delete="emit('requestDeleteCourse', $event)"
+                />
             </div>
             <nav
                 v-if="!unavailable && totalPages > 1"
@@ -256,5 +269,18 @@ const {
                 </div>
             </nav>
         </section>
+        <ManagerCourseDeleteDialog
+            :open="coursePendingDelete !== null"
+            :course-name="coursePendingDelete?.name ?? ''"
+            :is-deleting="isDeletingCourse"
+            :error="deleteActionError"
+            @update:open="
+                (open) => {
+                    if (!open) emit('cancelDeleteCourse');
+                }
+            "
+            @cancel="emit('cancelDeleteCourse')"
+            @confirm="emit('confirmDeleteCourse')"
+        />
     </div>
 </template>

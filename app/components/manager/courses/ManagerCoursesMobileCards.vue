@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight } from 'lucide-vue-next';
+import { ArrowUpRight, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatCourseKindLabel,
@@ -10,6 +10,7 @@ import {
     getCourseInstructorInitials,
 } from '~/utils/courses/managerCoursesList';
 defineProps<{ courses: CourseListItem[] }>();
+const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
 </script>
 <template>
     <div class="divide-border divide-y @3xl:hidden">
@@ -78,6 +79,14 @@ defineProps<{ courses: CourseListItem[] }>();
                     >
                 </UiButton>
             </div>
+            <UiButton
+                variant="outline"
+                class="text-destructive hover:text-destructive h-11 w-full gap-2"
+                :aria-label="`Usuń kurs: ${course.name}`"
+                @click="emit('requestDelete', course)"
+            >
+                <Trash2 class="size-4" aria-hidden="true" />Usuń kurs
+            </UiButton>
         </article>
     </div>
 </template>
