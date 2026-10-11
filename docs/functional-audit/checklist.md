@@ -1,6 +1,6 @@
 # Checklista audytu funkcjonalnego
 
-To lista kontrolna wszystkich 80 scenariuszy. **Każdy punkt sprawdź ręcznie**
+To lista kontrolna wszystkich 81 scenariuszy. **Każdy punkt sprawdź ręcznie**
 w aplikacji na odizolowanym środowisku. Automat jest dodatkowy i opcjonalny.
 Kolumna ręczna zaczyna się od `☐` (niewykonany), a automatyczna od `—` (bez próby).
 Po udanym teście ręcznym zmień `☐` na `☑ zaliczony` i dodaj odnośnik do
@@ -68,7 +68,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-INS-05 | Terminarz i wolne sloty instruktora | ☐ | — |
 | MGR-CRS-01 | Utworzenie kursu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-01-manual.md)) | — |
 | MGR-CRS-02 | Walidacja kursu i ograniczenie instruktora | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-02-manual.md)) | — |
-| MGR-CRS-03 | Zmiana instruktora i przegląd uczestników kursu | ☐ | — |
+| MGR-CRS-03 | Zmiana instruktora i przegląd uczestników kursu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-03-manual.md)) | — |
 | MGR-CRS-04 | Usunięcie pustego kursu i ochrona historii | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-04-manual.md)) | — |
 | MGR-STU-01 | Rejestracja kursanta i przypisanie do kursu | ☐ | — |
 | MGR-STU-02 | Wyszukiwanie, filtrowanie i szczegóły kursanta | ☐ | — |
