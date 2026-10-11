@@ -42,12 +42,12 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | --- | --- | --- | --- |
 | COM-01 | Logowanie każdej roli i właściwa strona startowa | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-01-manual.md)) | — |
 | COM-02 | Walidacja formularza i błędne dane logowania | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-02-manual.md)) | — |
-| COM-03 | Powrót do żądanej strony po zalogowaniu | ☐ | — |
-| COM-04 | Wylogowanie kończy dostęp do danych | ☐ | — |
-| COM-05 | Dostęp według roli, również przez bezpośredni URL | ☐ | — |
-| COM-06 | Własny profil i edycja pól dostępnych dla roli | ☐ | — |
+| COM-03 | Powrót do żądanej strony po zalogowaniu | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-03-manual.md)) | — |
+| COM-04 | Wylogowanie kończy dostęp do danych | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-com-04-manual.md)) | — |
+| COM-05 | Dostęp według roli, również przez bezpośredni URL | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-com-05-manual.md)) | — |
+| COM-06 | Własny profil i edycja pól dostępnych dla roli | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-com-06-manual.md)) | — |
 | COM-07 | Niezapisane zmiany profilu | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-com-07-manual.md)) | — |
-| COM-08 | Zdjęcie profilowe i walidacja pliku | ☐ | — |
+| COM-08 | Zdjęcie profilowe i walidacja pliku | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-com-08-manual.md)) | — |
 | COM-09 | Wygasła sesja | ☐ | — |
 | COM-10 | Izolacja danych kont i OSK | ☐ | — |
 | COM-11 | Samodzielne odzyskanie hasła | ☐ | — |
@@ -58,13 +58,13 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 
 | ID | Scenariusz | Ręcznie (wymagane) | Automatycznie (opcjonalne) |
 | --- | --- | --- | --- |
-| MGR-OSK-01 | Utworzenie pierwszej szkoły | ☐ | — |
-| MGR-OSK-02 | Edycja i wybór szkoły domyślnej | ☐ | — |
-| MGR-OSK-03 | Odrzucenie i potwierdzenie usunięcia OSK | ☐ | — |
-| MGR-INS-01 | Rejestracja instruktora | ☐ | — |
-| MGR-INS-02 | Walidacja i niezapisany formularz instruktora | ☐ | — |
+| MGR-OSK-01 | Utworzenie pierwszej szkoły | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-osk-01-manual.md)) | — |
+| MGR-OSK-02 | Edycja i wybór szkoły domyślnej | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-osk-02-manual.md)) | — |
+| MGR-OSK-03 | Odrzucenie i potwierdzenie usunięcia OSK | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-osk-03-manual.md)) | — |
+| MGR-INS-01 | Rejestracja instruktora | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-ins-01-manual.md)) | — |
+| MGR-INS-02 | Walidacja i niezapisany formularz instruktora | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-ins-02-manual.md)) | — |
 | MGR-INS-03 | Edycja profilu i usunięcie instruktora | ☐ | — |
-| MGR-INS-04 | Tygodniowa dostępność instruktora | ☐ | — |
+| MGR-INS-04 | Tygodniowa dostępność instruktora | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-ins-04-manual.md)) | — |
 | MGR-INS-05 | Terminarz i wolne sloty instruktora | ☐ | — |
 | MGR-CRS-01 | Utworzenie kursu | ☐ | — |
 | MGR-CRS-02 | Walidacja kursu i ograniczenie instruktora | ☐ | — |
@@ -114,7 +114,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | STU-02 | Kursy, postęp i filtry | ☐ | — |
 | STU-03 | Brak kursów oraz pusty wynik filtra | ☐ | — |
 | STU-04 | Rezerwacja dostępnego terminu | ☐ | — |
-| STU-05 | Rezygnacja w dialogu potwierdzenia | ☐ | — |
+| STU-05 | Rezygnacja w dialogu potwierdzenia | ☑ zaliczony ([przebieg 2026-10-10](runs/2026-10-10-stu-05-manual.md)) | — |
 | STU-06 | Kurs nieuprawniony do rezerwacji | ☐ | — |
 | STU-07 | Slot dłuższy niż pozostały pakiet | ☐ | — |
 | STU-08 | Nawigacja tygodni, brak slotów i granice rezerwacji | ☐ | — |

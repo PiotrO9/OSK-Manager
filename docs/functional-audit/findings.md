@@ -59,6 +59,25 @@ po powtórzeniu scenariusza oraz istotnych procesów powiązanych.
 
 ## Otwarte ustalenia
 
+### F-010 — Mylący komunikat przy logowaniu bez potwierdzonego e-maila
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | błąd / średnia / do ponownego testu |
+| Scenariusz i wymaganie | `MGR-INS-01`, `COM-01`; `REQ-MGR-INS-01`, `REQ-COM-01` |
+| Przebieg | zgłoszenie użytkownika podczas testu `MGR-INS-01` 2026-10-11 |
+| Wersja FE / BE | FE `72c7860` i zmiany robocze przed poprawką; BE bez zmian |
+| Środowisko i zestaw danych | `localhost:3000`, nowo utworzone konto instruktora z niepotwierdzonym adresem |
+| Konto i rola | testowe konto instruktora |
+| Dowód | zrzut ekranu w rozmowie 2026-10-11; odpowiedź logowania `401 Email not confirmed`, formularz pokazuje „Nieprawidłowy e-mail lub hasło” |
+| Powiązane zadanie naprawcze | `app/composables/auth/useAuthSession.ts`, `app/composables/auth/useAuthSession.test.ts` |
+
+**Oczekiwane zachowanie:** formularz informuje o konieczności potwierdzenia adresu e-mail. Błędne hasło nadal daje neutralny komunikat o niepoprawnych danych.
+
+**Przyczyna i poprawka:** backend oraz BFF przekazywały „Email not confirmed”, ale klient zamieniał każdą odpowiedź `401` na błąd danych logowania. Klient rozpoznaje teraz ten konkretny komunikat i pokazuje „Potwierdź adres e-mail, aby się zalogować.” Test jednostkowy pokrywa oba warianty odpowiedzi `401`.
+
+**Ponowny test:** testy jednostkowe FE przeszły; ręczna próba logowania nowym kontem po poprawce jeszcze nie została potwierdzona.
+
 ### F-001 — Procent postępu użyty jako liczba wykorzystanych godzin
 
 | Pole                       | Wartość                                                                                                                                                                                                                  |
@@ -121,7 +140,7 @@ obserwacji użytkownika zamknij wpis.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); `COM-04` i ponowny test tego ustalenia nieudokumentowane |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny ponowny test tego ustalenia nieudokumentowany |
 | Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
 | Środowisko i zestaw danych | pulpit menedżera na `localhost:3000`; szczegóły do uzupełnienia |
@@ -188,7 +207,7 @@ po ponownym wejściu na `/login` przy aktywnej sesji.
 | Pole | Wartość |
 | --- | --- |
 | Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); `COM-04` i ponowny test tego ustalenia nieudokumentowane |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny ponowny test tego ustalenia nieudokumentowany |
 | Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
 | Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
 | Środowisko i zestaw danych | `localhost:3000`, zakładka Network w Chrome |
@@ -220,7 +239,7 @@ do widoku roli, gdy sesja jest aktywna.
 | --- | --- |
 | Typ / waga / status | błąd / wysoka / do ponownego testu |
 | Scenariusz i wymaganie | `COM-04`, `REQ-COM-04` |
-| Przebieg | zgłoszenie użytkownika podczas ręcznego testu `COM-04`; wynik końcowy jeszcze nieudokumentowany |
+| Przebieg | zgłoszenie użytkownika podczas ręcznego testu `COM-04`; późniejszy wynik ręczny `COM-04`: zaliczony ([przebieg](runs/2026-10-10-com-04-manual.md)); osobny ponowny test F-008 nieudokumentowany |
 | Wersja FE / BE | FE przed bieżącą poprawką; BE bez zmian |
 | Środowisko i zestaw danych | lokalna przeglądarka, konto testowe; szczegóły do uzupełnienia |
 | Konto i rola | zalogowany użytkownik, rola do uzupełnienia |
@@ -240,10 +259,11 @@ dokumentu i powrocie do niego z historii. Zwykłe przejścia między trasami nie
 pokazują tej osłony. Strona przywrócona z pamięci przeglądarki ładuje się
 ponownie, aby serwer sprawdził aktualną sesję. Wylogowanie powiadamia inne
 karty. Testy UI z atrapą backendu potwierdziły osłonę i przejście drugiej karty
-na `/login`; pełny `COM-04` wymaga ponownego testu ręcznego z backendem.
+na `/login`. Użytkownik uznał `COM-04` za zaliczony; nie przekazał osobnego
+wyniku kryteriów ponownego testu F-008.
 
-**Ponowny test:** wykonaj wszystkie kroki `COM-04`, obserwując powrót przez
-„Wstecz”, odświeżenie strony i równocześnie otwartą drugą kartę.
+**Ponowny test F-008:** udokumentuj osobno powrót przez „Wstecz”, odświeżenie
+strony i zachowanie równocześnie otwartej drugiej karty.
 
 ### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
 

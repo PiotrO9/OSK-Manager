@@ -45,23 +45,23 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 ### MGR-INS-01 — Rejestracja instruktora [P0]
 
-**Wymaganie:** `REQ-MGR-INS-01` — menedżer może założyć konto instruktora w OSK. **Dane:** `school-empty`, unikalny adres e-mail, dane osobowe, numer uprawnień, kategorie.
+**Wymaganie:** `REQ-MGR-INS-01` — menedżer może założyć konto instruktora w OSK. **Dane:** `school-empty`, unikalny adres e-mail, dane osobowe, data urodzenia i numer licencji.
 
 1. Otwórz **Instruktorzy → Dodaj instruktora** (`/manager/instructors/new`).
-2. Wybierz OSK i uzupełnij wymagane pola, w tym datę urodzenia i kwalifikacje; wyślij formularz.
+2. Wybierz OSK i uzupełnij wymagane pola: e-mail, hasło, imię, nazwisko, datę urodzenia i numer licencji; wyślij formularz.
 3. Otwórz listę i szczegóły nowego instruktora; odśwież.
 
-**Oczekiwane:** instruktor jest widoczny raz we właściwej szkole; szczegóły pokazują zapisane dane. Dane konta logowania sprawdź w scenariuszu między rolami. **Powtórzenie:** usuń instruktora testowego i konto Auth zgodnie z przyszłym resetem albo użyj nowego e-maila. **Źródła:** [formularz rejestracji](../../../app/pages/manager/instructors/new.vue), [opis modułu](../../../docs/MANAGER_INSTRUCTORS.md), [trasa BE](../../../../../BE/src/routes/instructors.routes.ts).
+**Oczekiwane:** instruktor jest widoczny raz we właściwej szkole; szczegóły pokazują dostępne do odczytu zapisane dane. Formularz rejestracji nie zawiera kwalifikacji — ich ustawienie należy do późniejszej edycji profilu (`MGR-INS-03`). Dane konta logowania sprawdź w scenariuszu między rolami. **Powtórzenie:** usuń instruktora testowego i konto Auth zgodnie z przyszłym resetem albo użyj nowego e-maila. **Źródła:** [formularz rejestracji](../../../app/pages/manager/instructors/new.vue), [opis modułu](../../../docs/MANAGER_INSTRUCTORS.md), [trasa BE](../../../../../BE/src/routes/instructors.routes.ts).
 
 ### MGR-INS-02 — Walidacja i niezapisany formularz instruktora [P1]
 
 **Wymaganie:** `REQ-MGR-INS-02` — błędne dane nie tworzą konta, a niezapisany formularz ostrzega przed wyjściem. **Dane:** `school-empty`.
 
 1. Otwórz formularz dodawania instruktora i wyślij go pusty.
-2. Wpisz przyszłą datę urodzenia oraz popraw część pól; wyślij ponownie.
+2. Uzupełnij część pól, ale wpisz niepoprawny adres e-mail i hasło krótsze niż 6 znaków; wyślij ponownie. W kalendarzu daty urodzenia sprawdź, że nie można wybrać przyszłej daty.
 3. Zmień dowolne pole i spróbuj przejść do innego widoku; wybierz **Zostań**, a potem ponów i wybierz odrzucenie.
 
-**Oczekiwane:** pola błędne są oznaczone, fokus prowadzi do pierwszego błędu; konto nie powstaje; pozostanie zachowuje draft, odrzucenie opuszcza stronę. **Powtórzenie:** brak zmian danych. **Źródła:** [formularz](../../../app/pages/manager/instructors/new.vue), [opis walidacji](../../../docs/MANAGER_INSTRUCTORS.md).
+**Oczekiwane:** pola błędne są oznaczone, fokus prowadzi do pierwszego błędu; przyszła data urodzenia jest niedostępna w kalendarzu; konto nie powstaje; pozostanie zachowuje draft, odrzucenie opuszcza stronę. **Powtórzenie:** brak zmian danych. **Źródła:** [formularz](../../../app/pages/manager/instructors/new.vue), [opis walidacji](../../../docs/MANAGER_INSTRUCTORS.md).
 
 ### MGR-INS-03 — Edycja profilu i blokada instruktora [P1]
 
@@ -75,13 +75,13 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 ### MGR-INS-04 — Tygodniowa dostępność instruktora [P0]
 
-**Wymaganie:** `REQ-MGR-INS-04` — menedżer ustawia i usuwa przedział dostępności na dzień tygodnia. **Dane:** `school-staffed`, instruktor bez lekcji w wybranym dniu.
+**Wymaganie:** `REQ-MGR-INS-04` — menedżer ustawia i usuwa przedział dostępności na dzień tygodnia. **Dane:** OSK z instruktorem bez lekcji w wybranym dniu.
 
 1. W szczegółach instruktora wejdź w **Dostępność**.
-2. Włącz dzień, ustaw np. `09:00–14:00`, zapisz ten dzień; odśwież stronę i podgląd w szczegółach.
-3. Spróbuj ustawić koniec przed początkiem; następnie wyłącz dzień i zapisz.
+2. Włącz dzień, ustaw np. `09:00–14:00` i kliknij **Zapisz zmiany**; odśwież stronę i podgląd w szczegółach.
+3. W selektorze godzin sprawdź, że nie można wybrać końca wcześniejszego niż początek ani równego mu; następnie wyłącz dzień i kliknij **Zapisz zmiany**.
 
-**Oczekiwane:** poprawny przedział jest widoczny po odświeżeniu; błędny zakres nie zostaje zapisany; po wyłączeniu wpis dnia znika. **Powtórzenie:** przywróć pierwotny przedział. **Źródła:** [strona dostępności](../../../app/pages/manager/instructors/[id]/availability.vue), [opis modelu tygodniowego](../../../docs/MANAGER_INSTRUCTORS.md), [trasa BE](../../../../../BE/src/routes/instructor-availability.routes.ts).
+**Oczekiwane:** poprawny przedział jest widoczny po odświeżeniu; selektor blokuje błędny zakres i nie pozwala go zapisać; po wyłączeniu wpis dnia znika. **Powtórzenie:** przywróć pierwotny przedział. **Źródła:** [strona dostępności](../../../app/pages/manager/instructors/[id]/availability.vue), [opis modelu tygodniowego](../../../docs/MANAGER_INSTRUCTORS.md), [trasa BE](../../../../../BE/src/routes/instructor-availability.routes.ts).
 
 ### MGR-INS-05 — Terminarz i wolne sloty instruktora [P1]
 
