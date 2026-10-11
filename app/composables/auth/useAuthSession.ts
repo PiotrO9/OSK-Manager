@@ -288,6 +288,15 @@ export function useAuthSession() {
             const status = getFetchStatusCode(error);
 
             if (status === 401) {
+                if (
+                    getServerJsonErrorMessage(error)?.trim().toLowerCase() ===
+                    'email not confirmed'
+                ) {
+                    throw new Error(
+                        'Potwierdź adres e-mail, aby się zalogować.',
+                    );
+                }
+
                 throw new Error('Nieprawidłowy e-mail lub hasło');
             }
 

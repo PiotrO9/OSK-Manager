@@ -130,6 +130,19 @@ describe('useAuthSession', () => {
         expect(auth.session.value).toBeNull();
     });
 
+    it('explains that an unconfirmed email must be confirmed before login', async () => {
+        bff.requestData.mockRejectedValue(
+            fetchError(401, { message: 'Email not confirmed' }),
+        );
+        const { useAuthSession } = await import('./useAuthSession');
+        const auth = useAuthSession();
+
+        await expect(
+            auth.login('instructor@example.com', 'correct-password'),
+        ).rejects.toThrow('Potwierdź adres e-mail, aby się zalogować.');
+        expect(auth.session.value).toBeNull();
+    });
+
     it('clears session and skips refresh when session check returns 403', async () => {
         bff.requestData.mockRejectedValue(fetchError(403));
         const { useAuthSession } = await import('./useAuthSession');

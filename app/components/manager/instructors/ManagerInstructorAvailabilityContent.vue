@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, RotateCcw, Save, Workflow } from 'lucide-vue-next';
+import { CalendarDays, Save, Workflow } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
 
 const props = defineProps<{
@@ -68,7 +68,7 @@ function isMobileViewActive(value: AvailabilityMobileView): boolean {
         </PageHeader>
 
         <div
-            class="border-border bg-card grid max-w-6xl gap-3 rounded-lg border p-3 shadow-xs xl:grid-cols-[minmax(0,1fr)_auto]"
+            class="border-border bg-card max-w-6xl rounded-lg border p-3 shadow-xs"
         >
             <div class="grid gap-3 sm:grid-cols-3">
                 <div class="border-border bg-background rounded-md border p-3">
@@ -95,33 +95,6 @@ function isMobileViewActive(value: AvailabilityMobileView): boolean {
                         {{ dirtyDayCount }}
                     </p>
                 </div>
-            </div>
-
-            <div
-                class="flex flex-wrap items-center gap-2 xl:justify-end"
-                role="toolbar"
-                aria-label="Akcje dostępności instruktora"
-            >
-                <UiButton
-                    type="button"
-                    variant="outline"
-                    class="h-10 rounded-lg px-4 font-semibold"
-                    :disabled="!hasDirtyChanges || isSaving"
-                    @click="resetDraft"
-                >
-                    <RotateCcw class="mr-2 size-4" aria-hidden="true" />
-                    Cofnij
-                </UiButton>
-                <UiButton
-                    type="button"
-                    class="h-10 rounded-lg px-4 font-semibold shadow-xs"
-                    :disabled="!canSave"
-                    :aria-busy="isSaving"
-                    @click="saveChanges"
-                >
-                    <Save class="mr-2 size-4" aria-hidden="true" />
-                    {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
-                </UiButton>
             </div>
         </div>
 
@@ -186,7 +159,29 @@ function isMobileViewActive(value: AvailabilityMobileView): boolean {
                     @update-enabled="updateDayEnabled"
                     @update-start-time="updateStartTime"
                     @update-end-time="updateEndTime"
-                />
+                >
+                    <template #actions>
+                        <UiButton
+                            type="button"
+                            variant="destructive"
+                            class="h-10 w-full rounded-lg px-4 font-semibold sm:w-auto"
+                            :disabled="!hasDirtyChanges || isSaving"
+                            @click="resetDraft"
+                        >
+                            Anuluj
+                        </UiButton>
+                        <UiButton
+                            type="button"
+                            class="h-10 w-full rounded-lg px-4 font-semibold shadow-xs sm:w-auto"
+                            :disabled="!canSave"
+                            :aria-busy="isSaving"
+                            @click="saveChanges"
+                        >
+                            <Save class="mr-2 size-4" aria-hidden="true" />
+                            {{ isSaving ? 'Zapisywanie...' : 'Zapisz zmiany' }}
+                        </UiButton>
+                    </template>
+                </ManagerInstructorAvailabilityEditor>
             </section>
 
             <section
@@ -217,12 +212,16 @@ function isMobileViewActive(value: AvailabilityMobileView): boolean {
                     />
                 </div>
 
-                <ManagerInstructorWeeklyCalendar
-                    :instructor-id="props.instructorId"
-                    :refresh-key="calendarRefreshKey"
-                    compact
-                    show-compact-header
-                />
+                <div
+                    class="border-border bg-card overflow-hidden rounded-xl border shadow-xs"
+                >
+                    <ManagerInstructorWeeklyCalendar
+                        :instructor-id="props.instructorId"
+                        :refresh-key="calendarRefreshKey"
+                        compact
+                        show-compact-header
+                    />
+                </div>
             </section>
         </div>
 

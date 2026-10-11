@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, shallowRef, watch } from 'vue';
+import {
+    computed,
+    nextTick,
+    onMounted,
+    shallowRef,
+    useTemplateRef,
+    watch,
+} from 'vue';
 
 type ProfileAvatarSize = 24 | 32 | 36 | 40;
 type ProfileAvatarShape = 'circle' | 'rounded';
@@ -20,6 +27,7 @@ const props = withDefaults(
 );
 
 const imageState = shallowRef<ImageState>('idle');
+const avatarImage = useTemplateRef<HTMLImageElement>('avatarImage');
 
 const normalizedSrc = computed(() => {
     const src = props.src?.trim();
@@ -60,9 +68,25 @@ watch(
     normalizedSrc,
     (src) => {
         imageState.value = src ? 'loading' : 'idle';
+
+        if (src && import.meta.client) {
+            void nextTick(syncCompletedImage);
+        }
     },
     { immediate: true },
 );
+
+onMounted(syncCompletedImage);
+
+function syncCompletedImage(): void {
+    const image = avatarImage.value;
+
+    if (!image || image.getAttribute('src') !== normalizedSrc.value) return;
+
+    if (!image.complete) return;
+
+    imageState.value = image.naturalWidth > 0 ? 'loaded' : 'error';
+}
 
 function isCurrentImage(event: Event): boolean {
     const img = event.currentTarget;
@@ -100,6 +124,7 @@ function handleImageError(event: Event): void {
         </span>
         <img
             v-if="showImage"
+            ref="avatarImage"
             :key="normalizedSrc ?? 'profile-avatar-empty'"
             :src="normalizedSrc ?? undefined"
             alt=""

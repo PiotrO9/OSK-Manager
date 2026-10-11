@@ -180,7 +180,7 @@ function handleTabChange(value: string | number): void {
                     @update:model-value="handleTabChange"
                 >
                     <div
-                        class="border-border overflow-x-auto border-b"
+                        class="border-border overflow-x-auto overflow-y-hidden border-b"
                         aria-label="Sekcje kartoteki instruktora"
                     >
                         <TabsList class="flex min-w-max gap-5">
@@ -321,9 +321,11 @@ function handleTabChange(value: string | number): void {
                         :aria-labelledby="getTabTriggerId('availability')"
                         :hidden="!isTabVisible('availability')"
                     >
-                        <UiCard class="overflow-hidden rounded-lg shadow-xs">
+                        <UiCard
+                            class="gap-0 overflow-hidden rounded-lg py-0 shadow-xs"
+                        >
                             <UiCardHeader
-                                class="border-border flex flex-col gap-3 border-b p-5 sm:flex-row sm:items-start sm:justify-between"
+                                class="border-border flex flex-col gap-3 border-b p-5 sm:flex-row sm:items-start sm:justify-between [.border-b]:pb-5"
                             >
                                 <div>
                                     <UiCardTitle class="text-lg font-bold">

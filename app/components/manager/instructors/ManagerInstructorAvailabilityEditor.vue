@@ -67,6 +67,13 @@ const rowsWithDraftBars = computed(() =>
                         $emit('updateEndTime', item.row.dayOfWeek, $event)
                     "
                 />
+                <div
+                    class="border-border bg-muted/30 flex flex-col gap-2 border-t p-3 sm:flex-row sm:justify-end"
+                    role="toolbar"
+                    aria-label="Akcje dostępności instruktora"
+                >
+                    <slot name="actions" />
+                </div>
             </div>
 
             <p
