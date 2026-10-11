@@ -19,6 +19,7 @@ export function useMyLessonsPage() {
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
     const scheduleView = ref<MyLessonsScheduleView>('calendar');
+    const selectedLessonDetails = shallowRef<ScheduleLessonItem | null>(null);
     const { savingEventId, updateEventStatus } = useMyLessonsEventStatus(items);
 
     const range = computed(() => weekRangeFromMonday(weekStart.value));
@@ -65,6 +66,30 @@ export function useMyLessonsPage() {
         isStudent,
         loadWeek,
     });
+
+    function handleLessonDetailsRequested(lesson: ScheduleLessonItem): void {
+        if (isStudent.value) {
+            selectedLessonDetails.value = lesson;
+        }
+    }
+
+    function closeLessonDetails(): void {
+        selectedLessonDetails.value = null;
+    }
+
+    function handleLessonDetailsCancelRequested(
+        lesson: ScheduleLessonItem,
+    ): void {
+        closeLessonDetails();
+        handleCancelLessonRequested(lesson);
+    }
+
+    function handleLessonDetailsRateRequested(
+        lesson: ScheduleLessonItem,
+    ): void {
+        closeLessonDetails();
+        handleRatingLessonSelected(lesson);
+    }
 
     async function loadWeek(): Promise<void> {
         const requestSequence = ++loadSequence;
@@ -146,10 +171,14 @@ export function useMyLessonsPage() {
     return {
         cancellingLessonId,
         clearPendingCancelLesson,
+        closeLessonDetails,
         dateRangeLabel,
         errorMessage,
         handleCancelDialogOpenChange,
         handleCancelLessonRequested,
+        handleLessonDetailsCancelRequested,
+        handleLessonDetailsRateRequested,
+        handleLessonDetailsRequested,
         handleConfirmCancelLesson,
         handleNextWeek,
         handlePrevWeek,
@@ -170,6 +199,7 @@ export function useMyLessonsPage() {
         savingEventId,
         handleEventStatusChange,
         selectedRatingLessonId,
+        selectedLessonDetails,
         weekStart,
     };
 }

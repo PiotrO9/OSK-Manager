@@ -13,6 +13,7 @@ defineProps<{
 }>();
 defineEmits<{
     lessonSelected: [lesson: ScheduleLessonItem];
+    lessonDetailsRequested: [lesson: ScheduleLessonItem];
     nextWeek: [];
     previousWeek: [];
     today: [];
@@ -111,6 +112,7 @@ const weekStart = defineModel<Date>('weekStart', {
                     :parent-loading="isLoading"
                     :parent-error="errorMessage"
                     :student-rating-selection-enabled="isStudent"
+                    :student-lesson-details-enabled="isStudent"
                     :schedule-count-badge-label="
                         isStudent ? 'Pozycji' : 'Lekcji'
                     "
@@ -121,7 +123,14 @@ const weekStart = defineModel<Date>('weekStart', {
                         isStudent ? 'instructor' : 'student'
                     "
                     @lesson-selected="$emit('lessonSelected', $event)"
+                    @lesson-details-requested="
+                        $emit('lessonDetailsRequested', $event)
+                    "
                 />
+                <p v-if="isStudent" class="text-muted-foreground mt-3 text-sm">
+                    Kliknij jazdę w kalendarzu, aby zobaczyć szczegóły i
+                    dostępne działania.
+                </p>
             </div>
 
             <div

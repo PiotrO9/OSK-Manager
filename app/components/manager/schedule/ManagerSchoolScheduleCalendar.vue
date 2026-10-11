@@ -30,6 +30,7 @@ const props = withDefaults(
          */
         practicePrimaryLine?: 'student' | 'instructor';
         studentRatingSelectionEnabled?: boolean;
+        studentLessonDetailsEnabled?: boolean;
         eventActionMode?: 'navigate' | 'select';
         showInstructorSubtitle?: boolean;
         showInstructorCount?: boolean;
@@ -50,6 +51,7 @@ const props = withDefaults(
         emptyDayMessage: 'Brak lekcji',
         practicePrimaryLine: 'student',
         studentRatingSelectionEnabled: false,
+        studentLessonDetailsEnabled: false,
         eventActionMode: 'navigate',
         showInstructorSubtitle: true,
         showInstructorCount: true,
@@ -63,6 +65,7 @@ const props = withDefaults(
 const emit = defineEmits<{
     'update:weekStart': [value: Date];
     'lesson-selected': [lesson: ScheduleLessonItem];
+    'lesson-details-requested': [lesson: ScheduleLessonItem];
     'block-selected': [lesson: ScheduleLessonItem];
 }>();
 

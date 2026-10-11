@@ -48,6 +48,7 @@ const myLessons = useMyLessonsPage();
             :items="myLessons.items.value"
             :saving-event-id="myLessons.savingEventId.value"
             @lesson-selected="myLessons.handleRatingLessonSelected"
+            @lesson-details-requested="myLessons.handleLessonDetailsRequested"
             @next-week="myLessons.handleNextWeek"
             @previous-week="myLessons.handlePrevWeek"
             @today="myLessons.handleToday"
@@ -74,6 +75,13 @@ const myLessons = useMyLessonsPage();
             "
             @cancel="myLessons.clearPendingCancelLesson"
             @confirm="myLessons.handleConfirmCancelLesson"
+        />
+        <StudentLessonDetailsDialog
+            v-if="myLessons.isStudent.value"
+            :lesson="myLessons.selectedLessonDetails.value"
+            @close="myLessons.closeLessonDetails"
+            @cancel="myLessons.handleLessonDetailsCancelRequested"
+            @rate="myLessons.handleLessonDetailsRateRequested"
         />
     </div>
 </template>

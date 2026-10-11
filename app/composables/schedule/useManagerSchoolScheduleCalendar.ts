@@ -23,6 +23,7 @@ import {
     getManagerSchoolScheduleBlockInteractiveClasses,
     isManagerSchoolScheduleBlockClickable,
     isStudentRatingSelectableScheduleLesson,
+    isStudentLessonDetailsSelectable,
 } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 import {
     WEEK_PICKER_CALENDAR_MAX,
@@ -41,6 +42,7 @@ export interface ManagerSchoolScheduleCalendarProps {
     emptyDayMessage?: string;
     practicePrimaryLine?: 'student' | 'instructor';
     studentRatingSelectionEnabled?: boolean;
+    studentLessonDetailsEnabled?: boolean;
     eventActionMode?: 'navigate' | 'select';
     showInstructorSubtitle?: boolean;
     showInstructorCount?: boolean;
@@ -56,6 +58,7 @@ type ManagerSchoolScheduleCalendarResolvedProps = Required<
 interface ManagerSchoolScheduleCalendarEmit {
     'update:weekStart': [value: Date];
     'lesson-selected': [lesson: ScheduleLessonItem];
+    'lesson-details-requested': [lesson: ScheduleLessonItem];
     'block-selected': [lesson: ScheduleLessonItem];
 }
 
@@ -159,6 +162,7 @@ export function useManagerSchoolScheduleCalendar(
             eventActionMode: props.eventActionMode,
             eventEditEnabled: props.eventEditEnabled,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+            studentLessonDetailsEnabled: props.studentLessonDetailsEnabled,
         });
     }
 
@@ -167,6 +171,7 @@ export function useManagerSchoolScheduleCalendar(
             eventEditEnabled: props.eventEditEnabled,
             eventActionMode: props.eventActionMode,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+            studentLessonDetailsEnabled: props.studentLessonDetailsEnabled,
             practicePrimaryLine: props.practicePrimaryLine,
         });
     }
@@ -176,11 +181,23 @@ export function useManagerSchoolScheduleCalendar(
             eventActionMode: props.eventActionMode,
             eventEditEnabled: props.eventEditEnabled,
             studentRatingSelectionEnabled: props.studentRatingSelectionEnabled,
+            studentLessonDetailsEnabled: props.studentLessonDetailsEnabled,
         });
     }
 
     function handleScheduleBlockClick(lesson: ScheduleLessonItem): void {
         if (!blockIsClickable(lesson)) {
+            return;
+        }
+
+        if (
+            isStudentLessonDetailsSelectable(
+                lesson,
+                props.studentLessonDetailsEnabled,
+            )
+        ) {
+            emit('lesson-details-requested', lesson);
+
             return;
         }
 

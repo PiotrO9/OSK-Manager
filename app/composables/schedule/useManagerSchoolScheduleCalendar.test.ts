@@ -81,6 +81,7 @@ describe('useManagerSchoolScheduleCalendar', () => {
                 emptyDayMessage: 'Brak zajęć.',
                 practicePrimaryLine: 'student',
                 studentRatingSelectionEnabled: false,
+                studentLessonDetailsEnabled: false,
                 eventActionMode: 'navigate',
                 showInstructorSubtitle: true,
                 showInstructorCount: true,
@@ -130,6 +131,7 @@ describe('useManagerSchoolScheduleCalendar', () => {
                 emptyDayMessage: 'Brak wpisów.',
                 practicePrimaryLine: 'student',
                 studentRatingSelectionEnabled: false,
+                studentLessonDetailsEnabled: false,
                 eventActionMode: 'select',
                 showInstructorSubtitle: false,
                 showInstructorCount: false,
@@ -169,6 +171,7 @@ describe('useManagerSchoolScheduleCalendar', () => {
                 emptyDayMessage: 'Brak wpisów.',
                 practicePrimaryLine: 'student',
                 studentRatingSelectionEnabled: false,
+                studentLessonDetailsEnabled: false,
                 eventActionMode: 'select',
                 showInstructorSubtitle: false,
                 showInstructorCount: false,
@@ -180,6 +183,43 @@ describe('useManagerSchoolScheduleCalendar', () => {
         calendar.handleScheduleBlockClick(lesson);
 
         expect(emit).toHaveBeenCalledWith('block-selected', lesson);
+        expect(navigateTo).not.toHaveBeenCalled();
+    });
+    it('opens student ride details from the calendar', async () => {
+        const futureRide = scheduleLesson({
+            startTime: '2099-08-10T09:00:00.000Z',
+            endTime: '2099-08-10T10:00:00.000Z',
+        });
+        const emit = vi.fn();
+        const { useManagerSchoolScheduleCalendar } =
+            await import('./useManagerSchoolScheduleCalendar');
+        const calendar = useManagerSchoolScheduleCalendar(
+            {
+                schoolId: '',
+                eventEditEnabled: false,
+                parentSchedule: true,
+                parentItems: [futureRide],
+                parentLoading: false,
+                parentError: null,
+                weekStart: new Date(2099, 7, 10),
+                scheduleCountBadgeLabel: 'Pozycji',
+                emptyDayMessage: 'Brak pozycji',
+                practicePrimaryLine: 'instructor',
+                studentRatingSelectionEnabled: true,
+                studentLessonDetailsEnabled: true,
+                eventActionMode: 'navigate',
+                showInstructorSubtitle: true,
+                showInstructorCount: true,
+                scopeBadgeLabel: 'Wszyscy instruktorzy',
+            },
+            emit,
+        );
+
+        calendar.handleScheduleBlockClick(futureRide);
+        expect(emit).toHaveBeenCalledWith(
+            'lesson-details-requested',
+            futureRide,
+        );
         expect(navigateTo).not.toHaveBeenCalled();
     });
 });

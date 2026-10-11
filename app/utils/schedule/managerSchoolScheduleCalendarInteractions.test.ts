@@ -33,6 +33,34 @@ function lesson(
 }
 
 describe('managerSchoolScheduleCalendarInteractions', () => {
+    it('opens details for student rides regardless of their status', () => {
+        const options = {
+            eventEditEnabled: false,
+            studentRatingSelectionEnabled: true,
+            studentLessonDetailsEnabled: true,
+            practicePrimaryLine: 'instructor' as const,
+        };
+
+        for (const ride of [
+            lesson(),
+            lesson({ status: 'COMPLETED' }),
+            lesson({ startTime: '2020-08-10T09:00:00.000Z' }),
+        ]) {
+            expect(isManagerSchoolScheduleBlockClickable(ride, options)).toBe(
+                true,
+            );
+            expect(
+                getManagerSchoolScheduleBlockAccessibilityLabel(ride, options),
+            ).toContain('otworzyć szczegóły jazdy');
+        }
+
+        expect(
+            isManagerSchoolScheduleBlockClickable(
+                lesson({ type: 'THEORY' }),
+                options,
+            ),
+        ).toBe(false);
+    });
     it('detects student rating selectable practical lessons', () => {
         expect(
             isStudentRatingSelectableScheduleLesson(

@@ -123,10 +123,10 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 
 - Wymagania: `REQ-STU-CANCEL`.
 - Dane: `student-schedule` z przyszłą jazdą, rozpoczętą lub przeszłą jazdą, jazdą `COMPLETED`/`CANCELLED` i pozycją teoretyczną.
-- Kroki: (1) Otwórz anulowanie przyszłej jazdy, kliknij `Anuluj` w dialogu. (2) Sprawdź jej status. (3) Sprawdź akcje przy pozostałych pozycjach.
-- Oczekiwane: zamknięcie dialogu zachowuje jazdę `SCHEDULED`; akcja anulowania występuje tylko przy własnej, przyszłej jazdzie praktycznej `SCHEDULED`. Rozpoczęta, zakończona, już anulowana i teoretyczna pozycja nie daje tej akcji.
+- Kroki: (1) W `Moje lekcje` otwórz anulowanie przyszłej jazdy z widoku `Lista`, a w dialogu kliknij `Nie`. (2) Sprawdź jej status po odświeżeniu. (3) Przełącz na `Kalendarz`, kliknij tę samą jazdę, w szczegółach wybierz `Anuluj rezerwację` i zamknij dialog potwierdzenia przyciskiem `Nie`. (4) Sprawdź akcje przy pozostałych pozycjach w obu widokach.
+- Oczekiwane: zamknięcie dialogu w obu widokach zachowuje jazdę `SCHEDULED`; akcja anulowania występuje tylko przy własnej, przyszłej jeździe praktycznej `SCHEDULED`. Rozpoczęta, zakończona, już anulowana i teoretyczna pozycja nie daje tej akcji; anulowana może być ukryta w harmonogramie kursanta.
 - Powtórzenie: odczyt; bez resetu.
-- Źródła: `FE/OSK-Manager-FE/app/utils/schedule/studentScheduleGroupedList.ts`, `app/composables/lessons/useMyLessonsCancellation.ts`; `BE/src/services/lesson/cancelLessons.ts`.
+- Źródła: `FE/OSK-Manager-FE/app/utils/schedule/studentScheduleGroupedList.ts`, `app/components/student/schedule/StudentLessonDetailsDialog.vue`, `app/composables/lessons/useMyLessonsCancellation.ts`; `BE/src/services/lesson/cancelLessons.ts`.
 
 ## Opinie po jazdach
 

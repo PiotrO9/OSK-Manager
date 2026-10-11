@@ -11,6 +11,7 @@ export interface ManagerSchoolScheduleBlockInteractionOptions {
     eventActionMode?: 'navigate' | 'select';
     eventEditEnabled: boolean | undefined;
     studentRatingSelectionEnabled: boolean | undefined;
+    studentLessonDetailsEnabled?: boolean;
     practicePrimaryLine: 'student' | 'instructor';
 }
 
@@ -26,11 +27,25 @@ export function isStudentRatingSelectableScheduleLesson(
     );
 }
 
+export function isStudentLessonDetailsSelectable(
+    lesson: ScheduleLessonItem,
+    enabled: boolean | undefined,
+): boolean {
+    return (
+        Boolean(enabled) &&
+        lesson.kind === 'lesson' &&
+        lesson.type.trim().toUpperCase() === 'PRACTICE'
+    );
+}
+
 export function isManagerSchoolScheduleBlockClickable(
     lesson: ScheduleLessonItem,
     options: Pick<
         ManagerSchoolScheduleBlockInteractionOptions,
-        'eventActionMode' | 'eventEditEnabled' | 'studentRatingSelectionEnabled'
+        | 'eventActionMode'
+        | 'eventEditEnabled'
+        | 'studentRatingSelectionEnabled'
+        | 'studentLessonDetailsEnabled'
     >,
 ): boolean {
     return (
@@ -44,6 +59,10 @@ export function isManagerSchoolScheduleBlockClickable(
         isStudentRatingSelectableScheduleLesson(
             lesson,
             options.studentRatingSelectionEnabled,
+        ) ||
+        isStudentLessonDetailsSelectable(
+            lesson,
+            options.studentLessonDetailsEnabled,
         )
     );
 }
@@ -53,6 +72,15 @@ export function getManagerSchoolScheduleBlockAccessibilityLabel(
     options: ManagerSchoolScheduleBlockInteractionOptions,
 ): string {
     const base = ariaSummaryForLesson(lesson, options.practicePrimaryLine);
+
+    if (
+        isStudentLessonDetailsSelectable(
+            lesson,
+            options.studentLessonDetailsEnabled,
+        )
+    ) {
+        return `${base}. Naciśnij Enter lub Spację, aby otworzyć szczegóły jazdy.`;
+    }
 
     if (
         isStudentRatingSelectableScheduleLesson(
@@ -94,7 +122,10 @@ export function getManagerSchoolScheduleBlockInteractiveClasses(
     lesson: ScheduleLessonItem,
     options: Pick<
         ManagerSchoolScheduleBlockInteractionOptions,
-        'eventActionMode' | 'eventEditEnabled' | 'studentRatingSelectionEnabled'
+        | 'eventActionMode'
+        | 'eventEditEnabled'
+        | 'studentRatingSelectionEnabled'
+        | 'studentLessonDetailsEnabled'
     >,
 ): string {
     if (!isManagerSchoolScheduleBlockClickable(lesson, options)) {
