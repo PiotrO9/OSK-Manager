@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ArrowLeft, Plus, Pencil } from 'lucide-vue-next';
+import { ArrowLeft, Plus } from 'lucide-vue-next';
 import type { RouteLocationRaw } from 'vue-router';
 
 defineProps<{
@@ -7,24 +7,12 @@ defineProps<{
     description: string;
     backToCoursesHref: RouteLocationRaw;
     createCourseTarget: RouteLocationRaw;
-    editCourseTarget?: RouteLocationRaw;
 }>();
 </script>
 
 <template>
     <PageHeader :title="title" :description="description">
         <template #actions>
-            <UiButton
-                v-if="editCourseTarget"
-                as-child
-                variant="outline"
-                class="h-10 rounded-lg px-4 font-semibold shadow-xs"
-            >
-                <NuxtLink :to="editCourseTarget"
-                    ><Pencil class="mr-2 size-4" aria-hidden="true" />Edytuj
-                    kurs</NuxtLink
-                >
-            </UiButton>
             <UiButton
                 as-child
                 variant="outline"
