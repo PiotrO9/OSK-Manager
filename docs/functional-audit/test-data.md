@@ -168,3 +168,22 @@ Kamil Kursant (`student001@post.pl`), aktywny kurs praktyczny
 „Kategoria A - grupa 1/1” przypisany do Jana oraz aktywny pojazd
 „Pojazd 3 - Skoda Fabia” (`DW00003`). Po rezerwacji termin 19.10 o 09:30–10:30
 nie będzie już wolny; przed powtórzeniem testu należy odtworzyć ten stan.
+
+## Przygotowane dane MGR-ACC-01 (2026-10-14)
+
+W bazie DEV podłączonej do lokalnej aplikacji `http://localhost:3000` dodano
+poniższe konta do ręcznego testu granicy szkoły. Zestaw jest dodatkiem do
+istniejących danych; nie wykonywano resetu. Hasła nie są zapisane w repozytorium.
+
+| Szkoła | Menadżer | Kursanci | Instruktorzy |
+| --- | --- | --- | --- |
+| A: OSK Warszawa Demo 1 (`4de65666-7331-4dcc-9fda-aec49ce14e6b`) | Marta Skalska (`manager001@post.pl`) | Kamil Kursant (`student001@post.pl`), Ola Kursantka (`student02@audit.osk.local`, `6d6488a2-1d57-4554-a9bf-75406113c521`) | Jan Instruktor (`instructor001@post.pl`) |
+| B: OSK Audyt Kraków (`1575ea5b-d173-4c00-9132-4871d2ce2cfa`) | Marta Obca (`manager02@audit.osk.local`) | Sara Obca (`student03@audit.osk.local`, `7c5d5ed4-fd64-4d00-9214-e5b18a6343ca`) | Igor Obcy (`instructor03@audit.osk.local`, `02a46ea8-ca7d-4e6b-85ea-a89baf5910e6`) |
+
+Sprawdzono logowanie menadżerów oraz kont Sary i Igora przez lokalny BE.
+`GET /manager/accounts` zwrócił Olę tylko w A, a Sarę i Igora tylko w B.
+Menadżer A otrzymał `404` przy odczycie listy B i szczegółów Sary w kontekście A;
+menadżer B otrzymał `404` przy odczycie listy A. Konta Sary i Igora otrzymały
+`403` przy próbie odczytu listy kont A. Późniejszy [przebieg automatyczny](runs/2026-10-14-mgr-acc-01-api.md)
+objął również odmowy zapisu i potwierdzenie braku zmian, a [wynik ręczny](runs/2026-10-14-mgr-acc-01-manual.md)
+zapisano osobno.

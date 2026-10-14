@@ -350,9 +350,9 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 1. Otwórz na wąskim ekranie menu, listę OSK, kursantów i harmonogram; przejdź między tymi widokami.
 2. Wybierz szkołę, wyszukaj kursanta i otwórz jego szczegóły.
-3. Otwórz dialog dodawania opłaty, przewiń formularz do przycisków i zamknij go bez zapisu.
+3. W szczegółach kursanta otwórz zakładkę Płatności, przewiń formularz dodawania opłaty do przycisku „Dodaj” i opuść zakładkę bez zapisu.
 
-**Oczekiwane:** nawigacja i istotne akcje są dostępne bez poziomego przewijania całej strony; tekst, pola, kalendarz i przyciski pozostają czytelne, a dialog da się zamknąć. **Powtórzenie:** bez zmian danych. **Źródła:** [lista kursantów](../../../app/pages/manager/students/index.vue), [harmonogram](../../../app/pages/manager/schedule/index.vue), [płatności](../../../app/components/manager/students/ManagerStudentPaymentsSection.vue).
+**Oczekiwane:** nawigacja i istotne akcje są dostępne bez poziomego przewijania całej strony; tekst, pola, kalendarz i przyciski pozostają czytelne, a sekcję płatności można opuścić bez zapisu. **Powtórzenie:** bez zmian danych. **Źródła:** [lista kursantów](../../../app/pages/manager/students/index.vue), [harmonogram](../../../app/pages/manager/schedule/index.vue), [płatności](../../../app/components/manager/students/ManagerStudentPaymentsSection.vue).
 
 ## Otwarte decyzje przed zaliczeniem odbioru
 
