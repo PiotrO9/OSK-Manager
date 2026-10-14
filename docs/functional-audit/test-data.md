@@ -112,3 +112,17 @@ kontrolnych z tabeli powyżej.
 Przypadki zarządzania kontami używają lokalnego presetu `account-ready` i skrzynki
 Mailpit. Preset odtwarza dane aplikacji; kont Supabase Auth nie usuwa, a test
 używa unikalnego adresu docelowego przy każdej zmianie e-maila.
+
+## Przygotowane dane STU-06 (2026-10-14)
+
+W OSK Warszawa Demo 1 utworzono trzy niezależne konta kursanta. Hasło przekazano
+testerowi poza repozytorium i nie jest tu przechowywane.
+
+| Zestaw | Konto | Stan kontrolny |
+| --- | --- | --- |
+| `student-empty` | `stu06-puste-20261014@example.com` | Brak przypisanych kursów i lekcji. |
+| `student-course-mix` (kursy nieuprawnione) | `stu06-nieuprawnione-20261014@example.com` | Aktywna teoria „Kategoria B - grupa 1/10” i zakończony zapis do praktyki „Kategoria B - grupa 1/2”. Brak aktywnej praktyki. |
+| `booking-hours-zero` | `stu06-godziny-20261014@example.com` | Aktywny kurs praktyczny „AUD STU-06 - wykorzystany pakiet” ma 1 godzinę; jedyna jazda 1.09.2026, 06:00–07:00, jest zakończona. Pozostało 0 godzin, postęp API: 100%. |
+
+Logowanie do wszystkich trzech kont potwierdzono przez Supabase Auth. Wynik
+ręczny zapisano w [przebiegu STU-06](runs/2026-10-14-stu-06-manual.md).
