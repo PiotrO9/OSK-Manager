@@ -53,7 +53,10 @@ const page = useStudentLessonBookingPage();
             </EmptyState>
 
             <StudentLessonBookingFeedbackBanner
-                v-if="page.bookingFeedbackMessage.value"
+                v-if="
+                    page.bookingFeedbackMessage.value &&
+                    !page.isConfirmDialogOpen.value
+                "
                 :message="page.bookingFeedbackMessage.value"
                 :tone="page.bookingFeedbackTone.value"
             />

@@ -155,8 +155,12 @@ describe('useStudentLessonBookingPage', () => {
             },
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
+        await nextTick();
+        fetchSlots.mockClear();
+        page.rawSlots.value = [slot];
 
         page.pendingConfirmationSlot.value = slot;
+        page.isConfirmDialogOpen.value = true;
         await page.handleConfirmBookSlot();
 
         expect(recheckAvailability).toHaveBeenCalledOnce();
@@ -166,6 +170,9 @@ describe('useStudentLessonBookingPage', () => {
         );
         expect(page.slotsErrorMessage.value).toBeNull();
         expect(page.bookingSlotKey.value).toBeNull();
+        expect(fetchSlots).toHaveBeenCalledOnce();
+        expect(page.rawSlots.value).toEqual([]);
+        expect(page.isConfirmDialogOpen.value).toBe(true);
     });
 
     it('blocks booking when the real same-tick preflight reports unavailable', async () => {

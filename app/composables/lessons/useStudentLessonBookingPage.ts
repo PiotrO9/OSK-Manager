@@ -481,6 +481,7 @@ export function useStudentLessonBookingPage() {
                     description: message,
                     variant: 'error',
                 });
+                await loadSlots();
 
                 return false;
             }
