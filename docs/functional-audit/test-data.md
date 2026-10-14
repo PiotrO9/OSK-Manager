@@ -141,3 +141,15 @@ zwróciło m.in. godzinny slot 19.10, 08:00–09:00 u Jana Instruktora. Hasła n
 zapisano w repozytorium. Użytkownik potwierdził pomyślny wynik ręczny `STU-07`
 2026-10-14. Zarezerwowanie 19.10, 08:00–08:30 zużyło pozostałe 30 minut;
 przed powtórzeniem testu trzeba odtworzyć stan początkowy.
+
+## Przygotowane dane MGR-SCH-01 (2026-10-14)
+
+Konto menedżera `manager001@post.pl` ma dostęp do dwóch szkół. W tygodniu
+12–18.10.2026 „OSK Warszawa Demo 1” (`4de65666-7331-4dcc-9fda-aec49ce14e6b`)
+ma m.in. jazdę 16.10 o 08:00–09:00 oraz teorię tego dnia o 11:00–11:45.
+W „OSK Audyt Opinie B” (`37020267-1b80-47d6-93b6-6300fe2afa54`)
+przygotowano odrębny blok teorii 16.10 o 14:00–15:00 z instruktorem
+„Audyt Harmonogram B” (wydarzenie `b3d9739f-d7dc-4349-b17a-a869efdc6be1`).
+Ten wpis służy do sprawdzenia przełączania szkół w harmonogramie. Hasło
+konta demo menedżera pochodzi z lokalnych danych demonstracyjnych i nie jest
+powielane w dokumentacji audytu.
