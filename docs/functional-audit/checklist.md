@@ -140,7 +140,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | STU-16 | Brak opłat                                          | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-mgr-stu-ins-stu.md); [wcześniejszy przebieg](runs/2026-10-11-stu-16-manual.md))                                                    | —                                                         |
 | STU-17 | Numer PKK na koncie                                 | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-11 ([przebieg](runs/2026-10-11-stu-17-manual.md))                                                                                                 | —                                                         |
 | STU-18 | Błąd pobierania danych i ponowienie                 | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-stu-18-manual.md)) | —                                                         |
-| STU-19 | Rezerwacja i opłaty na wąskim ekranie               | ☐                                                                                                                                                                                                      | —                                                         |
+| STU-19 | Rezerwacja i opłaty na wąskim ekranie               | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-stu-19-manual.md)) | — |
 
 ## Między rolami — [kroki](scenarios/cross-role.md)
 
