@@ -18,7 +18,14 @@ export function useMyLessonsPage() {
     const items = ref<ScheduleLessonItem[]>([]);
     const isLoading = ref(false);
     const errorMessage = ref<string | null>(null);
-    const scheduleView = ref<MyLessonsScheduleView>('calendar');
+    const scheduleView = ref<MyLessonsScheduleView>('list');
+
+    onMounted(() => {
+        if (window.matchMedia('(min-width: 768px)').matches) {
+            scheduleView.value = 'calendar';
+        }
+    });
+
     const selectedLessonDetails = shallowRef<ScheduleLessonItem | null>(null);
     const isRatingsDialogOpen = shallowRef(false);
     const { savingEventId, updateEventStatus } = useMyLessonsEventStatus(items);

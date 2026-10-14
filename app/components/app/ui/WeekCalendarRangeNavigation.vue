@@ -51,8 +51,12 @@ const spacedWeekRangeLabel = computed(() =>
             <ChevronLeft class="size-4" aria-hidden="true" />
         </UiButton>
         <p
-            class="text-foreground min-w-36 px-3 text-center text-sm font-semibold whitespace-nowrap"
-            :class="props.compact ? 'sm:min-w-44' : 'sm:min-w-48'"
+            class="text-foreground min-w-0 flex-1 px-3 text-center text-sm font-semibold whitespace-nowrap"
+            :class="
+                props.compact
+                    ? 'sm:min-w-44 sm:flex-none'
+                    : 'sm:min-w-48 sm:flex-none'
+            "
             aria-live="polite"
         >
             {{ spacedWeekRangeLabel }}

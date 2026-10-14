@@ -29,7 +29,7 @@ import {
 const route = useRoute();
 const { session } = useAuthSession();
 const { handleLogout, isLoggingOut } = useLogout();
-const { state, isMobile } = useSidebar();
+const { state, isMobile, setOpenMobile } = useSidebar();
 
 /** Tooltip + as-child wokół linku potrafi zablokować klik; pokazujemy go tylko w trybie ikon (desktop). */
 const showNavItemTooltip = computed(
@@ -66,6 +66,12 @@ const navItems = computed(() =>
 
 function isNavActive(to: string): boolean {
     return isAppShellSidebarNavActive(route.path, to);
+}
+
+function handleNavClick(): void {
+    if (isMobile.value) {
+        setOpenMobile(false);
+    }
 }
 
 function handleLogoutClick() {
@@ -147,6 +153,7 @@ const avatarSrc = computed(() => {
                                             : undefined
                                     "
                                     class="flex w-full items-center gap-2"
+                                    @click="handleNavClick"
                                 >
                                     <component
                                         :is="item.icon"

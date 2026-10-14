@@ -29,7 +29,13 @@ const emit = defineEmits<{
 }>();
 
 const selectedItemId = shallowRef<string | null>(null);
-const scheduleView = shallowRef<ScheduleViewMode>('calendar');
+const scheduleView = shallowRef<ScheduleViewMode>('list');
+
+onMounted(() => {
+    if (window.matchMedia('(min-width: 768px)').matches) {
+        scheduleView.value = 'calendar';
+    }
+});
 
 const calendarWeekStart = computed({
     get: () => props.weekStart,
