@@ -98,7 +98,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-ACC-03  | Blokada i odblokowanie konta                    | ☐                                                                                                                                                       | —                          |
 | MGR-ACC-04  | Wysłanie resetu hasła                           | ☐                                                                                                                                                       | —                          |
 | MGR-ACC-05  | Archiwizacja konta i aktywne zobowiązania       | ☐                                                                                                                                                       | —                          |
-| MGR-REV-01  | Opinie o zakończonych jazdach                   | ☐                                                                                                                                                       | —                          |
+| MGR-REV-01  | Opinie o zakończonych jazdach                   | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-rev-01-manual.md)) | — |
 | MGR-DASH-01 | Pulpit i elementy wymagające uwagi              | ☐                                                                                                                                                       | —                          |
 | MGR-MOB-01  | Podstawowe zadania menadżera na wąskim ekranie  | ☐                                                                                                                                                       | —                          |
 
