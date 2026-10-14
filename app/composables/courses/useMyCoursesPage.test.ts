@@ -110,7 +110,7 @@ describe('useMyCoursesPage', () => {
         expect(page.emptyState.value.canResetFilter).toBe(true);
     });
 
-    it('surfaces a fetch error and clears it on a successful retry', async () => {
+    it('shows a generic data error and clears it on a successful retry', async () => {
         fetchMyCourses.mockRejectedValue({
             data: { message: 'Brak dostępu do kursów.' },
         });
@@ -118,7 +118,7 @@ describe('useMyCoursesPage', () => {
 
         await page.loadCourses();
 
-        expect(page.errorMessage.value).toBe('Brak dostępu do kursów.');
+        expect(page.errorMessage.value).toBe('Błąd danych');
         expect(page.courses.value).toEqual([]);
         expect(page.isLoading.value).toBe(false);
 
@@ -129,14 +129,17 @@ describe('useMyCoursesPage', () => {
         expect(page.visibleCourses.value).toHaveLength(1);
     });
 
-    it('falls back to a generic message when the error carries no details', async () => {
-        fetchMyCourses.mockRejectedValue({});
+    it.each([
+        {},
+        new Error(
+            '[GET] "http://localhost:3000/api/me/courses": <no response> Failed to fetch',
+        ),
+    ])('hides technical details from the courses error', async (error) => {
+        fetchMyCourses.mockRejectedValue(error);
         const page = useMyCoursesPage();
 
         await page.loadCourses();
 
-        expect(page.errorMessage.value).toBe(
-            'Nie udało się pobrać listy kursów.',
-        );
+        expect(page.errorMessage.value).toBe('Błąd danych');
     });
 });

@@ -16,6 +16,7 @@ export function usePaymentsApi() {
             '/api/me/payments',
             {
                 fallbackMessage: 'Nie udało się pobrać listy opłat.',
+                retry: 0,
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
             },
         );

@@ -1,3 +1,20 @@
+function toUserMessage(value: unknown, fallback: string): string | null {
+    if (typeof value !== 'string' || !value.trim()) {
+        return null;
+    }
+
+    const message = value.trim();
+
+    if (
+        /(?:https?:\/\/|\/api\/)/i.test(message) ||
+        /\b(?:failed to fetch|fetch failed|networkerror)\b/i.test(message)
+    ) {
+        return fallback;
+    }
+
+    return message;
+}
+
 export function getApiFetchErrorMessage(
     err: unknown,
     fallback: string,
@@ -8,21 +25,22 @@ export function getApiFetchErrorMessage(
         if (data && typeof data === 'object') {
             const d = data as { message?: unknown; statusMessage?: unknown };
 
-            if (
-                typeof d.statusMessage === 'string' &&
-                d.statusMessage.trim().length > 0
-            ) {
-                return d.statusMessage.trim();
+            const statusMessage = toUserMessage(d.statusMessage, fallback);
+
+            if (statusMessage) {
+                return statusMessage;
             }
 
-            if (typeof d.message === 'string' && d.message.trim().length > 0) {
-                return d.message.trim();
+            const message = toUserMessage(d.message, fallback);
+
+            if (message) {
+                return message;
             }
         }
     }
 
-    if (err instanceof Error && err.message.trim().length > 0) {
-        return err.message.trim();
+    if (err instanceof Error) {
+        return toUserMessage(err.message, fallback) ?? fallback;
     }
 
     return fallback;

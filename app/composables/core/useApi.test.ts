@@ -1,4 +1,9 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createFetch } from 'ofetch';
+import { readonly, ref } from 'vue';
+import { useCoursesApi } from '../courses/useCoursesApi';
+import { usePaymentsApi } from '../payments/usePaymentsApi';
+import { useSchoolAvailabilitySlotsApi } from '../schools/useSchoolAvailabilitySlotsApi';
 import type {
     requestBffData as requestBffDataType,
     requestBffSuccess as requestBffSuccessType,
@@ -44,6 +49,78 @@ describe('requestBffData', () => {
             'http://localhost:3000/api/items/abc',
             expect.objectContaining({ method: 'GET' }),
         );
+    });
+
+    it('lets a GET request disable automatic transport retries', async () => {
+        const fetchMock = vi
+            .fn()
+            .mockRejectedValue(new Error('Failed to fetch'));
+
+        vi.stubGlobal('$fetch', fetchMock);
+
+        await expect(
+            requestBffData('GET', '/api/me/courses', {
+                fallbackMessage: 'Błąd danych',
+                retry: 0,
+            }),
+        ).rejects.toThrow('Błąd danych');
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            'http://localhost:3000/api/me/courses',
+            expect.objectContaining({ retry: 0 }),
+        );
+    });
+
+    it('sends one courses request for one failed load', async () => {
+        const transport = vi
+            .fn()
+            .mockResolvedValue(
+                new Response('Service unavailable', { status: 503 }),
+            );
+
+        vi.stubGlobal('$fetch', createFetch({ fetch: transport }));
+        vi.stubGlobal('ref', ref);
+        vi.stubGlobal('readonly', readonly);
+
+        await expect(useCoursesApi().fetchMyCourses()).rejects.toThrow();
+
+        expect(transport).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends one payments request for one failed load', async () => {
+        const transport = vi
+            .fn()
+            .mockResolvedValue(
+                new Response('Service unavailable', { status: 503 }),
+            );
+
+        vi.stubGlobal('$fetch', createFetch({ fetch: transport }));
+        vi.stubGlobal('requestBffData', requestBffData);
+
+        await expect(usePaymentsApi().fetchMyPayments()).rejects.toThrow();
+
+        expect(transport).toHaveBeenCalledTimes(1);
+    });
+
+    it('sends one slots request for one failed load', async () => {
+        const transport = vi.fn().mockRejectedValue(new Error('Blocked'));
+
+        vi.stubGlobal('$fetch', createFetch({ fetch: transport }));
+        vi.stubGlobal('ref', ref);
+        vi.stubGlobal('readonly', readonly);
+        vi.stubGlobal('requestBffData', requestBffData);
+
+        await expect(
+            useSchoolAvailabilitySlotsApi().fetchSlots(
+                'school-1',
+                '2026-10-12',
+                '2026-10-18',
+                undefined,
+                { retry: 0 },
+            ),
+        ).rejects.toThrow();
+
+        expect(transport).toHaveBeenCalledTimes(1);
     });
 
     it('throws the invalid message when normalize rejects payload', async () => {

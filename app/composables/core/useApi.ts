@@ -16,6 +16,7 @@ export interface ApiRequestOptions {
     body?: MaybeRefOrGetter<unknown>;
     headers?: Record<string, string>;
     skipAuth?: boolean;
+    retry?: number;
     signal?: AbortSignal;
 }
 
@@ -64,6 +65,7 @@ function buildBffRequestOptions(
         headers: options.headers,
         auth: options.skipAuth ? 'none' : 'required',
         retryUnauthorized: options.skipAuth ? false : true,
+        retry: options.retry,
         signal: options.signal,
     };
 }

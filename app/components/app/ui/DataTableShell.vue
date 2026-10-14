@@ -5,6 +5,8 @@ const props = withDefaults(
         description?: string;
         isLoading?: boolean;
         errorMessage?: string | null;
+        showErrorDescription?: boolean;
+        centerErrorState?: boolean;
         emptyTitle?: string;
         emptyDescription?: string;
     }>(),
@@ -13,6 +15,8 @@ const props = withDefaults(
         description: '',
         isLoading: false,
         errorMessage: null,
+        showErrorDescription: true,
+        centerErrorState: true,
         emptyTitle: 'Brak danych',
         emptyDescription: '',
     },
@@ -66,7 +70,10 @@ const emit = defineEmits<{
             <ErrorState
                 v-else-if="props.errorMessage"
                 title="Błąd danych"
-                :description="props.errorMessage"
+                :centered="props.centerErrorState"
+                :description="
+                    props.showErrorDescription ? props.errorMessage : ''
+                "
                 class="m-4"
                 @retry="emit('retry')"
             />

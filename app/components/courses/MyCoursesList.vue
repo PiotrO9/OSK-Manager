@@ -32,6 +32,7 @@ const hasCourses = computed(() => props.courses.length > 0);
         title="Lista kursów"
         :is-loading="props.isLoading"
         :error-message="props.errorMessage"
+        :show-error-description="false"
         :empty-title="props.emptyState.title"
         :empty-description="props.emptyState.description"
         @retry="emit('retry')"

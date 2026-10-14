@@ -103,7 +103,7 @@ export function useSchoolAvailabilitySlotsApi() {
         dateFrom: string,
         dateTo: string,
         filters?: SchoolAvailabilitySlotsQueryFilters,
-        options: { signal?: AbortSignal } = {},
+        options: { signal?: AbortSignal; retry?: number } = {},
     ): Promise<SchoolAvailabilitySlotsResult> {
         const trimmedSchoolId = schoolId.trim();
 
@@ -128,6 +128,7 @@ export function useSchoolAvailabilitySlotsApi() {
                     fallbackMessage: 'Nie udało się pobrać dostępnych slotów.',
                     normalize: normalizeSlotsResult,
                     signal: options.signal,
+                    retry: options.retry,
                 },
             );
         } finally {

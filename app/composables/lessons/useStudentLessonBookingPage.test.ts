@@ -1,4 +1,4 @@
-import { computed, ref, shallowRef, watch } from 'vue';
+import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
 import type { ScheduleAvailabilityResult } from '~/types/schedule/scheduleAvailability';
@@ -52,6 +52,42 @@ describe('useStudentLessonBookingPage', () => {
         recheckAvailability.mockResolvedValue('unavailable');
         fetchSlots.mockResolvedValue({ slots: [] });
         installGlobals();
+    });
+
+    it('loads slots once when selecting the initial course and refreshes them once for the same course', async () => {
+        const course = {
+            id: '22222222-2222-4222-8222-222222222222',
+            schoolId: '33333333-3333-4333-8333-333333333333',
+            name: 'Kurs B',
+            status: 'ACTIVE' as const,
+            type: 'PRACTICAL' as const,
+            totalHours: 30,
+            progress: 0,
+            completedMinutes: 0,
+            bookedMinutes: 0,
+            remainingBookableMinutes: 1800,
+        };
+        const page = useStudentLessonBookingPage();
+
+        fetchMyCourses.mockResolvedValue([course]);
+
+        await page.loadCourses();
+        await nextTick();
+
+        expect(fetchSlots).toHaveBeenCalledTimes(1);
+        expect(fetchSlots).toHaveBeenCalledWith(
+            course.schoolId,
+            expect.any(String),
+            expect.any(String),
+            expect.any(Object),
+            expect.objectContaining({ retry: 0 }),
+        );
+
+        fetchSlots.mockClear();
+        await page.loadCourses();
+        await nextTick();
+
+        expect(fetchSlots).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the modal open and books exactly the proposed final 30 minutes', async () => {

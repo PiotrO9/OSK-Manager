@@ -1,5 +1,4 @@
 import type { CurrentUserCourseItem } from '~/types/courses/course';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
     filterMyCourses,
     getMyCoursesByStatus,
@@ -95,12 +94,9 @@ export function useMyCoursesPage() {
 
         try {
             courses.value = await fetchMyCourses();
-        } catch (err: unknown) {
+        } catch {
             courses.value = [];
-            errorMessage.value = getApiFetchErrorMessage(
-                err,
-                'Nie udało się pobrać listy kursów.',
-            );
+            errorMessage.value = 'Błąd danych';
         } finally {
             isLoading.value = false;
         }

@@ -52,6 +52,7 @@ export function useCoursesApi() {
         return await runWithLoading(isMyCoursesLoading, () =>
             requestBffData<CurrentUserCourseItem[]>('GET', '/api/me/courses', {
                 fallbackMessage: 'Nie udało się pobrać listy kursów.',
+                retry: 0,
                 normalize: (data) => normalizeMyCoursesList(data),
             }),
         );

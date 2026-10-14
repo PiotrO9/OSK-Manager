@@ -189,6 +189,7 @@ export function useStudentLessonBookingPage() {
 
         try {
             courses.value = await fetchMyCourses();
+            const previousCourseId = selectedCourseId.value;
             const currentStillAvailable = bookableCourses.value.some(
                 (course) => course.id === selectedCourseId.value,
             );
@@ -197,7 +198,9 @@ export function useStudentLessonBookingPage() {
                 selectedCourseId.value = bookableCourses.value[0]?.id ?? '';
             }
 
-            await loadSlots();
+            if (selectedCourseId.value === previousCourseId) {
+                await loadSlots();
+            }
         } catch (err: unknown) {
             courses.value = [];
             selectedCourseId.value = '';
@@ -247,7 +250,7 @@ export function useStudentLessonBookingPage() {
                     sort: 'startTime',
                     limit: 200,
                 },
-                { signal: controller.signal },
+                { signal: controller.signal, retry: 0 },
             );
 
             if (requestSequence !== slotsLoadSequence) {
