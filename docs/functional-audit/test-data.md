@@ -269,7 +269,12 @@ dostępność w dni robocze 08:00–18:00, a szkoła aktywny pojazd `PZXR01A`.
 Konta kursanta, instruktora i menedżera XR-01 zweryfikowano przez logowanie do
 lokalnego BE. Odczyt `/me/courses` potwierdził 30 wolnych godzin nowego kursu,
 a API dostępności zwróciło wolny slot 19.10.2026, 09:00–10:00 u Adama XR01.
-Po ręcznym teście XR-02 slot 19.10.2026, 09:00–10:00 jest zajęty przez jazdę
-`b8941d82-d9a5-45d0-8f0d-c1fa7f2670ba` (status `SCHEDULED`). Starszy kurs
+Po ręcznym teście XR-02 slot 19.10.2026, 09:00–10:00 był zajęty przez jazdę
+`b8941d82-d9a5-45d0-8f0d-c1fa7f2670ba` (wtedy status `SCHEDULED`). Starszy kurs
 „AUD XR-01 Kat. B — praktyka” ma mimo nazwy typ `THEORY_GROUP` i nie służy do
 rezerwacji jazdy. Hasła nie są zapisane w dokumentacji.
+
+W ręcznym teście XR-03 użytkownik anulował tę jazdę i potwierdził pomyślny
+wynik całego scenariusza. Zestaw `lesson-scheduled` wymaga ponownego
+przygotowania przed powtórzeniem XR-03. Szczegóły są w
+[przebiegu XR-03](runs/2026-10-14-xr-03-manual.md).
