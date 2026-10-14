@@ -99,6 +99,7 @@ export function useLessonRatingsListApi() {
             `/api/ratings/me?${qs.toString()}`,
             {
                 fallbackMessage: 'Nie udało się pobrać Twoich ocen.',
+                retry: 0,
                 normalize: normalizeInstructorOwnLessonRatingsPayload,
             },
         );

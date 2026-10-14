@@ -30,6 +30,7 @@ describe('useLessonRatingsListApi', () => {
             '/api/ratings/me?period=last30days&page=2&limit=20',
             expect.objectContaining({
                 fallbackMessage: 'Nie udało się pobrać Twoich ocen.',
+                retry: 0,
                 normalize: expect.any(Function),
             }),
         );
