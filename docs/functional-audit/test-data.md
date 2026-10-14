@@ -225,3 +225,23 @@ Kontrola przygotowawcza API: menadżerka B otrzymała `403` przy odczycie
 szczegółu pojazdu A, szczegółu instruktora A oraz listy pojazdów A.
 Użytkownik potwierdził pomyślny wynik ręczny XR-06; zapis znajduje się w
 [przebiegu testu](runs/2026-10-14-xr-06-manual.md).
+
+## Przygotowane dane XR-01 (2026-10-14)
+
+W lokalnym Auth i bazie DEV utworzono odrębne aktywne konto menedżera
+`xr01-manager-20261014@example.com` (`0549ec36-5087-4bec-89e7-457459eba0c8`).
+Logowanie przez lokalny BE potwierdziło rolę `MANAGER`, brak przypisanej OSK
+i brak szkoły domyślnej. Istniejące dane pozostałych audytów nie były resetowane.
+
+W trakcie ręcznego XR-01 utworzono szkołę „AUD XR-01 OSK Poznań”
+(`90b36ba1-0297-4875-9e51-2dab04a9eaac`), instruktora
+`xr01-instruktor-20261014@example.com` (`f88a9542-0374-478e-8254-344716e33c60`),
+pojazd `PZXR01A` (`4f052618-a9bf-4689-8757-7bf66c6d1c8d`), kurs
+„AUD XR-01 Kat. B — praktyka” (`9253de64-35f8-47bf-8bbc-89267f6ee924`)
+oraz kursanta `xr01-kursant-20261014@example.com`
+(`49023cfc-7add-428d-b83e-1b1791742c92`). Konto instruktora potwierdzono
+również przez logowanie do lokalnego BE. W ostatnim sprawdzeniu kursant był
+przypisany do kursu `9253de64-35f8-47bf-8bbc-89267f6ee924`. Użytkownik
+potwierdził pomyślny wynik ręczny XR-01; zapis znajduje się w
+[przebiegu testu](runs/2026-10-14-xr-01-manual.md). Hasła nie są zapisane w
+dokumentacji.

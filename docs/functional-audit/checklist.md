@@ -146,7 +146,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 
 | ID    | Scenariusz                                                   | Ręcznie (wymagane)                                                                                    | Automatycznie (opcjonalne) |
 | ----- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | -------------------------- |
-| XR-01 | Od nowego OSK do kursu widocznego dla kursanta               | ☐                                                                                                     | —                          |
+| XR-01 | Od nowego OSK do kursu widocznego dla kursanta               | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-xr-01-manual.md)) | —                          |
 | XR-02 | Rezerwacja jazdy widoczna w trzech rolach                    | ☐                                                                                                     | —                          |
 | XR-03 | Zmiana lub anulowanie jazdy aktualizuje wszystkie widoki     | ☐                                                                                                     | —                          |
 | XR-04 | Opłata menadżera widoczna dla kursanta                       | ☐                                                                                                     | —                          |

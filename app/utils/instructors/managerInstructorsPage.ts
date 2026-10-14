@@ -49,6 +49,10 @@ export function resolveInstructorRegisterError(err: unknown): string {
         return 'Brak uprawnień do tej operacji.';
     }
 
+    if (status === 429) {
+        return 'Zbyt wiele prób utworzenia konta. Spróbuj ponownie później.';
+    }
+
     if (status !== undefined && status >= 500) {
         return 'Serwer jest chwilowo niedostępny. Spróbuj ponownie.';
     }
@@ -77,6 +81,13 @@ export function classifyInstructorRegisterError(err: unknown): {
     );
 
     if (status === undefined || status === 400 || status === 409) {
+        if (message === 'Invalid email address') {
+            return {
+                field: 'email',
+                message: 'Podaj prawidłowy adres e-mail.',
+            };
+        }
+
         if (
             message === 'Email already exists' ||
             message === 'Email already registered'

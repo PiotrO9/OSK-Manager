@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import {
     buildInstructorDetailsRoute,
+    classifyInstructorRegisterError,
     filterInstructorsForList,
     getInstructorQualificationOptions,
     instructorInitials,
@@ -45,6 +46,9 @@ describe('managerInstructorsPage utils', () => {
         expect(resolveInstructorRegisterError({ statusCode: 500 })).toBe(
             'Serwer jest chwilowo niedostępny. Spróbuj ponownie.',
         );
+        expect(resolveInstructorRegisterError({ statusCode: 429 })).toBe(
+            'Zbyt wiele prób utworzenia konta. Spróbuj ponownie później.',
+        );
         expect(
             resolveInstructorRegisterError({
                 statusCode: 409,
@@ -52,6 +56,18 @@ describe('managerInstructorsPage utils', () => {
             }),
         ).toBe('Email jest zajęty.');
         expect(resolveInstructorRegisterError(new Error('Boom'))).toBe('Boom');
+    });
+
+    it('places invalid email errors next to the email field', () => {
+        expect(
+            classifyInstructorRegisterError({
+                statusCode: 400,
+                data: { statusMessage: 'Invalid email address' },
+            }),
+        ).toEqual({
+            field: 'email',
+            message: 'Podaj prawidłowy adres e-mail.',
+        });
     });
 
     it('maps instructors list errors', () => {
