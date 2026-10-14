@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 defineProps<{
     selectedDateLabel: string;
     isLoading: boolean;
+    isToday: boolean;
 }>();
 
 defineEmits<{
@@ -56,10 +57,11 @@ defineEmits<{
         </div>
 
         <UiButton
+            v-if="!isToday"
             type="button"
             variant="secondary"
             size="sm"
-            class="justify-self-end rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 sm:col-start-3"
+            class="justify-self-end sm:col-start-3"
             aria-label="Dzisiaj"
             :disabled="isLoading"
             @click="$emit('today')"

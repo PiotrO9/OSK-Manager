@@ -17,6 +17,9 @@ export function useEventsDayDateSelection(
         options.initialDate ?? formatDateOnly(getNow()),
     );
     const isCalendarOpen = ref(false);
+    const isToday = computed(
+        () => selectedDate.value === formatDateOnly(getNow()),
+    );
 
     const calendarSelected = computed<CalendarDate>(() =>
         parseDate(selectedDate.value),
@@ -102,6 +105,7 @@ export function useEventsDayDateSelection(
         handlePrevDay,
         handleTodayClick,
         isCalendarOpen,
+        isToday,
         selectDate,
         selectedDate: readonly(selectedDate),
         selectedDateLabel,

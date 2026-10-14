@@ -9,6 +9,7 @@ describe('useEventsDayDateSelection', () => {
             now: () => new Date('2026-08-20T10:00:00'),
         });
 
+        expect(selection.isToday.value).toBe(false);
         selection.handlePrevDay();
         expect(selection.selectedDate.value).toBe('2026-08-15');
 
@@ -17,6 +18,7 @@ describe('useEventsDayDateSelection', () => {
 
         selection.handleTodayClick();
         expect(selection.selectedDate.value).toBe('2026-08-20');
+        expect(selection.isToday.value).toBe(true);
         expect(selection.selectedDateLabel.value).toContain('Dzisiaj');
     });
 

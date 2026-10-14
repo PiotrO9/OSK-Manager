@@ -35,6 +35,7 @@ defineProps<{
     isLoading: boolean;
     isManager: boolean;
     isSchoolLoading: boolean;
+    isToday: boolean;
     schoolId: string;
     selectedDate: string;
     selectedDateLabel: string;
@@ -86,6 +87,7 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
             <EventsDayNavigation
                 :selected-date-label="selectedDateLabel"
                 :is-loading="isLoading"
+                :is-today="isToday"
                 @previous="$emit('previous')"
                 @today="$emit('today')"
                 @next="$emit('next')"

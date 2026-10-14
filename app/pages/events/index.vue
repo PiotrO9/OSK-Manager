@@ -73,6 +73,7 @@ const eventsDay = useEventsDayPage();
             :is-loading="eventsDay.isLoading.value"
             :is-manager="eventsDay.isManager.value"
             :is-school-loading="eventsDay.isSchoolLoading.value"
+            :is-today="eventsDay.isToday.value"
             :school-id="eventsDay.schoolId.value"
             :selected-date="eventsDay.selectedDate.value"
             :selected-date-label="eventsDay.selectedDateLabel.value"
