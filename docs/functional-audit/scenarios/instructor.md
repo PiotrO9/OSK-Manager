@@ -39,7 +39,7 @@ Wykonuj na odizolowanym środowisku z prawdziwym backendem. Użyj konta `instruc
 
 - **Wymaganie:** `REQ-INS-04` — instruktor przegląda własne wydarzenia i jazdy dla wybranego dnia.
 - **Dane/warunki:** dzień D z jazdą i wydarzeniami o różnych statusach; dzień D+1 bez wydarzeń; zanotowane oczekiwane pozycje.
-- **Kroki i wynik:** (1) Otwórz `/events?date=<D>`; nagłówek „Moje wydarzenia” i plan dnia pokazują własne pozycje D z datą, godziną, typem i statusem. (2) Wybierz filtr jednego statusu. Zostają tylko pozycje o tym statusie, licznik odpowiada liście. (3) Przy braku dopasowań pojawia się „Brak wydarzeń dla wybranego statusu”; zmiana filtra przywraca listę. (4) Przejdź do D+1 przyciskiem dnia lub kalendarzem. Pojawia się „Brak wydarzeń w wybranym dniu”. (5) Użyj „Dzisiaj” i odśwież; wybrana data w adresie i widoku są zgodne.
+- **Kroki i wynik:** (1) Otwórz `/events` i wybierz dzień D; nagłówek „Moje wydarzenia” i plan dnia pokazują własne pozycje D z datą, godziną, typem i statusem. (2) Wybierz filtr jednego statusu. Zostają tylko pozycje o tym statusie. (3) Przy braku dopasowań pojawia się „Brak wydarzeń dla wybranego statusu”; zmiana filtra przywraca listę. (4) Przejdź do D+1 przyciskiem dnia lub kalendarzem. Pojawia się „Brak wydarzeń w wybranym dniu”; zmiana dnia nie dopisuje daty do adresu. (5) Użyj „Dzisiaj” i odśwież; widok pokazuje bieżący dzień bez parametru `date` w adresie.
 - **Stan końcowy/powtórzenie:** odczyt; bez resetu.
 - **Źródła:** `FE/OSK-Manager-FE/app/pages/events/index.vue`, `app/composables/events/useEventsDayPage.ts`, `app/components/events/EventsDaySchedulePanel.vue`.
 

@@ -80,7 +80,6 @@ const eventsDay = useEventsDayPage();
             :manager-schedule-rows="eventsDay.managerScheduleRows.value"
             :selected-status="eventsDay.selectedStatus.value"
             :sorted-filtered-events="eventsDay.sortedFilteredEvents.value"
-            :visible-events-label="eventsDay.visibleEventsLabel.value"
             @previous="eventsDay.handlePrevDay"
             @today="eventsDay.handleTodayClick"
             @next="eventsDay.handleNextDay"

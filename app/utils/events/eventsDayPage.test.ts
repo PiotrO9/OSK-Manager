@@ -8,6 +8,7 @@ import {
     eventTypeLabel,
     eventsDayStatusCode,
     eventsDayStatusLabel,
+    eventsDayStatusTone,
     statusFilterLabel,
 } from './eventsDayPage';
 
@@ -78,5 +79,28 @@ describe('eventsDayPage utils', () => {
         expect(eventsDayStatusCode({ ...lesson, status: 'COMPLETED' })).toBe(
             'DONE',
         );
+    });
+
+    it('uses the same status tone regardless of lesson type or date', () => {
+        expect(eventsDayStatusTone(scheduleEvent({ type: 'THEORY' }))).toBe(
+            'info',
+        );
+        expect(
+            eventsDayStatusTone(
+                scheduleEvent({
+                    type: 'DRIVE',
+                    startTime: '2026-08-18T08:00:00',
+                }),
+            ),
+        ).toBe('info');
+        expect(eventsDayStatusTone(scheduleEvent({ status: 'DONE' }))).toBe(
+            'success',
+        );
+        expect(eventsDayStatusTone(scheduleEvent({ status: 'NO_SHOW' }))).toBe(
+            'warning',
+        );
+        expect(
+            eventsDayStatusTone(scheduleEvent({ status: 'CANCELLED' })),
+        ).toBe('danger');
     });
 });

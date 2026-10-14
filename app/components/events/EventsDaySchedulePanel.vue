@@ -15,15 +15,14 @@ import {
     displayEventPrimary,
     eventTypeBadgeClasses,
     eventTypeLabel,
-    eventsDayStatusCode,
     eventsDayStatusLabel,
+    eventsDayStatusTone,
     statusFilterLabelForOption,
     type EventsDayStatusFilterOption,
 } from '~/utils/events/eventsDayPage';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { buildEventsDayEditRoute } from '~/utils/events/eventsDayNavigation';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
-import { instructorEventStatusBadgeVariant } from '~/utils/events/instructorEventStatusDisplay';
 
 defineProps<{
     attentionEvents: ScheduleLessonItem[];
@@ -43,7 +42,6 @@ defineProps<{
     managerScheduleRows: InstructorScheduleRow[];
     selectedStatus: EventsDayStatusFilterOption;
     sortedFilteredEvents: ScheduleLessonItem[];
-    visibleEventsLabel: string;
 }>();
 
 defineEmits<{
@@ -75,14 +73,6 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                     v-model="viewMode"
                     :disabled="!isManager || isCompactViewport"
                 />
-
-                <UiBadge
-                    v-if="filteredEvents.length > 0"
-                    variant="outline"
-                    class="rounded-full border-sky-200 bg-sky-50 px-3 py-1 text-sky-700"
-                >
-                    {{ visibleEventsLabel }}
-                </UiBadge>
             </div>
         </UiCardHeader>
 
@@ -198,7 +188,7 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                         </div>
 
                         <div
-                            class="flex shrink-0 items-center justify-start md:justify-end"
+                            class="flex shrink-0 items-center justify-start md:justify-end md:self-center"
                             @click.stop
                         >
                             <ManagerEventStatusSelect
@@ -211,17 +201,11 @@ const viewMode = defineModel<EventsDayViewMode>('viewMode', {
                                 compact
                                 @status-changed="$emit('statusChanged', $event)"
                             />
-                            <UiBadge
+                            <StatusBadge
                                 v-else
-                                :variant="
-                                    instructorEventStatusBadgeVariant(
-                                        eventsDayStatusCode(event),
-                                    )
-                                "
-                                class="shrink-0 rounded-full text-xs font-normal"
-                            >
-                                {{ eventsDayStatusLabel(event) }}
-                            </UiBadge>
+                                :label="eventsDayStatusLabel(event)"
+                                :tone="eventsDayStatusTone(event)"
+                            />
                         </div>
                     </div>
                 </article>

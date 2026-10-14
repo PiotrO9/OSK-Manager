@@ -18,7 +18,6 @@ import {
     getEventsDayPlannedEventsCount,
     getEventsDayScheduleHourRange,
     getEventsDaySortedEvents,
-    getEventsDayVisibleEventsLabel,
     type EventsDayGridInstructorColumn,
     type EventsDayGridInstructorRow,
     type EventsDayGridViewMode,
@@ -101,13 +100,6 @@ export function useEventsDayPage() {
     const pageDescription = computed(() =>
         getEventsDayPageDescription(isManager.value),
     );
-
-    const visibleEventsLabel = computed(() => {
-        return getEventsDayVisibleEventsLabel({
-            visibleCount: filteredEvents.value.length,
-            totalCount: events.value.length,
-        });
-    });
 
     const effectiveViewMode = computed<EventsDayViewMode>(() =>
         getEventsDayEffectiveViewMode({
@@ -256,18 +248,18 @@ export function useEventsDayPage() {
         isCompactViewport.value = window.innerWidth < 768;
     }
 
-    function syncDateQuery(): void {
-        if (route.query.date === selectedDate.value) {
+    function clearDateQuery(): void {
+        if (!Object.hasOwn(route.query, 'date')) {
             return;
         }
 
-        void router.replace({
-            query: { ...route.query, date: selectedDate.value },
-        });
+        const query = { ...route.query };
+
+        delete query.date;
+        void router.replace({ query });
     }
 
     watch(selectedDate, () => {
-        syncDateQuery();
         void loadEvents();
     });
 
@@ -279,6 +271,8 @@ export function useEventsDayPage() {
             if (day && day !== selectedDate.value) {
                 selectDate(day);
             }
+
+            clearDateQuery();
         },
     );
 
@@ -290,7 +284,7 @@ export function useEventsDayPage() {
         updateViewportMode();
         window.addEventListener('resize', updateViewportMode);
 
-        syncDateQuery();
+        clearDateQuery();
         void loadEvents();
     });
 
@@ -332,6 +326,5 @@ export function useEventsDayPage() {
         schoolId,
         sortedFilteredEvents,
         viewMode,
-        visibleEventsLabel,
     };
 }

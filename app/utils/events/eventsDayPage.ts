@@ -1,6 +1,8 @@
 import type { EventStatusCode } from '~/types/events/instructorEvent';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import type { StatusTone } from '~/types/ui';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { getStudentScheduleStatusTone } from '~/utils/schedule/studentScheduleGroupedList';
 import {
     INSTRUCTOR_EVENT_STATUS_LABELS,
     INSTRUCTOR_EVENT_STATUS_OPTIONS,
@@ -93,6 +95,10 @@ export function eventsDayStatusCode(item: ScheduleLessonItem): EventStatusCode {
 
 export function eventsDayStatusLabel(item: ScheduleLessonItem): string {
     return INSTRUCTOR_EVENT_STATUS_LABELS[eventsDayStatusCode(item)];
+}
+
+export function eventsDayStatusTone(item: ScheduleLessonItem): StatusTone {
+    return getStudentScheduleStatusTone(eventsDayStatusCode(item));
 }
 
 export function displayEventPrimary(

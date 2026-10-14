@@ -16,7 +16,6 @@ import {
     getEventsDayPlannedEventsCount,
     getEventsDayScheduleHourRange,
     getEventsDaySortedEvents,
-    getEventsDayVisibleEventsLabel,
 } from './eventsDayScheduleGrid';
 
 function makeEvent(overrides: Partial<ScheduleLessonItem>): ScheduleLessonItem {
@@ -96,13 +95,7 @@ describe('eventsDayScheduleGrid', () => {
         ).toHaveLength(1);
     });
 
-    it('liczy label widocznych wyników i wymusza listę poza desktop managerem', () => {
-        expect(
-            getEventsDayVisibleEventsLabel({ visibleCount: 3, totalCount: 3 }),
-        ).toBe('3');
-        expect(
-            getEventsDayVisibleEventsLabel({ visibleCount: 1, totalCount: 3 }),
-        ).toBe('1 z 3');
+    it('wymusza listę poza desktop managerem', () => {
         expect(
             getEventsDayEffectiveViewMode({
                 isManager: true,

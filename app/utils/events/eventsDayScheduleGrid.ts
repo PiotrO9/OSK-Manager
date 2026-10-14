@@ -100,17 +100,6 @@ export function getEventsDayPageDescription(isManager: boolean): string {
         : 'Twoje lekcje i bloki czasu w wybranym dniu.';
 }
 
-export function getEventsDayVisibleEventsLabel(options: {
-    visibleCount: number;
-    totalCount: number;
-}): string {
-    if (options.visibleCount === options.totalCount) {
-        return `${options.visibleCount}`;
-    }
-
-    return `${options.visibleCount} z ${options.totalCount}`;
-}
-
 export function getEventsDayEffectiveViewMode(options: {
     isManager: boolean;
     isCompactViewport: boolean;
