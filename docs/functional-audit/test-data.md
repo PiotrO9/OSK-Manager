@@ -187,3 +187,24 @@ menadżer B otrzymał `404` przy odczycie listy A. Konta Sary i Igora otrzymały
 `403` przy próbie odczytu listy kont A. Późniejszy [przebieg automatyczny](runs/2026-10-14-mgr-acc-01-api.md)
 objął również odmowy zapisu i potwierdzenie braku zmian, a [wynik ręczny](runs/2026-10-14-mgr-acc-01-manual.md)
 zapisano osobno.
+
+## Przygotowane dane COM-10 (2026-10-14)
+
+Do kont i szkół A/B opisanych powyżej dodano w testowej bazie wpis kontrolny
+szkoły B: instruktor Igor Obcy (`instructor03@audit.osk.local`, profil
+`5e4e795a-d4fa-4d49-8ccd-f358aec6cf80`) ma dostępność w piątek
+10:00–12:00 i blok teorii 16.10.2026, 10:00–10:45
+(`1e146e7d-beb4-424a-8056-f18dc57f85a3`). W tygodniu 12–18.10 API
+`/schedule/me` zwróciło ten wpis dla Igora, a nie zwróciło go dla Jana
+Instruktora ani Kamila Kursanta ze szkoły A. W tym tygodniu Sara Obca ze
+szkoły B nie ma przypisanych lekcji. Hasła i tokeny nie są zapisywane w audycie.
+
+W szkole B włączono kursy praktyczne oraz utworzono kurs „AUD COM-10 Kraków B”
+(`0b0b33f1-f12e-4dea-94be-f5b98e83a459`, kategoria B, 30 godzin), przypisany
+Sarze Obcej. Odczyt `/me/courses` pokazał ten kurs u Sary, a nie pokazał go
+u Kamila ze szkoły A.
+
+Kontrola API menedżerki A przed przebiegiem ręcznym: odczyt harmonogramu
+szkoły B oraz próba zapisu tej samej dostępności Igora otrzymały `403`.
+Ponowny odczyt jako menedżerka B potwierdził zachowanie wpisu i dostępności.
+Te kontrole przygotowawcze nie zastępują ręcznego wyniku `COM-10`.
