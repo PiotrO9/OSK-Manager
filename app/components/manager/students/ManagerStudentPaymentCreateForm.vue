@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next';
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import type { StudentPaymentPlanOption } from '~/utils/students/managerStudentPaymentsSection';
 
 defineProps<{
@@ -16,6 +16,12 @@ const amount = defineModel<string>('amount', { required: true });
 const dueDate = defineModel<string>('dueDate', { required: true });
 const method = defineModel<string>('method', { required: true });
 const paymentPlanId = defineModel<string>('paymentPlanId', { required: true });
+
+const paymentMethods = [
+    { value: 'transfer', label: 'Przelew' },
+    { value: 'card', label: 'Karta' },
+    { value: 'cash', label: 'Gotówka' },
+] as const;
 </script>
 
 <template>
@@ -23,47 +29,69 @@ const paymentPlanId = defineModel<string>('paymentPlanId', { required: true });
         class="border-border bg-background/70 mb-4 grid gap-3 rounded-xl border p-3 lg:grid-cols-[minmax(0,1.5fr)_120px_150px_150px_auto]"
         @submit.prevent="emit('create')"
     >
-        <select
+        <UiSelect
             v-model="paymentPlanId"
-            class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
             :disabled="paymentPlanOptions.length === 0 || isSaving"
-            aria-label="Plan płatności"
         >
-            <option value="" disabled>Plan płatności</option>
-            <option
-                v-for="option in paymentPlanOptions"
-                :key="option.id"
-                :value="option.id"
+            <UiSelectTrigger
+                class="bg-background h-10 w-full min-w-0 rounded-lg"
+                aria-label="Plan płatności"
             >
-                {{ option.label }}
-            </option>
-        </select>
+                <UiSelectValue placeholder="Plan płatności" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+                <UiSelectItem
+                    v-for="option in paymentPlanOptions"
+                    :key="option.id"
+                    :value="option.id"
+                >
+                    {{ option.label }}
+                </UiSelectItem>
+            </UiSelectContent>
+        </UiSelect>
+        <label for="student-payment-amount" class="sr-only"
+            >Kwota płatności</label
+        >
         <input
+            id="student-payment-amount"
             v-model="amount"
             class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
             inputmode="decimal"
             placeholder="Kwota"
             :disabled="isSaving"
         />
-        <input
+        <label for="student-payment-due-date" class="sr-only"
+            >Termin płatności</label
+        >
+        <UiDatePicker
+            id="student-payment-due-date"
             v-model="dueDate"
-            class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-            type="date"
             :disabled="isSaving"
-            aria-label="Termin płatności"
+            placeholder="Termin płatności"
+            trigger-class="h-10 min-w-0 max-w-none rounded-lg"
         />
-        <input
-            v-model="method"
-            class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-            placeholder="Metoda"
-            :disabled="isSaving"
-        />
+        <UiSelect v-model="method" :disabled="isSaving">
+            <UiSelectTrigger
+                class="bg-background h-10 w-full min-w-0 rounded-lg"
+                aria-label="Metoda płatności"
+            >
+                <UiSelectValue placeholder="Metoda" />
+            </UiSelectTrigger>
+            <UiSelectContent>
+                <UiSelectItem
+                    v-for="paymentMethod in paymentMethods"
+                    :key="paymentMethod.value"
+                    :value="paymentMethod.value"
+                >
+                    {{ paymentMethod.label }}
+                </UiSelectItem>
+            </UiSelectContent>
+        </UiSelect>
         <UiButton
             type="submit"
             class="h-10 rounded-lg px-3"
             :disabled="!canCreatePayment"
         >
-            <Plus class="mr-2 size-4" aria-hidden="true" />
             Dodaj
         </UiButton>
     </form>

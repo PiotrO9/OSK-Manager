@@ -245,3 +245,16 @@ przypisany do kursu `9253de64-35f8-47bf-8bbc-89267f6ee924`. Użytkownik
 potwierdził pomyślny wynik ręczny XR-01; zapis znajduje się w
 [przebiegu testu](runs/2026-10-14-xr-01-manual.md). Hasła nie są zapisane w
 dokumentacji.
+
+## Przygotowane dane MGR-PAY-01 (2026-10-14)
+
+W szkole XR-01 (`90b36ba1-0297-4875-9e51-2dab04a9eaac`) kursant Natalia XR01
+(`xr01-kursant-20261014@example.com`, użytkownik
+`49023cfc-7add-428d-b83e-1b1791742c92`) jest przypisany do kursu
+„AUD XR-01 Kat. B — praktyka” (`9253de64-35f8-47bf-8bbc-89267f6ee924`).
+Dla tego kursu przygotowano plan płatności `FULL`, 3600 PLN
+(`86b14a59-9d52-461d-bdfc-2e6120cdf5f2`), bez żadnej płatności. Menedżer
+szkoły: `xr01-manager-20261014@example.com`. Test ma dodać jeden rozpoznawalny
+wpis 137,50 PLN z terminem 2026-11-05 i metodą „Przelew” (`transfer`),
+zmienić termin na 2026-11-06 i metodę na „Karta” (`card`), a następnie
+przełączyć status opłacona → niezapłacona. Hasła nie są zapisane w dokumentacji.
