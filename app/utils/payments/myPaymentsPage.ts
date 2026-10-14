@@ -5,7 +5,7 @@ import type {
 } from '~/types/payments/payment';
 
 export type MyPaymentDisplayStatus = 'OVERDUE' | 'UNPAID' | 'PAID';
-export type MyPaymentsFilter = 'UNPAID' | 'ALL' | 'PAID';
+export type MyPaymentsFilter = 'ALL' | 'UNPAID' | 'OVERDUE' | 'PAID';
 
 function utcDayStart(value: Date): number {
     return Date.UTC(
@@ -96,6 +96,10 @@ export function filterMyPayments(
     return payments.filter((payment) => {
         const status = getMyPaymentDisplayStatus(payment, now);
 
+        if (filter === 'OVERDUE') {
+            return status === 'OVERDUE';
+        }
+
         return filter === 'PAID' ? status === 'PAID' : status !== 'PAID';
     });
 }
@@ -184,6 +188,14 @@ export function getMyPaymentsToolbarSummary(
     ).length;
     const unpaidCount = payments.length - paidCount;
     const currency = summary.currency;
+
+    if (activeFilter === 'OVERDUE') {
+        return {
+            primary: `${formatCurrency(summary.overdueAmount, currency)} zaległości`,
+            secondary: formatOverdueCount(summary.overdueCount),
+            tone: summary.overdueCount > 0 ? 'danger' : 'neutral',
+        };
+    }
 
     if (activeFilter === 'PAID') {
         return {

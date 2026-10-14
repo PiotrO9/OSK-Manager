@@ -92,6 +92,9 @@ describe('my payments presentation', () => {
             filterMyPayments(items, 'UNPAID', today).map((item) => item.id),
         ).toEqual(['overdue', 'upcoming']);
         expect(
+            filterMyPayments(items, 'OVERDUE', today).map((item) => item.id),
+        ).toEqual(['overdue']);
+        expect(
             filterMyPayments(items, 'PAID', today).map((item) => item.id),
         ).toEqual(['paid']);
     });

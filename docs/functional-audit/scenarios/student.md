@@ -154,8 +154,8 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 
 - Wymagania: `REQ-STU-PAYMENTS`.
 - Dane: `student-payments` z opłatą `PAID`, `UNPAID` przed terminem i `UNPAID` po terminie.
-- Kroki: (1) Otwórz `Moje opłaty`. (2) Porównaj nazwy kursów, kwoty, terminy, statusy i daty zapłaty z zestawem. (3) Wybierz `Do opłacenia`, `Wszystkie`, `Opłacone`. (4) Odśwież.
-- Oczekiwane: w „Do opłacenia” są nieopłacone oraz zaległe, „Opłacone” zawiera tylko opłacone, a „Wszystkie” wszystkie własne pozycje; zaległa ma status „Zaległa”; liczniki i sumy odpowiadają danym. Kursant nie widzi opłat innej osoby.
+- Kroki: (1) Otwórz `Moje opłaty`. (2) Porównaj nazwy kursów, kwoty, terminy, statusy i daty zapłaty z zestawem. (3) Wybierz `Wszystkie`, `Do opłacenia`, `Zaległe` i `Opłacone`. (4) Odśwież.
+- Oczekiwane: „Wszystkie” zawiera wszystkie własne pozycje; „Do opłacenia” zawiera nieopłacone i zaległe, „Zaległe” tylko przeterminowane, a „Opłacone” tylko opłacone. Zaległa pozycja ma status „Zaległa”; liczniki i sumy odpowiadają danym. Kursant nie widzi opłat innej osoby.
 - Powtórzenie: odczyt; bez resetu.
 - Źródła: `FE/OSK-Manager-FE/app/pages/my-payments.vue`, `app/composables/payments/useMyPaymentsPage.ts`, `app/utils/payments/myPaymentsPage.ts`, `app/components/student/payments/StudentPaymentsList.vue`.
 

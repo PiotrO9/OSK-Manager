@@ -64,9 +64,26 @@ describe('useMyPaymentsPage', () => {
         expect(page.visiblePayments.value.map((item) => item.id)).toEqual([
             'overdue',
         ]);
+        expect(page.filterOptions.value.map((option) => option.value)).toEqual([
+            'ALL',
+            'UNPAID',
+            'OVERDUE',
+            'PAID',
+        ]);
+        expect(page.filterOptions.value[2]?.count).toBe(1);
         expect(page.activeSummary.value).toEqual({
             primary: '900 zł do opłacenia',
             secondary: '1 zaległa · 900 zł',
+            tone: 'danger',
+        });
+
+        page.activeFilter.value = 'OVERDUE';
+        expect(page.visiblePayments.value.map((item) => item.id)).toEqual([
+            'overdue',
+        ]);
+        expect(page.activeSummary.value).toEqual({
+            primary: '900 zł zaległości',
+            secondary: '1 zaległa',
             tone: 'danger',
         });
 

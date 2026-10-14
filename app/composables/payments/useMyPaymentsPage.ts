@@ -43,16 +43,27 @@ export function useMyPaymentsPage() {
             ).length,
     );
     const unpaidCount = computed(() => payments.value.length - paidCount.value);
+    const overdueCount = computed(
+        () =>
+            payments.value.filter(
+                (payment) => getMyPaymentDisplayStatus(payment) === 'OVERDUE',
+            ).length,
+    );
     const filterOptions = computed(() => [
+        {
+            value: 'ALL' as const,
+            label: 'Wszystkie',
+            count: payments.value.length,
+        },
         {
             value: 'UNPAID' as const,
             label: 'Do opłacenia',
             count: unpaidCount.value,
         },
         {
-            value: 'ALL' as const,
-            label: 'Wszystkie',
-            count: payments.value.length,
+            value: 'OVERDUE' as const,
+            label: 'Zaległe',
+            count: overdueCount.value,
         },
         {
             value: 'PAID' as const,
