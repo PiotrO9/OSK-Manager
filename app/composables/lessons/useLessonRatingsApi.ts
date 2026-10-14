@@ -17,6 +17,25 @@ function normalizeRequiredRating(data: unknown): ScheduleLessonRating | null {
     return normalizeNullableRating(data);
 }
 
+function normalizeRatingResponse(
+    data: unknown,
+): { rating: ScheduleLessonRating | null } | null {
+    if (!data || typeof data !== 'object' || !('rating' in data)) {
+        return null;
+    }
+
+    const rating = data.rating;
+
+    if (
+        rating !== null &&
+        (typeof rating !== 'object' || Array.isArray(rating))
+    ) {
+        return null;
+    }
+
+    return { rating: rating as ScheduleLessonRating | null };
+}
+
 export function useLessonRatingsApi() {
     async function fetchLessonRating(
         lessonId: string,
@@ -27,14 +46,14 @@ export function useLessonRatingsApi() {
             throw new Error('Brak identyfikatora lekcji.');
         }
 
-        return await requestBffData<ScheduleLessonRating | null>(
-            'GET',
-            `/api/lessons/${encodeURIComponent(id)}/rating`,
-            {
-                fallbackMessage: 'Nie udało się pobrać oceny lekcji.',
-                normalize: normalizeNullableRating,
-            },
-        );
+        const response = await requestBffData<{
+            rating: ScheduleLessonRating | null;
+        }>('GET', `/api/lessons/${encodeURIComponent(id)}/rating`, {
+            fallbackMessage: 'Nie udało się pobrać oceny lekcji.',
+            normalize: normalizeRatingResponse,
+        });
+
+        return response.rating;
     }
 
     async function createLessonRating(

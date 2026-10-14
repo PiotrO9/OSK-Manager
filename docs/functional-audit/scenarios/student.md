@@ -134,19 +134,19 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 
 - Wymagania: `REQ-STU-RATING`.
 - Dane: `student-schedule` z własną zakończoną jazdą praktyczną bez oceny.
-- Kroki: (1) W `Moje lekcje` przejdź do tygodnia jazdy. (2) W sekcji `Opinie po jazdach` wybierz `Do oceny`. (3) Wybierz ocenę 1–5, wpisz opcjonalny komentarz i kliknij `Dodaj opinię`. (4) Odśwież stronę i ponownie wybierz tę jazdę.
-- Oczekiwane: jedna opinia zostaje zapisana; pozycja pokazuje ocenę `/5` i komentarz albo „Brak komentarza”; formularz dodania znika. Licznik lekcji do oceny zmniejsza się o jeden.
+- Kroki: (1) W `Moje lekcje` przejdź do tygodnia jazdy i kliknij `Pokaż oceny`. (2) W modalu wybierz jazdę `Do oceny`. (3) Wybierz ocenę 1–5, wpisz opcjonalny komentarz i kliknij `Dodaj opinię`. (4) Odśwież stronę, ponownie otwórz `Pokaż oceny` i wybierz tę jazdę. (5) Otwórz szczegóły tej jazdy z kalendarza i przyciskiem `Szczegóły` na liście.
+- Oczekiwane: jedna opinia zostaje zapisana; pozycja pokazuje ocenę `/5` i komentarz albo „Brak komentarza”; formularz dodania znika. Licznik lekcji do oceny zmniejsza się o jeden. Szczegóły jazdy otwarte z kalendarza lub przyciskiem `Szczegóły` na liście pozwalają przejść do oceny, a po jej zapisaniu pokazują ocenę i komentarz bez przycisku `Przejdź do oceny`.
 - Powtórzenie: przywróć jazdę bez oceny; ta sama jazda nie służy do ponownego pozytywnego testu.
-- Źródła: `FE/OSK-Manager-FE/app/components/student/lesson-ratings/StudentLessonRatingsPanel.vue`, `app/components/student/lesson-ratings/StudentLessonRatingForm.vue`; `BE/src/services/lesson-rating/studentRatings.ts`.
+- Źródła: `FE/OSK-Manager-FE/app/components/student/lesson-ratings/StudentLessonRatingsDialog.vue`, `app/components/student/lesson-ratings/StudentLessonRatingsPanel.vue`, `app/components/student/lesson-ratings/StudentLessonRatingForm.vue`; `BE/src/services/lesson-rating/studentRatings.ts`.
 
 ### STU-14 — Walidacja i niedostępność ponownej oceny [P1]
 
 - Wymagania: `REQ-STU-RATING`.
 - Dane: `student-schedule` z jazdą zakończoną bez oceny, jazdą już ocenioną, jazdą przyszłą i teorią.
-- Kroki: (1) Dla nieocenionej jazdy spróbuj wysłać pusty formularz. (2) Wybierz już ocenioną jazdę. (3) Sprawdź pozycję przyszłą i teorię.
+- Kroki: (1) Otwórz `Pokaż oceny` i dla nieocenionej jazdy spróbuj wysłać pusty formularz. (2) Wybierz już ocenioną jazdę. (3) Sprawdź, że pozycja przyszła i teoria nie występują na liście jazd do oceny.
 - Oczekiwane: pusty formularz pokazuje „Wybierz ocenę od 1 do 5” i nic nie zapisuje; oceniona jazda pokazuje istniejącą opinię bez formularza; przyszła jazda i teoria nie pojawiają się na liście jazd do oceny. API nie dopuszcza drugiej opinii do tej samej jazdy.
 - Powtórzenie: odczyt; bez resetu.
-- Źródła: `FE/OSK-Manager-FE/app/components/student/lesson-ratings/StudentLessonRatingsPanel.vue`, `app/components/student/lesson-ratings/StudentLessonRatingForm.vue`; `BE/src/services/lesson-rating/studentRatings.ts`.
+- Źródła: `FE/OSK-Manager-FE/app/components/student/lesson-ratings/StudentLessonRatingsDialog.vue`, `app/components/student/lesson-ratings/StudentLessonRatingsPanel.vue`, `app/components/student/lesson-ratings/StudentLessonRatingForm.vue`; `BE/src/services/lesson-rating/studentRatings.ts`.
 
 ## Opłaty i konto
 

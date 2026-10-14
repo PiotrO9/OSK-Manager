@@ -20,6 +20,7 @@ export function useMyLessonsPage() {
     const errorMessage = ref<string | null>(null);
     const scheduleView = ref<MyLessonsScheduleView>('calendar');
     const selectedLessonDetails = shallowRef<ScheduleLessonItem | null>(null);
+    const isRatingsDialogOpen = shallowRef(false);
     const { savingEventId, updateEventStatus } = useMyLessonsEventStatus(items);
 
     const range = computed(() => weekRangeFromMonday(weekStart.value));
@@ -88,7 +89,19 @@ export function useMyLessonsPage() {
         lesson: ScheduleLessonItem,
     ): void {
         closeLessonDetails();
-        handleRatingLessonSelected(lesson);
+        openRatingsDialog(lesson);
+    }
+
+    function openRatingsDialog(lesson?: ScheduleLessonItem): void {
+        if (!isStudent.value) {
+            return;
+        }
+
+        isRatingsDialogOpen.value = true;
+
+        if (lesson) {
+            void handleRatingLessonSelected(lesson);
+        }
     }
 
     async function loadWeek(): Promise<void> {
@@ -190,9 +203,11 @@ export function useMyLessonsPage() {
         isLoading,
         isRatingRefreshing,
         isRatingSubmitting,
+        isRatingsDialogOpen,
         isStudent,
         items,
         pageDescription,
+        openRatingsDialog,
         pendingCancelLessonLabel,
         ratingErrorMessage,
         scheduleView,

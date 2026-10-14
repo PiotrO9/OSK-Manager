@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next';
+import { Plus, Star } from 'lucide-vue-next';
+import StudentLessonRatingsDialog from '~/components/student/lesson-ratings/StudentLessonRatingsDialog.vue';
 
 definePageMeta({
     layout: 'app-shell',
@@ -24,6 +25,16 @@ const myLessons = useMyLessonsPage();
                 <div
                     class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end"
                 >
+                    <UiButton
+                        v-if="myLessons.isStudent.value"
+                        type="button"
+                        variant="outline"
+                        class="h-10"
+                        @click="myLessons.openRatingsDialog()"
+                    >
+                        <Star class="size-4" aria-hidden="true" />
+                        Pokaż oceny
+                    </UiButton>
                     <UiButton
                         v-if="myLessons.isStudent.value"
                         as-child
@@ -56,8 +67,9 @@ const myLessons = useMyLessonsPage();
             @event-status-change="myLessons.handleEventStatusChange"
         />
 
-        <StudentLessonRatingsPanel
+        <StudentLessonRatingsDialog
             v-if="myLessons.isStudent.value"
+            v-model:open="myLessons.isRatingsDialogOpen.value"
             :items="myLessons.items.value"
             :selected-lesson-id="myLessons.selectedRatingLessonId.value"
             :is-refreshing="myLessons.isRatingRefreshing.value"

@@ -29,7 +29,8 @@ const canCancel = computed(() =>
 );
 const canRate = computed(() =>
     props.lesson
-        ? isStudentRatingSelectableScheduleLesson(props.lesson, true)
+        ? isStudentRatingSelectableScheduleLesson(props.lesson, true) &&
+          !props.lesson.rating
         : false,
 );
 </script>
@@ -80,6 +81,24 @@ const canRate = computed(() =>
                     <dd class="font-medium">{{ lesson.categoryCode }}</dd>
                 </template>
             </dl>
+
+            <section
+                v-if="lesson.rating"
+                class="border-border flex flex-col gap-2 border-t pt-4"
+                aria-label="Opinia o jeździe"
+            >
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-sm font-semibold">Twoja ocena</h3>
+                    <UiBadge variant="secondary">
+                        {{ lesson.rating.rating }}/5
+                    </UiBadge>
+                </div>
+                <p
+                    class="text-muted-foreground text-sm break-words whitespace-pre-wrap"
+                >
+                    {{ lesson.rating.comment?.trim() || 'Brak komentarza.' }}
+                </p>
+            </section>
 
             <UiDialogFooter>
                 <UiButton

@@ -2,6 +2,7 @@
 import { BookOpen } from 'lucide-vue-next';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import ManagerScheduleVehicleIcon from '~/components/manager/schedule/ManagerScheduleVehicleIcon.vue';
+import { isStudentLessonDetailsSelectable } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 import {
     buildStudentScheduleDayGroups,
     displayStudentScheduleTimeRange,
@@ -34,6 +35,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
     'request-cancel-lesson': [item: ScheduleLessonItem];
+    'lesson-details-requested': [item: ScheduleLessonItem];
 }>();
 
 const groups = computed(() => buildStudentScheduleDayGroups(props.items));
@@ -147,23 +149,36 @@ function handleCancelClick(item: ScheduleLessonItem): void {
                             </div>
                         </div>
 
-                        <UiButton
-                            v-if="isStudentCancellableLesson(item)"
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            class="shrink-0"
-                            :disabled="cancellingLessonId === item.id"
-                            :aria-busy="cancellingLessonId === item.id"
-                            :aria-label="`Anuluj rezerwację ${displayStudentScheduleTimeRange(item)}`"
-                            @click="handleCancelClick(item)"
-                        >
-                            {{
-                                cancellingLessonId === item.id
-                                    ? 'Anulowanie...'
-                                    : 'Anuluj'
-                            }}
-                        </UiButton>
+                        <div class="flex shrink-0 flex-wrap items-center gap-2">
+                            <UiButton
+                                v-if="
+                                    isStudentLessonDetailsSelectable(item, true)
+                                "
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                :aria-label="`Otwórz szczegóły jazdy ${displayStudentScheduleTimeRange(item)}`"
+                                @click="emit('lesson-details-requested', item)"
+                            >
+                                Szczegóły
+                            </UiButton>
+                            <UiButton
+                                v-if="isStudentCancellableLesson(item)"
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                :disabled="cancellingLessonId === item.id"
+                                :aria-busy="cancellingLessonId === item.id"
+                                :aria-label="`Anuluj rezerwację ${displayStudentScheduleTimeRange(item)}`"
+                                @click="handleCancelClick(item)"
+                            >
+                                {{
+                                    cancellingLessonId === item.id
+                                        ? 'Anulowanie...'
+                                        : 'Anuluj'
+                                }}
+                            </UiButton>
+                        </div>
                     </li>
                 </ul>
             </section>

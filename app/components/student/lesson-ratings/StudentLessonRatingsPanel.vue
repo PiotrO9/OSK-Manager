@@ -99,21 +99,14 @@ function handleSubmit(payload: { rating: number; comment: string | null }) {
 </script>
 
 <template>
-    <section class="flex flex-col gap-4" aria-labelledby="lesson-ratings-title">
-        <div class="flex flex-wrap items-start justify-between gap-3">
-            <div class="flex flex-col gap-1">
-                <h2
-                    id="lesson-ratings-title"
-                    class="text-foreground text-lg font-semibold"
-                >
-                    Opinie po jazdach
-                </h2>
-                <p class="text-muted-foreground text-sm">
-                    Lekcje do oceny w wybranym tygodniu:
-                    {{ lessonsWaitingForRating.length }}
-                </p>
-            </div>
-        </div>
+    <section
+        class="flex flex-col gap-4"
+        aria-label="Oceny jazd w wybranym tygodniu"
+    >
+        <p class="text-muted-foreground text-sm">
+            Lekcje do oceny w wybranym tygodniu:
+            {{ lessonsWaitingForRating.length }}
+        </p>
 
         <p
             v-if="completedPracticeLessons.length === 0"
@@ -123,7 +116,10 @@ function handleSubmit(payload: { rating: number; comment: string | null }) {
             Brak zakończonych jazd praktycznych w tym tygodniu.
         </p>
 
-        <div v-else class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div
+            v-else
+            class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+        >
             <div class="flex flex-col gap-2">
                 <button
                     v-for="lesson in completedPracticeLessons"

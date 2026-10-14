@@ -149,6 +149,9 @@ const weekStart = defineModel<Date>('weekStart', {
                     @request-cancel-lesson="
                         $emit('requestCancelLesson', $event)
                     "
+                    @lesson-details-requested="
+                        $emit('lessonDetailsRequested', $event)
+                    "
                 />
 
                 <InstructorScheduleGroupedList
