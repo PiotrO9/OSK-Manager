@@ -2,6 +2,7 @@
 import VehicleDetailsContent from '~/components/vehicles/VehicleDetailsContent.vue';
 import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
+import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
 
 definePageMeta({
     layout: 'app-shell',
@@ -79,9 +80,11 @@ async function loadVehicle() {
         }
 
         loadError.value =
-            err instanceof Error && err.message.trim().length > 0
-                ? err.message
-                : 'Nie udało się wczytać pojazdu.';
+            getApiErrorStatusCode(err) === 403
+                ? 'Nie masz dostępu do tego pojazdu.'
+                : err instanceof Error && err.message.trim().length > 0
+                  ? err.message
+                  : 'Nie udało się wczytać pojazdu.';
     }
 }
 

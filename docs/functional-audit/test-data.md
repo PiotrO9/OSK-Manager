@@ -208,3 +208,20 @@ Kontrola API menedżerki A przed przebiegiem ręcznym: odczyt harmonogramu
 szkoły B oraz próba zapisu tej samej dostępności Igora otrzymały `403`.
 Ponowny odczyt jako menedżerka B potwierdził zachowanie wpisu i dostępności.
 Te kontrole przygotowawcze nie zastępują ręcznego wyniku `COM-10`.
+
+## Przygotowane dane XR-06 (2026-10-14)
+
+Do szkół A/B i kont wymienionych w zestawach MGR-ACC-01 oraz COM-10 dodano w
+szkole B pojazd „AUD XR-06 Kraków B - Toyota Yaris” (`KRXR06B`,
+`5ead54b0-371e-4fa5-bf7d-32a56ab45c87`). Instruktor Igor Obcy otrzymał
+uprawnienie do kategorii B. Zaplanowano jazdę Sary Obcej z Igorem 16.10.2026,
+11:00–12:00 (`861ef93b-17e1-4c44-80ec-0e40ed708047`) na kursie „AUD COM-10
+Kraków B” tym pojazdem. W tym samym dniu B ma też teorię Igora o 10:00–10:45.
+
+Szkoła A ma odrębny pojazd „Pojazd 3 - Skoda Fabia” (`DW00003`,
+`befd9a3d-ace7-470d-8b15-2153c048cd75`), instruktora Jana Instruktora
+(`03bfec6a-1bb6-44d3-a70a-5f3c8edc31ae`) i własne wpisy harmonogramu.
+Kontrola przygotowawcza API: menadżerka B otrzymała `403` przy odczycie
+szczegółu pojazdu A, szczegółu instruktora A oraz listy pojazdów A.
+Użytkownik potwierdził pomyślny wynik ręczny XR-06; zapis znajduje się w
+[przebiegu testu](runs/2026-10-14-xr-06-manual.md).
