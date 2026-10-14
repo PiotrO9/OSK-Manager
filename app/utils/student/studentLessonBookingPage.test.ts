@@ -3,7 +3,6 @@ import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilityS
 import {
     canStudentBookSlotWithCourseHours,
     filterStudentLessonBookableSlots,
-    formatStudentLessonBookingAvailableSlotsLabel,
     formatStudentLessonBookingWeekRangeCompactLabel,
     isStudentLessonBookingNextWeekDisabled,
     isStudentLessonBookingPrevWeekDisabled,
@@ -43,19 +42,6 @@ describe('studentLessonBookingPage utils', () => {
                 { startTime: '10:00', endTime: '11:00' },
             ),
         ).toBe(false);
-    });
-
-    it('formats available slot count with proper plural forms', () => {
-        expect(
-            formatStudentLessonBookingAvailableSlotsLabel(1, {
-                hasCourse: true,
-            }),
-        ).toBe('1 dostępny termin');
-        expect(
-            formatStudentLessonBookingAvailableSlotsLabel(2, {
-                hasCourse: true,
-            }),
-        ).toBe('2 dostępne terminy');
     });
 
     it('formats week ranges across one or two months', () => {

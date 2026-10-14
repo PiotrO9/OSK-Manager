@@ -261,25 +261,6 @@ export function formatStudentLessonBookingCourseCountLabel(
     ]);
 }
 
-export function formatStudentLessonBookingAvailableSlotsLabel(
-    count: number,
-    options?: { isLoading?: boolean; hasCourse?: boolean },
-): string {
-    if (!options?.hasCourse) {
-        return 'Najpierw wybierz kurs';
-    }
-
-    if (options.isLoading) {
-        return 'Wczytywanie terminów…';
-    }
-
-    return formatPolishCount(count, [
-        'dostępny termin',
-        'dostępne terminy',
-        'dostępnych terminów',
-    ]);
-}
-
 export function formatStudentLessonBookingRemainingHoursLabel(
     course: Pick<CurrentUserCourseItem, 'totalHours' | 'progress'> | null,
 ): string {

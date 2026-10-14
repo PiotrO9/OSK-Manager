@@ -1,12 +1,15 @@
-import type { CalendarDate, DateValue } from '@internationalized/date';
+import {
+    parseDate,
+    type CalendarDate,
+    type DateValue,
+} from '@internationalized/date';
 import { toDate } from 'reka-ui/date';
 import {
     buildSlotIsoUTC,
+    formatDateOnly,
     getMonday,
     weekCalendarDatesFromMonday,
     weekRangeFromMonday,
-    WEEK_PICKER_CALENDAR_MAX,
-    WEEK_PICKER_CALENDAR_MIN,
 } from '~/utils/date/weeklyCalendarDates';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
@@ -20,10 +23,10 @@ import { scheduleAvailabilityIssueMessage } from '~/types/schedule/scheduleAvail
 import {
     canStudentBookSlotWithCourseHours,
     filterStudentLessonBookableSlots,
-    formatStudentLessonBookingAvailableSlotsLabel,
     formatStudentLessonBookingRemainingHoursLabel,
     formatStudentLessonBookingWeekRangeCompactLabel,
     getStudentLessonBookingInstructorName,
+    getStudentLessonBookingMaxBookableDate,
     getStudentLessonBookingMaxWeekStart,
     getStudentLessonBookingMinWeekStart,
     getStudentLessonBookingRemainingHours,
@@ -46,6 +49,12 @@ export function useStudentLessonBookingPage() {
         useSchoolAvailabilitySlotsApi();
     const { bookOwnLesson } = useStudentLessonBookingApi();
     const { addToast } = useAppToast();
+
+    const bookingCalendarToday = new Date();
+    const bookingCalendarMin = parseDate(formatDateOnly(bookingCalendarToday));
+    const bookingCalendarMax = parseDate(
+        getStudentLessonBookingMaxBookableDate(bookingCalendarToday),
+    );
 
     const courses = shallowRef<CurrentUserCourseItem[]>([]);
     const selectedCourseId = shallowRef('');
@@ -154,13 +163,6 @@ export function useStudentLessonBookingPage() {
             ? formatCourseKindLabel(course.type)
             : 'Brak wybranego kursu';
     });
-
-    const availableSlotsLabel = computed(() =>
-        formatStudentLessonBookingAvailableSlotsLabel(slots.value.length, {
-            hasCourse: Boolean(selectedCourse.value),
-            isLoading: isSlotsLoading.value,
-        }),
-    );
 
     const slotsTruncatedLabel = computed(() => {
         if (slotsTotal.value <= rawSlots.value.length) {
@@ -553,14 +555,13 @@ export function useStudentLessonBookingPage() {
         weekShortLabel,
         selectedCourseProgressLabel,
         selectedCourseTypeLabel,
-        availableSlotsLabel,
         slotsTruncatedLabel,
         remainingCourseHours,
         isWeekBeyondBookingWindow,
         isPrevWeekDisabled,
         isNextWeekDisabled,
-        WEEK_PICKER_CALENDAR_MIN,
-        WEEK_PICKER_CALENDAR_MAX,
+        bookingCalendarMin,
+        bookingCalendarMax,
         loadCourses,
         loadSlots,
         handlePrevWeek,

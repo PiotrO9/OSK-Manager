@@ -32,7 +32,6 @@ const props = defineProps<{
     calendarMin: CalendarDate;
     calendarMax: CalendarDate;
     truncatedLabel: string | null;
-    availableSlotsLabel: string;
     remainingCourseHours: number | null;
 }>();
 
@@ -193,12 +192,6 @@ watch(
         description="Wybierz termin i potwierdź rezerwację jazdy."
         heading-id="student-booking-week-heading"
     >
-        <template #actions>
-            <UiBadge variant="outline" class="rounded-md px-2.5 py-1">
-                {{ availableSlotsLabel }}
-            </UiBadge>
-        </template>
-
         <div class="bg-card sticky top-0 z-20 rounded-lg py-0.5 sm:static">
             <WeekCalendarToolbar
                 v-model:calendar-open="calendarOpenModel"
