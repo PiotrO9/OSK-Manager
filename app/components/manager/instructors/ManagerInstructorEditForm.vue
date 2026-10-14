@@ -163,15 +163,8 @@ const fieldClass =
                 :value="form.experienceYears"
                 :disabled="isSubmitting"
                 :class="fieldClass"
-                aria-describedby="instructor-edit-experience-hint"
                 @input="handleExperienceYearsInput"
             />
-            <p
-                id="instructor-edit-experience-hint"
-                class="text-muted-foreground text-xs"
-            >
-                Liczba całkowita od 0 do 80.
-            </p>
         </div>
 
         <div v-if="!categoriesOnly" class="space-y-2">
