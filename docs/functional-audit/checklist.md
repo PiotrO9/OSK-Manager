@@ -111,8 +111,8 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | INS-03 | Pusty tydzień w terminarzu                          | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-mgr-stu-ins-stu.md); [wcześniejszy przebieg](runs/2026-10-11-ins-03-manual.md)) | —                          |
 | INS-04 | Zmiana statusu własnego wydarzenia                  | ☐                                                                                                                                                   | —                          |
 | INS-05 | Wydarzenia dnia, daty i filtr statusu               | ☐                                                                                                                                                   | —                          |
-| INS-06 | Opinie o własnych lekcjach, filtr i anonimowość     | ☐                                                                                                                                                   | —                          |
-| INS-07 | Stronicowanie opinii                                | ☐                                                                                                                                                   | —                          |
+| INS-06 | Opinie o własnych lekcjach, filtr i anonimowość     | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-06-manual.md))                                              | —                          |
+| INS-07 | Stronicowanie opinii                                | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-07-manual.md))                                              | —                          |
 | INS-08 | Błąd odczytu i ponowienie                           | ☐                                                                                                                                                   | —                          |
 | INS-09 | Własność danych i uprawnienia do operacji menedżera | ☐                                                                                                                                                   | —                          |
 | INS-10 | Nieudany zapis statusu wydarzenia                   | ☐                                                                                                                                                   | —                          |
@@ -144,11 +144,11 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 
 ## Między rolami — [kroki](scenarios/cross-role.md)
 
-| ID    | Scenariusz                                                   | Ręcznie (wymagane) | Automatycznie (opcjonalne) |
-| ----- | ------------------------------------------------------------ | ------------------ | -------------------------- |
-| XR-01 | Od nowego OSK do kursu widocznego dla kursanta               | ☐                  | —                          |
-| XR-02 | Rezerwacja jazdy widoczna w trzech rolach                    | ☐                  | —                          |
-| XR-03 | Zmiana lub anulowanie jazdy aktualizuje wszystkie widoki     | ☐                  | —                          |
-| XR-04 | Opłata menadżera widoczna dla kursanta                       | ☐                  | —                          |
-| XR-05 | Ocena zakończonej jazdy widoczna dla instruktora i menadżera | ☐                  | —                          |
-| XR-06 | Izolacja danych między szkołami                              | ☐                  | —                          |
+| ID    | Scenariusz                                                   | Ręcznie (wymagane)                                                                                    | Automatycznie (opcjonalne) |
+| ----- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | -------------------------- |
+| XR-01 | Od nowego OSK do kursu widocznego dla kursanta               | ☐                                                                                                     | —                          |
+| XR-02 | Rezerwacja jazdy widoczna w trzech rolach                    | ☐                                                                                                     | —                          |
+| XR-03 | Zmiana lub anulowanie jazdy aktualizuje wszystkie widoki     | ☐                                                                                                     | —                          |
+| XR-04 | Opłata menadżera widoczna dla kursanta                       | ☐                                                                                                     | —                          |
+| XR-05 | Ocena zakończonej jazdy widoczna dla instruktora i menadżera | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-xr-05-manual.md)) | —                          |
+| XR-06 | Izolacja danych między szkołami                              | ☐                                                                                                     | —                          |
