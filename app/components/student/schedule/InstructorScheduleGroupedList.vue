@@ -133,12 +133,6 @@ const groups = computed(() => buildStudentScheduleDayGroups(props.items));
                                     </UiSelectItem>
                                 </UiSelectContent>
                             </UiSelect>
-                            <span
-                                v-if="savingEventId === item.id"
-                                class="text-muted-foreground text-xs"
-                                role="status"
-                                >Zapisywanie…</span
-                            >
                         </template>
                         <StatusBadge
                             v-else

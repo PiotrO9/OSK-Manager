@@ -115,7 +115,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | INS-07 | Stronicowanie opinii                                | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-07-manual.md))                                              | —                          |
 | INS-08 | Błąd odczytu i ponowienie                           | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-08-manual.md)) | — |
 | INS-09 | Własność danych i uprawnienia do operacji menedżera | ☐                                                                                                                                                   | —                          |
-| INS-10 | Nieudany zapis statusu wydarzenia                   | ☐                                                                                                                                                   | —                          |
+| INS-10 | Nieudany zapis statusu wydarzenia                   | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-10-manual.md)) | — |
 | INS-11 | Praca instruktora na wąskim ekranie                 | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-ins-11-manual.md))                                              | —                          |
 
 ## Kursant — [kroki](scenarios/student.md)
