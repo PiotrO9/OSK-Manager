@@ -153,3 +153,18 @@ przygotowano odrębny blok teorii 16.10 o 14:00–15:00 z instruktorem
 Ten wpis służy do sprawdzenia przełączania szkół w harmonogramie. Hasło
 konta demo menedżera pochodzi z lokalnych danych demonstracyjnych i nie jest
 powielane w dokumentacji audytu.
+
+## Przygotowane dane MGR-INS-05 (2026-10-14)
+
+W „OSK Warszawa Demo 1” konto menedżera `manager001@post.pl` może sprawdzić
+instruktora Jana Instruktora (`03bfec6a-1bb6-44d3-a70a-5f3c8edc31ae`).
+W tygodniu 19–25.10.2026 ma jazdę 19.10 o 08:00–08:30, jazdę 20.10
+o 08:00–09:30, teorię 21.10 o 13:00–14:30 i przygotowany blok jazdy
+21.10 o 10:00–11:00 (`28831de8-1418-4dd1-84e8-cde77e023d0e`).
+API wolnych slotów oraz kontrola dostępności wszystkich zasobów potwierdziły
+19.10 o 09:30–10:30 jako wolny termin rezerwacji. Slot 21.10 o 10:00–11:00
+jest zajęty przez blok. Do rezerwacji służą kursant
+Kamil Kursant (`student001@post.pl`), aktywny kurs praktyczny
+„Kategoria A - grupa 1/1” przypisany do Jana oraz aktywny pojazd
+„Pojazd 3 - Skoda Fabia” (`DW00003`). Po rezerwacji termin 19.10 o 09:30–10:30
+nie będzie już wolny; przed powtórzeniem testu należy odtworzyć ten stan.
