@@ -1,16 +1,18 @@
 import { computed, ref, shallowRef, watch } from 'vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SchoolAvailabilitySlot } from '~/types/schools/schoolAvailabilitySlots';
+import type { ScheduleAvailabilityResult } from '~/types/schedule/scheduleAvailability';
 import { useScheduleAvailabilityCheck } from '../schedule/useScheduleAvailabilityCheck';
 import { useStudentLessonBookingPage } from './useStudentLessonBookingPage';
 
 const bookOwnLesson = vi.fn();
+const fetchMyCourses = vi.fn();
 const fetchSlots = vi.fn();
 const addToast = vi.fn();
 const recheckAvailability = vi.fn();
 const availabilityFetcher = vi.fn();
 const availabilityMessage = ref('Wybrany pojazd jest zajęty.');
-const availabilityResult = ref<{ available: boolean; issues: [] } | null>(null);
+const availabilityResult = ref<ScheduleAvailabilityResult | null>(null);
 
 const slot: SchoolAvailabilitySlot = {
     instructorId: '11111111-1111-4111-8111-111111111111',
@@ -27,7 +29,7 @@ function installGlobals(): void {
     vi.stubGlobal('watch', watch);
     vi.stubGlobal('onMounted', vi.fn());
     vi.stubGlobal('onBeforeUnmount', vi.fn());
-    vi.stubGlobal('useCoursesApi', () => ({ fetchMyCourses: vi.fn() }));
+    vi.stubGlobal('useCoursesApi', () => ({ fetchMyCourses }));
     vi.stubGlobal('useSchoolAvailabilitySlotsApi', () => ({
         fetchSlots,
         isLoading: ref(false),
@@ -46,9 +48,57 @@ describe('useStudentLessonBookingPage', () => {
         vi.unstubAllGlobals();
         vi.resetAllMocks();
         availabilityMessage.value = 'Wybrany pojazd jest zajęty.';
+        availabilityResult.value = null;
         recheckAvailability.mockResolvedValue('unavailable');
         fetchSlots.mockResolvedValue({ slots: [] });
         installGlobals();
+    });
+
+    it('keeps the modal open and books exactly the proposed final 30 minutes', async () => {
+        const page = useStudentLessonBookingPage();
+
+        page.courses.value = [
+            {
+                id: '22222222-2222-4222-8222-222222222222',
+                schoolId: '33333333-3333-4333-8333-333333333333',
+                name: 'Kurs B',
+                status: 'ACTIVE',
+                type: 'PRACTICAL',
+                totalHours: 2,
+                progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 90,
+                remainingBookableMinutes: 30,
+            },
+        ];
+        page.selectedCourseId.value = page.courses.value[0]!.id;
+        fetchMyCourses.mockResolvedValueOnce(page.courses.value);
+        page.handleRequestBookSlot(slot);
+        availabilityResult.value = {
+            available: false,
+            issues: [{ code: 'COURSE_LIMIT_EXCEEDED', field: 'courseId' }],
+            policy: { minDurationMinutes: 60, maxDurationMinutes: 120 },
+            remainingMinutes: 30,
+            alternative: {
+                startTime: '10:00',
+                endTime: '10:30',
+                durationMinutes: 30,
+            },
+        };
+        recheckAvailability
+            .mockResolvedValueOnce('unavailable')
+            .mockResolvedValueOnce('available');
+        await page.handleConfirmBookSlot();
+        expect(page.isConfirmDialogOpen.value).toBe(true);
+        expect(page.pendingShorterSlot.value?.endTime).toBe('10:30');
+        await page.handleConfirmShorterSlot();
+        expect(bookOwnLesson).toHaveBeenCalledWith(
+            expect.objectContaining({
+                bookingMode: 'REMAINING_PACKAGE',
+                endTime: expect.any(String),
+            }),
+        );
+        expect(page.isConfirmDialogOpen.value).toBe(false);
     });
 
     it('does not book a slot rejected by the availability preflight', async () => {
@@ -63,6 +113,9 @@ describe('useStudentLessonBookingPage', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 1800,
             },
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
@@ -104,6 +157,9 @@ describe('useStudentLessonBookingPage', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 1800,
             },
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
@@ -132,6 +188,9 @@ describe('useStudentLessonBookingPage', () => {
                     type: 'PRACTICAL',
                     totalHours: 30,
                     progress: 0,
+                    completedMinutes: 0,
+                    bookedMinutes: 0,
+                    remainingBookableMinutes: 1800,
                 },
             ];
             page.selectedCourseId.value = page.courses.value[0]!.id;
@@ -160,6 +219,9 @@ describe('useStudentLessonBookingPage', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 1800,
             },
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
@@ -169,6 +231,11 @@ describe('useStudentLessonBookingPage', () => {
 
         expect(bookOwnLesson).toHaveBeenCalledOnce();
         expect(page.bookingFeedbackTone.value).toBe('success');
+        expect(page.bookingFeedbackMessage.value).toBeNull();
+        expect(addToast).toHaveBeenCalledWith({
+            title: expect.stringContaining('Zarezerwowano jazdę:'),
+            variant: 'success',
+        });
     });
 
     it('keeps the confirmation dialog open while booking is pending', async () => {
@@ -190,6 +257,9 @@ describe('useStudentLessonBookingPage', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 1800,
             },
         ];
         page.selectedCourseId.value = page.courses.value[0]!.id;
@@ -204,7 +274,7 @@ describe('useStudentLessonBookingPage', () => {
         resolveAvailability('unavailable');
         await booking;
 
-        expect(page.isConfirmDialogOpen.value).toBe(false);
+        expect(page.isConfirmDialogOpen.value).toBe(true);
         expect(page.bookingSlotKey.value).toBeNull();
     });
 
@@ -220,6 +290,9 @@ describe('useStudentLessonBookingPage', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 30,
+                completedMinutes: 1800,
+                bookedMinutes: 1800,
+                remainingBookableMinutes: 0,
             },
         ];
 

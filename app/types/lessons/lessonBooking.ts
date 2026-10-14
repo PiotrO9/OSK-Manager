@@ -82,6 +82,7 @@ export interface CreateOwnLessonBody {
     instructorId: string;
     startTime: string;
     endTime: string;
+    bookingMode?: 'REMAINING_PACKAGE';
 }
 
 export interface LessonCreateResult {

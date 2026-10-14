@@ -10,6 +10,8 @@ import { formatStudentLessonBookingDateLabel } from '~/composables/student/lesso
 const props = defineProps<{
     open: boolean;
     bookingSlot: SchoolAvailabilitySlot | null;
+    shorterSlot: SchoolAvailabilitySlot | null;
+    feedbackMessage: string | null;
     course: CurrentUserCourseItem | null;
     isSubmitting: boolean;
 }>();
@@ -17,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     'update:open': [value: boolean];
     confirm: [];
+    'confirm-shorter': [];
     cancel: [];
 }>();
 
@@ -109,6 +112,21 @@ const durationLabel = computed(() => {
                         </dd>
                     </div>
                 </dl>
+                <div
+                    v-if="feedbackMessage"
+                    role="alert"
+                    class="border-border bg-muted rounded-lg border p-3 text-sm"
+                >
+                    {{ feedbackMessage }}
+                    <p
+                        v-if="shorterSlot"
+                        class="mt-1 font-semibold tabular-nums"
+                    >
+                        Proponowany termin: {{ shorterSlot.startTime }}–{{
+                            shorterSlot.endTime
+                        }}
+                    </p>
+                </div>
             </div>
 
             <UiDialogFooter
@@ -126,9 +144,17 @@ const durationLabel = computed(() => {
                     type="button"
                     :disabled="isSubmitting || !bookingSlot"
                     :aria-busy="isSubmitting"
-                    @click="handleConfirm"
+                    @click="
+                        shorterSlot ? emit('confirm-shorter') : handleConfirm()
+                    "
                 >
-                    {{ isSubmitting ? 'Rezerwowanie…' : 'Zarezerwuj jazdę' }}
+                    {{
+                        isSubmitting
+                            ? 'Rezerwowanie…'
+                            : shorterSlot
+                              ? 'Zarezerwuj pozostały czas'
+                              : 'Zarezerwuj jazdę'
+                    }}
                 </UiButton>
             </UiDialogFooter>
         </UiDialogContent>

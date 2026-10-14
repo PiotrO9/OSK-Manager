@@ -25,6 +25,9 @@ function makeCourse(
         type: 'PRACTICAL',
         totalHours: 30,
         progress: 0,
+        completedMinutes: 0,
+        bookedMinutes: 0,
+        remainingBookableMinutes: 1800,
         ...rest,
     };
 }

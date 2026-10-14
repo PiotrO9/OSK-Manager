@@ -35,13 +35,13 @@ describe('studentLessonBookingPage utils', () => {
         expect(filtered[0]?.startTime).toBe('13:00');
     });
 
-    it('blocks booking when slot duration exceeds remaining hours', () => {
+    it('allows selecting a full slot with a 30-minute final balance', () => {
         expect(
             canStudentBookSlotWithCourseHours(
-                { totalHours: 30, progress: 29.5 },
+                { remainingBookableMinutes: 30 },
                 { startTime: '10:00', endTime: '11:00' },
             ),
-        ).toBe(false);
+        ).toBe(true);
     });
 
     it('formats week ranges across one or two months', () => {

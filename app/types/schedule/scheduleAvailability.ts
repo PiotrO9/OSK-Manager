@@ -58,6 +58,7 @@ export interface LessonCreateAvailabilityRequest {
 
 export interface LessonSelfBookAvailabilityRequest {
     intent: 'lesson_self_book';
+    bookingMode?: 'REMAINING_PACKAGE';
     courseId: string;
     instructorId: string;
     date: string;
@@ -80,6 +81,12 @@ export interface ScheduleAvailabilityIssue {
 export interface ScheduleAvailabilityResult {
     available: boolean;
     issues: ScheduleAvailabilityIssue[];
+    remainingMinutes?: number;
+    alternative?: {
+        startTime: string;
+        endTime: string;
+        durationMinutes: number;
+    };
     policy: {
         minDurationMinutes: number;
         maxDurationMinutes: number;

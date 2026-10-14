@@ -76,9 +76,9 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 
 - Wymagania: `REQ-STU-BOOK-ELIGIBILITY`.
 - Dane: `booking-hours-low`.
-- Kroki: (1) Wybierz aktywny kurs. (2) Znajdź slot, którego długość przewyższa pozostałe godziny. (3) Spróbuj wybrać slot. (4) Sprawdź terminarz i postęp kursu.
-- Oczekiwane: slot jest niedostępny do wyboru; próba nie tworzy rezerwacji; liczba godzin nie zmienia się. Jeśli interfejs dopuści kliknięcie, pokazuje komunikat o niewystarczających godzinach lub serwer odrzuca przekroczenie limitu. Porównaj wynik z sumą nieanulowanych jazd, nie z procentem postępu.
-- Powtórzenie: odczyt; bez resetu.
+- Kroki: (1) Wybierz aktywny kurs z pozostałymi 30 minutami. (2) Wybierz godzinny slot i spróbuj potwierdzić rezerwację. (3) Sprawdź propozycję krótszej jazdy w tym samym dialogu. (4) Potwierdź rezerwację pozostałych 30 minut. (5) Sprawdź harmonogram po odświeżeniu i brak możliwości kolejnej rezerwacji na wyczerpany pakiet.
+- Oczekiwane: pełna godzina nie zostaje zarezerwowana; dialog podaje saldo 30 minut i proponuje termin o długości 30 minut. Po drugim potwierdzeniu powstaje wyłącznie krótsza jazda, sukces jest pokazany w toaście w prawym górnym rogu, a suma nieanulowanych jazd nie przekracza pakietu. Procent postępu ukończonych jazd nie służy do obliczania salda rezerwacji.
+- Powtórzenie: po rezerwacji konieczne jest odtworzenie zestawu `booking-hours-low`.
 - Źródła: `FE/OSK-Manager-FE/app/components/student/lesson-booking/StudentLessonBookingSchedulePanel.vue`, `app/composables/lessons/useStudentLessonBookingPage.ts`; `BE/src/services/lesson/scheduleConflicts.ts`.
 
 ### STU-08 — Nawigacja tygodni, brak slotów i granice rezerwacji [P1]

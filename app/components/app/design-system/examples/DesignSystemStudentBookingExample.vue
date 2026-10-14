@@ -127,6 +127,8 @@ function selectWeek(value: DateValue | DateValue[] | undefined) {
             @retry="scenario = 'data'"
         />
         <StudentLessonBookingConfirmDialog
+            :shorter-slot="null"
+            :feedback-message="null"
             :open="isConfirmOpen"
             :booking-slot="demoSlots[0] ?? null"
             :course="course"

@@ -251,6 +251,9 @@ export const designSystemBookingCourses: CurrentUserCourseItem[] = [
         type: 'PRACTICAL',
         totalHours: 30,
         progress: 18,
+        completedMinutes: 324,
+        bookedMinutes: 324,
+        remainingBookableMinutes: 1476,
     },
 ];
 

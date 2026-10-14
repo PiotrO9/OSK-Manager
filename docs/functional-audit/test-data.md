@@ -36,7 +36,7 @@ audytu; pozostałe wymagają przygotowania ręcznego albo dalszej rozbudowy narz
 | `student-empty`            | Aktywny kursant bez przypisanych kursów, lekcji i płatności.                                                                                                                                                           | `STU-03`, `STU-06`, `STU-16`                                    | odczyt bez resetu                           |
 | `student-course-mix`       | Kursant ma przynajmniej jeden aktywny kurs praktyczny, jeden ukończony lub nieaktywny oraz kurs teoretyczny; postęp i statusy mają znane wartości.                                                                     | `STU-01`–`STU-03`, `STU-06`                                     | odczyt bez resetu                           |
 | `booking-ready`            | Jeden aktywny kursant przypisany do aktywnego kursu praktycznego, dostępny limit godzin, uprawniony instruktor, dostępny pojazd, co najmniej jeden wolny termin w przyszłości.                                         | `XR-02`, rezerwacja poprawna                                    | po rezerwacji                               |
-| `booking-hours-low`        | `booking-ready` z pakietem, w którym pozostaje mniej godzin niż trwa jeden oferowany slot; stan ukończonych i już zaplanowanych minut jest podany osobno.                                                              | `STU-07`, `F-001`                                               | odczyt bez resetu                           |
+| `booking-hours-low`        | `booking-ready` z pakietem, w którym pozostaje mniej godzin niż trwa jeden oferowany slot; stan ukończonych i już zaplanowanych minut jest podany osobno.                                                              | `STU-07`, `F-001`                                               | po rezerwacji odtwórz stan początkowy       |
 | `booking-hours-zero`       | Aktywny kurs z całym pakietem wykorzystanym lub zarezerwowanym; kursant nie może dodać kolejnej jazdy.                                                                                                                 | `STU-06`                                                        | odczyt bez resetu                           |
 | `booking-conflict`         | Stan `booking-ready` oraz drugi kursant lub zasób zajmujący wskazany termin; osobny wolny termin kontrolny.                                                                                                            | konflikt instruktora, pojazdu lub kursanta                      | po próbie zapisu, jeśli powstała zmiana     |
 | `lesson-scheduled`         | Stan `booking-ready` z jedną już zaplanowaną jazdą w przyszłości oraz drugim wolnym terminem kontrolnym.                                                                                                               | `XR-03`, edycja i anulowanie                                    | po zmianie statusu/czasu                    |
@@ -126,3 +126,18 @@ testerowi poza repozytorium i nie jest tu przechowywane.
 
 Logowanie do wszystkich trzech kont potwierdzono przez Supabase Auth. Wynik
 ręczny zapisano w [przebiegu STU-06](runs/2026-10-14-stu-06-manual.md).
+
+## Przygotowane dane STU-07 (2026-10-14)
+
+Konto `stu07-pakiet-20261014@example.com` w OSK Warszawa Demo 1 ma jeden
+aktywny kurs praktyczny „AUD STU-07 - 30 minut pozostalo” z pakietem 2 godzin.
+Zaplanowana na 20.10.2026, 08:00–09:30 jazda zajmuje 90 minut, więc według
+limitu backendu pozostaje 30 minut. Jej czas trwania mieści się w szkolnej
+regule 60–120 minut. API kursów zwraca `progress = 0` i
+`completedMinutes = 0`, ponieważ ta jazda nie jest zakończona, oraz
+`bookedMinutes = 90` i `remainingBookableMinutes = 30` dla salda rezerwacji.
+W tygodniu 19–25.10.2026 API dostępności
+zwróciło m.in. godzinny slot 19.10, 08:00–09:00 u Jana Instruktora. Hasła nie
+zapisano w repozytorium. Użytkownik potwierdził pomyślny wynik ręczny `STU-07`
+2026-10-14. Zarezerwowanie 19.10, 08:00–08:30 zużyło pozostałe 30 minut;
+przed powtórzeniem testu trzeba odtworzyć stan początkowy.

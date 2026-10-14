@@ -10,14 +10,16 @@ const props = defineProps<{
 
 const programHours = computed(() => props.selectedCourse?.totalHours ?? 0);
 
-const usedHours = computed(() => props.selectedCourse?.progress ?? 0);
+const usedHours = computed(
+    () => (props.selectedCourse?.bookedMinutes ?? 0) / 60,
+);
 
 const remainingHours = computed(() => {
     if (props.remainingCourseHours !== null) {
         return props.remainingCourseHours;
     }
 
-    return Math.max(0, programHours.value - usedHours.value);
+    return (props.selectedCourse?.remainingBookableMinutes ?? 0) / 60;
 });
 
 const usedPercent = computed(() => {
@@ -36,7 +38,7 @@ const progressBarLabel = computed(() => {
         return 'Postęp godzin programu kursu';
     }
 
-    return `Wykorzystano ${usedHours.value} z ${programHours.value} godzin programu`;
+    return `Zarezerwowano ${usedHours.value} z ${programHours.value} godzin programu`;
 });
 </script>
 
@@ -76,7 +78,7 @@ const progressBarLabel = computed(() => {
                     </p>
                 </div>
                 <div class="text-right">
-                    <p class="text-muted-foreground text-xs">Wykorzystano</p>
+                    <p class="text-muted-foreground text-xs">Zarezerwowano</p>
                     <p class="text-foreground text-sm font-medium tabular-nums">
                         {{ usedHours }} / {{ programHours }} godz.
                     </p>

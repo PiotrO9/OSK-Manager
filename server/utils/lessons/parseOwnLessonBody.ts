@@ -5,6 +5,7 @@ export interface BffOwnLessonCreateBody {
     instructorId: string;
     startTime: string;
     endTime: string;
+    bookingMode?: 'REMAINING_PACKAGE';
 }
 
 const OWN_LESSON_BODY_KEYS = new Set([
@@ -12,6 +13,7 @@ const OWN_LESSON_BODY_KEYS = new Set([
     'instructorId',
     'startTime',
     'endTime',
+    'bookingMode',
 ]);
 
 function readRequiredUuid(
@@ -74,6 +76,11 @@ export function parseOwnLessonBody(
 
     const startTime = readRequiredIsoDateTime(lessonRecord, 'startTime');
     const endTime = readRequiredIsoDateTime(lessonRecord, 'endTime');
+    const bookingMode = lessonRecord.bookingMode;
+
+    if (bookingMode !== undefined && bookingMode !== 'REMAINING_PACKAGE') {
+        return { ok: false, message: 'Nieprawidłowy tryb rezerwacji.' };
+    }
 
     if (!startTime || !endTime) {
         return {
@@ -89,5 +96,14 @@ export function parseOwnLessonBody(
         };
     }
 
-    return { ok: true, body: { courseId, instructorId, startTime, endTime } };
+    return {
+        ok: true,
+        body: {
+            courseId,
+            instructorId,
+            startTime,
+            endTime,
+            ...(bookingMode ? { bookingMode } : {}),
+        },
+    };
 }

@@ -70,6 +70,7 @@ export function useStudentLessonBookingPage() {
     const pendingConfirmationSlot = shallowRef<SchoolAvailabilitySlot | null>(
         null,
     );
+    const pendingShorterSlot = shallowRef<SchoolAvailabilitySlot | null>(null);
     const isConfirmDialogOpen = shallowRef(false);
     const isCalendarOpen = shallowRef(false);
     const calendarSelected = shallowRef<CalendarDate[]>(
@@ -179,7 +180,7 @@ export function useStudentLessonBookingPage() {
             return null;
         }
 
-        return Math.max(0, course.totalHours - course.progress);
+        return getStudentLessonBookingRemainingHours(course);
     });
 
     async function loadCourses(): Promise<void> {
@@ -377,6 +378,8 @@ export function useStudentLessonBookingPage() {
         }
 
         pendingConfirmationSlot.value = slot;
+        pendingShorterSlot.value = null;
+        bookingFeedbackMessage.value = null;
         isConfirmDialogOpen.value = true;
     }
 
@@ -387,6 +390,8 @@ export function useStudentLessonBookingPage() {
 
         isConfirmDialogOpen.value = false;
         pendingConfirmationSlot.value = null;
+        pendingShorterSlot.value = null;
+        bookingFeedbackMessage.value = null;
     }
 
     async function handleConfirmBookSlot(): Promise<void> {
@@ -396,13 +401,26 @@ export function useStudentLessonBookingPage() {
             return;
         }
 
-        await handleBookSlot(slot);
-        isConfirmDialogOpen.value = false;
-        pendingConfirmationSlot.value = null;
+        if (await handleBookSlot(slot)) {
+            isConfirmDialogOpen.value = false;
+            pendingConfirmationSlot.value = null;
+            pendingShorterSlot.value = null;
+        }
+    }
+
+    async function handleConfirmShorterSlot(): Promise<void> {
+        const slot = pendingShorterSlot.value;
+
+        if (slot && (await handleBookSlot(slot, 'REMAINING_PACKAGE'))) {
+            isConfirmDialogOpen.value = false;
+            pendingConfirmationSlot.value = null;
+            pendingShorterSlot.value = null;
+        }
     }
 
     async function handleBookSlot(
         slot: SchoolAvailabilitySlot,
+        bookingMode?: 'REMAINING_PACKAGE',
     ): Promise<boolean> {
         const course = selectedCourse.value;
 
@@ -419,17 +437,37 @@ export function useStudentLessonBookingPage() {
             date: slot.date,
             startTime: slot.startTime,
             endTime: slot.endTime,
+            bookingMode,
         };
 
         try {
             const availabilityStatus = await availability.recheck();
 
             if (availabilityStatus === 'unavailable') {
+                const alternative = availability.result.value?.alternative;
+
+                if (!bookingMode && alternative) {
+                    pendingShorterSlot.value = {
+                        ...slot,
+                        startTime: alternative.startTime,
+                        endTime: alternative.endTime,
+                    };
+                    bookingFeedbackMessage.value = `Pełna jazda przekroczy pakiet. Pozostało ${alternative.durationMinutes} min. Możesz zarezerwować ten krótszy termin.`;
+                    bookingFeedbackTone.value = 'error';
+
+                    return false;
+                }
+
                 const firstIssue = availability.result.value?.issues[0];
+                const remainingMinutes =
+                    availability.result.value?.remainingMinutes;
                 const message =
-                    (firstIssue
-                        ? scheduleAvailabilityIssueMessage(firstIssue)
-                        : null) ||
+                    (firstIssue?.code === 'COURSE_LIMIT_EXCEEDED' &&
+                    remainingMinutes !== undefined
+                        ? `Saldo pakietu się zmieniło. Pozostało ${remainingMinutes} min.`
+                        : firstIssue
+                          ? scheduleAvailabilityIssueMessage(firstIssue)
+                          : null) ||
                     availability.message.value ||
                     'Wybrany termin nie jest już dostępny.';
 
@@ -467,21 +505,58 @@ export function useStudentLessonBookingPage() {
                 instructorId: slot.instructorId,
                 startTime: buildSlotIsoUTC(slot.date, slot.startTime),
                 endTime: buildSlotIsoUTC(slot.date, slot.endTime),
+                bookingMode,
             });
 
             const successText = `Zarezerwowano jazdę: ${formatStudentLessonBookingDateLabel(slot.date)}, ${slot.startTime}–${slot.endTime}, ${getStudentLessonBookingInstructorName(slot)}.`;
 
-            bookingFeedbackMessage.value = successText;
+            bookingFeedbackMessage.value = null;
             bookingFeedbackTone.value = 'success';
             addToast({
                 title: successText,
                 variant: 'success',
             });
-            await loadSlots();
+            await loadCourses();
 
             return true;
         } catch (err: unknown) {
             const isConflict = getApiErrorStatusCode(err) === 409;
+
+            if (isConflict && bookingMode) {
+                await availability.recheck();
+                const remainingMinutes =
+                    availability.result.value?.remainingMinutes;
+
+                pendingShorterSlot.value = null;
+                bookingFeedbackMessage.value =
+                    remainingMinutes === undefined
+                        ? 'Saldo pakietu lub dostępność terminu się zmieniły. Sprawdź termin ponownie.'
+                        : `Saldo pakietu się zmieniło. Pozostało ${remainingMinutes} min. Sprawdź termin ponownie.`;
+                bookingFeedbackTone.value = 'error';
+
+                return false;
+            }
+
+            if (isConflict && !bookingMode) {
+                const refreshedStatus = await availability.recheck();
+                const alternative =
+                    refreshedStatus === 'unavailable'
+                        ? availability.result.value?.alternative
+                        : null;
+
+                if (alternative) {
+                    pendingShorterSlot.value = {
+                        ...slot,
+                        startTime: alternative.startTime,
+                        endTime: alternative.endTime,
+                    };
+                    bookingFeedbackMessage.value = `Saldo pakietu się zmieniło. Pozostało ${alternative.durationMinutes} min. Możesz zarezerwować krótszy termin.`;
+                    bookingFeedbackTone.value = 'error';
+
+                    return false;
+                }
+            }
+
             const message = isConflict
                 ? 'Ten termin został właśnie zajęty. Lista terminów została odświeżona.'
                 : getApiFetchErrorMessage(
@@ -542,6 +617,7 @@ export function useStudentLessonBookingPage() {
         bookingFeedbackTone,
         bookingSlotKey,
         pendingConfirmationSlot,
+        pendingShorterSlot,
         isConfirmDialogOpen,
         isCalendarOpen,
         calendarSelected,
@@ -571,6 +647,7 @@ export function useStudentLessonBookingPage() {
         handleRequestBookSlot,
         handleCloseConfirmDialog,
         handleConfirmBookSlot,
+        handleConfirmShorterSlot,
         clearBookingFeedback,
     };
 }

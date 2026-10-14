@@ -5,6 +5,29 @@ const COURSE_ID = '11111111-1111-4111-8111-111111111111';
 const INSTRUCTOR_ID = '22222222-2222-4222-8222-222222222222';
 
 describe('parseOwnLessonBody', () => {
+    it('forwards an explicit final-package booking mode', () => {
+        expect(
+            parseOwnLessonBody({
+                courseId: COURSE_ID,
+                instructorId: INSTRUCTOR_ID,
+                startTime: '2026-10-19T06:00:00.000Z',
+                endTime: '2026-10-19T06:30:00.000Z',
+                bookingMode: 'REMAINING_PACKAGE',
+            }),
+        ).toMatchObject({
+            ok: true,
+            body: { bookingMode: 'REMAINING_PACKAGE' },
+        });
+        expect(
+            parseOwnLessonBody({
+                courseId: COURSE_ID,
+                instructorId: INSTRUCTOR_ID,
+                startTime: '2026-10-19T06:00:00.000Z',
+                endTime: '2026-10-19T06:30:00.000Z',
+                bookingMode: 'SKIP_LIMIT',
+            }),
+        ).toMatchObject({ ok: false });
+    });
     it('trims and returns own lesson create body', () => {
         expect(
             parseOwnLessonBody({

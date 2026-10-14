@@ -128,6 +128,9 @@ describe('course normalizers', () => {
                 type: 'PRACTICAL',
                 totalHours: 30,
                 progress: 100,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 0,
             },
         ]);
     });

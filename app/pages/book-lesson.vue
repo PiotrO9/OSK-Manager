@@ -104,10 +104,13 @@ const page = useStudentLessonBookingPage();
         <StudentLessonBookingConfirmDialog
             :open="page.isConfirmDialogOpen.value"
             :booking-slot="page.pendingConfirmationSlot.value"
+            :shorter-slot="page.pendingShorterSlot.value"
+            :feedback-message="page.bookingFeedbackMessage.value"
             :course="page.selectedCourse.value"
             :is-submitting="page.bookingSlotKey.value !== null"
             @update:open="(value) => !value && page.handleCloseConfirmDialog()"
             @confirm="page.handleConfirmBookSlot"
+            @confirm-shorter="page.handleConfirmShorterSlot"
             @cancel="page.handleCloseConfirmDialog"
         />
     </div>

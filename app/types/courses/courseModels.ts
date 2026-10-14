@@ -42,6 +42,9 @@ export interface CurrentUserCourseItem {
     type: CourseKind;
     totalHours: number;
     progress: number;
+    completedMinutes: number;
+    bookedMinutes: number;
+    remainingBookableMinutes: number;
 }
 
 /** Szczegóły kursu (GET `/courses/:id`) — `capacity` może być null (brak limitu). */

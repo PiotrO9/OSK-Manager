@@ -219,9 +219,9 @@ export function filterStudentLessonBookableSlots(
 }
 
 export function getStudentLessonBookingRemainingHours(
-    course: Pick<CurrentUserCourseItem, 'totalHours' | 'progress'>,
+    course: Pick<CurrentUserCourseItem, 'remainingBookableMinutes'>,
 ): number {
-    return Math.max(0, course.totalHours - course.progress);
+    return course.remainingBookableMinutes / 60;
 }
 
 export function getStudentLessonBookingSlotDurationHours(
@@ -242,13 +242,16 @@ export function getStudentLessonBookingSlotDurationHours(
 }
 
 export function canStudentBookSlotWithCourseHours(
-    course: Pick<CurrentUserCourseItem, 'totalHours' | 'progress'>,
+    course: Pick<CurrentUserCourseItem, 'remainingBookableMinutes'>,
     slot: Pick<SchoolAvailabilitySlot, 'startTime' | 'endTime'>,
 ): boolean {
     const remaining = getStudentLessonBookingRemainingHours(course);
     const duration = getStudentLessonBookingSlotDurationHours(slot);
 
-    return duration > 0 && duration <= remaining + 1e-9;
+    return (
+        duration > 0 &&
+        (duration <= remaining + 1e-9 || (remaining >= 0.5 && remaining < 1))
+    );
 }
 
 export function formatStudentLessonBookingCourseCountLabel(
@@ -262,7 +265,10 @@ export function formatStudentLessonBookingCourseCountLabel(
 }
 
 export function formatStudentLessonBookingRemainingHoursLabel(
-    course: Pick<CurrentUserCourseItem, 'totalHours' | 'progress'> | null,
+    course: Pick<
+        CurrentUserCourseItem,
+        'totalHours' | 'remainingBookableMinutes'
+    > | null,
 ): string {
     if (!course) {
         return 'Wybierz kurs, aby zobaczyć saldo godzin programu.';

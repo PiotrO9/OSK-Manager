@@ -9,6 +9,25 @@ const courseId = '55555555-5555-4555-8555-555555555555';
 const studentId = '66666666-6666-4666-8666-666666666666';
 
 describe('parseScheduleAvailabilityCheck', () => {
+    it('forwards the explicit final-package mode only for self-booking', () => {
+        const request = {
+            intent: 'lesson_self_book',
+            courseId,
+            instructorId,
+            date: '2026-09-26',
+            startTime: '12:00',
+            endTime: '12:30',
+            bookingMode: 'REMAINING_PACKAGE',
+        };
+
+        expect(parseScheduleAvailabilityCheck(request)).toEqual(request);
+        expect(
+            parseScheduleAvailabilityCheck({
+                ...request,
+                bookingMode: 'SKIP_LIMIT',
+            }),
+        ).toBeNull();
+    });
     it('parses and trims a drive candidate', () => {
         expect(
             parseScheduleAvailabilityCheck({

@@ -133,7 +133,7 @@ function isSlotHoursInsufficient(slot: SchoolAvailabilitySlot): boolean {
 
     return (
         getStudentLessonBookingSlotDurationHours(slot) >
-        props.remainingCourseHours
+            props.remainingCourseHours && props.remainingCourseHours < 0.5
     );
 }
 

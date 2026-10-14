@@ -54,7 +54,18 @@ function normalizeCurrentUserCourseItem(
         type: typeRaw,
         totalHours,
         progress: normalizeCourseProgress(o.progress),
+        completedMinutes: readNonNegativeMinutes(o.completedMinutes),
+        bookedMinutes: readNonNegativeMinutes(o.bookedMinutes),
+        remainingBookableMinutes: readNonNegativeMinutes(
+            o.remainingBookableMinutes,
+        ),
     };
+}
+
+function readNonNegativeMinutes(raw: unknown): number {
+    const value = typeof raw === 'number' ? raw : Number(raw);
+
+    return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
 }
 
 export function normalizeMyCoursesList(data: unknown): CurrentUserCourseItem[] {

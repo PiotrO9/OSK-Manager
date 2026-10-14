@@ -48,6 +48,7 @@ export interface BffLessonCreateAvailabilityCheck {
 
 export interface BffLessonSelfBookAvailabilityCheck {
     intent: 'lesson_self_book';
+    bookingMode?: 'REMAINING_PACKAGE';
     courseId: string;
     instructorId: string;
     date: string;
@@ -103,6 +104,7 @@ const ALLOWED_FIELDS: Record<string, ReadonlySet<string>> = {
     ]),
     lesson_self_book: new Set([
         'intent',
+        'bookingMode',
         'courseId',
         'instructorId',
         'date',
@@ -220,8 +222,12 @@ export function parseScheduleAvailabilityCheck(
     }
 
     if (intent === 'lesson_self_book') {
+        const bookingMode = body.bookingMode;
+
         if (
             !isUuid(courseId) ||
+            (bookingMode !== undefined &&
+                bookingMode !== 'REMAINING_PACKAGE') ||
             Boolean(studentId) ||
             Boolean(vehicleId) ||
             Boolean(eventId) ||
@@ -238,6 +244,7 @@ export function parseScheduleAvailabilityCheck(
             date,
             startTime,
             endTime,
+            ...(bookingMode ? { bookingMode } : {}),
         };
     }
 
