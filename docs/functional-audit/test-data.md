@@ -258,3 +258,18 @@ szkoły: `xr01-manager-20261014@example.com`. Test ma dodać jeden rozpoznawalny
 wpis 137,50 PLN z terminem 2026-11-05 i metodą „Przelew” (`transfer`),
 zmienić termin na 2026-11-06 i metodę na „Karta” (`card`), a następnie
 przełączyć status opłacona → niezapłacona. Hasła nie są zapisane w dokumentacji.
+
+## Przygotowane dane XR-02 (2026-10-14)
+
+W szkole „AUD XR-01 OSK Poznań” (`90b36ba1-0297-4875-9e51-2dab04a9eaac`)
+utworzono dla Natalii XR01 osobny aktywny kurs praktyczny „AUD XR-02 Kat. B —
+praktyka” (`227fa24f-e6e1-4344-896e-d3f7b397df30`, 30 godzin). Instruktor Adam
+XR01 (`xr01-instruktor-20261014@example.com`) ma uprawnienie do kategorii B,
+dostępność w dni robocze 08:00–18:00, a szkoła aktywny pojazd `PZXR01A`.
+Konta kursanta, instruktora i menedżera XR-01 zweryfikowano przez logowanie do
+lokalnego BE. Odczyt `/me/courses` potwierdził 30 wolnych godzin nowego kursu,
+a API dostępności zwróciło wolny slot 19.10.2026, 09:00–10:00 u Adama XR01.
+Po ręcznym teście XR-02 slot 19.10.2026, 09:00–10:00 jest zajęty przez jazdę
+`b8941d82-d9a5-45d0-8f0d-c1fa7f2670ba` (status `SCHEDULED`). Starszy kurs
+„AUD XR-01 Kat. B — praktyka” ma mimo nazwy typ `THEORY_GROUP` i nie służy do
+rezerwacji jazdy. Hasła nie są zapisane w dokumentacji.
