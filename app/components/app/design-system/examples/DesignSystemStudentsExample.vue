@@ -30,6 +30,13 @@ const pagination = computed(() => ({
 watch(scenario, () => {
     page.value = 1;
 });
+
+function clearAllFilters(): void {
+    search.value = '';
+    quickView.value = 'all';
+    activeCourseId.value = '';
+    page.value = 1;
+}
 </script>
 <template>
     <div class="space-y-5">
@@ -64,21 +71,16 @@ watch(scenario, () => {
             <ManagerStudentsSearch
                 v-model:search="search"
                 v-model:quick-view="quickView"
+                :active-course-id="activeCourseId"
                 :advanced-filters="[]"
                 :advanced-filter-draft="getDefaultStudentAdvancedFilterDraft()"
                 :advanced-filter-draft-error="null"
                 :courses="designSystemCourses"
                 :disabled="isLoading"
+                @clear-all-filters="clearAllFilters"
             />
             <ManagerStudentsStats
                 :total-students-count="students.length"
-                :page-students-count="pageStudents.length"
-                :active-students-on-page="
-                    pageStudents.filter((student) => student.isActive).length
-                "
-                :students-with-pkk-on-page="
-                    pageStudents.filter((student) => student.pkkNumber).length
-                "
                 :is-unavailable="isLoading || scenario === 'error'"
             />
             <LoadingState

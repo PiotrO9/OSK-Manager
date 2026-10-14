@@ -14,6 +14,7 @@ const {
     schoolsLoadError,
     isSchoolsLoading,
     activeSchoolId,
+    initialSchoolId,
     courses,
     isCoursesLoading,
     coursesLoadError,
@@ -26,6 +27,7 @@ const {
     currentPage,
     students,
     studentsPagination,
+    studentViewCounts,
     isStudentsLoading,
     studentsLoadError,
     formDialogOpen,
@@ -38,8 +40,6 @@ const {
     prefillSchoolId,
     activeSchool,
     totalStudentsCount,
-    activeStudentsOnPage,
-    studentsWithPkkOnPage,
     loadSchools,
     loadStudents,
     handleActiveSchoolChange,
@@ -83,10 +83,13 @@ const {
             <ManagerStudentsSearch
                 v-model:search="search"
                 v-model:quick-view="quickView"
+                :active-course-id="activeCourseId"
+                :school-filter-active="activeSchoolId !== initialSchoolId"
                 :advanced-filters="advancedFilters"
                 :advanced-filter-draft="advancedFilterDraft"
                 :advanced-filter-draft-error="advancedFilterDraftError"
                 :courses="courses"
+                :view-counts="studentViewCounts"
                 :disabled="isSchoolsLoading || !activeSchoolId"
                 @start-new-advanced-filter="startNewAdvancedFilter"
                 @start-edit-advanced-filter="startEditAdvancedFilter"
@@ -98,9 +101,6 @@ const {
             />
             <ManagerStudentsStats
                 :total-students-count="totalStudentsCount"
-                :page-students-count="students.length"
-                :active-students-on-page="activeStudentsOnPage"
-                :students-with-pkk-on-page="studentsWithPkkOnPage"
                 :is-unavailable="
                     isSchoolsLoading ||
                     isStudentsLoading ||

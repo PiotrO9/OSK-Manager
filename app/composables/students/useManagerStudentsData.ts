@@ -34,6 +34,7 @@ export function useManagerStudentsData() {
 
     const students = ref<StudentListItem[]>([]);
     const studentsPagination = ref<StudentsPagePagination | null>(null);
+    const studentViewCounts = ref<Record<StudentListView, number> | null>(null);
     const isStudentsLoading = ref(false);
     const studentsLoadError = ref<string | null>(null);
     let coursesLoadSequence = 0;
@@ -137,6 +138,7 @@ export function useManagerStudentsData() {
         studentsLoadSequence += 1;
         isStudentsLoading.value = Boolean(activeSchoolId.value.trim());
         studentsLoadError.value = null;
+        studentViewCounts.value = null;
     }
 
     async function loadStudents() {
@@ -146,12 +148,14 @@ export function useManagerStudentsData() {
         if (!schoolId) {
             students.value = [];
             studentsPagination.value = null;
+            studentViewCounts.value = null;
 
             return;
         }
 
         studentsLoadError.value = null;
         isStudentsLoading.value = true;
+        studentViewCounts.value = null;
 
         try {
             const courseIdTrimmed = activeCourseId.value.trim();
@@ -174,6 +178,7 @@ export function useManagerStudentsData() {
             }
 
             students.value = page.items;
+            studentViewCounts.value = page.viewCounts ?? null;
             studentsPagination.value = {
                 total: page.total,
                 totalPages: page.totalPages,
@@ -185,6 +190,7 @@ export function useManagerStudentsData() {
 
             students.value = [];
             studentsPagination.value = null;
+            studentViewCounts.value = null;
             studentsLoadError.value = resolveStudentsListError(err);
         } finally {
             if (requestSequence === studentsLoadSequence) {
@@ -208,6 +214,7 @@ export function useManagerStudentsData() {
         currentPage,
         students,
         studentsPagination,
+        studentViewCounts,
         isStudentsLoading,
         studentsLoadError,
         activeSchool,

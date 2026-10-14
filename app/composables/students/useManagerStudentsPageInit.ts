@@ -1,4 +1,4 @@
-import type { Ref } from 'vue';
+import { shallowRef, type Ref } from 'vue';
 import {
     readQueryTruthyFlag,
     readUuidQueryValue,
@@ -26,6 +26,7 @@ export function useManagerStudentsPageInit({
     openInitialRegisterForm,
 }: UseManagerStudentsPageInitOptions) {
     const route = useRoute();
+    const initialSchoolId = shallowRef('');
 
     const openRegisterFormFromQuery = computed((): boolean => {
         return readQueryTruthyFlag(route.query.register);
@@ -47,7 +48,8 @@ export function useManagerStudentsPageInit({
 
     onMounted(async () => {
         await loadSchools();
-        activeSchoolId.value = resolveInitialActiveSchoolId();
+        initialSchoolId.value = resolveInitialActiveSchoolId();
+        activeSchoolId.value = initialSchoolId.value;
 
         if (openRegisterFormFromQuery.value) {
             openInitialRegisterForm();
@@ -60,6 +62,7 @@ export function useManagerStudentsPageInit({
 
     return {
         prefillSchoolId,
+        initialSchoolId,
         resolveInitialActiveSchoolId,
     };
 }

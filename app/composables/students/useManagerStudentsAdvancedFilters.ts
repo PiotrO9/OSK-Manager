@@ -100,7 +100,10 @@ export function useManagerStudentsAdvancedFilters(
     }
 
     function clearAdvancedFilters(): void {
-        advancedFilters.value = [];
+        if (advancedFilters.value.length > 0) {
+            advancedFilters.value = [];
+        }
+
         startNewFilter();
     }
 

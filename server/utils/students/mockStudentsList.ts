@@ -3,6 +3,10 @@ import {
     mockCoursesListPayload,
 } from '~~/server/utils/courses/mockCoursesList';
 import type { StudentAdvancedFilter } from '~~/shared/utils/studentAdvancedFilters';
+import {
+    studentListViews,
+    type StudentListView,
+} from '~~/shared/utils/studentListFilters';
 
 /** Wiersz listy kursantów — kształt elementu `data.data[]`  wg students-api.md. */
 export interface MockStudentListRow {
@@ -519,6 +523,7 @@ export function mockStudentsListPayload(
     total: number;
     page: number;
     limit: number;
+    viewCounts: Record<StudentListView, number>;
 } {
     const all = [...ensureSeedForSchool(schoolId)];
 
@@ -534,7 +539,7 @@ export function mockStudentsListPayload(
         .toLocaleLowerCase('pl')
         .split(/\s+/)
         .filter(Boolean);
-    const matching = filtered.filter((row) => {
+    const matchingBase = filtered.filter((row) => {
         const text = [
             row.firstName,
             row.lastName,
@@ -545,11 +550,18 @@ export function mockStudentsListPayload(
             .join(' ')
             .toLocaleLowerCase('pl');
 
-        if (!terms.every((term) => text.includes(term))) return false;
+        return (
+            terms.every((term) => text.includes(term)) &&
+            filters.every((filter) =>
+                mockStudentMatchesAdvancedFilter(row, schoolId, filter),
+            )
+        );
+    });
+    const matchesView = (row: MockStudentListRow, selectedView: string) => {
+        if (selectedView === 'without-pkk' && row.pkkNumber?.trim())
+            return false;
 
-        if (view === 'without-pkk' && row.pkkNumber?.trim()) return false;
-
-        if (view === 'without-course') {
+        if (selectedView === 'without-course') {
             if (
                 mockCoursesListPayload(schoolId).courses.some((course) =>
                     mockStudentVisibleInCourseFilter(row.id, course.id),
@@ -559,19 +571,25 @@ export function mockStudentsListPayload(
             }
         }
 
-        if (view === 'overdue' && !mockStudentHasOverduePayments(row))
+        if (selectedView === 'overdue' && !mockStudentHasOverduePayments(row))
             return false;
 
-        if (view === 'without-lesson') {
+        if (selectedView === 'without-lesson') {
             if (mockStudentHasUpcomingLesson(row, schoolId)) {
                 return false;
             }
         }
 
-        return filters.every((filter) =>
-            mockStudentMatchesAdvancedFilter(row, schoolId, filter),
-        );
-    });
+        return true;
+    };
+
+    const viewCounts = Object.fromEntries(
+        studentListViews.map((selectedView) => [
+            selectedView,
+            matchingBase.filter((row) => matchesView(row, selectedView)).length,
+        ]),
+    ) as Record<StudentListView, number>;
+    const matching = matchingBase.filter((row) => matchesView(row, view));
     const total = matching.length;
     const safeLimit = Math.max(1, Math.min(100, limit));
     const safePage = Math.max(1, page);
@@ -583,6 +601,7 @@ export function mockStudentsListPayload(
         total,
         page: safePage,
         limit: safeLimit,
+        viewCounts,
     };
 }
 

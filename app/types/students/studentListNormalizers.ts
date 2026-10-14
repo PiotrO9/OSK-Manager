@@ -5,6 +5,10 @@ import {
     readStringOrNull,
 } from './studentNormalizeShared';
 import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
+import {
+    studentListViews,
+    type StudentListView,
+} from '~~/shared/utils/studentListFilters';
 
 export function normalizeStudentListItem(raw: unknown): StudentListItem | null {
     if (!raw || typeof raw !== 'object') {
@@ -162,11 +166,28 @@ export function normalizeStudentListPage(
 
     const totalPages = total === 0 ? 1 : Math.max(1, Math.ceil(total / limit));
 
+    const rawCounts = record.viewCounts;
+    const viewCounts =
+        rawCounts &&
+        typeof rawCounts === 'object' &&
+        studentListViews.every((view) => {
+            const count = (rawCounts as Record<string, unknown>)[view];
+
+            return (
+                typeof count === 'number' &&
+                Number.isInteger(count) &&
+                count >= 0
+            );
+        })
+            ? (rawCounts as Record<StudentListView, number>)
+            : null;
+
     return {
         items,
         total,
         page,
         limit,
         totalPages,
+        viewCounts,
     };
 }

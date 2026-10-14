@@ -27,6 +27,10 @@ export interface StudentListPage {
     page: number;
     limit: number;
     totalPages: number;
+    viewCounts?: Record<
+        import('~~/shared/utils/studentListFilters').StudentListView,
+        number
+    > | null;
 }
 
 /** Kurs w szczegółach kursanta (GET /students/:userId) — status z course_participants. */

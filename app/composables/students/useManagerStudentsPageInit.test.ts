@@ -85,11 +85,15 @@ describe('useManagerStudentsPageInit', () => {
         const { useManagerStudentsPageInit } =
             await import('./useManagerStudentsPageInit');
 
-        useManagerStudentsPageInit(options);
+        const pageInit = useManagerStudentsPageInit(options);
+
         await mountedCallback?.();
 
         expect(options.loadSchools).toHaveBeenCalledTimes(1);
         expect(options.activeSchoolId.value).toBe(
+            '2f3c7d2b-8c28-4a3d-9f1b-0d7c4f35b4a1',
+        );
+        expect(pageInit.initialSchoolId.value).toBe(
             '2f3c7d2b-8c28-4a3d-9f1b-0d7c4f35b4a1',
         );
         expect(options.loadCoursesForFilter).toHaveBeenCalledTimes(1);

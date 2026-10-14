@@ -4,9 +4,35 @@ import {
     getStudentCourseStatusVariant,
     normalizeStudentDetail,
     normalizeStudentListItem,
+    normalizeStudentListPage,
 } from './student';
 
 describe('student domain types', () => {
+    it('preserves school-wide quick-filter counts on a paginated list', () => {
+        const page = normalizeStudentListPage({
+            data: [],
+            total: 3,
+            page: 2,
+            limit: 2,
+            viewCounts: {
+                all: 26,
+                'without-pkk': 5,
+                'without-course': 1,
+                overdue: 13,
+                'without-lesson': 22,
+            },
+        });
+
+        expect(page?.total).toBe(3);
+        expect(page?.viewCounts).toEqual({
+            all: 26,
+            'without-pkk': 5,
+            'without-course': 1,
+            overdue: 13,
+            'without-lesson': 22,
+        });
+    });
+
     it('normalizes list avatar url from backend aliases', () => {
         expect(
             normalizeStudentListItem({

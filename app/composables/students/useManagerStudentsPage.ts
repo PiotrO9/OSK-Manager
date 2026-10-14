@@ -22,6 +22,7 @@ export function useManagerStudentsPage() {
         currentPage,
         students,
         studentsPagination,
+        studentViewCounts,
         isStudentsLoading,
         studentsLoadError,
         activeSchool,
@@ -96,9 +97,13 @@ export function useManagerStudentsPage() {
     const { handleCourseFilterChange, handlePrevPage, handleNextPage } =
         listActions;
 
+    let resettingFilters = false;
+
     watch(
         [search, quickView, advancedFilters],
         ([text], [previousText], onCleanup) => {
+            if (resettingFilters) return;
+
             invalidateStudentsRequest();
             currentPage.value = 1;
             const timer = setTimeout(
@@ -112,7 +117,7 @@ export function useManagerStudentsPage() {
         },
     );
 
-    const { prefillSchoolId } = useManagerStudentsPageInit({
+    const { prefillSchoolId, initialSchoolId } = useManagerStudentsPageInit({
         schools,
         activeSchoolId,
         loadSchools,
@@ -121,13 +126,32 @@ export function useManagerStudentsPage() {
         openInitialRegisterForm,
     });
 
-    function clearAllStudentFilters(): void {
+    async function clearAllStudentFilters(): Promise<void> {
+        const schoolChanged = activeSchoolId.value !== initialSchoolId.value;
+        const hasFilters =
+            schoolChanged ||
+            search.value !== '' ||
+            quickView.value !== 'all' ||
+            activeCourseId.value !== '' ||
+            advancedFilters.value.length > 0;
+
+        resettingFilters = true;
+        activeSchoolId.value = initialSchoolId.value;
         search.value = '';
         quickView.value = 'all';
         activeCourseId.value = '';
         advancedFilterState.clearAdvancedFilters();
         currentPage.value = 1;
-        void loadStudents();
+        await nextTick();
+        resettingFilters = false;
+
+        if (hasFilters) {
+            if (schoolChanged) {
+                await loadCoursesForFilter();
+            }
+
+            await loadStudents();
+        }
     }
 
     return {
@@ -142,6 +166,7 @@ export function useManagerStudentsPage() {
         currentPage,
         students,
         studentsPagination,
+        studentViewCounts,
         isStudentsLoading,
         studentsLoadError,
         formDialogOpen,
@@ -152,6 +177,7 @@ export function useManagerStudentsPage() {
         isFormSaving,
         apiError,
         prefillSchoolId,
+        initialSchoolId,
         search,
         quickView,
         advancedFilters,
