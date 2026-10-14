@@ -125,7 +125,7 @@ function handleSubmit(payload: { rating: number; comment: string | null }) {
                     v-for="lesson in completedPracticeLessons"
                     :key="lesson.id"
                     type="button"
-                    class="border-border bg-background hover:bg-muted/50 focus-visible:ring-ring flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-3 text-left transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    class="border-border bg-background hover:bg-muted/50 focus-visible:ring-ring flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border px-3 py-3 text-left transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                     :class="
                         selectedLesson?.id === lesson.id ? 'border-primary' : ''
                     "
