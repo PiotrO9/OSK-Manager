@@ -4,6 +4,7 @@ import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 export function useManagerAccountsPage() {
     const route = useRoute();
+    const toast = useAppToast();
     const { fetchList: fetchSchools } = useDrivingSchoolsApi();
     const schools = shallowRef<DrivingSchool[]>([]);
     const schoolId = shallowRef('');
@@ -133,10 +134,26 @@ export function useManagerAccountsPage() {
             );
             actionMessage.value = successMessage ?? 'Zmiany zapisano.';
         } catch (error) {
-            actionError.value = getApiFetchErrorMessage(
-                error,
-                'Nie udało się zapisać zmian.',
-            );
+            if (path === '/archive') {
+                const message = getApiFetchErrorMessage(error, '');
+
+                toast.addToast({
+                    title: 'Nie udało się zarchiwizować konta',
+                    description:
+                        /^(Student|Instructor) has active school obligations$/i.test(
+                            message,
+                        )
+                            ? 'Konto ma aktywne zobowiązania w szkole. Zakończ je przed archiwizacją.'
+                            : 'Spróbuj ponownie później.',
+                    variant: 'error',
+                    durationMs: 6000,
+                });
+            } else {
+                actionError.value = getApiFetchErrorMessage(
+                    error,
+                    'Nie udało się zapisać zmian.',
+                );
+            }
         } finally {
             busy.value = false;
             await loadAccounts();
