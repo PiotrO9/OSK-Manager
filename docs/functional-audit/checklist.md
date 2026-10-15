@@ -89,7 +89,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-SCH-01  | Tygodniowy harmonogram OSK i wybór szkoły       | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-sch-01-manual.md)) | — |
 | MGR-LES-01  | Rezerwacja jazdy przez menedżera                | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-les-01-manual.md))                                                                               | —                          |
 | MGR-LES-02  | Konflikt rezerwacji i niedostępny pojazd        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-02-manual.md)) | — |
-| MGR-LES-03  | Edycja jazdy i zmiana instruktora               | ☐                                                                                                                                                       | —                          |
+| MGR-LES-03  | Edycja jazdy i zmiana instruktora               | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-03-manual.md)) | — |
 | MGR-LES-04  | Anulowanie jazdy                                | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-04-manual.md)) | — |
 | MGR-EVT-01  | Blok teorii i uczestnicy                        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-evt-01-manual.md)) | —                          |
 | MGR-EVT-02  | Zmiana statusu, edycja i usunięcie bloku        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-evt-02-manual.md)) | — |
