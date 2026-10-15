@@ -233,38 +233,6 @@ po zmianie.
 Sprawdź brak `/api/auth/me` po `logout` oraz poprawne przekierowanie z `/login`
 do widoku roli, gdy sesja jest aktywna.
 
-### F-008 — Krótki podgląd chronionej strony po powrocie w historii
-
-| Pole | Wartość |
-| --- | --- |
-| Typ / waga / status | błąd / wysoka / do ponownego testu |
-| Scenariusz i wymaganie | `COM-04`, `REQ-COM-04` |
-| Przebieg | zgłoszenie użytkownika podczas ręcznego testu `COM-04`; późniejszy wynik ręczny `COM-04`: zaliczony ([przebieg](runs/2026-10-10-com-04-manual.md)); osobny ponowny test F-008 nieudokumentowany |
-| Wersja FE / BE | FE przed bieżącą poprawką; BE bez zmian |
-| Środowisko i zestaw danych | lokalna przeglądarka, konto testowe; szczegóły do uzupełnienia |
-| Konto i rola | zalogowany użytkownik, rola do uzupełnienia |
-| Dowód | obserwacja użytkownika; test UI `auth-session.spec.ts` odtworzył brak osłony przy `pagehide` przed poprawką |
-| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/app.vue`, `app/middleware/auth.global.ts`, `server/middleware/protectedHtmlCache.ts` |
-
-**Obserwacja:** po wylogowaniu przycisk „Wstecz” pozwalał przez chwilę zobaczyć
-wcześniej otwartą chronioną stronę, zanim aplikacja przekierowała na logowanie.
-
-**Oczekiwane zachowanie:** poprzednia treść nie jest widoczna podczas powrotu
-w historii ani w drugiej karcie po wylogowaniu.
-
-**Decyzja / poprawka:** chroniony dokument dostaje `Cache-Control: private,
-no-store`. Podczas żądania wylogowania przycisk pokazuje spinner i napis
-„Wylogowywanie…”. Frontend zasłania prywatny widok przy opuszczeniu chronionego
-dokumentu i powrocie do niego z historii. Zwykłe przejścia między trasami nie
-pokazują tej osłony. Strona przywrócona z pamięci przeglądarki ładuje się
-ponownie, aby serwer sprawdził aktualną sesję. Wylogowanie powiadamia inne
-karty. Testy UI z atrapą backendu potwierdziły osłonę i przejście drugiej karty
-na `/login`. Użytkownik uznał `COM-04` za zaliczony; nie przekazał osobnego
-wyniku kryteriów ponownego testu F-008.
-
-**Ponowny test F-008:** udokumentuj osobno powrót przez „Wstecz”, odświeżenie
-strony i zachowanie równocześnie otwartej drugiej karty.
-
 ### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
 
 | Pole | Wartość |
@@ -299,6 +267,40 @@ poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdeg
 kroku nie podał.
 
 ## Zamknięte ustalenia
+
+### F-008 — Krótki podgląd chronionej strony po powrocie w historii
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | błąd / wysoka / zamknięty po ponownym teście ręcznym |
+| Scenariusz i wymaganie | `COM-04`, `REQ-COM-04` |
+| Przebieg | zgłoszenie użytkownika podczas ręcznego testu `COM-04`; późniejszy wynik ręczny `COM-04`: zaliczony ([przebieg](runs/2026-10-10-com-04-manual.md)); [ponowny test F-008](runs/2026-10-15-f-008-retest.md) |
+| Wersja FE / BE | FE przed bieżącą poprawką; BE bez zmian |
+| Środowisko i zestaw danych | lokalna aplikacja w Chrome; do ponownego testu wskazano `localhost:3000` i widok `/my-lessons` w dwóch kartach |
+| Konto i rola | Jan Instruktor (`instructor001@post.pl`), konto wskazane do ponownego testu |
+| Dowód | obserwacja użytkownika; test UI `auth-session.spec.ts` odtworzył brak osłony przy `pagehide` przed poprawką |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/app.vue`, `app/middleware/auth.global.ts`, `server/middleware/protectedHtmlCache.ts` |
+
+**Obserwacja:** po wylogowaniu przycisk „Wstecz” pozwalał przez chwilę zobaczyć
+wcześniej otwartą chronioną stronę, zanim aplikacja przekierowała na logowanie.
+
+**Oczekiwane zachowanie:** poprzednia treść nie jest widoczna podczas powrotu
+w historii ani w drugiej karcie po wylogowaniu.
+
+**Decyzja / poprawka:** chroniony dokument dostaje `Cache-Control: private,
+no-store`. Podczas żądania wylogowania przycisk pokazuje spinner i napis
+„Wylogowywanie…”. Frontend zasłania prywatny widok przy opuszczeniu chronionego
+dokumentu i powrocie do niego z historii. Zwykłe przejścia między trasami nie
+pokazują tej osłony. Strona przywrócona z pamięci przeglądarki ładuje się
+ponownie, aby serwer sprawdził aktualną sesję. Wylogowanie powiadamia inne
+karty. Testy UI z atrapą backendu potwierdziły osłonę i przejście drugiej karty
+na `/login`. Użytkownik uznał `COM-04` za zaliczony; wówczas nie przekazał
+osobnego wyniku kryteriów ponownego testu F-008.
+
+**Ponowny test F-008:** użytkownik potwierdził 2026-10-15, że przekazana
+instrukcja obejmująca powrót przez „Wstecz”, odświeżenie strony i zachowanie
+równocześnie otwartej drugiej karty przeszła poprawnie. Nie przekazał osobnego
+zapisu wyników poszczególnych kroków. [Przebieg](runs/2026-10-15-f-008-retest.md).
 
 ### F-002 — Hasło w adresie URL po wysłaniu formularza przed hydracją
 
