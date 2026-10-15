@@ -22,6 +22,8 @@ const firstName = shallowRef('');
 const lastName = shallowRef('');
 const phone = shallowRef('');
 const email = shallowRef('');
+const pendingAction = shallowRef<'block' | 'archive' | 'email' | null>(null);
+const pendingEmail = shallowRef('');
 
 watch(
     () => props.account,
@@ -30,40 +32,45 @@ watch(
         lastName.value = account.lastName;
         phone.value = account.phone ?? '';
         email.value = account.email;
+        pendingAction.value = null;
+        pendingEmail.value = '';
     },
     { immediate: true },
 );
 
 function confirmStatus() {
-    const next = !props.account.isActive;
+    if (props.account.isActive) {
+        pendingAction.value = 'block';
 
-    if (
-        next ||
-        window.confirm('Zablokować dostęp do konta i zakończyć aktywne sesje?')
-    ) {
-        emit('status', next);
+        return;
     }
+
+    emit('status', true);
 }
 
 function confirmArchive() {
-    if (
-        window.confirm(
-            'Zarchiwizować konto? Tej operacji nie można cofnąć w tym panelu.',
-        )
-    ) {
-        emit('archive');
-    }
+    pendingAction.value = 'archive';
 }
 
 function confirmEmail() {
     const next = email.value.trim();
 
-    if (
-        next &&
-        window.confirm(`Zmienić e-mail na ${next} bez linku potwierdzającego?`)
-    ) {
-        emit('email', { email: next });
-    }
+    if (!next) return;
+
+    pendingEmail.value = next;
+    pendingAction.value = 'email';
+}
+
+function applyConfirmedAction() {
+    const action = pendingAction.value;
+
+    pendingAction.value = null;
+
+    if (action === 'block') emit('status', false);
+
+    if (action === 'archive') emit('archive');
+
+    if (action === 'email') emit('email', { email: pendingEmail.value });
 }
 </script>
 
@@ -233,5 +240,12 @@ function confirmEmail() {
                 >Ponów synchronizację e-maila</UiButton
             >
         </div>
+        <ManagerAccountActionDialog
+            :action="pendingAction"
+            :account-name="`${account.firstName} ${account.lastName}`"
+            :new-email="pendingEmail"
+            @cancel="pendingAction = null"
+            @confirm="applyConfirmedAction"
+        />
     </section>
 </template>
