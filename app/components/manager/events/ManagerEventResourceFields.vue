@@ -72,7 +72,13 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     class="bg-background h-10 w-full rounded-xl"
                     aria-label="Instruktor prowadzący blok"
                 >
-                    <UiSelectValue placeholder="Wybierz instruktora" />
+                    <UiSelectValue
+                        :placeholder="
+                            instructorId
+                                ? instructorSelectLabel
+                                : 'Wybierz instruktora'
+                        "
+                    />
                 </UiSelectTrigger>
                 <UiSelectContent>
                     <UiSelectGroup>

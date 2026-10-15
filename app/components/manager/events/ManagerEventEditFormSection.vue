@@ -72,9 +72,6 @@ const vehicleId = defineModel<string>('vehicleId', { required: true });
                         :show-badge="false"
                         @update:status="$emit('statusPatched', $event)"
                     />
-                    <p class="text-muted-foreground text-xs">
-                        Zmiana statusu zapisuje się od razu.
-                    </p>
                 </div>
 
                 <ManagerEventResourceFields
