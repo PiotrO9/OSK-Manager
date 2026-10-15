@@ -19,10 +19,11 @@ export function useManagerSchoolScheduleWeekPicker({
     parentWeekStart,
     updateParentWeekStart,
 }: UseManagerSchoolScheduleWeekPickerOptions) {
-    const localWeekStart = ref<Date>(getMonday(new Date()));
+    const initialWeekStart = getMonday(parentWeekStart() ?? new Date());
+    const localWeekStart = ref<Date>(initialWeekStart);
     const isCalendarOpen = ref(false);
     const calendarSelected = shallowRef<DateValue[]>(
-        weekCalendarDatesFromMonday(getMonday(new Date())),
+        weekCalendarDatesFromMonday(initialWeekStart),
     );
 
     const calendarSelectedModel = computed<DateValue[]>(

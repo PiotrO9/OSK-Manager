@@ -1,4 +1,7 @@
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import {
+    managerLessonCancelErrorMessage,
+    managerLessonEditErrorMessage,
+} from '~/utils/lessons/managerLessonEditErrorMessage';
 import { buildEventsDayReturnRoute } from '~/utils/events/eventsDayNavigation';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { dateValueToIsoDateString } from '~/utils/date/weeklyCalendarDates';
@@ -7,7 +10,10 @@ import type {
     AssignedCourseInstructor,
     ManagerLessonDetail,
 } from '~/types/lessons/managerLesson';
-import { isManagerLessonEditable } from '~/utils/lessons/managerLessonEditability';
+import {
+    isManagerLessonCancellable,
+    isManagerLessonEditable,
+} from '~/utils/lessons/managerLessonEditability';
 import { mergeManagerLessonAfterUpdate } from '~/utils/lessons/managerLessonsApi';
 import {
     getManagerLessonStatusLabel,
@@ -19,8 +25,14 @@ const FORM_ID = 'manager-lesson-edit-form';
 export function useManagerLessonEditPage() {
     const route = useRoute();
     const { addToast } = useAppToast();
-    const { fetchLesson, updateLesson, isFetchLoading, isUpdateLoading } =
-        useManagerLessonsApi();
+    const {
+        fetchLesson,
+        updateLesson,
+        cancelLesson,
+        isFetchLoading,
+        isUpdateLoading,
+        isCancelLoading,
+    } = useManagerLessonsApi();
     const { fetchList: fetchVehiclesList, fetchVehicleById } = useVehiclesApi();
     const { fetchList: fetchInstructorsList } = useInstructorsApi();
 
@@ -57,6 +69,34 @@ export function useManagerLessonEditPage() {
     const notFound = ref(false);
     const isNotEditable = ref(false);
     const isSaving = computed(() => isUpdateLoading.value);
+    const isCancelDialogOpen = shallowRef(false);
+    const cancelError = shallowRef<string | null>(null);
+    const canCancelLesson = computed(() =>
+        loadedLesson.value
+            ? isManagerLessonCancellable(
+                  loadedLesson.value.status,
+                  loadedLesson.value.startTime,
+              )
+            : false,
+    );
+    const cancelLessonLabel = computed(() => {
+        const lesson = loadedLesson.value;
+
+        if (!lesson) return '';
+
+        const start = new Date(lesson.startTime);
+        const end = new Date(lesson.endTime);
+        const date = new Intl.DateTimeFormat('pl-PL', {
+            dateStyle: 'full',
+            timeZone: 'Europe/Warsaw',
+        }).format(start);
+        const time = new Intl.DateTimeFormat('pl-PL', {
+            timeStyle: 'short',
+            timeZone: 'Europe/Warsaw',
+        });
+
+        return `${studentDisplayName.value ?? 'Kursant'} · ${date}, ${time.format(start)}–${time.format(end)}`;
+    });
 
     const {
         formStartLocal,
@@ -297,7 +337,7 @@ export function useManagerLessonEditPage() {
                 loadError.value = null;
             } else {
                 notFound.value = false;
-                loadError.value = getApiFetchErrorMessage(
+                loadError.value = managerLessonEditErrorMessage(
                     err,
                     'Nie udało się wczytać lekcji.',
                 );
@@ -315,11 +355,67 @@ export function useManagerLessonEditPage() {
         { immediate: true },
     );
 
-    function handleCancel(): void {
+    function handleBack(): void {
         void navigateTo(scheduleBackHref.value);
     }
 
+    function handleRequestCancelLesson(): void {
+        if (!canCancelLesson.value || isSaving.value || isCancelLoading.value) {
+            return;
+        }
+
+        cancelError.value = null;
+        isCancelDialogOpen.value = true;
+    }
+
+    async function handleConfirmCancelLesson(): Promise<void> {
+        const lesson = loadedLesson.value;
+
+        if (!lesson || !canCancelLesson.value || isCancelLoading.value) {
+            return;
+        }
+
+        cancelError.value = null;
+
+        try {
+            await cancelLesson(lesson.id);
+        } catch (err: unknown) {
+            cancelError.value = managerLessonCancelErrorMessage(err);
+
+            if ([400, 409].includes(getApiErrorStatusCode(err) ?? 0)) {
+                try {
+                    loadedLesson.value = await fetchLesson(lesson.id);
+
+                    if (!canCancelLesson.value) {
+                        cancelError.value =
+                            'Ta jazda nie może już zostać anulowana. Wróć do harmonogramu, aby zobaczyć aktualny stan.';
+                    }
+                } catch {
+                    // Zachowaj pierwotny błąd anulowania w dialogu.
+                }
+            }
+
+            return;
+        }
+
+        isCancelDialogOpen.value = false;
+        addToast({
+            title: 'Anulowano rezerwację',
+            description: 'Jazda została anulowana.',
+            variant: 'success',
+        });
+        await navigateTo({
+            path: '/manager/schedule',
+            query: {
+                ...(lesson.schoolId ? { schoolId: lesson.schoolId } : {}),
+                week: lesson.startTime,
+            },
+        });
+    }
+
     async function handleSubmit(): Promise<void> {
+        if (isCancelLoading.value) return;
+
         formError.value = null;
 
         if (
@@ -397,7 +493,7 @@ export function useManagerLessonEditPage() {
                 variant: 'success',
             });
         } catch (err: unknown) {
-            formError.value = getApiFetchErrorMessage(
+            formError.value = managerLessonEditErrorMessage(
                 err,
                 'Nie udało się zapisać lekcji.',
             );
@@ -428,6 +524,11 @@ export function useManagerLessonEditPage() {
         isInstructorsLoading,
         studentDisplayName,
         isSaving,
+        isCancelLoading,
+        isCancelDialogOpen,
+        cancelError,
+        canCancelLesson,
+        cancelLessonLabel,
         isFetchLoading,
         schoolId,
         lessonStatusLabel,
@@ -451,7 +552,9 @@ export function useManagerLessonEditPage() {
         findNextAvailableDay,
         lessonMinDurationMinutes,
         loadLesson,
-        handleCancel,
+        handleBack,
+        handleRequestCancelLesson,
+        handleConfirmCancelLesson,
         handleSubmit,
     };
 }

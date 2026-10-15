@@ -321,14 +321,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
         <div class="space-y-2">
             <UiLabel for="lesson-instructor">Instruktor</UiLabel>
             <p
-                v-if="isInstructorsLoading"
-                class="text-muted-foreground text-xs"
-                role="status"
-            >
-                Wczytywanie instruktorów...
-            </p>
-            <p
-                v-else-if="instructorsError"
+                v-if="instructorsError"
                 class="text-destructive text-xs"
                 role="alert"
             >
@@ -375,12 +368,6 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     </UiSelectGroup>
                 </UiSelectContent>
             </UiSelect>
-            <p class="text-muted-foreground text-xs">
-                <template v-if="assignedCourseInstructor">
-                    Prowadzący kurs: {{ assignedCourseInstructor.name }}.
-                </template>
-                Zmiana instruktora dotyczy tylko tej jazdy.
-            </p>
             <p
                 v-if="!canChangeInstructor"
                 class="text-muted-foreground text-xs"
@@ -392,14 +379,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
         <div class="space-y-2">
             <UiLabel for="lesson-vehicle">Pojazd</UiLabel>
             <p
-                v-if="isVehiclesLoading"
-                class="text-muted-foreground text-xs"
-                role="status"
-            >
-                Wczytywanie pojazdów...
-            </p>
-            <p
-                v-else-if="vehiclesError"
+                v-if="vehiclesError"
                 class="text-destructive text-xs"
                 role="alert"
             >
@@ -407,7 +387,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             </p>
             <UiSelect
                 v-model="formVehicleId"
-                :disabled="vehiclesForSelect.length === 0"
+                :disabled="isVehiclesLoading || vehiclesForSelect.length === 0"
             >
                 <UiSelectTrigger
                     id="lesson-vehicle"

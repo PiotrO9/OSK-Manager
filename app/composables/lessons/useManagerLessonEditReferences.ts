@@ -7,7 +7,7 @@ import {
 } from '~/types/students/student';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import { normalizeInstructorsList } from '~/types/instructors/instructor';
-import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { managerLessonEditErrorMessage } from '~/utils/lessons/managerLessonEditErrorMessage';
 import {
     buildManagerLessonInstructorsForSelect,
     buildManagerLessonVehiclesForSelect,
@@ -263,7 +263,7 @@ export function useManagerLessonEditReferences(
                 return;
             }
 
-            vehiclesError.value = getApiFetchErrorMessage(
+            vehiclesError.value = managerLessonEditErrorMessage(
                 err,
                 'Nie udało się pobrać listy pojazdów.',
             );
@@ -300,7 +300,7 @@ export function useManagerLessonEditReferences(
                 return;
             }
 
-            instructorsError.value = getApiFetchErrorMessage(
+            instructorsError.value = managerLessonEditErrorMessage(
                 err,
                 'Nie udało się pobrać listy instruktorów.',
             );

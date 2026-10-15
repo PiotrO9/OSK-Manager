@@ -16,6 +16,16 @@ const { fetchList: fetchSchoolsList, isListLoading: isSchoolsLoading } =
 const schools = ref<DrivingSchool[]>([]);
 const schoolsLoadError = ref<string | null>(null);
 const schoolIdError = ref<string | null>(null);
+const weekFromQuery = computed(() => {
+    const raw = route.query.week;
+    const value = Array.isArray(raw) ? raw[0] : raw;
+
+    if (typeof value !== 'string') return undefined;
+
+    const date = new Date(value);
+
+    return Number.isFinite(date.getTime()) ? date : undefined;
+});
 
 function readSchoolIdFromQuery(): string {
     const raw = route.query.schoolId;
@@ -135,6 +145,7 @@ usePageMeta({
         <ManagerSchoolScheduleCalendar
             v-if="schoolId && !schoolIdError"
             :school-id="schoolId"
+            :week-start="weekFromQuery"
             event-edit-enabled
             group-same-start
         />

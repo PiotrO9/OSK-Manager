@@ -1,6 +1,6 @@
 import { isUuid } from '~~/server/utils/validation/requestValidation';
 
-export interface BffLessonPatchBody {
+interface BffLessonUpdateBody {
     instructorId?: string;
     startTime?: string;
     endTime?: string;
@@ -12,6 +12,8 @@ export interface BffLessonPatchBody {
         vehicleId: string | null;
     };
 }
+
+export type BffLessonPatchBody = BffLessonUpdateBody | { status: 'CANCELLED' };
 
 export function parseLessonPatchBody(
     raw: unknown,
@@ -25,7 +27,22 @@ export function parseLessonPatchBody(
     }
 
     const lessonRecord = raw as Record<string, unknown>;
-    const body: BffLessonPatchBody = {};
+
+    if ('status' in lessonRecord) {
+        if (
+            lessonRecord.status !== 'CANCELLED' ||
+            Object.keys(lessonRecord).length !== 1
+        ) {
+            return {
+                ok: false,
+                message: 'Anulowanie jazdy wymaga tylko statusu CANCELLED.',
+            };
+        }
+
+        return { ok: true, body: { status: 'CANCELLED' } };
+    }
+
+    const body: BffLessonUpdateBody = {};
 
     if ('instructorId' in lessonRecord) {
         const id =

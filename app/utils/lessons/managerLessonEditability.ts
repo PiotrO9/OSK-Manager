@@ -11,3 +11,17 @@ export function isManagerLessonEditable(
         end > now
     );
 }
+
+export function isManagerLessonCancellable(
+    status: string,
+    startTime: string,
+    now = Date.now(),
+): boolean {
+    const start = Date.parse(startTime);
+
+    return (
+        status.trim().toUpperCase() === 'SCHEDULED' &&
+        Number.isFinite(start) &&
+        start > now
+    );
+}

@@ -23,6 +23,11 @@ const {
     isInstructorsLoading,
     studentDisplayName,
     isSaving,
+    isCancelLoading,
+    isCancelDialogOpen,
+    cancelError,
+    canCancelLesson,
+    cancelLessonLabel,
     isFetchLoading,
     lessonStatusLabel,
     lessonStatusTone,
@@ -45,24 +50,16 @@ const {
     findNextAvailableDay,
     lessonMinDurationMinutes,
     loadLesson,
-    handleCancel,
+    handleBack,
+    handleRequestCancelLesson,
+    handleConfirmCancelLesson,
     handleSubmit,
 } = useManagerLessonEditPage();
 </script>
 
 <template>
     <div class="space-y-6">
-        <ManagerLessonEditHeader
-            v-if="loadedLesson"
-            :form-id="FORM_ID"
-            :can-save="Boolean(loadedLesson) && isFormDirty && isFormComplete"
-            :is-availability-blocking="
-                lessonAvailabilityStatus === 'checking' ||
-                lessonAvailabilityStatus === 'unavailable'
-            "
-            :is-saving="isSaving"
-            :is-checking-availability="lessonAvailabilityStatus === 'checking'"
-        />
+        <ManagerLessonEditHeader v-if="loadedLesson" />
 
         <LoadingState
             v-if="isFetchLoading && !loadedLesson"
@@ -106,10 +103,7 @@ const {
         />
 
         <template v-else-if="loadedLesson">
-            <FormSection
-                title="Edytuj jazde"
-                description="Formularz podzielony na logiczne sekcje, z zachowaniem aktualnej walidacji i flow."
-            >
+            <FormSection title="Edytuj jazdę">
                 <ManagerLessonEditForm
                     v-model:start-local="formStartLocal"
                     v-model:end-local="formEndLocal"
@@ -165,13 +159,25 @@ const {
                             lessonAvailabilityStatus === 'unavailable'
                         "
                         :is-saving="isSaving"
+                        :can-cancel-lesson="canCancelLesson"
+                        :is-cancelling-lesson="isCancelLoading"
                         :is-checking-availability="
                             lessonAvailabilityStatus === 'checking'
                         "
-                        @cancel="handleCancel"
+                        @back="handleBack"
+                        @request-cancel-lesson="handleRequestCancelLesson"
                     />
                 </template>
             </FormSection>
         </template>
+
+        <ManagerCancelLessonDialog
+            v-model:open="isCancelDialogOpen"
+            :lesson-label="cancelLessonLabel"
+            :is-cancelling="isCancelLoading"
+            :can-confirm="canCancelLesson"
+            :error-message="cancelError"
+            @confirm="handleConfirmCancelLesson"
+        />
     </div>
 </template>

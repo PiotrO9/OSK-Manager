@@ -28,6 +28,27 @@ export default defineEventHandler(async (event) => {
             const now = new Date().toISOString();
             const b = parsed.body;
 
+            if ('status' in b) {
+                return {
+                    success: true,
+                    data: {
+                        lesson: {
+                            id: lessonId,
+                            courseId: '00000000-0000-4000-8000-000000000001',
+                            studentId: '00000000-0000-4000-8000-000000000002',
+                            instructorId:
+                                '00000000-0000-4000-8000-000000000003',
+                            vehicleId: '00000000-0000-4000-8000-000000000004',
+                            lessonType: 'PRACTICE',
+                            startTime: now,
+                            endTime: now,
+                            status: 'CANCELLED',
+                            createdAt: now,
+                        },
+                    },
+                };
+            }
+
             return {
                 success: true,
                 data: {

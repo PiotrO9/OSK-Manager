@@ -5,6 +5,26 @@ const INSTRUCTOR_ID = '11111111-1111-4111-8111-111111111111';
 const VEHICLE_ID = '22222222-2222-4222-8222-222222222222';
 
 describe('parseLessonPatchBody', () => {
+    it('preserves the cancellation status for the manager PATCH endpoint', () => {
+        expect(parseLessonPatchBody({ status: 'CANCELLED' })).toEqual({
+            ok: true,
+            body: { status: 'CANCELLED' },
+        });
+        expect(parseLessonPatchBody({ status: 'SCHEDULED' })).toEqual({
+            ok: false,
+            message: 'Anulowanie jazdy wymaga tylko statusu CANCELLED.',
+        });
+        expect(
+            parseLessonPatchBody({
+                status: 'CANCELLED',
+                startTime: '2099-01-01T10:00:00.000Z',
+            }),
+        ).toEqual({
+            ok: false,
+            message: 'Anulowanie jazdy wymaga tylko statusu CANCELLED.',
+        });
+    });
+
     it('accepts empty patch bodies as no-op', () => {
         expect(parseLessonPatchBody(null)).toEqual({ ok: true, body: {} });
         expect(parseLessonPatchBody(undefined)).toEqual({

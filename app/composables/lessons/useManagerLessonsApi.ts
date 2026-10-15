@@ -10,6 +10,7 @@ import {
 export function useManagerLessonsApi() {
     const isFetchLoading = ref(false);
     const isUpdateLoading = ref(false);
+    const isCancelLoading = ref(false);
 
     async function fetchLesson(lessonId: string): Promise<ManagerLessonDetail> {
         const id = lessonId.trim();
@@ -75,10 +76,42 @@ export function useManagerLessonsApi() {
         }
     }
 
+    async function cancelLesson(
+        lessonId: string,
+    ): Promise<ManagerLessonDetail> {
+        const id = lessonId.trim();
+
+        if (!id) {
+            throw new Error('Brak identyfikatora lekcji.');
+        }
+
+        isCancelLoading.value = true;
+
+        try {
+            return await requestBffData<ManagerLessonDetail>(
+                'PATCH',
+                `/api/lessons/${encodeURIComponent(id)}`,
+                {
+                    body: { status: 'CANCELLED' },
+                    fallbackMessage: 'Nie udało się anulować rezerwacji.',
+                    invalidMessage: 'Nieprawidłowa odpowiedź serwera (lekcja).',
+                    normalize: (data) =>
+                        normalizeManagerLesson(
+                            (data as { lesson?: unknown }).lesson,
+                        ),
+                },
+            );
+        } finally {
+            isCancelLoading.value = false;
+        }
+    }
+
     return {
         isFetchLoading: readonly(isFetchLoading),
         isUpdateLoading: readonly(isUpdateLoading),
+        isCancelLoading: readonly(isCancelLoading),
         fetchLesson,
         updateLesson,
+        cancelLesson,
     };
 }

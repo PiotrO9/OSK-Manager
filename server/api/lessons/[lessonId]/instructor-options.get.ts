@@ -7,7 +7,7 @@ import {
 } from '~~/server/utils/validation/requestValidation';
 
 export default defineEventHandler(async (event) => {
-    const id = parseRequiredUuidRouterParam(event, 'id', {
+    const lessonId = parseRequiredUuidRouterParam(event, 'lessonId', {
         required: 'Brak identyfikatora jazdy.',
         invalid: 'Nieprawidłowy identyfikator jazdy.',
     });
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
     return executeBffAdapter(event, {
         upstream: async ({ upstreamBase }) => {
             const { data } = await upstreamRequest(event, upstreamBase, {
-                path: `/lessons/${encodeURIComponent(id)}/instructor-options`,
+                path: `/lessons/${encodeURIComponent(lessonId)}/instructor-options`,
                 query: { date, startTime, endTime, vehicleId },
                 fallbackError: 'Nie udało się pobrać dostępnych instruktorów.',
             });
