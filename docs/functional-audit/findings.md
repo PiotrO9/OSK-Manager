@@ -108,35 +108,6 @@ szkieletu i jego zniknięcie po odpowiedzi. To test z mockiem, bez BE.
 testowym, także przy wolniejszym połączeniu i na wąskim ekranie. Dopiero po
 obserwacji użytkownika zamknij wpis.
 
-### F-005 — Przejściowy ekran bez roli podczas wylogowania
-
-| Pole | Wartość |
-| --- | --- |
-| Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny ponowny test tego ustalenia nieudokumentowany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
-| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
-| Środowisko i zestaw danych | pulpit menedżera na `localhost:3000`; szczegóły do uzupełnienia |
-| Konto i rola | testowe konto menedżera |
-| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; test UI odtwarzający chwilowy widok |
-| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/composables/auth/useLogout.ts`, `FE/OSK-Manager-FE/app/composables/auth/useAuthSession.ts` |
-
-**Obserwacja:** po kliknięciu „Wyloguj” sesja w pamięci była czyszczona przed
-przejściem na `/login`. Pulpit i pasek boczny renderowały się ponownie bez roli,
-pokazując „Brak dostępnego pulpitu” oraz ogólnego „Użytkownika”.
-
-**Oczekiwane zachowanie:** po wylogowaniu otwiera się `/login`, bez pośredniego
-widoku sugerującego błąd lub brak uprawnień.
-
-**Decyzja / poprawka:** sesja w pamięci pozostaje do chwili opuszczenia strony;
-po zakończeniu żądania wylogowania przeglądarka zastępuje bieżący dokument
-stroną logowania. Test UI z obserwatorem zmian DOM odtworzył problem przed
-zmianą i potwierdził brak pośredniego widoku po zmianie.
-
-**Ponowny test:** ręcznie wyloguj każdą z trzech ról na docelowym środowisku;
-sprawdź brak błędnego ekranu, widoczność formularza logowania i brak dostępu
-do poprzedniej strony po powrocie w historii.
-
 ### F-006 — Karta aktywnej sesji widoczna na stronie logowania
 
 | Pole | Wartość |
@@ -240,6 +211,38 @@ poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdeg
 kroku nie podał.
 
 ## Zamknięte ustalenia
+
+### F-005 — Przejściowy ekran bez roli podczas wylogowania
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | problem użyteczności / niska / zamknięty po ponownym teście ręcznym |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny [ponowny test](runs/2026-10-16-f-005-retest.md) |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md); [ponowny test F-005](runs/2026-10-16-f-005-retest.md) |
+| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; ponowny test na FE `2983b84`; BE bez zmian w tej poprawce |
+| Środowisko i zestaw danych | lokalna aplikacja `localhost:3000`; konta trzech ról wskazane w instrukcji testu |
+| Konto i rola | `manager001@post.pl`, `instructor001@post.pl`, `student001@post.pl` |
+| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; test UI odtwarzający chwilowy widok |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/composables/auth/useLogout.ts`, `FE/OSK-Manager-FE/app/composables/auth/useAuthSession.ts` |
+
+**Obserwacja:** po kliknięciu „Wyloguj” sesja w pamięci była czyszczona przed
+przejściem na `/login`. Pulpit i pasek boczny renderowały się ponownie bez roli,
+pokazując „Brak dostępnego pulpitu” oraz ogólnego „Użytkownika”.
+
+**Oczekiwane zachowanie:** po wylogowaniu otwiera się `/login`, bez pośredniego
+widoku sugerującego błąd lub brak uprawnień.
+
+**Decyzja / poprawka:** sesja w pamięci pozostaje do chwili opuszczenia strony;
+po zakończeniu żądania wylogowania przeglądarka zastępuje bieżący dokument
+stroną logowania. Test UI z obserwatorem zmian DOM odtworzył problem przed
+zmianą i potwierdził brak pośredniego widoku po zmianie.
+
+**Ponowny test:** użytkownik potwierdził 2026-10-16 pomyślny wynik po
+wylogowaniu kont menedżera, instruktora i kursanta, według przekazanej
+instrukcji obejmującej brak przejściowego ekranu bez roli. Nie otrzymano
+osobnego zapisu obserwacji każdej próby. Powrót w historii sprawdzono
+wcześniej osobno w [F-008](runs/2026-10-15-f-008-retest.md).
+[Przebieg F-005](runs/2026-10-16-f-005-retest.md).
 
 ### F-001 — Procent postępu użyty jako liczba wykorzystanych godzin
 
