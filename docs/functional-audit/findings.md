@@ -108,44 +108,6 @@ szkieletu i jego zniknięcie po odpowiedzi. To test z mockiem, bez BE.
 testowym, także przy wolniejszym połączeniu i na wąskim ekranie. Dopiero po
 obserwacji użytkownika zamknij wpis.
 
-### F-006 — Karta aktywnej sesji widoczna na stronie logowania
-
-| Pole | Wartość |
-| --- | --- |
-| Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); ponowny test tego ustalenia nieudokumentowany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
-| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
-| Środowisko i zestaw danych | logowanie na `localhost:3000`; szczegóły do uzupełnienia |
-| Konto i rola | testowe konto menedżera; poprawka dotyczy wszystkich ról |
-| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; testy UI i jednostkowe |
-| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/components/auth/LoginPanel.vue`, `FE/OSK-Manager-FE/app/composables/auth/useLoginPage.ts`, `FE/OSK-Manager-FE/app/middleware/auth.global.ts` |
-
-**Obserwacja:** po udanym logowaniu sesja była już aktywna, lecz przed
-zakończeniem nawigacji formularz zmieniał się w kartę „Zalogowany jako” z
-przyciskiem powrotu do aplikacji. Dodatkowo pojawiał się toast „Zalogowano”.
-Wejście na `/login` z aktywną sesją pozostawiało użytkownika na tej karcie.
-
-**Oczekiwane zachowanie:** udane logowanie prowadzi do widoku właściwego dla
-roli; przy braku domyślnej OSK menedżer trafia do konfiguracji szkoły. Strona
-logowania nie pokazuje karty konta ani toasta potwierdzającego zalogowanie.
-
-**Decyzja / poprawka:** strona logowania nie renderuje już karty sesji.
-Przekierowanie po logowaniu jest oczekiwane przez obsługę formularza, a
-wejście na `/login` z aktywną sesją przekierowuje z middleware. Test UI
-potwierdził przejście do widoku menedżera bez karty i toasta w trybie mock.
-
-**Uzupełnienie 2026-10-10:** po pierwszej poprawce karta została zastąpiona
-osobnym stanem „Otwieramy pulpit…”, widocznym podczas pobierania domyślnej
-szkoły przed nawigacją. Formularz pozostaje teraz na ekranie, a jego przycisk
-pokazuje „Logowanie…” aż do przejścia do widoku roli. Test UI z opóźnionym
-żądaniem domyślnej szkoły potwierdził ciągłość loadera formularza i brak
-pośredniego widoku.
-
-**Ponowny test:** zaloguj ręcznie menedżera, instruktora i kursanta na docelowym
-środowisku. Sprawdź właściwe strony startowe, brak karty i toasta oraz zachowanie
-po ponownym wejściu na `/login` przy aktywnej sesji.
-
 ### F-007 — Zbędne sprawdzenie `/me` po wylogowaniu
 
 | Pole | Wartość |
@@ -211,6 +173,44 @@ poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdeg
 kroku nie podał.
 
 ## Zamknięte ustalenia
+
+### F-006 — Karta aktywnej sesji widoczna na stronie logowania
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | problem użyteczności / niska / zamknięty po ponownym teście ręcznym |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); osobny [ponowny test](runs/2026-10-16-f-006-retest.md) |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md); [ponowny test F-006](runs/2026-10-16-f-006-retest.md) |
+| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; ponowny test na FE `c15d423`; BE bez zmian w tej poprawce |
+| Środowisko i zestaw danych | lokalna aplikacja `localhost:3000`; konta trzech ról wskazane w instrukcji testu |
+| Konto i rola | `manager001@post.pl`, `instructor001@post.pl`, `student001@post.pl` |
+| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; testy UI i jednostkowe |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/components/auth/LoginPanel.vue`, `FE/OSK-Manager-FE/app/composables/auth/useLoginPage.ts`, `FE/OSK-Manager-FE/app/middleware/auth.global.ts` |
+
+**Obserwacja:** po udanym logowaniu sesja była już aktywna, lecz przed
+zakończeniem nawigacji formularz zmieniał się w kartę „Zalogowany jako” z
+przyciskiem powrotu do aplikacji. Dodatkowo pojawiał się toast „Zalogowano”.
+Wejście na `/login` z aktywną sesją pozostawiało użytkownika na tej karcie.
+
+**Oczekiwane zachowanie:** udane logowanie prowadzi do widoku właściwego dla
+roli; przy braku domyślnej OSK menedżer trafia do konfiguracji szkoły. Strona
+logowania nie pokazuje karty konta ani toasta potwierdzającego zalogowanie.
+
+**Decyzja / poprawka:** strona logowania nie renderuje już karty sesji.
+Przekierowanie po logowaniu jest oczekiwane przez obsługę formularza, a
+wejście na `/login` z aktywną sesją przekierowuje z middleware. Test UI
+potwierdził przejście do widoku menedżera bez karty i toasta w trybie mock.
+
+**Uzupełnienie 2026-10-10:** po pierwszej poprawce karta została zastąpiona
+osobnym stanem „Otwieramy pulpit…”, widocznym podczas pobierania domyślnej
+szkoły przed nawigacją. Formularz pozostaje teraz na ekranie, a jego przycisk
+pokazuje „Logowanie…” aż do przejścia do widoku roli. Test UI z opóźnionym
+żądaniem domyślnej szkoły potwierdził ciągłość loadera formularza i brak
+pośredniego widoku.
+
+**Ponowny test:** 2026-10-16 użytkownik potwierdził, że test przeszedł
+pomyślnie. Zakres instrukcji i wynik zapisano w [przebiegu F-006](runs/2026-10-16-f-006-retest.md).
+Nie przekazano osobnego zapisu obserwacji każdego kroku.
 
 ### F-005 — Przejściowy ekran bez roli podczas wylogowania
 
