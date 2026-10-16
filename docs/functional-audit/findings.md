@@ -78,33 +78,6 @@ po powtórzeniu scenariusza oraz istotnych procesów powiązanych.
 
 **Ponowny test:** testy jednostkowe FE przeszły; ręczna próba logowania nowym kontem po poprawce jeszcze nie została potwierdzona.
 
-### F-001 — Procent postępu użyty jako liczba wykorzystanych godzin
-
-| Pole                       | Wartość                                                                                                                                                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Typ / waga / status        | podejrzenie błędu / wysoka / do weryfikacji                                                                                                                                                                              |
-| Scenariusz i wymaganie     | `STU-04`, `STU-06`, `STU-07`; `REQ-STU-BOOK-ELIGIBILITY`                                                                                                                                                                 |
-| Przebieg                   | brak — ustalenie z przeglądu kodu, test manualny niewykonany                                                                                                                                                             |
-| Wersja FE / BE             | FE `581d56e24d1f21e594605e9d4aa22dc02fba2999`; BE `cf191dda8f1529fc996edfd20b63b0e1d37c2de6`                                                                                                                             |
-| Środowisko i zestaw danych | planowany `booking-hours-low`                                                                                                                                                                                            |
-| Dowód                      | `BE/src/services/course/progress.ts`, `BE/src/services/course/queries.ts`, `FE/OSK-Manager-FE/app/composables/lessons/useStudentLessonBookingPage.ts`, `FE/OSK-Manager-FE/app/utils/student/studentLessonBookingPage.ts` |
-
-**Obserwacja:** backend liczy `progress` jako procent ukończonych minut względem
-całego kursu (`0–100`). Frontend oblicza pozostałe godziny jako
-`totalHours - progress` i używa wyniku do ograniczania wyboru slotu. Dla kursu
-30-godzinnego z 15 zakończonymi godzinami backend zwróci `progress=50`,
-a frontend pokaże `0` pozostałych godzin. Backend sprawdza limit według minut
-wszystkich nieanulowanych jazd. Te różne jednostki mogą dawać sprzeczny wynik.
-
-**Oczekiwane zachowanie:** widoczna liczba pozostałych godzin i możliwość
-rezerwacji są zgodne z regułą limitu kursu; jednostki postępu i godzin są
-rozróżnione.
-
-**Do wykonania:** przygotuj kurs z kontrolowaną liczbą godzin zakończonych
-i zaplanowanych, wykonaj wskazane scenariusze, zapisz rzeczywisty wynik i
-rozstrzygnij kontrakt postępu. Nie oznaczaj tego wpisu jako potwierdzonego
-błędu z testu manualnego przed wykonaniem przebiegu.
-
 ### F-004 — Niepełny stan ładowania pulpitu menedżera po odświeżeniu
 
 | Pole | Wartość |
@@ -267,6 +240,38 @@ poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdeg
 kroku nie podał.
 
 ## Zamknięte ustalenia
+
+### F-001 — Procent postępu użyty jako liczba wykorzystanych godzin
+
+| Pole                       | Wartość                                                                                                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Typ / waga / status        | historyczne podejrzenie błędu / wysoka / zamknięte po weryfikacji ręcznej                                                                                                                                                 |
+| Scenariusz i wymaganie     | `STU-04`, `STU-06`, `STU-07`; `REQ-STU-BOOK-ELIGIBILITY`                                                                                                                                                                 |
+| Przebieg                   | ustalenie z przeglądu starszej wersji kodu; [weryfikacja F-001](runs/2026-10-16-f-001-verification.md)                                                                                                                                                             |
+| Wersja FE / BE             | pierwotne ustalenie: FE `581d56e`, BE `cf191dd`; weryfikacja: FE `a988599`, BE `374f453`                                                                                                                             |
+| Środowisko i zestaw danych | lokalna aplikacja, konto `student001@post.pl`, kurs „Kategoria A - grupa 1/1”                                                                                                                                             |
+| Dowód                      | `BE/src/services/course/progress.ts`, `BE/src/services/course/queries.ts`, `FE/OSK-Manager-FE/app/composables/lessons/useStudentLessonBookingPage.ts`, `FE/OSK-Manager-FE/app/utils/student/studentLessonBookingPage.ts` |
+
+**Pierwotna obserwacja z przeglądu starszej wersji kodu:** backend liczył
+`progress` jako procent ukończonych minut względem całego kursu (`0–100`).
+Frontend obliczał pozostałe godziny jako
+`totalHours - progress` i używa wyniku do ograniczania wyboru slotu. Dla kursu
+30-godzinnego z 15 zakończonymi godzinami backend zwróci `progress=50`,
+a frontend pokaże `0` pozostałych godzin. Backend sprawdza limit według minut
+wszystkich nieanulowanych jazd. Te różne jednostki mogą dawać sprzeczny wynik.
+
+**Oczekiwane zachowanie:** widoczna liczba pozostałych godzin i możliwość
+rezerwacji są zgodne z regułą limitu kursu; jednostki postępu i godzin są
+rozróżnione.
+
+**Aktualny kontrakt i weryfikacja:** BE zwraca `progress` jako procent ukończonych
+minut, a `remainingBookableMinutes` jako saldo pakietu po uwzględnieniu
+wszystkich nieanulowanych jazd. FE przelicza na godziny to drugie pole.
+Użytkownik potwierdził 2026-10-16 pomyślny test według instrukcji obejmującej
+porównanie postępu i salda oraz rezerwację i anulowanie jazdy. Oddzielny odczyt
+API po teście potwierdził stan 30 godz. programu, 210 min ukończonych, 450 min
+zarezerwowanych, 1350 min pozostałych i 12% postępu. Nie otrzymano osobnego
+zapisu wyników każdego kroku. [Przebieg](runs/2026-10-16-f-001-verification.md).
 
 ### F-008 — Krótki podgląd chronionej strony po powrocie w historii
 

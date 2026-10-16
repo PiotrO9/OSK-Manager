@@ -68,7 +68,7 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 - Wymagania: `REQ-STU-BOOK-ELIGIBILITY`.
 - Dane: `student-empty`, `booking-hours-zero`, oraz kurs teoretyczny lub nieaktywny ze `student-course-mix`.
 - Kroki: (1) Otwórz `Rezerwuj jazdę` na każdym zestawie. (2) Sprawdź listę wyboru kursu i komunikat pustego stanu. (3) Przejdź do `Moje kursy`, aby potwierdzić statusy.
-- Oczekiwane: można wybrać tylko aktywny kurs `PRACTICAL` lub `EXTRA` z dodatnimi pozostałymi godzinami. Brak takiego kursu powinien pokazać „Brak kursu do rezerwacji” albo „Wykorzystano dostępne godziny”, zależnie od danych. Nie można zarezerwować jazdy dla teorii, nieaktywnego uczestnictwa ani wyczerpanego pakietu. Znana rozbieżność obliczania godzin w FE wymaga odnotowania wyniku jako błędu, jeśli stan UI odbiega od rzeczywistego limitu BE (patrz niżej).
+- Oczekiwane: można wybrać tylko aktywny kurs `PRACTICAL` lub `EXTRA` z dodatnimi pozostałymi godzinami. Brak takiego kursu powinien pokazać „Brak kursu do rezerwacji” albo „Wykorzystano dostępne godziny”, zależnie od danych. Nie można zarezerwować jazdy dla teorii, nieaktywnego uczestnictwa ani wyczerpanego pakietu. Saldo godzin pochodzi z `remainingBookableMinutes`, odrębnie od procentowego postępu ukończenia kursu.
 - Powtórzenie: odczyt; bez resetu.
 - Źródła: `FE/OSK-Manager-FE/app/composables/lessons/useStudentLessonBookingPage.ts`; `BE/src/services/lesson/bookingAccess.ts`.
 
@@ -195,9 +195,8 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 - Powtórzenie: bez zmian danych.
 - Źródła: `FE/OSK-Manager-FE/app/pages/book-lesson.vue`, `app/components/student/lesson-booking/StudentLessonBookingSchedulePanel.vue`, `app/pages/my-lessons.vue`, `app/pages/my-payments.vue`.
 
-## Niejasności do rozstrzygnięcia przed oceną końcową
+## Pozostałe niejasności do rozstrzygnięcia przed oceną końcową
 
-1. **Znana rozbieżność: procent używany jak liczba godzin.** BE `course/progress.ts` zwraca `progress` jako procent ukończonych jazd (0–100), a BE `lib/lesson-scheduling.ts` limituje sumę minut wszystkich nieanulowanych jazd. FE `useStudentLessonBookingPage.ts` i `utils/student/studentLessonBookingPage.ts` odejmują ten procent od `totalHours` jako „pozostałe godziny”. To może źle pokazać dostępny pakiet i blokować albo dopuszczać slot w UI. Przed odbiorem poprawić kontrakt/obliczenie i sprawdzić STU-04, STU-06 oraz STU-07; sam przegląd kodu nie jest wynikiem testu manualnego.
-2. **Widoczność anulowanej jazdy po rezygnacji.** Interfejs pobiera ponownie tydzień; zależnie od API pozycja może pozostać ze statusem `CANCELLED` albo zniknąć z harmonogramu. Wymagany wynik biznesowy: nie może być aktywna. Przed odbiorem ustalić docelową prezentację. Źródło: `useMyLessonsCancellation.ts`, `BE/src/services/lesson/cancelLessons.ts`.
-3. **Czy rezerwacja wymaga dodatkowej blokady przy nieopłaconym kursie?** Aktualnie sprawdzane są aktywny udział, typ kursu, godziny, termin i zasoby. Jeżeli opłata ma być warunkiem, to osobna decyzja produktowa i wymaganie. Źródło: `BE/src/services/lesson/bookingRules.ts`, `bookingAccess.ts`.
-4. **Okno rezerwacji w UI i BE.** BE używa `schoolSettings.bookingMaxDaysAhead` (domyślnie 30) i dni pracy szkoły; potwierdź zgodność zakresu kalendarza FE z ustawieniem konkretnego OSK przed uznaniem STU-08 za zaliczony. Źródło: `BE/src/services/lesson/bookingRules.ts`, `FE/OSK-Manager-FE/app/utils/student/studentLessonBookingPage.ts`.
+1. **Widoczność anulowanej jazdy po rezygnacji.** Interfejs pobiera ponownie tydzień; zależnie od API pozycja może pozostać ze statusem `CANCELLED` albo zniknąć z harmonogramu. Wymagany wynik biznesowy: nie może być aktywna. Przed odbiorem ustalić docelową prezentację. Źródło: `useMyLessonsCancellation.ts`, `BE/src/services/lesson/cancelLessons.ts`.
+2. **Czy rezerwacja wymaga dodatkowej blokady przy nieopłaconym kursie?** Aktualnie sprawdzane są aktywny udział, typ kursu, godziny, termin i zasoby. Jeżeli opłata ma być warunkiem, to osobna decyzja produktowa i wymaganie. Źródło: `BE/src/services/lesson/bookingRules.ts`, `bookingAccess.ts`.
+3. **Okno rezerwacji w UI i BE.** BE używa `schoolSettings.bookingMaxDaysAhead` (domyślnie 30) i dni pracy szkoły; potwierdź zgodność zakresu kalendarza FE z ustawieniem konkretnego OSK przed uznaniem STU-08 za zaliczony. Źródło: `BE/src/services/lesson/bookingRules.ts`, `FE/OSK-Manager-FE/app/utils/student/studentLessonBookingPage.ts`.
