@@ -59,14 +59,18 @@ po powtórzeniu scenariusza oraz istotnych procesów powiązanych.
 
 ## Otwarte ustalenia
 
+Brak otwartych ustaleń.
+
+## Zamknięte ustalenia
+
 ### F-010 — Mylący komunikat przy logowaniu bez potwierdzonego e-maila
 
 | Pole | Wartość |
 | --- | --- |
-| Typ / waga / status | błąd / średnia / do ponownego testu |
+| Typ / waga / status | błąd / średnia / zamknięty po ponownym teście ręcznym |
 | Scenariusz i wymaganie | `MGR-INS-01`, `COM-01`; `REQ-MGR-INS-01`, `REQ-COM-01` |
-| Przebieg | zgłoszenie użytkownika podczas testu `MGR-INS-01` 2026-10-11 |
-| Wersja FE / BE | FE `72c7860` i zmiany robocze przed poprawką; BE bez zmian |
+| Przebieg | zgłoszenie użytkownika podczas testu `MGR-INS-01` 2026-10-11; [ponowny test F-010](runs/2026-10-16-f-010-retest.md) |
+| Wersja FE / BE | FE `72c7860` i zmiany robocze przed poprawką; ponowny test na FE `1a1f34a`; BE bez zmian w tej poprawce |
 | Środowisko i zestaw danych | `localhost:3000`, nowo utworzone konto instruktora z niepotwierdzonym adresem |
 | Konto i rola | testowe konto instruktora |
 | Dowód | zrzut ekranu w rozmowie 2026-10-11; odpowiedź logowania `401 Email not confirmed`, formularz pokazuje „Nieprawidłowy e-mail lub hasło” |
@@ -76,9 +80,9 @@ po powtórzeniu scenariusza oraz istotnych procesów powiązanych.
 
 **Przyczyna i poprawka:** backend oraz BFF przekazywały „Email not confirmed”, ale klient zamieniał każdą odpowiedź `401` na błąd danych logowania. Klient rozpoznaje teraz ten konkretny komunikat i pokazuje „Potwierdź adres e-mail, aby się zalogować.” Test jednostkowy pokrywa oba warianty odpowiedzi `401`.
 
-**Ponowny test:** testy jednostkowe FE przeszły; ręczna próba logowania nowym kontem po poprawce jeszcze nie została potwierdzona.
-
-## Zamknięte ustalenia
+**Ponowny test:** testy jednostkowe FE przeszły. 2026-10-16 użytkownik polecił
+oznaczyć punkt jako zaliczony; wynik zapisano w [przebiegu F-010](runs/2026-10-16-f-010-retest.md).
+Nie przekazał osobnego zapisu obserwacji poszczególnych prób.
 
 ### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
 
