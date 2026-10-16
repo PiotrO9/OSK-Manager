@@ -78,35 +78,7 @@ po powtórzeniu scenariusza oraz istotnych procesów powiązanych.
 
 **Ponowny test:** testy jednostkowe FE przeszły; ręczna próba logowania nowym kontem po poprawce jeszcze nie została potwierdzona.
 
-### F-004 — Niepełny stan ładowania pulpitu menedżera po odświeżeniu
-
-| Pole | Wartość |
-| --- | --- |
-| Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); ponowny test tego ustalenia nieudokumentowany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
-| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian w tej poprawce |
-| Środowisko i zestaw danych | ekran użytkownika po F5; szczegóły środowiska do uzupełnienia przy ponownym teście |
-| Konto i rola | testowe konto menedżera |
-| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; bez przechowywania danych konta w repozytorium |
-| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/components/manager/dashboard/ManagerDashboardSkeleton.vue`, `FE/OSK-Manager-FE/app/composables/dashboard/useManagerDashboardPage.ts` |
-
-**Obserwacja:** po F5 przez chwilę widoczny był nagłówek i cztery proste bloki
-szkieletu, a dalsza część pulpitu pozostawała pusta. Stan nie komunikował
-wyraźnie ładowania danych ani nie odpowiadał układowi docelowych sekcji.
-
-**Oczekiwane zachowanie:** od pierwszego renderu użytkownik widzi informację
-o ładowaniu i szkielet obejmujący kartę OSK, skróty, sprawy wymagające uwagi
-oraz wolne terminy. Po pobraniu danych szkielet znika.
-
-**Decyzja / poprawka:** stan ładowania domyślnej szkoły zaczyna się od `true`;
-osobny komponent pokazuje kompletny szkielet i komunikat. Test UI z opóźnioną
-odpowiedzią potwierdził obecność komunikatu w początkowym HTML, widoczność
-szkieletu i jego zniknięcie po odpowiedzi. To test z mockiem, bez BE.
-
-**Ponowny test:** potrzebne ręczne odświeżenie pulpitu na docelowym środowisku
-testowym, także przy wolniejszym połączeniu i na wąskim ekranie. Dopiero po
-obserwacji użytkownika zamknij wpis.
+## Zamknięte ustalenia
 
 ### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
 
@@ -141,7 +113,38 @@ testowej zmiany.
 poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdego
 kroku nie podał.
 
-## Zamknięte ustalenia
+### F-004 — Niepełny stan ładowania pulpitu menedżera po odświeżeniu
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | problem użyteczności / niska / zamknięty po ponownym teście ręcznym |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01`; późniejszy wynik ręczny `COM-01`: zaliczony ([przebieg](runs/2026-10-10-com-01-manual.md)); osobny [ponowny test](runs/2026-10-16-f-004-retest.md) |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md); [ponowny test F-004](runs/2026-10-16-f-004-retest.md) |
+| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; ponowny test na FE `3d76f30` z lokalną poprawką napisu; BE bez zmian w tej poprawce |
+| Środowisko i zestaw danych | lokalna aplikacja `localhost:3000`, pulpit po F5 z wolniejszym połączeniem i na wąskim ekranie |
+| Konto i rola | menedżer `manager001@post.pl` |
+| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; bez przechowywania danych konta w repozytorium |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/components/manager/dashboard/ManagerDashboardSkeleton.vue`, `FE/OSK-Manager-FE/app/composables/dashboard/useManagerDashboardPage.ts` |
+
+**Obserwacja:** po F5 przez chwilę widoczny był nagłówek i cztery proste bloki
+szkieletu, a dalsza część pulpitu pozostawała pusta. Stan nie komunikował
+wyraźnie ładowania danych ani nie odpowiadał układowi docelowych sekcji.
+
+**Oczekiwane zachowanie:** od pierwszego renderu użytkownik widzi szkielet
+obejmujący kartę OSK, skróty, sprawy wymagające uwagi oraz wolne terminy.
+Po pobraniu danych szkielet znika.
+
+**Decyzja / poprawka:** stan ładowania domyślnej szkoły zaczyna się od `true`;
+osobny komponent pokazuje kompletny szkielet. Test UI z opóźnioną
+odpowiedzią potwierdził widoczność szkieletu i jego zniknięcie po odpowiedzi.
+Po uwadze użytkownika usunięto widoczny napis „Ładowanie danych pulpitu…”;
+zachowano dostępną nazwę stanu ładowania. To test z mockiem, bez BE.
+
+**Ponowny test:** użytkownik potwierdził w rozmowie, że szkielet działa
+poprawnie, a następnie poprosił o usunięcie widocznego napisu ładowania.
+Po tej poprawce polecił zamknąć punkt. Zakres instrukcji i wynik zapisano
+w [przebiegu F-004](runs/2026-10-16-f-004-retest.md); nie przekazano osobnego
+zapisu obserwacji każdego kroku po zmianie napisu.
 
 ### F-007 — Zbędne sprawdzenie `/me` po wylogowaniu
 

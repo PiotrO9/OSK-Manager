@@ -5,8 +5,6 @@
         aria-label="Wczytywanie pulpitu szkoły"
         aria-live="polite"
     >
-        <p class="text-muted-foreground text-sm">Ładowanie danych pulpitu…</p>
-
         <div
             class="border-border bg-card flex flex-col gap-4 rounded-2xl border p-4 shadow-sm md:flex-row md:items-center md:justify-between md:p-5"
             aria-hidden="true"

@@ -116,6 +116,9 @@ test.describe('UI: pulpit zależny od roli', () => {
 
         expect(initialResponse.ok()).toBe(true);
         expect(await initialResponse.text()).toContain(
+            'Wczytywanie pulpitu szkoły',
+        );
+        expect(await initialResponse.text()).not.toContain(
             'Ładowanie danych pulpitu',
         );
 
@@ -126,7 +129,9 @@ test.describe('UI: pulpit zależny od roli', () => {
         });
 
         await expect(loadingStatus).toBeVisible();
-        await expect(loadingStatus).toContainText('Ładowanie danych pulpitu');
+        await expect(loadingStatus).not.toContainText(
+            'Ładowanie danych pulpitu',
+        );
         await expect(loadingStatus.locator('section')).toHaveCount(2);
 
         releaseDefaultSchool();
