@@ -108,37 +108,6 @@ szkieletu i jego zniknięcie po odpowiedzi. To test z mockiem, bez BE.
 testowym, także przy wolniejszym połączeniu i na wąskim ekranie. Dopiero po
 obserwacji użytkownika zamknij wpis.
 
-### F-007 — Zbędne sprawdzenie `/me` po wylogowaniu
-
-| Pole | Wartość |
-| --- | --- |
-| Typ / waga / status | problem użyteczności / niska / do ponownego testu |
-| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny ponowny test tego ustalenia nieudokumentowany |
-| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md) |
-| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; BE bez zmian |
-| Środowisko i zestaw danych | `localhost:3000`, zakładka Network w Chrome |
-| Konto i rola | testowe konto menedżera |
-| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; test UI wykrył `GET /api/auth/me` po `logout` przed poprawką |
-| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/middleware/auth.global.ts` |
-
-**Obserwacja:** po `POST /api/auth/logout` strona logowania ponownie wywoływała
-`GET /api/auth/me`. Ponieważ ciasteczka sesji były już usunięte, odpowiedź
-była `401` i pojawiała się jako nieudane żądanie w narzędziach przeglądarki.
-
-**Oczekiwane zachowanie:** po wylogowaniu formularz logowania otwiera się bez
-żądania `/me`. Wejście na `/login` z istniejącą sesją nadal weryfikuje ją i
-przekierowuje do widoku roli.
-
-**Decyzja / poprawka:** middleware pomija sprawdzanie sesji na publicznych
-stronach uwierzytelniania, jeśli żądanie nie ma ciasteczek sesji. Po stronie
-klienta pomija ponowne sprawdzenie, jeśli stan sesji z SSR jest pusty. Test
-przeglądarkowy odtworzył zbędne żądanie przed zmianą i potwierdził jego brak
-po zmianie.
-
-**Ponowny test:** wyloguj się na docelowym środowisku z otwartą zakładką Network.
-Sprawdź brak `/api/auth/me` po `logout` oraz poprawne przekierowanie z `/login`
-do widoku roli, gdy sesja jest aktywna.
-
 ### F-009 — Natywne potwierdzenie przy opuszczaniu edycji profilu w aplikacji
 
 | Pole | Wartość |
@@ -173,6 +142,37 @@ poprawnie po zmianie działania „Anuluj”. Szczegółowych obserwacji każdeg
 kroku nie podał.
 
 ## Zamknięte ustalenia
+
+### F-007 — Zbędne sprawdzenie `/me` po wylogowaniu
+
+| Pole | Wartość |
+| --- | --- |
+| Typ / waga / status | problem użyteczności / niska / zamknięty po ponownym teście ręcznym |
+| Scenariusz i wymaganie | obserwacja podczas `COM-01` i `COM-04`; oba scenariusze zaliczone ręcznie ([COM-01](runs/2026-10-10-com-01-manual.md), [COM-04](runs/2026-10-10-com-04-manual.md)); osobny [ponowny test](runs/2026-10-16-f-007-retest.md) |
+| Przebieg | zgłoszenie w trakcie ręcznego audytu; późniejszy wynik `COM-01` w [przebiegu 2026-10-10](runs/2026-10-10-com-01-manual.md); [ponowny test F-007](runs/2026-10-16-f-007-retest.md) |
+| Wersja FE / BE | FE `4e60d51` przed lokalną poprawką; ponowny test na FE `85269f7`; BE bez zmian w tej poprawce |
+| Środowisko i zestaw danych | lokalna aplikacja `localhost:3000`, karta Sieć w Chrome |
+| Konto i rola | menedżer `manager001@post.pl` |
+| Dowód | zrzut ekranu przekazany w rozmowie 2026-10-10; test UI wykrył `GET /api/auth/me` po `logout` przed poprawką |
+| Powiązane zadanie naprawcze | `FE/OSK-Manager-FE/app/middleware/auth.global.ts` |
+
+**Obserwacja:** po `POST /api/auth/logout` strona logowania ponownie wywoływała
+`GET /api/auth/me`. Ponieważ ciasteczka sesji były już usunięte, odpowiedź
+była `401` i pojawiała się jako nieudane żądanie w narzędziach przeglądarki.
+
+**Oczekiwane zachowanie:** po wylogowaniu formularz logowania otwiera się bez
+żądania `/me`. Wejście na `/login` z istniejącą sesją nadal weryfikuje ją i
+przekierowuje do widoku roli.
+
+**Decyzja / poprawka:** middleware pomija sprawdzanie sesji na publicznych
+stronach uwierzytelniania, jeśli żądanie nie ma ciasteczek sesji. Po stronie
+klienta pomija ponowne sprawdzenie, jeśli stan sesji z SSR jest pusty. Test
+przeglądarkowy odtworzył zbędne żądanie przed zmianą i potwierdził jego brak
+po zmianie.
+
+**Ponowny test:** 2026-10-16 użytkownik potwierdził, że test przeszedł
+pomyślnie. Zakres instrukcji i wynik zapisano w [przebiegu F-007](runs/2026-10-16-f-007-retest.md).
+Nie przekazano osobnego zapisu żądań ani obserwacji każdego kroku.
 
 ### F-006 — Karta aktywnej sesji widoczna na stronie logowania
 
