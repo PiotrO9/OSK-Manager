@@ -5,7 +5,7 @@ const amount = '237.41';
 const formattedAmount = '237,41';
 
 async function logIn(page: Page, email: string, password: string) {
-    await page.goto('/login');
+    await page.goto('/logowanie');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByLabel('Adres e-mail').fill(email);
     await page.getByLabel('Hasło', { exact: true }).fill(password);
@@ -46,7 +46,7 @@ test('@audit XR-04 i MGR-PAY-01 — opłata menadżera jest widoczna dla kursant
     const updatedDueDate = nextDay.toISOString().slice(0, 10);
 
     await logIn(page, managerEmail!, managerPassword!);
-    await page.goto('/manager/students');
+    await page.goto('/menedzer/kursanci');
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     const detailsLink = page.getByRole('link', {
@@ -140,7 +140,7 @@ test('@audit XR-04 i MGR-PAY-01 — opłata menadżera jest widoczna dla kursant
         const studentPage = await studentContext.newPage();
 
         await logIn(studentPage, studentEmail!, studentPassword!);
-        await studentPage.goto('/my-payments');
+        await studentPage.goto('/moje-oplaty');
         await studentPage.locator('html[data-app-ready="true"]').waitFor();
         await expect(
             studentPage.getByRole('heading', { name: 'Moje opłaty' }),

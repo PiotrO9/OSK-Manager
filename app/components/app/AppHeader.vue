@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { LoaderCircle } from 'lucide-vue-next';
 
 interface NavLink {
@@ -25,7 +26,7 @@ function linkClass(to: string): string {
 }
 
 function handleGoToLogin() {
-    navigateTo('/login');
+    navigateTo(appPaths.login());
 }
 </script>
 

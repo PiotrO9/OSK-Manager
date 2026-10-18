@@ -15,7 +15,7 @@ async function prepareSchools(page: Page) {
 }
 
 async function openForm(page: Page) {
-    await page.goto('/manager/instructors/new');
+    await page.goto('/menedzer/instruktorzy/dodaj');
     await expect(page.locator('#instructor-form-email')).toBeVisible();
 }
 
@@ -145,10 +145,10 @@ test('W22 preserves draft on email conflict and blocks duplicate submits while s
     ).toBeDisabled();
     await expect(page.getByLabel('E-mail', { exact: true })).toBeDisabled();
     await page.getByRole('link', { name: 'Wróć do instruktorów' }).click();
-    await expect(page).toHaveURL(/\/manager\/instructors\/new$/);
+    await expect(page).toHaveURL(/\/menedzer\/instruktorzy\/dodaj$/);
     expect(calls).toBe(2);
     releaseSave();
-    await expect(page).toHaveURL(/\/manager\/instructors$/);
+    await expect(page).toHaveURL(/\/menedzer\/instruktorzy$/);
     await expect(page.getByRole('dialog')).toHaveCount(0);
 });
 
@@ -170,10 +170,10 @@ test('W22 dirty guard supports stay, Escape and explicit discard', async ({
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
-    await expect(page).toHaveURL(/\/manager\/instructors\/new$/);
+    await expect(page).toHaveURL(/\/menedzer\/instruktorzy\/dodaj$/);
     await back.click();
     await dialog
         .getByRole('button', { name: 'Odrzuć zmiany', exact: true })
         .click();
-    await expect(page).toHaveURL(/\/manager\/instructors$/);
+    await expect(page).toHaveURL(/\/menedzer\/instruktorzy$/);
 });

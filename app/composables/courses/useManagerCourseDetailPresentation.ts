@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { Ref } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 import type { CourseDetail } from '~/types/courses/course';
@@ -14,11 +15,11 @@ export function useManagerCourseDetailPresentation({
         () => course.value?.schoolId?.trim() ?? '',
     );
 
-    const backToCoursesHref = computed<RouteLocationRaw>(
-        () => '/manager/courses',
+    const backToCoursesHref = computed<RouteLocationRaw>(() =>
+        appPaths.managerCourses(),
     );
-    const createCourseTarget = computed<RouteLocationRaw>(
-        () => '/manager/courses/new',
+    const createCourseTarget = computed<RouteLocationRaw>(() =>
+        appPaths.managerCourseNew(),
     );
 
     const courseTitle = computed(

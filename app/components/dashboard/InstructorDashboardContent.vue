@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     CalendarDays,
     MessageSquareText,
@@ -65,7 +66,7 @@ const emit = defineEmits<{ retry: [] }>();
                 </h2>
                 <div class="mt-4 grid gap-2">
                     <UiButton as-child class="min-h-11 justify-start">
-                        <NuxtLink to="/my-lessons">
+                        <NuxtLink :to="appPaths.myLessons()">
                             <CalendarDays class="size-4" aria-hidden="true" />
                             Mój terminarz
                         </NuxtLink>
@@ -75,7 +76,7 @@ const emit = defineEmits<{ retry: [] }>();
                         variant="outline"
                         class="min-h-11 justify-start"
                     >
-                        <NuxtLink to="/my-reviews">
+                        <NuxtLink :to="appPaths.myReviews()">
                             <MessageSquareText
                                 class="size-4"
                                 aria-hidden="true"
@@ -89,7 +90,7 @@ const emit = defineEmits<{ retry: [] }>();
 
         <div class="grid gap-3 sm:grid-cols-3">
             <NuxtLink
-                to="/my-lessons"
+                :to="appPaths.myLessons()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <div class="flex items-center gap-2">
@@ -112,7 +113,7 @@ const emit = defineEmits<{ retry: [] }>();
             </NuxtLink>
 
             <NuxtLink
-                to="/my-lessons"
+                :to="appPaths.myLessons()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <p class="text-muted-foreground text-sm font-semibold">
@@ -129,7 +130,7 @@ const emit = defineEmits<{ retry: [] }>();
             </NuxtLink>
 
             <NuxtLink
-                to="/my-reviews"
+                :to="appPaths.myReviews()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <div class="flex items-center gap-2">

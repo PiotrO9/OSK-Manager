@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ChevronRight } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
@@ -22,7 +23,7 @@ defineProps<{
             />
 
             <NuxtLink
-                to="/manager/osk"
+                :to="appPaths.managerSchools()"
                 class="border-border text-foreground hover:bg-muted/60 focus-visible:ring-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border bg-white px-3 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:bg-transparent"
             >
                 Zarządzaj szkołami

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 definePageMeta({ layout: 'app-shell', middleware: ['manager'] });
 usePageMeta({
     title: () => 'Konta użytkowników',
@@ -26,9 +27,11 @@ const {
 
 function accountPath() {
     return selectedAccount.value?.role === 'STUDENT'
-        ? `/manager/students/${selectedAccount.value.id}`
+        ? appPaths.managerStudent(selectedAccount.value.id)
         : selectedAccount.value?.instructorProfile?.id
-          ? `/manager/instructors/${selectedAccount.value.instructorProfile.id}`
+          ? appPaths.managerInstructor(
+                selectedAccount.value.instructorProfile.id,
+            )
           : '';
 }
 </script>
@@ -222,7 +225,9 @@ function accountPath() {
                     </p>
                     <NuxtLink
                         :to="{
-                            path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
+                            path: appPaths.managerAccountObligations(
+                                selectedAccount.id,
+                            ),
                         }"
                         class="text-primary mt-2 inline-block font-semibold underline underline-offset-4"
                         >Pokaż zobowiązania</NuxtLink
@@ -241,7 +246,9 @@ function accountPath() {
                 <NuxtLink
                     v-if="selectedAccount && !selectedAccount.deletedAt"
                     :to="{
-                        path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
+                        path: appPaths.managerAccountObligations(
+                            selectedAccount.id,
+                        ),
                     }"
                     class="text-primary mt-3 block text-sm font-medium underline-offset-4 hover:underline"
                     >Sprawdź zobowiązania konta</NuxtLink

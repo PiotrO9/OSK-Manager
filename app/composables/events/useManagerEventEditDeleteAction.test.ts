@@ -24,7 +24,7 @@ function setupDeleteAction(
     const action = useManagerEventEditDeleteAction({
         eventId: computed(() => options.eventId ?? 'event-1'),
         scheduleBackHref: computed(() => ({
-            path: '/manager/instructors/instructor-1/schedule',
+            path: '/menedzer/instruktorzy/instructor-1/terminarz',
             query: { schoolId: 'school-1' },
         })),
         isDeleteLoading,
@@ -72,7 +72,7 @@ describe('useManagerEventEditDeleteAction', () => {
         });
         expect(action.deleteDialogOpen.value).toBe(false);
         expect(navigateTo).toHaveBeenCalledWith({
-            path: '/manager/instructors/instructor-1/schedule',
+            path: '/menedzer/instruktorzy/instructor-1/terminarz',
             query: { schoolId: 'school-1' },
         });
     });

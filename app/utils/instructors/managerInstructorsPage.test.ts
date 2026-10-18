@@ -198,12 +198,12 @@ describe('managerInstructorsPage utils', () => {
 
     it('builds instructor details route without school query', () => {
         expect(buildInstructorDetailsRoute(instructor(), '')).toEqual({
-            path: '/manager/instructors/instructor-1',
+            path: '/menedzer/instruktorzy/instructor-1',
             query: {},
         });
         expect(buildInstructorDetailsRoute(instructor(), ' school-1 ')).toEqual(
             {
-                path: '/manager/instructors/instructor-1',
+                path: '/menedzer/instruktorzy/instructor-1',
                 query: {},
             },
         );

@@ -28,7 +28,7 @@ const browserBaseUrl =
     `http://127.0.0.1:${process.env.E2E_PORT || '3100'}`;
 
 async function login(page: Page, email: string, password: string) {
-    await page.goto('/login');
+    await page.goto('/logowanie');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByLabel('Adres e-mail').fill(email);
     await page.getByLabel('Hasło', { exact: true }).fill(password);
@@ -44,7 +44,7 @@ async function login(page: Page, email: string, password: string) {
 }
 
 async function openAccounts(page: Page) {
-    await page.goto('/manager/accounts');
+    await page.goto('/menedzer/konta');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await expect(
         page.getByRole('heading', { name: 'Konta użytkowników' }),
@@ -538,7 +538,7 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
                 const resetPage = await resetContext.newPage();
 
                 await resetPage.goto(link!);
-                await expect(resetPage).toHaveURL(/\/reset-password/);
+                await expect(resetPage).toHaveURL(/\/ustaw-haslo/);
                 await resetPage
                     .getByLabel('Nowe hasło')
                     .fill(changedInstructorPassword);

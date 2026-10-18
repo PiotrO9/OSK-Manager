@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { RouteLocationRaw } from 'vue-router';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { getApiErrorStatusCode } from '~/utils/api/apiEnvelope';
@@ -304,7 +305,7 @@ export function buildInstructorDetailsRoute(
     _activeSchoolId: string,
 ): RouteLocationRaw {
     return {
-        path: `/manager/instructors/${instructor.id}`,
+        path: appPaths.managerInstructor(instructor.id),
         query: {},
     };
 }

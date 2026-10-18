@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import MyCoursesFilters from '~/components/courses/MyCoursesFilters.vue';
 import MyCoursesList from '~/components/courses/MyCoursesList.vue';
 import { CalendarPlus } from 'lucide-vue-next';
@@ -28,7 +29,7 @@ const page = useMyCoursesPage();
                     class="h-10 rounded-xl px-4 font-semibold shadow-sm"
                 >
                     <NuxtLink
-                        to="/book-lesson"
+                        :to="appPaths.bookLesson()"
                         aria-label="Przejdź do rezerwacji jazdy"
                     >
                         <CalendarPlus class="mr-2 size-4" aria-hidden="true" />

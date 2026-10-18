@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ShieldAlert } from 'lucide-vue-next';
 import RoleDashboardContent from '~/components/dashboard/RoleDashboardContent.vue';
 
@@ -82,7 +83,9 @@ const sessionDrivingSchools = computed(
                         ustawień konta.
                     </p>
                     <UiButton as-child variant="outline" class="mt-3 min-h-11">
-                        <NuxtLink to="/account">Przejdź do konta</NuxtLink>
+                        <NuxtLink :to="appPaths.account()"
+                            >Przejdź do konta</NuxtLink
+                        >
                     </UiButton>
                 </div>
             </div>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowLeft } from 'lucide-vue-next';
 import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import type { RouteLocationRaw } from 'vue-router';
@@ -128,7 +129,7 @@ function handleTabChange(value: string | number): void {
                     >
                         <NuxtLink
                             :to="{
-                                path: '/manager/accounts',
+                                path: appPaths.managerAccounts(),
                                 query: {
                                     schoolId: props.schoolId,
                                     userId: props.student.userId,

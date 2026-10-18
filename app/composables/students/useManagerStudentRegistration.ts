@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { Ref } from 'vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { StudentRegisterPayload } from '~/utils/students/managerStudentFormDialog';
@@ -83,7 +84,7 @@ export function useManagerStudentRegistration({
                 await Promise.all([loadCoursesForFilter(), loadStudents()]);
             }
 
-            await navigateTo('/manager/students', { replace: true });
+            await navigateTo(appPaths.managerStudents(), { replace: true });
         } catch (err) {
             const message = resolveStudentRegisterError(err);
 

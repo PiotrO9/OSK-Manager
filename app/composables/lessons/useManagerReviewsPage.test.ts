@@ -6,7 +6,7 @@ const fetchInstructors = vi.fn();
 const fetchManagerRatings = vi.fn();
 const replace = vi.fn();
 const route = reactive({
-    path: '/manager/reviews',
+    path: '/menedzer/opinie',
     query: {} as Record<string, string | undefined>,
 });
 
@@ -81,7 +81,7 @@ describe('useManagerReviewsPage', () => {
         expect(page.currentPage.value).toBe(1);
         expect(replace).toHaveBeenCalledOnce();
         expect(replace).toHaveBeenCalledWith({
-            path: '/manager/reviews',
+            path: '/menedzer/opinie',
             query: {},
         });
     });

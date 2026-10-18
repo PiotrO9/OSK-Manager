@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
@@ -130,7 +131,9 @@ usePageMeta({
         >
             <template #action>
                 <UiButton as-child variant="outline" size="sm">
-                    <NuxtLink to="/manager/osk">Przejdz do OSK</NuxtLink>
+                    <NuxtLink :to="appPaths.managerSchools()"
+                        >Przejdz do OSK</NuxtLink
+                    >
                 </UiButton>
             </template>
         </ErrorState>

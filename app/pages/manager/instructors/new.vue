@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowLeft, Plus } from 'lucide-vue-next';
 import type { InstructorFormField } from '~/composables/instructors/manager/useManagerInstructorForm';
 
@@ -61,7 +62,7 @@ async function submitForm() {
         >
             <template #actions>
                 <UiButton variant="outline" as-child>
-                    <NuxtLink to="/manager/instructors">
+                    <NuxtLink :to="appPaths.managerInstructors()">
                         <ArrowLeft class="size-4" aria-hidden="true" />
                         Wróć do instruktorów
                     </NuxtLink>

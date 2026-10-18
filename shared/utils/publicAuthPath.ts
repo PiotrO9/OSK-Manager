@@ -1,8 +1,9 @@
+import { matchAppRoute } from '../routing/routePaths';
+
 export function isPublicAuthPath(path: string): boolean {
+    const key = matchAppRoute(path)?.definition.key;
+
     return (
-        path === '/login' ||
-        path.startsWith('/login/') ||
-        path === '/forgot-password' ||
-        path === '/reset-password'
+        key === 'login' || key === 'forgotPassword' || key === 'resetPassword'
     );
 }

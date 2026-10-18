@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 definePageMeta({ layout: false });
 usePageMeta({
     title: () => 'Odzyskiwanie hasła',
@@ -82,7 +83,7 @@ async function submit() {
                 }}</UiButton>
             </form>
             <NuxtLink
-                to="/login"
+                :to="appPaths.login()"
                 class="text-primary mt-6 inline-block text-sm font-medium underline-offset-4 hover:underline"
                 >Wróć do logowania</NuxtLink
             >

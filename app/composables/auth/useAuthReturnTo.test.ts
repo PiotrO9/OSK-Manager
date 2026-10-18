@@ -62,12 +62,27 @@ describe('useAuthReturnTo', () => {
         returnTo.setReturnTo('/\\evil.example');
         expect(returnTo.cookie.value).toBeNull();
 
-        returnTo.setReturnTo('/login?redirect=/manager');
+        returnTo.setReturnTo('/logowanie?redirect=/manager');
         expect(returnTo.cookie.value).toBeNull();
 
-        returnTo.setReturnTo('/manager/students?status=active#list');
+        returnTo.setReturnTo('/menedzer/kursanci?status=active#list');
         expect(returnTo.cookie.value).toBe(
-            '/manager/students?status=active#list',
+            '/menedzer/kursanci?status=active#list',
         );
+    });
+    it('consumes an old return cookie as a canonical URL and blocks both login variants', async () => {
+        const { useAuthReturnTo } = await import('./useAuthReturnTo');
+        const returnTo = useAuthReturnTo();
+
+        returnTo.cookie.value = '/manager/students/user-1?tag=a&tag=b#payments';
+        expect(returnTo.consumeReturnTo()).toBe(
+            '/menedzer/kursanci/user-1?tag=a&tag=b#payments',
+        );
+        expect(returnTo.cookie.value).toBeNull();
+
+        for (const login of ['/login', '/logowanie', '/logowanie/']) {
+            returnTo.setReturnTo(login);
+            expect(returnTo.cookie.value).toBeNull();
+        }
     });
 });

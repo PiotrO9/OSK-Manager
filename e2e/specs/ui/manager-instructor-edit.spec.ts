@@ -89,7 +89,7 @@ for (const viewport of [
             },
         );
 
-        await page.goto(`/manager/instructors/${instructorId}`);
+        await page.goto(`/menedzer/instruktorzy/${instructorId}`);
         await expect(
             page.getByRole('heading', { name: 'Anna Nowak' }),
         ).toBeVisible({ timeout: 30_000 });

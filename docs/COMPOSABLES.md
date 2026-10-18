@@ -178,7 +178,7 @@ Logout with redirect and optional toast.
 handleLogout(options?: { redirectTo?: string; showToast?: boolean })
 ```
 
-- `redirectTo` — defaults to `/login`
+- `redirectTo` — defaults to `/logowanie`
 - `showToast` — defaults to `true` (shows "Logged out" toast)
 
 ---

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     ArrowRight,
     BriefcaseBusiness,
@@ -191,7 +192,7 @@ async function handleSubmit() {
             <ArrowRight v-else :size="18" aria-hidden="true" />
         </UiButton>
         <NuxtLink
-            to="/forgot-password"
+            :to="appPaths.forgotPassword()"
             class="text-primary mt-3 inline-block text-sm font-medium underline-offset-4 hover:underline"
         >
             Nie pamiętasz hasła?

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Plus } from 'lucide-vue-next';
 
 definePageMeta({
@@ -58,7 +59,7 @@ const {
                     class="h-11 w-full px-4 sm:h-10 sm:w-auto"
                     aria-label="Otwórz formularz dodawania instruktora"
                 >
-                    <NuxtLink to="/manager/instructors/new">
+                    <NuxtLink :to="appPaths.managerInstructorNew()">
                         <Plus class="size-4" aria-hidden="true" />
                         Dodaj instruktora
                     </NuxtLink>

@@ -13,7 +13,7 @@ test('@audit COM-02 — walidacja logowania i poprawa danych w tym samym formula
         'Wymagany fixture school-operational, E2E_AUDIT_FIXTURE=school-operational i dane logowania menadżera.',
     );
 
-    await page.goto('/login');
+    await page.goto('/logowanie');
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     const emailField = page.getByLabel('Adres e-mail');
@@ -25,14 +25,14 @@ test('@audit COM-02 — walidacja logowania i poprawa danych w tym samym formula
     await expect(page.getByText('Podaj hasło')).toBeVisible();
     await expect(emailField).toHaveAttribute('aria-invalid', 'true');
     await expect(passwordField).toHaveAttribute('aria-invalid', 'true');
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/logowanie$/);
 
     await emailField.fill('abc');
     await passwordField.fill('celowo-bledne-haslo');
     await submitButton.click();
     await expect(page.getByText('Nieprawidłowy format e-mail')).toBeVisible();
     await expect(page.getByText('Podaj hasło')).toHaveCount(0);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/logowanie$/);
 
     await emailField.fill(email!);
     await submitButton.click();
@@ -41,7 +41,7 @@ test('@audit COM-02 — walidacja logowania i poprawa danych w tym samym formula
 
     await expect(submitError).toBeVisible();
     await expect(submitError).toContainText(/\S/);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/logowanie$/);
     expect((await page.context().request.get('/api/auth/me')).status()).toBe(
         401,
     );
@@ -51,13 +51,13 @@ test('@audit COM-02 — walidacja logowania i poprawa danych w tym samym formula
     await submitButton.click();
     await expect(page).toHaveURL(/\/$/);
 
-    await page.goto('/manager/students');
-    await expect(page).toHaveURL(/\/manager\/students$/);
+    await page.goto('/menedzer/kursanci');
+    await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
     await expect(
         page.getByRole('heading', { name: 'Kursanci', exact: true }).first(),
     ).toBeVisible();
 
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByRole('button', { name: 'Wyloguj', exact: true }).click();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/logowanie$/);
 });

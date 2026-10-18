@@ -48,7 +48,7 @@ describe('global auth middleware', () => {
     it('skips session checks on login when there is no local session', async () => {
         const middleware = await loadMiddleware();
 
-        await middleware({ path: '/login', fullPath: '/login' });
+        await middleware({ path: '/logowanie', fullPath: '/logowanie' });
 
         expect(authMocks.checkSession).not.toHaveBeenCalled();
         expect(authMocks.navigateTo).not.toHaveBeenCalled();
@@ -57,15 +57,18 @@ describe('global auth middleware', () => {
     it('verifies an existing session before redirecting from login', async () => {
         authMocks.session.value = { role: 'MANAGER' };
         authMocks.checkSession.mockResolvedValue(true);
-        authMocks.consumeReturnTo.mockReturnValue('/manager/students');
+        authMocks.consumeReturnTo.mockReturnValue('/menedzer/kursanci');
         const middleware = await loadMiddleware();
 
-        await middleware({ path: '/login', fullPath: '/login' });
+        await middleware({ path: '/logowanie', fullPath: '/logowanie' });
 
         expect(authMocks.checkSession).toHaveBeenCalledOnce();
-        expect(authMocks.navigateTo).toHaveBeenCalledWith('/manager/students', {
-            replace: true,
-        });
+        expect(authMocks.navigateTo).toHaveBeenCalledWith(
+            '/menedzer/kursanci',
+            {
+                replace: true,
+            },
+        );
         expect(authMocks.setReturnTo).not.toHaveBeenCalled();
     });
 
@@ -75,13 +78,13 @@ describe('global auth middleware', () => {
         const middleware = await loadMiddleware();
 
         await middleware({
-            path: '/manager/students',
-            fullPath: '/manager/students?status=active',
+            path: '/menedzer/kursanci',
+            fullPath: '/menedzer/kursanci?status=active',
         });
 
         expect(authMocks.setReturnTo).toHaveBeenCalledWith(
-            '/manager/students?status=active',
+            '/menedzer/kursanci?status=active',
         );
-        expect(authMocks.navigateTo).toHaveBeenCalledWith('/login');
+        expect(authMocks.navigateTo).toHaveBeenCalledWith('/logowanie');
     });
 });

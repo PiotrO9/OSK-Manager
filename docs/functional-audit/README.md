@@ -33,7 +33,7 @@ Zakres obejmuje ekrany produkcyjne i odpowiadające im przepływy FE → BFF →
 baza: logowanie i konto, pulpit każdej roli, OSK, instruktorzy, kursanci, kursy,
 pojazdy, dostępność, wydarzenia, lekcje, płatności i opinie. Obejmuje puste stany,
 walidację, błędy, dostęp według roli, izolację szkół, odświeżenie danych i podstawową
-obsługę na wąskim ekranie. `/design-system` służy do prezentacji komponentów,
+obsługę na wąskim ekranie. `/system-projektowy` służy do prezentacji komponentów,
 więc nie jest osobnym procesem użytkownika. Pomysły z `../../../../docs/APP_CHANGE_NOTES.md`
 pozostają poza odbiorem bieżącej wersji, dopóki nie zostaną wdrożone i dopisane
 do wymagań.
@@ -57,16 +57,16 @@ do wymagań.
 
 | Obszar i trasy FE                                                                     | Scenariusze główne                                    |
 | ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `/login`, `/account`, `/`                                                             | `COM-01`–`COM-10`, `MGR-DASH-01`, `INS-01`, `STU-01`  |
-| `/manager/osk`, `/manager/osk/new`                                                    | `MGR-OSK-01`–`MGR-OSK-03`, `MGR-MOB-01`               |
-| `/manager/instructors` i podstrony `new`, `[id]`, `availability`, `schedule`, `slots` | `MGR-INS-01`–`MGR-INS-05`                             |
-| `/manager/students`, `/manager/students/[userId]`                                     | `MGR-STU-01/02`, `MGR-PAY-01`                         |
-| `/manager/courses` i podstrony `new`, `[id]`                                          | `MGR-CRS-01`–`MGR-CRS-03`                             |
-| `/vehicles` i podstrony `new`, `[id]`, `edit`                                         | `MGR-VEH-01/02`                                       |
-| `/manager/schedule`, `/manager/lessons/[id]/edit`                                     | `MGR-SCH-01`, `MGR-LES-01`–`MGR-LES-04`               |
-| `/events`, `/manager/events/[id]/edit`                                                | `INS-05`, `MGR-EVT-01/02`                             |
-| `/manager/reviews`, `/my-reviews`                                                     | `MGR-REV-01`, `INS-06/07`, `XR-05`                    |
-| `/my-courses`, `/book-lesson`, `/my-lessons`, `/my-payments`                          | `STU-02`–`STU-19`, `INS-02`–`INS-04`, `XR-02`–`XR-05` |
+| `/logowanie`, `/konto`, `/`                                                             | `COM-01`–`COM-10`, `MGR-DASH-01`, `INS-01`, `STU-01`  |
+| `/menedzer/osrodki`, `/menedzer/osrodki/dodaj`                                                    | `MGR-OSK-01`–`MGR-OSK-03`, `MGR-MOB-01`               |
+| `/menedzer/instruktorzy` i podstrony `new`, `[id]`, `availability`, `schedule`, `slots` | `MGR-INS-01`–`MGR-INS-05`                             |
+| `/menedzer/kursanci`, `/menedzer/kursanci/[userId]`                                     | `MGR-STU-01/02`, `MGR-PAY-01`                         |
+| `/menedzer/kursy` i podstrony `new`, `[id]`                                          | `MGR-CRS-01`–`MGR-CRS-03`                             |
+| `/pojazdy` i podstrony `new`, `[id]`, `edit`                                         | `MGR-VEH-01/02`                                       |
+| `/menedzer/harmonogram`, `/menedzer/lekcje/[id]/edytuj`                                     | `MGR-SCH-01`, `MGR-LES-01`–`MGR-LES-04`               |
+| `/wydarzenia`, `/menedzer/wydarzenia/[id]/edytuj`                                                | `INS-05`, `MGR-EVT-01/02`                             |
+| `/menedzer/opinie`, `/moje-opinie`                                                     | `MGR-REV-01`, `INS-06/07`, `XR-05`                    |
+| `/moje-kursy`, `/rezerwuj-jazde`, `/moje-lekcje`, `/moje-oplaty`                          | `STU-02`–`STU-19`, `INS-02`–`INS-04`, `XR-02`–`XR-05` |
 
 Trasy z parametrem `[id]` oznaczają szczegóły konkretnego rekordu. Testy
 uprawnień `COM-05`, `COM-10`, `INS-09` i `XR-06` obejmują również bezpośredni

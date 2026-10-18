@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarCheck, CircleAlert } from 'lucide-vue-next';
 
 defineProps<{
@@ -41,7 +42,7 @@ defineProps<{
                 variant="outline"
                 class="col-span-2 w-full shrink-0 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:w-auto sm:justify-self-end"
             >
-                <NuxtLink to="/my-lessons">Moje lekcje</NuxtLink>
+                <NuxtLink :to="appPaths.myLessons()">Moje lekcje</NuxtLink>
             </UiButton>
         </slot>
     </div>

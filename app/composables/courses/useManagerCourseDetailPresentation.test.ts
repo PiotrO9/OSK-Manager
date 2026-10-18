@@ -38,9 +38,9 @@ describe('useManagerCourseDetailPresentation', () => {
         });
 
         expect(presentation.effectiveSchoolId.value).toBe('school-from-course');
-        expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
+        expect(presentation.backToCoursesHref.value).toBe('/menedzer/kursy');
         expect(presentation.createCourseTarget.value).toBe(
-            '/manager/courses/new',
+            '/menedzer/kursy/dodaj',
         );
     });
 
@@ -58,15 +58,15 @@ describe('useManagerCourseDetailPresentation', () => {
         courseRef.value = course({ schoolId: undefined });
 
         expect(presentation.effectiveSchoolId.value).toBe('');
-        expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
+        expect(presentation.backToCoursesHref.value).toBe('/menedzer/kursy');
         expect(presentation.createCourseTarget.value).toBe(
-            '/manager/courses/new',
+            '/menedzer/kursy/dodaj',
         );
 
         expect(presentation.effectiveSchoolId.value).toBe('');
-        expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
+        expect(presentation.backToCoursesHref.value).toBe('/menedzer/kursy');
         expect(presentation.createCourseTarget.value).toBe(
-            '/manager/courses/new',
+            '/menedzer/kursy/dodaj',
         );
     });
 

@@ -15,7 +15,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-OSK-01` — menedżer może utworzyć szkołę i rozpocząć pracę w jej kontekście. **Dane:** `manager-only`; unikalna nazwa, miasto i adres. **Warunek:** konto ma rolę `MANAGER`, brak przypisanej OSK.
 
-1. Otwórz **Szkoły jazdy** (`/manager/osk`) i sprawdź stan pusty.
+1. Otwórz **Szkoły jazdy** (`/menedzer/osrodki`) i sprawdź stan pusty.
 2. Wybierz **Dodaj OSK**, wpisz nazwę, miasto i adres; wyślij formularz.
 3. Odśwież listę i otwórz **Kursy** oraz **Kursanci**.
 
@@ -47,7 +47,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-INS-01` — menedżer może założyć konto instruktora w OSK. **Dane:** `school-empty`, unikalny adres e-mail, dane osobowe, data urodzenia i numer licencji.
 
-1. Otwórz **Instruktorzy → Dodaj instruktora** (`/manager/instructors/new`).
+1. Otwórz **Instruktorzy → Dodaj instruktora** (`/menedzer/instruktorzy/dodaj`).
 2. Wybierz OSK i uzupełnij wymagane pola: e-mail, hasło, imię, nazwisko, datę urodzenia i numer licencji; wyślij formularz.
 3. Otwórz listę i szczegóły nowego instruktora; odśwież.
 
@@ -100,7 +100,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-CRS-01` — menedżer tworzy kurs w wybranej OSK. **Dane:** `school-staffed`, kategoria z oferty OSK lub jawny kod kategorii, poprawna liczba godzin.
 
-1. Otwórz **Kursy → Dodaj kurs** (`/manager/courses/new`).
+1. Otwórz **Kursy → Dodaj kurs** (`/menedzer/kursy/dodaj`).
 2. Uzupełnij nazwę, kategorię, rodzaj kursu, liczbę godzin i pola właściwe dla wybranego rodzaju; wybierz instruktora, jeśli jest kwalifikowany.
 3. Zapisz, otwórz szczegóły i odśwież listę.
 
@@ -143,7 +143,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-STU-01` — menedżer dodaje kursanta do OSK i przypisuje do kursu. **Dane:** `course-ready`, unikalny e-mail kursanta.
 
-1. Otwórz **Kursanci** (`/manager/students`), wybierz szkołę i **Dodaj kursanta**; uzupełnij wymagane pola, zapisz.
+1. Otwórz **Kursanci** (`/menedzer/kursanci`), wybierz szkołę i **Dodaj kursanta**; uzupełnij wymagane pola, zapisz.
 2. Znajdź nowego kursanta na liście, użyj **Przypisz kurs** i wybierz kurs.
 3. Otwórz szczegóły kursanta, zakładkę **Kursy**, a potem szczegóły kursu, zakładkę **Uczestnicy**; odśwież oba widoki.
 
@@ -200,7 +200,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-SCH-01` — menedżer widzi właściwy plan jazd i wydarzeń swojej OSK. **Dane:** dwie OSK, w pierwszej jazda i blok teorii w znanym tygodniu, w drugiej odrębny wpis.
 
-1. Otwórz **Harmonogram OSK** (`/manager/schedule`), wybierz pierwszą szkołę i przejdź do tygodnia danych.
+1. Otwórz **Harmonogram OSK** (`/menedzer/harmonogram`), wybierz pierwszą szkołę i przejdź do tygodnia danych.
 2. Sprawdź jazdę i teorię w odpowiednich dniach/godzinach; przełącz na drugą szkołę.
 3. Odśwież stronę i wróć do pierwszego tygodnia.
 
@@ -275,7 +275,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-ACC-01` — menadżer widzi konta kursantów i instruktorów swojej OSK. **Dane:** dwie niezależne OSK A/B, konta obu ról w każdej, `manager-A` i `manager-B`.
 
-1. Jako `manager-A` otwórz **Konta użytkowników** (`/manager/accounts`), wybierz szkołę A i sprawdź wyszukiwanie imienia, nazwiska, e-maila oraz filtry **Kursanci/Instruktorzy**.
+1. Jako `manager-A` otwórz **Konta użytkowników** (`/menedzer/konta`), wybierz szkołę A i sprawdź wyszukiwanie imienia, nazwiska, e-maila oraz filtry **Kursanci/Instruktorzy**.
 2. Otwórz szczegóły osoby. Sprawdź jej rolę i status; odśwież listę.
 3. Podmień `schoolId` i `userId` w żądaniach odczytu oraz zapisu na identyfikatory B. Powtórz próbę jako instruktor i kursant.
 
@@ -330,7 +330,7 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 
 **Wymaganie:** `REQ-MGR-REV-01` — menedżer przegląda oceny jazd w wybranej OSK. **Dane:** `rated-lesson`: zakończona, oceniona jazda i druga jazda bez oceny.
 
-1. Otwórz **Opinie** (`/manager/reviews`), wybierz szkołę i okres zawierający ocenę.
+1. Otwórz **Opinie** (`/menedzer/opinie`), wybierz szkołę i okres zawierający ocenę.
 2. Ustaw filtr instruktora, jeśli jest dostępny; otwórz kolejny zakres dat i przywróć wszystkie opinie.
 3. Odśwież listę.
 

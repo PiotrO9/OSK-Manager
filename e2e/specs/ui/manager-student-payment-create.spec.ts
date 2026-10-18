@@ -172,7 +172,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
     );
 
     await page.goto(
-        `/manager/students/${studentUserId}?schoolId=stale&tab=payments#details`,
+        `/menedzer/kursanci/${studentUserId}?schoolId=stale&tab=payments#details`,
     );
     await page.locator('html[data-app-ready="true"]').waitFor();
     await expect(page).toHaveURL(
@@ -241,7 +241,7 @@ test('T01 example keeps a draft when no save is connected', async ({
 }) => {
     test.setTimeout(60_000);
     await authenticateMockUser(context, baseURL!, 'MANAGER');
-    await page.goto('/design-system?section=patterns');
+    await page.goto('/system-projektowy?section=patterns');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page
         .getByRole('tablist', { name: 'Wybierz wzorzec ekranu' })

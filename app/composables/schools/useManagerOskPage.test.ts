@@ -10,7 +10,10 @@ const update = vi.fn();
 const setAsDefault = vi.fn();
 const addToast = vi.fn();
 const navigateTo = vi.fn();
-const route = { path: '/manager/osk', query: {} as Record<string, string> };
+const route = {
+    path: '/menedzer/osrodki',
+    query: {} as Record<string, string>,
+};
 const isListLoading = shallowRef(false);
 const isUpdateLoading = shallowRef(false);
 const isSetDefaultLoading = shallowRef(false);

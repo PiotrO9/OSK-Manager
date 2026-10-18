@@ -1,11 +1,13 @@
 <script setup lang="ts">
-definePageMeta({ layout: false });
+import { appPaths } from '~~/shared/routing/appPaths';
+definePageMeta({ layout: false, key: 'password-recovery' });
 usePageMeta({
     title: () => 'Nowe hasło',
     description: () => 'Ustaw nowe hasło do konta.',
 });
 
 const accessToken = shallowRef('');
+const router = useRouter();
 const refreshToken = shallowRef('');
 const password = shallowRef('');
 const passwordRepeat = shallowRef('');
@@ -21,7 +23,14 @@ onMounted(() => {
         refreshToken.value = params.get('refresh_token') ?? '';
     }
 
-    window.history.replaceState(null, '', window.location.pathname);
+    // Same record through its alias: keep the mounted form and tokens in memory.
+    void router.replace({
+        path: appPaths.resetPassword(),
+        query: {},
+        hash: '',
+        // Vue Router otherwise treats an alias with no hash as duplicate navigation.
+        force: true,
+    });
 });
 
 async function submit() {
@@ -129,7 +138,7 @@ async function submit() {
                 }}</UiButton>
             </form>
             <NuxtLink
-                :to="changed ? '/login' : '/forgot-password'"
+                :to="changed ? appPaths.login() : appPaths.forgotPassword()"
                 class="text-primary mt-6 inline-block text-sm font-medium underline-offset-4 hover:underline"
                 >{{
                     changed ? 'Przejdź do logowania' : 'Poproś o nowy link'

@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     managerLessonCancelErrorMessage,
     managerLessonEditErrorMessage,
@@ -167,12 +168,12 @@ export function useManagerLessonEditPage() {
 
         if (schoolIdForRoute) {
             return {
-                path: '/manager/schedule',
+                path: appPaths.managerSchedule(),
                 query: { schoolId: schoolIdForRoute },
             };
         }
 
-        return '/manager/schedule';
+        return appPaths.managerSchedule();
     });
 
     const lessonStatusLabel = computed(() =>
@@ -307,10 +308,10 @@ export function useManagerLessonEditPage() {
                     ) ??
                         (lesson.schoolId
                             ? {
-                                  path: '/manager/schedule',
+                                  path: appPaths.managerSchedule(),
                                   query: { schoolId: lesson.schoolId },
                               }
-                            : '/manager/schedule'),
+                            : appPaths.managerSchedule()),
                     { replace: true },
                 );
 
@@ -405,7 +406,7 @@ export function useManagerLessonEditPage() {
             variant: 'success',
         });
         await navigateTo({
-            path: '/manager/schedule',
+            path: appPaths.managerSchedule(),
             query: {
                 ...(lesson.schoolId ? { schoolId: lesson.schoolId } : {}),
                 week: lesson.startTime,

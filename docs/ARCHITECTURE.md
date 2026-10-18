@@ -34,18 +34,18 @@ Struktura projektu, konwencje i przepływy. **Mapa plików:** [CODEMAP.md](CODEM
 
 ## Pages & Routes (wybrane)
 
-| Route                                   | Plik                                              | Opis                                     |
-| --------------------------------------- | ------------------------------------------------- | ---------------------------------------- |
-| `/`                                     | `pages/index.vue`                                 | Pulpit                                   |
-| `/login`                                | `pages/login.vue`                                 | Logowanie                                |
-| `/design-system`                        | `pages/design-system.vue`                         | Podgląd UI                               |
-| `/vehicles`                             | `pages/vehicles/index.vue`                        | Lista pojazdów                           |
-| `/account`                              | `pages/account/index.vue`                         | Moje konto, avatar                       |
-| `/manager/osk`                          | `pages/manager/osk/index.vue`                     | Zarządzanie OSK                          |
-| `/manager/instructors`                  | `pages/manager/instructors/index.vue`             | Lista instruktorów (szkoła, rejestracja) |
-| `/manager/instructors/:id`              | `pages/manager/instructors/[id]/index.vue`        | Szczegóły instruktora (odczyt)           |
-| `/manager/instructors/:id/availability` | `pages/manager/instructors/[id]/availability.vue` | Edycja tygodniowej dostępności           |
-| `/manager/instructors/:id/slots`        | `pages/manager/instructors/[id]/slots.vue`        | Terminarz wolnych slotów (tydzień)       |
+| Route                                      | Plik                                              | Opis                                     |
+| ------------------------------------------ | ------------------------------------------------- | ---------------------------------------- |
+| `/`                                        | `pages/index.vue`                                 | Pulpit                                   |
+| `/logowanie`                               | `pages/login.vue`                                 | Logowanie                                |
+| `/system-projektowy`                       | `pages/design-system.vue`                         | Podgląd UI                               |
+| `/pojazdy`                                 | `pages/vehicles/index.vue`                        | Lista pojazdów                           |
+| `/konto`                                   | `pages/account/index.vue`                         | Moje konto, avatar                       |
+| `/menedzer/osrodki`                        | `pages/manager/osk/index.vue`                     | Zarządzanie OSK                          |
+| `/menedzer/instruktorzy`                   | `pages/manager/instructors/index.vue`             | Lista instruktorów (szkoła, rejestracja) |
+| `/menedzer/instruktorzy/:id`               | `pages/manager/instructors/[id]/index.vue`        | Szczegóły instruktora (odczyt)           |
+| `/menedzer/instruktorzy/:id/dostepnosc`    | `pages/manager/instructors/[id]/availability.vue` | Edycja tygodniowej dostępności           |
+| `/menedzer/instruktorzy/:id/wolne-terminy` | `pages/manager/instructors/[id]/slots.vue`        | Terminarz wolnych slotów (tydzień)       |
 
 Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 
@@ -53,7 +53,7 @@ Szerszy kontekst modułu: [MANAGER_INSTRUCTORS.md](MANAGER_INSTRUCTORS.md).
 
 1. **Sesja** — `useAuthSession().checkSession()` woła `GET` auth/me (przez `apiBase` lub proxy).
 2. **Logowanie** — `login(email, password)` → `POST` auth/login.
-3. **Odświeżanie** — przy 401 `useApi` próbuje refresh, potem redirect na `/login`.
+3. **Odświeżanie** — przy 401 `useApi` próbuje refresh, potem redirect na `/logowanie`.
 4. **Wylogowanie** — `logout()` czyści sesję.
 
 ## Middleware

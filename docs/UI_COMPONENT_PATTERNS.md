@@ -378,7 +378,7 @@ Ta kolejnosc pozwala najpierw ustabilizowac najbardziej widoczne i najczesciej p
 
 ## Wariant roboczy listy CRM — W07, 2026-09-09
 
-Zaakceptowany na `/manager/students` 2026-09-10; poniższy zapis dokumentuje fundament układu. Bieżąca lista obejmuje także wyszukiwanie oraz szybkie i zaawansowane filtry.
+Zaakceptowany na `/menedzer/kursanci` 2026-09-10; poniższy zapis dokumentuje fundament układu. Bieżąca lista obejmuje także wyszukiwanie oraz szybkie i zaawansowane filtry.
 
 - `PageHeader`: tytuł, krótki opis i jeden przycisk główny.
 - Jeden panel `bg-card` łączy kontekst OSK, filtr, statystyki, rekordy i paginację. Bez powtórzonego tytułu listy i zagnieżdżonych ramek.
@@ -393,7 +393,7 @@ Zakres sprawdzenia i dalsze uwagi: `UI_REFRESH_PLAN.md`, sekcja 10.
 
 ## Zasady przenoszenia W07 na kolejne widoki list, 2026-09-10
 
-Te zasady opisują to, co z aktualnego `/manager/students` warto traktować jako roboczy wzorzec dla innych list administracyjnych. Nie kopiuj mechanicznie komponentów domenowych kursantów; przenoś układ, hierarchię i sposób rozdzielenia odpowiedzialności.
+Te zasady opisują to, co z aktualnego `/menedzer/kursanci` warto traktować jako roboczy wzorzec dla innych list administracyjnych. Nie kopiuj mechanicznie komponentów domenowych kursantów; przenoś układ, hierarchię i sposób rozdzielenia odpowiedzialności.
 
 ### Struktura strony
 

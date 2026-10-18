@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ExternalLink, UserCheck } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
@@ -38,7 +39,7 @@ const selectedInstructorProfileId = defineModel<string>(
 const instructorDetailsRoute = computed(() => {
     const instructorId = props.instructorProfileId.trim();
 
-    return instructorId ? `/manager/instructors/${instructorId}` : null;
+    return instructorId ? appPaths.managerInstructor(instructorId) : null;
 });
 
 const currentInstructorInitials = computed(() => {

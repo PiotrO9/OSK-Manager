@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { Ref } from 'vue';
 import {
     getManagerInstructorDeleteErrorMessage,
@@ -66,7 +67,7 @@ export function useManagerInstructorDetailsDelete({
 
             isEditDialogOpen.value = false;
 
-            await navigateTo('/manager/instructors');
+            await navigateTo(appPaths.managerInstructors());
         } catch (err: unknown) {
             addToast({
                 title: 'Nie udało się zablokować instruktora',

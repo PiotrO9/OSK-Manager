@@ -195,7 +195,7 @@ test('manager changes the instructor on one future practice lesson', async ({
 
     const mocked = await mockLessonApis(page);
 
-    await page.goto(`/manager/lessons/${lessonId}/edit`);
+    await page.goto(`/menedzer/lekcje/${lessonId}/edytuj`);
     await expect(page.locator('#lesson-instructor')).toBeEnabled();
     await expect.poll(mocked.getOptionsRequests).toBeGreaterThan(0);
     await page.locator('#lesson-instructor').click();
@@ -230,7 +230,7 @@ test('manager cannot change the instructor after the lesson has started', async 
 
     const mocked = await mockLessonApis(page, true);
 
-    await page.goto(`/manager/lessons/${lessonId}/edit`);
+    await page.goto(`/menedzer/lekcje/${lessonId}/edytuj`);
     await expect(page.locator('#lesson-instructor')).toBeDisabled();
     await expect(
         page.getByText(

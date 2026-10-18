@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowLeft, CalendarDays, MessageSquare, Star } from 'lucide-vue-next';
 import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import type { RouteLocationRaw } from 'vue-router';
@@ -53,12 +54,12 @@ const visitedTabs = reactive<Record<ManagerInstructorDetailsTab, boolean>>({
 });
 
 const backToListTo = computed<RouteLocationRaw>(() => ({
-    path: '/manager/instructors',
+    path: appPaths.managerInstructors(),
     query: props.subpageQuery,
 }));
 
 const availabilityTo = computed<RouteLocationRaw>(() => ({
-    path: `/manager/instructors/${props.instructor.id}/availability`,
+    path: appPaths.managerInstructorAvailability(props.instructor.id),
 }));
 
 const reviewsTo = computed<RouteLocationRaw | null>(() => {
@@ -67,7 +68,7 @@ const reviewsTo = computed<RouteLocationRaw | null>(() => {
     }
 
     return {
-        path: '/manager/reviews',
+        path: appPaths.managerReviews(),
         query: {
             ...props.subpageQuery,
             instructorId: props.instructor.id,
@@ -131,7 +132,7 @@ function handleTabChange(value: string | number): void {
                 >
                     <NuxtLink
                         :to="{
-                            path: '/manager/accounts',
+                            path: appPaths.managerAccounts(),
                             query: {
                                 schoolId: props.instructor.schoolId,
                                 profileId: props.instructor.id,

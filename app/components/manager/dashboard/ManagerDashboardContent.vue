@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Building2, RefreshCw } from 'lucide-vue-next';
 
 const dashboard = useManagerDashboardPage();
@@ -55,7 +56,9 @@ const dashboard = useManagerDashboardPage();
                     </p>
                 </div>
                 <UiButton as-child class="min-h-11 shrink-0">
-                    <NuxtLink to="/manager/osk?action=create">
+                    <NuxtLink
+                        :to="`${appPaths.managerSchools()}?action=create`"
+                    >
                         Dodaj lub wybierz OSK
                     </NuxtLink>
                 </UiButton>

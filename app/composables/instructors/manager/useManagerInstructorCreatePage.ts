@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import { computed, ref, watch } from 'vue';
 import { isNavigationFailure, onBeforeRouteLeave } from 'vue-router';
 import {
@@ -102,7 +103,7 @@ export function useManagerInstructorCreatePage() {
         isNavigating.value = true;
 
         try {
-            const result = await navigateTo('/manager/instructors', {
+            const result = await navigateTo(appPaths.managerInstructors(), {
                 replace: true,
             });
 

@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { Vehicle } from '~/types/vehicles/vehicle';
@@ -144,7 +145,7 @@ export function useVehiclesListPage() {
         }
 
         if (result.outcome === 'not_configured') {
-            await navigateTo('/manager/osk');
+            await navigateTo(appPaths.managerSchools());
 
             return null;
         }

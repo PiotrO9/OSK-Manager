@@ -27,7 +27,7 @@ test.describe('UI smoke: sesja i routing', () => {
             }
         });
         await page.route('**/*.js', (route) => route.abort());
-        await page.goto('/login');
+        await page.goto('/logowanie');
 
         const form = page.locator('form.login-form');
 
@@ -42,7 +42,7 @@ test.describe('UI smoke: sesja i routing', () => {
             .fill('test-only-password');
         await page.getByLabel('Hasło', { exact: true }).press('Enter');
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         expect(credentialGetRequests).toEqual([]);
     });
 
@@ -50,9 +50,9 @@ test.describe('UI smoke: sesja i routing', () => {
         context,
         page,
     }) => {
-        await page.goto('/manager/students?status=ACTIVE');
+        await page.goto('/menedzer/kursanci?status=ACTIVE');
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         await expect(page.getByLabel('Adres e-mail')).toBeVisible();
         await expect(page.getByLabel('Hasło', { exact: true })).toBeVisible();
 
@@ -61,7 +61,7 @@ test.describe('UI smoke: sesja i routing', () => {
         );
 
         expect(decodeURIComponent(returnCookie?.value || '')).toContain(
-            '/manager/students?status=ACTIVE',
+            '/menedzer/kursanci?status=ACTIVE',
         );
     });
 
@@ -72,9 +72,9 @@ test.describe('UI smoke: sesja i routing', () => {
     }) => {
         await authenticateMockUser(context, baseURL!, 'MANAGER');
 
-        await page.goto('/login');
+        await page.goto('/logowanie');
 
-        await expect(page).toHaveURL(/\/manager\/osk$/);
+        await expect(page).toHaveURL(/\/menedzer\/osrodki$/);
         await expect(
             page.getByRole('heading', { name: 'Szkoły jazdy' }),
         ).toBeVisible();
@@ -130,7 +130,7 @@ test.describe('UI smoke: sesja i routing', () => {
             });
         });
 
-        await page.goto('/login');
+        await page.goto('/logowanie');
         await waitForNuxtHydration(page);
         await authenticateMockUser(context, baseURL!, 'MANAGER');
         await page.route('**/api/auth/login', (route) =>
@@ -172,7 +172,7 @@ test.describe('UI smoke: sesja i routing', () => {
         await page.getByRole('button', { name: 'Zaloguj się' }).click();
         await defaultSchoolRequest;
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         await expect(page.getByLabel('Adres e-mail')).toBeVisible();
         await expect(
             page.getByRole('button', { name: 'Logowanie…' }),
@@ -183,7 +183,7 @@ test.describe('UI smoke: sesja i routing', () => {
 
         releaseDefaultResponse();
 
-        await expect(page).toHaveURL(/\/manager\/osk$/);
+        await expect(page).toHaveURL(/\/menedzer\/osrodki$/);
         await expect(
             page.getByRole('heading', { name: 'Szkoły jazdy' }),
         ).toBeVisible();
@@ -215,7 +215,7 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
         await waitForNuxtHydration(page);
 
         await page.evaluate(() => {
@@ -242,9 +242,9 @@ test.describe('UI smoke: sesja i routing', () => {
             await route.continue();
         });
 
-        await page.locator('a[href="/my-reviews"]').click();
+        await page.locator('a[href="/moje-opinie"]').click();
 
-        await expect(page).toHaveURL(/\/my-reviews$/);
+        await expect(page).toHaveURL(/\/moje-opinie$/);
         expect(
             await page.evaluate(() =>
                 sessionStorage.getItem('routine-curtain-seen'),
@@ -258,8 +258,8 @@ test.describe('UI smoke: sesja i routing', () => {
             Date.now = () => now + 61_000;
             document.dispatchEvent(new Event('visibilitychange'));
         });
-        await page.locator('a[href="/my-lessons"]').click();
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await page.locator('a[href="/moje-lekcje"]').click();
+        await expect(page).toHaveURL(/\/moje-lekcje$/);
         expect(sessionRequestsOnNavigation).toHaveLength(1);
         releaseSessionCheck();
     });
@@ -270,7 +270,7 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
         await waitForNuxtHydration(page);
 
         await page.evaluate(() => {
@@ -297,7 +297,7 @@ test.describe('UI smoke: sesja i routing', () => {
             document.dispatchEvent(new Event('visibilitychange'));
         });
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         expect(
             await page.evaluate(() =>
                 sessionStorage.getItem('expired-session-covered'),
@@ -311,7 +311,7 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
         await waitForNuxtHydration(page);
 
         let sessionChecks = 0;
@@ -337,7 +337,7 @@ test.describe('UI smoke: sesja i routing', () => {
         });
 
         expect((await firstCheck).status()).toBe(502);
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await expect(page).toHaveURL(/\/moje-lekcje$/);
         await expect(page.locator('#auth-privacy-curtain')).toHaveCount(0);
         expect(sessionChecks).toBe(1);
 
@@ -346,8 +346,8 @@ test.describe('UI smoke: sesja i routing', () => {
         );
         expect(sessionChecks).toBe(1);
 
-        await page.locator('a[href="/my-reviews"]').click();
-        await expect(page).toHaveURL(/\/my-reviews$/);
+        await page.locator('a[href="/moje-opinie"]').click();
+        await expect(page).toHaveURL(/\/moje-opinie$/);
     });
 
     test('wraca do sprawdzania sesji po uaktywnieniu karty', async ({
@@ -356,7 +356,7 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
         await waitForNuxtHydration(page);
 
         let sessionChecks = 0;
@@ -401,10 +401,10 @@ test.describe('UI smoke: sesja i routing', () => {
     }) => {
         await authenticateMockUser(context, baseURL!, 'MANAGER');
 
-        await page.goto('/manager/students');
+        await page.goto('/menedzer/kursanci');
         await waitForNuxtHydration(page);
 
-        await expect(page).toHaveURL(/\/manager\/students$/);
+        await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
         await expect(
             page
                 .getByRole('heading', { name: 'Kursanci', exact: true })
@@ -438,12 +438,12 @@ test.describe('UI smoke: sesja i routing', () => {
             loggingOutButton.locator('svg.animate-spin'),
         ).toBeVisible();
         await expect(page.locator('#auth-privacy-curtain')).toHaveCount(0);
-        await expect(page).toHaveURL(/\/manager\/students$/);
+        await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
 
         releaseLogout();
         expect((await logoutResponse).ok()).toBe(true);
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         expect(
             (await context.cookies()).some(
                 ({ name }) => name === 'access_token',
@@ -496,7 +496,7 @@ test.describe('UI smoke: sesja i routing', () => {
 
         await page.getByRole('button', { name: 'Wyloguj' }).click();
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         await expect(page.getByLabel('Adres e-mail')).toBeVisible();
         await waitForNuxtHydration(page);
         expect(authMeRequestsAfterLogout).toEqual([]);
@@ -513,7 +513,7 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
-        const privateResponse = await page.goto('/my-lessons');
+        const privateResponse = await page.goto('/moje-lekcje');
 
         expect(privateResponse?.headers()['cache-control']).toContain(
             'no-store',
@@ -557,9 +557,9 @@ test.describe('UI smoke: sesja i routing', () => {
         ).toBe('true');
 
         await page.getByRole('button', { name: 'Wyloguj' }).click();
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         await page.goBack();
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
         await expect(page.getByLabel('Adres e-mail')).toBeVisible();
         expect(
             await page.evaluate(() =>
@@ -576,8 +576,8 @@ test.describe('UI smoke: sesja i routing', () => {
         await authenticateMockUser(context, baseURL!, 'INSTRUCTOR');
         const secondPage = await context.newPage();
 
-        await page.goto('/my-lessons');
-        await secondPage.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
+        await secondPage.goto('/moje-lekcje');
         await waitForNuxtHydration(page);
         await waitForNuxtHydration(secondPage);
         await expect(
@@ -586,8 +586,8 @@ test.describe('UI smoke: sesja i routing', () => {
 
         await page.getByRole('button', { name: 'Wyloguj' }).click();
 
-        await expect(page).toHaveURL(/\/login$/);
-        await expect(secondPage).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
+        await expect(secondPage).toHaveURL(/\/logowanie$/);
         await expect(secondPage.getByLabel('Adres e-mail')).toBeVisible();
     });
 
@@ -597,10 +597,10 @@ test.describe('UI smoke: sesja i routing', () => {
         page,
     }) => {
         await authenticateMockUser(context, baseURL!, 'STUDENT');
-        await page.goto('/manager/students');
+        await page.goto('/menedzer/kursanci');
 
         await expect(page).toHaveURL(/\/$/);
-        await expect(page).not.toHaveURL(/\/manager\/students/);
+        await expect(page).not.toHaveURL(/\/menedzer\/kursanci/);
     });
 
     test('endpoint refresh odnawia wygasły access token', async ({
@@ -616,9 +616,9 @@ test.describe('UI smoke: sesja i routing', () => {
 
         expect(refreshResponse.ok()).toBe(true);
 
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
 
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await expect(page).toHaveURL(/\/moje-lekcje$/);
         await expect(
             page
                 .getByRole('heading', { name: 'Moje lekcje', exact: true })
@@ -636,9 +636,9 @@ test.describe('UI smoke: sesja i routing', () => {
             ({ name }) => name === 'access_token',
         )?.value;
 
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
 
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await expect(page).toHaveURL(/\/moje-lekcje$/);
         await expect(
             page
                 .getByRole('heading', { name: 'Moje lekcje', exact: true })
@@ -653,7 +653,7 @@ test.describe('UI smoke: sesja i routing', () => {
         expect(refreshedAccessToken).not.toBe(expiredAccessToken);
 
         await page.reload();
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await expect(page).toHaveURL(/\/moje-lekcje$/);
     });
 
     test('czyści sesję, gdy refresh token jest nieprawidłowy', async ({
@@ -667,9 +667,9 @@ test.describe('UI smoke: sesja i routing', () => {
             'STUDENT',
         );
 
-        await page.goto('/my-lessons');
+        await page.goto('/moje-lekcje');
 
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
 
         const cookieNames = (await context.cookies()).map(({ name }) => name);
 

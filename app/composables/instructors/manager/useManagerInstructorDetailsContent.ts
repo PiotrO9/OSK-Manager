@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarDays, Clock3, TimerReset } from 'lucide-vue-next';
 import {
     formatCourseTypeOptionLabel,
@@ -85,7 +86,9 @@ export function useManagerInstructorDetailsContent(input: {
             label: 'Dostępność',
             description: 'Edytuj tygodniowy wzorzec pracy',
             to: {
-                path: `/manager/instructors/${input.instructor.id}/availability`,
+                path: appPaths.managerInstructorAvailability(
+                    input.instructor.id,
+                ),
                 query: input.subpageQuery,
             },
             icon: Clock3,
@@ -94,7 +97,7 @@ export function useManagerInstructorDetailsContent(input: {
             label: 'Wolne sloty',
             description: 'Sprawdź najbliższe okna do rezerwacji',
             to: {
-                path: `/manager/instructors/${input.instructor.id}/slots`,
+                path: appPaths.managerInstructorSlots(input.instructor.id),
             },
             icon: CalendarDays,
         },
@@ -102,7 +105,7 @@ export function useManagerInstructorDetailsContent(input: {
             label: 'Terminarz',
             description: 'Lekcje, teoria i bloki czasu',
             to: {
-                path: `/manager/instructors/${input.instructor.id}/schedule`,
+                path: appPaths.managerInstructorSchedule(input.instructor.id),
             },
             icon: TimerReset,
         },

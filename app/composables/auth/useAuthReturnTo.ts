@@ -4,6 +4,8 @@ import {
     isSafeRelativeRedirectPath,
 } from '~/utils/auth/authReturnPath';
 
+import { canonicalizeAppUrl } from '~~/shared/routing/routePaths';
+
 export function useAuthReturnTo() {
     const cookie = useCookie<string | null>(AUTH_RETURN_TO_COOKIE_NAME, {
         ...getAuthReturnToCookieBaseOptions(),
@@ -13,7 +15,7 @@ export function useAuthReturnTo() {
     function setReturnTo(path: string): void {
         if (!isSafeRelativeRedirectPath(path)) return;
 
-        cookie.value = path;
+        cookie.value = canonicalizeAppUrl(path);
     }
 
     /**
@@ -24,7 +26,8 @@ export function useAuthReturnTo() {
 
         cookie.value = null;
 
-        if (value && isSafeRelativeRedirectPath(value)) return value;
+        if (value && isSafeRelativeRedirectPath(value))
+            return canonicalizeAppUrl(value);
 
         return null;
     }

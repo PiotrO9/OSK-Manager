@@ -137,7 +137,7 @@ describe('useManagerEventEditActions', () => {
             variant: 'success',
         });
         expect(navigateTo).toHaveBeenCalledWith(
-            '/manager/instructors/instructor-1/schedule',
+            '/menedzer/instruktorzy/instructor-1/terminarz',
         );
     });
 
@@ -173,7 +173,7 @@ describe('useManagerEventEditActions', () => {
         });
         expect(actions.deleteDialogOpen.value).toBe(false);
         expect(navigateTo).toHaveBeenCalledWith(
-            '/manager/instructors/instructor-1/schedule',
+            '/menedzer/instruktorzy/instructor-1/terminarz',
         );
     });
 

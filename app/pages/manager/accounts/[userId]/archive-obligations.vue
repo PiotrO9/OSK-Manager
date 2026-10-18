@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 definePageMeta({ layout: 'app-shell', middleware: ['manager'] });
 usePageMeta({ title: () => 'Zobowiązania blokujące archiwizację' });
 
@@ -13,7 +14,7 @@ const {
 } = useManagerAccountObligationsPage();
 
 const accountPath = computed(() => ({
-    path: '/manager/accounts',
+    path: appPaths.managerAccounts(),
     query: { schoolId: schoolId.value, userId: userId.value },
 }));
 </script>

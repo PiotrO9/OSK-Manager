@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 import { appendResponseHeader, type H3Event } from 'h3';
 import {
@@ -100,7 +101,7 @@ export default defineNuxtPlugin(() => {
                 import.meta.client &&
                 !isPublicAuthPath(window.location.pathname)
             ) {
-                window.location.replace('/login');
+                window.location.replace(appPaths.login());
             }
         },
     });

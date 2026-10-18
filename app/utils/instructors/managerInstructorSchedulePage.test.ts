@@ -43,13 +43,13 @@ describe('manager instructor schedule page helpers', () => {
 
     it('builds back href without school query', () => {
         expect(buildManagerInstructorScheduleBackHref('')).toBe(
-            '/manager/instructors',
+            '/menedzer/instruktorzy',
         );
         expect(buildManagerInstructorScheduleBackHref('instructor-1')).toBe(
-            '/manager/instructors/instructor-1',
+            '/menedzer/instruktorzy/instructor-1',
         );
         expect(buildManagerInstructorScheduleBackHref(' instructor-1 ')).toBe(
-            '/manager/instructors/instructor-1',
+            '/menedzer/instruktorzy/instructor-1',
         );
     });
 });

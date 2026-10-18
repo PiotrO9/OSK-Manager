@@ -132,7 +132,7 @@ describe('useVehicleEditPage', () => {
 
         expect(updateVehicle).toHaveBeenCalledWith('vehicle-1', payload);
         expect(uploadVehiclePhoto).not.toHaveBeenCalled();
-        expect(navigateTo).toHaveBeenCalledWith('/vehicles');
+        expect(navigateTo).toHaveBeenCalledWith('/pojazdy');
     });
 
     it('loads edit data from the details endpoint without fetching the full list', async () => {
@@ -213,7 +213,7 @@ describe('useVehicleEditPage', () => {
             '2026-10-08T12:32:00.000Z',
         );
         expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:vehicle-photo');
-        expect(navigateTo).toHaveBeenCalledWith('/vehicles');
+        expect(navigateTo).toHaveBeenCalledWith('/pojazdy');
     });
 
     it('uploads the second file selected through the same input', async () => {

@@ -176,7 +176,7 @@ describe('useLoginPage', () => {
         expect(setReturnTo).toHaveBeenCalledWith(
             '/manager/lessons?day=2026-08-16',
         );
-        expect(replace).toHaveBeenCalledWith({ path: '/login' });
+        expect(replace).toHaveBeenCalledWith({ path: '/logowanie' });
     });
 
     it('logs in and navigates manager without default school to manager OSK page', async () => {
@@ -195,7 +195,7 @@ describe('useLoginPage', () => {
 
         expect(login).toHaveBeenCalledWith('manager@example.com', 'secret');
         expect(fetchDefaultDrivingSchool).toHaveBeenCalledOnce();
-        expect(navigateTo).toHaveBeenCalledWith('/manager/osk', {
+        expect(navigateTo).toHaveBeenCalledWith('/menedzer/osrodki', {
             replace: true,
         });
         expect(addToast).not.toHaveBeenCalled();
@@ -220,7 +220,7 @@ describe('useLoginPage', () => {
 
     it('navigates authenticated users to consumed return target', async () => {
         isAuthenticated.value = true;
-        consumeReturnTo.mockReturnValue('/manager/students');
+        consumeReturnTo.mockReturnValue('/menedzer/kursanci');
 
         const { useLoginPage } = await import('./useLoginPage');
         const page = useLoginPage();
@@ -228,7 +228,7 @@ describe('useLoginPage', () => {
         await page.handleLogin();
 
         expect(addToast).not.toHaveBeenCalled();
-        expect(navigateTo).toHaveBeenCalledWith('/manager/students', {
+        expect(navigateTo).toHaveBeenCalledWith('/menedzer/kursanci', {
             replace: true,
         });
     });

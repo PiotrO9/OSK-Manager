@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import ManagerLessonRatingsFilters from '~/components/manager/reviews/ManagerLessonRatingsFilters.vue';
 import ManagerLessonRatingsList from '~/components/manager/reviews/ManagerLessonRatingsList.vue';
 import LessonRatingsSummary from '~/components/manager/reviews/LessonRatingsSummary.vue';
@@ -94,7 +95,7 @@ const reviews = useManagerReviewsPage();
                 >
                     <template #action>
                         <UiButton as-child>
-                            <NuxtLink to="/manager/osk/new">
+                            <NuxtLink :to="appPaths.managerSchoolNew()">
                                 Dodaj szkołę jazdy
                             </NuxtLink>
                         </UiButton>

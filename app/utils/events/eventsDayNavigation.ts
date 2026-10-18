@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { buildScheduleManagerItemEditRoute } from '~/utils/schedule/scheduleManagerEditNavigation';
 
@@ -56,7 +57,7 @@ export function buildEventsDayReturnRoute(
     }
 
     return {
-        path: '/events',
+        path: appPaths.events(),
         query: {
             date: day,
             ...(schoolId.trim() ? { schoolId: schoolId.trim() } : {}),

@@ -86,7 +86,7 @@ describe('useManagerInstructorDetailsDelete', () => {
             variant: 'success',
         });
         expect(isEditDialogOpen.value).toBe(false);
-        expect(navigateTo).toHaveBeenCalledWith('/manager/instructors');
+        expect(navigateTo).toHaveBeenCalledWith('/menedzer/instruktorzy');
         expect(data.isDeleting.value).toBe(false);
     });
 

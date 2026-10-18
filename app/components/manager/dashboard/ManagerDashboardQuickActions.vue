@@ -1,23 +1,24 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarDays, GraduationCap, UsersRound } from 'lucide-vue-next';
 
 const actions = [
     {
         label: 'Harmonogram',
         description: 'Lekcje i wydarzenia szkoły',
-        to: '/manager/schedule',
+        to: appPaths.managerSchedule(),
         icon: CalendarDays,
     },
     {
         label: 'Kursanci',
         description: 'Profile, kursy i rozliczenia',
-        to: '/manager/students',
+        to: appPaths.managerStudents(),
         icon: UsersRound,
     },
     {
         label: 'Kursy',
         description: 'Oferta i przypisania',
-        to: '/manager/courses',
+        to: appPaths.managerCourses(),
         icon: GraduationCap,
     },
 ] as const;

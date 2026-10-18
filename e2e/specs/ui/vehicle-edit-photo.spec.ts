@@ -67,7 +67,7 @@ for (const viewport of [
 
         await page.setViewportSize(viewport);
         await prepareVehicle(page, uploads);
-        await page.goto(`/vehicles/${VEHICLE_ID}/edit`);
+        await page.goto(`/pojazdy/${VEHICLE_ID}/edytuj`);
         const input = page.locator('#vehicle-photo-input');
 
         await expect(input).toBeAttached({ timeout: 30_000 });
@@ -93,7 +93,7 @@ for (const viewport of [
             .getByRole('button', { name: 'Zapisz zmiany' })
             .first()
             .click();
-        await expect(page).toHaveURL(/\/vehicles$/);
+        await expect(page).toHaveURL(/\/pojazdy$/);
         expect(uploads).toEqual(['second.png']);
     });
 }
@@ -104,7 +104,7 @@ test('W25 supports invalid then valid, the same file, clear and upload retry', a
     const uploads: string[] = [];
 
     await prepareVehicle(page, uploads);
-    await page.goto(`/vehicles/${VEHICLE_ID}/edit`);
+    await page.goto(`/pojazdy/${VEHICLE_ID}/edytuj`);
     const input = page.locator('#vehicle-photo-input');
 
     await expect(input).toBeAttached({ timeout: 30_000 });
@@ -186,6 +186,6 @@ test('W25 supports invalid then valid, the same file, clear and upload retry', a
     ).toBeVisible();
     await expect(page.getByText('same.png', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Spróbuj ponownie' }).click();
-    await expect(page).toHaveURL(/\/vehicles$/);
+    await expect(page).toHaveURL(/\/pojazdy$/);
     expect(uploads).toEqual(['same.png', 'same.png']);
 });

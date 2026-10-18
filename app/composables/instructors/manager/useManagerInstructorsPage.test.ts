@@ -122,7 +122,7 @@ describe('useManagerInstructorsPage', () => {
             title: 'Instruktor został utworzony',
             variant: 'success',
         });
-        expect(navigateTo).toHaveBeenCalledWith('/manager/instructors', {
+        expect(navigateTo).toHaveBeenCalledWith('/menedzer/instruktorzy', {
             replace: true,
         });
         expect(page.apiError.value).toBeNull();

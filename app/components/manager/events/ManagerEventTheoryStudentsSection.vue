@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type {
     InstructorEvent,
     TheoryEventEligibleStudentRow,
@@ -241,7 +242,7 @@ function theoryStudentInitials(row: TheoryEventEligibleStudentRow): string {
                         </p>
                         <NuxtLink
                             :to="{
-                                path: '/manager/students',
+                                path: appPaths.managerStudents(),
                                 query: { schoolId },
                             }"
                             target="_blank"

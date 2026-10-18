@@ -7,7 +7,7 @@ test('pauses the toast countdown on hover and keyboard focus', async ({
     baseURL,
 }) => {
     await authenticateMockUser(context, baseURL!, 'MANAGER');
-    await page.goto('/design-system#feedback');
+    await page.goto('/system-projektowy#feedback');
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     await page.getByRole('button', { name: 'Pokaż potwierdzenie' }).click();

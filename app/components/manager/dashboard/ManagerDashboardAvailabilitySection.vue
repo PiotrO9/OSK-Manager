@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarDays, ChevronRight } from 'lucide-vue-next';
 
 defineProps<{
@@ -37,7 +38,7 @@ defineProps<{
             </div>
 
             <NuxtLink
-                to="/manager/schedule"
+                :to="appPaths.managerSchedule()"
                 class="border-border text-foreground hover:bg-muted/60 focus-visible:ring-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 Pełny harmonogram

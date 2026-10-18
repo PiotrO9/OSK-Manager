@@ -11,25 +11,25 @@ test('@smoke logowanie, zachowanie sesji i wylogowanie managera', async ({
         'Ustaw E2E_MANAGER_EMAIL i E2E_MANAGER_PASSWORD dla środowiska E2E.',
     );
 
-    await page.goto('/manager/students');
-    await expect(page).toHaveURL(/\/login$/);
+    await page.goto('/menedzer/kursanci');
+    await expect(page).toHaveURL(/\/logowanie$/);
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     await page.getByLabel('Adres e-mail').fill(email!);
     await page.getByLabel('Hasło', { exact: true }).fill(password!);
     await page.getByRole('button', { name: 'Zaloguj się' }).click();
 
-    await expect(page).toHaveURL(/\/manager\/students$/);
+    await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
     await expect(
         page.getByRole('heading', { name: 'Kursanci', exact: true }).first(),
     ).toBeVisible();
 
     await page.reload();
-    await expect(page).toHaveURL(/\/manager\/students$/);
+    await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     await page.getByRole('button', { name: 'Wyloguj', exact: true }).click();
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/logowanie$/);
 });
 
 for (const role of [
@@ -55,7 +55,7 @@ for (const role of [
             `Ustaw ${role.emailKey} i ${role.passwordKey} dla środowiska E2E.`,
         );
 
-        await page.goto('/login');
+        await page.goto('/logowanie');
         await page.locator('html[data-app-ready="true"]').waitFor();
         await page.getByLabel('Adres e-mail').fill(email!);
         await page.getByLabel('Hasło', { exact: true }).fill(password!);
@@ -76,6 +76,6 @@ for (const role of [
         await page
             .getByRole('button', { name: 'Wyloguj', exact: true })
             .click();
-        await expect(page).toHaveURL(/\/login$/);
+        await expect(page).toHaveURL(/\/logowanie$/);
     });
 }

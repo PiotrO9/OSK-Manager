@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Plus, Star } from 'lucide-vue-next';
 import StudentLessonRatingsDialog from '~/components/student/lesson-ratings/StudentLessonRatingsDialog.vue';
 
@@ -40,7 +41,7 @@ const myLessons = useMyLessonsPage();
                         as-child
                         class="h-10 shadow-sm shadow-sky-200/60"
                     >
-                        <NuxtLink to="/book-lesson">
+                        <NuxtLink :to="appPaths.bookLesson()">
                             <Plus class="size-4" aria-hidden="true" />
                             Dodaj jazde
                         </NuxtLink>

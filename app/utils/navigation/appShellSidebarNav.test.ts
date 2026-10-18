@@ -11,78 +11,91 @@ function navPaths(role?: string): string[] {
 
 describe('app shell sidebar navigation model', () => {
     it('builds base navigation for unauthenticated or unknown roles', () => {
-        expect(navPaths()).toEqual(['/', '/account']);
-        expect(navPaths('ADMINISTRATOR')).toEqual(['/', '/account']);
+        expect(navPaths()).toEqual(['/', '/konto']);
+        expect(navPaths('ADMINISTRATOR')).toEqual(['/', '/konto']);
     });
 
     it('builds student navigation in the expected order', () => {
         expect(navPaths(' student ')).toEqual([
             '/',
-            '/my-lessons',
-            '/book-lesson',
-            '/account',
-            '/my-payments',
-            '/my-courses',
+            '/moje-lekcje',
+            '/rezerwuj-jazde',
+            '/konto',
+            '/moje-oplaty',
+            '/moje-kursy',
         ]);
     });
 
     it('keeps the student-only courses link out of other roles', () => {
         expect(navPaths('INSTRUCTOR')).toEqual([
             '/',
-            '/my-lessons',
-            '/my-reviews',
-            '/events',
-            '/account',
+            '/moje-lekcje',
+            '/moje-opinie',
+            '/wydarzenia',
+            '/konto',
         ]);
-        expect(navPaths('MANAGER')).not.toContain('/my-courses');
-        expect(navPaths('ADMIN')).not.toContain('/my-courses');
+        expect(navPaths('MANAGER')).not.toContain('/moje-kursy');
+        expect(navPaths('ADMIN')).not.toContain('/moje-kursy');
     });
 
     it('builds manager navigation using the exact current role contract', () => {
         expect(navPaths('MANAGER')).toEqual([
             '/',
-            '/vehicles',
-            '/account',
-            '/manager/osk',
-            '/manager/accounts',
-            '/manager/security-logs',
-            '/manager/instructors',
-            '/manager/students',
-            '/manager/courses',
-            '/events',
-            '/manager/reviews',
-            '/manager/schedule',
+            '/pojazdy',
+            '/konto',
+            '/menedzer/osrodki',
+            '/menedzer/konta',
+            '/menedzer/logi-bezpieczenstwa',
+            '/menedzer/instruktorzy',
+            '/menedzer/kursanci',
+            '/menedzer/kursy',
+            '/wydarzenia',
+            '/menedzer/opinie',
+            '/menedzer/harmonogram',
         ]);
 
-        expect(navPaths(' manager ')).not.toContain('/vehicles');
-        expect(navPaths(' manager ')).not.toContain('/manager/security-logs');
+        expect(navPaths(' manager ')).not.toContain('/pojazdy');
+        expect(navPaths(' manager ')).not.toContain(
+            '/menedzer/logi-bezpieczenstwa',
+        );
     });
 
     it('builds admin management navigation without manager-only links', () => {
         expect(navPaths('ADMIN')).toEqual([
             '/',
-            '/account',
-            '/manager/instructors',
-            '/manager/students',
-            '/manager/courses',
-            '/events',
-            '/manager/reviews',
-            '/manager/schedule',
+            '/konto',
+            '/menedzer/instruktorzy',
+            '/menedzer/kursanci',
+            '/menedzer/kursy',
+            '/wydarzenia',
+            '/menedzer/opinie',
+            '/menedzer/harmonogram',
         ]);
-        expect(navPaths('ADMIN')).not.toContain('/manager/security-logs');
+        expect(navPaths('ADMIN')).not.toContain(
+            '/menedzer/logi-bezpieczenstwa',
+        );
     });
 
     it('detects active sidebar routes', () => {
         expect(isAppShellSidebarNavActive('/', '/')).toBe(true);
         expect(isAppShellSidebarNavActive('', '/')).toBe(true);
         expect(
-            isAppShellSidebarNavActive('/manager/osk/123', '/manager/osk'),
+            isAppShellSidebarNavActive(
+                '/menedzer/osrodki/123',
+                '/menedzer/osrodki',
+            ),
         ).toBe(true);
-        expect(isAppShellSidebarNavActive('/manager/osk', '/manager/osk')).toBe(
-            true,
-        );
         expect(
-            isAppShellSidebarNavActive('/manager/osk', '/manager/students'),
+            isAppShellSidebarNavActive(
+                '/menedzer/osrodki',
+                '/menedzer/osrodki',
+            ),
+        ).toBe(true);
+        expect(
+            isAppShellSidebarNavActive(
+                '/menedzer/osrodki',
+                '/menedzer/kursanci',
+            ),
         ).toBe(false);
     });
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     CalendarClock,
     CarFront,
@@ -71,7 +72,7 @@ const dateLabel = computed(() => {
                 </div>
             </div>
             <NuxtLink
-                to="/my-lessons"
+                :to="appPaths.myLessons()"
                 class="text-primary focus-visible:ring-primary inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-sm font-semibold hover:underline focus-visible:ring-2 focus-visible:outline-none"
             >
                 Wszystkie

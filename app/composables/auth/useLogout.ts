@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import { signalLogoutToOtherTabs } from '~/utils/auth/authLogoutSignal';
 
 export interface LogoutOptions {
@@ -12,7 +13,7 @@ export function useLogout() {
     async function handleLogout(options?: LogoutOptions) {
         if (isLoggingOut.value) return;
 
-        const redirectPath = options?.redirectTo || '/login';
+        const redirectPath = options?.redirectTo || appPaths.login();
 
         isLoggingOut.value = true;
         const succeeded = await logout({

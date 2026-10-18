@@ -1,3 +1,5 @@
+import { appPaths } from '~~/shared/routing/appPaths';
+import { canonicalizeAppUrl } from '~~/shared/routing/routePaths';
 import { z } from 'zod';
 import { isSafeRelativeRedirectPath } from '~/utils/auth/authReturnPath';
 
@@ -98,7 +100,7 @@ export function useLoginPage() {
                 result.data &&
                 isSafeRelativeRedirectPath(result.data)
             ) {
-                return result.data;
+                return canonicalizeAppUrl(result.data);
             }
 
             return defaultPath;
@@ -111,7 +113,7 @@ export function useLoginPage() {
             result.data &&
             isSafeRelativeRedirectPath(result.data)
         ) {
-            return result.data;
+            return canonicalizeAppUrl(result.data);
         }
 
         return defaultPath;
@@ -134,7 +136,7 @@ export function useLoginPage() {
             return '/';
         }
 
-        return '/manager/osk';
+        return appPaths.managerSchools();
     }
 
     /**
@@ -160,7 +162,7 @@ export function useLoginPage() {
             }
         }
 
-        router.replace({ path: '/login' });
+        router.replace({ path: appPaths.login() });
     });
 
     async function handleLogin() {

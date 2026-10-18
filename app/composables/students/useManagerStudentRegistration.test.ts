@@ -173,7 +173,7 @@ describe('useManagerStudentRegistration', () => {
         expect(options.currentPage.value).toBe(1);
         expect(options.loadCoursesForFilter).toHaveBeenCalledTimes(1);
         expect(options.loadStudents).toHaveBeenCalledTimes(1);
-        expect(navigateTo).toHaveBeenCalledWith('/manager/students', {
+        expect(navigateTo).toHaveBeenCalledWith('/menedzer/kursanci', {
             replace: true,
         });
     });

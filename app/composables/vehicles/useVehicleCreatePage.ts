@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { VehicleWritePayload } from '~/types/vehicles/vehicle';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
@@ -87,7 +88,7 @@ export function useVehicleCreatePage() {
                 variant: 'success',
             });
 
-            await navigateTo('/vehicles', { replace: true });
+            await navigateTo(appPaths.vehicles(), { replace: true });
         } catch (err) {
             const message = getApiFetchErrorMessage(
                 err,
@@ -123,6 +124,6 @@ export function useVehicleCreatePage() {
         loadSchoolContext,
         registrationNumberError: readonly(registrationNumberError),
         schoolContextError: readonly(schoolContextError),
-        vehiclesListRoute: '/vehicles',
+        vehiclesListRoute: appPaths.vehicles(),
     };
 }

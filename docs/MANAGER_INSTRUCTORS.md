@@ -4,19 +4,19 @@ Moduł listy i **szczegółów** instruktora w panelu managera oraz **edycji tyg
 
 ## Trasy (pages)
 
-| URL                                     | Plik                                                                                                            | Opis                                                                                                                                                                                                                                    |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/manager/instructors`                  | [`app/pages/manager/instructors/index.vue`](../app/pages/manager/instructors/index.vue)                         | Lista wg szkoły wybranej w stanie aplikacji; link do formularza tworzenia                                                                                                                                                               |
-| `/manager/instructors/new`              | [`app/pages/manager/instructors/new.vue`](../app/pages/manager/instructors/new.vue)                             | Osobny formularz rejestracji; zachowuje wybraną szkołę ze stanu aplikacji i nie używa `schoolId` w URL                                                                                                                                  |
-| `/manager/instructors/:id`              | [`app/pages/manager/instructors/[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue)               | Szczegóły; edycja w modalu [`ManagerInstructorEditDialog`](../app/components/manager/instructors/ManagerInstructorEditDialog.vue) (bez zamykania po kliknięciu w tło) — GET/PATCH/DELETE przez shared BFF client                        |
-| `/manager/instructors/:id/availability` | [`app/pages/manager/instructors/[id]/availability.vue`](../app/pages/manager/instructors/[id]/availability.vue) | Tygodniowa dostępność — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue), BFF `GET/PUT/DELETE` pod `/api/instructors/:id/availability/weekly`                     |
-| `/manager/instructors/:id/slots`        | [`app/pages/manager/instructors/[id]/slots.vue`](../app/pages/manager/instructors/[id]/slots.vue)               | Terminarz wolnych slotów (widok tygodniowy) — [`ManagerInstructorWeeklyCalendar`](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue), BFF `GET` pod `/api/instructors/:id/availability/slots?dateFrom=&dateTo=` |
+| URL                                        | Plik                                                                                                            | Opis                                                                                                                                                                                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/menedzer/instruktorzy`                   | [`app/pages/manager/instructors/index.vue`](../app/pages/manager/instructors/index.vue)                         | Lista wg szkoły wybranej w stanie aplikacji; link do formularza tworzenia                                                                                                                                                               |
+| `/menedzer/instruktorzy/dodaj`             | [`app/pages/manager/instructors/new.vue`](../app/pages/manager/instructors/new.vue)                             | Osobny formularz rejestracji; zachowuje wybraną szkołę ze stanu aplikacji i nie używa `schoolId` w URL                                                                                                                                  |
+| `/menedzer/instruktorzy/:id`               | [`app/pages/manager/instructors/[id]/index.vue`](../app/pages/manager/instructors/[id]/index.vue)               | Szczegóły; edycja w modalu [`ManagerInstructorEditDialog`](../app/components/manager/instructors/ManagerInstructorEditDialog.vue) (bez zamykania po kliknięciu w tło) — GET/PATCH/DELETE przez shared BFF client                        |
+| `/menedzer/instruktorzy/:id/dostepnosc`    | [`app/pages/manager/instructors/[id]/availability.vue`](../app/pages/manager/instructors/[id]/availability.vue) | Tygodniowa dostępność — [`ManagerInstructorAvailabilityEditor`](../app/components/manager/instructors/ManagerInstructorAvailabilityEditor.vue), BFF `GET/PUT/DELETE` pod `/api/instructors/:id/availability/weekly`                     |
+| `/menedzer/instruktorzy/:id/wolne-terminy` | [`app/pages/manager/instructors/[id]/slots.vue`](../app/pages/manager/instructors/[id]/slots.vue)               | Terminarz wolnych slotów (widok tygodniowy) — [`ManagerInstructorWeeklyCalendar`](../app/components/manager/instructors/ManagerInstructorWeeklyCalendar.vue), BFF `GET` pod `/api/instructors/:id/availability/slots?dateFrom=&dateTo=` |
 
 Layout: `app-shell`, middleware: [`manager`](../app/middleware/manager.ts).
 
 ## Dodawanie instruktora (W22)
 
-- Wejście: **Instruktorzy → Dodaj instruktora**, adres `/manager/instructors/new`; osobna strona, formularz na całą dostępną szerokość, przycisk tworzenia pod formularzem.
+- Wejście: **Instruktorzy → Dodaj instruktora**, adres `/menedzer/instruktorzy/dodaj`; osobna strona, formularz na całą dostępną szerokość, przycisk tworzenia pod formularzem.
 - Sekcje w `ManagerInstructorFormFields`: szkoła jazdy, dane konta, dane instruktora. Wymagana data urodzenia korzysta z `UiDatePicker` z wyborem miesiąca i roku; wysyłana jako `birthDate: YYYY-MM-DD`. Bez przyszłych dat i bez reguły minimalnego wieku. Walidacja odwołuje się do dnia w `Europe/Warsaw`.
 - `useManagerInstructorForm` odpowiada za draft, walidację pól opuszczonych lub wszystkich po submit, pierwsze błędne pole i porównanie ze stanem początkowym po załadowaniu szkół. Błędy znikają po poprawieniu wartości. Ponowienie pobierania szkół nie resetuje draftu.
 - `useManagerInstructorCreatePage` mapuje rozpoznane błędy API na e-mail/datę urodzenia; pozostałe pokazuje jako błąd operacji. `new.vue` przenosi fokus do błędnego pola. Pola oraz submit są zablokowane podczas zapisu.
@@ -56,7 +56,7 @@ Typ `WeeklyEntry`: [`instructorAvailability.ts`](../app/types/instructors/instru
 
 ### Autoryzacja (weekly + reszta modułu)
 
-- **Strony** (`/manager/instructors/...`): middleware [`manager`](../app/middleware/manager.ts) — tylko role **MANAGER** lub **ADMIN** (stan z `useAuthSession`; rola **DEMO** nie wchodzi w panel).
+- **Strony** (`/menedzer/instruktorzy/...`): middleware [`manager`](../app/middleware/manager.ts) — tylko role **MANAGER** lub **ADMIN** (stan z `useAuthSession`; rola **DEMO** nie wchodzi w panel).
 - **BFF bez upstreamu:** [`requireManagerFromCookie`](../server/utils/auth/requireManagerFromCookie.ts) — JWT w ciasteczku `access_token`, role **MANAGER** / **ADMIN**.
 - **BFF z upstreamem:** ten sam token w cookie; wspólny executor BFF (`executeBffAdapter`) wybiera wariant upstream, a proxy przekazuje **`Authorization: Bearer`** do backendu.
 
@@ -97,7 +97,7 @@ Lista w UI używa [`useInstructorsApi`](../app/composables/instructors/useInstru
 - Ładowanie, błąd (`role="alert"` / `status`), sukces — karta z polami; **400** i **404** z BFF mapowane na komunikat braku instruktora (spójnie z wymogiem MVP).
 - Szybka zmiana `:id` w URL: guard kolejności żądań (`fetchSeq`), żeby nie nadpisywać stanu starym wynikiem.
 - Edycja: przycisk „Edytuj” otwiera modal (`ManagerInstructorEditDialog`, `close-on-outside-click: false`); formularz wysyła tylko zmienione pola (`PATCH`); e‑mail tylko do odczytu; po udanym zapisie zamknięcie modala i odświeżenie danych z odpowiedzi (toast sukcesu); przy zmianie `:id` modal się zamyka.
-- Link **„Dostępność”** prowadzi do `/manager/instructors/:id/availability`. Sekcja **Tygodniowa dostępność** (podgląd graficzny) ładuje `GET …/weekly` osobno — po zmianach w edytorze odśwież stronę szczegółów, aby zobaczyć aktualny podgląd.
+- Link **„Dostępność”** prowadzi do `/menedzer/instruktorzy/:id/dostepnosc`. Sekcja **Tygodniowa dostępność** (podgląd graficzny) ładuje `GET …/weekly` osobno — po zmianach w edytorze odśwież stronę szczegółów, aby zobaczyć aktualny podgląd.
 
 ## Zachowanie UI (edycja dostępności)
 

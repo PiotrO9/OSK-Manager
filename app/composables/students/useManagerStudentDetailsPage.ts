@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     normalizeStudentDetail,
     type StudentDetail,
@@ -91,11 +92,11 @@ export function useManagerStudentDetailsPage() {
         const schoolIdForRoute = schoolId.value;
 
         if (!schoolIdForRoute) {
-            return '/manager/students';
+            return appPaths.managerStudents();
         }
 
         return {
-            path: '/manager/students',
+            path: appPaths.managerStudents(),
             query: { schoolId: schoolIdForRoute },
         };
     });

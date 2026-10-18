@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { CourseListItem } from '~/types/courses/course';
@@ -38,7 +39,7 @@ const emit = defineEmits<{
 const activeSchool = computed(() =>
     props.schools.find((school) => school.id === props.activeSchoolId),
 );
-const createTarget = '/manager/courses/new';
+const createTarget = appPaths.managerCourseNew();
 const isBusy = computed(() => props.isSchoolsLoading || props.isCoursesLoading);
 const unavailable = computed(
     () =>

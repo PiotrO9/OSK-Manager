@@ -39,7 +39,7 @@ async function loginAs(page: Page, role: AuditRole): Promise<string> {
         `Wymagane: ${account.emailKey} i ${account.passwordKey}.`,
     );
 
-    await page.goto('/login');
+    await page.goto('/logowanie');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByLabel('Adres e-mail').fill(email!);
     await page.getByLabel('Hasło', { exact: true }).fill(password!);
@@ -106,11 +106,11 @@ test.describe('@audit COM-05 dostęp do tras i API według roli', () => {
     }) => {
         const accessToken = await loginAs(page, 'STUDENT');
 
-        await assertDirectRouteBlocked(page, '/my-reviews', 'Moje opinie');
-        await assertDirectRouteBlocked(page, '/events', 'Moje wydarzenia');
+        await assertDirectRouteBlocked(page, '/moje-opinie', 'Moje opinie');
+        await assertDirectRouteBlocked(page, '/wydarzenia', 'Moje wydarzenia');
         await assertDirectRouteBlocked(
             page,
-            '/manager/instructors',
+            '/menedzer/instruktorzy',
             'Instruktorzy',
         );
 
@@ -130,12 +130,12 @@ test.describe('@audit COM-05 dostęp do tras i API według roli', () => {
 
         await assertDirectRouteBlocked(
             page,
-            '/book-lesson',
+            '/rezerwuj-jazde',
             'Rezerwacja jazdy',
         );
         await assertDirectRouteBlocked(
             page,
-            '/manager/schedule',
+            '/menedzer/harmonogram',
             'Harmonogram OSK',
         );
 
@@ -149,8 +149,8 @@ test.describe('@audit COM-05 dostęp do tras i API według roli', () => {
         const accessToken = await loginAs(page, 'MANAGER');
         const today = todayInWarsaw();
 
-        await assertDirectRouteBlocked(page, '/my-reviews', 'Moje opinie');
-        await assertDirectRouteBlocked(page, '/my-lessons', 'Moje lekcje');
+        await assertDirectRouteBlocked(page, '/moje-opinie', 'Moje opinie');
+        await assertDirectRouteBlocked(page, '/moje-lekcje', 'Moje lekcje');
 
         await assertForbiddenApi(page, accessToken, '/ratings/me');
         await assertForbiddenApi(

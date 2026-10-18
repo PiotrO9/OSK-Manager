@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { OfferedCourseType } from '~/types/schools/drivingSchool';
 import type {
@@ -200,7 +201,9 @@ async function submitForm() {
                 aria-live="polite"
             >
                 W tej szkole nie włączono żadnego rodzaju kursu. Przejdź do
-                <NuxtLink to="/manager/osk" class="font-medium underline"
+                <NuxtLink
+                    :to="appPaths.managerSchools()"
+                    class="font-medium underline"
                     >OSK</NuxtLink
                 >, wybierz „Edytuj” przy tej szkole i włącz rodzaje kursów.
             </p>
@@ -277,8 +280,8 @@ async function submitForm() {
             :is-editing="Boolean(props.initialCourse)"
             :cancel-to="
                 props.initialCourse
-                    ? `/manager/courses/${props.initialCourse.id}`
-                    : '/manager/courses'
+                    ? appPaths.managerCourse(props.initialCourse.id)
+                    : appPaths.managerCourses()
             "
         />
     </form>

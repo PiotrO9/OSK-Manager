@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 export interface ManagerInstructorScheduleRouteLike {
     params: {
         id?: unknown;
@@ -72,8 +73,8 @@ export function buildManagerInstructorScheduleBackHref(instructorId: string) {
     const id = instructorId.trim();
 
     if (!id) {
-        return '/manager/instructors';
+        return appPaths.managerInstructors();
     }
 
-    return `/manager/instructors/${id}`;
+    return appPaths.managerInstructor(id);
 }

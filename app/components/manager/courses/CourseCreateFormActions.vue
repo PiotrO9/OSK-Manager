@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 defineProps<{
     isSaving: boolean;
     isBlocked: boolean;
@@ -15,7 +16,7 @@ defineProps<{
             class="max-sm:[&>*]:w-full"
         >
             <UiButton as-child variant="outline" class="h-11 sm:h-10">
-                <NuxtLink :to="cancelTo ?? '/manager/courses'">
+                <NuxtLink :to="cancelTo ?? appPaths.managerCourses()">
                     Anuluj
                 </NuxtLink>
             </UiButton>

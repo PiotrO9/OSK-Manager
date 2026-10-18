@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { CourseCreatePayload } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
@@ -154,7 +155,7 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
             variant: 'success',
         });
 
-        await navigateTo('/manager/courses', { replace: true });
+        await navigateTo(appPaths.managerCourses(), { replace: true });
     } catch (err) {
         const message = getApiFetchErrorMessage(
             err,
@@ -267,7 +268,7 @@ async function handleCourseSubmit(payload: CourseCreatePayload) {
         </template>
 
         <NuxtLink
-            to="/manager/courses"
+            :to="appPaths.managerCourses()"
             class="text-primary inline-flex text-sm font-medium underline-offset-4 hover:underline"
         >
             Wróć do listy kursów

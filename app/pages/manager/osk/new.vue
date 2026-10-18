@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowLeft, Building2 } from 'lucide-vue-next';
 
 definePageMeta({
@@ -16,7 +17,7 @@ let redirectTimer: number | undefined;
 
 function goToOskList() {
     void navigateTo(
-        { path: '/manager/osk', query: { action: 'create' } },
+        { path: appPaths.managerSchools(), query: { action: 'create' } },
         { replace: true },
     );
 }
@@ -72,7 +73,7 @@ onBeforeUnmount(() => {
                     class="mt-6 justify-center"
                 >
                     <UiButton variant="outline" as-child>
-                        <NuxtLink to="/manager/osk">
+                        <NuxtLink :to="appPaths.managerSchools()">
                             <ArrowLeft class="size-4" aria-hidden="true" />
                             Powrót
                         </NuxtLink>

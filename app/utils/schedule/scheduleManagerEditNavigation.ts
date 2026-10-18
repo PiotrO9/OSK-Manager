@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
@@ -26,13 +27,13 @@ export function buildScheduleManagerItemEditRoute(
         isManagerLessonEditable(item.status, item.endTime)
     ) {
         return {
-            path: `/manager/lessons/${encodeURIComponent(item.id)}/edit`,
+            path: appPaths.managerLessonEdit(item.id),
         };
     }
 
     if (isScheduleInstructorEvent(item)) {
         return {
-            path: `/manager/events/${encodeURIComponent(item.id)}/edit`,
+            path: appPaths.managerEventEdit(item.id),
         };
     }
 

@@ -1,3 +1,5 @@
+import { routeDefinitions } from '~~/shared/routing/routeDefinitions';
+
 /** Nazwa cookie na bezpieczny względny URL powrotu po logowaniu (bez ujawniania w pasku adresu). */
 export const AUTH_RETURN_TO_COOKIE_NAME = 'auth_return_to';
 
@@ -28,9 +30,15 @@ export function isSafeRelativeRedirectPath(path: string): boolean {
 
         if (resolvedUrl.origin !== baseUrl.origin) return false;
 
+        const login = routeDefinitions.find((route) => route.key === 'login')!;
+        const pathname = resolvedUrl.pathname.toLowerCase();
+
         if (
-            resolvedUrl.pathname === '/login' ||
-            resolvedUrl.pathname.startsWith('/login/')
+            [login.en, login.pl].some(
+                (loginPath) =>
+                    pathname === loginPath ||
+                    pathname.startsWith(`${loginPath}/`),
+            )
         ) {
             return false;
         }

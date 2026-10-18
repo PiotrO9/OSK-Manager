@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 export type AppShellSidebarNavIconKey =
     | 'bookOpen'
     | 'building'
@@ -34,7 +35,7 @@ export function buildAppShellSidebarNavItems(
             tooltip: 'Pulpit',
         },
         {
-            to: '/account',
+            to: appPaths.account(),
             label: 'Konto',
             ariaLabel: 'Przejdź do mojego konta',
             iconKey: 'user',
@@ -46,7 +47,7 @@ export function buildAppShellSidebarNavItems(
 
     if (normalizedRole === 'STUDENT' || normalizedRole === 'INSTRUCTOR') {
         items.splice(1, 0, {
-            to: '/my-lessons',
+            to: appPaths.myLessons(),
             label: 'Moje lekcje',
             ariaLabel: 'Przejdź do terminarza moich lekcji',
             iconKey: 'calendarDays',
@@ -56,21 +57,21 @@ export function buildAppShellSidebarNavItems(
 
     if (normalizedRole === 'STUDENT') {
         items.splice(2, 0, {
-            to: '/book-lesson',
+            to: appPaths.bookLesson(),
             label: 'Rezerwuj jazdę',
             ariaLabel: 'Przejdź do rezerwacji jazdy',
             iconKey: 'calendarPlus',
             tooltip: 'Rezerwuj jazdę',
         });
         items.splice(4, 0, {
-            to: '/my-payments',
+            to: appPaths.myPayments(),
             label: 'Moje opłaty',
             ariaLabel: 'Przejdź do listy moich opłat',
             iconKey: 'creditCard',
             tooltip: 'Moje opłaty',
         });
         items.push({
-            to: '/my-courses',
+            to: appPaths.myCourses(),
             label: 'Moje kursy',
             ariaLabel: 'Przejdź do listy moich kursów',
             iconKey: 'bookOpen',
@@ -80,14 +81,14 @@ export function buildAppShellSidebarNavItems(
 
     if (normalizedRole === 'INSTRUCTOR') {
         items.splice(2, 0, {
-            to: '/my-reviews',
+            to: appPaths.myReviews(),
             label: 'Moje opinie',
             ariaLabel: 'Przejdz do opinii o moich lekcjach',
             iconKey: 'messageSquareText',
             tooltip: 'Moje opinie',
         });
         items.splice(3, 0, {
-            to: '/events',
+            to: appPaths.events(),
             label: 'Moje wydarzenia',
             ariaLabel: 'Przejdź do dziennego widoku moich wydarzeń',
             iconKey: 'calendarCheck',
@@ -97,7 +98,7 @@ export function buildAppShellSidebarNavItems(
 
     if (roleRaw === 'MANAGER') {
         items.splice(1, 0, {
-            to: '/vehicles',
+            to: appPaths.vehicles(),
             label: 'Pojazdy',
             ariaLabel: 'Przejdź do listy pojazdów',
             iconKey: 'car',
@@ -105,21 +106,21 @@ export function buildAppShellSidebarNavItems(
         });
 
         items.push({
-            to: '/manager/osk',
+            to: appPaths.managerSchools(),
             label: 'OSK',
             ariaLabel: 'Przejdź do zarządzania szkołami jazdy',
             iconKey: 'building',
             tooltip: 'Szkoły jazdy',
         });
         items.push({
-            to: '/manager/accounts',
+            to: appPaths.managerAccounts(),
             label: 'Konta osób',
             ariaLabel: 'Przejdź do zarządzania kontami osób w OSK',
             iconKey: 'users',
             tooltip: 'Konta osób',
         });
         items.push({
-            to: '/manager/security-logs',
+            to: appPaths.managerSecurityLogs(),
             label: 'Logi bezpieczeństwa',
             ariaLabel: 'Przejdź do logów bezpieczeństwa',
             iconKey: 'shieldAlert',
@@ -130,42 +131,42 @@ export function buildAppShellSidebarNavItems(
     if (roleRaw === 'MANAGER' || roleRaw === 'ADMIN') {
         items.push(
             {
-                to: '/manager/instructors',
+                to: appPaths.managerInstructors(),
                 label: 'Instruktorzy',
                 ariaLabel: 'Przejdź do zarządzania instruktorami',
                 iconKey: 'graduationCap',
                 tooltip: 'Instruktorzy',
             },
             {
-                to: '/manager/students',
+                to: appPaths.managerStudents(),
                 label: 'Kursanci',
                 ariaLabel: 'Przejdź do zarządzania kursantami',
                 iconKey: 'users',
                 tooltip: 'Kursanci',
             },
             {
-                to: '/manager/courses',
+                to: appPaths.managerCourses(),
                 label: 'Kursy',
                 ariaLabel: 'Przejdź do listy kursów',
                 iconKey: 'bookOpen',
                 tooltip: 'Kursy',
             },
             {
-                to: '/events',
+                to: appPaths.events(),
                 label: 'Wydarzenia',
                 ariaLabel: 'Przejdź do dziennego widoku wydarzeń instruktorów',
                 iconKey: 'calendarCheck',
                 tooltip: 'Wydarzenia',
             },
             {
-                to: '/manager/reviews',
+                to: appPaths.managerReviews(),
                 label: 'Opinie',
                 ariaLabel: 'Przejdz do listy opinii o lekcjach',
                 iconKey: 'messageSquareText',
                 tooltip: 'Opinie',
             },
             {
-                to: '/manager/schedule',
+                to: appPaths.managerSchedule(),
                 label: 'Harmonogram',
                 ariaLabel: 'Przejdź do tygodniowego harmonogramu lekcji szkoły',
                 iconKey: 'calendarClock',

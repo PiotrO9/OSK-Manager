@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import {
     BookOpen,
     CalendarDays,
@@ -130,7 +131,11 @@ function personInitials(person: LessonRatingPerson): string {
                         </span>
                         <NuxtLink
                             v-if="props.rating.lesson.course"
-                            :to="`/manager/courses/${props.rating.lesson.course.id}`"
+                            :to="
+                                appPaths.managerCourse(
+                                    props.rating.lesson.course.id,
+                                )
+                            "
                             class="text-foreground focus-visible:ring-ring truncate rounded-sm text-sm font-bold underline-offset-4 hover:underline focus-visible:ring-2 focus-visible:outline-none"
                         >
                             {{ props.rating.lesson.course.name }}
@@ -269,7 +274,9 @@ function personInitials(person: LessonRatingPerson): string {
                 <NuxtLink
                     v-if="props.rating.student"
                     :to="{
-                        path: `/manager/students/${props.rating.student.userId}`,
+                        path: appPaths.managerStudent(
+                            props.rating.student.userId,
+                        ),
                     }"
                     class="focus-visible:ring-ring w-fit max-w-full justify-self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
@@ -286,7 +293,9 @@ function personInitials(person: LessonRatingPerson): string {
 
                 <NuxtLink
                     :to="{
-                        path: `/manager/instructors/${props.rating.instructor.id}`,
+                        path: appPaths.managerInstructor(
+                            props.rating.instructor.id,
+                        ),
                     }"
                     class="focus-visible:ring-ring w-fit max-w-full justify-self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >

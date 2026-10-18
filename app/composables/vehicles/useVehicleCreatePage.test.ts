@@ -69,7 +69,7 @@ describe('useVehicleCreatePage', () => {
 
         expect(fetchDefaultDrivingSchool).toHaveBeenCalledOnce();
         expect(page.canSubmit.value).toBe(true);
-        expect(page.vehiclesListRoute).toBe('/vehicles');
+        expect(page.vehiclesListRoute).toBe('/pojazdy');
     });
 
     it('creates a vehicle in the default school and returns to the clean list URL', async () => {
@@ -89,7 +89,7 @@ describe('useVehicleCreatePage', () => {
             title: 'Pojazd został dodany',
             variant: 'success',
         });
-        expect(navigateTo).toHaveBeenCalledWith('/vehicles', {
+        expect(navigateTo).toHaveBeenCalledWith('/pojazdy', {
             replace: true,
         });
     });

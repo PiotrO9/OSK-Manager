@@ -107,7 +107,7 @@ for (const viewport of [
             }),
         );
 
-        await page.goto(`/manager/events/${eventId}/edit`);
+        await page.goto(`/menedzer/wydarzenia/${eventId}/edytuj`);
         await expect(
             page.getByRole('heading', { name: 'Edytuj wydarzenie' }),
         ).toBeVisible();
@@ -136,7 +136,7 @@ for (const viewport of [
             startTime: '2026-08-16T08:00:00.000Z',
             endTime: '2026-08-16T09:30:00.000Z',
         });
-        await page.goto(`/manager/events/${eventId}/edit`);
+        await page.goto(`/menedzer/wydarzenia/${eventId}/edytuj`);
         await expect(
             page.getByRole('button', { name: 'Godzina końca wydarzenia' }),
         ).toHaveText('11:30');

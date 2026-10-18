@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Plus } from 'lucide-vue-next';
 import type { VehicleStatusUpdateBody } from '~/composables/vehicles/useVehiclesApi';
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
@@ -44,7 +45,7 @@ const emit = defineEmits<{
     statusChange: [vehicle: Vehicle, payload: VehicleStatusUpdateBody];
 }>();
 
-const createVehicleTarget = '/vehicles/new';
+const createVehicleTarget = appPaths.vehicleNew();
 
 const displayText = displayVehicleText;
 </script>

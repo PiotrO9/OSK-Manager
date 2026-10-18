@@ -1,6 +1,19 @@
 import tailwindcss from '@tailwindcss/vite';
+import { localizePages } from './build/localizePages';
+
+const routeVariant = process.env.OSK_ROUTE_VARIANT || 'pl';
+
+if (routeVariant !== 'en' && routeVariant !== 'pl') {
+    throw new Error('OSK_ROUTE_VARIANT must be en or pl');
+}
 
 export default defineNuxtConfig({
+    hooks: {
+        'pages:extend': (pages) => localizePages(pages, routeVariant),
+    },
+    nitro: {
+        replace: { __OSK_ROUTE_VARIANT__: JSON.stringify(routeVariant) },
+    },
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
     modules: [
@@ -68,6 +81,7 @@ export default defineNuxtConfig({
         dirs: ['composables', 'composables/**', 'utils', 'utils/**'],
     },
     vite: {
+        define: { __OSK_ROUTE_VARIANT__: JSON.stringify(routeVariant) },
         plugins: [tailwindcss()],
     },
     postcss: {

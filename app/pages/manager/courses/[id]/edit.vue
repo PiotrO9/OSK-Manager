@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type {
     CourseCreatePayload,
     CourseDetail,
@@ -32,7 +33,7 @@ const saveError = ref<string | null>(null);
 const isSaved = ref(false);
 
 const courseId = computed(() => String(route.params.id ?? ''));
-const detailPath = computed(() => `/manager/courses/${courseId.value}`);
+const detailPath = computed(() => appPaths.managerCourse(courseId.value));
 const offeredCourseTypes = computed<OfferedCourseType[]>(() => {
     const offered = school.value?.offeredCourseTypes ?? [];
 

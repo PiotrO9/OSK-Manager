@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarDays, Plus } from 'lucide-vue-next';
 
 definePageMeta({
@@ -134,7 +135,7 @@ async function handleSubmitEventFromSheet(): Promise<void> {
         >
             <template #action>
                 <UiButton as-child variant="outline" size="sm">
-                    <NuxtLink to="/manager/instructors">
+                    <NuxtLink :to="appPaths.managerInstructors()">
                         Wróć do instruktorów
                     </NuxtLink>
                 </UiButton>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 defineProps<{
     title: string;
     description: string;
@@ -9,7 +10,7 @@ defineProps<{
     <ErrorState :title="title" :description="description">
         <template #action>
             <UiButton as-child variant="outline" class="bg-background">
-                <NuxtLink to="/manager/instructors">
+                <NuxtLink :to="appPaths.managerInstructors()">
                     Wróć do listy instruktorów
                 </NuxtLink>
             </UiButton>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Pencil, Star, Trash2 } from 'lucide-vue-next';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import { vehicleDeletionBlockMessage } from '~/utils/vehicles/deletion';
@@ -145,7 +146,7 @@ defineEmits<{
                             class="rounded-full"
                         >
                             <NuxtLink
-                                :to="`/vehicles/${vehicle.id}`"
+                                :to="appPaths.vehicle(vehicle.id)"
                                 :aria-label="`Szczegóły pojazdu ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                             >
                                 Szczegóły
@@ -158,7 +159,7 @@ defineEmits<{
                             class="size-9 rounded-full"
                         >
                             <NuxtLink
-                                :to="`/vehicles/${vehicle.id}/edit`"
+                                :to="appPaths.vehicleEdit(vehicle.id)"
                                 class="inline-flex size-9 items-center justify-center"
                                 :aria-label="`Edytuj pojazd ${displayVehicleText(vehicle.name)}, ${displayVehicleText(vehicle.registrationNumber)}`"
                             >

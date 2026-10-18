@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useVehicleCourseTypeOptions } from '~/composables/vehicles/useVehicleCourseTypeOptions';
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Save } from 'lucide-vue-next';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleEditPhotoSection from '~/components/vehicles/VehicleEditPhotoSection.vue';
@@ -114,7 +115,7 @@ onBeforeUnmount(() =>
         >
             <template #action>
                 <UiButton as-child variant="outline" class="bg-background">
-                    <NuxtLink to="/vehicles">Wróć do listy</NuxtLink>
+                    <NuxtLink :to="appPaths.vehicles()">Wróć do listy</NuxtLink>
                 </UiButton>
             </template>
         </ErrorState>

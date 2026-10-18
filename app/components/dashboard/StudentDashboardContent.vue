@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { CalendarPlus, CreditCard, GraduationCap } from 'lucide-vue-next';
 import DashboardNextLessonCard from './DashboardNextLessonCard.vue';
 import UserDrivingSchoolsSection from './UserDrivingSchoolsSection.vue';
@@ -92,7 +93,9 @@ const unpaidLabel = computed(() => {
                         variant="secondary"
                         class="min-h-11 w-full"
                     >
-                        <NuxtLink to="/book-lesson">Rezerwuj jazdę</NuxtLink>
+                        <NuxtLink :to="appPaths.bookLesson()"
+                            >Rezerwuj jazdę</NuxtLink
+                        >
                     </UiButton>
                 </div>
             </section>
@@ -100,7 +103,7 @@ const unpaidLabel = computed(() => {
 
         <div class="grid gap-3 sm:grid-cols-3">
             <NuxtLink
-                to="/my-courses"
+                :to="appPaths.myCourses()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <div class="flex items-center gap-2">
@@ -123,7 +126,7 @@ const unpaidLabel = computed(() => {
             </NuxtLink>
 
             <NuxtLink
-                to="/my-lessons"
+                :to="appPaths.myLessons()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <p class="text-muted-foreground text-sm font-semibold">
@@ -140,7 +143,7 @@ const unpaidLabel = computed(() => {
             </NuxtLink>
 
             <NuxtLink
-                to="/my-payments"
+                :to="appPaths.myPayments()"
                 class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             >
                 <div class="flex items-center gap-2">

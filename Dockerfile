@@ -8,7 +8,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
-RUN npm run build
+ARG OSK_ROUTE_VARIANT=pl
+RUN OSK_ROUTE_VARIANT=${OSK_ROUTE_VARIANT} npm run build
 
 FROM node:24-bookworm-slim AS runtime
 

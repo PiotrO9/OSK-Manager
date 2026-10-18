@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { showAuthPrivacyCurtain } from '~/utils/auth/authPrivacyCurtain';
 import { AUTH_LOGOUT_STORAGE_KEY } from '~/utils/auth/authLogoutSignal';
 import { isPublicAuthPath } from '~~/shared/utils/publicAuthPath';
@@ -25,7 +26,7 @@ function redirectAfterLogoutInOtherTab(event: StorageEvent): void {
     }
 
     showAuthPrivacyCurtain();
-    window.location.replace('/login');
+    window.location.replace(appPaths.login());
 }
 
 onMounted(() => {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowUpRight, Pencil, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerCourseCategoryBadge from './ManagerCourseCategoryBadge.vue';
@@ -47,7 +48,7 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                 <th scope="row" class="px-5 py-4 text-left font-normal">
                     <NuxtLink
                         :to="{
-                            path: `/manager/courses/${course.id}`,
+                            path: appPaths.managerCourse(course.id),
                         }"
                         class="text-foreground hover:text-primary dark:hover:text-primary-300 focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere underline-offset-4 outline-none hover:underline focus-visible:ring-2"
                         >{{ course.name }}</NuxtLink
@@ -87,7 +88,9 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                         <template #name>
                             <NuxtLink
                                 :to="{
-                                    path: `/manager/instructors/${course.instructor.id}`,
+                                    path: appPaths.managerInstructor(
+                                        course.instructor.id,
+                                    ),
                                 }"
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -114,7 +117,11 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                                     class="size-9"
                                 >
                                     <NuxtLink
-                                        :to="`/manager/courses/${course.id}/edit`"
+                                        :to="
+                                            appPaths.managerCourseEdit(
+                                                course.id,
+                                            )
+                                        "
                                         :aria-label="`Edytuj kurs: ${course.name}`"
                                     >
                                         <Pencil
@@ -137,7 +144,9 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                                 >
                                     <NuxtLink
                                         :to="{
-                                            path: `/manager/courses/${course.id}`,
+                                            path: appPaths.managerCourse(
+                                                course.id,
+                                            ),
                                         }"
                                         :aria-label="`Szczegóły kursu: ${course.name}`"
                                         ><ArrowUpRight

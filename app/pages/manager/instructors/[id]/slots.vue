@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowLeft } from 'lucide-vue-next';
 import type { CourseListItem } from '~/types/courses/course';
 import type { AvailabilitySlot } from '~/types/instructors/instructorSlots';
@@ -99,10 +100,10 @@ const backToDetailHref = computed(() => {
     const id = instructorId.value;
 
     if (!id) {
-        return '/manager/instructors';
+        return appPaths.managerInstructors();
     }
 
-    return `/manager/instructors/${id}`;
+    return appPaths.managerInstructor(id);
 });
 
 const pageTitle = computed(() =>

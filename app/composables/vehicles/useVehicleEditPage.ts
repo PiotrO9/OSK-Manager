@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type {
     VehicleDetail,
     VehicleWritePayload,
@@ -91,7 +92,7 @@ export function useVehicleEditPage() {
         () => isUpdateLoading.value || isPhotoUploadLoading.value,
     );
 
-    const vehiclesListRoute = '/vehicles';
+    const vehiclesListRoute = appPaths.vehicles();
 
     function revokePendingPhotoPreview() {
         if (pendingPhotoObjectUrl.value) {
@@ -213,7 +214,7 @@ export function useVehicleEditPage() {
         isSaveNavigationAllowed.value = true;
         addToast({ title: message, variant: 'success' });
 
-        await navigateTo('/vehicles');
+        await navigateTo(appPaths.vehicles());
     }
 
     async function handleVehicleSubmit(payload: VehicleWritePayload) {

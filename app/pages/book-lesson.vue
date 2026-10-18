@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 definePageMeta({
     layout: 'app-shell',
     middleware: ['student'],
@@ -45,7 +46,7 @@ const page = useStudentLessonBookingPage();
             >
                 <template #action>
                     <UiButton as-child variant="outline" size="sm">
-                        <NuxtLink to="/my-courses"
+                        <NuxtLink :to="appPaths.myCourses()"
                             >Przejdź do moich kursów</NuxtLink
                         >
                     </UiButton>

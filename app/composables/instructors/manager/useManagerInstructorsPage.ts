@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import { useManagerInstructorsAdvancedFilters } from './useManagerInstructorsAdvancedFilters';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { InstructorListItem } from '~/types/instructors/instructor';
@@ -180,7 +181,7 @@ export function useManagerInstructorsPage() {
     }
 
     function handleOpenCreatePage() {
-        void navigateTo('/manager/instructors/new');
+        void navigateTo(appPaths.managerInstructorNew());
     }
 
     return {

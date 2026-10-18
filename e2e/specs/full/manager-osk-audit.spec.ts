@@ -17,15 +17,15 @@ test('@audit MGR-OSK-01 menadżer tworzy pierwszą szkołę jazdy', async ({
     const city = 'Warszawa';
     const address = 'ul. Audytowa 1';
 
-    await page.goto('/manager/osk');
-    await expect(page).toHaveURL(/\/login$/);
+    await page.goto('/menedzer/osrodki');
+    await expect(page).toHaveURL(/\/logowanie$/);
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     await page.getByLabel('Adres e-mail').fill(email!);
     await page.getByLabel('Hasło', { exact: true }).fill(password!);
     await page.getByRole('button', { name: 'Zaloguj się' }).click();
 
-    await expect(page).toHaveURL(/\/manager\/osk$/);
+    await expect(page).toHaveURL(/\/menedzer\/osrodki$/);
     await expect(page.getByText('Dodaj pierwszą szkołę jazdy')).toBeVisible();
     await expect(page.getByText('0 szkół przypisanych do konta')).toBeVisible();
 
@@ -50,8 +50,8 @@ test('@audit MGR-OSK-01 menadżer tworzy pierwszą szkołę jazdy', async ({
         page.getByRole('row').filter({ hasText: schoolName }),
     ).toHaveCount(1);
 
-    await page.goto('/manager/courses');
-    await expect(page).toHaveURL(/\/manager\/courses$/);
+    await page.goto('/menedzer/kursy');
+    await expect(page).toHaveURL(/\/menedzer\/kursy$/);
     await expect(
         page.getByRole('region', { name: 'Baza kursów' }).getByText(schoolName),
     ).toBeVisible();
@@ -61,8 +61,8 @@ test('@audit MGR-OSK-01 menadżer tworzy pierwszą szkołę jazdy', async ({
             .getByRole('link', { name: 'Dodaj kurs' }),
     ).toBeVisible();
 
-    await page.goto('/manager/students');
-    await expect(page).toHaveURL(/\/manager\/students$/);
+    await page.goto('/menedzer/kursanci');
+    await expect(page).toHaveURL(/\/menedzer\/kursanci$/);
     await expect(
         page
             .getByRole('region', { name: 'Baza kursantów' })

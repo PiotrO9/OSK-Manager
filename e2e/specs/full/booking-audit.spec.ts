@@ -57,7 +57,7 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
     ).toBeGreaterThanOrEqual(0);
     expect(weekOffset).toBeLessThanOrEqual(1);
 
-    await page.goto('/login');
+    await page.goto('/logowanie');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByLabel('Adres e-mail').fill(email!);
     await page.getByLabel('Hasło', { exact: true }).fill(password!);
@@ -65,7 +65,7 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
     await expect(page).toHaveURL(/\/$/);
 
     await page.getByRole('link', { name: 'Rezerwuj jazdę' }).first().click();
-    await expect(page).toHaveURL(/\/book-lesson$/);
+    await expect(page).toHaveURL(/\/rezerwuj-jazde$/);
     await expect(page.locator('#student-booking-course')).toContainText(
         courseName,
     );
@@ -150,9 +150,9 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
         page.getByRole('button', { name: selectedSlotName!, exact: true }),
     ).toHaveCount(0);
 
-    await page.goto('/my-lessons');
+    await page.goto('/moje-lekcje');
     await page.locator('html[data-app-ready="true"]').waitFor();
-    await expect(page).toHaveURL(/\/my-lessons$/);
+    await expect(page).toHaveURL(/\/moje-lekcje$/);
 
     async function assertBookedLessonInList(): Promise<void> {
         const listTab = page.getByRole('tab', { name: 'Lista' });
@@ -188,7 +188,7 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
     await page.locator('html[data-app-ready="true"]').waitFor();
     await assertBookedLessonInList();
 
-    await page.goto('/book-lesson');
+    await page.goto('/rezerwuj-jazde');
     await page.locator('html[data-app-ready="true"]').waitFor();
 
     if (weekOffset === 1) {

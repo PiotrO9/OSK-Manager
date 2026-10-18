@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { Ref } from 'vue';
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 
@@ -47,10 +48,10 @@ export function useManagerEventEditActionLabels(
             input.loadedEvent.value?.instructorId?.trim();
 
         if (!instructorId) {
-            return '/manager/instructors';
+            return appPaths.managerInstructors();
         }
 
-        return `/manager/instructors/${instructorId}/schedule`;
+        return appPaths.managerInstructorSchedule(instructorId);
     });
 
     const deleteDialogTimeLabel = computed(() => {

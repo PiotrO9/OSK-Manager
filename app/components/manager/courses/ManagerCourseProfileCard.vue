@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { computed } from 'vue';
 import {
     BookOpen,
@@ -27,7 +28,7 @@ const instructorDetailsRoute = computed(() => {
     if (!instructorId) return null;
 
     return {
-        path: `/manager/instructors/${instructorId}`,
+        path: appPaths.managerInstructor(instructorId),
     };
 });
 </script>

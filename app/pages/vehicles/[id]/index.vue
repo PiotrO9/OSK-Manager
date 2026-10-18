@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import VehicleDetailsContent from '~/components/vehicles/VehicleDetailsContent.vue';
 import { useVehiclesApi } from '~/composables/vehicles/useVehiclesApi';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';
@@ -41,11 +42,11 @@ const vehicleTitle = computed(() => {
     return name && name.length > 0 ? name : 'Szczegóły pojazdu';
 });
 
-const backToListHref = '/vehicles';
+const backToListHref = appPaths.vehicles();
 const editHref = computed(() => {
     const id = vehicleId.value ?? '';
 
-    return `/vehicles/${id}/edit`;
+    return appPaths.vehicleEdit(id);
 });
 
 usePageMeta({

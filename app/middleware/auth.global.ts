@@ -1,3 +1,5 @@
+import { appPaths } from '~~/shared/routing/appPaths';
+import { isAppRoute } from '~~/shared/routing/routePaths';
 import { getCookie } from 'h3';
 import { useAuthReturnTo } from '~/composables/auth/useAuthReturnTo';
 import { useAuthSession } from '~/composables/auth/useAuthSession';
@@ -30,7 +32,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const hasSession = await checkSession();
 
-    if (to.path === '/login' && hasSession) {
+    if (isAppRoute(to.path, 'login') && hasSession) {
         const { consumeReturnTo } = useAuthReturnTo();
         const returnTarget = consumeReturnTo();
 
@@ -43,7 +45,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
             const result = await fetchDefaultDrivingSchool();
 
             if (result.outcome === 'not_configured') {
-                return navigateTo('/manager/osk', { replace: true });
+                return navigateTo(appPaths.managerSchools(), { replace: true });
             }
         }
 
@@ -59,5 +61,5 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     setReturnTo(redirectTarget);
 
-    return navigateTo('/login');
+    return navigateTo(appPaths.login());
 });

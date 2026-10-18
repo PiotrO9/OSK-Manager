@@ -14,7 +14,7 @@ const lesson: ScheduleLessonItem = {
 describe('schedule manager edit navigation', () => {
     it('opens lesson editing without schoolId in the URL', () => {
         expect(buildScheduleManagerItemEditRoute(lesson)).toEqual({
-            path: '/manager/lessons/lesson-1/edit',
+            path: '/menedzer/lekcje/lesson-1/edytuj',
         });
     });
 
@@ -26,7 +26,7 @@ describe('schedule manager edit navigation', () => {
                 kind: 'instructor_event',
             }),
         ).toEqual({
-            path: '/manager/events/event-1/edit',
+            path: '/menedzer/wydarzenia/event-1/edytuj',
         });
     });
 

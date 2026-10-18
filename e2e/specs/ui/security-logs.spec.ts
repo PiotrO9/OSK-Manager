@@ -167,8 +167,8 @@ test.describe('UI: dziennik bezpieczeństwa', () => {
         const guestContext = await browser.newContext();
         const guestPage = await guestContext.newPage();
 
-        await guestPage.goto(`${baseURL}/manager/security-logs`);
-        await expect(guestPage).toHaveURL(/\/login$/);
+        await guestPage.goto(`${baseURL}/menedzer/logi-bezpieczenstwa`);
+        await expect(guestPage).toHaveURL(/\/logowanie$/);
         await guestContext.close();
 
         const studentContext = await browser.newContext();
@@ -176,7 +176,7 @@ test.describe('UI: dziennik bezpieczeństwa', () => {
         await authenticateMockUser(studentContext, baseURL!, 'STUDENT');
         const studentPage = await studentContext.newPage();
 
-        await studentPage.goto(`${baseURL}/manager/security-logs`);
+        await studentPage.goto(`${baseURL}/menedzer/logi-bezpieczenstwa`);
         await expect(studentPage).toHaveURL(baseURL!);
         await expect(
             studentPage.getByRole('link', { name: /logów bezpieczeństwa/i }),
@@ -201,7 +201,7 @@ test.describe('UI: dziennik bezpieczeństwa', () => {
                 dialogWarnings.push(message.text());
         });
 
-        await page.goto('/manager/security-logs');
+        await page.goto('/menedzer/logi-bezpieczenstwa');
         await expect(
             page.getByRole('heading', { name: 'Logi bezpieczeństwa' }),
         ).toBeVisible();
@@ -268,7 +268,7 @@ test.describe('UI: dziennik bezpieczeństwa', () => {
         await authenticateMockUser(context, baseURL!, 'MANAGER');
         const listRequests = await mockSecurityLogApi(page);
 
-        await page.goto('/manager/security-logs');
+        await page.goto('/menedzer/logi-bezpieczenstwa');
         const mobileList = page.getByRole('list', {
             name: 'Zdarzenia bezpieczeństwa',
         });

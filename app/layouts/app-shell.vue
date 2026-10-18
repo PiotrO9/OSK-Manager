@@ -1,56 +1,57 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 const route = useRoute();
 
 function resolveShellHeading(): string {
-    if (route.path === '/manager/instructors/new') {
+    if (route.path === appPaths.managerInstructorNew()) {
         return 'Nowy instruktor';
     }
 
-    if (route.path === '/manager/osk/new') {
+    if (route.path === appPaths.managerSchoolNew()) {
         return 'Nowa szkoła';
     }
 
     const map: Record<string, string> = {
         '/': 'Pulpit',
-        '/design-system': 'Design system',
-        '/manager/osk': 'Szkoły jazdy',
-        '/account': 'Konto',
-        '/events': 'Wydarzenia',
+        [appPaths.designSystem()]: 'Design system',
+        [appPaths.managerSchools()]: 'Szkoły jazdy',
+        [appPaths.account()]: 'Konto',
+        [appPaths.events()]: 'Wydarzenia',
     };
 
-    if (route.path.startsWith('/manager/instructors')) {
+    if (route.path.startsWith(appPaths.managerInstructors())) {
         return 'Instruktorzy';
     }
 
-    if (route.path.startsWith('/manager/students')) {
+    if (route.path.startsWith(appPaths.managerStudents())) {
         return 'Kursanci';
     }
 
-    if (route.path.startsWith('/manager/courses')) {
+    if (route.path.startsWith(appPaths.managerCourses())) {
         return 'Kursy';
     }
 
-    if (route.path.startsWith('/manager/schedule')) {
+    if (route.path.startsWith(appPaths.managerSchedule())) {
         return 'Harmonogram lekcji';
     }
 
-    if (route.path === '/my-lessons') {
+    if (route.path === appPaths.myLessons()) {
         return 'Moje lekcje';
     }
 
-    if (route.path === '/my-courses') {
+    if (route.path === appPaths.myCourses()) {
         return 'Moje kursy';
     }
 
-    if (route.path === '/my-payments') {
+    if (route.path === appPaths.myPayments()) {
         return 'Moje opłaty';
     }
 
-    if (route.path === '/my-reviews') {
+    if (route.path === appPaths.myReviews()) {
         return 'Moje opinie';
     }
 
-    if (route.path === '/book-lesson') {
+    if (route.path === appPaths.bookLesson()) {
         return 'Rezerwuj jazdę';
     }
 

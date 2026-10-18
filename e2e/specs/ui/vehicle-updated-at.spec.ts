@@ -52,7 +52,7 @@ for (const viewport of [
         page,
     }) => {
         await page.setViewportSize(viewport);
-        await page.goto('/vehicles');
+        await page.goto('/pojazdy');
 
         const info = page.getByRole('button', {
             name: 'Informacja o aktualizacji danych pojazdu',
@@ -79,7 +79,7 @@ for (const viewport of [
         await page.keyboard.press('Escape');
         await expect(openMessage).toHaveCount(0);
 
-        await page.goto(`/vehicles/${vehicle.id}`);
+        await page.goto(`/pojazdy/${vehicle.id}`);
         await expect(info).toBeVisible();
         await info.click();
         await expect(openMessage).toBeVisible();
@@ -96,7 +96,7 @@ test.describe('touch input', () => {
     test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
 
     test('opens the update message by tapping the icon', async ({ page }) => {
-        await page.goto('/vehicles');
+        await page.goto('/pojazdy');
 
         await page
             .getByRole('button', {

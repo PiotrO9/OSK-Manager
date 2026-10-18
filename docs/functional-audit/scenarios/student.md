@@ -30,7 +30,7 @@ Nazwy zestawów są wymaganiami dla przyszłego seeda, nie nazwami istniejących
 - Wymagania: `REQ-STU-COURSES`.
 - Dane: `student-course-mix` z co najmniej jednym kursem aktywnym i ukończonym.
 - Kroki: (1) Otwórz `Moje kursy`. (2) Porównaj nazwy, typy, statusy oraz postęp i godziny z danymi zestawu. (3) Wybierz kolejno `Aktywne`, `Ukończone`, `Wszystkie`. (4) Odśwież stronę i użyj `Rezerwuj jazdę`.
-- Oczekiwane: lista zawiera wyłącznie przypisane kursy; liczniki i wyniki filtrów zgadzają się z listą; postęp jest pokazany na właściwym kursie; przycisk otwiera `/book-lesson`.
+- Oczekiwane: lista zawiera wyłącznie przypisane kursy; liczniki i wyniki filtrów zgadzają się z listą; postęp jest pokazany na właściwym kursie; przycisk otwiera `/rezerwuj-jazde`.
 - Powtórzenie: odczyt; bez resetu.
 - Źródła: `FE/OSK-Manager-FE/app/pages/my-courses.vue`, `app/composables/courses/useMyCoursesPage.ts`, `app/components/courses/MyCoursesList.vue` (ścieżki pod `FE/OSK-Manager-FE/`).
 

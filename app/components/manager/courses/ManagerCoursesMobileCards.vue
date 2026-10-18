@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { ArrowUpRight, Trash2 } from 'lucide-vue-next';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerCourseCategoryBadge from './ManagerCourseCategoryBadge.vue';
@@ -22,7 +23,7 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
         >
             <NuxtLink
                 :to="{
-                    path: `/manager/courses/${course.id}`,
+                    path: appPaths.managerCourse(course.id),
                 }"
                 class="hover:text-primary focus-visible:ring-ring block rounded-sm font-semibold wrap-anywhere outline-none hover:underline focus-visible:ring-2"
                 >{{ course.name }}</NuxtLink
@@ -65,7 +66,7 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                 <UiButton as-child variant="outline" class="h-11 flex-1 gap-2">
                     <NuxtLink
                         :to="{
-                            path: `/manager/courses/${course.id}`,
+                            path: appPaths.managerCourse(course.id),
                         }"
                         :aria-label="`Szczegóły kursu: ${course.name}`"
                         >Szczegóły kursu<ArrowUpRight
@@ -74,7 +75,7 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                     /></NuxtLink>
                 </UiButton>
                 <UiButton as-child variant="outline" class="h-11 flex-1">
-                    <NuxtLink :to="`/manager/courses/${course.id}/edit`"
+                    <NuxtLink :to="appPaths.managerCourseEdit(course.id)"
                         >Edytuj kurs</NuxtLink
                     >
                 </UiButton>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 import { theoryEligibleRowToStudentListItem } from '~/utils/events/theoryEventEligibleStudents';
 
@@ -286,7 +287,7 @@ const {
             :to="scheduleBackHref"
             :label="
                 typeof scheduleBackHref === 'object' &&
-                scheduleBackHref.path === '/events'
+                scheduleBackHref.path === appPaths.events()
                     ? 'Wróć do wydarzeń dnia'
                     : undefined
             "

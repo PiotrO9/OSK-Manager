@@ -1,3 +1,4 @@
+import { appPaths } from '~~/shared/routing/appPaths';
 import { useAuthSession } from '~/composables/auth/useAuthSession';
 import { showAuthPrivacyCurtain } from '~/utils/auth/authPrivacyCurtain';
 
@@ -65,7 +66,7 @@ export default defineNuxtPlugin({
                     showAuthPrivacyCurtain();
                     discardSession();
                     window.location.replace(
-                        result === 'changed' ? '/' : '/login',
+                        result === 'changed' ? '/' : appPaths.login(),
                     );
                 }
             } catch {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { StudentListRow } from '~/types/students/studentListView';
 import {
     formatStudentDisplayName,
@@ -33,7 +34,7 @@ const rows = computed<StudentListRow[]>(() =>
                 : dateFormatter.format(date),
             detailsTo: props.showDetailsLink
                 ? {
-                      path: `/manager/students/${student.userId}`,
+                      path: appPaths.managerStudent(student.userId),
                   }
                 : null,
         };

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 definePageMeta({
     layout: 'app-shell',
     middleware: ['manager'],
@@ -32,13 +33,15 @@ usePageMeta({
 const scheduleHref = computed(() => {
     const id = instructorId.value;
 
-    return id ? `/manager/instructors/${id}/schedule` : '/manager/instructors';
+    return id
+        ? appPaths.managerInstructorSchedule(id)
+        : appPaths.managerInstructors();
 });
 
 const backHref = computed(() => {
     const id = instructorId.value;
 
-    return id ? `/manager/instructors/${id}` : '/manager/instructors';
+    return id ? appPaths.managerInstructor(id) : appPaths.managerInstructors();
 });
 
 watch(

@@ -27,13 +27,13 @@ describe('events day navigation', () => {
                 '2099-09-27',
             ),
         ).toEqual({
-            path: '/manager/events/e-1/edit',
+            path: '/menedzer/wydarzenia/e-1/edytuj',
             query: { from: 'events', date: '2099-09-27' },
         });
         expect(
             buildEventsDayReturnRoute('events', '2099-09-27', 's-1'),
         ).toEqual({
-            path: '/events',
+            path: '/wydarzenia',
             query: { date: '2099-09-27', schoolId: 's-1' },
         });
     });
@@ -52,7 +52,7 @@ describe('events day navigation', () => {
                 '2099-09-27',
             ),
         ).toEqual({
-            path: '/manager/lessons/l-1/edit',
+            path: '/menedzer/lekcje/l-1/edytuj',
             query: { from: 'events', date: '2099-09-27' },
         });
         expect(

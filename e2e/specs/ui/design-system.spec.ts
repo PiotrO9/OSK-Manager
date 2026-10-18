@@ -60,7 +60,7 @@ test.describe('UI: design system', () => {
         await page.route('**/api/**/schedule**', (route) =>
             route.fulfill({ json: { success: true, data: [] } }),
         );
-        await page.goto('/manager/students/t01-student');
+        await page.goto('/menedzer/kursanci/t01-student');
         const edit = page.getByRole('button', {
             name: 'Edytuj notatkę o kursancie',
             exact: true,
@@ -110,7 +110,7 @@ test.describe('UI: design system', () => {
             )
                 domainRequests.push(request.url());
         });
-        await page.goto('/design-system?section=patterns');
+        await page.goto('/system-projektowy?section=patterns');
         await page.locator('html[data-app-ready="true"]').waitFor();
         const tabs = page.getByRole('tablist', {
             name: 'Wybierz wzorzec ekranu',
@@ -161,7 +161,7 @@ test.describe('UI: design system', () => {
     test('keeps data, loading, empty and error summaries consistent', async ({
         page,
     }) => {
-        await page.goto('/design-system#patterns');
+        await page.goto('/system-projektowy#patterns');
         await page.locator('html[data-app-ready="true"]').waitFor();
         await page
             .getByRole('tab', { name: 'Moje opłaty', exact: true })
@@ -194,7 +194,7 @@ test.describe('UI: design system', () => {
         page,
     }) => {
         await page.setViewportSize({ width: 390, height: 844 });
-        await page.goto('/design-system');
+        await page.goto('/system-projektowy');
         await page.locator('html[data-app-ready="true"]').waitFor();
         await page.keyboard.press('Tab');
         const skip = page.getByRole('link', { name: 'Przejdź do treści' });
@@ -262,7 +262,7 @@ test.describe('UI: design system', () => {
     test('shows each pattern at narrow widths and both themes with actual CSS colors', async ({
         page,
     }, testInfo) => {
-        await page.goto('/design-system');
+        await page.goto('/system-projektowy');
         await page.locator('html[data-app-ready="true"]').waitFor();
 
         for (const width of [1440, 1024, 768, 390]) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import type { ManagerAccount } from '~/types/manager/account';
 import type {
     AccountObligation,
@@ -43,19 +44,19 @@ function formatDate(value: string | null, dateOnly = false): string {
 }
 
 function target(item: AccountObligation): string {
-    if (item.type === 'LESSON') return `/manager/lessons/${item.id}/edit`;
+    if (item.type === 'LESSON') return appPaths.managerLessonEdit(item.id);
 
-    if (item.type === 'COURSE') return `/manager/courses/${item.id}`;
+    if (item.type === 'COURSE') return appPaths.managerCourse(item.id);
 
-    if (item.type === 'EVENT') return `/manager/events/${item.id}/edit`;
+    if (item.type === 'EVENT') return appPaths.managerEventEdit(item.id);
 
     if (item.type === 'PAYMENT')
-        return `/manager/students/${props.account.id}?tab=payments&paymentId=${encodeURIComponent(item.id)}`;
+        return `${appPaths.managerStudent(props.account.id)}?tab=payments&paymentId=${encodeURIComponent(item.id)}`;
 
     const instructorProfileId = props.account.instructorProfile?.id;
 
     return instructorProfileId
-        ? `/manager/instructors/${instructorProfileId}/schedule${item.startTime ? `?week=${encodeURIComponent(item.startTime)}` : ''}`
+        ? `${appPaths.managerInstructorSchedule(instructorProfileId)}${item.startTime ? `?week=${encodeURIComponent(item.startTime)}` : ''}`
         : '';
 }
 </script>

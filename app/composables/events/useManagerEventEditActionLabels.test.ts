@@ -55,7 +55,7 @@ describe('useManagerEventEditActionLabels', () => {
         });
 
         expect(labels.scheduleBackHref.value).toBe(
-            '/manager/instructors/instructor-2/schedule',
+            '/menedzer/instruktorzy/instructor-2/terminarz',
         );
     });
 
@@ -67,7 +67,7 @@ describe('useManagerEventEditActionLabels', () => {
         });
 
         expect(labels.scheduleBackHref.value).toBe(
-            '/manager/instructors/instructor-1/schedule',
+            '/menedzer/instruktorzy/instructor-1/terminarz',
         );
     });
 
@@ -77,7 +77,7 @@ describe('useManagerEventEditActionLabels', () => {
             loadedEvent: instructorEvent({ instructorId: '' }),
         });
 
-        expect(labels.scheduleBackHref.value).toBe('/manager/instructors');
+        expect(labels.scheduleBackHref.value).toBe('/menedzer/instruktorzy');
     });
 
     it('formats delete dialog time label', () => {
