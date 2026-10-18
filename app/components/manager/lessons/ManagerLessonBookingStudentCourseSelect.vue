@@ -28,71 +28,16 @@ const selectedCourseId = defineModel<string>('selectedCourseId', {
 </script>
 
 <template>
-    <div class="space-y-2">
-        <label
-            class="text-sm leading-none font-medium"
-            for="lesson-booking-student"
-        >
-            Kursant
-        </label>
-        <UiInput
-            v-model="studentSearch"
-            type="search"
-            aria-label="Szukaj kursanta"
-            placeholder="Szukaj po imieniu, nazwisku lub e-mailu"
-            :disabled="disabled"
-        />
-        <UiSelect
-            v-model="selectedStudentUserId"
-            :disabled="disabled || isLoadingStudents || students.length === 0"
-        >
-            <UiSelectTrigger
-                id="lesson-booking-student"
-                class="w-full"
-                aria-required="true"
-            >
-                <UiSelectValue placeholder="— Wybierz kursanta —" />
-            </UiSelectTrigger>
-            <UiSelectContent>
-                <UiSelectGroup>
-                    <UiSelectItem
-                        v-for="student in students"
-                        :key="student.userId"
-                        :value="student.userId"
-                    >
-                        {{ `${student.firstName} ${student.lastName}`.trim() }}
-                    </UiSelectItem>
-                </UiSelectGroup>
-            </UiSelectContent>
-        </UiSelect>
-        <p v-if="studentsError" class="text-destructive text-xs" role="alert">
-            {{ studentsError }}
-        </p>
-        <p
-            v-else-if="isLoadingStudents"
-            class="text-muted-foreground text-xs"
-            role="status"
-        >
-            Wczytywanie kursantów…
-        </p>
-        <p
-            v-else-if="students.length === 0"
-            class="text-muted-foreground text-xs"
-            role="status"
-        >
-            Brak kursantów z kursami, które może prowadzić dostępny instruktor.
-        </p>
-        <UiButton
-            v-if="hasMoreStudents"
-            type="button"
-            variant="outline"
-            size="sm"
-            :disabled="disabled || isLoadingStudents"
-            @click="emit('loadMore')"
-        >
-            Pokaż kolejnych kursantów
-        </UiButton>
-    </div>
+    <ManagerLessonBookingStudentPicker
+        v-model:search="studentSearch"
+        v-model:selected-student-user-id="selectedStudentUserId"
+        :students="students"
+        :disabled="disabled"
+        :is-loading="isLoadingStudents"
+        :error="studentsError"
+        :has-more="hasMoreStudents"
+        @load-more="emit('loadMore')"
+    />
 
     <p v-if="loadCoursesError" class="text-destructive text-sm" role="alert">
         {{ loadCoursesError }}

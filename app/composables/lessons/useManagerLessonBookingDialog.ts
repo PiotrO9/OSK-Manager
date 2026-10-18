@@ -176,6 +176,7 @@ export function useManagerLessonBookingDialog(
             if (!isOpen || !ctx) {
                 loadSequence += 1;
                 studentsLoadSequence += 1;
+                isLoadingStudents.value = false;
 
                 return;
             }
@@ -185,6 +186,7 @@ export function useManagerLessonBookingDialog(
             studentsLoadSequence += 1;
 
             students.value = [];
+            isLoadingStudents.value = false;
             resettingSearch = true;
             studentSearch.value = '';
             resettingSearch = false;
@@ -297,7 +299,10 @@ export function useManagerLessonBookingDialog(
             if (!options.open.value || resettingSearch) return;
 
             selectedStudentUserId.value = '';
+            selectedCourseId.value = '';
+            studentCourses.value = [];
             students.value = [];
+            isLoadingStudents.value = true;
             studentPage.value = 1;
             studentsLoadSequence += 1;
             const timer = setTimeout(() => void loadStudentsPage(1), 250);

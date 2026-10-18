@@ -247,12 +247,14 @@ describe('useManagerLessonBookingDialog', () => {
                 userId: 'student-1',
                 firstName: 'A',
                 lastName: 'B',
+                email: 'a@example.com',
                 courses: [studentCourse('course-1')],
             },
             {
                 userId: 'student-2',
                 firstName: 'C',
                 lastName: 'D',
+                email: 'c@example.com',
                 courses: [studentCourse('course-2')],
             },
         ];
@@ -266,6 +268,32 @@ describe('useManagerLessonBookingDialog', () => {
         expect(dialog.filteredCourses.value.map((item) => item.id)).toEqual([
             'course-2',
         ]);
+    });
+
+    it('clears the previous student and course before searching the next page of results', async () => {
+        const dialog = useManagerLessonBookingDialog({
+            open: ref(true),
+            slotCtx: ref(slotCtx()),
+            schoolCourses: ref([course()]),
+            emitBooked: vi.fn(),
+        });
+
+        dialog.selectedStudentUserId.value = 'student-1';
+        await nextTick();
+        dialog.selectedCourseId.value = 'course-1';
+
+        dialog.studentSearch.value = 'Nowak';
+
+        expect(dialog.selectedStudentUserId.value).toBe('');
+        expect(dialog.selectedCourseId.value).toBe('');
+        expect(dialog.isLoadingStudents.value).toBe(true);
+        await vi.waitFor(() =>
+            expect(fetchBookingOptions).toHaveBeenCalledWith(
+                expect.anything(),
+                'Nowak',
+                1,
+            ),
+        );
     });
 
     it('does not create a lesson when the preflight reports a conflict', async () => {
