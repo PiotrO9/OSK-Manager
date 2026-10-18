@@ -3,12 +3,13 @@ import { expect, test, type Page } from '@playwright/test';
 const instructorEmail = process.env.E2E_INSTRUCTOR_EMAIL;
 const instructorPassword = process.env.E2E_INSTRUCTOR_PASSWORD;
 
-async function loginAsInstructor(page: Page): Promise<void> {
+async function loginAsInstructor(page: Page, destination = '/'): Promise<void> {
     await page.goto('/login');
     await page.locator('html[data-app-ready="true"]').waitFor();
     await page.getByLabel('Adres e-mail').fill(instructorEmail!);
     await page.getByLabel('Hasło', { exact: true }).fill(instructorPassword!);
     await page.getByRole('button', { name: 'Zaloguj się' }).click();
+    await expect(page).toHaveURL((url) => url.pathname === destination);
 }
 
 test.describe('@audit sesja i nawigacja — school-operational', () => {
@@ -49,6 +50,7 @@ test.describe('@audit sesja i nawigacja — school-operational', () => {
     }) => {
         await loginAsInstructor(page);
         await page.goto('/my-lessons');
+        await page.locator('html[data-app-ready="true"]').waitFor();
         await expect(page).toHaveURL(/\/my-lessons$/);
         await expect(
             page.getByRole('heading', { name: 'Moje lekcje' }),
@@ -57,6 +59,7 @@ test.describe('@audit sesja i nawigacja — school-operational', () => {
         const secondPage = await context.newPage();
 
         await secondPage.goto('/my-lessons');
+        await secondPage.locator('html[data-app-ready="true"]').waitFor();
         await expect(
             secondPage.getByRole('heading', { name: 'Moje lekcje' }),
         ).toBeVisible();
@@ -75,9 +78,7 @@ test.describe('@audit sesja i nawigacja — school-operational', () => {
             page.getByRole('heading', { name: 'Moje lekcje' }),
         ).toHaveCount(0);
 
-        await loginAsInstructor(page);
-        await page.goto('/my-lessons');
-        await expect(page).toHaveURL(/\/my-lessons$/);
+        await loginAsInstructor(page, '/my-lessons');
     });
 
     test('COM-13 — formularz bez JavaScript nie ujawnia hasła w URL', async ({

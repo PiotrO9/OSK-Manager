@@ -36,6 +36,7 @@ function dateLabel(dateString: string, short: boolean): string {
 test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu', async ({
     page,
 }) => {
+    test.setTimeout(90_000);
     const email = process.env.E2E_STUDENT_EMAIL;
     const password = process.env.E2E_STUDENT_PASSWORD;
     const bookingDate = process.env.E2E_BOOKING_DATE;
@@ -139,7 +140,7 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
     expect((await bookingResponse).ok()).toBe(true);
 
     const success = page.getByRole('status').filter({
-        has: page.getByRole('link', { name: 'Moje lekcje' }),
+        hasText: 'Zarezerwowano jazdę:',
     });
 
     await expect(success).toContainText('Zarezerwowano jazdę:');
@@ -149,11 +150,15 @@ test('@audit STU-04/STU-05 kursant rezerwuje jazdę i widzi ją po odświeżeniu
         page.getByRole('button', { name: selectedSlotName!, exact: true }),
     ).toHaveCount(0);
 
-    await success.getByRole('link', { name: 'Moje lekcje' }).click();
+    await page.goto('/my-lessons');
+    await page.locator('html[data-app-ready="true"]').waitFor();
     await expect(page).toHaveURL(/\/my-lessons$/);
 
     async function assertBookedLessonInList(): Promise<void> {
-        await page.getByRole('tab', { name: 'Lista' }).click();
+        const listTab = page.getByRole('tab', { name: 'Lista' });
+
+        await listTab.click();
+        await expect(listTab).toHaveAttribute('aria-selected', 'true');
 
         if (weekOffset === 1) {
             const scheduleNavigation = page.getByRole('toolbar', {

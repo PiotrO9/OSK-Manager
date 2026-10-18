@@ -17,7 +17,7 @@ export default defineConfig({
     fullyParallel: false,
     forbidOnly: Boolean(process.env.CI),
     retries: process.env.CI ? 1 : 0,
-    workers: e2eMode === 'upstream' ? 1 : undefined,
+    workers: e2eMode === 'upstream' ? 1 : 2,
     reporter: [
         ['line'],
         [

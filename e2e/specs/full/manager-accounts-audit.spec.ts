@@ -61,6 +61,34 @@ async function selectAccount(page: Page, name: string) {
     await expect(page.getByRole('heading', { name })).toBeVisible();
 }
 
+async function confirmAccountAction(
+    page: Page,
+    action: 'Zmień e-mail' | 'Zablokuj konto' | 'Archiwizuj',
+    confirm: boolean,
+) {
+    const title = {
+        'Zmień e-mail': 'Zmienić adres e-mail?',
+        'Zablokuj konto': 'Zablokować konto?',
+        Archiwizuj: 'Zarchiwizować konto?',
+    }[action];
+
+    await page.getByRole('button', { name: action, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: title });
+
+    await expect(dialog).toBeVisible();
+
+    if (confirm) {
+        const button = dialog.getByRole('button', { name: action });
+
+        await expect(button).toBeEnabled({ timeout: 10_000 });
+        await button.click();
+    } else {
+        await dialog.getByRole('button', { name: 'Anuluj' }).click();
+    }
+
+    await expect(dialog).toBeHidden();
+}
+
 async function accountRequest(
     page: Page,
     token: string,
@@ -335,8 +363,7 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
                 .then((body: { total: number }) => body.total);
 
             await page.getByLabel('Adres e-mail').fill(changedStudentEmail);
-            page.once('dialog', (dialog) => dialog.accept());
-            await page.getByRole('button', { name: 'Zmień e-mail' }).click();
+            await confirmAccountAction(page, 'Zmień e-mail', true);
             await expect(
                 page.getByRole('status').filter({
                     hasText:
@@ -402,16 +429,14 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
             await login(page, managerEmail, managerPassword);
             await openAccounts(page);
             await selectAccount(page, 'Jan Instruktor');
-            page.once('dialog', (dialog) => dialog.dismiss());
-            await page.getByRole('button', { name: 'Zablokuj konto' }).click();
+            await confirmAccountAction(page, 'Zablokuj konto', false);
             await page.reload();
             await selectAccount(page, 'Jan Instruktor');
             await expect(
                 page.getByText('Aktywne', { exact: true }),
             ).toBeVisible();
 
-            page.once('dialog', (dialog) => dialog.accept());
-            await page.getByRole('button', { name: 'Zablokuj konto' }).click();
+            await confirmAccountAction(page, 'Zablokuj konto', true);
             await expect(
                 page
                     .locator('header')
@@ -557,8 +582,7 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
             }
 
             await selectAccount(page, 'Jan Instruktor');
-            page.once('dialog', (dialog) => dialog.accept());
-            await page.getByRole('button', { name: 'Zablokuj konto' }).click();
+            await confirmAccountAction(page, 'Zablokuj konto', true);
             await expect(
                 page.getByRole('button', { name: 'Wyślij reset hasła' }),
             ).toBeDisabled();
@@ -590,21 +614,18 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
         await login(page, managerEmail, managerPassword);
         await openAccounts(page);
         await selectAccount(page, 'Kamil Kursant');
-        page.once('dialog', (dialog) => dialog.dismiss());
-        await page.getByRole('button', { name: 'Archiwizuj' }).click();
+        await confirmAccountAction(page, 'Archiwizuj', false);
         await expect(page.getByText('Aktywne', { exact: true })).toBeVisible();
-        page.once('dialog', (dialog) => dialog.accept());
-        await page.getByRole('button', { name: 'Archiwizuj' }).click();
+        await confirmAccountAction(page, 'Archiwizuj', true);
         await expect(page.getByRole('alert')).toContainText(
-            'active school obligations',
+            'Konto ma aktywne zobowiązania w szkole.',
         );
         await expect(page.getByText('Aktywne', { exact: true })).toBeVisible();
 
         await selectAccount(page, 'Jan Instruktor');
-        page.once('dialog', (dialog) => dialog.accept());
-        await page.getByRole('button', { name: 'Archiwizuj' }).click();
+        await confirmAccountAction(page, 'Archiwizuj', true);
         await expect(page.getByRole('alert')).toContainText(
-            'active school obligations',
+            'Konto ma aktywne zobowiązania w szkole.',
         );
 
         const studentContext = await browser.newContext({
@@ -619,8 +640,7 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
 
         try {
             await selectAccount(page, 'Oliwia Testowa');
-            page.once('dialog', (dialog) => dialog.accept());
-            await page.getByRole('button', { name: 'Archiwizuj' }).click();
+            await confirmAccountAction(page, 'Archiwizuj', true);
             await expect(
                 page.getByText('Zarchiwizowane', { exact: true }),
             ).toBeVisible();
@@ -660,8 +680,7 @@ test.describe.serial('@audit MGR-ACC-01–05 konta menadżera', () => {
 
         try {
             await selectAccount(page, 'Filip Wolny');
-            page.once('dialog', (dialog) => dialog.accept());
-            await page.getByRole('button', { name: 'Archiwizuj' }).click();
+            await confirmAccountAction(page, 'Archiwizuj', true);
             await expect(
                 page.getByText('Zarchiwizowane', { exact: true }),
             ).toBeVisible();

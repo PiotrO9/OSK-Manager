@@ -33,8 +33,17 @@ test('@audit XR-04 i MGR-PAY-01 — opłata menadżera jest widoczna dla kursant
         'Wymagany świeży fixture payment-ready, E2E_AUDIT_FIXTURE=payment-ready oraz dane logowania menadżera i kursanta.',
     );
 
-    const initialDueDate = `${new Date().getFullYear() + 1}-06-15`;
-    const updatedDueDate = `${new Date().getFullYear() + 1}-06-20`;
+    const initialDueDate = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Europe/Warsaw',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(new Date());
+    const nextDay = new Date(`${initialDueDate}T12:00:00Z`);
+
+    nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
+    const updatedDueDate = nextDay.toISOString().slice(0, 10);
 
     await logIn(page, managerEmail!, managerPassword!);
     await page.goto('/manager/students');
@@ -62,9 +71,11 @@ test('@audit XR-04 i MGR-PAY-01 — opłata menadżera jest widoczna dla kursant
         name: 'Plan płatności',
     });
 
+    await planSelect.click();
     await expect(
-        planSelect.locator('option', { hasText: courseName }),
+        managerDetails.getByRole('option', { name: courseName }),
     ).toHaveCount(1);
+    await managerDetails.getByRole('option', { name: courseName }).click();
 
     const paymentRow = section
         .locator('table tbody tr')
@@ -74,10 +85,13 @@ test('@audit XR-04 i MGR-PAY-01 — opłata menadżera jest widoczna dla kursant
 
     const createForm = section.locator('form');
 
-    await planSelect.selectOption({ label: courseName });
     await createForm.getByPlaceholder('Kwota').fill(amount);
-    await createForm.getByLabel('Termin płatności').fill(initialDueDate);
-    await createForm.getByPlaceholder('Metoda').fill('Przelew');
+    await createForm.getByLabel('Termin płatności').click();
+    await managerDetails.getByRole('button', { name: 'Dzisiaj' }).click();
+    await createForm
+        .getByRole('combobox', { name: 'Metoda płatności' })
+        .click();
+    await managerDetails.getByRole('option', { name: 'Przelew' }).click();
     await createForm.getByRole('button', { name: 'Dodaj' }).click();
     await expect(paymentRow).toHaveCount(1);
     await expect(paymentRow).toContainText('Do opłacenia');
