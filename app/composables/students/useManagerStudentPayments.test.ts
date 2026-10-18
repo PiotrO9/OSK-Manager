@@ -26,15 +26,14 @@ describe('useManagerStudentPayments', () => {
         installNuxtStudentPaymentsGlobals();
     });
 
-    it('skips loading payments without user id or school id', async () => {
+    it('skips loading payments without user id', async () => {
         const { useManagerStudentPayments } =
             await import('./useManagerStudentPayments');
         const payments = useManagerStudentPayments({
-            schoolId: ref(''),
             getUserId: () => 'student-user-1',
         });
 
-        await payments.loadStudentPayments('student-user-1');
+        await payments.loadStudentPayments('');
 
         expect(payments.payments.value).toEqual([]);
         expect(payments.paymentsLoading.value).toBe(false);
@@ -78,22 +77,18 @@ describe('useManagerStudentPayments', () => {
         const { useManagerStudentPayments } =
             await import('./useManagerStudentPayments');
         const payments = useManagerStudentPayments({
-            schoolId: ref('school-1'),
             getUserId: () => 'student-user-1',
         });
 
         await payments.loadStudentPayments('student-user-1');
 
-        expect(fetchStudentPayments).toHaveBeenCalledWith(
-            'student-user-1',
-            'school-1',
-        );
+        expect(fetchStudentPayments).toHaveBeenCalledWith('student-user-1');
         expect(payments.payments.value).toHaveLength(1);
         expect(payments.paymentPlans.value).toHaveLength(1);
         expect(payments.paymentsOverviewLabel.value).toBe('1');
     });
 
-    it('retains plans when the student has no payments and clears stale plans on school change', async () => {
+    it('retains plans when the student has no payments and clears stale plans on reload failure', async () => {
         fetchStudentPayments
             .mockResolvedValueOnce({
                 payments: [],
@@ -117,9 +112,7 @@ describe('useManagerStudentPayments', () => {
             .mockRejectedValueOnce(new Error('School unavailable'));
         const { useManagerStudentPayments } =
             await import('./useManagerStudentPayments');
-        const schoolId = ref('school-1');
         const payments = useManagerStudentPayments({
-            schoolId,
             getUserId: () => 'student-user-1',
         });
 
@@ -127,7 +120,6 @@ describe('useManagerStudentPayments', () => {
         expect(payments.payments.value).toEqual([]);
         expect(payments.paymentPlans.value).toHaveLength(1);
 
-        schoolId.value = 'school-2';
         await payments.loadStudentPayments('student-user-1');
         expect(payments.paymentPlans.value).toEqual([]);
     });
@@ -136,7 +128,6 @@ describe('useManagerStudentPayments', () => {
         const { useManagerStudentPayments } =
             await import('./useManagerStudentPayments');
         const payments = useManagerStudentPayments({
-            schoolId: ref('school-1'),
             getUserId: () => 'student-user-1',
         });
         const payload = {
@@ -152,7 +143,6 @@ describe('useManagerStudentPayments', () => {
 
         expect(createStudentPayment).toHaveBeenCalledWith(
             'student-user-1',
-            'school-1',
             payload,
         );
         expect(payments.paymentCreateSuccessVersion.value).toBe(0);
@@ -184,5 +174,43 @@ describe('useManagerStudentPayments', () => {
             method: 'cash',
         });
         expect(payments.paymentCreateSuccessVersion.value).toBe(1);
+    });
+
+    it('ignores a mutation response after navigation to another student', async () => {
+        const { useManagerStudentPayments } =
+            await import('./useManagerStudentPayments');
+        let userId = 'student-a';
+        let finish!: (value: unknown) => void;
+
+        createStudentPayment.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    finish = resolve;
+                }),
+        );
+        const model = useManagerStudentPayments({ getUserId: () => userId });
+        const pending = model.handleCreateStudentPayment({
+            paymentPlanId: 'plan-a',
+            amount: '10.00',
+            dueDate: null,
+            method: null,
+        });
+
+        userId = 'student-b';
+        fetchStudentPayments.mockResolvedValueOnce({
+            payments: [],
+            paymentPlans: [],
+            summary: { paidAmount: '0.00' },
+        });
+        await model.loadStudentPayments(userId);
+        finish({
+            payments: [{ id: 'old-payment' }],
+            paymentPlans: [],
+            summary: { paidAmount: '10.00' },
+        });
+        await pending;
+        expect(model.payments.value).toEqual([]);
+        expect(model.paymentCreateSuccessVersion.value).toBe(0);
+        expect(model.paymentsSaving.value).toBe(false);
     });
 });

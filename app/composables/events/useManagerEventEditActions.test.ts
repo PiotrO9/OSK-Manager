@@ -136,10 +136,9 @@ describe('useManagerEventEditActions', () => {
             description: 'Wydarzenie zostało zaktualizowane.',
             variant: 'success',
         });
-        expect(navigateTo).toHaveBeenCalledWith({
-            path: '/manager/instructors/instructor-1/schedule',
-            query: { schoolId: 'school-1' },
-        });
+        expect(navigateTo).toHaveBeenCalledWith(
+            '/manager/instructors/instructor-1/schedule',
+        );
     });
 
     it('ignores submit while event save is already pending', async () => {
@@ -173,10 +172,9 @@ describe('useManagerEventEditActions', () => {
             variant: 'success',
         });
         expect(actions.deleteDialogOpen.value).toBe(false);
-        expect(navigateTo).toHaveBeenCalledWith({
-            path: '/manager/instructors/instructor-1/schedule',
-            query: { schoolId: 'school-1' },
-        });
+        expect(navigateTo).toHaveBeenCalledWith(
+            '/manager/instructors/instructor-1/schedule',
+        );
     });
 
     it('shows an error toast without hiding the delete dialog when delete fails', async () => {

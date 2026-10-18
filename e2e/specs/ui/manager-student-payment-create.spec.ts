@@ -63,7 +63,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         }),
     );
 
-    await page.route(`**/api/students/${studentUserId}/payments?*`, (route) =>
+    await page.route(`**/api/students/${studentUserId}/payments`, (route) =>
         route.fulfill({
             json: {
                 success: true,
@@ -122,7 +122,6 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
             }
 
             expect(route.request().postDataJSON()).toEqual({
-                schoolId,
                 paymentPlanId,
                 amount: '150.50',
                 dueDate: dueDateIso,
@@ -172,7 +171,16 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         },
     );
 
-    await page.goto(`/manager/students/${studentUserId}`);
+    await page.goto(
+        `/manager/students/${studentUserId}?schoolId=stale&tab=payments#details`,
+    );
+    await page.locator('html[data-app-ready="true"]').waitFor();
+    await expect(page).toHaveURL(
+        (url) =>
+            !url.searchParams.has('schoolId') &&
+            url.searchParams.get('tab') === 'payments' &&
+            url.hash === '#details',
+    );
     await expect(
         page.getByRole('heading', { name: 'Anna Kowalska' }),
     ).toBeVisible({ timeout: 30_000 });

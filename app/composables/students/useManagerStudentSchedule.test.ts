@@ -33,12 +33,11 @@ describe('useManagerStudentSchedule', () => {
         installNuxtStudentScheduleGlobals();
     });
 
-    it('skips loading schedule without student or school id', async () => {
+    it('skips loading schedule without student', async () => {
         const { useManagerStudentSchedule } =
             await import('./useManagerStudentSchedule');
         const schedule = useManagerStudentSchedule({
             student: ref(null),
-            schoolId: ref('school-1'),
         });
 
         await schedule.loadStudentSchedule();
@@ -59,7 +58,6 @@ describe('useManagerStudentSchedule', () => {
             await import('./useManagerStudentSchedule');
         const schedule = useManagerStudentSchedule({
             student: ref(student()),
-            schoolId: ref('school-1'),
         });
 
         await schedule.loadStudentSchedule();
@@ -68,7 +66,6 @@ describe('useManagerStudentSchedule', () => {
             'student-profile-1',
             schedule.studentScheduleRange.value.dateFrom,
             schedule.studentScheduleRange.value.dateTo,
-            'school-1',
         );
         expect(schedule.scheduleItems.value).toHaveLength(1);
         expect(schedule.scheduleOverviewLabel.value).toBe('1');

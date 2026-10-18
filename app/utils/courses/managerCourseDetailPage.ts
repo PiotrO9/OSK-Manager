@@ -1,4 +1,3 @@
-import type { LocationQueryValue } from 'vue-router';
 import {
     formatCourseKindLabel,
     type CourseDetail,
@@ -20,18 +19,6 @@ export function getRouteIdString(rawId: unknown): string {
     }
 
     return '';
-}
-
-export function readSchoolIdFromQuery(
-    raw: LocationQueryValue | LocationQueryValue[] | undefined,
-): string {
-    const s = Array.isArray(raw) ? raw[0] : raw;
-
-    if (typeof s !== 'string') {
-        return '';
-    }
-
-    return s.trim();
 }
 
 export function resolveCourseDetailError(err: unknown): string {

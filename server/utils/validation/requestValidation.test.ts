@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { H3Event } from 'h3';
 import {
     isUuid,
+    parseOptionalUuidQuery,
+    parseOptionalSchoolIdFromBody,
     parseSchoolIdFromBody,
     parsePositiveIntQuery,
     parseRequiredRouterParam,
@@ -161,5 +163,21 @@ describe('requestValidation', () => {
                 'theoryStartDate',
             ),
         ).toBe('2026-06-25');
+    });
+
+    it('distinguishes an omitted scope from malformed legacy query/body scopes', () => {
+        expect(parseOptionalUuidQuery({})).toBeUndefined();
+        expect(parseOptionalSchoolIdFromBody({})).toBeUndefined();
+        expect(parseOptionalUuidQuery({ schoolId: VALID_UUID })).toBe(
+            VALID_UUID,
+        );
+        expect(parseOptionalSchoolIdFromBody({ schoolId: VALID_UUID })).toBe(
+            VALID_UUID,
+        );
+
+        for (const schoolId of ['', null, 'invalid', 42]) {
+            expect(() => parseOptionalUuidQuery({ schoolId })).toThrow();
+            expect(() => parseOptionalSchoolIdFromBody({ schoolId })).toThrow();
+        }
     });
 });

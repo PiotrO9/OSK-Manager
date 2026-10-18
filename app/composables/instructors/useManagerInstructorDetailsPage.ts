@@ -74,7 +74,7 @@ export function useManagerInstructorDetailsPage() {
             resetEditState();
             isDeleteDialogOpen.value = false;
             await Promise.all([loadInstructor(id), loadCourseTypes()]);
-            await loadRatingSummary(id, instructor.value?.schoolId ?? '');
+            await loadRatingSummary(id);
         },
         { immediate: true },
     );

@@ -13,7 +13,7 @@ import {
 } from '~/types/students/student';
 
 export interface StudentsListQuery {
-    schoolId: string;
+    schoolId?: string;
     page: number;
     limit: number;
     courseId?: string;
@@ -29,7 +29,7 @@ export interface AssignStudentToCourseParams {
 
 export interface StudentProcessStatusParams {
     userId: string;
-    schoolId: string;
+    schoolId?: string;
 }
 
 export interface UpdateStudentNotesParams {
@@ -70,7 +70,9 @@ export function normalizeCourseParticipant(
 
 export function buildStudentsListPath(params: StudentsListQuery): string {
     const qs = new URLSearchParams({
-        schoolId: params.schoolId.trim(),
+        ...(params.schoolId?.trim()
+            ? { schoolId: params.schoolId.trim() }
+            : {}),
         page: String(params.page),
         limit: String(params.limit),
     });
@@ -105,9 +107,11 @@ export function buildStudentCoursePath(userId: string): string {
 export function buildStudentProcessStatusPath(
     params: StudentProcessStatusParams,
 ): string {
-    const qs = new URLSearchParams({ schoolId: params.schoolId.trim() });
+    const qs = params.schoolId
+        ? new URLSearchParams({ schoolId: params.schoolId.trim() }).toString()
+        : '';
 
-    return `${buildStudentPath(params.userId)}/process-status?${qs.toString()}`;
+    return `${buildStudentPath(params.userId)}/process-status${qs ? `?${qs}` : ''}`;
 }
 
 export function readNotesFromPatchData(

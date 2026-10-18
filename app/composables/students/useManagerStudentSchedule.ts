@@ -10,7 +10,6 @@ import { getStudentCountOverviewLabel } from '~/utils/students/studentDetailsPag
 
 export function useManagerStudentSchedule(input: {
     student: Ref<StudentDetail | null>;
-    schoolId: Ref<string>;
 }) {
     const { fetchScheduleForStudent } = useScheduleApi();
     const scheduleWeekStart = ref<Date>(getMonday(new Date()));
@@ -34,13 +33,13 @@ export function useManagerStudentSchedule(input: {
     async function loadStudentSchedule(): Promise<void> {
         const s = input.student.value;
 
-        if (!s?.id || !input.schoolId.value) {
+        const requestSequence = ++scheduleFetchSequence;
+
+        if (!s?.id) {
             scheduleItems.value = [];
 
             return;
         }
-
-        const requestSequence = ++scheduleFetchSequence;
 
         scheduleError.value = null;
         scheduleLoading.value = true;
@@ -48,12 +47,7 @@ export function useManagerStudentSchedule(input: {
         const { dateFrom, dateTo } = studentScheduleRange.value;
 
         try {
-            const data = await fetchScheduleForStudent(
-                s.id,
-                dateFrom,
-                dateTo,
-                input.schoolId.value,
-            );
+            const data = await fetchScheduleForStudent(s.id, dateFrom, dateTo);
 
             if (requestSequence !== scheduleFetchSequence) {
                 return;

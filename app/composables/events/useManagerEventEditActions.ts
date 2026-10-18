@@ -59,7 +59,6 @@ export function useManagerEventEditActions(input: {
 
     const { scheduleBackHref: defaultScheduleBackHref, deleteDialogTimeLabel } =
         useManagerEventEditActionLabels({
-            schoolId: input.schoolId,
             loadedEvent: input.loadedEvent,
             formStartLocal: input.formStartLocal,
             formEndLocal: input.formEndLocal,

@@ -1,14 +1,14 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     parseRequiredUuidRouterParam,
-    parseSchoolIdFromBody,
+    parseOptionalSchoolIdFromBody,
     readOptionalDateString,
     readTrimmedBodyString,
 } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamUpdateStudentPayment } from '~~/server/utils/payments/paymentsBff';
 
 function readUpdateBody(raw: unknown): {
-    schoolId: string;
+    schoolId?: string;
     dueDate?: string | null;
     method?: string | null;
 } {
@@ -20,17 +20,10 @@ function readUpdateBody(raw: unknown): {
     }
 
     const body = raw as Record<string, unknown>;
-    const schoolId = parseSchoolIdFromBody(body);
-
-    if (!schoolId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Pole schoolId jest wymagane.',
-        });
-    }
+    const schoolId = parseOptionalSchoolIdFromBody(body);
 
     const update: {
-        schoolId: string;
+        schoolId?: string;
         dueDate?: string | null;
         method?: string | null;
     } = { schoolId };

@@ -8,17 +8,14 @@ import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     isUuid,
     parsePositiveIntQuery,
-    parseRequiredUuidQuery,
+    parseOptionalUuidQuery,
     readQueryString,
 } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamStudentsList } from '~~/server/utils/students/studentsBff';
 
 export default defineEventHandler(async (event) => {
     const rawQuery = getQuery(event);
-    const schoolId = parseRequiredUuidQuery(rawQuery, 'schoolId', {
-        required: 'Parametr schoolId jest wymagany.',
-        invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
-    });
+    const schoolId = parseOptionalUuidQuery(rawQuery, 'schoolId');
 
     const search = readQueryString(rawQuery.search).trim();
     const view = readQueryString(rawQuery.view) || 'all';
@@ -74,6 +71,12 @@ export default defineEventHandler(async (event) => {
                 'Parametr courseId musi być poprawnym identyfikatorem UUID.',
         });
     }
+
+    if (!schoolId && !courseId)
+        throw createError({
+            statusCode: 400,
+            message: 'Wskaż szkołę albo kurs.',
+        });
 
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>

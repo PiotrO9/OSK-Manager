@@ -44,6 +44,11 @@ export function useManagerCourseDetailData({
                 return;
             }
 
+            if (!data.schoolId?.trim())
+                throw new Error(
+                    'Nieprawidłowa odpowiedź serwera: brak szkoły kursu.',
+                );
+
             course.value = data;
             hooks.afterLoad?.(data);
         } catch (err: unknown) {

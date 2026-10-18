@@ -120,7 +120,6 @@ const isFiltered = computed(() => props.period !== 'all');
                 v-for="rating in props.ratings"
                 :key="rating.id"
                 :rating="rating"
-                :school-id="props.schoolId"
             />
         </div>
 

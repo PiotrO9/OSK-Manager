@@ -12,7 +12,7 @@ function buildScheduleMePath(dateFrom: string, dateTo: string): string {
 function buildScheduleManagerPath(
     dateFrom: string,
     dateTo: string,
-    target: { instructorId: string } | { studentId: string; schoolId: string },
+    target: { instructorId: string } | { studentId: string; schoolId?: string },
 ): string {
     const params = new URLSearchParams({
         dateFrom: dateFrom.trim(),
@@ -23,7 +23,8 @@ function buildScheduleManagerPath(
         params.set('instructorId', target.instructorId.trim());
     } else {
         params.set('studentId', target.studentId.trim());
-        params.set('schoolId', target.schoolId.trim());
+
+        if (target.schoolId) params.set('schoolId', target.schoolId.trim());
     }
 
     return `/api/schedule?${params.toString()}`;
@@ -88,15 +89,15 @@ export function useScheduleApi() {
         studentId: string,
         dateFrom: string,
         dateTo: string,
-        schoolId: string,
+        schoolId?: string,
         options: { signal?: AbortSignal } = {},
     ): Promise<ScheduleLessonItem[]> {
         const id = studentId.trim();
         const from = dateFrom.trim();
         const to = dateTo.trim();
-        const trimmedSchoolId = schoolId.trim();
+        const trimmedSchoolId = schoolId?.trim();
 
-        if (!id || !from || !to || !trimmedSchoolId) {
+        if (!id || !from || !to) {
             return [];
         }
 

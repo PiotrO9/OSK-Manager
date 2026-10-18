@@ -46,3 +46,11 @@ Nie twórz osobnego globalnego stanu szkoły dla samej prezentacji. Wyszukiwanie
 filtrowanie innych danych i pola przypisujące użytkownika do szkoły są osobnymi
 kontrolkami widoku. Nowe użycie sprawdź przy jednej i wielu szkołach, przy braku
 danych, długiej nazwie, na telefonie, w ciemnym motywie oraz z klawiaturą.
+
+## Kontekst szczegółów zasobu
+
+Szczegóły kursanta, instruktora, kursu i zobowiązań konta wynikają z ID zasobu. Nie dodawaj `schoolId` do takich linków ani nie zastępuj brakującego kontekstu szkołą domyślną. Stare linki usuwają wyłącznie `schoolId`, zachowując pozostałe query i hash. Kurs bez szkoły w odpowiedzi API jest błędem kontraktu.
+
+Proces, płatności i terminarz kursanta oraz podsumowanie ocen instruktora pobierają domyślnie bieżący zakres przez backend. Lista uczestników przekazuje `courseId`. Operacje na kontach i płatnościach wyznaczają szkołę po stronie backendu, z zachowaniem uprawnień.
+
+Jawny wybór OSK pozostaje na listach, w raportach, filtrach historii, logach bezpieczeństwa oraz przy tworzeniu i przenoszeniu zasobów. Szkoła historycznej płatności wynika z kursu.

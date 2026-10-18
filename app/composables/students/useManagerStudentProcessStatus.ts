@@ -1,4 +1,3 @@
-import type { Ref } from 'vue';
 import type { StudentProcessStatus } from '~/types/students/student';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 import {
@@ -6,9 +5,7 @@ import {
     getStudentProcessOverviewLabel,
 } from '~/utils/students/studentDetailsPage';
 
-export function useManagerStudentProcessStatus(input: {
-    schoolId: Ref<string>;
-}) {
+export function useManagerStudentProcessStatus() {
     const { fetchProcessStatus } = useStudentsApi();
     const processStatus = ref<StudentProcessStatus | null>(null);
     const processStatusLoading = ref(false);
@@ -36,20 +33,19 @@ export function useManagerStudentProcessStatus(input: {
         processStatus.value = null;
         processStatusError.value = null;
 
-        if (!userId || !input.schoolId.value) {
+        const requestSequence = ++processStatusFetchSequence;
+
+        if (!userId) {
             processStatusLoading.value = false;
 
             return;
         }
-
-        const requestSequence = ++processStatusFetchSequence;
 
         processStatusLoading.value = true;
 
         try {
             const status = await fetchProcessStatus({
                 userId,
-                schoolId: input.schoolId.value,
             });
 
             if (requestSequence !== processStatusFetchSequence) {

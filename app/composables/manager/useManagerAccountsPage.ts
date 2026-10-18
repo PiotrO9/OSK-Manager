@@ -128,7 +128,7 @@ export function useManagerAccountsPage() {
         try {
             await requestBffData(
                 method,
-                `/api/manager/accounts/${encodeURIComponent(selectedUserId.value)}${path}?schoolId=${encodeURIComponent(schoolId.value)}`,
+                `/api/manager/accounts/${encodeURIComponent(selectedUserId.value)}${path}`,
                 {
                     body,
                     fallbackMessage: 'Nie udało się zapisać zmian.',

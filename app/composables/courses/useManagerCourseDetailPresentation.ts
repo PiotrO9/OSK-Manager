@@ -1,37 +1,18 @@
 import type { Ref } from 'vue';
-import type { LocationQueryValue, RouteLocationRaw } from 'vue-router';
+import type { RouteLocationRaw } from 'vue-router';
 import type { CourseDetail } from '~/types/courses/course';
 import type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail';
-import {
-    buildCourseOverviewItems,
-    readSchoolIdFromQuery,
-} from '~/utils/courses/managerCourseDetailPage';
+import { buildCourseOverviewItems } from '~/utils/courses/managerCourseDetailPage';
 interface UseManagerCourseDetailPresentationOptions {
     course: Readonly<Ref<CourseDetail | null>>;
-    querySchoolId: Readonly<
-        Ref<LocationQueryValue | LocationQueryValue[] | undefined>
-    >;
 }
 
 export function useManagerCourseDetailPresentation({
     course,
-    querySchoolId,
 }: UseManagerCourseDetailPresentationOptions) {
-    const schoolIdFromQuery = computed(() => {
-        return readSchoolIdFromQuery(querySchoolId.value);
-    });
-
-    const effectiveSchoolId = computed(() => {
-        const courseSchoolId = course.value?.schoolId?.trim();
-
-        if (courseSchoolId && courseSchoolId.length > 0) {
-            return courseSchoolId;
-        }
-
-        const q = schoolIdFromQuery.value;
-
-        return q.length > 0 ? q : '';
-    });
+    const effectiveSchoolId = computed(
+        () => course.value?.schoolId?.trim() ?? '',
+    );
 
     const backToCoursesHref = computed<RouteLocationRaw>(
         () => '/manager/courses',
@@ -71,7 +52,6 @@ export function useManagerCourseDetailPresentation({
     });
 
     return {
-        schoolIdFromQuery,
         effectiveSchoolId,
         backToCoursesHref,
         createCourseTarget,

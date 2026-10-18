@@ -54,7 +54,6 @@ const accountPath = computed(() => ({
             <ManagerAccountObligationsList
                 v-if="obligations.length"
                 :account="account"
-                :school-id="schoolId"
                 :obligations="obligations"
             />
             <div v-else class="border-border bg-card rounded-xl border p-6">

@@ -59,7 +59,6 @@ const backToListTo = computed<RouteLocationRaw>(() => ({
 
 const availabilityTo = computed<RouteLocationRaw>(() => ({
     path: `/manager/instructors/${props.instructor.id}/availability`,
-    query: props.subpageQuery,
 }));
 
 const reviewsTo = computed<RouteLocationRaw | null>(() => {

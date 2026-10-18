@@ -115,13 +115,5 @@ export function parseScheduleManagerQuery(query: Record<string, unknown>): {
         });
     }
 
-    if (schoolId === undefined) {
-        throw createError({
-            statusCode: 400,
-            message:
-                'Parametr schoolId jest wymagany przy pobieraniu terminarza kursanta.',
-        });
-    }
-
     return { ...base, studentId: studentId!, schoolId };
 }

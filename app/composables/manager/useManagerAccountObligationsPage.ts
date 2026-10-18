@@ -4,13 +4,13 @@ import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
 
 export function useManagerAccountObligationsPage() {
     const route = useRoute();
+    const router = useRouter();
     const userId = computed(() =>
         typeof route.params.userId === 'string' ? route.params.userId : '',
     );
-    const schoolId = computed(() =>
-        typeof route.query.schoolId === 'string' ? route.query.schoolId : '',
-    );
+
     const account = shallowRef<ManagerAccount | null>(null);
+    const schoolId = computed(() => account.value?.schoolId ?? '');
     const obligations = shallowRef<AccountObligation[]>([]);
     const loading = shallowRef(true);
     const errorMessage = shallowRef('');
@@ -23,25 +23,24 @@ export function useManagerAccountObligationsPage() {
         obligations.value = [];
         errorMessage.value = '';
 
-        if (!userId.value || !schoolId.value) {
-            errorMessage.value = 'Brak konta lub ośrodka w adresie strony.';
+        if (!userId.value) {
+            errorMessage.value = 'Brak identyfikatora konta.';
             loading.value = false;
 
             return;
         }
 
         loading.value = true;
-        const query = `?schoolId=${encodeURIComponent(schoolId.value)}`;
         const path = `/api/manager/accounts/${encodeURIComponent(userId.value)}`;
 
         try {
             const [accountData, obligationData] = await Promise.all([
-                requestBffData<ManagerAccount>('GET', `${path}${query}`, {
+                requestBffData<ManagerAccount>('GET', path, {
                     fallbackMessage: 'Nie udało się pobrać konta.',
                 }),
                 requestBffData<AccountObligation[]>(
                     'GET',
-                    `${path}/archive-obligations${query}`,
+                    `${path}/archive-obligations`,
                     { fallbackMessage: 'Nie udało się pobrać zobowiązań.' },
                 ),
             ]);
@@ -62,9 +61,25 @@ export function useManagerAccountObligationsPage() {
         }
     }
 
-    watch([userId, schoolId], () => {
+    watch(userId, () => {
         void loadObligations();
     });
+    watch(
+        () => route.query.schoolId,
+        (value) => {
+            if (value !== undefined) {
+                const query = { ...route.query };
+
+                delete query.schoolId;
+                void router.replace({
+                    path: route.path,
+                    query,
+                    hash: route.hash,
+                });
+            }
+        },
+        { immediate: true },
+    );
     onMounted(() => {
         void loadObligations();
     });

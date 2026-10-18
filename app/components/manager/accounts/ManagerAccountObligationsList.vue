@@ -7,7 +7,6 @@ import type {
 
 const props = defineProps<{
     account: ManagerAccount;
-    schoolId: string;
     obligations: readonly AccountObligation[];
 }>();
 
@@ -51,7 +50,7 @@ function target(item: AccountObligation): string {
     if (item.type === 'EVENT') return `/manager/events/${item.id}/edit`;
 
     if (item.type === 'PAYMENT')
-        return `/manager/students/${props.account.id}?schoolId=${encodeURIComponent(props.schoolId)}&tab=payments&paymentId=${encodeURIComponent(item.id)}`;
+        return `/manager/students/${props.account.id}?tab=payments&paymentId=${encodeURIComponent(item.id)}`;
 
     const instructorProfileId = props.account.instructorProfile?.id;
 

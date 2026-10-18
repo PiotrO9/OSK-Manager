@@ -7,7 +7,6 @@ import {
     formatCapacityText,
     formatCourseInstructorName,
     getRouteIdString,
-    readSchoolIdFromQuery,
     resolveCourseDetailError,
 } from './managerCourseDetailPage';
 
@@ -32,15 +31,6 @@ describe('managerCourseDetailPage utils', () => {
         expect(getRouteIdString([' course-2 ', 'ignored'])).toBe('course-2');
         expect(getRouteIdString([])).toBe('');
         expect(getRouteIdString(null)).toBe('');
-    });
-
-    it('reads school id from query values', () => {
-        expect(readSchoolIdFromQuery(' school-1 ')).toBe('school-1');
-        expect(readSchoolIdFromQuery([' school-2 ', 'ignored'])).toBe(
-            'school-2',
-        );
-        expect(readSchoolIdFromQuery(undefined)).toBe('');
-        expect(readSchoolIdFromQuery(null)).toBe('');
     });
 
     it('maps course detail API errors to user messages', () => {

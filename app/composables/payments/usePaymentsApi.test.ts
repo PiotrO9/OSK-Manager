@@ -94,12 +94,12 @@ describe('usePaymentsApi', () => {
         ]);
     });
 
-    it('adds school id to create payment body', async () => {
+    it('creates payment without redundant school id', async () => {
         requestBffData.mockResolvedValue({ payments: [], summary: {} });
         const { usePaymentsApi } = await import('./usePaymentsApi');
         const api = usePaymentsApi();
 
-        await api.createStudentPayment(' student-1 ', ' school-1 ', {
+        await api.createStudentPayment(' student-1 ', {
             paymentPlanId: 'plan-1',
             amount: '1200.00',
             dueDate: '2026-09-01',
@@ -115,7 +115,6 @@ describe('usePaymentsApi', () => {
                     amount: '1200.00',
                     dueDate: '2026-09-01',
                     method: null,
-                    schoolId: 'school-1',
                 },
                 fallbackMessage: 'Nie udało się dodać płatności.',
                 normalize: expect.any(Function),
@@ -123,22 +122,18 @@ describe('usePaymentsApi', () => {
         );
     });
 
-    it('uses only school id for mark paid action body', async () => {
+    it('marks payment paid without redundant school id', async () => {
         requestBffData.mockResolvedValue({ payments: [], summary: {} });
         const { usePaymentsApi } = await import('./usePaymentsApi');
         const api = usePaymentsApi();
 
-        await api.markStudentPaymentPaid(
-            ' student-1 ',
-            ' school-1 ',
-            ' payment-1 ',
-        );
+        await api.markStudentPaymentPaid(' student-1 ', ' payment-1 ');
 
         expect(requestBffData).toHaveBeenCalledWith(
             'PATCH',
             '/api/students/student-1/payments/payment-1/mark-paid',
             {
-                body: { schoolId: 'school-1' },
+                body: {},
                 fallbackMessage:
                     'Nie udało się oznaczyć płatności jako opłaconej.',
                 normalize: expect.any(Function),

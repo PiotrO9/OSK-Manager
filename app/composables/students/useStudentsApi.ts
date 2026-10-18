@@ -97,10 +97,10 @@ export function useStudentsApi() {
         params: StudentProcessStatusParams,
     ): Promise<StudentProcessStatus> {
         const userId = params.userId.trim();
-        const schoolId = params.schoolId.trim();
+        const schoolId = params.schoolId?.trim();
 
-        if (!userId || !schoolId) {
-            throw new Error('Brak identyfikatora kursanta lub szkoły.');
+        if (!userId) {
+            throw new Error('Brak identyfikatora kursanta.');
         }
 
         return requestBffData<StudentProcessStatus>(

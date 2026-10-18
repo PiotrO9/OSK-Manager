@@ -1,8 +1,7 @@
-import type { ComputedRef, Ref } from 'vue';
+import type { Ref } from 'vue';
 import type { InstructorEvent } from '~/types/events/instructorEvent';
 
 interface UseManagerEventEditActionLabelsInput {
-    schoolId: ComputedRef<string>;
     loadedEvent: Ref<InstructorEvent | null>;
     formStartLocal: Ref<string>;
     formEndLocal: Ref<string>;
@@ -46,17 +45,9 @@ export function useManagerEventEditActionLabels(
         const instructorId =
             input.formInstructorId.value.trim() ||
             input.loadedEvent.value?.instructorId?.trim();
-        const schoolId = input.schoolId.value;
 
         if (!instructorId) {
             return '/manager/instructors';
-        }
-
-        if (schoolId) {
-            return {
-                path: `/manager/instructors/${instructorId}/schedule`,
-                query: { schoolId },
-            };
         }
 
         return `/manager/instructors/${instructorId}/schedule`;

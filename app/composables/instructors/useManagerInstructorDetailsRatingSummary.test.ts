@@ -24,7 +24,7 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('   ', 'school-1');
+        await data.loadRatingSummary('   ');
 
         expect(fetchInstructorRatings).not.toHaveBeenCalled();
         expect(data.ratingSummary.value).toEqual({
@@ -34,13 +34,13 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         expect(data.isRatingSummaryLoading.value).toBe(false);
     });
 
-    it('skips API calls and resets summary without school id', async () => {
+    it('resets summary for an empty identifier', async () => {
         const { useManagerInstructorDetailsRatingSummary } =
             await import('./useManagerInstructorDetailsRatingSummary');
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('instructor-1', '');
+        await data.loadRatingSummary('');
 
         expect(fetchInstructorRatings).not.toHaveBeenCalled();
         expect(data.ratingSummary.value).toEqual({
@@ -59,10 +59,9 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
             await import('./useManagerInstructorDetailsRatingSummary');
         const data = useManagerInstructorDetailsRatingSummary();
 
-        await data.loadRatingSummary(' instructor-1 ', ' school-1 ');
+        await data.loadRatingSummary(' instructor-1 ');
 
         expect(fetchInstructorRatings).toHaveBeenCalledWith('instructor-1', {
-            schoolId: 'school-1',
             period: 'all',
             limit: 1,
         });
@@ -81,7 +80,7 @@ describe('useManagerInstructorDetailsRatingSummary', () => {
         const data = useManagerInstructorDetailsRatingSummary();
 
         data.ratingSummary.value = { averageRating: 4.8, totalCount: 12 };
-        await data.loadRatingSummary('instructor-1', 'school-1');
+        await data.loadRatingSummary('instructor-1');
 
         expect(data.ratingSummary.value).toEqual({
             averageRating: null,

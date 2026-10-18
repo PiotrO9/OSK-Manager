@@ -42,9 +42,7 @@ export function useManagerStudentDetailsPage() {
         processStatusLoading,
         processStatusError,
         loadStudentProcessStatus,
-    } = useManagerStudentProcessStatus({
-        schoolId,
-    });
+    } = useManagerStudentProcessStatus();
 
     const {
         payments,
@@ -61,7 +59,6 @@ export function useManagerStudentDetailsPage() {
         handleMarkStudentPaymentPaid,
         handleMarkStudentPaymentUnpaid,
     } = useManagerStudentPayments({
-        schoolId,
         getUserId: () => route.params.userId,
     });
 
@@ -76,7 +73,6 @@ export function useManagerStudentDetailsPage() {
         handleNextScheduleWeek,
     } = useManagerStudentSchedule({
         student,
-        schoolId,
     });
 
     const studentDisplayName = computed(() => {
@@ -182,7 +178,10 @@ export function useManagerStudentDetailsPage() {
                 return;
             }
 
-            void router.replace({ path: route.path, query: {} });
+            const query = { ...route.query };
+
+            delete query.schoolId;
+            void router.replace({ path: route.path, query, hash: route.hash });
         },
         { immediate: true },
     );
@@ -196,8 +195,8 @@ export function useManagerStudentDetailsPage() {
     );
 
     watch(
-        () => [route.params.userId, schoolId.value] as const,
-        ([userId]) => {
+        () => route.params.userId,
+        (userId) => {
             void loadStudentProcessStatus(userId);
             void loadStudentPayments(userId);
         },
@@ -205,7 +204,7 @@ export function useManagerStudentDetailsPage() {
     );
 
     watch(
-        [() => student.value?.id, schoolId, studentScheduleRange],
+        [() => student.value?.id, studentScheduleRange],
         () => {
             void loadStudentSchedule();
         },

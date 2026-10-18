@@ -40,9 +40,11 @@ function appendOptionalParam(
     }
 }
 
-function buildRatingsQuery(input: FetchLessonRatingsInput): string {
+function buildRatingsQuery(
+    input: Omit<FetchLessonRatingsInput, 'schoolId'> & { schoolId?: string },
+): string {
     const qs = new URLSearchParams({
-        schoolId: input.schoolId,
+        ...(input.schoolId?.trim() ? { schoolId: input.schoolId.trim() } : {}),
         period: input.period ?? 'latest',
     });
 
@@ -71,7 +73,9 @@ export function useLessonRatingsListApi() {
 
     async function fetchInstructorRatings(
         instructorId: string,
-        input: FetchLessonRatingsInput,
+        input: Omit<FetchLessonRatingsInput, 'schoolId'> & {
+            schoolId?: string;
+        },
     ): Promise<LessonRatingsListPayload> {
         return await requestBffData<LessonRatingsListPayload>(
             'GET',

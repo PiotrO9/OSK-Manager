@@ -223,7 +223,6 @@ function accountPath() {
                     <NuxtLink
                         :to="{
                             path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
-                            query: { schoolId },
                         }"
                         class="text-primary mt-2 inline-block font-semibold underline underline-offset-4"
                         >Pokaż zobowiązania</NuxtLink
@@ -243,7 +242,6 @@ function accountPath() {
                     v-if="selectedAccount && !selectedAccount.deletedAt"
                     :to="{
                         path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
-                        query: { schoolId },
                     }"
                     class="text-primary mt-3 block text-sm font-medium underline-offset-4 hover:underline"
                     >Sprawdź zobowiązania konta</NuxtLink

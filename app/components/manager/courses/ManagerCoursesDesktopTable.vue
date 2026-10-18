@@ -88,7 +88,6 @@ const emit = defineEmits<{ requestDelete: [course: CourseListItem] }>();
                             <NuxtLink
                                 :to="{
                                     path: `/manager/instructors/${course.instructor.id}`,
-                                    query: { schoolId: activeSchoolId },
                                 }"
                                 target="_blank"
                                 rel="noopener noreferrer"

@@ -129,7 +129,7 @@ function mockStudentPaymentsPayload() {
 }
 
 export function bffMockStudentsList(params: {
-    schoolId: string;
+    schoolId?: string;
     page: number;
     limit: number;
     courseId?: string;
@@ -137,10 +137,22 @@ export function bffMockStudentsList(params: {
     view?: string;
     filters?: readonly StudentAdvancedFilter[];
 }): { success: true; data: unknown } {
+    const schoolId =
+        params.schoolId ??
+        (params.courseId
+            ? mockCoursesGetById(params.courseId)?.schoolId
+            : undefined);
+
+    if (!schoolId)
+        throw createError({
+            statusCode: params.courseId ? 404 : 400,
+            message: 'Nie znaleziono zakresu szkoły.',
+        });
+
     if (params.courseId !== undefined) {
         const course = mockCoursesGetById(params.courseId);
 
-        if (!course || course.schoolId !== params.schoolId) {
+        if (!course || course.schoolId !== schoolId) {
             throw createError({
                 statusCode: 404,
                 message: 'Course not found',
@@ -158,7 +170,7 @@ export function bffMockStudentsList(params: {
 
         const course = mockCoursesGetById(filter.value);
 
-        if (!course || course.schoolId !== params.schoolId) {
+        if (!course || course.schoolId !== schoolId) {
             throw createError({
                 statusCode: 404,
                 message: 'Course not found',
@@ -168,7 +180,7 @@ export function bffMockStudentsList(params: {
 
     return dataSuccess(
         mockStudentsListPayload(
-            params.schoolId,
+            schoolId,
             params.page,
             params.limit,
             params.courseId,
@@ -197,8 +209,13 @@ export function bffMockStudentDetail(studentUserId: string): {
 
 export function bffMockStudentProcessStatus(
     studentUserId: string,
-    schoolId: string,
+    schoolId?: string,
 ): { success: true; data: unknown } {
+    schoolId ??= mockStudentDetailPayload(studentUserId)?.schoolId;
+
+    if (!schoolId)
+        throw createError({ statusCode: 404, message: 'Student not found' });
+
     const status = mockStudentProcessStatusPayload(studentUserId, schoolId);
 
     if (!status) {

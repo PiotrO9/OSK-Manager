@@ -81,7 +81,7 @@ describe('schedule query validation', () => {
         });
     });
 
-    it('requires exactly one schedule target and school id for student target', () => {
+    it('requires exactly one schedule target and allows inferred student school', () => {
         expect(() =>
             parseScheduleManagerQuery({
                 dateFrom: '2026-08-10',
@@ -102,14 +102,16 @@ describe('schedule query validation', () => {
             'Podaj dokładnie jeden parametr: instructorId albo studentId.',
         );
 
-        expect(() =>
+        expect(
             parseScheduleManagerQuery({
                 dateFrom: '2026-08-10',
                 dateTo: '2026-08-16',
                 studentId: STUDENT_ID,
             }),
-        ).toThrow(
-            'Parametr schoolId jest wymagany przy pobieraniu terminarza kursanta.',
-        );
+        ).toEqual({
+            dateFrom: '2026-08-10',
+            dateTo: '2026-08-16',
+            studentId: STUDENT_ID,
+        });
     });
 });

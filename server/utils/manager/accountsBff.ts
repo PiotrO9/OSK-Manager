@@ -1,7 +1,10 @@
 import type { H3Event } from 'h3';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
-import { parseRequiredUuidRouterParam } from '~~/server/utils/validation/requestValidation';
+import {
+    parseRequiredUuidRouterParam,
+    parseOptionalUuidQuery,
+} from '~~/server/utils/validation/requestValidation';
 
 export function accountSchoolId(event: H3Event): string {
     const value = getQuery(event).schoolId;
@@ -32,14 +35,17 @@ export async function forwardManagerAccount(
     method: 'GET' | 'PATCH' | 'POST',
     body?: unknown,
 ) {
-    const schoolId = accountSchoolId(event);
+    const schoolId =
+        path === '/manager/accounts'
+            ? accountSchoolId(event)
+            : parseOptionalUuidQuery(getQuery(event));
 
     return executeBffAdapter(event, {
         upstream: async ({ upstreamBase }) => {
             const { data } = await upstreamRequest(event, upstreamBase, {
                 path,
                 method,
-                query: { schoolId },
+                query: schoolId ? { schoolId } : undefined,
                 body,
                 fallbackError: 'Nie udało się wykonać operacji na koncie.',
             });

@@ -1,7 +1,7 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
     parseRequiredUuidRouterParam,
-    parseSchoolIdFromBody,
+    parseOptionalSchoolIdFromBody,
 } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamMarkStudentPaymentPaid } from '~~/server/utils/payments/paymentsBff';
 
@@ -15,16 +15,12 @@ export default defineEventHandler(async (event) => {
         invalid: 'Nieprawidłowy identyfikator płatności.',
     });
     const rawBody = await readBody(event);
-    const schoolId = parseSchoolIdFromBody(rawBody);
+    const schoolId = parseOptionalSchoolIdFromBody(rawBody);
 
-    if (!schoolId) {
-        throw createError({
-            statusCode: 400,
-            message: 'Pole schoolId jest wymagane.',
-        });
-    }
-
-    const body = { schoolId };
+    const body = {
+        ...(rawBody as Record<string, unknown> | undefined),
+        ...(schoolId ? { schoolId } : {}),
+    };
 
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>

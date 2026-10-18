@@ -1,6 +1,6 @@
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import {
-    parseRequiredUuidQuery,
+    parseOptionalUuidQuery,
     parseRequiredUuidRouterParam,
 } from '~~/server/utils/validation/requestValidation';
 import { bffUpstreamStudentProcessStatus } from '~~/server/utils/students/studentsBff';
@@ -12,10 +12,7 @@ export default defineEventHandler(async (event) => {
     });
 
     const rawQuery = getQuery(event);
-    const schoolId = parseRequiredUuidQuery(rawQuery, 'schoolId', {
-        required: 'Parametr schoolId jest wymagany.',
-        invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
-    });
+    const schoolId = parseOptionalUuidQuery(rawQuery, 'schoolId');
 
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>

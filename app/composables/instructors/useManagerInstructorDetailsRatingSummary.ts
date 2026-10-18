@@ -13,17 +13,17 @@ export function useManagerInstructorDetailsRatingSummary() {
         ...emptyRatingSummary,
     });
     const isRatingSummaryLoading = ref(false);
+    let sequence = 0;
 
-    async function loadRatingSummary(
-        rawId: unknown,
-        rawSchoolId: unknown,
-    ): Promise<void> {
+    async function loadRatingSummary(rawId: unknown): Promise<void> {
+        const request = ++sequence;
         const id = getManagerInstructorRouteString(rawId);
-        const schoolId = getManagerInstructorRouteString(rawSchoolId);
+
+        isRatingSummaryLoading.value = false;
 
         ratingSummary.value = { ...emptyRatingSummary };
 
-        if (!id || !schoolId) {
+        if (!id) {
             return;
         }
 
@@ -31,16 +31,17 @@ export function useManagerInstructorDetailsRatingSummary() {
 
         try {
             const payload = await fetchInstructorRatings(id, {
-                schoolId,
                 period: 'all',
                 limit: 1,
             });
 
-            ratingSummary.value = payload.summary;
+            if (request === sequence) ratingSummary.value = payload.summary;
         } catch {
+            if (request !== sequence) return;
+
             ratingSummary.value = { ...emptyRatingSummary };
         } finally {
-            isRatingSummaryLoading.value = false;
+            if (request === sequence) isRatingSummaryLoading.value = false;
         }
     }
 

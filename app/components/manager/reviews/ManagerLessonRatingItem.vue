@@ -17,7 +17,6 @@ import { formatLessonRatingValue } from '~/utils/lessons/myReviews';
 
 const props = defineProps<{
     rating: LessonRatingListItem;
-    schoolId: string;
 }>();
 
 const dateTimeFormatter = new Intl.DateTimeFormat('pl-PL', {
@@ -271,7 +270,6 @@ function personInitials(person: LessonRatingPerson): string {
                     v-if="props.rating.student"
                     :to="{
                         path: `/manager/students/${props.rating.student.userId}`,
-                        query: { schoolId: props.schoolId },
                     }"
                     class="focus-visible:ring-ring w-fit max-w-full justify-self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >
@@ -289,7 +287,6 @@ function personInitials(person: LessonRatingPerson): string {
                 <NuxtLink
                     :to="{
                         path: `/manager/instructors/${props.rating.instructor.id}`,
-                        query: { schoolId: props.schoolId },
                     }"
                     class="focus-visible:ring-ring w-fit max-w-full justify-self-start rounded-lg focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                 >

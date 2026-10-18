@@ -83,7 +83,6 @@ describe('useManagerCourseParticipants', () => {
         await flushReactiveJobs();
 
         expect(fetchStudentsList).toHaveBeenCalledWith({
-            schoolId: 'school-1',
             courseId: 'course-1',
             page: 1,
             limit: 8,
@@ -125,7 +124,6 @@ describe('useManagerCourseParticipants', () => {
         await state.loadNextParticipantsPage();
 
         expect(fetchStudentsList).toHaveBeenLastCalledWith({
-            schoolId: 'school-1',
             courseId: 'course-1',
             page: 2,
             limit: 8,
@@ -136,7 +134,6 @@ describe('useManagerCourseParticipants', () => {
         await state.loadPreviousParticipantsPage();
 
         expect(fetchStudentsList).toHaveBeenLastCalledWith({
-            schoolId: 'school-1',
             courseId: 'course-1',
             page: 1,
             limit: 8,
@@ -168,7 +165,6 @@ describe('useManagerCourseParticipants', () => {
 
         expect(fetchStudentsList).toHaveBeenCalledTimes(2);
         expect(fetchStudentsList).toHaveBeenLastCalledWith({
-            schoolId: 'school-1',
             courseId: 'course-1',
             page: 2,
             limit: 8,
@@ -230,7 +226,6 @@ describe('useManagerCourseParticipants', () => {
         await flushReactiveJobs();
 
         expect(fetchStudentsList).toHaveBeenLastCalledWith({
-            schoolId: 'school-1',
             courseId: 'course-2',
             page: 1,
             limit: 8,

@@ -95,7 +95,6 @@ export function useManagerInstructorDetailsContent(input: {
             description: 'Sprawdź najbliższe okna do rezerwacji',
             to: {
                 path: `/manager/instructors/${input.instructor.id}/slots`,
-                query: input.subpageQuery,
             },
             icon: CalendarDays,
         },

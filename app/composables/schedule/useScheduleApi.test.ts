@@ -106,12 +106,7 @@ describe('useScheduleApi', () => {
             api.fetchScheduleForInstructor('', '2026-08-10', '2026-08-16'),
         ).resolves.toEqual([]);
         await expect(
-            api.fetchScheduleForStudent(
-                'student-1',
-                '2026-08-10',
-                '2026-08-16',
-                '',
-            ),
+            api.fetchScheduleForStudent('', '2026-08-10', '2026-08-16', ''),
         ).resolves.toEqual([]);
 
         expect(requestBffData).not.toHaveBeenCalled();

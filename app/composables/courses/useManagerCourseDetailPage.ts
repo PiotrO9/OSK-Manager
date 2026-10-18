@@ -18,6 +18,20 @@ export type { ManagerCourseInfoItem } from '~/types/courses/managerCourseDetail'
 
 export function useManagerCourseDetailPage() {
     const route = useRoute();
+    const router = useRouter();
+
+    watch(
+        () => route.query.schoolId,
+        (schoolId) => {
+            if (schoolId === undefined) return;
+
+            const query = { ...route.query };
+
+            delete query.schoolId;
+            void router.replace({ path: route.path, query, hash: route.hash });
+        },
+        { immediate: true },
+    );
     const { addToast } = useAppToast();
     const { fetchById, isDetailLoading, patchCourse, isPatchLoading } =
         useCoursesApi();
@@ -38,7 +52,6 @@ export function useManagerCourseDetailPage() {
         overviewItems,
     } = useManagerCourseDetailPresentation({
         course,
-        querySchoolId: computed(() => route.query.schoolId),
     });
 
     const selectedSchoolId = useManagerCoursesSelectedSchoolId();

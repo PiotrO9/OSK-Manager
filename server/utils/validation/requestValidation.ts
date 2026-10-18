@@ -187,3 +187,40 @@ export function readOptionalDateString(
 
     return date;
 }
+
+/** An omitted scope is inferred by the backend; a supplied malformed scope is never ignored. */
+export function parseOptionalUuidQuery(
+    query: Record<string, unknown>,
+    key = 'schoolId',
+): string | undefined {
+    if (query[key] === undefined) return undefined;
+
+    return parseRequiredUuidQuery(query, key, {
+        required: 'Nieprawidłowy identyfikator szkoły.',
+        invalid: 'Nieprawidłowy identyfikator szkoły.',
+    });
+}
+
+export function parseOptionalSchoolIdFromBody(
+    raw: unknown,
+): string | undefined {
+    if (raw === undefined) return undefined;
+
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+        throw createError({
+            statusCode: 400,
+            message: 'Oczekiwano treści JSON.',
+        });
+
+    const body = raw as Record<string, unknown>;
+
+    if (body.schoolId === undefined) return undefined;
+
+    if (typeof body.schoolId !== 'string' || !isUuid(body.schoolId))
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidłowy identyfikator szkoły.',
+        });
+
+    return body.schoolId.trim();
+}

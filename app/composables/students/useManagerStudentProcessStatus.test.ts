@@ -18,14 +18,12 @@ describe('useManagerStudentProcessStatus', () => {
         installNuxtStudentProcessGlobals();
     });
 
-    it('skips loading process status without user id or school id', async () => {
+    it('skips loading process status without user id', async () => {
         const { useManagerStudentProcessStatus } =
             await import('./useManagerStudentProcessStatus');
-        const process = useManagerStudentProcessStatus({
-            schoolId: ref(''),
-        });
+        const process = useManagerStudentProcessStatus();
 
-        await process.loadStudentProcessStatus('student-user-1');
+        await process.loadStudentProcessStatus('');
 
         expect(process.processStatus.value).toBeNull();
         expect(process.processStatusLoading.value).toBe(false);
@@ -41,15 +39,12 @@ describe('useManagerStudentProcessStatus', () => {
         });
         const { useManagerStudentProcessStatus } =
             await import('./useManagerStudentProcessStatus');
-        const process = useManagerStudentProcessStatus({
-            schoolId: ref('school-1'),
-        });
+        const process = useManagerStudentProcessStatus();
 
         await process.loadStudentProcessStatus('student-user-1');
 
         expect(fetchProcessStatus).toHaveBeenCalledWith({
             userId: 'student-user-1',
-            schoolId: 'school-1',
         });
         expect(process.processStatusSteps.value).toHaveLength(2);
         expect(process.processOverviewLabel.value).toBe('1/2');

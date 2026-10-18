@@ -118,7 +118,10 @@ watch(
             return;
         }
 
-        void router.replace({ path: route.path, query: {} });
+        const query = { ...route.query };
+
+        delete query.schoolId;
+        void router.replace({ path: route.path, query, hash: route.hash });
     },
     { immediate: true },
 );

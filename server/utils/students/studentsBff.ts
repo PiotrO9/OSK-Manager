@@ -5,7 +5,7 @@ export async function bffUpstreamStudentsList(
     event: H3Event,
     upstreamBase: string,
     params: {
-        schoolId: string;
+        schoolId?: string;
         page: number;
         limit: number;
         courseId?: string;
@@ -81,11 +81,11 @@ export async function bffUpstreamStudentProcessStatus(
     event: H3Event,
     upstreamBase: string,
     userId: string,
-    schoolId: string,
+    schoolId?: string,
 ): Promise<{ success: true; data: unknown }> {
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: `/students/${encodeURIComponent(userId)}/process-status`,
-        query: { schoolId: schoolId.trim() },
+        query: schoolId ? { schoolId: schoolId.trim() } : undefined,
         fallbackError: 'Nie udało się pobrać statusu procesu kursanta',
     });
 

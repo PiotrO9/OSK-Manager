@@ -24,20 +24,24 @@ export function usePaymentsApi() {
 
     async function fetchStudentPayments(
         userId: string,
-        schoolId: string,
+        schoolId?: string,
     ): Promise<StudentPaymentsPayload> {
         const trimmedUserId = userId.trim();
-        const trimmedSchoolId = schoolId.trim();
+        const trimmedSchoolId = schoolId?.trim();
 
-        if (!trimmedUserId || !trimmedSchoolId) {
-            throw new Error('Brak identyfikatora kursanta lub szkoły.');
+        if (!trimmedUserId) {
+            throw new Error('Brak identyfikatora kursanta.');
         }
 
-        const qs = new URLSearchParams({ schoolId: trimmedSchoolId });
+        const qs = trimmedSchoolId
+            ? `?${new URLSearchParams({
+                  schoolId: trimmedSchoolId,
+              }).toString()}`
+            : '';
 
         return await requestBffData<StudentPaymentsPayload>(
             'GET',
-            `/api/students/${encodeURIComponent(trimmedUserId)}/payments?${qs.toString()}`,
+            `/api/students/${encodeURIComponent(trimmedUserId)}/payments${qs}`,
             {
                 fallbackMessage: 'Nie udało się pobrać listy opłat kursanta.',
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
@@ -47,13 +51,11 @@ export function usePaymentsApi() {
 
     async function createStudentPayment(
         userId: string,
-        schoolId: string,
         payload: CreateStudentPaymentPayload,
     ): Promise<StudentPaymentsPayload> {
         return await requestStudentPaymentAction(
             'POST',
             userId,
-            schoolId,
             '/payments',
             payload,
             'Nie udało się dodać płatności.',
@@ -62,14 +64,12 @@ export function usePaymentsApi() {
 
     async function updateStudentPayment(
         userId: string,
-        schoolId: string,
         paymentId: string,
         payload: UpdateStudentPaymentPayload,
     ): Promise<StudentPaymentsPayload> {
         return await requestStudentPaymentAction(
             'PATCH',
             userId,
-            schoolId,
             `/payments/${encodeURIComponent(paymentId.trim())}`,
             payload,
             'Nie udało się zapisać płatności.',
@@ -78,13 +78,11 @@ export function usePaymentsApi() {
 
     async function markStudentPaymentPaid(
         userId: string,
-        schoolId: string,
         paymentId: string,
     ): Promise<StudentPaymentsPayload> {
         return await requestStudentPaymentAction(
             'PATCH',
             userId,
-            schoolId,
             `/payments/${encodeURIComponent(paymentId.trim())}/mark-paid`,
             undefined,
             'Nie udało się oznaczyć płatności jako opłaconej.',
@@ -93,13 +91,11 @@ export function usePaymentsApi() {
 
     async function markStudentPaymentUnpaid(
         userId: string,
-        schoolId: string,
         paymentId: string,
     ): Promise<StudentPaymentsPayload> {
         return await requestStudentPaymentAction(
             'PATCH',
             userId,
-            schoolId,
             `/payments/${encodeURIComponent(paymentId.trim())}/mark-unpaid`,
             undefined,
             'Nie udało się oznaczyć płatności jako nieopłaconej.',
@@ -109,23 +105,21 @@ export function usePaymentsApi() {
     async function requestStudentPaymentAction(
         method: 'POST' | 'PATCH',
         userId: string,
-        schoolId: string,
         pathSuffix: string,
         payload: StudentPaymentActionPayload | undefined,
         fallbackMessage: string,
     ): Promise<StudentPaymentsPayload> {
         const trimmedUserId = userId.trim();
-        const trimmedSchoolId = schoolId.trim();
 
-        if (!trimmedUserId || !trimmedSchoolId) {
-            throw new Error('Brak identyfikatora kursanta lub szkoły.');
+        if (!trimmedUserId) {
+            throw new Error('Brak identyfikatora kursanta.');
         }
 
         return await requestBffData<StudentPaymentsPayload>(
             method,
             `/api/students/${encodeURIComponent(trimmedUserId)}${pathSuffix}`,
             {
-                body: { ...(payload ?? {}), schoolId: trimmedSchoolId },
+                body: payload ?? {},
                 fallbackMessage,
                 normalize: (data) => normalizeStudentPaymentsPayload(data),
             },

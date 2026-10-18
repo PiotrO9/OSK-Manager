@@ -34,7 +34,6 @@ function setupLabels(
     } = {},
 ) {
     return useManagerEventEditActionLabels({
-        schoolId: computed(() => options.schoolId ?? 'school-1'),
         loadedEvent: ref(options.loadedEvent ?? instructorEvent()),
         formStartLocal: ref(options.formStartLocal ?? '2026-08-16T10:00'),
         formEndLocal: ref(options.formEndLocal ?? '2026-08-16T11:00'),
@@ -48,17 +47,16 @@ describe('useManagerEventEditActionLabels', () => {
         installVueGlobals();
     });
 
-    it('builds schedule back route with selected instructor and school id', () => {
+    it('builds schedule back route with selected instructor without redundant school id', () => {
         const labels = setupLabels({
             schoolId: 'school-1',
             formInstructorId: ' instructor-2 ',
             loadedEvent: instructorEvent({ instructorId: 'instructor-1' }),
         });
 
-        expect(labels.scheduleBackHref.value).toEqual({
-            path: '/manager/instructors/instructor-2/schedule',
-            query: { schoolId: 'school-1' },
-        });
+        expect(labels.scheduleBackHref.value).toBe(
+            '/manager/instructors/instructor-2/schedule',
+        );
     });
 
     it('falls back to loaded event instructor and plain path without school id', () => {

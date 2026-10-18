@@ -65,7 +65,6 @@ export function useManagerCourseParticipants({
 
         try {
             const page = await fetchStudentsList({
-                schoolId,
                 courseId: currentCourse.id,
                 page: targetPage,
                 limit: MANAGER_COURSE_PARTICIPANTS_PAGE_SIZE,

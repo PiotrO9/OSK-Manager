@@ -1,4 +1,3 @@
-import type { Ref } from 'vue';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,
@@ -24,14 +23,7 @@ function createDefaultStudentPaymentsSummary(): StudentPaymentsSummary {
     };
 }
 
-function getMissingSchoolIdMessage(): string {
-    return 'Brak identyfikatora szkoły w adresie strony. Wróć do listy kursantów i otwórz szczegóły ponownie.';
-}
-
-export function useManagerStudentPayments(input: {
-    schoolId: Ref<string>;
-    getUserId: () => unknown;
-}) {
+export function useManagerStudentPayments(input: { getUserId: () => unknown }) {
     const {
         createStudentPayment,
         fetchStudentPayments,
@@ -66,21 +58,22 @@ export function useManagerStudentPayments(input: {
         paymentPlans.value = [];
         paymentsError.value = null;
 
-        if (!userId || !input.schoolId.value) {
+        const requestSequence = ++paymentsFetchSequence;
+
+        paymentsSaving.value = false;
+        paymentsActionError.value = null;
+        paymentsSummary.value = createDefaultStudentPaymentsSummary();
+
+        if (!userId) {
             paymentsLoading.value = false;
 
             return;
         }
 
-        const requestSequence = ++paymentsFetchSequence;
-
         paymentsLoading.value = true;
 
         try {
-            const data = await fetchStudentPayments(
-                userId,
-                input.schoolId.value,
-            );
+            const data = await fetchStudentPayments(userId);
 
             if (requestSequence !== paymentsFetchSequence) {
                 return;
@@ -111,8 +104,8 @@ export function useManagerStudentPayments(input: {
     async function handleCreateStudentPayment(
         payload: CreateStudentPaymentPayload,
     ): Promise<void> {
-        const succeeded = await handleStudentPaymentAction((userId, schoolId) =>
-            createStudentPayment(userId, schoolId, payload),
+        const succeeded = await handleStudentPaymentAction((userId) =>
+            createStudentPayment(userId, payload),
         );
 
         if (succeeded) {
@@ -124,47 +117,53 @@ export function useManagerStudentPayments(input: {
         paymentId: string,
         payload: UpdateStudentPaymentPayload,
     ): Promise<void> {
-        await handleStudentPaymentAction((userId, schoolId) =>
-            updateStudentPayment(userId, schoolId, paymentId, payload),
+        await handleStudentPaymentAction((userId) =>
+            updateStudentPayment(userId, paymentId, payload),
         );
     }
 
     async function handleMarkStudentPaymentPaid(
         paymentId: string,
     ): Promise<void> {
-        await handleStudentPaymentAction((userId, schoolId) =>
-            markStudentPaymentPaid(userId, schoolId, paymentId),
+        await handleStudentPaymentAction((userId) =>
+            markStudentPaymentPaid(userId, paymentId),
         );
     }
 
     async function handleMarkStudentPaymentUnpaid(
         paymentId: string,
     ): Promise<void> {
-        await handleStudentPaymentAction((userId, schoolId) =>
-            markStudentPaymentUnpaid(userId, schoolId, paymentId),
+        await handleStudentPaymentAction((userId) =>
+            markStudentPaymentUnpaid(userId, paymentId),
         );
     }
 
     async function handleStudentPaymentAction(
-        action: (
-            userId: string,
-            schoolId: string,
-        ) => Promise<StudentPaymentsPayload>,
+        action: (userId: string) => Promise<StudentPaymentsPayload>,
     ): Promise<boolean> {
         paymentsActionError.value = null;
 
         const userId = getStudentDetailsRouteUserIdString(input.getUserId());
 
-        if (!input.schoolId.value || !userId) {
-            paymentsActionError.value = getMissingSchoolIdMessage();
+        if (!userId) {
+            paymentsActionError.value = 'Brak identyfikatora kursanta.';
 
             return false;
         }
 
+        const requestSequence = ++paymentsFetchSequence;
+
+        paymentsLoading.value = false;
         paymentsSaving.value = true;
 
         try {
-            const data = await action(userId, input.schoolId.value);
+            const data = await action(userId);
+
+            if (
+                requestSequence !== paymentsFetchSequence ||
+                userId !== getStudentDetailsRouteUserIdString(input.getUserId())
+            )
+                return false;
 
             payments.value = data.payments;
             paymentPlans.value = data.paymentPlans;
@@ -172,6 +171,8 @@ export function useManagerStudentPayments(input: {
 
             return true;
         } catch (err: unknown) {
+            if (requestSequence !== paymentsFetchSequence) return false;
+
             paymentsActionError.value = getApiFetchErrorMessage(
                 err,
                 'Nie udało się zapisać płatności kursanta.',
@@ -179,7 +180,8 @@ export function useManagerStudentPayments(input: {
 
             return false;
         } finally {
-            paymentsSaving.value = false;
+            if (requestSequence === paymentsFetchSequence)
+                paymentsSaving.value = false;
         }
     }
 

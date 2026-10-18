@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, ref } from 'vue';
-import type { LocationQueryValue } from 'vue-router';
 import type { CourseDetail } from '~/types/courses/course';
 
 import { useManagerCourseDetailPresentation } from './useManagerCourseDetailPresentation';
@@ -24,10 +23,6 @@ function course(overrides: Partial<CourseDetail> = {}): CourseDetail {
     };
 }
 
-function querySchoolId(value?: LocationQueryValue | LocationQueryValue[]) {
-    return ref<LocationQueryValue | LocationQueryValue[] | undefined>(value);
-}
-
 describe('useManagerCourseDetailPresentation', () => {
     beforeEach(() => {
         installVueGlobals();
@@ -37,11 +32,9 @@ describe('useManagerCourseDetailPresentation', () => {
         const courseRef = ref<CourseDetail | null>(
             course({ schoolId: 'school-from-course' }),
         );
-        const querySchoolIdRef = querySchoolId(' school-from-query ');
 
         const presentation = useManagerCourseDetailPresentation({
             course: courseRef,
-            querySchoolId: querySchoolIdRef,
         });
 
         expect(presentation.effectiveSchoolId.value).toBe('school-from-course');
@@ -51,28 +44,24 @@ describe('useManagerCourseDetailPresentation', () => {
         );
     });
 
-    it('falls back to legacy query school id and empty navigation when school id is missing', () => {
+    it('does not fabricate a school when the resource is missing it', () => {
         const courseRef = ref<CourseDetail | null>(
             course({ schoolId: 'school-from-course' }),
         );
-        const querySchoolIdRef = querySchoolId('school-from-query');
 
         const presentation = useManagerCourseDetailPresentation({
             course: courseRef,
-            querySchoolId: querySchoolIdRef,
         });
 
         expect(presentation.effectiveSchoolId.value).toBe('school-from-course');
 
         courseRef.value = course({ schoolId: undefined });
 
-        expect(presentation.effectiveSchoolId.value).toBe('school-from-query');
+        expect(presentation.effectiveSchoolId.value).toBe('');
         expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
         expect(presentation.createCourseTarget.value).toBe(
             '/manager/courses/new',
         );
-
-        querySchoolIdRef.value = undefined;
 
         expect(presentation.effectiveSchoolId.value).toBe('');
         expect(presentation.backToCoursesHref.value).toBe('/manager/courses');
@@ -83,11 +72,9 @@ describe('useManagerCourseDetailPresentation', () => {
 
     it('derives course title, category label and subtitle', () => {
         const courseRef = ref<CourseDetail | null>(course());
-        const querySchoolIdRef = querySchoolId();
 
         const presentation = useManagerCourseDetailPresentation({
             course: courseRef,
-            querySchoolId: querySchoolIdRef,
         });
 
         expect(presentation.courseTitle.value).toBe('Kurs B ekspres');
@@ -115,11 +102,9 @@ describe('useManagerCourseDetailPresentation', () => {
                 },
             }),
         );
-        const querySchoolIdRef = querySchoolId('school-1');
 
         const presentation = useManagerCourseDetailPresentation({
             course: courseRef,
-            querySchoolId: querySchoolIdRef,
         });
 
         expect(presentation.overviewItems.value).toHaveLength(3);

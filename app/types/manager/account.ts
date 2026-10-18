@@ -1,5 +1,6 @@
 export interface ManagerAccount {
     id: string;
+    schoolId?: string;
     role: 'STUDENT' | 'INSTRUCTOR';
     firstName: string;
     lastName: string;
