@@ -56,7 +56,7 @@ const averageLabel = computed(() =>
                         class="text-muted-foreground text-sm font-semibold"
                         aria-hidden="true"
                     >
-                        / 5
+                        na 5
                     </span>
                 </p>
             </div>

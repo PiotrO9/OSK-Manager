@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
+import { formatLessonRatingValue } from '~/utils/lessons/myReviews';
 import { isStudentRatingSelectableScheduleLesson } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 import {
     displayStudentScheduleTimeRange,
@@ -90,7 +91,7 @@ const canRate = computed(() =>
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold">Twoja ocena</h3>
                     <UiBadge variant="secondary">
-                        {{ lesson.rating.rating }}/5
+                        {{ formatLessonRatingValue(lesson.rating.rating) }} na 5
                     </UiBadge>
                 </div>
                 <p

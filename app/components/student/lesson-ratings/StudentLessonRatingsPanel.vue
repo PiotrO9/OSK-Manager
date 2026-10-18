@@ -3,6 +3,7 @@ import type {
     ScheduleLessonItem,
     ScheduleLessonRating,
 } from '~/types/schedule/schedule';
+import { formatLessonRatingValue } from '~/utils/lessons/myReviews';
 
 const props = defineProps<{
     items: readonly ScheduleLessonItem[];
@@ -84,7 +85,7 @@ function displayInstructor(item: ScheduleLessonItem): string {
 }
 
 function ratingLabel(rating: ScheduleLessonRating): string {
-    return `${rating.rating}/5`;
+    return `${formatLessonRatingValue(rating.rating)} na 5`;
 }
 
 function handleSubmit(payload: { rating: number; comment: string | null }) {

@@ -5,6 +5,7 @@ import {
 } from '~/types/courses/courseType';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
+import { formatLessonRatingValue } from '~/utils/lessons/myReviews';
 
 export function displayManagerInstructorDetailsValue(value: string): string {
     const trimmed = value.trim();
@@ -54,7 +55,9 @@ export function useManagerInstructorDetailsContent(input: {
 
         const average = input.ratingSummary.averageRating;
 
-        return average === null ? '-' : average.toFixed(2);
+        return average === null
+            ? '—'
+            : `${formatLessonRatingValue(average)} na 5`;
     });
 
     const ratingsCountLabel = computed(() => {

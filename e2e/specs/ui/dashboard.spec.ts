@@ -295,7 +295,7 @@ test.describe('UI: pulpit zależny od roli', () => {
             });
 
             await expect(
-                ratingsCard.getByText('3.2', { exact: true }),
+                ratingsCard.getByText('3,2 na 5', { exact: true }),
             ).toBeVisible();
             await expect(ratingsCard.getByText('60 opinii')).toBeVisible();
             expect(requestedPages.length).toBeGreaterThan(0);

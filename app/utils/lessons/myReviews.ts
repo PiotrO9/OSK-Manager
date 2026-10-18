@@ -11,8 +11,8 @@ export function formatLessonRatingValue(value: number | null): string {
     }
 
     return new Intl.NumberFormat('pl-PL', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
     }).format(value);
 }
 

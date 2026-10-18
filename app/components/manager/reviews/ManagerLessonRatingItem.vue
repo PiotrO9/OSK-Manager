@@ -148,7 +148,7 @@ function personInitials(person: LessonRatingPerson): string {
                 >
                     <Star class="size-3.5 fill-current" aria-hidden="true" />
                     <span aria-hidden="true">
-                        {{ formatLessonRatingValue(props.rating.rating) }} / 5
+                        {{ formatLessonRatingValue(props.rating.rating) }} na 5
                     </span>
                 </div>
             </div>
@@ -263,7 +263,7 @@ function personInitials(person: LessonRatingPerson): string {
             >
                 <Star class="size-3.5 fill-current" aria-hidden="true" />
                 <span aria-hidden="true">
-                    {{ formatLessonRatingValue(props.rating.rating) }} / 5
+                    {{ formatLessonRatingValue(props.rating.rating) }} na 5
                 </span>
             </div>
             <div class="grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-1">

@@ -177,7 +177,7 @@ function formatDateTime(value: string): string {
                             aria-hidden="true"
                         />
                         <span aria-hidden="true">
-                            {{ formatLessonRatingValue(rating.rating) }} / 5
+                            {{ formatLessonRatingValue(rating.rating) }} na 5
                         </span>
                     </div>
                 </article>

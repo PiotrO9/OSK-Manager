@@ -9,6 +9,7 @@ import DashboardNextLessonCard from './DashboardNextLessonCard.vue';
 import UserDrivingSchoolsSection from './UserDrivingSchoolsSection.vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
+import { formatLessonRatingValue } from '~/utils/lessons/myReviews';
 
 defineProps<{
     schools: readonly DrivingSchool[];
@@ -141,7 +142,9 @@ const emit = defineEmits<{ retry: [] }>();
                     class="text-foreground mt-3 text-2xl font-extrabold tabular-nums"
                 >
                     {{
-                        averageRating === null ? '—' : averageRating.toFixed(1)
+                        averageRating === null
+                            ? '—'
+                            : `${formatLessonRatingValue(averageRating)} na 5`
                     }}
                 </p>
                 <p class="text-muted-foreground mt-1 text-xs">
