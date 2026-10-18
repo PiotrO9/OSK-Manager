@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import { useVehicleCourseTypeOptions } from '~/composables/vehicles/useVehicleCourseTypeOptions';
 import { Save } from 'lucide-vue-next';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
 import { useVehicleCreatePage } from '~/composables/vehicles/useVehicleCreatePage';
+
+const {
+    courseTypeOptions,
+    isCourseTypesLoading,
+    courseTypesError,
+    loadCourseTypes,
+} = useVehicleCourseTypeOptions();
 
 definePageMeta({
     layout: 'app-shell',
@@ -103,6 +111,9 @@ onBeforeUnmount(() =>
 
             <VehicleForm
                 :key="currentSchool.id"
+                :course-type-options="courseTypeOptions"
+                :is-course-types-loading="isCourseTypesLoading"
+                :course-types-error="courseTypesError"
                 :form-id="formId"
                 mode="create"
                 :initial-vehicle="null"
@@ -110,6 +121,7 @@ onBeforeUnmount(() =>
                 :api-error="apiError"
                 :registration-number-error="registrationNumberError"
                 hide-default-actions
+                @retry-course-types="loadCourseTypes"
                 @submit="handleVehicleSubmit"
                 @dirty-change="isFormDirty = $event"
                 @registration-number-change="clearRegistrationNumberError"

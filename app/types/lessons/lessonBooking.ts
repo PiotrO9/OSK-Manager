@@ -40,6 +40,7 @@ export interface StudentCourseWithKind {
     id: string;
     name: string;
     category: string;
+    courseTypeId?: string;
     status: string;
     kind: CourseKind | null;
 }

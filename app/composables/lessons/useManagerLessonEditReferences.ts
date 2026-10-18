@@ -1,3 +1,4 @@
+import { vehicleSupportsCourseType } from '~/utils/vehicles/courseCompatibility';
 import type { Ref } from 'vue';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import type { ManagerLessonDetail } from '~/types/lessons/managerLesson';
@@ -334,7 +335,12 @@ export function useManagerLessonEditReferences(
             selectedVehicleId: options.formVehicleId.value,
             embeddedVehicle: options.loadedLesson.value?.lessonVehicle,
             fallbackVehicle: vehicleDisplayFallback.value,
-        }),
+        }).filter((vehicle) =>
+            vehicleSupportsCourseType(
+                vehicle,
+                options.loadedLesson.value?.courseType?.id,
+            ),
+        ),
     );
 
     const instructorSelectLabel = computed((): string => {
@@ -402,7 +408,18 @@ export function useManagerLessonEditReferences(
     }
 
     return {
-        vehiclesError,
+        vehiclesError: computed(
+            () =>
+                vehiclesError.value ??
+                (options.loadedLesson.value &&
+                options.formVehicleId.value &&
+                !isVehiclesLoading.value &&
+                !vehiclesForSelect.value.some(
+                    (vehicle) => vehicle.id === options.formVehicleId.value,
+                )
+                    ? 'Aktualny pojazd nie ma potwierdzonej zgodności z kategorią kursu. Wybierz zgodny pojazd.'
+                    : null),
+        ),
         isVehiclesLoading,
         instructorsError,
         isInstructorsLoading: computed(

@@ -115,6 +115,7 @@ export function buildManagerLessonVehiclesForSelect(params: {
         id,
         name: fallback?.name ?? 'Aktualny pojazd',
         registrationNumber: fallback?.registrationNumber ?? '—',
+        supportedCourseTypes: fallback?.supportedCourseTypes ?? [],
         status: fallback?.status ?? 'ACTIVE',
         unavailableUntil: fallback?.unavailableUntil ?? null,
         isDefault: fallback?.isDefault ?? false,

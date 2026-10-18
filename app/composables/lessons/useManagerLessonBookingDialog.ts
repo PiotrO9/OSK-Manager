@@ -1,3 +1,4 @@
+import { vehicleSupportsCourseType } from '~/utils/vehicles/courseCompatibility';
 import type { Ref } from 'vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { InstructorListItem } from '~/types/instructors/instructor';
@@ -130,6 +131,32 @@ export function useManagerLessonBookingDialog(
 
     const slotWhenLabel = computed(() =>
         formatManagerLessonBookingSlotWhenLabel(options.slotCtx.value),
+    );
+
+    const categoryVehicles = computed(() =>
+        vehicles.value.filter(
+            (vehicle) =>
+                vehicleSupportsCourseType(
+                    vehicle,
+                    selectedCourse.value?.courseTypeId,
+                ) &&
+                vehicle.status === 'ACTIVE' &&
+                availableVehicleIds.value.includes(vehicle.id),
+        ),
+    );
+
+    watch(
+        [selectedCourseId, categoryVehicles],
+        () => {
+            if (
+                selectedVehicleId.value &&
+                !categoryVehicles.value.some(
+                    (vehicle) => vehicle.id === selectedVehicleId.value,
+                )
+            )
+                selectedVehicleId.value = '';
+        },
+        { flush: 'sync' },
     );
 
     const availabilityCandidate =
@@ -397,7 +424,7 @@ export function useManagerLessonBookingDialog(
         isLoadingStudents,
         studentsError,
         loadMoreStudents,
-        vehicles,
+        vehicles: categoryVehicles,
         availableVehicleIds,
         selectedInstructorId,
         isInstructorFixed,

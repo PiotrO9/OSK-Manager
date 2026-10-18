@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CourseTypeOption } from '~/types/courses/courseType';
 import { useSlots } from 'vue';
 import type { Vehicle, VehicleWritePayload } from '~/types/vehicles/vehicle';
 import {
@@ -13,6 +14,9 @@ import {
 } from '~/utils/vehicles/vehicleForm';
 
 const props = defineProps<{
+    courseTypeOptions: readonly CourseTypeOption[];
+    isCourseTypesLoading?: boolean;
+    courseTypesError?: string | null;
     mode: 'create' | 'edit';
     initialVehicle: Vehicle | null;
     isSaving: boolean;
@@ -28,10 +32,13 @@ const emit = defineEmits<{
     submit: [payload: VehicleWritePayload];
     dirtyChange: [isDirty: boolean];
     registrationNumberChange: [];
+    retryCourseTypes: [];
 }>();
 
 const slots = useSlots();
 
+const supportedCourseTypeIds = ref<string[]>([]);
+const showCategoriesRequired = shallowRef(false);
 const nameModel = ref('');
 const registrationNumberModel = ref('');
 const inspectionDateModel = ref('');
@@ -45,6 +52,7 @@ const showMileageKmInvalid = ref(false);
 const formElement = useTemplateRef<HTMLFormElement>('formElement');
 
 const currentDraft = computed(() => ({
+    supportedCourseTypeIds: [...supportedCourseTypeIds.value].sort(),
     name: nameModel.value,
     registrationNumber: registrationNumberModel.value,
     inspectionDate: inspectionDateModel.value,
@@ -66,6 +74,7 @@ const isDirty = computed(
 function syncFromProps() {
     const draft = vehicleToFormDraft(props.mode, props.initialVehicle);
 
+    supportedCourseTypeIds.value = draft.supportedCourseTypeIds ?? [];
     nameModel.value = draft.name;
     registrationNumberModel.value = draft.registrationNumber;
     inspectionDateModel.value = draft.inspectionDate;
@@ -77,6 +86,7 @@ function syncFromProps() {
 watch(
     () => [props.mode, props.initialVehicle] as const,
     () => {
+        showCategoriesRequired.value = false;
         showNameRequired.value = false;
         showRegistrationRequired.value = false;
         showModelYearInvalid.value = false;
@@ -87,6 +97,10 @@ watch(
 );
 
 watch(isDirty, (value) => emit('dirtyChange', value), { immediate: true });
+
+watch(supportedCourseTypeIds, (ids) => {
+    if (ids.length > 0) showCategoriesRequired.value = false;
+});
 
 watch(nameModel, (value) => {
     if (value.trim().length > 0) {
@@ -131,6 +145,7 @@ async function handleSubmit() {
         registrationNumberModel.value,
     );
 
+    showCategoriesRequired.value = supportedCourseTypeIds.value.length === 0;
     const nameOk = nameModel.value.trim().length > 0;
     const regOk = registrationNumberModel.value.trim().length > 0;
     const modelYearResult = parseOptionalVehicleModelYear(modelYearModel.value);
@@ -142,6 +157,9 @@ async function handleSubmit() {
     showMileageKmInvalid.value = !mileageKmResult.isValid;
 
     if (
+        showCategoriesRequired.value ||
+        props.isCourseTypesLoading ||
+        !!props.courseTypesError ||
         !nameOk ||
         !regOk ||
         !modelYearResult.isValid ||
@@ -159,6 +177,7 @@ async function handleSubmit() {
         'submit',
         buildVehicleWritePayload(
             {
+                supportedCourseTypeIds: supportedCourseTypeIds.value,
                 name: nameModel.value,
                 registrationNumber: registrationNumberModel.value,
                 inspectionDate: inspectionDateModel.value,
@@ -206,6 +225,18 @@ async function handleSubmit() {
             :model-year-min="VEHICLE_MODEL_YEAR_MIN"
             :model-year-max="VEHICLE_MODEL_YEAR_MAX"
             :mileage-km-max="VEHICLE_MILEAGE_KM_MAX"
+        />
+
+        <VehicleCourseTypeSelect
+            v-model="supportedCourseTypeIds"
+            :options="courseTypeOptions"
+            :disabled="isSaving"
+            :loading="isCourseTypesLoading"
+            :error="courseTypesError"
+            :invalid="
+                showCategoriesRequired && supportedCourseTypeIds.length === 0
+            "
+            @retry="emit('retryCourseTypes')"
         />
 
         <div v-if="slots.afterFields" class="space-y-4 pt-1">

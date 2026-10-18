@@ -4036,11 +4036,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Lista pojazdów dla OSK (MANAGER); opcjonalnie startTime+endTime (ISO) — bez pojazdów zajętych w tym oknie */
+        /** Lista pojazdów dla OSK (MANAGER); courseId ogranicza do aktywnych pojazdów zgodnej kategorii, startTime+endTime wyklucza zajęte */
         get: {
             parameters: {
                 query: {
                     schoolId: string;
+                    courseId?: string;
                     startTime?: string;
                     endTime?: string;
                 };
@@ -4059,7 +4060,18 @@ export interface paths {
                         'application/json': {
                             /** @enum {boolean} */
                             success: true;
-                            data?: unknown;
+                            data: {
+                                vehicles: {
+                                    id: string;
+                                    supportedCourseTypes: {
+                                        id: string;
+                                        code: string;
+                                        name: string;
+                                    }[];
+                                }[];
+                                /** Format: uuid */
+                                defaultVehicleId: string | null;
+                            };
                         };
                     };
                 };
@@ -4128,9 +4140,23 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    'application/json': {
-                        [key: string]: unknown;
-                    };
+                    'application/json':
+                        | {
+                              name: string;
+                              registrationNumber: string;
+                              /** @description Dokładne kategorie CourseType; brak dziedziczenia. Pusta lista i null są niedozwolone. */
+                              supportedCourseTypeIds: string[];
+                              /** Format: uuid */
+                              schoolId: string;
+                          }
+                        | {
+                              name: string;
+                              registrationNumber: string;
+                              /** @description Dokładne kategorie CourseType; brak dziedziczenia. Pusta lista i null są niedozwolone. */
+                              supportedCourseTypeIds?: string[];
+                              /** Format: uuid */
+                              id: string;
+                          };
                 };
             };
             responses: {
@@ -4144,7 +4170,12 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
-                                [key: string]: unknown;
+                                id: string;
+                                supportedCourseTypes: {
+                                    id: string;
+                                    code: string;
+                                    name: string;
+                                }[];
                             };
                         };
                     };
@@ -4238,7 +4269,12 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
-                                [key: string]: unknown;
+                                id: string;
+                                supportedCourseTypes: {
+                                    id: string;
+                                    code: string;
+                                    name: string;
+                                }[];
                             };
                         };
                     };
@@ -4393,7 +4429,10 @@ export interface paths {
             requestBody?: {
                 content: {
                     'application/json': {
-                        [key: string]: unknown;
+                        name: string;
+                        registrationNumber: string;
+                        /** @description Dokładne kategorie CourseType; brak dziedziczenia. Pusta lista i null są niedozwolone. */
+                        supportedCourseTypeIds?: string[];
                     };
                 };
             };
@@ -4408,7 +4447,12 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
-                                [key: string]: unknown;
+                                id: string;
+                                supportedCourseTypes: {
+                                    id: string;
+                                    code: string;
+                                    name: string;
+                                }[];
                             };
                         };
                     };
@@ -4607,7 +4651,12 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
-                                [key: string]: unknown;
+                                id: string;
+                                supportedCourseTypes: {
+                                    id: string;
+                                    code: string;
+                                    name: string;
+                                }[];
                             };
                         };
                     };

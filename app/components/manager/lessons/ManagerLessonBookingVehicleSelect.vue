@@ -5,6 +5,7 @@ const props = defineProps<{
     vehicles: readonly Vehicle[];
     availableVehicleIds?: readonly string[];
     disabled: boolean;
+    courseSelected?: boolean;
 }>();
 
 function isVehicleDisabled(vehicle: Vehicle): boolean {
@@ -65,12 +66,15 @@ const selectedVehicleId = defineModel<string>('selectedVehicleId', {
             </UiSelectContent>
         </UiSelect>
         <p
-            v-if="availableVehicleIds?.length === 0"
+            v-if="vehicles.length === 0"
             class="text-muted-foreground text-xs"
             role="status"
         >
-            Brak wolnych pojazdów w tym oknie — wybierz inny slot lub sprawdź
-            flotę OSK.
+            {{
+                courseSelected
+                    ? 'Brak dostępnych pojazdów dla tej kategorii w wybranym terminie. Sprawdź flotę lub wybierz inny termin.'
+                    : 'Najpierw wybierz kurs.'
+            }}
         </p>
     </div>
 </template>

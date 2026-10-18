@@ -60,6 +60,12 @@ defineEmits<{
                         >
                             {{ displayVehicleText(vehicle.registrationNumber) }}
                         </p>
+                        <AppCourseTypeBadges
+                            :course-types="vehicle.supportedCourseTypes ?? []"
+                            group-label="Kategorie pojazdu"
+                            empty-label="Uzupełnij kategorie"
+                            class="mt-2"
+                        />
                     </div>
                 </td>
                 <td class="text-muted-foreground px-4 py-3">

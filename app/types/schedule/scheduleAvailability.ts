@@ -9,6 +9,7 @@ export type ScheduleAvailabilityIssueCode =
     | 'STUDENT_NOT_ELIGIBLE'
     | 'COURSE_LIMIT_EXCEEDED'
     | 'DATE_NOT_BOOKABLE'
+    | 'VEHICLE_COURSE_TYPE_MISMATCH'
     | 'VEHICLE_UNAVAILABLE'
     | 'VEHICLE_BUSY'
     | 'NO_VEHICLE_AVAILABLE'
@@ -168,10 +169,12 @@ const ISSUE_MESSAGES: Record<ScheduleAvailabilityIssueCode, string> = {
     COURSE_LIMIT_EXCEEDED:
         'Ta lekcja przekroczyłaby dostępny pakiet godzin kursanta.',
     DATE_NOT_BOOKABLE: 'Wybrana data jest poza dozwolonym zakresem rezerwacji.',
+    VEHICLE_COURSE_TYPE_MISMATCH:
+        'Pojazd nie obsługuje kategorii tego kursu. Wybierz zgodny pojazd.',
     VEHICLE_UNAVAILABLE: 'Wybrany pojazd jest obecnie niedostępny.',
     VEHICLE_BUSY: 'Wybrany pojazd jest zajęty w tym terminie.',
     NO_VEHICLE_AVAILABLE:
-        'W tym terminie nie ma dostępnego pojazdu dla instruktora.',
+        'W tym terminie nie ma dostępnego pojazdu odpowiedniej kategorii.',
     COURSE_NOT_ELIGIBLE: 'Instruktor nie może prowadzić wybranego kursu.',
 };
 

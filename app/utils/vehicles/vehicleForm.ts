@@ -11,6 +11,7 @@ export const VEHICLE_PHOTO_ACCEPTED_TYPES = [
 ] as const;
 
 export interface VehicleFormDraft {
+    supportedCourseTypeIds?: string[];
     name: string;
     registrationNumber: string;
     inspectionDate: string;
@@ -31,6 +32,7 @@ export interface VehiclePhotoFileLike {
 
 export function getEmptyVehicleFormDraft(): VehicleFormDraft {
     return {
+        supportedCourseTypeIds: [],
         name: '',
         registrationNumber: '',
         inspectionDate: '',
@@ -49,6 +51,11 @@ export function vehicleToFormDraft(
     }
 
     return {
+        supportedCourseTypeIds: [
+            ...new Set(
+                (vehicle.supportedCourseTypes ?? []).map((type) => type.id),
+            ),
+        ].sort(),
         name: vehicle.name,
         registrationNumber: vehicle.registrationNumber,
         inspectionDate: vehicle.inspectionDate ?? '',
@@ -170,6 +177,9 @@ export function buildVehicleWritePayload(
     mileageKm: number | null,
 ): VehicleWritePayload {
     return {
+        supportedCourseTypeIds: [
+            ...new Set(draft.supportedCourseTypeIds ?? []),
+        ].sort(),
         name: draft.name.trim(),
         registrationNumber: normalizeVehicleRegistrationNumber(
             draft.registrationNumber,

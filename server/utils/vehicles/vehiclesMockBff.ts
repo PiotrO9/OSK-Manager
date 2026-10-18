@@ -1,3 +1,4 @@
+import { mockCoursesGetById } from '../courses/mockCoursesList';
 import {
     mockVehicleRowToDetailPayload,
     mockVehiclesCreate,
@@ -20,11 +21,37 @@ function dataSuccess(data: unknown): { success: true; data: unknown } {
     return { success: true, data };
 }
 
-export function bffMockVehiclesList(schoolId: string): {
+export function bffMockVehiclesList(
+    schoolId: string,
+    courseId?: string,
+): {
     success: true;
     data: unknown;
 } {
-    return dataSuccess(mockVehiclesListForSchool(schoolId));
+    const vehicles = mockVehiclesListForSchool(schoolId) as {
+        status: string;
+        supportedCourseTypes: { id: string }[];
+    }[];
+
+    if (!courseId) return dataSuccess(vehicles);
+
+    const course = mockCoursesGetById(courseId);
+
+    if (!course || course.schoolId !== schoolId)
+        throw createError({
+            statusCode: 404,
+            message: 'Kurs nie istnieje w tej szkole.',
+        });
+
+    return dataSuccess(
+        vehicles.filter(
+            (vehicle) =>
+                vehicle.status === 'ACTIVE' &&
+                vehicle.supportedCourseTypes.some(
+                    (type) => type.id === course.courseType?.id,
+                ),
+        ),
+    );
 }
 
 export function bffMockVehiclesGetById(id: string): {

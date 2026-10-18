@@ -112,6 +112,11 @@ function handleTabChange(value: string | number): void {
                     :is-default="props.vehicle.isDefault"
                     :profile-rows="profileRows"
                 />
+                <AppCourseTypeBadges
+                    :course-types="props.vehicle.supportedCourseTypes ?? []"
+                    group-label="Kategorie pojazdu"
+                    empty-label="Uzupełnij kategorie"
+                />
             </aside>
 
             <main class="min-w-0">

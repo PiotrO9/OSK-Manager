@@ -47,6 +47,12 @@ defineEmits<{
                 </div>
             </div>
 
+            <AppCourseTypeBadges
+                :course-types="vehicle.supportedCourseTypes ?? []"
+                group-label="Kategorie pojazdu"
+                empty-label="Uzupełnij kategorie"
+                class="mt-2"
+            />
             <div class="mt-3 flex flex-wrap gap-2">
                 <StatusBadge
                     :label="vehicleStatusLabel(vehicle)"

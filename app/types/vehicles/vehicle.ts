@@ -1,8 +1,14 @@
+import {
+    normalizeCourseTypesList,
+    type CourseTypeOption,
+} from '~/types/courses/courseType';
+
 export type VehicleStatus = 'ACTIVE' | 'UNAVAILABLE';
 export type VehicleDeletionBlockReason = 'DEFAULT' | 'SCHEDULED_LESSONS';
 
 /** Wspólne pola zapisu pojazdu (formularz create/edit bez schoolId). */
 export interface VehicleWritePayload {
+    supportedCourseTypeIds?: string[];
     name: string;
     registrationNumber: string;
     inspectionDate: string | null;
@@ -14,6 +20,7 @@ export interface VehicleWritePayload {
 }
 
 export interface Vehicle {
+    supportedCourseTypes?: CourseTypeOption[];
     id: string;
     name: string;
     registrationNumber: string;
@@ -265,6 +272,9 @@ export function normalizeVehicle(item: unknown, index: number): Vehicle | null {
 
     return {
         id,
+        supportedCourseTypes: normalizeCourseTypesList(
+            vehicleRecord.supportedCourseTypes,
+        ),
         name: name.trim(),
         registrationNumber: registrationNumber.trim(),
         status,

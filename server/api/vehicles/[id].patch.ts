@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>
             bffUpstreamVehiclesUpdate(event, upstreamBase, id, {
+                supportedCourseTypeIds: fields.supportedCourseTypeIds,
                 name: fields.name,
                 registrationNumber: fields.registrationNumber,
                 inspectionDate: fields.inspectionDate,
@@ -47,6 +48,7 @@ export default defineEventHandler(async (event) => {
             await requireManagerFromCookie(event);
 
             return bffMockVehiclesUpdate(id, {
+                supportedCourseTypeIds: fields.supportedCourseTypeIds,
                 name: fields.name,
                 registrationNumber: fields.registrationNumber,
                 inspectionDate: fields.inspectionDate,

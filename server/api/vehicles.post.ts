@@ -21,6 +21,13 @@ export default defineEventHandler(async (event) => {
         });
     }
 
+    if (!fields.supportedCourseTypeIds?.length) {
+        throw createError({
+            statusCode: 400,
+            message: 'Wybierz co najmniej jedną kategorię pojazdu.',
+        });
+    }
+
     if (!fields.name) {
         throw createError({
             statusCode: 400,
@@ -39,6 +46,7 @@ export default defineEventHandler(async (event) => {
         upstream: ({ upstreamBase }) =>
             bffUpstreamVehiclesCreate(event, upstreamBase, {
                 schoolId,
+                supportedCourseTypeIds: fields.supportedCourseTypeIds,
                 name: fields.name,
                 registrationNumber: fields.registrationNumber,
                 inspectionDate: fields.inspectionDate,
@@ -51,6 +59,7 @@ export default defineEventHandler(async (event) => {
 
             return bffMockVehiclesCreate({
                 schoolId,
+                supportedCourseTypeIds: fields.supportedCourseTypeIds,
                 name: fields.name,
                 registrationNumber: fields.registrationNumber,
                 inspectionDate: fields.inspectionDate,

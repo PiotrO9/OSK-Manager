@@ -16,6 +16,7 @@ const instructor: InstructorListItem = {
 };
 
 const vehicle: Vehicle = {
+    supportedCourseTypes: [{ id: 'type-b', code: 'B', name: 'B' }],
     id: 'vehicle-1',
     name: 'Toyota Yaris',
     registrationNumber: 'WA12345',

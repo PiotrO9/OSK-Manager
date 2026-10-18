@@ -11,6 +11,12 @@ export default defineEventHandler(async (event) => {
         invalid: 'Parametr schoolId musi być poprawnym identyfikatorem UUID.',
     });
 
+    const courseId = rawQuery.courseId
+        ? parseRequiredUuidQuery(rawQuery, 'courseId', {
+              required: 'Wybierz kurs.',
+              invalid: 'Nieprawidłowy kurs.',
+          })
+        : undefined;
     const startTime = readQueryString(rawQuery.startTime);
     const endTime = readQueryString(rawQuery.endTime);
 
@@ -29,11 +35,17 @@ export default defineEventHandler(async (event) => {
 
     return executeBffAdapter(event, {
         upstream: ({ upstreamBase }) =>
-            bffUpstreamVehiclesList(event, upstreamBase, schoolId, timeFilter),
+            bffUpstreamVehiclesList(
+                event,
+                upstreamBase,
+                schoolId,
+                timeFilter,
+                courseId,
+            ),
         mock: async () => {
             await requireAuthenticatedFromCookie(event);
 
-            return bffMockVehiclesList(schoolId);
+            return bffMockVehiclesList(schoolId, courseId);
         },
     });
 });

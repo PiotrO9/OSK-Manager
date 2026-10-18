@@ -35,6 +35,7 @@ function vehicle(overrides: Partial<Vehicle> = {}): Vehicle {
 describe('vehicle form utilities', () => {
     it('returns empty draft defaults', () => {
         expect(getEmptyVehicleFormDraft()).toEqual({
+            supportedCourseTypeIds: [],
             name: '',
             registrationNumber: '',
             inspectionDate: '',
@@ -46,6 +47,7 @@ describe('vehicle form utilities', () => {
 
     it('maps edit vehicles to form draft strings', () => {
         expect(vehicleToFormDraft('edit', vehicle())).toEqual({
+            supportedCourseTypeIds: [],
             name: 'Toyota Yaris',
             registrationNumber: 'KR12345',
             inspectionDate: '2026-09-01',
@@ -171,6 +173,7 @@ describe('vehicle form utilities', () => {
                 123456,
             ),
         ).toEqual({
+            supportedCourseTypeIds: [],
             name: 'Toyota Yaris',
             registrationNumber: 'KR12345',
             inspectionDate: '2026-09-01',

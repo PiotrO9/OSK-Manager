@@ -1,3 +1,4 @@
+import { normalizeCourseTypeOption } from '~/types/courses/courseType';
 import type { InstructorListItem } from '~/types/instructors/instructor';
 import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 import type {
@@ -71,6 +72,7 @@ export function normalizeManagerLesson(
         return null;
     }
 
+    const courseType = normalizeCourseTypeOption(lessonRecord.courseType);
     const student = readNestedManagerLessonStudent(lessonRecord);
     const assignedCourseInstructor = readNestedAssignedCourseInstructor(
         lessonRecord.assignedCourseInstructor,
@@ -100,6 +102,7 @@ export function normalizeManagerLesson(
         id,
         courseId,
         ...(schoolId ? { schoolId } : {}),
+        ...(courseType ? { courseType } : {}),
         studentId,
         ...(studentUserId ? { studentUserId } : {}),
         instructorId,
@@ -134,6 +137,7 @@ export function mergeManagerLessonAfterUpdate(
     return {
         ...updated,
         schoolId: updated.schoolId ?? previous.schoolId,
+        courseType: updated.courseType ?? previous.courseType,
         bookingMaxDaysAhead:
             updated.bookingMaxDaysAhead ?? previous.bookingMaxDaysAhead,
         schoolWorkingDaysMask:

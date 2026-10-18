@@ -28,6 +28,7 @@ function lesson(
     return {
         id: lessonId,
         courseId: 'course-1',
+        courseType: { id: 'type-b', code: 'B', name: 'B' },
         schoolId,
         student: { id: 'student-1', firstName: 'Kamil', lastName: 'Kursant' },
         instructor: {
@@ -38,6 +39,7 @@ function lesson(
         },
         vehicle: {
             id: vehicleId,
+            supportedCourseTypes: [{ id: 'type-b', code: 'B', name: 'B' }],
             name: 'Toyota Yaris',
             registrationNumber: 'WA12345',
             status: 'ACTIVE',
@@ -129,6 +131,9 @@ async function mockLessonApis(
                     vehicles: [
                         {
                             id: vehicleId,
+                            supportedCourseTypes: [
+                                { id: 'type-b', code: 'B', name: 'B' },
+                            ],
                             name: 'Toyota Yaris',
                             registrationNumber: 'WA12345',
                             status: 'ACTIVE',

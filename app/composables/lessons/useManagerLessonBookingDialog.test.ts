@@ -113,6 +113,59 @@ describe('useManagerLessonBookingDialog', () => {
         installGlobals();
     });
 
+    it('filters vehicles by course and clears the stale selection immediately', async () => {
+        const open = ref(false);
+        const typeB = { id: 'type-b', code: 'B', name: 'B' };
+        const typeA = { id: 'type-a', code: 'A', name: 'A' };
+
+        loadModalData.mockResolvedValue({
+            students: [
+                {
+                    userId: 'student-1',
+                    firstName: 'A',
+                    lastName: 'B',
+                    email: 'a@b.test',
+                    courses: [
+                        { ...studentCourse('b'), courseTypeId: typeB.id },
+                        { ...studentCourse('a'), courseTypeId: typeA.id },
+                    ],
+                },
+            ],
+            vehicles: [
+                { id: 'car', status: 'ACTIVE', supportedCourseTypes: [typeB] },
+                { id: 'bike', status: 'ACTIVE', supportedCourseTypes: [typeA] },
+                { id: 'legacy', status: 'ACTIVE', supportedCourseTypes: [] },
+                { id: 'busy', status: 'ACTIVE', supportedCourseTypes: [typeB] },
+                {
+                    id: 'unavailable',
+                    status: 'UNAVAILABLE',
+                    supportedCourseTypes: [typeB],
+                },
+            ],
+            availableVehicleIds: ['car', 'bike', 'legacy', 'unavailable'],
+        });
+        fetchInstructorsList.mockResolvedValue([]);
+        const dialog = useManagerLessonBookingDialog({
+            open,
+            slotCtx: ref(slotCtx()),
+            schoolCourses: ref([course()]),
+            emitBooked: vi.fn(),
+        });
+
+        open.value = true;
+        await nextTick();
+        await vi.waitFor(() => expect(dialog.students.value).toHaveLength(1));
+        expect(dialog.vehicles.value).toEqual([]);
+        dialog.selectedStudentUserId.value = 'student-1';
+        await nextTick();
+        dialog.selectedCourseId.value = 'b';
+        expect(dialog.vehicles.value.map((v) => v.id)).toEqual(['car']);
+        dialog.selectedVehicleId.value = 'car';
+        dialog.selectedCourseId.value = 'a';
+        expect(dialog.selectedVehicleId.value).toBe('');
+        expect(dialog.vehicles.value.map((v) => v.id)).toEqual(['bike']);
+    });
+
     it('ignores submit while lesson creation is already pending', async () => {
         isCreating.value = true;
         const emitBooked = vi.fn();

@@ -1,6 +1,29 @@
+import { createError } from 'h3';
+import {
+    MOCK_DEFAULT_OFFERED_COURSE_TYPES,
+    type MockDrivingSchoolOfferedType,
+} from '../schools/mockDrivingSchoolsStore';
+
+function resolveCategories(ids: string[]): MockDrivingSchoolOfferedType[] {
+    return [...new Set(ids)].map((id) => {
+        const type = MOCK_DEFAULT_OFFERED_COURSE_TYPES.find(
+            (type) => type.id === id,
+        );
+
+        if (!type)
+            throw createError({
+                statusCode: 400,
+                message: 'Nieznana kategoria pojazdu.',
+            });
+
+        return { ...type };
+    });
+}
+
 export type MockVehicleStatus = 'ACTIVE' | 'UNAVAILABLE';
 
 export interface MockVehicleRow {
+    supportedCourseTypes: MockDrivingSchoolOfferedType[];
     id: string;
     schoolId: string;
     name: string;
@@ -42,6 +65,9 @@ function ensureSeedForSchool(schoolId: string) {
             id: crypto.randomUUID(),
             schoolId,
             name: 'Toyota Yaris',
+            supportedCourseTypes: resolveCategories([
+                'a1111111-1111-4111-8111-111111111111',
+            ]),
             registrationNumber: 'KR 12345',
             status: 'ACTIVE',
             unavailableUntil: null,
@@ -57,6 +83,7 @@ function ensureSeedForSchool(schoolId: string) {
             id: crypto.randomUUID(),
             schoolId,
             name: 'Skoda Octavia — pojazd szkoleniowy z bardzo długą nazwą do testu UI',
+            supportedCourseTypes: [],
             registrationNumber: 'WW 99999',
             status: 'UNAVAILABLE',
             unavailableUntil: null,
@@ -74,6 +101,7 @@ function ensureSeedForSchool(schoolId: string) {
 function rowToResponse(row: MockVehicleRow): Record<string, unknown> {
     return {
         id: row.id,
+        supportedCourseTypes: row.supportedCourseTypes,
         name: row.name,
         registrationNumber: row.registrationNumber,
         status: row.status,
@@ -93,6 +121,7 @@ export function mockVehicleRowToDetailPayload(
 ): Record<string, unknown> {
     return {
         id: row.id,
+        supportedCourseTypes: row.supportedCourseTypes,
         schoolId: row.schoolId,
         name: row.name,
         registrationNumber: row.registrationNumber,
@@ -120,6 +149,7 @@ export function mockVehiclesListForSchool(schoolId: string): unknown[] {
 }
 
 export function mockVehiclesCreate(row: {
+    supportedCourseTypeIds?: string[];
     schoolId: string;
     name: string;
     registrationNumber: string;
@@ -131,6 +161,9 @@ export function mockVehiclesCreate(row: {
     const store = getStore();
     const id = crypto.randomUUID();
     const created: MockVehicleRow = {
+        supportedCourseTypes: resolveCategories(
+            row.supportedCourseTypeIds ?? [],
+        ),
         id,
         schoolId: row.schoolId,
         name: row.name,
@@ -173,6 +206,7 @@ export function mockVehiclesFindDuplicateRegistration(
 export function mockVehiclesUpdate(
     id: string,
     body: {
+        supportedCourseTypeIds?: string[];
         name: string;
         registrationNumber: string;
         inspectionDate: string | null;
@@ -185,6 +219,11 @@ export function mockVehiclesUpdate(
     const row = store.find((vehicle) => vehicle.id === id);
 
     if (!row) return null;
+
+    if (body.supportedCourseTypeIds !== undefined)
+        row.supportedCourseTypes = resolveCategories(
+            body.supportedCourseTypeIds,
+        );
 
     row.name = body.name;
     row.registrationNumber = body.registrationNumber;

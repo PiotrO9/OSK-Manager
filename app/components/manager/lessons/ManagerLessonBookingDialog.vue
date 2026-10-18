@@ -142,6 +142,7 @@ function handleBack(): void {
                 <ManagerLessonBookingVehicleSelect
                     v-model:selected-vehicle-id="selectedVehicleId"
                     :vehicles="vehicles"
+                    :course-selected="!!selectedCourseId"
                     :available-vehicle-ids="availableVehicleIds"
                     :disabled="isCreating"
                 />

@@ -6,6 +6,13 @@ const VEHICLE_ID = 'vehicle-1';
 const vehicle = {
     id: VEHICLE_ID,
     schoolId: SCHOOL_ID,
+    supportedCourseTypes: [
+        {
+            id: 'a1111111-1111-4111-8111-111111111111',
+            code: 'B',
+            name: 'Kategoria B',
+        },
+    ],
     name: 'Toyota Yaris',
     registrationNumber: 'KR12345',
     status: 'ACTIVE',

@@ -11,6 +11,7 @@ export function parseOptionalDateInput(raw: unknown): string | null {
 }
 
 export interface ParsedVehicleWriteFields {
+    supportedCourseTypeIds?: string[];
     name: string;
     registrationNumber: string;
     inspectionDate: string | null;
@@ -77,6 +78,22 @@ export function parseVehicleWriteFields(
     if (!body || typeof body !== 'object') return null;
 
     const vehicleBody = body as Record<string, unknown>;
+    const rawIds = vehicleBody.supportedCourseTypeIds;
+
+    if (
+        'supportedCourseTypeIds' in vehicleBody &&
+        (!Array.isArray(rawIds) ||
+            rawIds.length === 0 ||
+            rawIds.some(
+                (id) =>
+                    typeof id !== 'string' ||
+                    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                        id,
+                    ),
+            ))
+    )
+        return null;
+
     const nameRaw = vehicleBody.name;
     const registrationNumberRaw = vehicleBody.registrationNumber;
 
@@ -99,6 +116,9 @@ export function parseVehicleWriteFields(
     if (mileageKm === false) return null;
 
     return {
+        ...(Array.isArray(rawIds)
+            ? { supportedCourseTypeIds: [...new Set(rawIds as string[])] }
+            : {}),
         name,
         registrationNumber,
         inspectionDate: parseOptionalDateInput(vehicleBody.inspectionDate),

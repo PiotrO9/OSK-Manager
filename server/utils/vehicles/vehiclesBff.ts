@@ -2,6 +2,7 @@ import type { H3Event } from 'h3';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 
 export interface BffVehicleWriteBody {
+    supportedCourseTypeIds?: string[];
     schoolId: string;
     name: string;
     registrationNumber: string;
@@ -12,6 +13,7 @@ export interface BffVehicleWriteBody {
 }
 
 export interface BffVehiclePatchBody {
+    supportedCourseTypeIds?: string[];
     name: string;
     registrationNumber: string;
     inspectionDate: string | null;
@@ -37,12 +39,14 @@ export async function bffUpstreamVehiclesList(
     upstreamBase: string,
     schoolId: string,
     timeFilter?: { startTime: string; endTime: string },
+    courseId?: string,
 ): Promise<{ success: true; data: unknown }> {
     const { data } = await upstreamRequest<unknown>(event, upstreamBase, {
         path: '/vehicles',
         method: 'GET',
         query: {
             schoolId,
+            courseId,
             startTime: timeFilter?.startTime,
             endTime: timeFilter?.endTime,
         },

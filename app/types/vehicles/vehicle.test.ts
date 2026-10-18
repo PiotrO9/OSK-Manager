@@ -70,6 +70,7 @@ describe('normalizeVehicle', () => {
                 1,
             ),
         ).toEqual({
+            supportedCourseTypes: [],
             id: 'vehicle-2',
             name: 'Skoda',
             registrationNumber: 'WA 12345',

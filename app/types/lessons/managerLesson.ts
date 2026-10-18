@@ -10,6 +10,7 @@ export interface AssignedCourseInstructor {
 export interface ManagerLessonDetail {
     id: string;
     courseId: string;
+    courseType?: { id: string; code: string; name: string };
     schoolId?: string;
     studentId: string;
     /** User.id używany przez GET /students/:userId; różny od StudentProfile.id. */

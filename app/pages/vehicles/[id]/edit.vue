@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { useVehicleCourseTypeOptions } from '~/composables/vehicles/useVehicleCourseTypeOptions';
 import { Save } from 'lucide-vue-next';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleEditPhotoSection from '~/components/vehicles/VehicleEditPhotoSection.vue';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
 import { useVehicleEditPage } from '~/composables/vehicles/useVehicleEditPage';
+const {
+    courseTypeOptions,
+    isCourseTypesLoading,
+    courseTypesError,
+    loadCourseTypes,
+} = useVehicleCourseTypeOptions();
 
 definePageMeta({
     layout: 'app-shell',
@@ -143,6 +150,9 @@ onBeforeUnmount(() =>
             description="Uzupełnij dane identyfikacyjne, terminy dokumentów i aktualny przebieg."
         >
             <VehicleForm
+                :course-type-options="courseTypeOptions"
+                :is-course-types-loading="isCourseTypesLoading"
+                :course-types-error="courseTypesError"
                 :form-id="formId"
                 mode="edit"
                 :initial-vehicle="initialVehicle"
@@ -150,6 +160,7 @@ onBeforeUnmount(() =>
                 :api-error="apiError"
                 :registration-number-error="registrationNumberError"
                 hide-default-actions
+                @retry-course-types="loadCourseTypes"
                 @submit="handleVehicleSubmit"
                 @dirty-change="isFormDirty = $event"
                 @registration-number-change="clearRegistrationNumberError"
