@@ -11,6 +11,7 @@ const props = withDefaults(
         initials: string;
         name?: string;
         subtitle?: string | null;
+        subtitleClass?: string;
         avatarSize?: AppUserIdentityAvatarSize;
         avatarTone?: AppUserIdentityAvatarTone;
         compact?: boolean;
@@ -20,6 +21,7 @@ const props = withDefaults(
         avatarSrc: null,
         name: '',
         subtitle: null,
+        subtitleClass: '',
         avatarSize: 36,
         avatarTone: 'default',
         compact: false,
@@ -85,7 +87,7 @@ const textOverflowClass = computed(() =>
                 <div
                     v-if="subtitle || $slots.subtitle"
                     class="text-muted-foreground mt-0.5 text-xs leading-tight"
-                    :class="textOverflowClass"
+                    :class="[textOverflowClass, subtitleClass]"
                 >
                     <slot name="subtitle">{{ subtitle }}</slot>
                 </div>

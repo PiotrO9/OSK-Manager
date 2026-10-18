@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
 import AppUserIdentity from './AppUserIdentity.vue';
+import { getAccountRolePresentation } from '~/utils/account/accountProfilePresentation';
 import {
     BookOpen,
     Building2,
@@ -84,6 +85,12 @@ const displayUserLabel = computed(
     () => session.value?.userName ?? 'Użytkownik',
 );
 
+const displayRoleLabel = computed(() =>
+    session.value?.role
+        ? getAccountRolePresentation(session.value.role).label
+        : null,
+);
+
 const userInitials = computed(() =>
     getAppShellUserInitials(displayUserLabel.value),
 );
@@ -112,7 +119,8 @@ const avatarSrc = computed(() => {
                         :avatar-src="avatarSrc"
                         :initials="userInitials"
                         :name="displayUserLabel"
-                        :subtitle="session?.role"
+                        :subtitle="displayRoleLabel"
+                        subtitle-class="font-semibold"
                         :avatar-size="sidebarAvatarSize"
                         avatar-tone="sidebar"
                         :compact="state === 'collapsed' && !isMobile"

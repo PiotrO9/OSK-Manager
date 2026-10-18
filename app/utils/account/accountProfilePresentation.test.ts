@@ -8,9 +8,25 @@ import {
 
 describe('accountProfilePresentation', () => {
     it('maps known and unknown roles to semantic presentations', () => {
+        expect(getAccountRolePresentation('STUDENT')).toEqual({
+            label: 'Kursant',
+            tone: 'neutral',
+        });
+        expect(getAccountRolePresentation('INSTRUCTOR')).toEqual({
+            label: 'Instruktor',
+            tone: 'success',
+        });
         expect(getAccountRolePresentation(' manager ')).toEqual({
             label: 'Manager',
             tone: 'info',
+        });
+        expect(getAccountRolePresentation('ADMIN')).toEqual({
+            label: 'Administrator',
+            tone: 'warning',
+        });
+        expect(getAccountRolePresentation('DEMO')).toEqual({
+            label: 'Tryb demo',
+            tone: 'warning',
         });
         expect(getAccountRolePresentation('custom')).toEqual({
             label: 'custom',
