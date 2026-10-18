@@ -40,6 +40,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         month: '2-digit',
         day: '2-digit',
     }).format(new Date());
+
     await authenticateMockUser(context, baseURL!, 'MANAGER');
 
     await page.route(`**/api/students/${studentUserId}`, (route) =>
@@ -189,6 +190,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
     await dueDate.click();
     await page.getByRole('button', { name: 'Dzisiaj' }).click();
     const dueDateLabel = await dueDate.innerText();
+
     expect(dueDateLabel).not.toBe('Termin płatności');
     await method.click();
     await page.getByRole('option', { name: 'Przelew' }).click();

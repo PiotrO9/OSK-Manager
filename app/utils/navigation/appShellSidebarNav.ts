@@ -10,6 +10,7 @@ export type AppShellSidebarNavIconKey =
     | 'graduationCap'
     | 'layoutDashboard'
     | 'messageSquareText'
+    | 'shieldAlert'
     | 'user'
     | 'users';
 
@@ -116,6 +117,13 @@ export function buildAppShellSidebarNavItems(
             ariaLabel: 'Przejdź do zarządzania kontami osób w OSK',
             iconKey: 'users',
             tooltip: 'Konta osób',
+        });
+        items.push({
+            to: '/manager/security-logs',
+            label: 'Logi bezpieczeństwa',
+            ariaLabel: 'Przejdź do logów bezpieczeństwa',
+            iconKey: 'shieldAlert',
+            tooltip: 'Logi bezpieczeństwa',
         });
     }
 

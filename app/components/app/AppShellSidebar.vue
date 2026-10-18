@@ -15,6 +15,7 @@ import {
     LoaderCircle,
     LogOut,
     MessageSquareText,
+    ShieldAlert,
     User,
     Users,
 } from 'lucide-vue-next';
@@ -53,6 +54,7 @@ const NAV_ICON_BY_KEY: Record<AppShellSidebarNavIconKey, Component> = {
     graduationCap: GraduationCap,
     layoutDashboard: LayoutDashboard,
     messageSquareText: MessageSquareText,
+    shieldAlert: ShieldAlert,
     user: User,
     users: Users,
 };

@@ -45,6 +45,7 @@ describe('app shell sidebar navigation model', () => {
             '/account',
             '/manager/osk',
             '/manager/accounts',
+            '/manager/security-logs',
             '/manager/instructors',
             '/manager/students',
             '/manager/courses',
@@ -54,6 +55,7 @@ describe('app shell sidebar navigation model', () => {
         ]);
 
         expect(navPaths(' manager ')).not.toContain('/vehicles');
+        expect(navPaths(' manager ')).not.toContain('/manager/security-logs');
     });
 
     it('builds admin management navigation without manager-only links', () => {
@@ -67,6 +69,7 @@ describe('app shell sidebar navigation model', () => {
             '/manager/reviews',
             '/manager/schedule',
         ]);
+        expect(navPaths('ADMIN')).not.toContain('/manager/security-logs');
     });
 
     it('detects active sidebar routes', () => {

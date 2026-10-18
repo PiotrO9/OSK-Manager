@@ -1,4 +1,5 @@
 import { createError, type H3Event } from 'h3';
+import { reportBffMissingSession } from '../security-logs/bffDenialTelemetry';
 import { buildBodyAndHeaders } from './upstreamBody';
 import {
     clearAccessCookie,
@@ -32,7 +33,16 @@ export async function upstreamRequest<T = unknown>(
     const headers: Record<string, string> = { ...options.headers };
 
     if (options.auth !== false) {
-        const accessToken = options.accessToken ?? readAccessToken(event);
+        let accessToken = options.accessToken;
+
+        if (!accessToken) {
+            try {
+                accessToken = readAccessToken(event);
+            } catch (error) {
+                await reportBffMissingSession(event, upstreamBase, options);
+                throw error;
+            }
+        }
 
         headers.Authorization = `Bearer ${accessToken}`;
     }
