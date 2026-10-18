@@ -23,7 +23,9 @@ const freeInstructorEmail = process.env.E2E_FREE_INSTRUCTOR_EMAIL ?? '';
 const freeInstructorPassword = process.env.E2E_FREE_INSTRUCTOR_PASSWORD ?? '';
 const changedStudentEmail = `student02+changed-${Date.now()}@audit.osk.local`;
 const changedInstructorPassword = 'AuditReset123!';
-const browserBaseUrl = 'http://127.0.0.1:3100';
+const browserBaseUrl =
+    process.env.E2E_BASE_URL ??
+    `http://127.0.0.1:${process.env.E2E_PORT || '3100'}`;
 
 async function login(page: Page, email: string, password: string) {
     await page.goto('/login');

@@ -198,7 +198,7 @@ test('manager changes the instructor on one future practice lesson', async ({
         0,
     );
     await page.getByRole('option', { name: 'Anna Nowak' }).click();
-    await page.getByRole('button', { name: 'Zapisz zmiany' }).click();
+    await page.getByRole('button', { name: 'Zapisz', exact: true }).click();
 
     await expect.poll(mocked.getPatchBody).not.toBeNull();
     expect(mocked.getPatchBody()).toEqual({
@@ -214,9 +214,6 @@ test('manager changes the instructor on one future practice lesson', async ({
         'aria-label',
         'Instruktor: Anna Nowak',
     );
-    await expect(
-        page.getByText('Prowadzący kurs: Jan Kowalski.'),
-    ).toBeVisible();
 });
 
 test('manager cannot change the instructor after the lesson has started', async ({

@@ -94,7 +94,10 @@ for (const viewport of [
             page.getByRole('heading', { name: 'Anna Nowak' }),
         ).toBeVisible({ timeout: 30_000 });
         await page.getByRole('tab', { name: 'Dane' }).click();
-        await page.getByRole('button', { name: 'Edytuj', exact: true }).click();
+        await page
+            .getByRole('group', { name: 'Akcje instruktora' })
+            .getByRole('button', { name: 'Edytuj', exact: true })
+            .click();
 
         const dialog = page.getByRole('dialog', { name: 'Edycja instruktora' });
 

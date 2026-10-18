@@ -13,6 +13,19 @@ test.describe('UI smoke: sesja i routing', () => {
     test('formularz logowania nie wysyła hasła przed hydracją', async ({
         page,
     }) => {
+        const credentialGetRequests: string[] = [];
+
+        page.on('request', (request) => {
+            const url = new URL(request.url());
+
+            if (
+                request.method() === 'GET' &&
+                (url.searchParams.has('email') ||
+                    url.searchParams.has('password'))
+            ) {
+                credentialGetRequests.push(url.pathname);
+            }
+        });
         await page.route('**/*.js', (route) => route.abort());
         await page.goto('/login');
 
@@ -23,7 +36,14 @@ test.describe('UI smoke: sesja i routing', () => {
             page.getByRole('button', { name: 'Zaloguj się' }),
         ).toBeDisabled();
 
+        await page.getByLabel('Adres e-mail').fill('audit@example.test');
+        await page
+            .getByLabel('Hasło', { exact: true })
+            .fill('test-only-password');
+        await page.getByLabel('Hasło', { exact: true }).press('Enter');
+
         await expect(page).toHaveURL(/\/login$/);
+        expect(credentialGetRequests).toEqual([]);
     });
 
     test('zapamiętuje chronioną trasę i przekierowuje na login', async ({

@@ -30,7 +30,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = status.SERVICE_ROLE_KEY;
 process.env.SUPABASE_ANON_KEY = status.ANON_KEY;
 process.env.SUPABASE_JWT_SECRET = status.JWT_SECRET;
 process.env.NODE_ENV = 'test';
-process.env.FRONTEND_URL = 'http://127.0.0.1:3100';
+process.env.FRONTEND_URL = `http://127.0.0.1:${feEnv.E2E_PORT || '3100'}`;
 
 const requireBackend = createRequire(
     new URL('../../../../BE/package.json', import.meta.url),

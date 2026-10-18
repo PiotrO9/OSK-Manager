@@ -2,6 +2,10 @@
 
 To lista kontrolna wszystkich 81 scenariuszy. **Każdy punkt sprawdź ręcznie**
 w aplikacji na odizolowanym środowisku. Automat jest dodatkowy i opcjonalny.
+Ponowny przebieg automatyczny z 2026-10-16, obejmujący status każdego ID,
+zapisano w [osobnym raporcie](runs/2026-10-16-automatic-recheck.md).
+Nowszy przebieg z 2026-10-18 obejmuje także pełny stos i wykazał siedem
+niezaliczonych automatów ([raport](runs/2026-10-18-all-automatic-recheck.md)).
 Kolumna ręczna zaczyna się od `☐` (niewykonany), a automatyczna od `—` (bez próby).
 Po udanym teście ręcznym zmień `☐` na `☑ zaliczony` i dodaj odnośnik do
 istniejącego pliku przebiegu w `runs/`. Przy innym wyniku wpisz jego nazwę
@@ -53,8 +57,8 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | ------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------- |
 | COM-01 | Logowanie każdej roli i właściwa strona startowa        | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg](runs/2026-10-10-com-01-manual.md))                                                                  | —                          |
 | COM-02 | Walidacja formularza i błędne dane logowania            | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg](runs/2026-10-10-com-02-manual.md))                                                                  | —                          |
-| COM-03 | Powrót do żądanej strony po zalogowaniu                 | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg FE](runs/2026-10-10-com-03-manual.md), [przebieg z kopii głównej](runs/2026-10-11-com-03-manual.md)) | —                          |
-| COM-04 | Wylogowanie kończy dostęp do danych                     | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg FE](runs/2026-10-10-com-04-manual.md), [przebieg z kopii głównej](runs/2026-10-11-com-04-manual.md)) | —                          |
+| COM-03 | Powrót do żądanej strony po zalogowaniu                 | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg FE](runs/2026-10-10-com-03-manual.md), [przebieg z kopii głównej](runs/2026-10-11-com-03-manual.md)) | nie udało się — Docker Engine niedostępny ([przebieg](runs/2026-10-16-automation-start.md)) |
+| COM-04 | Wylogowanie kończy dostęp do danych                     | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg FE](runs/2026-10-10-com-04-manual.md), [przebieg z kopii głównej](runs/2026-10-11-com-04-manual.md)) | nie udało się — Docker Engine niedostępny ([przebieg](runs/2026-10-16-automation-start.md)) |
 | COM-05 | Dostęp według roli, również przez bezpośredni URL       | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg](runs/2026-10-11-com-05-manual.md))                                                                  | —                          |
 | COM-06 | Własny profil i edycja pól dostępnych dla roli          | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg](runs/2026-10-11-com-06-manual.md))                                                                  | —                          |
 | COM-07 | Niezapisane zmiany profilu                              | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-manual-results.md); [przebieg](runs/2026-10-11-com-07-manual.md))                                                                  | —                          |
@@ -63,7 +67,7 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | COM-10 | Izolacja danych kont i OSK                              | ☑ zaliczony ([potwierdzenie 2026-10-14](runs/2026-10-14-com-10-manual.md))                                                                                                                                                                                                      | —                          |
 | COM-11 | Samodzielne odzyskanie hasła                            | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg ręczny](runs/2026-10-14-com-11-manual.md)) | zaliczony w sprawdzonym zakresie — bez dostarczenia e-maila ([przebieg automatyczny](runs/2026-10-14-com-11-automatic.md)) |
 | COM-12 | Brak dostępu dla konta zablokowanego i zarchiwizowanego | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-com-12-manual.md)) | —                          |
-| COM-13 | Dane logowania przed uruchomieniem JavaScript           | ☑ zaliczony ([potwierdzenie](runs/2026-10-11-com-13-confirmation.md); [wcześniejszy wpis](runs/2026-10-11-com-13-manual.md))                                                                           | —                          |
+| COM-13 | Dane logowania przed uruchomieniem JavaScript           | ☑ zaliczony ([potwierdzenie](runs/2026-10-11-com-13-confirmation.md); [wcześniejszy wpis](runs/2026-10-11-com-13-manual.md))                                                                           | zaliczony w zakresie UI 1/1; pełny stos: nie udało się — Docker Engine niedostępny ([przebieg](runs/2026-10-16-automation-start.md)) |
 
 ## Menedżer OSK — [kroki](scenarios/manager.md)
 
@@ -83,13 +87,13 @@ warunków nadajemy wynik ręczny w nowym pliku `runs/` oraz w poniższej tabeli.
 | MGR-CRS-04  | Usunięcie pustego kursu i ochrona historii      | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-crs-04-manual.md))                                                                               | —                          |
 | MGR-STU-01  | Rejestracja kursanta i przypisanie do kursu     | ☑ zaliczony ([potwierdzenie 2026-10-11](runs/2026-10-11-reconfirmed-mgr-stu-ins-stu.md); [wcześniejszy przebieg](runs/2026-10-11-mgr-stu-01-manual.md)) | —                          |
 | MGR-STU-02  | Wyszukiwanie, filtrowanie i szczegóły kursanta  | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-stu-02-manual.md)) | — |
-| MGR-PAY-01  | Dodanie, edycja i rozliczenie płatności         | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-pay-01-manual.md)) | — |
+| MGR-PAY-01  | Dodanie, edycja i rozliczenie płatności         | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-pay-01-manual.md)) | zaliczony w zakresie UI na mocku, 2/2 ([ponowny przebieg](runs/2026-10-18-mgr-pay-01-ui-retest.md)); test płatności ponowiony 1/1 ([potwierdzenie](runs/2026-10-18-mgr-pay-01-ui-confirmation.md)) |
 | MGR-VEH-01  | Dodanie i edycja pojazdu                        | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-veh-01-manual.md))                                                                               | —                          |
 | MGR-VEH-02  | Status, domyślny pojazd i usunięcie             | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-veh-02-manual.md))                                                                               | —                          |
 | MGR-SCH-01  | Tygodniowy harmonogram OSK i wybór szkoły       | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-14 ([przebieg](runs/2026-10-14-mgr-sch-01-manual.md)) | — |
 | MGR-LES-01  | Rezerwacja jazdy przez menedżera                | ☑ zaliczony ([przebieg 2026-10-11](runs/2026-10-11-mgr-les-01-manual.md))                                                                               | —                          |
 | MGR-LES-02  | Konflikt rezerwacji i niedostępny pojazd        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-02-manual.md)) | — |
-| MGR-LES-03  | Edycja jazdy i zmiana instruktora               | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-03-manual.md)) | — |
+| MGR-LES-03  | Edycja jazdy i zmiana instruktora               | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-03-manual.md)) | zaliczony w zakresie UI na mocku, 2/2 ([ponowny przebieg](runs/2026-10-18-mgr-les-03-ui-retest.md)) |
 | MGR-LES-04  | Anulowanie jazdy                                | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-les-04-manual.md)) | — |
 | MGR-EVT-01  | Blok teorii i uczestnicy                        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-evt-01-manual.md)) | —                          |
 | MGR-EVT-02  | Zmiana statusu, edycja i usunięcie bloku        | ☑ zaliczony — potwierdzone przez użytkownika 2026-10-15 ([przebieg](runs/2026-10-15-mgr-evt-02-manual.md)) | — |

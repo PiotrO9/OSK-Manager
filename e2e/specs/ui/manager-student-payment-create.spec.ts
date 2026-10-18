@@ -34,6 +34,12 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
     baseURL,
 }) => {
     test.setTimeout(60_000);
+    const dueDateIso = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Europe/Warsaw',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(new Date());
     await authenticateMockUser(context, baseURL!, 'MANAGER');
 
     await page.route(`**/api/students/${studentUserId}`, (route) =>
@@ -118,7 +124,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
                 schoolId,
                 paymentPlanId,
                 amount: '150.50',
-                dueDate: '2026-11-01',
+                dueDate: dueDateIso,
                 method: 'transfer',
             });
             postCount++;
@@ -145,7 +151,7 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
                                 ...existingPayment,
                                 id: 'new-payment',
                                 amount: '150.50',
-                                dueDate: '2026-11-01',
+                                dueDate: dueDateIso,
                                 method: 'transfer',
                             },
                             existingPayment,
@@ -176,39 +182,45 @@ test('BUG-04 preserves a payment draft after failure and clears it after retry',
         .filter({ has: page.getByRole('button', { name: 'Dodaj' }) });
     const amount = form.getByPlaceholder('Kwota');
     const dueDate = form.getByLabel('Termin płatności');
-    const method = form.getByPlaceholder('Metoda');
-    const plan = form.getByLabel('Plan płatności');
+    const method = form.getByRole('combobox', { name: 'Metoda płatności' });
+    const plan = form.getByRole('combobox', { name: 'Plan płatności' });
 
     await amount.fill('150,50');
-    await dueDate.fill('2026-11-01');
-    await method.fill('transfer');
+    await dueDate.click();
+    await page.getByRole('button', { name: 'Dzisiaj' }).click();
+    const dueDateLabel = await dueDate.innerText();
+    expect(dueDateLabel).not.toBe('Termin płatności');
+    await method.click();
+    await page.getByRole('option', { name: 'Przelew' }).click();
     await form.getByRole('button', { name: 'Dodaj' }).click();
 
     await firstPostStarted;
     await expect(form.getByRole('button', { name: 'Dodaj' })).toBeDisabled();
     await expect(amount).toHaveValue('150,50');
-    await expect(dueDate).toHaveValue('2026-11-01');
-    await expect(method).toHaveValue('transfer');
+    await expect(dueDate).toHaveText(dueDateLabel);
+    await expect(method).toContainText('Przelew');
     releaseFirstPost?.();
 
-    await expect(page.getByText(/500 Internal Server Error/)).toBeVisible();
+    await expect(
+        page.getByText('Nie udało się dodać płatności.'),
+    ).toBeVisible();
     await expect(amount).toHaveValue('150,50');
-    await expect(dueDate).toHaveValue('2026-11-01');
-    await expect(method).toHaveValue('transfer');
-    await expect(plan).toHaveValue(paymentPlanId);
+    await expect(dueDate).toHaveText(dueDateLabel);
+    await expect(method).toContainText('Przelew');
+    await expect(plan).toContainText('Kurs B');
 
     await page.getByRole('button', { name: 'Opłacona' }).click();
     await expect(page.getByRole('button', { name: 'Cofnij' })).toBeVisible();
     await expect(amount).toHaveValue('150,50');
-    await expect(dueDate).toHaveValue('2026-11-01');
-    await expect(method).toHaveValue('transfer');
+    await expect(dueDate).toHaveText(dueDateLabel);
+    await expect(method).toContainText('Przelew');
 
     await form.getByRole('button', { name: 'Dodaj' }).click();
 
     await expect(amount).toHaveValue('');
-    await expect(dueDate).toHaveValue('');
-    await expect(method).toHaveValue('');
-    await expect(plan).toHaveValue(paymentPlanId);
+    await expect(dueDate).toHaveText('Termin płatności');
+    await expect(method).toContainText('Metoda');
+    await expect(plan).toContainText('Kurs B');
     expect(postCount).toBe(2);
 });
 

@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const [fixtureId, specFile] = process.argv.slice(2);
+const [fixtureId, specFile, grep = '@audit'] = process.argv.slice(2);
 const allowed = new Map([
     ['manager-only', new Set(['manager-osk-audit.spec.ts'])],
     ['booking-ready', new Set(['booking-audit.spec.ts'])],
@@ -14,6 +14,7 @@ const allowed = new Map([
         new Set([
             'role-access-audit.spec.ts',
             'login-validation-audit.spec.ts',
+            'common-session-audit.spec.ts',
         ]),
     ],
 ]);
@@ -49,7 +50,7 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = status.SERVICE_ROLE_KEY;
 process.env.SUPABASE_ANON_KEY = status.ANON_KEY;
 process.env.SUPABASE_JWT_SECRET = status.JWT_SECRET;
 process.env.NODE_ENV = 'test';
-process.env.FRONTEND_URL = 'http://127.0.0.1:3100';
+process.env.FRONTEND_URL = `http://127.0.0.1:${feEnv.E2E_PORT || '3100'}`;
 
 const requireBackend = createRequire(
     path.join(root, '../../../../BE/package.json'),
@@ -87,15 +88,7 @@ try {
 
     const child = spawn(
         'npm.exe',
-        [
-            'run',
-            'test:e2e:full',
-            '--',
-            '--workers=1',
-            '--grep',
-            '@audit',
-            specFile,
-        ],
+        ['run', 'test:e2e:full', '--', '--workers=1', '--grep', grep, specFile],
         {
             cwd: path.join(root, '../..'),
             env: {
