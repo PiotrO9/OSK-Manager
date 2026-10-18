@@ -317,8 +317,10 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 **Wymaganie:** `REQ-MGR-ACC-05`, `REQ-MGR-ACC-04` — menadżer archiwizuje konto bez aktywnych zobowiązań; operacja nie usuwa historii. **Dane:** konto kursanta z aktywnym kursem lub przyszłą jazdą oraz osobne konto bez aktywnego kursu, przyszłej jazdy, wydarzeń ani oczekującej płatności. Dla instruktora osobno uwzględnij aktywny kurs, przyszłą jazdę, wydarzenie lub blok.
 
 1. Dla konta z aktywnym zobowiązaniem kliknij **Archiwizuj**; anuluj dialog, potem potwierdź. Zapisz odmowę.
-2. Dla konta bez takich zobowiązań potwierdź archiwizację; odśwież listę i profil.
-3. Spróbuj zalogować się zarchiwizowanym kontem i odświeżyć jego dawną sesję. Sprawdź, że panel pokazuje status archiwalny bez akcji przywrócenia.
+2. Z komunikatu odmowy otwórz listę zobowiązań. Sprawdź typ, szczegóły i przejście do powiązanego widoku każdego rekordu. Sprawdź także wejście na listę bez wcześniejszej odmowy oraz odmowę dostępu do konta z obcego OSK.
+3. Zakończ lub rozlicz zobowiązanie, wróć do listy i odśwież ją. Sprawdź stan pusty oraz ponowną kontrolę warunków przy archiwizacji.
+4. Dla konta bez takich zobowiązań potwierdź archiwizację; odśwież listę i profil.
+5. Spróbuj zalogować się zarchiwizowanym kontem i odświeżyć jego dawną sesję. Sprawdź, że panel pokazuje status archiwalny bez akcji przywrócenia.
 
 **Oczekiwane:** anulowanie i odmowa z powodu zobowiązań zachowują konto; konto kwalifikujące się do archiwizacji traci dostęp i pozostaje jako rekord historyczny. Konto Auth pozostaje istniejące, a panel menadżera nie oferuje przywracania. **Powtórzenie:** użyj nowego konta testowego do kolejnego przebiegu. **Źródła:** [edytor](../../../app/components/manager/accounts/ManagerAccountEditor.vue), [kontrola zobowiązań](../../../../../BE/src/services/managerAccounts.service.ts).
 

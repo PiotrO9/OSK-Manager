@@ -16,6 +16,7 @@ const {
     errorMessage,
     actionMessage,
     actionError,
+    archiveObligationsUserId,
     selectedAccount,
     filteredAccounts,
     loadAccounts,
@@ -207,6 +208,27 @@ function accountPath() {
                 >
                     Wybierz osobę z listy, aby zarządzać jej kontem.
                 </div>
+                <div
+                    v-if="
+                        selectedAccount &&
+                        archiveObligationsUserId === selectedAccount.id
+                    "
+                    role="alert"
+                    class="border-border bg-muted mt-5 rounded-lg border p-4 text-sm"
+                >
+                    <p>
+                        Konto ma aktywne zobowiązania. Sprawdź, co blokuje
+                        archiwizację.
+                    </p>
+                    <NuxtLink
+                        :to="{
+                            path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
+                            query: { schoolId },
+                        }"
+                        class="text-primary mt-2 inline-block font-semibold underline underline-offset-4"
+                        >Pokaż zobowiązania</NuxtLink
+                    >
+                </div>
                 <NuxtLink
                     v-if="
                         selectedAccount &&
@@ -216,6 +238,15 @@ function accountPath() {
                     :to="accountPath()"
                     class="text-primary mt-5 inline-block text-sm font-medium underline-offset-4 hover:underline"
                     >Przejdź do szczegółów osoby</NuxtLink
+                >
+                <NuxtLink
+                    v-if="selectedAccount && !selectedAccount.deletedAt"
+                    :to="{
+                        path: `/manager/accounts/${selectedAccount.id}/archive-obligations`,
+                        query: { schoolId },
+                    }"
+                    class="text-primary mt-3 block text-sm font-medium underline-offset-4 hover:underline"
+                    >Sprawdź zobowiązania konta</NuxtLink
                 >
             </div>
         </section>

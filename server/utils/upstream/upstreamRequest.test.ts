@@ -181,6 +181,29 @@ describe('upstreamRequest', () => {
         ).rejects.toThrow('domain failed');
     });
 
+    it('preserves a backend conflict code for the UI', async () => {
+        const { event } = mockEvent();
+
+        await expect(
+            upstreamRequest(event, 'https://api.example.test', {
+                path: '/manager/accounts/user/archive',
+                fallbackError: 'failed',
+                fetchImpl: async () =>
+                    jsonResponse(
+                        {
+                            success: false,
+                            error: 'Student has active school obligations',
+                            code: 'ACCOUNT_ARCHIVE_OBLIGATIONS',
+                        },
+                        { status: 409 },
+                    ),
+            }),
+        ).rejects.toMatchObject({
+            statusCode: 409,
+            data: { code: 'ACCOUNT_ARCHIVE_OBLIGATIONS' },
+        });
+    });
+
     it('requires access token for authenticated requests', async () => {
         const { event } = mockEvent('');
         const fetchImpl = vi.fn();

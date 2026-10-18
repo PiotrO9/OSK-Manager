@@ -23,7 +23,23 @@ export function useManagerInstructorSchedulePage() {
         loadInstructorSchoolContext,
     } = useManagerInstructorSchoolContext({ instructorId });
 
-    const weekStart = ref<Date>(getMonday(new Date()));
+    function weekFromQuery(): Date {
+        const value = route.query.week;
+        const parsed = typeof value === 'string' ? new Date(value) : null;
+
+        return getMonday(
+            parsed && Number.isFinite(parsed.getTime()) ? parsed : new Date(),
+        );
+    }
+
+    const weekStart = ref<Date>(weekFromQuery());
+
+    watch(
+        () => route.query.week,
+        () => {
+            weekStart.value = weekFromQuery();
+        },
+    );
     const range = computed(() => weekRangeFromMonday(weekStart.value));
     const { items, isScheduleLoading, scheduleError, loadSchedule } =
         useManagerInstructorScheduleData({

@@ -57,6 +57,15 @@ const emit = defineEmits<{
 }>();
 
 const { activeTab, setActiveTab } = useManagerStudentDetailsTabs();
+const route = useRoute();
+
+setActiveTab(normalizeManagerStudentDetailsTab(route.query.tab));
+watch(
+    () => route.query.tab,
+    (tab) => {
+        setActiveTab(normalizeManagerStudentDetailsTab(tab));
+    },
+);
 const visitedTabs = reactive<Record<ManagerStudentDetailsTab, boolean>>({
     overview: false,
     lessons: false,
@@ -82,10 +91,10 @@ watch(
 watch(
     () => [props.student.userId, props.schoolId] as const,
     () => {
-        setActiveTab('overview');
+        setActiveTab(normalizeManagerStudentDetailsTab(route.query.tab));
 
         for (const tab of tabs) {
-            visitedTabs[tab.value] = tab.value === 'overview';
+            visitedTabs[tab.value] = tab.value === activeTab.value;
         }
     },
 );

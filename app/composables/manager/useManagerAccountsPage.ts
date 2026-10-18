@@ -17,6 +17,7 @@ export function useManagerAccountsPage() {
     const errorMessage = shallowRef('');
     const actionMessage = shallowRef('');
     const actionError = shallowRef('');
+    const archiveObligationsUserId = shallowRef('');
 
     const selectedAccount = computed(
         () =>
@@ -122,6 +123,7 @@ export function useManagerAccountsPage() {
         busy.value = true;
         actionError.value = '';
         actionMessage.value = '';
+        archiveObligationsUserId.value = '';
 
         try {
             await requestBffData(
@@ -136,15 +138,30 @@ export function useManagerAccountsPage() {
         } catch (error) {
             if (path === '/archive') {
                 const message = getApiFetchErrorMessage(error, '');
+                const record =
+                    error && typeof error === 'object'
+                        ? (error as {
+                              data?: {
+                                  data?: { code?: unknown };
+                                  code?: unknown;
+                              };
+                          })
+                        : null;
+                const code = record?.data?.data?.code ?? record?.data?.code;
+                const hasObligations =
+                    code === 'ACCOUNT_ARCHIVE_OBLIGATIONS' ||
+                    /^(Student|Instructor) has active school obligations$/i.test(
+                        message,
+                    );
+
+                if (hasObligations)
+                    archiveObligationsUserId.value = selectedUserId.value;
 
                 toast.addToast({
                     title: 'Nie udało się zarchiwizować konta',
-                    description:
-                        /^(Student|Instructor) has active school obligations$/i.test(
-                            message,
-                        )
-                            ? 'Konto ma aktywne zobowiązania w szkole. Zakończ je przed archiwizacją.'
-                            : 'Spróbuj ponownie później.',
+                    description: hasObligations
+                        ? 'Konto ma aktywne zobowiązania w szkole. Zakończ je przed archiwizacją.'
+                        : 'Spróbuj ponownie później.',
                     variant: 'error',
                     durationMs: 6000,
                 });
@@ -163,6 +180,7 @@ export function useManagerAccountsPage() {
     function handleSchoolChange(value: string) {
         schoolId.value = value;
         selectedUserId.value = '';
+        archiveObligationsUserId.value = '';
         actionMessage.value = '';
         actionError.value = '';
         void loadAccounts();
@@ -185,6 +203,7 @@ export function useManagerAccountsPage() {
         errorMessage,
         actionMessage,
         actionError,
+        archiveObligationsUserId,
         selectedAccount,
         filteredAccounts,
         loadAccounts,

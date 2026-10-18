@@ -104,6 +104,9 @@ export async function upstreamRequest<T = unknown>(
                 typeof envelope.error === 'string'
                     ? envelope.error
                     : options.fallbackError,
+            ...(typeof envelope.code === 'string'
+                ? { data: { code: envelope.code } }
+                : {}),
         });
     }
 

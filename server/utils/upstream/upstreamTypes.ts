@@ -2,6 +2,7 @@ export interface BackendEnvelope<T = unknown> {
     success: boolean;
     data?: T;
     error?: string;
+    code?: string;
 }
 
 export type UpstreamMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

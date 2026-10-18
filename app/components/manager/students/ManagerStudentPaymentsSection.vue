@@ -35,6 +35,27 @@ const emit = defineEmits<{
     markPaid: [paymentId: string];
     markUnpaid: [paymentId: string];
 }>();
+const route = useRoute();
+const focusedPaymentId = computed(() =>
+    typeof route.query.paymentId === 'string' ? route.query.paymentId : '',
+);
+
+watch(
+    [() => props.payments, focusedPaymentId],
+    async ([payments, paymentId]) => {
+        if (!paymentId || !payments.some((payment) => payment.id === paymentId))
+            return;
+
+        await nextTick();
+
+        if (typeof document !== 'undefined') {
+            document.getElementById(`payment-${paymentId}`)?.scrollIntoView({
+                block: 'center',
+            });
+        }
+    },
+    { immediate: true },
+);
 
 const createPaymentPlanId = ref('');
 const createAmount = ref('');
@@ -187,8 +208,14 @@ function handleUpdate(paymentId: string): void {
                 <div v-if="props.payments.length > 0" class="mb-4 space-y-3">
                     <article
                         v-for="{ payment, state } in paymentEditRows"
+                        :id="`payment-${payment.id}`"
                         :key="payment.id"
                         class="border-border rounded-lg border p-3"
+                        :class="
+                            payment.id === focusedPaymentId
+                                ? 'ring-primary ring-2'
+                                : ''
+                        "
                     >
                         <div
                             class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto_auto]"
