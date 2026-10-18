@@ -16,8 +16,9 @@ import {
     normalizeInstructorEventStatus,
 } from '~/utils/events/instructorEventStatusDisplay';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
+import { isInformationalTheoryScheduleBlock } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         lesson: ScheduleLessonItem;
         topPx: number;
@@ -37,97 +38,143 @@ const emit = defineEmits<{
     select: [lesson: ScheduleLessonItem];
     keydown: [event: KeyboardEvent, lesson: ScheduleLessonItem];
 }>();
+
+const isInformationalTheory = computed(() =>
+    isInformationalTheoryScheduleBlock(props.lesson, props.isClickable),
+);
 </script>
 
 <template>
-    <div
-        class="schedule-lesson-block absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-2 py-1.5 text-xs leading-tight shadow-sm hover:shadow-lg focus-visible:shadow-lg"
-        :class="[lessonBlockClasses(lesson.type), interactiveClasses]"
-        :style="{
-            top: `${topPx}px`,
-            '--schedule-block-height': `${heightPx}px`,
-        }"
-        :title="accessibilityLabel"
-        :role="isClickable ? 'button' : 'group'"
-        :aria-label="accessibilityLabel"
-        :tabindex="isClickable ? 0 : undefined"
-        @click="emit('select', lesson)"
-        @keydown="emit('keydown', $event, lesson)"
-    >
-        <div
-            v-if="isTheoryLessonType(lesson.type)"
-            class="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5"
-        >
-            <BookOpen
-                class="text-warning-700 size-3 shrink-0"
-                aria-hidden="true"
-            />
-            <UiBadge
-                variant="secondary"
-                class="border-warning-500/40 bg-warning-500/20 text-warning-950 px-1 py-0 text-[11px] font-semibold"
+    <UiTooltipProvider>
+        <UiTooltip :disabled="!isInformationalTheory">
+            <UiTooltipTrigger as-child>
+                <div
+                    class="schedule-lesson-block absolute inset-x-1.5 box-border overflow-hidden rounded-md border px-2 py-1.5 text-xs leading-tight shadow-sm hover:shadow-lg focus-visible:shadow-lg"
+                    :class="[
+                        lessonBlockClasses(lesson.type),
+                        interactiveClasses,
+                        isInformationalTheory
+                            ? 'focus-visible:ring-ring cursor-help focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none'
+                            : '',
+                    ]"
+                    :style="{
+                        top: `${topPx}px`,
+                        '--schedule-block-height': `${heightPx}px`,
+                    }"
+                    :title="
+                        isInformationalTheory ? undefined : accessibilityLabel
+                    "
+                    :role="isClickable ? 'button' : 'group'"
+                    :aria-label="accessibilityLabel"
+                    :tabindex="
+                        isClickable || isInformationalTheory ? 0 : undefined
+                    "
+                    @click="emit('select', lesson)"
+                    @keydown="emit('keydown', $event, lesson)"
+                >
+                    <div
+                        v-if="isTheoryLessonType(lesson.type)"
+                        class="mb-0.5 flex flex-wrap items-center gap-x-1 gap-y-0.5"
+                    >
+                        <BookOpen
+                            class="text-warning-700 size-3 shrink-0"
+                            aria-hidden="true"
+                        />
+                        <UiBadge
+                            variant="secondary"
+                            class="border-warning-500/40 bg-warning-500/20 text-warning-950 px-1 py-0 text-[11px] font-semibold"
+                        >
+                            Teoria
+                        </UiBadge>
+                        <span
+                            class="ml-auto max-w-full shrink-0 font-medium tabular-nums"
+                        >
+                            {{ isoToHm(lesson.startTime) }}-{{
+                                isoToHm(lesson.endTime)
+                            }}
+                        </span>
+                    </div>
+                    <span v-else class="mb-0.5 flex items-center gap-1">
+                        <ManagerScheduleVehicleIcon
+                            class="text-primary-700 size-3 shrink-0"
+                            :category-code="lesson.categoryCode"
+                        />
+                        <span class="font-medium tabular-nums">
+                            {{ isoToHm(lesson.startTime) }}-{{
+                                isoToHm(lesson.endTime)
+                            }}
+                        </span>
+                    </span>
+                    <span
+                        class="block truncate text-xs font-medium"
+                        :class="
+                            isTheoryLessonType(lesson.type)
+                                ? 'text-warning-950/95'
+                                : ''
+                        "
+                    >
+                        {{ displayPrimaryLine(lesson, practicePrimaryLine) }}
+                    </span>
+                    <span
+                        v-if="isScheduleInstructorEvent(lesson)"
+                        class="mt-0.5 block"
+                    >
+                        <UiBadge
+                            :variant="
+                                instructorEventStatusBadgeVariant(
+                                    normalizeInstructorEventStatus(
+                                        lesson.status,
+                                    ),
+                                )
+                            "
+                            class="px-1 py-0 text-[11px] font-medium"
+                        >
+                            {{
+                                labelForInstructorEventStatusRaw(lesson.status)
+                            }}
+                        </UiBadge>
+                    </span>
+                    <span
+                        v-if="
+                            showInstructorSubtitle &&
+                            isTheoryLessonType(lesson.type) &&
+                            displayInstructorSubtitle(lesson)
+                        "
+                        class="text-warning-900 block truncate text-[11px] leading-snug"
+                    >
+                        {{ displayInstructorSubtitle(lesson) }}
+                    </span>
+                    <span
+                        v-if="
+                            !isTheoryLessonType(lesson.type) &&
+                            displayVehicle(lesson)
+                        "
+                        class="block truncate text-[11px] opacity-85"
+                    >
+                        {{ displayVehicle(lesson) }}
+                    </span>
+                    <span
+                        v-if="
+                            showInstructorSubtitle &&
+                            !isTheoryLessonType(lesson.type) &&
+                            displayInstructorSubtitle(lesson)
+                        "
+                        class="text-primary-900 block truncate text-[11px] leading-snug"
+                    >
+                        {{ displayInstructorSubtitle(lesson) }}
+                    </span>
+                </div>
+            </UiTooltipTrigger>
+            <UiTooltipContent
+                v-if="isInformationalTheory"
+                side="top"
+                align="start"
+                class="max-w-72 text-left"
             >
-                Teoria
-            </UiBadge>
-            <span class="ml-auto max-w-full shrink-0 font-medium tabular-nums">
-                {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
-            </span>
-        </div>
-        <span v-else class="mb-0.5 flex items-center gap-1">
-            <ManagerScheduleVehicleIcon
-                class="text-primary-700 size-3 shrink-0"
-                :category-code="lesson.categoryCode"
-            />
-            <span class="font-medium tabular-nums">
-                {{ isoToHm(lesson.startTime) }}-{{ isoToHm(lesson.endTime) }}
-            </span>
-        </span>
-        <span
-            class="block truncate text-xs font-medium"
-            :class="
-                isTheoryLessonType(lesson.type) ? 'text-warning-950/95' : ''
-            "
-        >
-            {{ displayPrimaryLine(lesson, practicePrimaryLine) }}
-        </span>
-        <span v-if="isScheduleInstructorEvent(lesson)" class="mt-0.5 block">
-            <UiBadge
-                :variant="
-                    instructorEventStatusBadgeVariant(
-                        normalizeInstructorEventStatus(lesson.status),
-                    )
-                "
-                class="px-1 py-0 text-[11px] font-medium"
-            >
-                {{ labelForInstructorEventStatusRaw(lesson.status) }}
-            </UiBadge>
-        </span>
-        <span
-            v-if="
-                showInstructorSubtitle &&
-                isTheoryLessonType(lesson.type) &&
-                displayInstructorSubtitle(lesson)
-            "
-            class="text-warning-900 block truncate text-[11px] leading-snug"
-        >
-            {{ displayInstructorSubtitle(lesson) }}
-        </span>
-        <span
-            v-if="!isTheoryLessonType(lesson.type) && displayVehicle(lesson)"
-            class="block truncate text-[11px] opacity-85"
-        >
-            {{ displayVehicle(lesson) }}
-        </span>
-        <span
-            v-if="
-                showInstructorSubtitle &&
-                !isTheoryLessonType(lesson.type) &&
-                displayInstructorSubtitle(lesson)
-            "
-            class="text-primary-900 block truncate text-[11px] leading-snug"
-        >
-            {{ displayInstructorSubtitle(lesson) }}
-        </span>
-    </div>
+                {{ accessibilityLabel }}
+            </UiTooltipContent>
+        </UiTooltip>
+    </UiTooltipProvider>
 </template>
 
 <style scoped>

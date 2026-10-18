@@ -1,11 +1,21 @@
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
-import { ariaSummaryForLesson } from '~/utils/schedule/managerScheduleCalendarUtils';
+import {
+    ariaSummaryForLesson,
+    isTheoryLessonType,
+} from '~/utils/schedule/managerScheduleCalendarUtils';
 import { isScheduleBookedPracticalLesson } from '~/utils/schedule/scheduleBookedPracticalLesson';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { isScheduleManagerItemEditable } from '~/utils/schedule/scheduleManagerEditNavigation';
 
 export const SCHEDULE_BLOCK_INTERACTIVE_CLASSES =
     'cursor-pointer hover:brightness-[0.97] focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none dark:hover:brightness-[1.08]';
+
+export function isInformationalTheoryScheduleBlock(
+    lesson: ScheduleLessonItem,
+    isClickable: boolean,
+): boolean {
+    return isTheoryLessonType(lesson.type) && !isClickable;
+}
 
 export interface ManagerSchoolScheduleBlockInteractionOptions {
     eventActionMode?: 'navigate' | 'select';

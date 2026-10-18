@@ -4,6 +4,7 @@ import {
     getManagerSchoolScheduleBlockAccessibilityLabel,
     getManagerSchoolScheduleBlockInteractiveClasses,
     isManagerSchoolScheduleBlockClickable,
+    isInformationalTheoryScheduleBlock,
     isStudentRatingSelectableScheduleLesson,
     SCHEDULE_BLOCK_INTERACTIVE_CLASSES,
 } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';
@@ -33,6 +34,22 @@ function lesson(
 }
 
 describe('managerSchoolScheduleCalendarInteractions', () => {
+    it('distinguishes informational theory from actionable calendar blocks', () => {
+        expect(
+            isInformationalTheoryScheduleBlock(
+                lesson({ type: 'THEORY' }),
+                false,
+            ),
+        ).toBe(true);
+        expect(
+            isInformationalTheoryScheduleBlock(
+                lesson({ type: 'THEORY' }),
+                true,
+            ),
+        ).toBe(false);
+        expect(isInformationalTheoryScheduleBlock(lesson(), false)).toBe(false);
+    });
+
     it('opens details for student rides regardless of their status', () => {
         const options = {
             eventEditEnabled: false,
