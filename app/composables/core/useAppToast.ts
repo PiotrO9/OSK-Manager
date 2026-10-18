@@ -26,12 +26,9 @@ export function useAppToast() {
                 description: input.description,
                 variant,
                 createdAt: Date.now(),
+                durationMs,
             },
         ];
-
-        if (durationMs > 0) {
-            setTimeout(() => removeToast(id), durationMs);
-        }
 
         return id;
     }

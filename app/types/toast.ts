@@ -6,6 +6,7 @@ export interface ToastItem {
     description?: string;
     variant: ToastVariant;
     createdAt: number;
+    durationMs: number;
 }
 
 export interface AddToastInput {
