@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Save, Workflow } from 'lucide-vue-next';
+import { CalendarDays, Save, Workflow } from '@lucide/vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 const props = defineProps<{

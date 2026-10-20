@@ -1,5 +1,5 @@
 import { appPaths } from '~~/shared/routing/appPaths';
-import { CalendarDays, Clock3, TimerReset } from 'lucide-vue-next';
+import { CalendarDays, Clock3, TimerReset } from '@lucide/vue';
 import {
     formatCourseTypeOptionLabel,
     type CourseTypeOption,

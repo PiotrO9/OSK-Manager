@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2 } from 'lucide-vue-next';
+import { Building2 } from '@lucide/vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 withDefaults(

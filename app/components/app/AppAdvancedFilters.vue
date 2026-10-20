@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus, SlidersHorizontal, X } from 'lucide-vue-next';
+import { Plus, SlidersHorizontal, X } from '@lucide/vue';
 import { useMediaQuery } from '@vueuse/core';
 import type { AdvancedFilterChip } from '~~/shared/utils/advancedFilters';
 

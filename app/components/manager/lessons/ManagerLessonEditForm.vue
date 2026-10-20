@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle } from 'lucide-vue-next';
+import { LoaderCircle } from '@lucide/vue';
 import { computed } from 'vue';
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, parseDate, today } from '@internationalized/date';

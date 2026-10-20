@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight, Mail, Phone, Plus } from 'lucide-vue-next';
+import { ArrowUpRight, Mail, Phone, Plus } from '@lucide/vue';
 import ManagerStudentPkkCopy from './ManagerStudentPkkCopy.vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';

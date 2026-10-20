@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
-import { Search } from 'lucide-vue-next';
+import { Search } from '@lucide/vue';
 import { toDate } from 'reka-ui/date';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiDateRangePicker from '~/components/shadcn/date-range-picker/DateRangePicker.vue';

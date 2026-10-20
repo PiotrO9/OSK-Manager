@@ -200,6 +200,7 @@ export function useVehiclesApi() {
         } catch (err) {
             throw new Error(
                 getApiFetchErrorMessage(err, 'Nie udało się przesłać zdjęcia.'),
+                { cause: err },
             );
         } finally {
             isPhotoUploadLoading.value = false;

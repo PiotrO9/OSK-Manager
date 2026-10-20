@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil, Trash2, X } from 'lucide-vue-next';
+import { Pencil, Trash2, X } from '@lucide/vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import { isScheduleInstructorEvent } from '~/utils/schedule/scheduleInstructorEvent';
 import { buildScheduleManagerItemEditRoute } from '~/utils/schedule/scheduleManagerEditNavigation';

@@ -19,7 +19,7 @@ import {
     ShieldAlert,
     User,
     Users,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { useSidebar } from '../shadcn/sidebar';
 import {
     buildAppShellSidebarNavItems,

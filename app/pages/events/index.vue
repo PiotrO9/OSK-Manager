@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays } from 'lucide-vue-next';
+import { CalendarDays } from '@lucide/vue';
 import EventsDaySchedulePanel from '~/components/events/EventsDaySchedulePanel.vue';
 import {
     WEEK_PICKER_CALENDAR_MAX,

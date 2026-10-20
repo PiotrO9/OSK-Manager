@@ -270,9 +270,7 @@ export function mockStudentVisibleInCourseFilter(
 }
 
 export type MockAssignStudentCourseErrorCode =
-    | 'COURSE_NOT_FOUND'
-    | 'STUDENT_NOT_IN_SCHOOL'
-    | 'DUPLICATE';
+    'COURSE_NOT_FOUND' | 'STUDENT_NOT_IN_SCHOOL' | 'DUPLICATE';
 
 /**
  * Demo: przypisanie kursanta (userId) do kursu — spójne z filtrem listy.

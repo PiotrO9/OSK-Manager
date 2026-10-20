@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Clock3, ListChecks, Users } from 'lucide-vue-next';
+import { Clock3, ListChecks, Users } from '@lucide/vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 defineProps<{

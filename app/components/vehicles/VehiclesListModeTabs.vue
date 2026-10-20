@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LayoutList, Shield } from 'lucide-vue-next';
+import { LayoutList, Shield } from '@lucide/vue';
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
 
 defineProps<{

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, Clock3, X } from 'lucide-vue-next';
+import { Check, Clock3, X } from '@lucide/vue';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';

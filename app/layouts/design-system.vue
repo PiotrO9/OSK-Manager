@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Moon, Sun } from 'lucide-vue-next';
+import { Moon, Sun } from '@lucide/vue';
 
 const route = useRoute();
 const { isDark, toggleDarkMode } = useDarkMode();

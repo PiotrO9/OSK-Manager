@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { LoaderCircle } from 'lucide-vue-next';
+import { LoaderCircle } from '@lucide/vue';
 
 interface NavLink {
     to: string;

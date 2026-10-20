@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useVehicleCourseTypeOptions } from '~/composables/vehicles/useVehicleCourseTypeOptions';
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Save } from 'lucide-vue-next';
+import { Save } from '@lucide/vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleEditPhotoSection from '~/components/vehicles/VehicleEditPhotoSection.vue';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';

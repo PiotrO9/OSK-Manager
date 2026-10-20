@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import {
-    CalendarClock,
-    CarFront,
-    ChevronRight,
-    UserRound,
-} from 'lucide-vue-next';
+import { CalendarClock, CarFront, ChevronRight, UserRound } from '@lucide/vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 
 const props = defineProps<{

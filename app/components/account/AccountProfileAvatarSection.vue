@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Camera, Info } from 'lucide-vue-next';
+import { Camera, Info } from '@lucide/vue';
 import {
     Tooltip,
     TooltipContent,

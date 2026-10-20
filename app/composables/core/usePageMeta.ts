@@ -1,10 +1,7 @@
 import { toValue } from 'vue';
 
 type MaybeRefOrGetter<T> =
-    | import('vue').Ref<T>
-    | import('vue').ComputedRef<T>
-    | (() => T)
-    | T;
+    import('vue').Ref<T> | import('vue').ComputedRef<T> | (() => T) | T;
 
 export interface UsePageMetaOptions {
     /** Tytuł strony */

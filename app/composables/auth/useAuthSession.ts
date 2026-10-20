@@ -18,11 +18,7 @@ import {
 } from '~/utils/auth/authSessionApi';
 
 export type BackgroundSessionCheckResult =
-    | 'valid'
-    | 'invalid'
-    | 'changed'
-    | 'unavailable'
-    | 'skipped';
+    'valid' | 'invalid' | 'changed' | 'unavailable' | 'skipped';
 
 function getFetchStatusCode(error: unknown): number | undefined {
     if (typeof error !== 'object' || error === null) return undefined;
@@ -118,11 +114,14 @@ export function useAuthSession() {
             if (status === 403) {
                 throw new Error(
                     fromBodyEarly ?? 'Brak uprawnień do tej operacji.',
+                    { cause: err },
                 );
             }
 
             if (sessionLoadShouldSkipRefresh(status)) {
-                throw new Error(fromBodyEarly ?? 'Sesja nieważna');
+                throw new Error(fromBodyEarly ?? 'Sesja nieważna', {
+                    cause: err,
+                });
             }
 
             if (status === 401) {
@@ -131,7 +130,9 @@ export function useAuthSession() {
                 if (!refreshed) {
                     session.value = null;
 
-                    throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+                    throw new Error('Sesja wygasła. Zaloguj się ponownie.', {
+                        cause: err,
+                    });
                 }
 
                 await doPatch();
@@ -140,7 +141,7 @@ export function useAuthSession() {
             }
 
             if (fromBodyEarly) {
-                throw new Error(fromBodyEarly);
+                throw new Error(fromBodyEarly, { cause: err });
             }
 
             throw err instanceof Error
@@ -160,13 +161,15 @@ export function useAuthSession() {
             if (sessionLoadShouldSkipRefresh(status)) {
                 const msg = getServerJsonErrorMessage(err);
 
-                throw new Error(msg ?? 'Sesja nieważna');
+                throw new Error(msg ?? 'Sesja nieważna', { cause: err });
             }
 
             const refreshed = await refreshAccessToken();
 
             if (!refreshed) {
-                throw new Error('Nie udało się odświeżyć sesji');
+                throw new Error('Nie udało się odświeżyć sesji', {
+                    cause: err,
+                });
             }
 
             await loadMeIntoSession();
@@ -294,30 +297,38 @@ export function useAuthSession() {
                 ) {
                     throw new Error(
                         'Potwierdź adres e-mail, aby się zalogować.',
+                        { cause: error },
                     );
                 }
 
-                throw new Error('Nieprawidłowy e-mail lub hasło');
+                throw new Error('Nieprawidłowy e-mail lub hasło', {
+                    cause: error,
+                });
             }
 
             if (status === 403) {
                 throw new Error(
                     'Konto jest niedostępne lub wyłączone. Skontaktuj się z pomocą.',
+                    { cause: error },
                 );
             }
 
             if (status !== undefined && status >= 500) {
                 throw new Error(
                     'Serwer jest chwilowo niedostępny. Spróbuj ponownie.',
+                    { cause: error },
                 );
             }
 
             if (status !== undefined && status >= 400) {
-                throw new Error('Nieprawidłowy e-mail lub hasło');
+                throw new Error('Nieprawidłowy e-mail lub hasło', {
+                    cause: error,
+                });
             }
 
             throw new Error(
                 'Brak połączenia z serwerem. Sprawdź sieć i spróbuj ponownie.',
+                { cause: error },
             );
         }
     }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight } from 'lucide-vue-next';
+import { ArrowUpRight } from '@lucide/vue';
 import type { AvailabilitySlot } from '~/types/instructors/instructorSlots';
 import type {
     ConnectedInstructorSlot,

@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ArrowLeft, CalendarDays, MessageSquare, Star } from 'lucide-vue-next';
+import { ArrowLeft, CalendarDays, MessageSquare, Star } from '@lucide/vue';
 import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import type { RouteLocationRaw } from 'vue-router';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 
 type ManagerInstructorDetailsTab =
-    | 'overview'
-    | 'availability'
-    | 'related'
-    | 'details';
+    'overview' | 'availability' | 'related' | 'details';
 
 const props = defineProps<{
     instructor: InstructorDetail;

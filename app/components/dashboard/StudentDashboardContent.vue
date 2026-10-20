@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { CalendarPlus, CreditCard, GraduationCap } from 'lucide-vue-next';
+import { CalendarPlus, CreditCard, GraduationCap } from '@lucide/vue';
 import DashboardNextLessonCard from './DashboardNextLessonCard.vue';
 import UserDrivingSchoolsSection from './UserDrivingSchoolsSection.vue';
 import type { CurrentUserCourseItem } from '~/types/courses/course';

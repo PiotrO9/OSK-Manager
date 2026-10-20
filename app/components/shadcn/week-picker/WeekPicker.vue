@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
-import { CalendarDays, ChevronDown, RotateCcw } from 'lucide-vue-next';
+import { CalendarDays, ChevronDown, RotateCcw } from '@lucide/vue';
 import { cn } from '@/lib/utils';
 
 defineOptions({

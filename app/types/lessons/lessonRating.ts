@@ -1,11 +1,7 @@
 import { readAvatarUrlFromRecord } from '~/types/profileAvatar';
 
 export type LessonRatingsPeriod =
-    | 'latest'
-    | 'yesterday'
-    | 'last7days'
-    | 'last30days'
-    | 'all';
+    'latest' | 'yesterday' | 'last7days' | 'last30days' | 'all';
 
 export interface LessonRatingPerson {
     id: string;

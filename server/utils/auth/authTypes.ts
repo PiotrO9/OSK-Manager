@@ -1,6 +1,5 @@
 export type BffAdapter =
-    | { mode: 'upstream'; upstreamBase: string }
-    | { mode: 'mock' };
+    { mode: 'upstream'; upstreamBase: string } | { mode: 'mock' };
 
 export type ProfilePatchPayload = Record<string, string | null | undefined>;
 

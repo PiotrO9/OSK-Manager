@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Car, Eye, Pencil, Trash2 } from 'lucide-vue-next';
+import { Car, Eye, Pencil, Trash2 } from '@lucide/vue';
 import type { Vehicle } from '~/types/vehicles/vehicle';
 import { vehicleDeletionBlockMessage } from '~/utils/vehicles/deletion';
 import {

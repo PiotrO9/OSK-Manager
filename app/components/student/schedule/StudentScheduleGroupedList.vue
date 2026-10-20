@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen } from 'lucide-vue-next';
+import { BookOpen } from '@lucide/vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import ManagerScheduleVehicleIcon from '~/components/manager/schedule/ManagerScheduleVehicleIcon.vue';
 import { isStudentLessonDetailsSelectable } from '~/utils/schedule/managerSchoolScheduleCalendarInteractions';

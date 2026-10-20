@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Phone } from 'lucide-vue-next';
+import { Phone } from '@lucide/vue';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 
 defineProps<{

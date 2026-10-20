@@ -5,7 +5,7 @@ import {
     CheckCircle2,
     ChevronRight,
     RefreshCw,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import type {
     ManagerAttentionItem,
     ManagerAttentionItemPriority,

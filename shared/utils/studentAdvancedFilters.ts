@@ -21,10 +21,7 @@ export type StudentAdvancedFilterField =
     (typeof studentAdvancedFilterFields)[number];
 
 export type StudentTextFilterOperator =
-    | 'contains'
-    | 'not_contains'
-    | 'eq'
-    | 'neq';
+    'contains' | 'not_contains' | 'eq' | 'neq';
 export type StudentEmptyFilterOperator = 'is_empty' | 'is_not_empty';
 export type StudentAdvancedFilterOperator =
     | StudentTextFilterOperator

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight } from '@lucide/vue';
 import ManagerLessonRatingItem from '~/components/manager/reviews/ManagerLessonRatingItem.vue';
 import type { LessonRatingListItem } from '~/types/lessons/lessonRating';
 import { formatLessonRatingCount } from '~/utils/lessons/myReviews';

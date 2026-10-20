@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CarFront } from 'lucide-vue-next';
+import { CarFront } from '@lucide/vue';
 import type { VehicleDetailsRow } from '~/composables/vehicles/useVehicleDetailsPresentation';
 import type { StatusTone } from '~/types/ui';
 

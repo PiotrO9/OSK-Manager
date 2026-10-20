@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Star } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Star } from '@lucide/vue';
 import type { LessonRatingListItem } from '~/types/lessons/lessonRating';
 import {
     formatLessonRatingCount,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft } from '@lucide/vue';
 import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 import type { RouteLocationRaw } from 'vue-router';
 import type { VehicleDetail } from '~/types/vehicles/vehicle';

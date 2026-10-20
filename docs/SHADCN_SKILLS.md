@@ -39,7 +39,7 @@ Skill w `SKILL.md` jest pisany pod **shadcn/ui (React)** — przykłady używaj�
 | `npx shadcn@latest` w przykładach          | **`npx shadcn-vue@latest`** (add, init, docs — patrz [SHADCN.md](SHADCN.md))                                                                     |
 | `className`                                | **`class`** (Vue)                                                                                                                                |
 | Importy `@/components/ui/...` z docs React | Alias **`@/components/shadcn/...`** i tagi **`UiButton`**, `UiDialog`, … (`shadcn.prefix: 'Ui'`)                                                 |
-| `lucide-react`                             | **`lucide-vue-next`**                                                                                                                            |
+| `lucide-react`                             | **`@lucide/vue`**                                                                                                                                |
 | Komponenty React (Field, itd.)             | Odpowiedniki **vue** z rejestru; część wzorców z skills nie ma 1:1 — wtedy reguły **stylistyczne** (gap, semantic colors, `cn`) nadal obowiązują |
 
 **MCP w Cursorze:** skonfigurowany pod **shadcn-vue**: [MCP_SHADCN.md](MCP_SHADCN.md), plik `.cursor/mcp.json`.

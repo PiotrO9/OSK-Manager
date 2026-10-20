@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, CarFront } from 'lucide-vue-next';
+import { CalendarDays, CarFront } from '@lucide/vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import {
     INSTRUCTOR_EVENT_STATUS_LABELS,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays } from 'lucide-vue-next';
+import { CalendarDays } from '@lucide/vue';
 
 const props = withDefaults(
     defineProps<{

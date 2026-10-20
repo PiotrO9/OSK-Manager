@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil } from 'lucide-vue-next';
+import { Pencil } from '@lucide/vue';
 import type { RouteLocationRaw } from 'vue-router';
 import type { VehicleDetailsRow } from '~/composables/vehicles/useVehicleDetailsPresentation';
 

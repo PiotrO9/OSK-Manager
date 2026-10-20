@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarRange, GraduationCap } from 'lucide-vue-next';
+import { CalendarRange, GraduationCap } from '@lucide/vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import {
     formatInstructorDisplayName,

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft } from '@lucide/vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { AvailabilitySlot } from '~/types/instructors/instructorSlots';
 import type { LessonBookingSlotContext } from '~/types/lessons/lessonBooking';

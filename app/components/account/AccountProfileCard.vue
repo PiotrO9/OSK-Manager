@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Save, X } from 'lucide-vue-next';
+import { Save, X } from '@lucide/vue';
 import AccountBioSection from './AccountBioSection.vue';
 import AccountContactSection from './AccountContactSection.vue';
 import AccountPersonalDataSection from './AccountPersonalDataSection.vue';
@@ -39,9 +39,9 @@ const profileForm = useTemplateRef<HTMLFormElement>('profileForm');
 function focusField(name: string): void {
     void nextTick(() => {
         profileForm.value
-            ?.querySelector<
-                HTMLInputElement | HTMLTextAreaElement
-            >(`[name="${name}"]`)
+            ?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+                `[name="${name}"]`,
+            )
             ?.focus();
     });
 }

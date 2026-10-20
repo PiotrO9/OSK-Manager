@@ -5,7 +5,7 @@ import {
     MessageSquareText,
     Star,
     UserRoundCheck,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import DashboardNextLessonCard from './DashboardNextLessonCard.vue';
 import UserDrivingSchoolsSection from './UserDrivingSchoolsSection.vue';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';

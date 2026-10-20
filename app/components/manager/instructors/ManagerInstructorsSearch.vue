@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search, X } from 'lucide-vue-next';
+import { Search, X } from '@lucide/vue';
 import type { InstructorQuickView } from '~/utils/instructors/managerInstructorsPage';
 import type {
     InstructorAdvancedFilter,

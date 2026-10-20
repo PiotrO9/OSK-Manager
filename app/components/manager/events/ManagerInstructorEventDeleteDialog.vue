@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarClock, Trash2, TriangleAlert } from 'lucide-vue-next';
+import { CalendarClock, Trash2, TriangleAlert } from '@lucide/vue';
 
 interface Props {
     open: boolean;

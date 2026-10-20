@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useVehicleCourseTypeOptions } from '~/composables/vehicles/useVehicleCourseTypeOptions';
-import { Save } from 'lucide-vue-next';
+import { Save } from '@lucide/vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import VehicleForm from '~/components/vehicles/VehicleForm.vue';
 import { useVehicleCreatePage } from '~/composables/vehicles/useVehicleCreatePage';

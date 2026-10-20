@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IdCard } from 'lucide-vue-next';
+import { IdCard } from '@lucide/vue';
 
 defineProps<{
     accountPkkNumber: string;

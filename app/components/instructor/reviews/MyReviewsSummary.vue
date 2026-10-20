@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MessageSquareText, Star } from 'lucide-vue-next';
+import { MessageSquareText, Star } from '@lucide/vue';
 import type { LessonRatingsSummary } from '~/types/lessons/lessonRating';
 import {
     formatLessonRatingCount,

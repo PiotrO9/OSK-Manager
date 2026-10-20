@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight } from 'lucide-vue-next';
+import { ArrowUpRight } from '@lucide/vue';
 import EventsDayNavigation from '~/components/events/EventsDayNavigation.vue';
 import EventsDayScheduleGrid from '~/components/events/EventsDayScheduleGrid.vue';
 import EventsStatusFilter from '~/components/events/EventsStatusFilter.vue';

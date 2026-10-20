@@ -8,7 +8,7 @@ import {
     ChevronRight,
     RotateCcw,
     X,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import {
     DateRangePickerCalendar,
     DateRangePickerCell,

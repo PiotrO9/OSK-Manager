@@ -11,7 +11,7 @@ import {
     LoaderCircle,
     LockKeyhole,
     Mail,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import type { DemoMockLoginRole } from '~/composables/auth/useLoginPage';
 import { DEMO_MOCK_LOGIN_CREDENTIALS } from '~/composables/auth/useLoginPage';
 

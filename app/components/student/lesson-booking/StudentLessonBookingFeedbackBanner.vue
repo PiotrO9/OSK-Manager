@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { CalendarCheck, CircleAlert } from 'lucide-vue-next';
+import { CalendarCheck, CircleAlert } from '@lucide/vue';
 
 defineProps<{
     message: string;

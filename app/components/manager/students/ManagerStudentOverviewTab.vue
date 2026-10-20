@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, CalendarDays, CreditCard } from 'lucide-vue-next';
+import { BookOpen, CalendarDays, CreditCard } from '@lucide/vue';
 import type { StudentPaymentsSummary } from '~/types/payments/payment';
 import type { ScheduleLessonItem } from '~/types/schedule/schedule';
 import type { StudentProcessStatusStep } from '~/types/students/student';

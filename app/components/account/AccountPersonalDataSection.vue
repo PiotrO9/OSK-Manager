@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UserRound } from 'lucide-vue-next';
+import { UserRound } from '@lucide/vue';
 import { PROFILE_NAME_MAX_LEN } from '~/utils/account/accountProfileEdit';
 
 defineProps<{

@@ -6,11 +6,7 @@ import {
 import type { AdvancedFilterChip } from '~~/shared/utils/advancedFilters';
 
 export type CourseFilterField =
-    | 'name'
-    | 'category'
-    | 'type'
-    | 'instructor'
-    | 'totalHours';
+    'name' | 'category' | 'type' | 'instructor' | 'totalHours';
 export type CourseFilterCondition =
     | 'contains'
     | 'notContains'

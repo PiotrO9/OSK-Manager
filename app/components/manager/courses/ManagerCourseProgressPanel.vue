@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, ExternalLink } from '@lucide/vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';
 import { formatStudentDisplayName } from '~/types/students/student';

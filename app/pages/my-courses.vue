@@ -2,7 +2,7 @@
 import { appPaths } from '~~/shared/routing/appPaths';
 import MyCoursesFilters from '~/components/courses/MyCoursesFilters.vue';
 import MyCoursesList from '~/components/courses/MyCoursesList.vue';
-import { CalendarPlus } from 'lucide-vue-next';
+import { CalendarPlus } from '@lucide/vue';
 
 definePageMeta({
     layout: 'app-shell',

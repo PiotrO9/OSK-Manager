@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ExternalLink, UserCheck } from 'lucide-vue-next';
+import { ExternalLink, UserCheck } from '@lucide/vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatInstructorDisplayName,

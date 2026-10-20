@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, LoaderCircle } from 'lucide-vue-next';
+import { ArrowLeft, LoaderCircle } from '@lucide/vue';
 
 defineProps<{
     formId: string;

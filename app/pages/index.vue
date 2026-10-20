@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ShieldAlert } from 'lucide-vue-next';
+import { ShieldAlert } from '@lucide/vue';
 import RoleDashboardContent from '~/components/dashboard/RoleDashboardContent.vue';
 
 definePageMeta({

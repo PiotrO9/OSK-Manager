@@ -2,10 +2,7 @@
 import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui';
 
 type ManagerCourseDetailsTab =
-    | 'overview'
-    | 'participants'
-    | 'instructor'
-    | 'parameters';
+    'overview' | 'participants' | 'instructor' | 'parameters';
 
 const {
     NO_INSTRUCTOR_VALUE,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UserPlus } from 'lucide-vue-next';
+import { UserPlus } from '@lucide/vue';
 import {
     designSystemStudents,
     designSystemSchool,

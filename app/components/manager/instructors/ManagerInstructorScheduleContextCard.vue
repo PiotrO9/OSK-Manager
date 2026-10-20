@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Route } from 'lucide-vue-next';
+import { Route } from '@lucide/vue';
 
 defineProps<{
     schoolId: string;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Plus, Star } from 'lucide-vue-next';
+import { Plus, Star } from '@lucide/vue';
 import StudentLessonRatingsDialog from '~/components/student/lesson-ratings/StudentLessonRatingsDialog.vue';
 
 definePageMeta({

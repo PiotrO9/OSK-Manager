@@ -6,7 +6,7 @@ import {
     Motorbike,
     Tractor,
     Truck,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 
 const iconsByCategory: Record<string, Component> = {
     AM: Motorbike,

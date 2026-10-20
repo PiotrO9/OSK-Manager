@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Plus } from 'lucide-vue-next';
+import { Plus } from '@lucide/vue';
 
 definePageMeta({
     layout: 'app-shell',

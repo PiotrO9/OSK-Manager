@@ -88,16 +88,15 @@ export function useManagerEventEditForm(input: {
         },
     );
 
-    const currentSnapshot = computed(
-        (): ManagerEventEditFormSnapshot =>
-            buildManagerEventCurrentSnapshot({
-                type: formType.value,
-                startLocal: formStartLocal.value,
-                endLocal: formEndLocal.value,
-                vehicleId: formVehicleId.value,
-                capacityInput: formCapacityInput.value,
-                instructorId: formInstructorId.value.trim(),
-            }),
+    const currentSnapshot = computed((): ManagerEventEditFormSnapshot =>
+        buildManagerEventCurrentSnapshot({
+            type: formType.value,
+            startLocal: formStartLocal.value,
+            endLocal: formEndLocal.value,
+            vehicleId: formVehicleId.value,
+            capacityInput: formCapacityInput.value,
+            instructorId: formInstructorId.value.trim(),
+        }),
     );
 
     const isFormFieldsDirty = computed((): boolean => {

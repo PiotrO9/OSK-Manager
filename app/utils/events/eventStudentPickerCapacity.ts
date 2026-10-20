@@ -1,7 +1,5 @@
 export type EventStudentPickerCapacityBadgeVariant =
-    | 'default'
-    | 'secondary'
-    | 'destructive';
+    'default' | 'secondary' | 'destructive';
 
 export interface EventStudentPickerCapacitySummaryInput {
     capacity: number | null | undefined;

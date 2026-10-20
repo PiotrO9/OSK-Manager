@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { CalendarDays, ChevronLeft, ChevronRight } from '@lucide/vue';
 import { computed } from 'vue';
 import UiWeekPicker from '~/components/shadcn/week-picker/WeekPicker.vue';
 

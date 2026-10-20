@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import { ArrowLeft, Plus } from 'lucide-vue-next';
+<script setup lang="ts">
+import { ArrowLeft, Plus } from '@lucide/vue';
 import type { RouteLocationRaw } from 'vue-router';
 
 defineProps<{

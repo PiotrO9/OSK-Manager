@@ -1,9 +1,5 @@
 export type AccountObligationType =
-    | 'LESSON'
-    | 'COURSE'
-    | 'EVENT'
-    | 'PAYMENT'
-    | 'TIME_BLOCK';
+    'LESSON' | 'COURSE' | 'EVENT' | 'PAYMENT' | 'TIME_BLOCK';
 
 export interface AccountObligation {
     type: AccountObligationType;

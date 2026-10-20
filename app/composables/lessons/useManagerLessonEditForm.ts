@@ -166,14 +166,13 @@ export function useManagerLessonEditForm(
         return lesson ? buildManagerLessonBaselineSnapshot(lesson) : null;
     });
 
-    const currentSnapshot = computed(
-        (): ManagerLessonEditSnapshot =>
-            buildManagerLessonCurrentSnapshot({
-                start: formStartLocal.value,
-                end: formEndLocal.value,
-                vehicle: formVehicleId.value,
-                instructorId: formInstructorId.value,
-            }),
+    const currentSnapshot = computed((): ManagerLessonEditSnapshot =>
+        buildManagerLessonCurrentSnapshot({
+            start: formStartLocal.value,
+            end: formEndLocal.value,
+            vehicle: formVehicleId.value,
+            instructorId: formInstructorId.value,
+        }),
     );
 
     const isFormDirty = computed((): boolean => {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ArrowLeft, Plus } from 'lucide-vue-next';
+import { ArrowLeft, Plus } from '@lucide/vue';
 import type { InstructorFormField } from '~/composables/instructors/manager/useManagerInstructorForm';
 
 definePageMeta({

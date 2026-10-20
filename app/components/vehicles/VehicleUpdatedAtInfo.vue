@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Info } from 'lucide-vue-next';
+import { Info } from '@lucide/vue';
 import { useId } from 'vue';
 import { formatVehicleUpdatedAt } from '~/utils/vehicles/updatedAt';
 

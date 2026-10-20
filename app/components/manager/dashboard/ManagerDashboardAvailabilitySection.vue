@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { CalendarDays, ChevronRight } from 'lucide-vue-next';
+import { CalendarDays, ChevronRight } from '@lucide/vue';
 
 defineProps<{
     schoolId: string;

@@ -13,21 +13,16 @@ export type InstructorAdvancedFilterField =
     (typeof instructorAdvancedFilterFields)[number];
 
 export type InstructorTextFilterOperator =
-    | 'contains'
-    | 'not_contains'
-    | 'eq'
-    | 'neq';
+    'contains' | 'not_contains' | 'eq' | 'neq';
 export type InstructorEmptyFilterOperator = 'is_empty' | 'is_not_empty';
 export type InstructorAdvancedFilterOperator =
-    | InstructorTextFilterOperator
-    | InstructorEmptyFilterOperator;
+    InstructorTextFilterOperator | InstructorEmptyFilterOperator;
 
 export type InstructorAdvancedFilterRule =
     | {
           field: 'email';
           operator:
-              | InstructorTextFilterOperator
-              | InstructorEmptyFilterOperator;
+              InstructorTextFilterOperator | InstructorEmptyFilterOperator;
           value?: string;
       }
     | {

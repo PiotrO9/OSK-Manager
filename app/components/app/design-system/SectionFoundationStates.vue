@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Save } from 'lucide-vue-next';
+import { Save } from '@lucide/vue';
 
 const fields = [
     { id: 'school-name-demo', label: 'Nazwa OSK', value: 'OSK Zgierz' },

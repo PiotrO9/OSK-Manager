@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import { BusFront, CarFront, Motorbike, Tractor, Truck } from 'lucide-vue-next';
+import { BusFront, CarFront, Motorbike, Tractor, Truck } from '@lucide/vue';
 
 const props = defineProps<{
     categoryCode?: string | null;

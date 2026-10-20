@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BookOpen, CircleAlert, CircleCheck, Mail } from 'lucide-vue-next';
+import { BookOpen, CircleAlert, CircleCheck, Mail } from '@lucide/vue';
 
 const props = withDefaults(
     defineProps<{

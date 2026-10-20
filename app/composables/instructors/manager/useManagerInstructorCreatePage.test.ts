@@ -129,8 +129,7 @@ describe('instructor create page', () => {
     it('shares one discard decision and preserves data after cancellation', async () => {
         const page = await createPage();
         const guard = registerGuard.mock.calls[0]![0] as () =>
-            | boolean
-            | Promise<boolean>;
+            boolean | Promise<boolean>;
 
         expect(guard()).toBe(true);
         fillForm(page);

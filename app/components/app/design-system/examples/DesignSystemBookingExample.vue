@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, RotateCcw } from 'lucide-vue-next';
+import { Check, RotateCcw } from '@lucide/vue';
 import {
     designSystemInstructors,
     designSystemSlot,

@@ -95,11 +95,7 @@ export interface ScheduleAvailabilityResult {
 }
 
 export type ScheduleAvailabilityStatus =
-    | 'idle'
-    | 'checking'
-    | 'available'
-    | 'unavailable'
-    | 'error';
+    'idle' | 'checking' | 'available' | 'unavailable' | 'error';
 
 export interface EventCreateAvailabilityOptionsRequest {
     intent: 'event_create';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Star } from 'lucide-vue-next';
+import { Star } from '@lucide/vue';
 import type { Component } from 'vue';
 import type { RouteLocationRaw } from 'vue-router';
 

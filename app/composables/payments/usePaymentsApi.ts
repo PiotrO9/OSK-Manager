@@ -6,8 +6,7 @@ import {
 } from '~/types/payments/payment';
 
 type StudentPaymentActionPayload =
-    | CreateStudentPaymentPayload
-    | UpdateStudentPaymentPayload;
+    CreateStudentPaymentPayload | UpdateStudentPaymentPayload;
 
 export function usePaymentsApi() {
     async function fetchMyPayments(): Promise<StudentPaymentsPayload> {

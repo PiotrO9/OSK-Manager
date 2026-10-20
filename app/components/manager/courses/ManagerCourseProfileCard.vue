@@ -7,7 +7,7 @@ import {
     GraduationCap,
     Settings2,
     UsersRound,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import {
     formatCourseKindLabel,
     type CourseDetail,

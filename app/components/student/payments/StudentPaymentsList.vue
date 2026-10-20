@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CreditCard } from 'lucide-vue-next';
+import { CreditCard } from '@lucide/vue';
 import type { StudentPaymentItem } from '~/types/payments/payment';
 import type { StatusTone } from '~/types/ui';
 import {

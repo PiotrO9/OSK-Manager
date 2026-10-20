@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { GraduationCap } from 'lucide-vue-next';
+import { GraduationCap } from '@lucide/vue';
 import type { CurrentUserCourseItem } from '~/types/courses/course';
 
 const props = defineProps<{

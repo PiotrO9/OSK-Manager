@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SlidersHorizontal } from 'lucide-vue-next';
+import { SlidersHorizontal } from '@lucide/vue';
 
 defineProps<{
     baseHour: number;

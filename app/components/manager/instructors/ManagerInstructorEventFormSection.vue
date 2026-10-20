@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Plus } from 'lucide-vue-next';
+import { LoaderCircle, Plus } from '@lucide/vue';
 import { computed, shallowRef, watch } from 'vue';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';

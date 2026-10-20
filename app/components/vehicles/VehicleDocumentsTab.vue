@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil, ShieldCheck } from 'lucide-vue-next';
+import { Pencil, ShieldCheck } from '@lucide/vue';
 import type { RouteLocationRaw } from 'vue-router';
 import type { VehicleDetailsDeadlineItem } from '~/composables/vehicles/useVehicleDetailsPresentation';
 

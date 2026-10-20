@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { CalendarDays, GraduationCap, UsersRound } from 'lucide-vue-next';
+import { CalendarDays, GraduationCap, UsersRound } from '@lucide/vue';
 
 const actions = [
     {

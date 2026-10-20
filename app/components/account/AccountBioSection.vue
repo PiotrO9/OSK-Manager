@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlignLeft } from 'lucide-vue-next';
+import { AlignLeft } from '@lucide/vue';
 import { PROFILE_BIO_MAX_LEN } from '~/utils/account/accountProfileEdit';
 import type { AuthSession } from '~/utils/auth/authSessionMapper';
 

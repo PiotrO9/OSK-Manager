@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, CreditCard, Save, X } from 'lucide-vue-next';
+import { Check, CreditCard, Save, X } from '@lucide/vue';
 import type {
     CreateStudentPaymentPayload,
     StudentPaymentItem,

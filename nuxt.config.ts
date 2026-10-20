@@ -16,6 +16,8 @@ export default defineNuxtConfig({
     },
     compatibilityDate: '2025-07-15',
     devtools: { enabled: true },
+    aiReady: false,
+    skewProtection: false,
     modules: [
         '@nuxt/eslint',
         '@nuxt/icon',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UsersRound } from 'lucide-vue-next';
+import { UsersRound } from '@lucide/vue';
 import type { ManagerCourseCapacityInsight } from '~/types/courses/managerCourseDetail';
 
 const props = defineProps<{

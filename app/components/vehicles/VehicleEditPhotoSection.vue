@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ImageIcon, Info, RefreshCw, Upload, X } from 'lucide-vue-next';
+import { ImageIcon, Info, RefreshCw, Upload, X } from '@lucide/vue';
 import {
     Tooltip,
     TooltipContent,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RefreshCw, Search, X } from 'lucide-vue-next';
+import { RefreshCw, Search, X } from '@lucide/vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type {
     SecurityLogDetail,

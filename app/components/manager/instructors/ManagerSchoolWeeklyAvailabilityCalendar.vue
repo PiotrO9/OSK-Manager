@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarClock, RefreshCw, UsersRound } from 'lucide-vue-next';
+import { CalendarClock, RefreshCw, UsersRound } from '@lucide/vue';
 import type { ManagerSchoolAvailabilitySlotLayout } from '~/utils/schools/managerSchoolWeeklyAvailabilityCalendar';
 
 const props = defineProps<{

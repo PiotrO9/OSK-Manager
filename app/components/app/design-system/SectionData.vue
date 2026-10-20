@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RotateCcw, Search } from 'lucide-vue-next';
+import { RotateCcw, Search } from '@lucide/vue';
 import { formatPolishCount } from '~/utils/text/polishPlural';
 import type { SummaryStripItem } from '~/components/app/ui/types';
 import { designSystemStudents } from '~/data/design-system/fixtures';

@@ -7,7 +7,7 @@ import {
     Clock3,
     MessageSquareText,
     Star,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import {
     formatLessonRatingPersonName,

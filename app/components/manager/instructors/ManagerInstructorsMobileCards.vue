@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpRight } from 'lucide-vue-next';
+import { ArrowUpRight } from '@lucide/vue';
 import type { RouteLocationRaw } from 'vue-router';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerInstructorQualificationBadges from './ManagerInstructorQualificationBadges.vue';

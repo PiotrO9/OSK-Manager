@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ArrowUpRight, Trash2 } from 'lucide-vue-next';
+import { ArrowUpRight, Trash2 } from '@lucide/vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import ManagerCourseCategoryBadge from './ManagerCourseCategoryBadge.vue';
 import {

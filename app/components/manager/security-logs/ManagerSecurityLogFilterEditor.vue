@@ -23,11 +23,8 @@ const emit = defineEmits<{
     cancel: [];
     searchPeople: [value: string];
 }>();
-const fieldConfig = computed(
-    () =>
-        securityLogFieldConfigs.find(
-            (item) => item.value === props.draft.field,
-        )!,
+const fieldConfig = computed(() =>
+    securityLogFieldConfigs.find((item) => item.value === props.draft.field)!,
 );
 const operators = computed(() =>
     props.draft.field === 'occurredAt'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Search, X } from 'lucide-vue-next';
+import { Search, X } from '@lucide/vue';
 import type { VehiclesListPanelId } from '~/composables/vehicles/useVehiclesListPage';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { VehicleStatusFilter } from '~/utils/vehicles/filters';

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Plus } from '@lucide/vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { CourseListItem } from '~/types/courses/course';
 import { useManagerCoursesFilters } from '~/composables/courses/useManagerCoursesFilters';

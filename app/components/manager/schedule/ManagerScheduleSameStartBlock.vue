@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Layers3 } from 'lucide-vue-next';
+import { Layers3 } from '@lucide/vue';
 import type { ScheduleSameStartGroup } from '~/utils/schedule/managerScheduleSameStartGroups';
 import { formatScheduleSameStartGroupLabel } from '~/utils/schedule/managerScheduleSameStartGroups';
 import { isTheoryLessonType } from '~/utils/schedule/managerScheduleCalendarUtils';

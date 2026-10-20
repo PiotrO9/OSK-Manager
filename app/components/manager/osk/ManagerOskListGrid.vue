@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Building2, Loader2, Pencil, Star, Trash2 } from 'lucide-vue-next';
+import { Building2, Loader2, Pencil, Star, Trash2 } from '@lucide/vue';
 import AppCourseTypeBadges from '~/components/app/AppCourseTypeBadges.vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 

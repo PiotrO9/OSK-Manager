@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { SlidersHorizontal, X } from 'lucide-vue-next';
+import { SlidersHorizontal, X } from '@lucide/vue';
 import type { CourseListItem } from '~/types/courses/course';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 

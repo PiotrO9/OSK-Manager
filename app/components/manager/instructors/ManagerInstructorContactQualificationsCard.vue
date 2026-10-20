@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ban, Mail, Pencil, Phone } from 'lucide-vue-next';
+import { Ban, Mail, Pencil, Phone } from '@lucide/vue';
 import type { InstructorDetail } from '~/types/instructors/instructor';
 
 const props = defineProps<{

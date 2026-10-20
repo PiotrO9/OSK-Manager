@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
-import { Building2, RefreshCw } from 'lucide-vue-next';
+import { Building2, RefreshCw } from '@lucide/vue';
 
 const dashboard = useManagerDashboardPage();
 </script>

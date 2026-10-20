@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next';
+import { Plus } from '@lucide/vue';
 import ManagerStudentPkkCopy from './ManagerStudentPkkCopy.vue';
 import AppUserIdentity from '~/components/app/AppUserIdentity.vue';
 import type { StudentListItem } from '~/types/students/student';

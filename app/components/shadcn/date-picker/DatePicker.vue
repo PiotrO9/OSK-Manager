@@ -6,7 +6,7 @@ import {
     ChevronDown,
     RotateCcw,
     X,
-} from 'lucide-vue-next';
+} from '@lucide/vue';
 import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
