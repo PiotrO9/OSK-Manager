@@ -16,10 +16,10 @@ Stan dokumentu: scenariusze audytu opracowane z aktualnego kodu FE/BE. `P0` ozna
 **Wymaganie:** `REQ-MGR-OSK-01` — menedżer może utworzyć szkołę i rozpocząć pracę w jej kontekście. **Dane:** `manager-only`; unikalna nazwa, miasto i adres. **Warunek:** konto ma rolę `MANAGER`, brak przypisanej OSK.
 
 1. Otwórz **Szkoły jazdy** (`/menedzer/osrodki`) i sprawdź stan pusty.
-2. Wybierz **Dodaj OSK**, wpisz nazwę, miasto i adres; wyślij formularz.
+2. Wybierz **Dodaj OSK**. Sprawdź przejście na `/menedzer/osrodki/dodaj`, wpisz nazwę, miasto i adres; wyślij formularz. Po zapisie sprawdź powrót na listę.
 3. Odśwież listę i otwórz **Kursy** oraz **Kursanci**.
 
-**Oczekiwane:** szkoła występuje raz na liście po odświeżeniu, a widoki zależne od szkoły pozwalają ją wybrać. Jeśli jest jedyną OSK, jej domyślny kontekst powinien być czytelny; dokładną regułę automatycznego ustawienia domyślnej OSK potwierdzić z właścicielem produktu. **Powtórzenie:** usuń utworzoną testową szkołę, o ile nie ma danych zależnych, lub przywróć `manager-only`. **Źródła:** [strona OSK](../../../app/pages/manager/osk/index.vue), [formularz](../../../app/components/manager/osk/ManagerOskSchoolFormDialog.vue), [trasa BE](../../../../../BE/src/routes/driving-schools.routes.ts).
+**Oczekiwane:** szkoła występuje raz na liście po odświeżeniu, a widoki zależne od szkoły pozwalają ją wybrać. Pierwsza szkoła automatycznie staje się domyślna; przed zapisem przełącznik jest zaznaczony i zablokowany z wyjaśnieniem. Anulowanie zmienionego formularza wymaga potwierdzenia i nie tworzy szkoły. **Powtórzenie:** usuń utworzoną testową szkołę, o ile nie ma danych zależnych, lub przywróć `manager-only`. **Źródła:** [strona OSK](../../../app/pages/manager/osk/index.vue), [formularz tworzenia](../../../app/pages/manager/osk/new.vue), [trasa BE](../../../../../BE/src/routes/driving-schools.routes.ts).
 
 ### MGR-OSK-02 — Edycja i wybór szkoły domyślnej [P1]
 

@@ -3,7 +3,6 @@ import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type { CourseTypeOption } from '~/types/courses/courseType';
 import { oskFormSchema } from '~/utils/forms/oskFormSchema';
 import {
-    buildManagerOskCreateBody,
     buildManagerOskUpdateBody,
     getManagerOskErrorMessage,
 } from '~/utils/schools/managerOskPage';
@@ -13,14 +12,12 @@ interface ManagerOskFormErrors {
 }
 
 export function useManagerOskPage() {
-    const route = useRoute();
     const toast = useAppToast();
     const { fetchList: fetchCourseTypesList } = useCourseTypesApi();
 
     const {
         fetchList,
         remove,
-        create,
         update,
         setAsDefault,
         isListLoading,
@@ -36,9 +33,7 @@ export function useManagerOskPage() {
     const deletingId = shallowRef<string | null>(null);
     const settingDefaultId = shallowRef<string | null>(null);
     const confirmTarget = shallowRef<DrivingSchool | null>(null);
-    const isLocalCreateSaving = shallowRef(false);
     const formSubmitError = shallowRef('');
-    const hasLoadedSchools = shallowRef(false);
     const formErrors = reactive<ManagerOskFormErrors>({ name: '' });
     let loadRequestId = 0;
     let courseTypesLoadRequestId = 0;
@@ -51,44 +46,31 @@ export function useManagerOskPage() {
         () =>
             deletingId.value !== null ||
             settingDefaultId.value !== null ||
-            isLocalCreateSaving.value ||
             isUpdateLoading.value,
     );
 
     const {
         formDialogOpen,
-        formDialogMode,
         formName,
         formCity,
         formAddress,
-        formAsDefault,
         formEnabledCourseKinds,
         formOfferedCourseTypeIds,
         editTarget,
         isFormSaving,
-        isDefaultSwitchLocked,
         isFormDirty,
-        resetFormFields,
         markFormClean,
-        openCreateFormDialog: openCreateFormDialogState,
         openEditFormDialog: openEditFormDialogState,
         handleFormDialogOpenChange: handleFormDialogStateOpenChange,
     } = useManagerOskFormDialogState({
-        schools,
         deletingId,
         isUpdateLoading,
         isSetDefaultLoading,
-        isLocalCreateSaving,
     });
 
     function clearFormFeedback() {
         formErrors.name = '';
         formSubmitError.value = '';
-    }
-
-    function openCreateFormDialog() {
-        clearFormFeedback();
-        openCreateFormDialogState();
     }
 
     function openEditFormDialog(school: DrivingSchool) {
@@ -126,22 +108,11 @@ export function useManagerOskPage() {
         }
     }
 
-    async function clearCreateActionQuery() {
-        if (route.query.action !== 'create') return;
-
-        const query = { ...route.query };
-
-        delete query.action;
-
-        await navigateTo({ path: route.path, query }, { replace: true });
-    }
-
     function handleFormDialogOpenChange(open: boolean) {
         const changed = handleFormDialogStateOpenChange(open);
 
         if (changed && !open) {
             clearFormFeedback();
-            void clearCreateActionQuery();
         }
     }
 
@@ -155,7 +126,6 @@ export function useManagerOskPage() {
 
             if (requestId === loadRequestId) {
                 schools.value = nextSchools;
-                hasLoadedSchools.value = true;
             }
         } catch (err) {
             if (requestId !== loadRequestId) return;
@@ -300,67 +270,10 @@ export function useManagerOskPage() {
         }
     }
 
-    async function submitCreateForm() {
-        const parsed = validateForm();
-
-        if (!parsed.success) return;
-
-        isLocalCreateSaving.value = true;
-
-        try {
-            const createdSchool = await create(
-                buildManagerOskCreateBody(parsed.data),
-            );
-            let defaultChangeError: unknown = null;
-
-            if (formAsDefault.value && schools.value.length > 0) {
-                try {
-                    await setAsDefault(createdSchool.id);
-                } catch (err) {
-                    defaultChangeError = err;
-                }
-            }
-
-            await loadSchools();
-            isLocalCreateSaving.value = false;
-            markFormClean();
-            handleFormDialogOpenChange(false);
-            resetFormFields();
-
-            if (defaultChangeError) {
-                toast.addToast({
-                    title: 'Szkoła została dodana',
-                    description:
-                        'Nie udało się ustawić jej jako domyślnej. Możesz zrobić to z poziomu listy.',
-                    variant: 'warning',
-                });
-            } else {
-                toast.addToast({
-                    title: 'Dodano szkołę',
-                    description: `Szkoła „${parsed.data.name}” jest gotowa do konfiguracji.`,
-                    variant: 'success',
-                });
-            }
-        } catch (err) {
-            formSubmitError.value = getManagerOskErrorMessage(
-                err,
-                'Nie udało się dodać szkoły. Spróbuj ponownie.',
-            );
-        } finally {
-            isLocalCreateSaving.value = false;
-        }
-    }
-
     async function submitFormDialog() {
         if (isFormSaving.value) return;
 
-        if (formDialogMode.value === 'edit') {
-            await submitEditForm();
-
-            return;
-        }
-
-        await submitCreateForm();
+        await submitEditForm();
     }
 
     function handleBeforeUnload(event: BeforeUnloadEvent) {
@@ -375,7 +288,6 @@ export function useManagerOskPage() {
             formName,
             formCity,
             formAddress,
-            formAsDefault,
             formEnabledCourseKinds,
             formOfferedCourseTypeIds,
         ],
@@ -386,16 +298,6 @@ export function useManagerOskPage() {
 
             formSubmitError.value = '';
         },
-    );
-
-    watch(
-        [() => route.query.action, hasLoadedSchools],
-        ([action, hasLoaded]) => {
-            if (action === 'create' && hasLoaded && !formDialogOpen.value) {
-                openCreateFormDialog();
-            }
-        },
-        { immediate: true },
     );
 
     onBeforeRouteLeave(() => {
@@ -412,6 +314,8 @@ export function useManagerOskPage() {
     });
 
     onBeforeUnmount(() => {
+        loadRequestId++;
+        courseTypesLoadRequestId++;
         window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
@@ -431,11 +335,9 @@ export function useManagerOskPage() {
         handleConfirmDelete,
         handleSetDefault,
         formDialogOpen,
-        formDialogMode,
         formName,
         formCity,
         formAddress,
-        formAsDefault,
         formEnabledCourseKinds,
         formOfferedCourseTypeIds,
         courseTypes,
@@ -445,8 +347,6 @@ export function useManagerOskPage() {
         formErrors,
         formSubmitError,
         isFormSaving,
-        isDefaultSwitchLocked,
-        openCreateFormDialog,
         openEditFormDialog,
         handleFormDialogOpenChange,
         submitFormDialog,

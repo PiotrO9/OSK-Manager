@@ -30,15 +30,12 @@ test('@audit MGR-OSK-01 menadżer tworzy pierwszą szkołę jazdy', async ({
     await expect(page.getByText('0 szkół przypisanych do konta')).toBeVisible();
 
     await page.getByRole('button', { name: 'Dodaj OSK' }).first().click();
-    const dialog = page.getByRole('dialog', { name: 'Nowa szkoła jazdy' });
-
-    await expect(dialog).toBeVisible();
-    await dialog.getByLabel('Nazwa').fill(schoolName);
-    await dialog.getByLabel('Miasto').fill(city);
-    await dialog.getByLabel('Adres').fill(address);
-    await dialog.getByRole('button', { name: 'Dodaj szkołę' }).click();
-
-    await expect(dialog).toBeHidden();
+    await expect(page).toHaveURL(/\/menedzer\/osrodki\/dodaj$/);
+    await page.getByLabel('Nazwa', { exact: true }).fill(schoolName);
+    await page.getByLabel('Miasto').fill(city);
+    await page.getByLabel('Adres', { exact: true }).fill(address);
+    await page.getByRole('button', { name: 'Dodaj szkołę' }).click();
+    await expect(page).toHaveURL(/\/menedzer\/osrodki$/);
     await expect(page.getByText('1 szkoła przypisana do konta')).toBeVisible();
     await expect(
         page.getByRole('row').filter({ hasText: schoolName }),

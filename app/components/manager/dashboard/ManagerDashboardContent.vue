@@ -56,9 +56,7 @@ const dashboard = useManagerDashboardPage();
                     </p>
                 </div>
                 <UiButton as-child class="min-h-11 shrink-0">
-                    <NuxtLink
-                        :to="`${appPaths.managerSchools()}?action=create`"
-                    >
+                    <NuxtLink :to="appPaths.managerSchoolNew()">
                         Dodaj lub wybierz OSK
                     </NuxtLink>
                 </UiButton>

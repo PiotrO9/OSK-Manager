@@ -1,88 +1,111 @@
 <script setup lang="ts">
-import { appPaths } from '~~/shared/routing/appPaths';
-import { ArrowLeft, Building2 } from 'lucide-vue-next';
+import { ArrowLeft } from 'lucide-vue-next';
 
-definePageMeta({
-    layout: 'app-shell',
-    middleware: ['manager'],
-});
-
+definePageMeta({ layout: 'app-shell', middleware: ['manager'] });
 usePageMeta({
-    title: () => 'Dodawanie OSK',
-    description: () => 'Przejście do formularza nowej szkoły jazdy.',
+    title: () => 'Dodaj OSK',
+    description: () => 'Utwórz nową szkołę jazdy.',
 });
 
-const redirectDelayMs = 1400;
-let redirectTimer: number | undefined;
+const {
+    name,
+    city,
+    address,
+    asDefault,
+    nameError,
+    submitError,
+    defaultSwitchLocked,
+    isSchoolsLoading,
+    schoolsLoadError,
+    isSaving,
+    isCreated,
+    isNavigating,
+    navigationError,
+    isLeaveDialogOpen,
+    cancelLeave,
+    confirmDiscard,
+    loadSchools,
+    returnToList,
+    handleSubmit,
+} = useManagerOskCreatePage();
+const form = useTemplateRef<{ focusName: () => void }>('form');
 
-function goToOskList() {
-    void navigateTo(
-        { path: appPaths.managerSchools(), query: { action: 'create' } },
-        { replace: true },
-    );
-}
-
-onMounted(() => {
-    redirectTimer = window.setTimeout(goToOskList, redirectDelayMs);
-});
-
-onBeforeUnmount(() => {
-    if (redirectTimer) {
-        window.clearTimeout(redirectTimer);
+async function submitForm() {
+    if ((await handleSubmit()) === 'field-error') {
+        await nextTick();
+        form.value?.focusName();
     }
-});
+}
 </script>
 
 <template>
-    <div class="flex min-h-[calc(100svh-8rem)] flex-col gap-12">
+    <div class="min-w-0 space-y-6">
         <PageHeader
-            title="Dodawanie OSK"
-            description="Przejście do formularza nowej szkoły jazdy."
-        />
-
-        <section
-            class="flex flex-1 items-center justify-center px-0 py-8 sm:px-6"
-            aria-labelledby="oskRedirectTitle"
+            title="Dodaj OSK"
+            description="Wprowadź dane nowej szkoły jazdy."
         >
-            <div
-                class="border-border bg-card flex w-full max-w-md flex-col items-center rounded-xl border p-6 text-center shadow-2xl shadow-slate-200/70 sm:p-8"
+            <template #actions>
+                <UiButton
+                    type="button"
+                    variant="outline"
+                    :disabled="isSaving || isNavigating"
+                    @click="returnToList"
+                >
+                    <ArrowLeft class="size-4" aria-hidden="true" />
+                    Wróć do szkół
+                </UiButton>
+            </template>
+        </PageHeader>
+        <div class="w-full max-w-3xl space-y-4">
+            <p
+                v-if="isCreated && !isSaving"
+                class="border-border bg-card rounded-xl border p-5"
                 role="status"
-                aria-live="polite"
             >
-                <span
-                    class="bg-primary/10 text-primary mb-5 flex size-10 items-center justify-center rounded-xl"
-                    aria-hidden="true"
+                Szkoła została dodana.
+            </p>
+            <LoadingState
+                v-else-if="isSchoolsLoading"
+                title="Wczytywanie listy szkół jazdy…"
+                :show-labels="false"
+            />
+            <ErrorState
+                v-else-if="schoolsLoadError"
+                title="Nie udało się wczytać szkół jazdy"
+                :description="schoolsLoadError"
+                @retry="loadSchools"
+            />
+            <ManagerOskCreateForm
+                v-else
+                ref="form"
+                v-model:name="name"
+                v-model:city="city"
+                v-model:address="address"
+                v-model:as-default="asDefault"
+                :name-error="nameError"
+                :submit-error="submitError"
+                :default-switch-locked="defaultSwitchLocked"
+                :is-saving="isSaving"
+                @submit="submitForm"
+                @cancel="returnToList"
+            />
+            <div v-if="navigationError" class="space-y-3">
+                <p class="text-destructive text-sm" role="alert">
+                    {{ navigationError }}
+                </p>
+                <UiButton
+                    type="button"
+                    variant="outline"
+                    :disabled="isNavigating"
+                    @click="returnToList"
+                    >Wróć na listę OSK</UiButton
                 >
-                    <Building2 class="size-5" />
-                </span>
-
-                <div class="flex flex-col gap-2">
-                    <h1
-                        id="oskRedirectTitle"
-                        class="text-foreground text-2xl leading-tight font-bold tracking-tight"
-                    >
-                        Dodawanie OSK
-                    </h1>
-                    <p class="text-muted-foreground text-sm leading-relaxed">
-                        Za chwilę otworzymy formularz nowej szkoły jazdy.
-                    </p>
-                </div>
-
-                <ActionGroup
-                    label="Akcje przekierowania do listy OSK"
-                    class="mt-6 justify-center"
-                >
-                    <UiButton variant="outline" as-child>
-                        <NuxtLink :to="appPaths.managerSchools()">
-                            <ArrowLeft class="size-4" aria-hidden="true" />
-                            Powrót
-                        </NuxtLink>
-                    </UiButton>
-                    <UiButton type="button" @click="goToOskList">
-                        Otwórz formularz
-                    </UiButton>
-                </ActionGroup>
             </div>
-        </section>
+        </div>
+        <ManagerOskDiscardDialog
+            :open="isLeaveDialogOpen"
+            @cancel="cancelLeave"
+            @discard="confirmDiscard"
+        />
     </div>
 </template>

@@ -109,50 +109,6 @@ describe('useManagerOskPage', () => {
         ).toMatchObject({ isDefault: false });
     });
 
-    it('opens a deep-linked create form after resolving existing schools', async () => {
-        route.query = { action: 'create' };
-        fetchList.mockResolvedValue([
-            school('main', { isDefault: true, name: 'OSK Główna' }),
-        ]);
-        const { useManagerOskPage } = await import('./useManagerOskPage');
-        const page = useManagerOskPage();
-
-        await vi.waitFor(() => expect(page.formDialogOpen.value).toBe(true));
-
-        expect(page.formAsDefault.value).toBe(false);
-        expect(page.isDefaultSwitchLocked.value).toBe(false);
-    });
-
-    it('keeps a created school and reports a partial default-change failure', async () => {
-        const main = school('main', { isDefault: true });
-        const created = school('new');
-
-        fetchList
-            .mockResolvedValueOnce([main])
-            .mockResolvedValueOnce([main, created]);
-        create.mockResolvedValue(created);
-        setAsDefault.mockRejectedValue(new Error('Default unavailable'));
-        const { useManagerOskPage } = await import('./useManagerOskPage');
-        const page = useManagerOskPage();
-
-        await vi.waitFor(() => expect(page.schools.value).toHaveLength(1));
-        page.openCreateFormDialog();
-        page.formName.value = 'OSK new';
-        page.formAsDefault.value = true;
-        await page.submitFormDialog();
-
-        expect(create).toHaveBeenCalledWith({ name: 'OSK new' });
-        expect(setAsDefault).toHaveBeenCalledWith('new');
-        expect(page.formDialogOpen.value).toBe(false);
-        expect(page.schools.value).toHaveLength(2);
-        expect(addToast).toHaveBeenCalledWith(
-            expect.objectContaining({
-                title: 'Szkoła została dodana',
-                variant: 'warning',
-            }),
-        );
-    });
-
     it('keeps the confirmation open until deletion and reload finish', async () => {
         const target = school('main', { isDefault: true });
 

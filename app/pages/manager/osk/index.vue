@@ -1,9 +1,24 @@
 <script setup lang="ts">
+import { appPaths } from '~~/shared/routing/appPaths';
 import { Plus } from 'lucide-vue-next';
 
 definePageMeta({
     layout: 'app-shell',
-    middleware: ['manager'],
+    middleware: [
+        'manager',
+        (to) => {
+            if (to.query.action !== 'create') return;
+
+            const query = { ...to.query };
+
+            delete query.action;
+
+            return navigateTo(
+                { path: appPaths.managerSchoolNew(), query, hash: to.hash },
+                { replace: true },
+            );
+        },
+    ],
 });
 
 usePageMeta({
@@ -27,11 +42,9 @@ const {
     handleConfirmDelete,
     handleSetDefault,
     formDialogOpen,
-    formDialogMode,
     formName,
     formCity,
     formAddress,
-    formAsDefault,
     formEnabledCourseKinds,
     formOfferedCourseTypeIds,
     courseTypes,
@@ -41,8 +54,6 @@ const {
     formErrors,
     formSubmitError,
     isFormSaving,
-    isDefaultSwitchLocked,
-    openCreateFormDialog,
     openEditFormDialog,
     handleFormDialogOpenChange,
     submitFormDialog,
@@ -62,7 +73,7 @@ const {
                     :disabled="
                         isListLoading || deletingId !== null || isFormSaving
                     "
-                    @click="openCreateFormDialog"
+                    @click="navigateTo(appPaths.managerSchoolNew())"
                 >
                     <Plus class="size-4" aria-hidden="true" />
                     Dodaj OSK
@@ -79,7 +90,7 @@ const {
             :setting-default-id="settingDefaultId"
             :is-form-saving="isFormSaving"
             @retry="loadSchools"
-            @request-add="openCreateFormDialog"
+            @request-add="navigateTo(appPaths.managerSchoolNew())"
             @request-edit="openEditFormDialog"
             @request-delete="handleRequestDelete"
             @set-default="handleSetDefault"
@@ -98,25 +109,21 @@ const {
 
         <ManagerOskSchoolFormDialog
             :open="formDialogOpen"
-            :mode="formDialogMode"
             :name="formName"
             :city="formCity"
             :address="formAddress"
-            :as-default="formAsDefault"
             :enabled-course-kinds="formEnabledCourseKinds"
             :offered-course-type-ids="formOfferedCourseTypeIds"
             :course-types="courseTypes"
             :course-types-load-error="courseTypesLoadError"
             :is-course-types-loading="isCourseTypesLoading"
             :is-saving="isFormSaving"
-            :default-switch-locked="isDefaultSwitchLocked"
             :name-error="formErrors.name"
             :submit-error="formSubmitError"
             @update:open="handleFormDialogOpenChange"
             @update:name="formName = $event"
             @update:city="formCity = $event"
             @update:address="formAddress = $event"
-            @update:as-default="formAsDefault = $event"
             @update:enabled-course-kinds="formEnabledCourseKinds = $event"
             @update:offered-course-type-ids="formOfferedCourseTypeIds = $event"
             @retry-course-types="loadCourseTypes"
