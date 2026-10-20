@@ -4,6 +4,126 @@
  */
 
 export interface paths {
+    '/manager/accounts': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Konta kursantów i instruktorów w OSK managera
+         * @description Podaj page, aby otrzymać stronicowaną listę. Brak page zachowuje tymczasowo pełną tablicę dla starszych klientów. Wyszukiwanie wymaga dopasowania każdego wyrazu do imienia, nazwiska lub e-maila. profileId umożliwia punktowe znalezienie konta instruktora.
+         */
+        get: {
+            parameters: {
+                query: {
+                    schoolId: string;
+                    search?: string;
+                    role?: 'STUDENT' | 'INSTRUCTOR';
+                    page?: number;
+                    limit?: number;
+                    profileId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Strona kont lub tablica zgodna ze starszym klientem */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        'application/json': {
+                            /** @enum {boolean} */
+                            success: true;
+                            data:
+                                | {
+                                      items: {
+                                          /** Format: uuid */
+                                          id: string;
+                                          /** @enum {string} */
+                                          role: 'STUDENT' | 'INSTRUCTOR';
+                                          firstName: string;
+                                          lastName: string;
+                                          email: string;
+                                          isActive: boolean;
+                                          /** Format: date-time */
+                                          deletedAt: string | null;
+                                      }[];
+                                      total: number;
+                                      page: number;
+                                      limit: number;
+                                  }
+                                | unknown[];
+                        };
+                    };
+                };
+                /** @description Błąd walidacji lub reguł biznesowych */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        'application/json': {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Brak lub nieprawidłowy Bearer token */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        'application/json': {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Brak wymaganej roli lub dostępu */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        'application/json': {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: string;
+                        };
+                    };
+                };
+                /** @description Zasób nie istnieje */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        'application/json': {
+                            /** @enum {boolean} */
+                            success: false;
+                            error: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     '/test': {
         parameters: {
             query?: never;

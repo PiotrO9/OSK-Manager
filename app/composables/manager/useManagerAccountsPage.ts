@@ -1,6 +1,7 @@
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-import type { ManagerAccount } from '~/types/manager/account';
 import { getApiFetchErrorMessage } from '~/utils/api/apiFetchErrorMessage';
+import { useManagerAccountsList } from './useManagerAccountsList';
+import { useManagerAccountSelection } from './useManagerAccountSelection';
 
 export function useManagerAccountsPage() {
     const route = useRoute();
@@ -8,93 +9,47 @@ export function useManagerAccountsPage() {
     const { fetchList: fetchSchools } = useDrivingSchoolsApi();
     const schools = shallowRef<DrivingSchool[]>([]);
     const schoolId = shallowRef('');
-    const accounts = shallowRef<ManagerAccount[]>([]);
-    const selectedUserId = shallowRef('');
-    const search = shallowRef('');
-    const roleFilter = shallowRef<'ALL' | 'STUDENT' | 'INSTRUCTOR'>('ALL');
-    const loading = shallowRef(false);
+    const list = useManagerAccountsList(schoolId);
+    const selection = useManagerAccountSelection(schoolId);
+    const { selectedUserId } = selection;
     const busy = shallowRef(false);
-    const errorMessage = shallowRef('');
     const actionMessage = shallowRef('');
     const actionError = shallowRef('');
     const archiveObligationsUserId = shallowRef('');
 
-    const selectedAccount = computed(
-        () =>
-            accounts.value.find(
-                (account) => account.id === selectedUserId.value,
-            ) ?? null,
-    );
-    const filteredAccounts = computed(() => {
-        const needle = search.value.trim().toLocaleLowerCase('pl');
+    let mounted = false;
 
-        return accounts.value.filter((account) => {
-            if (roleFilter.value !== 'ALL' && account.role !== roleFilter.value)
-                return false;
+    function resetActionMessages() {
+        archiveObligationsUserId.value = '';
+        actionMessage.value = '';
+        actionError.value = '';
+    }
 
-            if (!needle) return true;
+    function selectAccount(userId: string) {
+        if (busy.value || userId === selectedUserId.value) return;
 
-            return `${account.firstName} ${account.lastName} ${account.email}`
-                .toLocaleLowerCase('pl')
-                .includes(needle);
-        });
-    });
+        resetActionMessages();
+        void selection.selectAccount(userId);
+    }
 
-    async function loadAccounts() {
-        if (!schoolId.value) {
-            accounts.value = [];
-            selectedUserId.value = '';
+    async function selectPreferredAccount() {
+        const userId =
+            typeof route.query.userId === 'string' ? route.query.userId : '';
+        const profileId =
+            typeof route.query.profileId === 'string'
+                ? route.query.profileId
+                : '';
 
-            return;
-        }
-
-        loading.value = true;
-        errorMessage.value = '';
-
-        try {
-            const data = await requestBffData<ManagerAccount[]>(
-                'GET',
-                `/api/manager/accounts?schoolId=${encodeURIComponent(schoolId.value)}`,
-                { fallbackMessage: 'Nie udało się pobrać kont.' },
-            );
-
-            accounts.value = Array.isArray(data) ? data : [];
-            const preferred =
-                typeof route.query.userId === 'string'
-                    ? route.query.userId
-                    : '';
-            const preferredProfileId =
-                typeof route.query.profileId === 'string'
-                    ? route.query.profileId
-                    : '';
-
-            if (
-                !accounts.value.some(
-                    (account) => account.id === selectedUserId.value,
-                )
-            ) {
-                selectedUserId.value =
-                    accounts.value.find(
-                        (account) =>
-                            account.id === preferred ||
-                            account.instructorProfile?.id ===
-                                preferredProfileId,
-                    )?.id ?? '';
-            }
-        } catch (error) {
-            errorMessage.value = getApiFetchErrorMessage(
-                error,
-                'Nie udało się pobrać kont.',
-            );
-            accounts.value = [];
-        } finally {
-            loading.value = false;
-        }
+        resetActionMessages();
+        await selection.selectAccount(userId, profileId);
     }
 
     async function loadSchools() {
         try {
             schools.value = await fetchSchools();
+
+            if (!mounted) return;
+
             const preferred =
                 typeof route.query.schoolId === 'string'
                     ? route.query.schoolId
@@ -105,7 +60,9 @@ export function useManagerAccountsPage() {
                 schools.value[0]?.id ??
                 '';
         } catch (error) {
-            errorMessage.value = getApiFetchErrorMessage(
+            if (!mounted) return;
+
+            list.errorMessage.value = getApiFetchErrorMessage(
                 error,
                 'Nie udało się pobrać ośrodków.',
             );
@@ -118,7 +75,20 @@ export function useManagerAccountsPage() {
         body?: unknown,
         successMessage?: string,
     ) {
-        if (!schoolId.value || !selectedUserId.value) return;
+        if (
+            busy.value ||
+            !schoolId.value ||
+            !selection.selectedAccount.value ||
+            selection.detailLoading.value
+        )
+            return;
+
+        const targetSchoolId = schoolId.value;
+        const targetUserId = selectedUserId.value;
+        const isCurrent = () =>
+            mounted &&
+            schoolId.value === targetSchoolId &&
+            selectedUserId.value === targetUserId;
 
         busy.value = true;
         actionError.value = '';
@@ -128,14 +98,25 @@ export function useManagerAccountsPage() {
         try {
             await requestBffData(
                 method,
-                `/api/manager/accounts/${encodeURIComponent(selectedUserId.value)}${path}`,
+                `/api/manager/accounts/${encodeURIComponent(targetUserId)}${path}?schoolId=${encodeURIComponent(targetSchoolId)}`,
                 {
                     body,
                     fallbackMessage: 'Nie udało się zapisać zmian.',
                 },
             );
-            actionMessage.value = successMessage ?? 'Zmiany zapisano.';
+
+            if (!isCurrent()) return;
+
+            await Promise.all([
+                selection.selectAccount(targetUserId),
+                list.loadAccounts(),
+            ]);
+
+            if (isCurrent())
+                actionMessage.value = successMessage ?? 'Zmiany zapisano.';
         } catch (error) {
+            if (!isCurrent()) return;
+
             if (path === '/archive') {
                 const message = getApiFetchErrorMessage(error, '');
                 const record =
@@ -173,40 +154,55 @@ export function useManagerAccountsPage() {
             }
         } finally {
             busy.value = false;
-            await loadAccounts();
         }
     }
 
     function handleSchoolChange(value: string) {
+        if (busy.value || !schools.value.some((school) => school.id === value))
+            return;
+
+        resetActionMessages();
         schoolId.value = value;
-        selectedUserId.value = '';
-        archiveObligationsUserId.value = '';
-        actionMessage.value = '';
-        actionError.value = '';
-        void loadAccounts();
     }
 
     onMounted(async () => {
+        mounted = true;
         await loadSchools();
-        await loadAccounts();
+
+        if (mounted) await selectPreferredAccount();
+    });
+
+    watch(
+        () => [route.query.schoolId, route.query.userId, route.query.profileId],
+        () => {
+            if (!mounted || busy.value) return;
+
+            const preferredSchoolId = route.query.schoolId;
+
+            if (typeof preferredSchoolId === 'string')
+                handleSchoolChange(preferredSchoolId);
+
+            void selectPreferredAccount();
+        },
+    );
+    onUnmounted(() => {
+        mounted = false;
     });
 
     return {
         schools,
         schoolId,
-        accounts,
-        selectedUserId,
-        search,
-        roleFilter,
-        loading,
+        ...list,
+        ...selection,
         busy,
-        errorMessage,
         actionMessage,
         actionError,
         archiveObligationsUserId,
-        selectedAccount,
-        filteredAccounts,
-        loadAccounts,
+        selectAccount,
+        retrySelectedAccount: () =>
+            selectedUserId.value
+                ? selection.selectAccount(selectedUserId.value)
+                : selectPreferredAccount(),
         handleSchoolChange,
         runAction,
     };

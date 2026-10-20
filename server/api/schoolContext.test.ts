@@ -73,6 +73,10 @@ describe('school context at the BFF HTTP boundary', () => {
             '/manager/accounts/:userId',
             (await import('./manager/accounts/[userId].get')).default,
         );
+        router.get(
+            '/manager/accounts',
+            (await import('./manager/accounts.get')).default,
+        );
         const app = createApp();
 
         app.use(router);
@@ -121,6 +125,54 @@ describe('school context at the BFF HTTP boundary', () => {
             200,
         );
         expect(upstream.mock.lastCall?.[2]).toMatchObject({ query: undefined });
+    });
+
+    it('forwards validated search, role, pagination and exact profile lookup', async () => {
+        const query = new URLSearchParams({
+            schoolId,
+            search: ' Jan Kowalski ',
+            role: 'INSTRUCTOR',
+            page: '2',
+            limit: '20',
+            profileId: userId,
+            ignored: 'value',
+        });
+        const page = { items: [], total: 0, page: 2, limit: 20 };
+
+        upstream.mockResolvedValue({ data: page });
+        const response = await fetch(`${base}/manager/accounts?${query}`);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ success: true, data: page });
+        expect(upstream.mock.lastCall?.[2].query).toEqual({
+            schoolId,
+            search: 'Jan Kowalski',
+            role: 'INSTRUCTOR',
+            page: 2,
+            limit: 20,
+            profileId: userId,
+        });
+    });
+
+    it.each([
+        'page=0',
+        'page=1.5',
+        'page=1000001',
+        'limit=101',
+        'limit=0',
+        'role=ADMIN',
+        'profileId=invalid',
+        'search=Jan&search=Anna',
+        `search=${'x'.repeat(121)}`,
+    ])('rejects invalid account query before upstream: %s', async (query) => {
+        expect(
+            (
+                await fetch(
+                    `${base}/manager/accounts?schoolId=${schoolId}&${query}`,
+                )
+            ).status,
+        ).toBe(400);
+        expect(upstream).not.toHaveBeenCalled();
     });
 
     it('forwards payment creation and paidAt without adding a school', async () => {

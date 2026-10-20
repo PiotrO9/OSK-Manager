@@ -1,26 +1,11 @@
 import type { H3Event } from 'h3';
+import { managerAccountsQuerySchema } from '~~/shared/validation/managerAccounts';
 import { executeBffAdapter } from '~~/server/utils/bff/bffAdapterExecutor';
 import { upstreamRequest } from '~~/server/utils/upstream/upstreamRequest';
 import {
     parseRequiredUuidRouterParam,
     parseOptionalUuidQuery,
 } from '~~/server/utils/validation/requestValidation';
-
-export function accountSchoolId(event: H3Event): string {
-    const value = getQuery(event).schoolId;
-
-    if (
-        typeof value !== 'string' ||
-        !/^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(value)
-    ) {
-        throw createError({
-            statusCode: 400,
-            message: 'Wybierz poprawny ośrodek.',
-        });
-    }
-
-    return value;
-}
 
 export function accountUserId(event: H3Event): string {
     return parseRequiredUuidRouterParam(event, 'userId', {
@@ -35,17 +20,32 @@ export async function forwardManagerAccount(
     method: 'GET' | 'PATCH' | 'POST',
     body?: unknown,
 ) {
-    const schoolId =
+    const listQuery =
         path === '/manager/accounts'
-            ? accountSchoolId(event)
-            : parseOptionalUuidQuery(getQuery(event));
+            ? managerAccountsQuerySchema.safeParse(getQuery(event))
+            : null;
+
+    if (listQuery && !listQuery.success) {
+        throw createError({
+            statusCode: 400,
+            message: 'Nieprawidłowe parametry wyszukiwania kont.',
+        });
+    }
+
+    const schoolId = listQuery?.success
+        ? listQuery.data.schoolId
+        : parseOptionalUuidQuery(getQuery(event));
 
     return executeBffAdapter(event, {
         upstream: async ({ upstreamBase }) => {
             const { data } = await upstreamRequest(event, upstreamBase, {
                 path,
                 method,
-                query: schoolId ? { schoolId } : undefined,
+                query: listQuery?.success
+                    ? listQuery.data
+                    : schoolId
+                      ? { schoolId }
+                      : undefined,
                 body,
                 fallbackError: 'Nie udało się wykonać operacji na koncie.',
             });

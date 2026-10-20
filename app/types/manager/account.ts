@@ -12,3 +12,21 @@ export interface ManagerAccount {
     instructorProfile?: { id: string } | null;
     accountActionsFor?: Array<{ status: string }>;
 }
+
+export type ManagerAccountSummary = Pick<
+    ManagerAccount,
+    | 'id'
+    | 'role'
+    | 'firstName'
+    | 'lastName'
+    | 'email'
+    | 'isActive'
+    | 'deletedAt'
+>;
+
+export interface ManagerAccountsPage {
+    items: ManagerAccountSummary[];
+    total: number;
+    page: number;
+    limit: number;
+}
