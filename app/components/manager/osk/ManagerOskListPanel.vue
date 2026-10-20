@@ -9,7 +9,6 @@ interface Props {
     isLoading: boolean;
     deletingId: string | null;
     settingDefaultId: string | null;
-    isFormSaving: boolean;
 }
 
 const props = defineProps<Props>();
@@ -117,7 +116,6 @@ const schoolsLabel = computed(() => {
             :schools="schools"
             :deleting-id="deletingId"
             :setting-default-id="settingDefaultId"
-            :is-form-saving="isFormSaving"
             @request-edit="emit('requestEdit', $event)"
             @request-delete="emit('requestDelete', $event)"
             @set-default="emit('setDefault', $event)"

@@ -3,10 +3,7 @@ import { computed, reactive, ref, shallowRef, watch } from 'vue';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 
 const fetchList = vi.fn();
-const fetchCourseTypesList = vi.fn();
 const remove = vi.fn();
-const create = vi.fn();
-const update = vi.fn();
 const setAsDefault = vi.fn();
 const addToast = vi.fn();
 const navigateTo = vi.fn();
@@ -15,8 +12,6 @@ const route = {
     query: {} as Record<string, string>,
 };
 const isListLoading = shallowRef(false);
-const isUpdateLoading = shallowRef(false);
-const isSetDefaultLoading = shallowRef(false);
 
 vi.mock('vue-router', () => ({
     onBeforeRouteLeave: vi.fn(),
@@ -37,9 +32,6 @@ function school(
 }
 
 async function installGlobals() {
-    const { useManagerOskFormDialogState } =
-        await import('./useManagerOskFormDialogState');
-
     vi.stubGlobal('computed', computed);
     vi.stubGlobal('reactive', reactive);
     vi.stubGlobal('ref', ref);
@@ -55,19 +47,11 @@ async function installGlobals() {
     vi.stubGlobal('useRoute', () => route);
     vi.stubGlobal('navigateTo', navigateTo);
     vi.stubGlobal('useAppToast', () => ({ addToast }));
-    vi.stubGlobal('useManagerOskFormDialogState', useManagerOskFormDialogState);
     vi.stubGlobal('useDrivingSchoolsApi', () => ({
         fetchList,
         remove,
-        create,
-        update,
         setAsDefault,
         isListLoading,
-        isUpdateLoading,
-        isSetDefaultLoading,
-    }));
-    vi.stubGlobal('useCourseTypesApi', () => ({
-        fetchList: fetchCourseTypesList,
     }));
 }
 
@@ -78,14 +62,8 @@ describe('useManagerOskPage', () => {
         vi.clearAllMocks();
         route.query = {};
         isListLoading.value = false;
-        isUpdateLoading.value = false;
-        isSetDefaultLoading.value = false;
         fetchList.mockResolvedValue([]);
-        fetchCourseTypesList.mockResolvedValue([
-            { id: 'category-b', code: 'B', name: 'Kategoria B' },
-        ]);
         remove.mockResolvedValue(undefined);
-        update.mockResolvedValue(undefined);
         setAsDefault.mockResolvedValue(undefined);
         navigateTo.mockResolvedValue(undefined);
         await installGlobals();
@@ -125,31 +103,5 @@ describe('useManagerOskPage', () => {
         expect(remove).toHaveBeenCalledWith('main');
         expect(page.isConfirmOpen.value).toBe(false);
         expect(page.schools.value).toEqual([]);
-    });
-
-    it('loads the category catalog and saves the selected OSK offer', async () => {
-        const target = school('main', {
-            isDefault: true,
-            enabledCourseKinds: ['THEORY_GROUP'],
-        });
-
-        fetchList.mockResolvedValue([target]);
-        const { useManagerOskPage } = await import('./useManagerOskPage');
-        const page = useManagerOskPage();
-
-        await vi.waitFor(() => expect(page.schools.value).toHaveLength(1));
-        page.openEditFormDialog(target);
-        await vi.waitFor(() => expect(page.courseTypes.value).toHaveLength(1));
-        page.formOfferedCourseTypeIds.value = ['category-b'];
-        await page.submitFormDialog();
-
-        expect(fetchCourseTypesList).toHaveBeenCalledTimes(1);
-        expect(update).toHaveBeenCalledWith('main', {
-            name: 'OSK main',
-            city: null,
-            address: null,
-            enabledCourseKinds: ['THEORY_GROUP'],
-            offeredCourseTypeIds: ['category-b'],
-        });
     });
 });

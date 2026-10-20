@@ -4,12 +4,15 @@ import { authenticateMockUser } from '../../support/mockAuth';
 const english = process.env.E2E_ROUTE_VARIANT === 'en';
 const listPath = english ? '/manager/osk' : '/menedzer/osrodki';
 const createPath = `${listPath}/${english ? 'new' : 'dodaj'}`;
+const editPath = `${listPath}/old/${english ? 'edit' : 'edytuj'}`;
 const originalSchool = {
     id: 'old',
     name: 'OSK Główna',
     city: 'Gdańsk',
     address: null,
     isDefault: true,
+    enabledCourseKinds: ['THEORY_GROUP'],
+    offeredCourseTypes: [{ id: 'category-b', code: 'B', name: 'Kategoria B' }],
 };
 
 async function prepare(page: Page, firstSchool = false) {
@@ -34,6 +37,17 @@ async function prepare(page: Page, firstSchool = false) {
     });
     await page.route('**/api/driving-schools/default', (route) =>
         route.fulfill({ json: { success: true, data: schools[0] ?? null } }),
+    );
+    await page.route('**/api/course-types', (route) =>
+        route.fulfill({
+            json: {
+                success: true,
+                data: [
+                    { id: 'category-b', code: 'B', name: 'Kategoria B' },
+                    { id: 'category-c', code: 'C', name: 'Kategoria C' },
+                ],
+            },
+        }),
     );
 }
 
@@ -278,7 +292,9 @@ test('legacy links preserve query and hash and do not open a dialog', async ({
     await expect(page.getByLabel('Nazwa', { exact: true })).toBeVisible();
 });
 
-test('edit dialog still saves the shared basic fields', async ({ page }) => {
+test('edit page opens from the list and saves school settings', async ({
+    page,
+}) => {
     await prepare(page);
     await page.route('**/api/driving-schools/old', (route) =>
         route.fulfill({
@@ -293,26 +309,63 @@ test('edit dialog still saves the shared basic fields', async ({ page }) => {
         .getByRole('button', { name: 'Edytuj', exact: true })
         .first()
         .click();
-    const dialog = page.getByRole('dialog', { name: 'Edycja szkoły jazdy' });
-
-    await expect(dialog.getByLabel('Nazwa', { exact: true })).toHaveValue(
+    await expect(page).toHaveURL(new RegExp(`${editPath}$`));
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.getByLabel('Nazwa', { exact: true })).toHaveValue(
         'OSK Główna',
     );
-    await dialog.getByLabel('Nazwa', { exact: true }).fill('OSK Zmieniona');
+    await page.getByLabel('Nazwa', { exact: true }).fill('OSK Zmieniona');
+    await page.getByLabel('Kategoria C').check();
     const patch = page.waitForRequest(
         (request) =>
             request.method() === 'PATCH' &&
             request.url().endsWith('/api/driving-schools/old'),
     );
 
-    await dialog
+    await page
         .getByRole('button', { name: 'Zapisz zmiany', exact: true })
         .click();
     expect((await patch).postDataJSON()).toMatchObject({
         name: 'OSK Zmieniona',
         city: 'Gdańsk',
+        enabledCourseKinds: ['THEORY_GROUP'],
+        offeredCourseTypeIds: ['category-b', 'category-c'],
     });
-    await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(`${listPath}$`));
+});
+
+test('edit page survives reload and guards unsaved changes', async ({
+    page,
+}) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await prepare(page);
+    await open(page, editPath);
+    await expect(page.getByLabel('Nazwa', { exact: true })).toHaveValue(
+        'OSK Główna',
+    );
+    expect(
+        await page.evaluate(
+            () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+    ).toBe(true);
+    await page.reload();
+    await expect(page.getByLabel('Nazwa', { exact: true })).toHaveValue(
+        'OSK Główna',
+    );
+    await page.getByLabel('Nazwa', { exact: true }).fill('Szkic OSK');
+    await page.getByRole('button', { name: 'Anuluj', exact: true }).click();
+    const dialog = page.getByRole('dialog', {
+        name: 'Odrzucić wpisane dane?',
+    });
+
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Zostań', exact: true }).click();
+    await expect(page.getByLabel('Nazwa', { exact: true })).toHaveValue(
+        'Szkic OSK',
+    );
+    await page.getByRole('button', { name: 'Wróć do szkół' }).first().click();
+    await dialog.getByRole('button', { name: 'Odrzuć zmiany' }).click();
+    await expect(page).toHaveURL(new RegExp(`${listPath}$`));
 });
 
 test('browser Back and sidebar navigation protect the draft', async ({

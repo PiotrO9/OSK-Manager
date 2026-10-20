@@ -18,6 +18,8 @@ export const appPaths = {
     vehicleEdit: (id: string) => buildRoutePath('vehicleEdit', { id }),
     managerSchools: () => buildRoutePath('managerSchools'),
     managerSchoolNew: () => buildRoutePath('managerSchoolNew'),
+    managerSchoolEdit: (id: string) =>
+        buildRoutePath('managerSchoolEdit', { id }),
     managerAccounts: () => buildRoutePath('managerAccounts'),
     managerAccountObligations: (userId: string) =>
         buildRoutePath('managerAccountObligations', { userId }),

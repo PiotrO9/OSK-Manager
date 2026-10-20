@@ -1,120 +1,25 @@
-import { onBeforeRouteLeave } from 'vue-router';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
-import type { CourseTypeOption } from '~/types/courses/courseType';
-import { oskFormSchema } from '~/utils/forms/oskFormSchema';
-import {
-    buildManagerOskUpdateBody,
-    getManagerOskErrorMessage,
-} from '~/utils/schools/managerOskPage';
-
-interface ManagerOskFormErrors {
-    name: string;
-}
+import { getManagerOskErrorMessage } from '~/utils/schools/managerOskPage';
 
 export function useManagerOskPage() {
     const toast = useAppToast();
-    const { fetchList: fetchCourseTypesList } = useCourseTypesApi();
-
-    const {
-        fetchList,
-        remove,
-        update,
-        setAsDefault,
-        isListLoading,
-        isUpdateLoading,
-        isSetDefaultLoading,
-    } = useDrivingSchoolsApi();
+    const { fetchList, remove, setAsDefault, isListLoading } =
+        useDrivingSchoolsApi();
 
     const schools = ref<DrivingSchool[]>([]);
-    const courseTypes = ref<CourseTypeOption[]>([]);
-    const courseTypesLoadError = shallowRef<string | null>(null);
-    const isCourseTypesLoading = shallowRef(false);
     const loadError = shallowRef<string | null>(null);
     const deletingId = shallowRef<string | null>(null);
     const settingDefaultId = shallowRef<string | null>(null);
     const confirmTarget = shallowRef<DrivingSchool | null>(null);
-    const formSubmitError = shallowRef('');
-    const formErrors = reactive<ManagerOskFormErrors>({ name: '' });
     let loadRequestId = 0;
-    let courseTypesLoadRequestId = 0;
 
     const isConfirmOpen = computed(() => confirmTarget.value !== null);
     const defaultSchool = computed(
         () => schools.value.find((school) => school.isDefault === true) ?? null,
     );
     const isMutating = computed(
-        () =>
-            deletingId.value !== null ||
-            settingDefaultId.value !== null ||
-            isUpdateLoading.value,
+        () => deletingId.value !== null || settingDefaultId.value !== null,
     );
-
-    const {
-        formDialogOpen,
-        formName,
-        formCity,
-        formAddress,
-        formEnabledCourseKinds,
-        formOfferedCourseTypeIds,
-        editTarget,
-        isFormSaving,
-        isFormDirty,
-        markFormClean,
-        openEditFormDialog: openEditFormDialogState,
-        handleFormDialogOpenChange: handleFormDialogStateOpenChange,
-    } = useManagerOskFormDialogState({
-        deletingId,
-        isUpdateLoading,
-        isSetDefaultLoading,
-    });
-
-    function clearFormFeedback() {
-        formErrors.name = '';
-        formSubmitError.value = '';
-    }
-
-    function openEditFormDialog(school: DrivingSchool) {
-        clearFormFeedback();
-        openEditFormDialogState(school);
-
-        if (formDialogOpen.value && courseTypes.value.length === 0) {
-            void loadCourseTypes();
-        }
-    }
-
-    async function loadCourseTypes() {
-        const requestId = ++courseTypesLoadRequestId;
-
-        courseTypesLoadError.value = null;
-        isCourseTypesLoading.value = true;
-
-        try {
-            const nextCourseTypes = await fetchCourseTypesList();
-
-            if (requestId === courseTypesLoadRequestId) {
-                courseTypes.value = nextCourseTypes;
-            }
-        } catch (err) {
-            if (requestId !== courseTypesLoadRequestId) return;
-
-            courseTypesLoadError.value = getManagerOskErrorMessage(
-                err,
-                'Nie udało się pobrać katalogu kategorii.',
-            );
-        } finally {
-            if (requestId === courseTypesLoadRequestId) {
-                isCourseTypesLoading.value = false;
-            }
-        }
-    }
-
-    function handleFormDialogOpenChange(open: boolean) {
-        const changed = handleFormDialogStateOpenChange(open);
-
-        if (changed && !open) {
-            clearFormFeedback();
-        }
-    }
 
     async function loadSchools() {
         const requestId = ++loadRequestId;
@@ -217,106 +122,12 @@ export function useManagerOskPage() {
         }
     }
 
-    function validateForm() {
-        clearFormFeedback();
-
-        const parsed = oskFormSchema.safeParse({
-            name: formName.value,
-            city: formCity.value,
-            address: formAddress.value,
-        });
-
-        if (!parsed.success) {
-            formErrors.name =
-                parsed.error.flatten().fieldErrors.name?.[0] ??
-                'Podaj nazwę szkoły jazdy.';
-        }
-
-        return parsed;
-    }
-
-    async function submitEditForm() {
-        const school = editTarget.value;
-
-        if (!school) return;
-
-        const parsed = validateForm();
-
-        if (!parsed.success) return;
-
-        try {
-            await update(
-                school.id,
-                buildManagerOskUpdateBody({
-                    ...parsed.data,
-                    enabledCourseKinds: formEnabledCourseKinds.value,
-                    offeredCourseTypeIds: formOfferedCourseTypeIds.value,
-                }),
-            );
-            await loadSchools();
-            markFormClean();
-            handleFormDialogOpenChange(false);
-
-            toast.addToast({
-                title: 'Zapisano zmiany',
-                description: `Dane szkoły „${parsed.data.name}” zostały zaktualizowane.`,
-                variant: 'success',
-            });
-        } catch (err) {
-            formSubmitError.value = getManagerOskErrorMessage(
-                err,
-                'Nie udało się zapisać zmian. Spróbuj ponownie.',
-            );
-        }
-    }
-
-    async function submitFormDialog() {
-        if (isFormSaving.value) return;
-
-        await submitEditForm();
-    }
-
-    function handleBeforeUnload(event: BeforeUnloadEvent) {
-        if (!isFormDirty.value) return;
-
-        event.preventDefault();
-        event.returnValue = '';
-    }
-
-    watch(
-        [
-            formName,
-            formCity,
-            formAddress,
-            formEnabledCourseKinds,
-            formOfferedCourseTypeIds,
-        ],
-        () => {
-            if (formErrors.name) {
-                formErrors.name = '';
-            }
-
-            formSubmitError.value = '';
-        },
-    );
-
-    onBeforeRouteLeave(() => {
-        if (!isFormDirty.value || !import.meta.client) return true;
-
-        return window.confirm(
-            'Masz niezapisane zmiany. Czy na pewno chcesz opuścić stronę?',
-        );
-    });
-
     onMounted(() => {
         void loadSchools();
-        window.addEventListener('beforeunload', handleBeforeUnload);
     });
 
     onBeforeUnmount(() => {
         loadRequestId++;
-        courseTypesLoadRequestId++;
-        window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
     return {
@@ -334,21 +145,5 @@ export function useManagerOskPage() {
         handleConfirmOpenChange,
         handleConfirmDelete,
         handleSetDefault,
-        formDialogOpen,
-        formName,
-        formCity,
-        formAddress,
-        formEnabledCourseKinds,
-        formOfferedCourseTypeIds,
-        courseTypes,
-        courseTypesLoadError,
-        isCourseTypesLoading,
-        loadCourseTypes,
-        formErrors,
-        formSubmitError,
-        isFormSaving,
-        openEditFormDialog,
-        handleFormDialogOpenChange,
-        submitFormDialog,
     };
 }

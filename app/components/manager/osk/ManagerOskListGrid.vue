@@ -7,7 +7,6 @@ interface Props {
     schools: DrivingSchool[];
     deletingId: string | null;
     settingDefaultId: string | null;
-    isFormSaving: boolean;
 }
 
 const props = defineProps<Props>();
@@ -27,11 +26,7 @@ function formatLocation(school: DrivingSchool): string {
 }
 
 function isActionDisabled(): boolean {
-    return (
-        props.deletingId !== null ||
-        props.settingDefaultId !== null ||
-        props.isFormSaving
-    );
+    return props.deletingId !== null || props.settingDefaultId !== null;
 }
 </script>
 

@@ -43,12 +43,16 @@ function handleCourseTypeChange(
     if (checked === true) selected.add(id);
     else selected.delete(id);
 
-    emit(
-        'update:offeredCourseTypeIds',
-        props.courseTypes
+    const catalogIds = new Set(props.courseTypes.map((item) => item.id));
+
+    emit('update:offeredCourseTypeIds', [
+        ...props.offeredCourseTypeIds.filter(
+            (itemId) => !catalogIds.has(itemId),
+        ),
+        ...props.courseTypes
             .map((item) => item.id)
             .filter((itemId) => selected.has(itemId)),
-    );
+    ]);
 }
 </script>
 

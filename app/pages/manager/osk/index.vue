@@ -41,22 +41,6 @@ const {
     handleConfirmOpenChange,
     handleConfirmDelete,
     handleSetDefault,
-    formDialogOpen,
-    formName,
-    formCity,
-    formAddress,
-    formEnabledCourseKinds,
-    formOfferedCourseTypeIds,
-    courseTypes,
-    courseTypesLoadError,
-    isCourseTypesLoading,
-    loadCourseTypes,
-    formErrors,
-    formSubmitError,
-    isFormSaving,
-    openEditFormDialog,
-    handleFormDialogOpenChange,
-    submitFormDialog,
 } = useManagerOskPage();
 </script>
 
@@ -70,9 +54,7 @@ const {
                 <UiButton
                     type="button"
                     class="h-11 w-full px-4 sm:h-10 sm:w-auto"
-                    :disabled="
-                        isListLoading || deletingId !== null || isFormSaving
-                    "
+                    :disabled="isListLoading || deletingId !== null"
                     @click="navigateTo(appPaths.managerSchoolNew())"
                 >
                     <Plus class="size-4" aria-hidden="true" />
@@ -88,10 +70,9 @@ const {
             :is-loading="isListLoading"
             :deleting-id="deletingId"
             :setting-default-id="settingDefaultId"
-            :is-form-saving="isFormSaving"
             @retry="loadSchools"
             @request-add="navigateTo(appPaths.managerSchoolNew())"
-            @request-edit="openEditFormDialog"
+            @request-edit="navigateTo(appPaths.managerSchoolEdit($event.id))"
             @request-delete="handleRequestDelete"
             @set-default="handleSetDefault"
         />
@@ -105,29 +86,6 @@ const {
             @update:open="handleConfirmOpenChange"
             @cancel="handleCancelDelete"
             @confirm="handleConfirmDelete"
-        />
-
-        <ManagerOskSchoolFormDialog
-            :open="formDialogOpen"
-            :name="formName"
-            :city="formCity"
-            :address="formAddress"
-            :enabled-course-kinds="formEnabledCourseKinds"
-            :offered-course-type-ids="formOfferedCourseTypeIds"
-            :course-types="courseTypes"
-            :course-types-load-error="courseTypesLoadError"
-            :is-course-types-loading="isCourseTypesLoading"
-            :is-saving="isFormSaving"
-            :name-error="formErrors.name"
-            :submit-error="formSubmitError"
-            @update:open="handleFormDialogOpenChange"
-            @update:name="formName = $event"
-            @update:city="formCity = $event"
-            @update:address="formAddress = $event"
-            @update:enabled-course-kinds="formEnabledCourseKinds = $event"
-            @update:offered-course-type-ids="formOfferedCourseTypeIds = $event"
-            @retry-course-types="loadCourseTypes"
-            @submit="submitFormDialog"
         />
     </div>
 </template>

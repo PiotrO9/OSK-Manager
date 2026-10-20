@@ -103,6 +103,12 @@ export const routeDefinitions = [
         file: 'manager/osk/new.vue',
     },
     {
+        key: 'managerSchoolEdit',
+        en: '/manager/osk/:id/edit',
+        pl: '/menedzer/osrodki/:id/edytuj',
+        file: 'manager/osk/[id]/edit.vue',
+    },
+    {
         key: 'managerAccounts',
         en: '/manager/accounts',
         pl: '/menedzer/konta',

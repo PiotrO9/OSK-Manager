@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { appPaths } from '~~/shared/routing/appPaths';
+import { isAppRoute } from '~~/shared/routing/routePaths';
 const route = useRoute();
 
 function resolveShellHeading(): string {
@@ -9,6 +10,10 @@ function resolveShellHeading(): string {
 
     if (route.path === appPaths.managerSchoolNew()) {
         return 'Nowa szkoła';
+    }
+
+    if (isAppRoute(route.path, 'managerSchoolEdit')) {
+        return 'Edycja szkoły';
     }
 
     const map: Record<string, string> = {
