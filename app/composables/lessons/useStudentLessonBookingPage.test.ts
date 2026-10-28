@@ -344,4 +344,143 @@ describe('useStudentLessonBookingPage', () => {
             'Wykorzystano dostępne godziny',
         );
     });
+    function readyPage() {
+        const page = useStudentLessonBookingPage();
+
+        page.courses.value = [
+            {
+                id: '22222222-2222-4222-8222-222222222222',
+                schoolId: '33333333-3333-4333-8333-333333333333',
+                name: 'Kurs B',
+                status: 'ACTIVE',
+                type: 'PRACTICAL',
+                totalHours: 2,
+                progress: 0,
+                completedMinutes: 0,
+                bookedMinutes: 0,
+                remainingBookableMinutes: 120,
+            },
+        ];
+        page.selectedCourseId.value = page.courses.value[0]!.id;
+        fetchMyCourses.mockResolvedValue(page.courses.value);
+        page.handleRequestBookSlot(slot);
+
+        return page;
+    }
+
+    function shortProposal() {
+        return {
+            available: false,
+            issues: [
+                {
+                    code: 'COURSE_LIMIT_EXCEEDED' as const,
+                    field: 'courseId' as const,
+                },
+            ],
+            policy: { minDurationMinutes: 60, maxDurationMinutes: 120 },
+            remainingMinutes: 30,
+            alternative: {
+                startTime: '10:00',
+                endTime: '10:30',
+                durationMinutes: 30,
+            },
+        };
+    }
+
+    it('offers a shorter slot after a write conflict and waits for a separate confirmation', async () => {
+        const page = readyPage();
+
+        bookOwnLesson
+            .mockRejectedValueOnce({ statusCode: 409 })
+            .mockResolvedValueOnce({});
+        recheckAvailability
+            .mockResolvedValueOnce('available')
+            .mockImplementationOnce(async () => {
+                availabilityResult.value = shortProposal();
+
+                return 'unavailable';
+            })
+            .mockResolvedValueOnce('available');
+        await page.handleConfirmBookSlot();
+        expect(bookOwnLesson).toHaveBeenCalledTimes(1);
+        expect(page.pendingShorterSlot.value?.endTime).toBe('10:30');
+        expect(page.isConfirmDialogOpen.value).toBe(true);
+        expect(page.bookingSlotKey.value).toBeNull();
+        await page.handleConfirmShorterSlot();
+        expect(bookOwnLesson).toHaveBeenCalledTimes(2);
+        expect(bookOwnLesson.mock.lastCall![0]).toMatchObject({
+            bookingMode: 'REMAINING_PACKAGE',
+        });
+        expect(page.isConfirmDialogOpen.value).toBe(false);
+        expect(fetchMyCourses).toHaveBeenCalledTimes(1);
+    });
+    it.each([20, undefined])(
+        'discards an obsolete short proposal after 409 with remaining balance %s',
+        async (balance) => {
+            const page = readyPage();
+
+            availabilityResult.value = shortProposal();
+            recheckAvailability.mockResolvedValueOnce('unavailable');
+            await page.handleConfirmBookSlot();
+            recheckAvailability
+                .mockResolvedValueOnce('available')
+                .mockImplementationOnce(async () => {
+                    availabilityResult.value = {
+                        ...shortProposal(),
+                        remainingMinutes: balance,
+                        alternative: undefined,
+                    };
+
+                    return 'unavailable';
+                });
+            bookOwnLesson.mockRejectedValueOnce({ statusCode: 409 });
+            await page.handleConfirmShorterSlot();
+            expect(page.pendingShorterSlot.value).toBeNull();
+            expect(page.isConfirmDialogOpen.value).toBe(true);
+            expect(page.bookingSlotKey.value).toBeNull();
+            expect(page.bookingFeedbackMessage.value).toContain(
+                balance === undefined ? 'dostępność' : '20 min',
+            );
+        },
+    );
+    it('refreshes slots after a write conflict without an alternative', async () => {
+        const page = readyPage();
+
+        await nextTick();
+        fetchSlots.mockClear();
+        bookOwnLesson.mockRejectedValueOnce({ statusCode: 409 });
+        recheckAvailability
+            .mockResolvedValueOnce('available')
+            .mockResolvedValueOnce('unavailable');
+        availabilityResult.value = null;
+        await page.handleConfirmBookSlot();
+        expect(fetchSlots).toHaveBeenCalledTimes(1);
+        expect(page.bookingFeedbackMessage.value).toContain('właśnie zajęty');
+        expect(page.isConfirmDialogOpen.value).toBe(true);
+    });
+    it('reserves once for two confirmations and releases the lock after failure for retry', async () => {
+        const page = readyPage();
+        let rejectWrite!: (error: unknown) => void;
+
+        bookOwnLesson
+            .mockReturnValueOnce(
+                new Promise((_resolve, reject) => {
+                    rejectWrite = reject;
+                }),
+            )
+            .mockResolvedValueOnce({});
+        recheckAvailability.mockResolvedValue('available');
+        const first = page.handleConfirmBookSlot();
+
+        await nextTick();
+        await page.handleConfirmBookSlot();
+        expect(bookOwnLesson).toHaveBeenCalledTimes(1);
+        rejectWrite({ statusCode: 503 });
+        await first;
+        expect(page.bookingSlotKey.value).toBeNull();
+        expect(page.isConfirmDialogOpen.value).toBe(true);
+        await page.handleConfirmBookSlot();
+        expect(bookOwnLesson).toHaveBeenCalledTimes(2);
+        expect(page.isConfirmDialogOpen.value).toBe(false);
+    });
 });

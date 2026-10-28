@@ -1,8 +1,8 @@
+import { useManagerSecurityLogDetails } from './useManagerSecurityLogDetails';
+import { useSecurityLogPersonOptions } from './useSecurityLogPersonOptions';
 import type { DrivingSchool } from '~/types/schools/drivingSchool';
 import type {
-    SecurityLogDetail,
     SecurityLogItem,
-    SecurityLogPersonOption,
     SecurityLogsPageInfo,
 } from '~/types/security-logs/securityLog';
 import type {
@@ -78,34 +78,43 @@ export function useManagerSecurityLogsPage() {
     );
     const draftError = shallowRef('');
     const cursor = shallowRef('');
-    const selectedEventId = shallowRef('');
-    const detail = shallowRef<SecurityLogDetail | null>(null);
-    const detailLoading = shallowRef(false);
-    const detailError = shallowRef('');
-    const personOptions = shallowRef<SecurityLogPersonOption[]>([]);
-    const personOptionsLoading = shallowRef(false);
+    const {
+        selectedEventId,
+        detail,
+        detailLoading,
+        detailError,
+        openDetails,
+        closeDetails,
+        invalidateDetails,
+    } = useManagerSecurityLogDetails({
+        schoolId: () => schoolId.value,
+        fetchDetail: api.fetchDetail,
+    });
+    const {
+        personOptions,
+        personOptionsLoading,
+        loadPersonOptions,
+        invalidatePersonOptions,
+    } = useSecurityLogPersonOptions({
+        schoolId: () => schoolId.value,
+        field: () => draft.value.field,
+        fetchPersonOptions: api.fetchPersonOptions,
+    });
     const activeSchool = computed(
         () =>
             schools.value.find((school) => school.id === schoolId.value) ??
             null,
     );
     let listSequence = 0;
-    let detailSequence = 0;
-    let optionSequence = 0;
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
     let listController: AbortController | undefined;
-    let detailController: AbortController | undefined;
 
     function invalidate(): void {
         listSequence++;
-        detailSequence++;
-        optionSequence++;
+        invalidateDetails();
+        invalidatePersonOptions();
         listController?.abort();
-        detailController?.abort();
         items.value = [];
-        detail.value = null;
-        selectedEventId.value = '';
-        personOptions.value = [];
         pageInfo.value = {
             nextCursor: null,
             previousCursor: null,
@@ -297,76 +306,6 @@ export function useManagerSecurityLogsPage() {
 
         cursor.value = pageInfo.value.previousCursor;
         void loadList();
-    }
-
-    async function openDetails(eventId: string): Promise<void> {
-        selectedEventId.value = eventId;
-        detail.value = null;
-        detailError.value = '';
-        detailLoading.value = true;
-        const requestSequence = ++detailSequence;
-
-        detailController?.abort();
-        detailController = new AbortController();
-
-        try {
-            const data = await api.fetchDetail(
-                schoolId.value,
-                eventId,
-                detailController.signal,
-            );
-
-            if (requestSequence === detailSequence) detail.value = data;
-        } catch (cause) {
-            if (requestSequence === detailSequence)
-                detailError.value = getApiFetchErrorMessage(
-                    cause,
-                    'Nie udało się pobrać szczegółów.',
-                );
-        } finally {
-            if (requestSequence === detailSequence) detailLoading.value = false;
-        }
-    }
-
-    function closeDetails(): void {
-        ++detailSequence;
-        detailController?.abort();
-        selectedEventId.value = '';
-        detail.value = null;
-        detailError.value = '';
-    }
-
-    async function loadPersonOptions(searchValue = ''): Promise<void> {
-        const kind =
-            draft.value.field === 'actorUserId'
-                ? 'actor'
-                : draft.value.field === 'targetUserId'
-                  ? 'target'
-                  : null;
-
-        personOptions.value = [];
-
-        if (!kind || !schoolId.value) return;
-
-        const requestSequence = ++optionSequence;
-
-        personOptionsLoading.value = true;
-
-        try {
-            const data = await api.fetchPersonOptions({
-                schoolId: schoolId.value,
-                kind,
-                search: searchValue,
-            });
-
-            if (requestSequence === optionSequence)
-                personOptions.value = data.items;
-        } catch {
-            if (requestSequence === optionSequence) personOptions.value = [];
-        } finally {
-            if (requestSequence === optionSequence)
-                personOptionsLoading.value = false;
-        }
     }
 
     async function loadSchools(): Promise<void> {
