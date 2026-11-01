@@ -56,7 +56,10 @@ function patch(value: Partial<CourseFilter>) {
                 :disabled="disabled"
                 @update:model-value="changeField"
             >
-                <UiSelectTrigger id="course-filter-field" class="h-11 w-full"
+                <UiSelectTrigger
+                    id="course-filter-field"
+                    control-size="touch"
+                    class="w-full"
                     ><UiSelectValue
                 /></UiSelectTrigger>
                 <UiSelectContent
@@ -83,7 +86,8 @@ function patch(value: Partial<CourseFilter>) {
             >
                 <UiSelectTrigger
                     id="course-filter-condition"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                     ><UiSelectValue
                 /></UiSelectTrigger>
                 <UiSelectContent
@@ -106,7 +110,10 @@ function patch(value: Partial<CourseFilter>) {
                 :disabled="disabled || !options.length"
                 @update:model-value="patch({ value: String($event) })"
             >
-                <UiSelectTrigger id="course-filter-value" class="h-11 w-full"
+                <UiSelectTrigger
+                    id="course-filter-value"
+                    control-size="touch"
+                    class="w-full"
                     ><UiSelectValue placeholder="Wybierz wartość"
                 /></UiSelectTrigger>
                 <UiSelectContent
@@ -121,12 +128,12 @@ function patch(value: Partial<CourseFilter>) {
             <UiInput
                 v-else
                 id="course-filter-value"
+                control-size="touch"
                 :model-value="draft.value"
                 :type="draft.field === 'totalHours' ? 'number' : 'text'"
                 min="0"
                 step="any"
                 maxlength="120"
-                class="h-11"
                 :disabled="disabled"
                 :aria-invalid="Boolean(error)"
                 :aria-describedby="error ? 'course-filter-error' : undefined"

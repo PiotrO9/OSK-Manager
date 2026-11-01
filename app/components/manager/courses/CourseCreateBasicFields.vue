@@ -39,7 +39,7 @@ const formMessages = courseCreateFormMessages;
                 props.showNameRequired ? 'course-create-name-error' : undefined
             "
             :disabled="props.isDisabled"
-            class="bg-background h-10 rounded-xl"
+            class="bg-background rounded-xl"
         />
         <p
             v-if="props.showNameRequired"
@@ -64,7 +64,7 @@ const formMessages = courseCreateFormMessages;
         >
             <UiSelectTrigger
                 id="course-create-category"
-                class="bg-background h-10 w-full rounded-xl"
+                class="bg-background w-full rounded-xl"
                 :aria-invalid="props.showCategoryRequired"
                 :aria-describedby="
                     props.showCategoryRequired
@@ -104,7 +104,7 @@ const formMessages = courseCreateFormMessages;
                     ? 'course-create-category-error'
                     : undefined
             "
-            class="bg-background h-10 rounded-xl"
+            class="bg-background rounded-xl"
         />
         <p
             v-if="props.showCategoryRequired"
@@ -128,7 +128,7 @@ const formMessages = courseCreateFormMessages;
         >
             <UiSelectTrigger
                 id="course-create-kind"
-                class="bg-background h-10 w-full rounded-xl"
+                class="bg-background w-full rounded-xl"
                 :aria-invalid="props.showKindRequired"
                 :aria-describedby="
                     props.showKindRequired
@@ -178,7 +178,7 @@ const formMessages = courseCreateFormMessages;
                     : undefined
             "
             :disabled="props.isDisabled || props.isStructureDisabled"
-            class="bg-background h-10 rounded-xl"
+            class="bg-background rounded-xl"
         />
         <p
             v-if="props.showTotalHoursInvalid"

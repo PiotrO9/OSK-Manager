@@ -34,7 +34,7 @@ const paymentMethods = [
             :disabled="paymentPlanOptions.length === 0 || isSaving"
         >
             <UiSelectTrigger
-                class="bg-background h-10 w-full min-w-0 rounded-lg"
+                class="bg-background w-full min-w-0 rounded-lg"
                 aria-label="Plan płatności"
             >
                 <UiSelectValue placeholder="Plan płatności" />
@@ -52,10 +52,10 @@ const paymentMethods = [
         <label for="student-payment-amount" class="sr-only"
             >Kwota płatności</label
         >
-        <input
+        <UiInput
             id="student-payment-amount"
             v-model="amount"
-            class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
+            class="bg-background rounded-lg"
             inputmode="decimal"
             placeholder="Kwota"
             :disabled="isSaving"
@@ -68,11 +68,11 @@ const paymentMethods = [
             v-model="dueDate"
             :disabled="isSaving"
             placeholder="Termin płatności"
-            trigger-class="h-10 min-w-0 max-w-none rounded-lg"
+            trigger-class="min-w-0 max-w-none rounded-lg"
         />
         <UiSelect v-model="method" :disabled="isSaving">
             <UiSelectTrigger
-                class="bg-background h-10 w-full min-w-0 rounded-lg"
+                class="bg-background w-full min-w-0 rounded-lg"
                 aria-label="Metoda płatności"
             >
                 <UiSelectValue placeholder="Metoda" />
@@ -89,7 +89,7 @@ const paymentMethods = [
         </UiSelect>
         <UiButton
             type="submit"
-            class="h-10 rounded-lg px-3"
+            class="h-11 rounded-lg px-3 sm:h-10"
             :disabled="!canCreatePayment"
         >
             Dodaj

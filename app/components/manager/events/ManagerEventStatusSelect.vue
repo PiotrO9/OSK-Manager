@@ -134,9 +134,10 @@ async function handleStatusUpdate(value: unknown): Promise<void> {
         >
             <UiSelectTrigger
                 :id="triggerId"
+                :control-size="compact ? 'compact' : 'default'"
                 class="max-w-full min-w-38"
                 :class="[
-                    compact ? 'h-8 text-xs' : 'bg-background h-10 rounded-xl',
+                    compact ? '' : 'bg-background rounded-xl',
                     showBadge === false ? 'w-full' : '',
                 ]"
                 @click.stop

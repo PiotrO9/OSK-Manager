@@ -17,6 +17,33 @@ wzorzec ma wracać w kilku miejscach, najpierw rozbuduj komponent z
 
 ## shadcn-vue (`app/components/shadcn/`)
 
+### Rozmiary pól formularzy
+
+`UiInput`, `UiSelectTrigger`, `UiNativeSelect` i wszystkie pickery korzystają
+z `controlSize` oraz wspólnego `app/lib/formControlVariants.ts`:
+
+| `control-size` | Poniżej 640px | Od 640px | Zastosowanie                                                  |
+| -------------- | ------------- | -------- | ------------------------------------------------------------- |
+| `default`      | 44px          | 40px     | Formularze i główne toolbary.                                 |
+| `touch`        | 44px          | 44px     | Edytory filtrów zaawansowanych.                               |
+| `compact`      | 44px          | 36px     | Statusy, filtry terminarza, dostępność instruktora i pojazdu. |
+| `sm`           | 32px          | 32px     | Wewnętrzne selektory kalendarza.                              |
+
+Nie dopisuj lokalnego `h-*` ani `!h-*` do zwykłego pola. W jednym wierszu
+używaj tego samego wariantu i breakpointu. Pola zachowują model oraz walidację;
+`controlSize` steruje tylko wyglądem i nie trafia do DOM jako natywny `size`.
+`UiSelectTrigger size="sm"` pozostaje zgodnym aliasem; jawny `control-size`
+ma pierwszeństwo. Font pól ma 16px na telefonie i 14px od 640px.
+
+W formularzu szerokość wynika z kolumny (`w-full min-w-0`). Osobne szerokości
+toolbarów i kompaktowych kontrolek są dozwolone. Przykłady wszystkich wariantów
+znajdują się w sekcji formularzy `/system-projektowy`.
+
+Wyjątki: dwuwierszowy `SchoolContextSelect` zachowuje 56px, logowanie własny CSS,
+textarea wysokość wieloliniową, uploady i wewnętrzne pola zegara swój wzorzec.
+Nie zmieniaj defaultu `UiButton`, aby dopasować pole daty: pickery mają własną
+geometrię, niezależną od przycisków akcji.
+
 Prefiks **`Ui`** (np. `UiButton`, `UiCard`, `UiDialog`, `UiInput`, `UiMenubar`, …). Dodawanie: `npx shadcn-vue@latest add <nazwa>`.
 
 Pickery daty i czasu mają osobny standard: [`DATE_TIME_PICKERS.md`](DATE_TIME_PICKERS.md). W nowych widokach używaj `UiDatePicker`, `UiTimePicker`, `UiDateTimePicker`, `UiDateRangePicker` i `UiWeekPicker` jako kanonicznych komponentów. Nie twórz wariantów z dopiskiem `V2` i nie wracaj do natywnych pól daty/czasu, jeżeli przypadek da się pokryć tym zestawem.

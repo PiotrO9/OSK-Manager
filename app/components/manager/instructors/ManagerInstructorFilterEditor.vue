@@ -105,7 +105,8 @@ function qualificationLabel(
             >
                 <UiSelectTrigger
                     id="instructor-advanced-filter-field"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz pole" />
                 </UiSelectTrigger>
@@ -134,7 +135,8 @@ function qualificationLabel(
             >
                 <UiSelectTrigger
                     id="instructor-advanced-filter-condition"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz warunek" />
                 </UiSelectTrigger>
@@ -166,7 +168,8 @@ function qualificationLabel(
             >
                 <UiSelectTrigger
                     id="instructor-advanced-filter-qualification"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz kwalifikację" />
                 </UiSelectTrigger>
@@ -188,11 +191,11 @@ function qualificationLabel(
             <UiLabel for="instructor-advanced-filter-text">Wartość</UiLabel>
             <UiInput
                 id="instructor-advanced-filter-text"
+                control-size="touch"
                 :model-value="textValue"
                 :disabled="disabled"
                 maxlength="120"
                 autocomplete="off"
-                class="h-11"
                 @update:model-value="emitDraft({ value: String($event) })"
             />
         </div>

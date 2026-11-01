@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import type {
     SecurityLogFilterDraft,
     SecurityLogFilterField,
@@ -107,7 +108,8 @@ function operatorChange(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="security-log-filter-field"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                     ><UiSelectValue
                 /></UiSelectTrigger>
                 <UiSelectContent
@@ -131,7 +133,8 @@ function operatorChange(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="security-log-filter-operator"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                     ><UiSelectValue
                 /></UiSelectTrigger>
                 <UiSelectContent
@@ -153,6 +156,7 @@ function operatorChange(value: unknown): void {
                 >
                 <UiInput
                     id="security-log-filter-person-search"
+                    control-size="touch"
                     type="search"
                     maxlength="80"
                     placeholder="Imię lub nazwisko"
@@ -171,7 +175,8 @@ function operatorChange(value: unknown): void {
                 >
                     <UiSelectTrigger
                         id="security-log-filter-person"
-                        class="h-11 w-full"
+                        control-size="touch"
+                        class="w-full"
                         ><UiSelectValue
                             :placeholder="
                                 personOptionsLoading
@@ -206,7 +211,8 @@ function operatorChange(value: unknown): void {
                 >
                     <UiSelectTrigger
                         id="security-log-filter-choice"
-                        class="h-11 w-full"
+                        control-size="touch"
+                        class="w-full"
                         ><UiSelectValue placeholder="Wybierz wartość"
                     /></UiSelectTrigger>
                     <UiSelectContent
@@ -258,13 +264,22 @@ function operatorChange(value: unknown): void {
                 <UiLabel for="security-log-filter-value">{{
                     draft.operator === 'between' ? 'Data od' : 'Wartość'
                 }}</UiLabel>
-                <UiInput
+                <UiDatePicker
+                    v-if="fieldConfig.kind === 'date'"
                     id="security-log-filter-value"
+                    control-size="touch"
                     :model-value="draft.value"
                     :disabled="disabled"
-                    :type="fieldConfig.kind === 'date' ? 'date' : 'text'"
+                    clearable
+                    @update:model-value="patch({ value: $event })"
+                />
+                <UiInput
+                    v-else
+                    id="security-log-filter-value"
+                    control-size="touch"
+                    :model-value="draft.value"
+                    :disabled="disabled"
                     maxlength="120"
-                    class="h-11"
                     :placeholder="
                         draft.operator === 'oneOf'
                             ? 'Wartości oddziel przecinkami'
@@ -275,12 +290,12 @@ function operatorChange(value: unknown): void {
             </div>
             <div v-if="draft.operator === 'between'" class="grid gap-2">
                 <UiLabel for="security-log-filter-date-to">Data do</UiLabel>
-                <UiInput
+                <UiDatePicker
                     id="security-log-filter-date-to"
-                    :model-value="draft.valueTo"
+                    control-size="touch"
+                    :model-value="draft.valueTo ?? ''"
                     :disabled="disabled"
-                    type="date"
-                    class="h-11"
+                    clearable
                     @update:model-value="patch({ valueTo: String($event) })"
                 />
             </div>

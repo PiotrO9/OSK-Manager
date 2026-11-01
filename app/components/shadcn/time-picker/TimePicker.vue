@@ -4,6 +4,10 @@ import { useMediaQuery } from '@vueuse/core';
 import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
+    formControlVariants,
+    type FormControlSize,
+} from '@/lib/formControlVariants';
+import {
     angleForClockHour,
     angleForClockMinute,
     clockAngleFromPoint,
@@ -37,6 +41,7 @@ const props = withDefaults(
         minuteOptions?: number[];
         allowedTimes?: readonly string[];
         triggerClass?: string;
+        controlSize?: FormControlSize;
         open?: boolean;
     }>(),
     {
@@ -52,6 +57,7 @@ const props = withDefaults(
         minuteOptions: undefined,
         allowedTimes: undefined,
         triggerClass: undefined,
+        controlSize: 'default',
         open: undefined,
     },
 );
@@ -499,13 +505,15 @@ function clampDraftToOptions(): void {
                 :id="id"
                 type="button"
                 variant="outline"
+                :data-control-size="controlSize"
                 :disabled="disabled"
                 :aria-label="label"
                 :aria-invalid="invalid ? true : undefined"
                 :aria-describedby="describedby"
                 :class="
                     cn(
-                        'h-9 w-full justify-between rounded-md px-3 font-normal tabular-nums',
+                        'w-full justify-between rounded-md font-normal tabular-nums',
+                        formControlVariants({ controlSize }),
                         triggerClass,
                     )
                 "
@@ -520,7 +528,7 @@ function clampDraftToOptions(): void {
 
         <UiPopoverContent
             align="center"
-            class="time-picker-panel max-h-[min(31rem,var(--reka-popover-content-available-height))] w-[20rem] overflow-y-auto rounded-lg p-0 shadow-lg"
+            class="time-picker-panel max-h-[min(31rem,var(--reka-popover-content-available-height))] w-[20rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg p-0 shadow-lg"
             :collision-padding="12"
             :side="isNarrowViewport ? 'bottom' : 'right'"
             :side-offset="8"

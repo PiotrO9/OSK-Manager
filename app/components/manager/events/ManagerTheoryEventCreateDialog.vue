@@ -17,8 +17,6 @@ const open = defineModel<boolean>('open', { required: true });
 
 const DESCRIPTION_ID = 'theory-event-create-desc';
 
-const numberInputClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 const {
     capacityInput,
     coursesLoadError,
@@ -177,7 +175,7 @@ function handleBack(): void {
                     >
                         Limit miejsc (opcjonalnie)
                     </label>
-                    <input
+                    <UiInput
                         id="theory-event-capacity"
                         v-model="capacityInput"
                         type="number"
@@ -185,7 +183,6 @@ function handleBack(): void {
                         step="1"
                         inputmode="numeric"
                         :disabled="isLoading"
-                        :class="numberInputClass"
                         placeholder="Puste = bez limitu"
                         aria-describedby="theory-event-capacity-hint"
                     />

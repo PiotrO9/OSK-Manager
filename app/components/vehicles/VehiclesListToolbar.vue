@@ -79,7 +79,7 @@ const statusModel = computed({
                     maxlength="120"
                     autocomplete="off"
                     spellcheck="false"
-                    class="h-11 pr-11 pl-9 sm:h-10"
+                    class="pr-11 pl-9"
                     placeholder="Szukaj po nazwie lub rejestracji…"
                     aria-label="Szukaj po nazwie pojazdu lub numerze rejestracyjnym"
                 />
@@ -99,7 +99,7 @@ const statusModel = computed({
 
             <UiSelect v-model="statusModel">
                 <UiSelectTrigger
-                    class="!h-11 w-full md:!h-10 md:w-52"
+                    class="w-full md:w-52"
                     aria-label="Filtr dostępności pojazdu"
                 >
                     <UiSelectValue />
@@ -116,7 +116,7 @@ const statusModel = computed({
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="text-muted-foreground h-11 gap-1.5 text-xs sm:h-8"
+                class="text-muted-foreground h-11 gap-1.5 text-xs sm:h-10"
                 @click="emit('clearFilters')"
             >
                 <X class="size-3.5" aria-hidden="true" />

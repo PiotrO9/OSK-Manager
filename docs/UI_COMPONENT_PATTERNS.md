@@ -276,6 +276,12 @@ Zasady:
 
 ### Pola daty i czasu
 
+Wysokość zwykłych pól i pickerów określa `control-size`, wspólny dla całego
+wiersza: `default` (40px na desktopie / 44px na telefonie), `touch` (44px)
+lub `compact` (36px / 44px). `sm` (32px) pozostaje dla kontrolek wewnętrznych.
+Nie kopiuj `h-*`, `!h-*` ani łańcucha klas natywnego inputa do nowego formularza.
+Szczegóły i wyjątki: [standard rozmiarów](COMPONENTS.md#rozmiary-pól-formularzy).
+
 W formularzach używaj nowych pickerów opisanych w [`DATE_TIME_PICKERS.md`](./DATE_TIME_PICKERS.md):
 
 - `UiDatePicker` dla pojedynczej daty;

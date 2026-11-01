@@ -3,6 +3,11 @@ import type { DateValue } from '@internationalized/date';
 import { getLocalTimeZone, today } from '@internationalized/date';
 import { CalendarDays, ChevronDown, RotateCcw } from '@lucide/vue';
 import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@vueuse/core';
+import {
+    formControlVariants,
+    type FormControlSize,
+} from '@/lib/formControlVariants';
 
 defineOptions({
     name: 'UiWeekPicker',
@@ -16,10 +21,12 @@ withDefaults(
         maxValue: DateValue;
         disabled?: boolean;
         triggerClass?: string;
+        controlSize?: FormControlSize;
     }>(),
     {
         disabled: false,
         triggerClass: undefined,
+        controlSize: 'default',
     },
 );
 
@@ -28,6 +35,7 @@ const emit = defineEmits<{
 }>();
 
 const open = defineModel<boolean>('open', { required: true });
+const isNarrowViewport = useMediaQuery('(max-width: 639px)');
 
 function selectCurrentWeek(): void {
     emit('calendarUpdate', today(getLocalTimeZone()));
@@ -40,8 +48,15 @@ function selectCurrentWeek(): void {
             <UiButton
                 type="button"
                 variant="outline"
-                class="h-10 rounded-lg px-3 font-semibold shadow-xs"
-                :class="cn('min-w-[9.5rem] justify-between', triggerClass)"
+                :data-control-size="controlSize"
+                class="rounded-lg font-normal shadow-xs"
+                :class="
+                    cn(
+                        'min-w-[9.5rem] justify-between',
+                        formControlVariants({ controlSize }),
+                        triggerClass,
+                    )
+                "
                 :disabled="disabled"
                 aria-label="Wybierz tydzień w kalendarzu"
             >
@@ -63,9 +78,9 @@ function selectCurrentWeek(): void {
 
         <UiPopoverContent
             align="center"
-            class="week-picker-panel max-h-[min(29rem,var(--reka-popover-content-available-height))] w-[22rem] overflow-y-auto rounded-lg p-0 shadow-lg"
+            class="week-picker-panel max-h-[min(29rem,var(--reka-popover-content-available-height))] w-[22rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg p-0 shadow-lg"
             :collision-padding="12"
-            side="left"
+            :side="isNarrowViewport ? 'bottom' : 'left'"
             :side-offset="8"
             sticky="always"
         >

@@ -27,7 +27,7 @@ const formMessages = courseCreateFormMessages;
             id="course-create-theory-start"
             v-model="theoryStartModel"
             :disabled="props.isDisabled || props.isStructureDisabled"
-            trigger-class="h-10 w-full rounded-xl bg-background"
+            trigger-class="w-full rounded-xl bg-background"
             placeholder="Wybierz datę rozpoczęcia"
             :aria-invalid="props.showTheoryStartRequired"
             :aria-describedby="
@@ -54,7 +54,7 @@ const formMessages = courseCreateFormMessages;
             id="course-create-theory-end"
             v-model="theoryEndModel"
             :disabled="props.isDisabled || props.isStructureDisabled"
-            trigger-class="h-10 w-full rounded-xl bg-background"
+            trigger-class="w-full rounded-xl bg-background"
             placeholder="Wybierz datę zakończenia"
             :aria-invalid="
                 props.showTheoryEndRequired || props.showTheoryRangeInvalid
@@ -105,7 +105,7 @@ const formMessages = courseCreateFormMessages;
                     : undefined
             "
             :disabled="props.isDisabled"
-            class="bg-background h-10 rounded-xl"
+            class="bg-background rounded-xl"
         />
         <p
             v-if="props.showCapacityInvalid"

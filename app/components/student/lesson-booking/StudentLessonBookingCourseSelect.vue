@@ -42,7 +42,7 @@ const courseCountLabel = computed(() => {
             >
                 <UiSelectTrigger
                     id="student-booking-course"
-                    class="bg-background h-11 w-full rounded-xl"
+                    class="bg-background w-full rounded-xl"
                 >
                     <UiSelectValue placeholder="Wybierz kurs" />
                 </UiSelectTrigger>

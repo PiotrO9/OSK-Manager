@@ -33,7 +33,7 @@ const quickView = defineModel<CourseQuickView>('quickView', { required: true });
                     type="search"
                     maxlength="120"
                     autocomplete="off"
-                    class="h-11 pr-11 pl-9 sm:h-10"
+                    class="pr-11 pl-9"
                     :disabled="disabled"
                     placeholder="Szukaj kursu..."
                     aria-label="Szukaj po nazwie kursu, kategorii lub instruktorze"
@@ -52,7 +52,7 @@ const quickView = defineModel<CourseQuickView>('quickView', { required: true });
             </div>
             <UiSelect v-model="category" :disabled="disabled">
                 <UiSelectTrigger
-                    class="!h-11 w-full sm:!h-10 sm:w-48"
+                    class="w-full sm:w-48"
                     aria-label="Kategoria kursu"
                     ><UiSelectValue
                 /></UiSelectTrigger>

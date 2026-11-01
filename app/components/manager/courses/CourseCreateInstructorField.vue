@@ -57,7 +57,7 @@ const instructorIdModel = defineModel<string>('instructorId', {
         >
             <UiSelectTrigger
                 id="course-create-instructor"
-                class="bg-background h-10 w-full rounded-xl"
+                class="bg-background w-full rounded-xl"
                 aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
             >
                 <UiSelectValue placeholder="— Brak instruktora —" />

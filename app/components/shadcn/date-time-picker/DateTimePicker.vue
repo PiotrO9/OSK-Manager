@@ -2,6 +2,7 @@
 import type { CalendarDate } from '@internationalized/date';
 import { computed, nextTick, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
+import type { FormControlSize } from '@/lib/formControlVariants';
 import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import UiTimePicker from '~/components/shadcn/time-picker/TimePicker.vue';
 import type {
@@ -37,6 +38,7 @@ const props = withDefaults(
         navigationMode?: DatePickerNavigationMode;
         yearRange?: DatePickerYearRange;
         triggerClass?: string;
+        controlSize?: FormControlSize;
     }>(),
     {
         id: undefined,
@@ -54,6 +56,7 @@ const props = withDefaults(
         navigationMode: 'step',
         yearRange: undefined,
         triggerClass: undefined,
+        controlSize: 'default',
     },
 );
 
@@ -155,7 +158,7 @@ watch(
     <div
         :class="
             cn(
-                'grid w-full max-w-lg grid-cols-[minmax(0,1fr)_8.75rem] gap-2',
+                'grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8.75rem]',
                 triggerClass,
             )
         "
@@ -174,7 +177,8 @@ watch(
             :show-today-button="showTodayButton"
             :navigation-mode="navigationMode"
             :year-range="yearRange"
-            trigger-class="h-10 max-w-none"
+            trigger-class="max-w-none"
+            :control-size="controlSize"
             @update:model-value="handleDateUpdate"
         />
         <UiTimePicker
@@ -183,7 +187,8 @@ watch(
             :model-value="timeValue"
             label="Godzina terminu"
             context-label="Termin"
-            trigger-class="h-10 max-w-none"
+            trigger-class="max-w-none"
+            :control-size="controlSize"
             :disabled="disabled"
             :invalid="ariaInvalid"
             :describedby="ariaDescribedby"

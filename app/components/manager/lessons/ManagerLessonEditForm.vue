@@ -300,6 +300,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             <UiLabel for="lesson-student">Kursant</UiLabel>
             <UiInput
                 id="lesson-student"
+                class="bg-background rounded-xl"
                 :model-value="
                     studentDisplayName ??
                     `${loadedLesson.studentId.slice(0, 8)}...`
@@ -351,7 +352,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="lesson-instructor"
-                    class="bg-background h-10 w-full rounded-xl"
+                    class="bg-background w-full rounded-xl"
                     :aria-label="`Instruktor: ${instructorSelectLabel}`"
                 >
                     <UiSelectValue placeholder="- Wybierz instruktora -" />
@@ -391,7 +392,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="lesson-vehicle"
-                    class="bg-background h-10 w-full rounded-xl"
+                    class="bg-background w-full rounded-xl"
                     aria-label="Pojazd dla jazdy praktycznej"
                 >
                     <UiSelectValue placeholder="- Wybierz pojazd -" />
@@ -435,7 +436,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                     :min="minLessonDate"
                     :max="maxLessonDate"
                     :is-date-disabled="isLessonDateDisabled"
-                    trigger-class="h-10 max-w-none rounded-xl bg-background"
+                    trigger-class="max-w-none rounded-xl bg-background"
                 />
             </div>
             <div class="grid gap-4 md:grid-cols-2">
@@ -449,7 +450,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                         :max-exclusive="startTimeMaxExclusive"
                         :allowed-times="availableStartTimes"
                         :disabled="isAvailabilityOptionsLoading"
-                        trigger-class="h-10 max-w-none rounded-xl bg-background"
+                        trigger-class="max-w-none rounded-xl bg-background"
                     />
                 </div>
                 <div class="space-y-2">
@@ -462,7 +463,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
                         :min-exclusive="endTimeMinExclusive"
                         :allowed-times="availableEndTimes"
                         :disabled="isAvailabilityOptionsLoading"
-                        trigger-class="h-10 max-w-none rounded-xl bg-background"
+                        trigger-class="max-w-none rounded-xl bg-background"
                     />
                 </div>
             </div>

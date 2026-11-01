@@ -86,7 +86,7 @@ function handleCourseUpdate(value: unknown) {
                     >
                         <UiSelectTrigger
                             id="students-page-course-filter"
-                            class="h-11 w-full min-w-0 sm:h-9"
+                            class="w-full min-w-0"
                             aria-label="Wybierz kurs do filtrowania listy kursantów lub pozostaw wszystkie kursy"
                         >
                             <UiSelectValue placeholder="Wszystkie kursy" />
@@ -109,7 +109,7 @@ function handleCourseUpdate(value: unknown) {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        class="size-11 shrink-0 sm:size-9"
+                        class="size-11 shrink-0 sm:size-10"
                         :disabled="isStudentsLoading || isCoursesLoading"
                         aria-label="Wyczyść filtr kursu"
                         title="Wszystkie kursy"

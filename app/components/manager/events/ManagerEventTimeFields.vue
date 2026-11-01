@@ -32,7 +32,7 @@ defineEmits<{
                 :model-value="date"
                 :disabled="isSaving"
                 placeholder="Wybierz datę wydarzenia"
-                trigger-class="h-10 max-w-none rounded-xl bg-background"
+                trigger-class="max-w-none rounded-xl bg-background"
                 @update:model-value="$emit('dateChange', $event)"
             />
         </div>
@@ -56,7 +56,7 @@ defineEmits<{
                         : undefined
                 "
                 :disabled="isSaving || isOptionsLoading"
-                trigger-class="h-10 max-w-none rounded-xl bg-background"
+                trigger-class="max-w-none rounded-xl bg-background"
                 @update:model-value="$emit('startTimeChange', $event)"
             />
         </div>
@@ -78,7 +78,7 @@ defineEmits<{
                         : undefined
                 "
                 :disabled="isSaving || isOptionsLoading"
-                trigger-class="h-10 max-w-none rounded-xl bg-background"
+                trigger-class="max-w-none rounded-xl bg-background"
                 @update:model-value="$emit('endTimeChange', $event)"
             />
         </div>

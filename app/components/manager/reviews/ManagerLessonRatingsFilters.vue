@@ -76,7 +76,7 @@ const emit = defineEmits<{
                 >
                     <UiSelectTrigger
                         id="ratings-instructor-filter"
-                        class="bg-background h-11 w-full"
+                        class="bg-background w-full"
                         aria-label="Wybierz instruktora"
                     >
                         <GraduationCap
@@ -133,7 +133,7 @@ const emit = defineEmits<{
                 >
                     <UiSelectTrigger
                         id="ratings-period-filter"
-                        class="bg-background h-11 w-full"
+                        class="bg-background w-full"
                         aria-label="Wybierz okres opinii"
                     >
                         <CalendarRange

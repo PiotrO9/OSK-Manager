@@ -198,19 +198,19 @@ function handleCustomDateUpdate(value: string) {
             >
                 <UiDatePicker
                     :id="`${idPrefix}-date-${vehicle.id}`"
+                    control-size="compact"
                     :model-value="customDate"
                     :disabled="isDisabled"
                     :min="minDate"
                     placeholder="Data powrotu"
                     :aria-invalid="showDateError"
                     :aria-describedby="showDateError ? dateErrorId : undefined"
-                    trigger-class="h-9 text-xs"
                     @update:model-value="handleCustomDateUpdate"
                 />
                 <UiButton
                     type="button"
                     size="sm"
-                    class="h-9 rounded-xl"
+                    class="h-11 rounded-xl transition-colors sm:h-9"
                     :disabled="isDisabled || customDateInvalid"
                     @click="saveCustomDate"
                 >

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import { Check, CreditCard, Save, X } from '@lucide/vue';
 import type {
     CreateStudentPaymentPayload,
@@ -233,23 +234,24 @@ function handleUpdate(paymentId: string): void {
                                     }}
                                 </p>
                             </div>
-                            <input
+                            <UiDatePicker
                                 v-model="state.dueDate"
-                                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
-                                type="date"
+                                trigger-class="bg-background rounded-lg"
+                                clearable
                                 :disabled="props.isSaving"
                                 aria-label="Termin płatności"
                             />
-                            <input
+                            <UiInput
                                 v-model="state.method"
-                                class="border-input bg-background text-foreground h-10 min-w-0 rounded-lg border px-3 text-sm"
+                                class="bg-background rounded-lg"
                                 placeholder="Metoda"
+                                aria-label="Metoda płatności"
                                 :disabled="props.isSaving"
                             />
                             <UiButton
                                 type="button"
                                 variant="outline"
-                                class="h-10 rounded-lg px-3"
+                                class="h-11 rounded-lg px-3 sm:h-10"
                                 :disabled="props.isSaving"
                                 @click="handleUpdate(payment.id)"
                             >
@@ -259,7 +261,7 @@ function handleUpdate(paymentId: string): void {
                             <UiButton
                                 v-if="payment.status === 'UNPAID'"
                                 type="button"
-                                class="h-10 rounded-lg px-3"
+                                class="h-11 rounded-lg px-3 sm:h-10"
                                 :disabled="props.isSaving"
                                 @click="emit('markPaid', payment.id)"
                             >
@@ -270,7 +272,7 @@ function handleUpdate(paymentId: string): void {
                                 v-else
                                 type="button"
                                 variant="outline"
-                                class="h-10 rounded-lg px-3"
+                                class="h-11 rounded-lg px-3 sm:h-10"
                                 :disabled="props.isSaving"
                                 @click="emit('markUnpaid', payment.id)"
                             >

@@ -114,7 +114,8 @@ const groups = computed(() => buildStudentScheduleDayGroups(props.items));
                                 "
                             >
                                 <UiSelectTrigger
-                                    class="h-9 min-w-36"
+                                    control-size="compact"
+                                    class="min-w-36"
                                     @click.stop
                                 >
                                     <UiSelectValue />

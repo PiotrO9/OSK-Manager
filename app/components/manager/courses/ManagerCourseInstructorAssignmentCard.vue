@@ -160,7 +160,7 @@ const currentInstructorInitials = computed(() => {
                     >
                         <UiSelectTrigger
                             id="course-detail-instructor-select"
-                            class="h-11 w-full rounded-lg"
+                            class="w-full rounded-lg"
                             aria-label="Wybierz instruktora przypisanego do kursu lub pozostaw bez wyboru"
                         >
                             <UiSelectValue placeholder="Brak instruktora" />
@@ -189,7 +189,7 @@ const currentInstructorInitials = computed(() => {
 
                 <UiButton
                     type="button"
-                    class="h-11 gap-2 rounded-lg px-4 font-semibold"
+                    class="h-11 gap-2 rounded-lg px-4 font-semibold transition-colors sm:h-10"
                     :disabled="!canSaveInstructorAssignment"
                     :aria-busy="isPatchLoading"
                     @click="$emit('saveInstructorAssignment')"

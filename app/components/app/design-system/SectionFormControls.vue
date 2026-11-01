@@ -106,6 +106,7 @@ function handleDemoWeekUpdate(
 
 <template>
     <section class="space-y-5" aria-label="Kontrolki formularza">
+        <FormControlSizeExamples />
         <FormSection
             title="Dane kursanta"
             description="Etykieta pozostaje widoczna niezależnie od wartości i placeholdera."
@@ -459,9 +460,10 @@ function handleDemoWeekUpdate(
                     <UiLabel for="ds-file">Dokument kursanta</UiLabel>
                     <UiInput
                         id="ds-file"
+                        control-size="sm"
                         type="file"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        class="cursor-pointer"
+                        class="h-9 cursor-pointer"
                     />
                     <p class="text-muted-foreground text-xs">
                         Upload skanu PKK, badań albo zgody opiekuna.

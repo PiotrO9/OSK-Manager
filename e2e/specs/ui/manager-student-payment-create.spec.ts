@@ -28,6 +28,102 @@ const summary = {
     currency: 'PLN',
 };
 
+for (const width of [1440, 390]) {
+    test(`payment date picker preserves PATCH values and clearing at ${width}px`, async ({
+        context,
+        page,
+        baseURL,
+    }) => {
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+        const todayIso = new Intl.DateTimeFormat('sv-SE', {
+            timeZone: 'Europe/Warsaw',
+        }).format(new Date());
+
+        await page.setViewportSize({ width, height: 1000 });
+        const payload = {
+            payments: [
+                { ...existingPayment, dueDate: '2026-10-31', method: 'cash' },
+            ],
+            paymentPlans: [
+                {
+                    id: paymentPlanId,
+                    courseId: 'course-1',
+                    courseName: 'Kurs B',
+                    currency: 'PLN',
+                },
+            ],
+            summary,
+        };
+        const patches: { dueDate: string | null; method: string }[] = [];
+
+        await page.route(`**/api/students/${studentUserId}`, (route) =>
+            route.fulfill({
+                json: {
+                    success: true,
+                    data: {
+                        id: 'student-profile-1',
+                        userId: studentUserId,
+                        schoolId,
+                        firstName: 'Anna',
+                        lastName: 'Kowalska',
+                        email: 'anna@example.com',
+                        courses: [],
+                    },
+                },
+            }),
+        );
+        await page.route(`**/api/students/${studentUserId}/payments`, (route) =>
+            route.fulfill({ json: { success: true, data: payload } }),
+        );
+        await page.route(
+            `**/api/students/${studentUserId}/payments/existing-payment`,
+            async (route) => {
+                const patch = route.request().postDataJSON();
+
+                patches.push(patch);
+                Object.assign(payload.payments[0]!, patch);
+                await route.fulfill({ json: { success: true, data: payload } });
+            },
+        );
+        await page.goto(`/menedzer/kursanci/${studentUserId}`);
+        await page.getByRole('tab', { name: 'Płatności', exact: true }).click();
+        const row = page.locator('#payment-existing-payment');
+        const date = row.getByRole('button', {
+            name: 'Termin płatności',
+            exact: true,
+        });
+        const method = row.getByRole('textbox', {
+            name: 'Metoda płatności',
+            exact: true,
+        });
+
+        await expect(date).toContainText('31 października 2026');
+        const fieldHeight = width < 640 ? 44 : 40;
+
+        expect((await date.boundingBox())!.height).toBe(fieldHeight);
+        expect((await method.boundingBox())!.height).toBe(fieldHeight);
+        await method.fill('Przelew ręczny');
+        await date.click();
+        await page
+            .getByRole('button', { name: 'Dzisiaj', exact: true })
+            .click();
+        await row.getByRole('button', { name: 'Zapisz', exact: true }).click();
+        await expect.poll(() => patches.length).toBe(1);
+        expect(patches[0]).toEqual({
+            dueDate: todayIso,
+            method: 'Przelew ręczny',
+        });
+        await expect(date).toBeEnabled();
+        await date.click();
+        await page
+            .getByRole('button', { name: 'Wyczyść', exact: true })
+            .click();
+        await row.getByRole('button', { name: 'Zapisz', exact: true }).click();
+        await expect.poll(() => patches.length).toBe(2);
+        expect(patches[1]).toEqual({ dueDate: null, method: 'Przelew ręczny' });
+    });
+}
+
 test('BUG-04 preserves a payment draft after failure and clears it after retry', async ({
     context,
     page,

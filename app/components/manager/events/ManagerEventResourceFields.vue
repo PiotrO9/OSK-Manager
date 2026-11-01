@@ -69,7 +69,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="edit-event-instructor"
-                    class="bg-background h-10 w-full rounded-xl"
+                    class="bg-background w-full rounded-xl"
                     aria-label="Instruktor prowadzący blok"
                 >
                     <UiSelectValue
@@ -132,7 +132,7 @@ function isVehicleDisabled(vehicle: Vehicle): boolean {
             >
                 <UiSelectTrigger
                     id="edit-event-vehicle"
-                    class="bg-background h-10 w-full rounded-xl"
+                    class="bg-background w-full rounded-xl"
                     aria-label="Pojazd dla bloku jazdy"
                 >
                     <UiSelectValue placeholder="- Wybierz pojazd -" />

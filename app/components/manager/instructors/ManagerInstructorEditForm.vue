@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
 import type { CourseTypeOption } from '~/types/courses/courseType';
 import { courseTypeVehicleIcon } from '~/utils/courses/courseTypeVehicleIcon';
 import type { InstructorEditFormModel } from '~/types/instructors/instructor';
@@ -28,10 +27,10 @@ const form = defineModel<InstructorEditFormModel>('form', {
     required: true,
 });
 
-function handleExperienceYearsInput(event: Event): void {
-    const el = event.target as HTMLInputElement;
-
-    form.value.experienceYears = parseInstructorExperienceYearsInput(el.value);
+function handleExperienceYearsInput(value: string | number): void {
+    form.value.experienceYears = parseInstructorExperienceYearsInput(
+        String(value),
+    );
 }
 
 const courseTypeRows = computed(() =>
@@ -66,9 +65,6 @@ function handleCourseTypeCheckedChange(
         checked,
     );
 }
-
-const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 </script>
 
 <template>
@@ -90,7 +86,7 @@ const fieldClass =
                 >
                     Imię
                 </label>
-                <input
+                <UiInput
                     id="instructor-edit-first-name"
                     v-model="form.firstName"
                     type="text"
@@ -98,7 +94,6 @@ const fieldClass =
                     autocomplete="given-name"
                     required
                     :disabled="isSubmitting"
-                    :class="fieldClass"
                 />
             </div>
             <div class="space-y-2">
@@ -108,7 +103,7 @@ const fieldClass =
                 >
                     Nazwisko
                 </label>
-                <input
+                <UiInput
                     id="instructor-edit-last-name"
                     v-model="form.lastName"
                     type="text"
@@ -116,7 +111,6 @@ const fieldClass =
                     autocomplete="family-name"
                     required
                     :disabled="isSubmitting"
-                    :class="fieldClass"
                 />
             </div>
         </div>
@@ -128,21 +122,16 @@ const fieldClass =
             >
                 E‑mail
             </label>
-            <input
+            <UiInput
                 id="instructor-edit-email"
-                :value="form.email"
+                :model-value="form.email"
                 type="email"
                 name="email"
                 readonly
                 tabindex="-1"
                 aria-readonly="true"
                 :disabled="isSubmitting"
-                :class="
-                    cn(
-                        fieldClass,
-                        'bg-muted text-muted-foreground cursor-not-allowed',
-                    )
-                "
+                class="bg-muted text-muted-foreground cursor-not-allowed"
             />
         </div>
 
@@ -153,17 +142,16 @@ const fieldClass =
             >
                 Staż (lata)
             </label>
-            <input
+            <UiInput
                 id="instructor-edit-experience-years"
                 type="number"
                 name="experienceYears"
                 min="0"
                 max="80"
                 step="1"
-                :value="form.experienceYears"
+                :model-value="form.experienceYears ?? ''"
                 :disabled="isSubmitting"
-                :class="fieldClass"
-                @input="handleExperienceYearsInput"
+                @update:model-value="handleExperienceYearsInput"
             />
         </div>
 

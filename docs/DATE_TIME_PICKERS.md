@@ -126,6 +126,26 @@ const dateRange = ref<UiDateRangePickerValue>({
 - `UiTimePicker` powinien blokować niedozwolone wartości przez `minExclusive`, `maxExclusive`, `hourOptions` i `minuteOptions`, zamiast czekać wyłącznie na walidację formularza.
 - Pola opcjonalne dostają `clearable` i sensowny `placeholder`.
 
+## Rozmiary i szerokości
+
+Wszystkie pickery przyjmują `controlSize`: `default` (44px na telefonie,
+40px od 640px), `touch` (44px), `compact` (44px na telefonie, 36px od 640px)
+lub `sm` (32px, dla kontrolek wewnętrznych). Pełny standard jest w
+[`COMPONENTS.md`](COMPONENTS.md#rozmiary-pól-formularzy).
+
+Rozmiar przekazuj przez `control-size`, a `trigger-class` pozostaw dla
+szerokości, koloru i radiusu. Nie nadpisuj wysokości lokalnym `h-*`.
+`UiDateTimePicker` przekazuje rozmiar obu dzieciom i układa je w kolumnie
+poniżej 640px; jego `triggerClass` nadal styluje kontener.
+
+Data bez widocznej etykiety może otrzymać `aria-label` (prop `ariaLabel`),
+np. w edycji płatności. Opcjonalne daty mają `clearable`, a model po
+wyczyszczeniu pozostaje pustym stringiem. Konwersja na `null` należy do
+istniejącego buildera payloadu, nie do komponentu.
+
+W filtrze dat od–do używaj dwóch `UiDatePicker`, zachowując obecny operator
+i format `YYYY-MM-DD`. Nie zastępuj go automatycznie innym modelem zakresu.
+
 ## Dostępność i walidacja
 
 - Przekazuj `id` zgodny z `UiLabel for`.

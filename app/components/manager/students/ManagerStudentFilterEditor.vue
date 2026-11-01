@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import UiDatePicker from '~/components/shadcn/date-picker/DatePicker.vue';
 import type {
     StudentAdvancedFilterCourseOption,
     StudentAdvancedFilterDraft,
@@ -105,7 +106,8 @@ function handleBooleanUpdate(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="student-advanced-filter-field"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz pole" />
                 </UiSelectTrigger>
@@ -132,7 +134,8 @@ function handleBooleanUpdate(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="student-advanced-filter-condition"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz warunek" />
                 </UiSelectTrigger>
@@ -162,11 +165,11 @@ function handleBooleanUpdate(value: unknown): void {
             <UiLabel for="student-advanced-filter-text">Wartość</UiLabel>
             <UiInput
                 id="student-advanced-filter-text"
+                control-size="touch"
                 :model-value="textValue"
                 :disabled="disabled"
                 maxlength="120"
                 autocomplete="off"
-                class="h-11"
                 @update:model-value="emitDraft({ value: String($event) })"
             />
         </div>
@@ -183,7 +186,8 @@ function handleBooleanUpdate(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="student-advanced-filter-active"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue />
                 </UiSelectTrigger>
@@ -208,7 +212,8 @@ function handleBooleanUpdate(value: unknown): void {
             >
                 <UiSelectTrigger
                     id="student-advanced-filter-course"
-                    class="h-11 w-full"
+                    control-size="touch"
+                    class="w-full"
                 >
                     <UiSelectValue placeholder="Wybierz kurs" />
                 </UiSelectTrigger>
@@ -241,12 +246,12 @@ function handleBooleanUpdate(value: unknown): void {
                             : 'Data'
                     }}
                 </UiLabel>
-                <UiInput
+                <UiDatePicker
                     id="student-advanced-filter-date-from"
+                    control-size="touch"
                     :model-value="textValue"
                     :disabled="disabled"
-                    type="date"
-                    class="h-11"
+                    clearable
                     @update:model-value="emitDraft({ value: String($event) })"
                 />
             </div>
@@ -255,12 +260,12 @@ function handleBooleanUpdate(value: unknown): void {
                 class="grid gap-2"
             >
                 <UiLabel for="student-advanced-filter-date-to">Data do</UiLabel>
-                <UiInput
+                <UiDatePicker
                     id="student-advanced-filter-date-to"
+                    control-size="touch"
                     :model-value="draft.valueTo ?? ''"
                     :disabled="disabled"
-                    type="date"
-                    class="h-11"
+                    clearable
                     @update:model-value="emitDraft({ valueTo: String($event) })"
                 />
             </div>

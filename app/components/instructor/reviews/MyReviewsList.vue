@@ -89,7 +89,7 @@ function formatDateTime(value: string): string {
                 >
                     <UiSelectTrigger
                         id="my-reviews-period"
-                        class="bg-background h-10 w-full"
+                        class="bg-background w-full"
                         aria-label="Wybierz okres opinii"
                     >
                         <UiSelectValue placeholder="Wybierz okres" />

@@ -58,7 +58,7 @@ const views: { value: InstructorQuickView; label: string }[] = [
                 type="search"
                 maxlength="120"
                 autocomplete="off"
-                class="h-11 pr-11 pl-9 sm:h-10"
+                class="pr-11 pl-9"
                 aria-label="Szukaj instruktora po imieniu, nazwisku, e-mailu, telefonie lub kwalifikacji"
                 placeholder="Szukaj instruktora..."
             />

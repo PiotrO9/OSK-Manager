@@ -20,9 +20,6 @@ defineEmits<{
     updateStartTime: [value: string];
     updateEndTime: [value: string];
 }>();
-
-const fieldClass =
-    'border-input bg-background text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring h-8 min-w-0 rounded-md border px-2.5 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60';
 </script>
 
 <template>
@@ -62,13 +59,13 @@ const fieldClass =
                 </span>
                 <UiTimePicker
                     :id="`availability-start-${row.dayOfWeek}`"
+                    control-size="compact"
                     :model-value="row.startTime"
                     :disabled="!row.enabled || isDisabled"
                     :label="`Godzina rozpoczęcia - ${row.label}`"
                     :invalid="error !== null"
                     :context-label="`${row.label} · początek pracy`"
                     :max-exclusive="row.endTime"
-                    :trigger-class="fieldClass"
                     @update:model-value="$emit('updateStartTime', $event)"
                 />
             </div>
@@ -84,13 +81,13 @@ const fieldClass =
                 </span>
                 <UiTimePicker
                     :id="`availability-end-${row.dayOfWeek}`"
+                    control-size="compact"
                     :model-value="row.endTime"
                     :disabled="!row.enabled || isDisabled"
                     :label="`Godzina zakończenia - ${row.label}`"
                     :invalid="error !== null"
                     :context-label="`${row.label} · koniec pracy`"
                     :min-exclusive="row.startTime"
-                    :trigger-class="fieldClass"
                     @update:model-value="$emit('updateEndTime', $event)"
                 />
             </div>

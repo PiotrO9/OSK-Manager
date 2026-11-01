@@ -10,6 +10,10 @@ import {
 import { computed, shallowRef, watch } from 'vue';
 import { cn } from '@/lib/utils';
 import {
+    formControlVariants,
+    type FormControlSize,
+} from '@/lib/formControlVariants';
+import {
     dateValueToIsoDateString,
     isoDateStringToCalendarDate,
 } from '~/utils/date/weeklyCalendarDates';
@@ -28,6 +32,7 @@ const props = withDefaults(
     defineProps<{
         modelValue: string;
         id?: string;
+        ariaLabel?: string;
         disabled?: boolean;
         placeholder?: string;
         locale?: string;
@@ -41,10 +46,12 @@ const props = withDefaults(
         navigationMode?: DatePickerNavigationMode;
         yearRange?: DatePickerYearRange;
         triggerClass?: string;
+        controlSize?: FormControlSize;
         open?: boolean;
     }>(),
     {
         id: undefined,
+        ariaLabel: undefined,
         disabled: false,
         placeholder: 'Wybierz datę',
         locale: 'pl-PL',
@@ -58,6 +65,7 @@ const props = withDefaults(
         navigationMode: 'step',
         yearRange: undefined,
         triggerClass: undefined,
+        controlSize: 'default',
         open: undefined,
     },
 );
@@ -180,15 +188,18 @@ const isTodayDisabled = computed(() => {
         <UiPopoverTrigger as-child>
             <UiButton
                 :id="id"
+                :aria-label="ariaLabel"
                 type="button"
                 variant="outline"
+                :data-control-size="controlSize"
                 :disabled="disabled"
                 :aria-invalid="ariaInvalid ? true : undefined"
                 :aria-describedby="ariaDescribedby"
                 :data-empty="displayLabel.length === 0"
                 :class="
                     cn(
-                        'data-[empty=true]:text-muted-foreground w-full max-w-lg justify-between text-left font-normal',
+                        'data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal',
+                        formControlVariants({ controlSize }),
                         triggerClass,
                     )
                 "
@@ -213,7 +224,7 @@ const isTodayDisabled = computed(() => {
 
         <UiPopoverContent
             align="start"
-            class="date-picker-panel bg-popover text-popover-foreground max-h-[min(32rem,var(--reka-popover-content-available-height))] w-[22rem] overflow-y-auto rounded-lg border p-0 shadow-lg"
+            class="date-picker-panel bg-popover text-popover-foreground max-h-[min(32rem,var(--reka-popover-content-available-height))] w-[22rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border p-0 shadow-lg"
             :collision-padding="12"
             :side-offset="8"
         >
@@ -317,6 +328,12 @@ const isTodayDisabled = computed(() => {
 
 .date-picker-calendar :deep([data-disabled]) {
     cursor: not-allowed;
+}
+
+@media (max-width: 639px) {
+    .date-picker-calendar {
+        padding: 0;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -29,6 +29,10 @@ import {
 import { computed, shallowRef } from 'vue';
 import { cn } from '@/lib/utils';
 import {
+    formControlVariants,
+    type FormControlSize,
+} from '@/lib/formControlVariants';
+import {
     dateValueToIsoDateString,
     isoDateStringToCalendarDate,
 } from '~/utils/date/weeklyCalendarDates';
@@ -62,6 +66,7 @@ const props = withDefaults(
         max?: string;
         clearable?: boolean;
         triggerClass?: string;
+        controlSize?: FormControlSize;
     }>(),
     {
         id: undefined,
@@ -74,6 +79,7 @@ const props = withDefaults(
         max: undefined,
         clearable: false,
         triggerClass: undefined,
+        controlSize: 'default',
     },
 );
 
@@ -273,13 +279,15 @@ const dateRangePresets: DateRangePreset[] = [
                 :id="id"
                 type="button"
                 variant="outline"
+                :data-control-size="controlSize"
                 :disabled="disabled"
                 :aria-invalid="ariaInvalid ? true : undefined"
                 :aria-describedby="ariaDescribedby"
                 :data-empty="displayLabel.length === 0"
                 :class="
                     cn(
-                        'data-[empty=true]:text-muted-foreground w-full max-w-lg justify-between text-left font-normal',
+                        'data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal',
+                        formControlVariants({ controlSize }),
                         triggerClass,
                     )
                 "
@@ -304,7 +312,7 @@ const dateRangePresets: DateRangePreset[] = [
 
         <DateRangePickerContent
             align="start"
-            class="date-range-picker-panel bg-popover text-popover-foreground max-h-[min(32rem,var(--reka-popover-content-available-height))] w-[22rem] overflow-y-auto rounded-lg border p-0 shadow-lg"
+            class="date-range-picker-panel bg-popover text-popover-foreground max-h-[min(32rem,var(--reka-popover-content-available-height))] w-[22rem] max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border p-0 shadow-lg"
             :collision-padding="12"
             :side-offset="8"
         >
@@ -360,7 +368,7 @@ const dateRangePresets: DateRangePreset[] = [
                                 <DateRangePickerHeadCell
                                     v-for="day in weekDays"
                                     :key="day"
-                                    class="text-muted-foreground w-10 rounded-md text-[0.8rem] font-normal"
+                                    class="text-muted-foreground min-w-0 flex-1 rounded-md text-[0.8rem] font-normal"
                                 >
                                     {{ day }}
                                 </DateRangePickerHeadCell>
@@ -376,13 +384,13 @@ const dateRangePresets: DateRangePreset[] = [
                                     v-for="weekDate in weekDates"
                                     :key="weekDate.toString()"
                                     :date="weekDate"
-                                    class="date-range-picker-cell relative size-10 p-0 text-center text-sm"
+                                    class="date-range-picker-cell relative h-10 min-w-0 flex-1 p-0 text-center text-sm"
                                 >
                                     <DateRangePickerCellTrigger
                                         :day="weekDate"
                                         :month="month.value"
                                         as="button"
-                                        class="date-range-picker-day hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring relative z-10 inline-flex size-10 cursor-pointer items-center justify-center rounded-md text-sm font-normal transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none"
+                                        class="date-range-picker-day hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring relative z-10 inline-flex h-10 w-full cursor-pointer items-center justify-center rounded-md text-sm font-normal transition-colors outline-none focus-visible:ring-2 disabled:pointer-events-none"
                                     />
                                 </DateRangePickerCell>
                             </DateRangePickerGridRow>
