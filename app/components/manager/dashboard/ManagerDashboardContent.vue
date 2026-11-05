@@ -34,7 +34,7 @@ const dashboard = useManagerDashboardPage();
 
         <section
             v-else-if="dashboard.isNotConfigured.value"
-            class="border-border bg-card rounded-2xl border p-5 shadow-sm md:p-6"
+            class="border-border bg-card rounded-2xl border p-4 shadow-sm md:p-5"
             aria-labelledby="dashboard-no-school-heading"
         >
             <div class="flex flex-col gap-5 sm:flex-row sm:items-center">

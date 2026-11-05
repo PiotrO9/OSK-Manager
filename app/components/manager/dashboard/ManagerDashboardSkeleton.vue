@@ -20,11 +20,11 @@
             <UiSkeleton class="h-11 w-44 rounded-xl" />
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-3" aria-hidden="true">
+        <div class="grid gap-4 sm:grid-cols-3 md:gap-5" aria-hidden="true">
             <div
                 v-for="action in 3"
                 :key="action"
-                class="border-border bg-card flex min-h-20 items-center gap-3 rounded-2xl border p-4 shadow-sm"
+                class="border-border bg-card flex min-h-20 items-center gap-3 rounded-2xl border p-4 shadow-sm md:p-5"
             >
                 <UiSkeleton class="size-11 shrink-0 rounded-xl" />
                 <div class="min-w-0 flex-1 space-y-2">

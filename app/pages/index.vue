@@ -61,7 +61,7 @@ const sessionDrivingSchools = computed(
 
         <section
             v-else
-            class="border-border bg-card rounded-2xl border p-5 shadow-sm md:p-6"
+            class="border-border bg-card rounded-2xl border p-4 shadow-sm md:p-5"
             aria-labelledby="dashboard-role-heading"
         >
             <div class="flex items-start gap-4">

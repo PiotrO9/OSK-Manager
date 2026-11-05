@@ -1,8 +1,69 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { authenticateMockUser } from '../../support/mockAuth';
 
 async function waitForNuxtHydration(page: import('@playwright/test').Page) {
     await page.locator('html[data-app-ready="true"]').waitFor();
+}
+
+async function measureDashboardSpacing(root: Locator) {
+    return root.evaluate((element) => {
+        const visible = (node: Element) =>
+            node.getBoundingClientRect().width > 0;
+        const cards = Array.from(
+            element.querySelectorAll(
+                'section[aria-labelledby], a.rounded-2xl, [aria-label^="Szkoła jazdy:"], [aria-label^="Karta domyślnego OSK:"]',
+            ),
+        ).filter(visible);
+        const padding = cards.flatMap((card) => {
+            const areas =
+                getComputedStyle(card).paddingLeft !== '0px'
+                    ? [card]
+                    : Array.from(card.children).filter(
+                          (child) =>
+                              getComputedStyle(child).paddingLeft !== '0px',
+                      );
+
+            return areas.map((area) => {
+                const style = getComputedStyle(area);
+
+                return [
+                    style.paddingTop,
+                    style.paddingRight,
+                    style.paddingBottom,
+                    style.paddingLeft,
+                ].map(Number.parseFloat);
+            });
+        });
+        const distance = (children: Element[]) =>
+            children.slice(1).map((child, index) => {
+                const previous = children[index]!.getBoundingClientRect();
+                const current = child.getBoundingClientRect();
+
+                return Math.abs(current.top - previous.top) < 1
+                    ? current.left - previous.right
+                    : current.top - previous.bottom;
+            });
+        const gaps = Array.from(element.querySelectorAll('div, nav')).flatMap(
+            (group) => {
+                const children = Array.from(group.children).filter(visible);
+
+                return children.length > 1 &&
+                    children.every((child) => cards.includes(child))
+                    ? distance(children)
+                    : [];
+            },
+        );
+        const dashboard = element.children[1]!;
+
+        gaps.push(...distance(Array.from(dashboard.children).filter(visible)));
+
+        return {
+            cards: cards.length,
+            padding,
+            gaps,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+    });
 }
 
 function formatDateKey(date: Date): string {
@@ -134,6 +195,20 @@ test.describe('UI: pulpit zależny od roli', () => {
         );
         await expect(loadingStatus.locator('section')).toHaveCount(2);
 
+        for (const width of [390, 1440]) {
+            await page.setViewportSize({ width, height: 1000 });
+            const expected = width < 768 ? '16px' : '20px';
+            const actionGrid = loadingStatus.locator(':scope > div').nth(1);
+
+            await expect(actionGrid).toHaveCSS('gap', expected);
+
+            for (const action of await actionGrid
+                .locator(':scope > div')
+                .all()) {
+                await expect(action).toHaveCSS('padding', expected);
+            }
+        }
+
         releaseDefaultSchool();
 
         await expect(loadingStatus).toBeHidden();
@@ -233,6 +308,100 @@ test.describe('UI: pulpit zależny od roli', () => {
         await expect(
             page.getByRole('link', { name: /Mój terminarz/ }),
         ).toBeVisible();
+    });
+
+    for (const role of ['STUDENT', 'INSTRUCTOR', 'MANAGER'] as const) {
+        for (const theme of ['light', 'dark']) {
+            test(`utrzymuje wspólne odstępy pulpitu ${role} w motywie ${theme}`, async ({
+                baseURL,
+                context,
+                page,
+            }, testInfo) => {
+                await authenticateMockUser(context, baseURL!, role);
+                await page.addInitScript((mode) => {
+                    localStorage.setItem('osk-manager-color-mode', mode);
+                }, theme);
+
+                if (role === 'MANAGER') await mockManagerDashboard(page);
+
+                await page.goto('/');
+                await waitForNuxtHydration(page);
+
+                if (role === 'MANAGER') {
+                    await expect(
+                        page.getByRole('heading', {
+                            name: 'Wolne terminy instruktorów',
+                        }),
+                    ).toBeVisible();
+                }
+
+                const root = page
+                    .getByRole('heading', { level: 1 })
+                    .locator('..')
+                    .locator('..');
+                const measurements = [];
+
+                for (const width of [
+                    320, 390, 639, 640, 767, 768, 1023, 1024, 1440,
+                ]) {
+                    await page.setViewportSize({ width, height: 1000 });
+                    const expected = width < 768 ? 16 : 20;
+
+                    await expect
+                        .poll(async () => {
+                            const result = await measureDashboardSpacing(root);
+
+                            return (
+                                result.cards === (role === 'MANAGER' ? 6 : 5) &&
+                                result.padding.length >= result.cards &&
+                                result.gaps.length >= 4 &&
+                                [
+                                    ...result.padding.flat(),
+                                    ...result.gaps,
+                                ].every(
+                                    (value) => Math.abs(value - expected) < 1,
+                                ) &&
+                                !result.overflow
+                            );
+                        })
+                        .toBe(true);
+                    measurements.push({
+                        width,
+                        ...(await measureDashboardSpacing(root)),
+                    });
+                }
+
+                await testInfo.attach('dashboard-spacing.json', {
+                    body: JSON.stringify(measurements, null, 2),
+                    contentType: 'application/json',
+                });
+            });
+        }
+    }
+
+    test('stosuje wspólny padding także bez domyślnej szkoły', async ({
+        baseURL,
+        context,
+        page,
+    }) => {
+        await authenticateMockUser(context, baseURL!, 'MANAGER');
+        await page.route('**/api/driving-schools/default', (route) =>
+            route.fulfill({ json: { success: true, data: null } }),
+        );
+        await page.goto('/');
+        const card = page.getByRole('region', {
+            name: 'Ustaw domyślną szkołę',
+        });
+
+        await expect(card).toBeVisible();
+
+        for (const width of [390, 767, 768, 1440]) {
+            await page.setViewportSize({ width, height: 1000 });
+            await expect(card).toHaveCSS(
+                'padding',
+                width < 768 ? '16px' : '20px',
+            );
+        }
     });
 
     for (const viewport of [

@@ -7,7 +7,7 @@
             <div class="space-y-3">
                 <p class="text-foreground text-sm font-medium">Odstępy</p>
                 <div
-                    v-for="size in [4, 8, 12, 16, 24, 32]"
+                    v-for="size in [4, 8, 12, 16, 20, 24, 32]"
                     :key="size"
                     class="flex items-center gap-3"
                 >
@@ -21,6 +21,9 @@
                         aria-hidden="true"
                     />
                 </div>
+                <p class="text-muted-foreground text-xs leading-relaxed">
+                    Kafle pulpitu: padding i odstępy 16 px, od 768 px — 20 px.
+                </p>
             </div>
             <div class="space-y-3">
                 <p class="text-foreground text-sm font-medium">Promienie</p>

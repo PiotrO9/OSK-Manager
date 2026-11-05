@@ -26,14 +26,14 @@ const actions = [
 
 <template>
     <nav
-        class="grid gap-3 sm:grid-cols-3"
+        class="grid gap-4 sm:grid-cols-3 md:gap-5"
         aria-label="Najważniejsze obszary zarządzania"
     >
         <NuxtLink
             v-for="action in actions"
             :key="action.to"
             :to="action.to"
-            class="border-border bg-card hover:border-primary/35 hover:bg-primary-50/30 focus-visible:ring-primary group flex min-h-20 items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            class="border-border bg-card hover:border-primary/35 hover:bg-primary-50/30 focus-visible:ring-primary group flex min-h-20 items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none md:p-5"
         >
             <span
                 class="bg-primary-50 text-primary-700 flex size-11 shrink-0 items-center justify-center rounded-xl"

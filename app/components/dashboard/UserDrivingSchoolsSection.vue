@@ -25,11 +25,11 @@ const heading = computed(() =>
             Cię do szkoły, zobaczysz ją tutaj.
         </p>
 
-        <div v-else class="space-y-4">
+        <div v-else class="space-y-4 md:space-y-5">
             <div
                 v-for="school in schools"
                 :key="school.id"
-                class="border-border bg-card rounded-2xl border p-5 shadow-sm"
+                class="border-border bg-card rounded-2xl border p-4 shadow-sm md:p-5"
                 :aria-label="`Szkoła jazdy: ${school.name}`"
             >
                 <SchoolContext

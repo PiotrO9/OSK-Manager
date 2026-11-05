@@ -53,7 +53,7 @@ const unpaidLabel = computed(() => {
         </div>
 
         <div
-            class="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(260px,0.5fr)]"
+            class="grid gap-4 md:gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(260px,0.5fr)]"
         >
             <DashboardNextLessonCard
                 :item="nextItem"
@@ -62,7 +62,7 @@ const unpaidLabel = computed(() => {
             />
 
             <section
-                class="bg-primary text-primary-foreground relative overflow-hidden rounded-2xl p-5 shadow-sm"
+                class="bg-primary text-primary-foreground relative overflow-hidden rounded-2xl p-4 shadow-sm md:p-5"
                 aria-labelledby="student-booking-heading"
             >
                 <div
@@ -101,10 +101,10 @@ const unpaidLabel = computed(() => {
             </section>
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-3 md:gap-5">
             <NuxtLink
                 :to="appPaths.myCourses()"
-                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none md:p-5"
             >
                 <div class="flex items-center gap-2">
                     <GraduationCap
@@ -127,7 +127,7 @@ const unpaidLabel = computed(() => {
 
             <NuxtLink
                 :to="appPaths.myLessons()"
-                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none md:p-5"
             >
                 <p class="text-muted-foreground text-sm font-semibold">
                     Najbliższe 14 dni
@@ -144,7 +144,7 @@ const unpaidLabel = computed(() => {
 
             <NuxtLink
                 :to="appPaths.myPayments()"
-                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                class="border-border bg-card hover:border-primary/35 focus-visible:ring-primary rounded-2xl border p-4 shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none md:p-5"
             >
                 <div class="flex items-center gap-2">
                     <CreditCard
